@@ -38,7 +38,6 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
@@ -59,11 +58,12 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
-import {isBillableEnabledOnPolicy, isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
+import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
+    canShowReimbursableToggleForPolicy,
     canSubmitPerDiemExpenseFromWorkspace,
     findVendorByID,
     getDistanceRateCustomUnitRate,
@@ -79,7 +79,6 @@ import {
     isPolicyAccessible,
     isTaxTrackingEnabled,
     resolveCurrentTaxCode,
-    isXeroActiveMatchingSource,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -132,7 +131,6 @@ import {
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
     isTimeRequest as isTimeRequestTransactionUtils,
-    isTransactionPendingDelete,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
 } from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
@@ -220,7 +218,7 @@ function MoneyRequestView({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {environmentURL} = useEnvironment();
-    const {translate, toLocaleDigit, localeCompare, dateFnsLocale} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const {showConfirmModal} = useConfirmModal();
@@ -300,11 +298,6 @@ function MoneyRequestView({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isP2PDistanceRequest = isCustomUnitRateIDForP2P(transaction);
     const moneyRequestReport = parentReport;
-    const parentReportTransactions = useReportTransactions(moneyRequestReport?.reportID);
-    // Exclude transactions pending deletion so the report is recognized as single-expense immediately after deleting one of its expenses,
-    // instead of waiting for the optimistic delete to be removed from Onyx (https://github.com/Expensify/App/issues/91058).
-    // While offline the deleted expense is still rendered, so keep counting it to stay consistent with the visible transaction list.
-    const visibleParentReportTransactions = parentReportTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(transactionThreadReport, moneyRequestReport, parentReportAction);
@@ -539,7 +532,6 @@ function MoneyRequestView({
         (isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) ||
         (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {})));
     // transactionTag can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || (canEdit && policyHasEnabledTags));
     // Surface a delete confirmation (like tax) when the value is stale and there's nothing valid to select, instead of
     // navigating to edit. Categories need at least one, so they only hit this when disabled; tags can be fully emptied,
@@ -547,11 +539,9 @@ function MoneyRequestView({
     const shouldShowCategoryDisabledAlert = !policy?.areCategoriesEnabled && !!category;
     const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !policyHasEnabledTags) && !!transactionTag;
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || isBillableEnabledOnPolicy(policy) || !!updatedTransaction?.billable);
-    const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
-        policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
     const shouldShowReimbursable =
         (isPolicyExpenseChat || (isExpenseUnreported && !!policy)) &&
-        (policy?.disabledFields?.reimbursable !== true || isCurrentTransactionReimbursableDifferentFromPolicyDefault) &&
+        canShowReimbursableToggleForPolicy(policy, updatedTransaction?.reimbursable ?? transactionReimbursable) &&
         !isManagedCardTransactionTransactionUtils(transaction) &&
         !isInvoice;
     const canEditReimbursable =
@@ -587,7 +577,6 @@ function MoneyRequestView({
         transactionVendorName = transactionVendor.externalID;
     }
     const shouldShowVendor = hasVendorFeature(policy, isVendorMatchingBetaEnabled ?? false) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
-    const vendorFieldLabel = isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor');
 
     const transactionTripID = transaction?.comment?.tripID;
     const [tripRoomReportID] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
@@ -799,7 +788,8 @@ function MoneyRequestView({
         amountHintText = `${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
     }
     const isCurrentTransactionReimbursable = updatedTransaction?.reimbursable ?? !!transactionReimbursable;
-    if (isSingleTransactionReport(moneyRequestReport, visibleParentReportTransactions)) {
+    const isTransactionOnReport = !!moneyRequestReport?.reportID && transaction?.reportID === moneyRequestReport.reportID;
+    if (isTransactionOnReport) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${Str.UCFirst(translate(isCurrentTransactionReimbursable ? 'iou.reimbursable' : 'iou.nonReimbursable'))}`;
     }
 
@@ -1187,8 +1177,8 @@ function MoneyRequestView({
     const previousTagLength = getLengthOfTag(previousTag ?? '');
     const currentTagLength = getLengthOfTag(currentTransactionTag ?? '');
 
-    // actualAttendees is already sorted by enrichAndSortAttendees above; pass without localeCompare to preserve that order while stripping the SMS domain.
-    const getAttendeesTitle = Array.isArray(actualAttendees) ? getAttendeesListDisplayString(actualAttendees) : '';
+    // actualAttendees is already sorted by enrichAndSortAttendees above; pass without localeCompare to preserve that order while formatting phone-login attendees.
+    const getAttendeesTitle = Array.isArray(actualAttendees) ? getAttendeesListDisplayString(actualAttendees, formatPhoneNumber) : '';
     const attendeesCopyValue = getAttendeesTitle || undefined;
     const areAttendeesCopyable = !!attendeesCopyValue;
 
@@ -1554,7 +1544,7 @@ function MoneyRequestView({
                             }
                         >
                             <MenuItemField.Row
-                                name={vendorFieldLabel}
+                                name={translate('common.vendor')}
                                 value={transactionVendorName}
                                 numberOfLinesValue={2}
                                 isValueSelectable={!!vendorCopyValue}

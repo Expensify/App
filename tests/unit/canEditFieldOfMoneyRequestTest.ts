@@ -8,6 +8,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
+import type {ValueOf} from 'type-fest';
+
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
@@ -651,6 +653,126 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
 
                 expect(canDeleteReceipt).toBe(false);
+            });
+        });
+
+        describe('receipt on a distance expense', () => {
+            const DISTANCE_POLICY_ID = '33';
+            const DISTANCE_REPORT_ID = '44';
+            const DISTANCE_TRANSACTION_ID = '45';
+
+            const distanceReportAction = {
+                ...createRandomReportAction(8),
+                reportID: DISTANCE_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: DISTANCE_TRANSACTION_ID,
+                    type: CONST.IOU.ACTION.CREATE,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const distancePolicy: Policy = {
+                ...createRandomPolicy(Number(DISTANCE_POLICY_ID), CONST.POLICY.TYPE.CORPORATE),
+                id: DISTANCE_POLICY_ID,
+                role: CONST.POLICY.ROLE.USER,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+
+            const openReport = {
+                ...createExpenseReport(Number(DISTANCE_REPORT_ID)),
+                policyID: DISTANCE_POLICY_ID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const createDistanceTransaction = (iouRequestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>) => ({
+                ...createRandomTransaction(Number(DISTANCE_TRANSACTION_ID)),
+                transactionID: DISTANCE_TRANSACTION_ID,
+                reportID: DISTANCE_REPORT_ID,
+                iouRequestType,
+            });
+
+            const setUpOnyx = async (transaction: ReturnType<typeof createDistanceTransaction>) => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [distancePolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${DISTANCE_TRANSACTION_ID}`]: transaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${DISTANCE_REPORT_ID}`]: openReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+            };
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should let the submitter add, replace, and delete the receipt on an odometer expense', async () => {
+                // Given an odometer expense the current user submitted on an open report
+                const odometerTransaction = createDistanceTransaction(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
+                await setUpOnyx(odometerTransaction);
+
+                // When checking whether the receipt can be edited or deleted
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: distanceReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: odometerTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+                const canDeleteReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: distanceReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    isDeleteAction: true,
+                    transaction: odometerTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then both are allowed, the same as for a manual distance expense, so the receipt can be attached by click or drop
+                expect(canEditReceipt).toBe(true);
+                expect(canDeleteReceipt).toBe(true);
+            });
+
+            it('should let the submitter edit the receipt on a manual distance expense', async () => {
+                // Given a manual distance expense the current user submitted on an open report
+                const manualTransaction = createDistanceTransaction(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+                await setUpOnyx(manualTransaction);
+
+                // When checking whether the receipt can be edited
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: distanceReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: manualTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is allowed
+                expect(canEditReceipt).toBe(true);
+            });
+
+            it('should not let the submitter edit the receipt on a map distance expense', async () => {
+                // Given a map distance expense, whose receipt is generated from the route
+                const mapTransaction = createDistanceTransaction(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+                await setUpOnyx(mapTransaction);
+
+                // When checking whether the receipt can be edited
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: distanceReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: mapTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is not allowed, because the map receipt must stay in sync with the route
+                expect(canEditReceipt).toBe(false);
             });
         });
 

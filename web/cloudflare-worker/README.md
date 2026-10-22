@@ -133,7 +133,7 @@ The bucket and its 60-day lifecycle rule are managed in Terraform. The upload us
 
 Staging and production deploys will run `wrangler deploy --env staging|production` from CI, with `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` supplied as environment secrets.
 
-Workers Logs are sampled in `staging` and `production` (`head_sampling_rate`), because the Worker runs for every asset request. `test-staging` logs every request.
+Workers Logs and traces are sampled in `staging` and `production` (`head_sampling_rate`), because the Worker runs for every asset request. `test-staging` logs and traces every request.
 
 To check the config without credentials or uploading anything:
 

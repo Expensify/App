@@ -36,15 +36,12 @@ function isIntacctVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
  * configuration gate — mirrors `Xero::hasVendorFeature` on the PHP side. The `isConfigured` check
  * matters because Integration-Server clears that flag during a Xero tenant switch while the old
  * tenant's `data.contacts` lingers until the next sync repopulates it; without the gate the
- * Supplier picker would render stale contacts from the previous tenant and a user-pick during
+ * vendor picker would render stale contacts from the previous tenant and a user-pick during
  * that window would persist a now-invalid `comment.vendor.externalID` that flips inactive the
  * moment the new sync completes.
  *
  * This is the *eligibility* predicate used by `hasVendorFeature`, NOT the source predicate — on
- * dual-connected workspaces QBO/Intacct precedence still applies in `getMatchingVendors`. Use
- * `isXeroActiveMatchingSource` when the question is "is Xero the integration whose vendors are
- * actually being shown to the user?" (e.g. for the Supplier/Vendor label flip in the expense row,
- * picker, and modified-expense fragments).
+ * dual-connected workspaces QBO/Intacct precedence still applies in `getMatchingVendors`.
  */
 function isXeroVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.config?.isConfigured;
@@ -81,18 +78,6 @@ function isCampfireVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 function isCertiniaVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     const config = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
     return config?.isConfigured === true && config?.hasPSA !== true;
-}
-
-/**
- * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
- * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
- * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Campfire → Business Central → Certinia) so the UI labels, copy, and
- * inactive-vendor guardrail stay bound to whichever integration's vendor list is actually being consulted.
- * Without this scoping, a workspace with active QBO matching + a lingering Xero connection would render
- * QBO vendors under the "Supplier" label.
- */
-function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
-    return getActiveVendorMatchingIntegration(policy) === CONST.POLICY.CONNECTIONS.NAME.XERO;
 }
 
 /**
@@ -271,17 +256,63 @@ function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
 
 /**
  * Sorts vendors alphabetically by name using the provided localeCompare.
- * Uses vendor id as a stable tie-breaker when names match.
+ * Uses vendor id or externalID as a stable tie-breaker when names match.
  * Non-mutating: returns a new sorted array.
  */
-function sortVendors<TVendor extends {id: string; name: string}>(vendors: TVendor[], localeCompare: LocaleContextProps['localeCompare']): TVendor[] {
+function sortVendors<TVendor extends {id?: string; externalID?: string; name: string}>(vendors: TVendor[], localeCompare: LocaleContextProps['localeCompare']): TVendor[] {
     return [...vendors].sort((a, b) => {
         const nameComparison = localeCompare(a.name ?? '', b.name ?? '');
         if (nameComparison !== 0) {
             return nameComparison;
         }
-        return localeCompare(a.id, b.id);
+        const keyA = a.id ?? a.externalID;
+        const keyB = b.id ?? b.externalID;
+        if (!keyA || !keyB) {
+            return 0;
+        }
+        return localeCompare(keyA, keyB);
     });
+}
+
+/**
+ * Resolves the configured default vendor ID for the active integration that supports vendor enablement.
+ * Returns undefined if no default vendor is configured or if the integration does not have an active default fallback.
+ */
+function getDefaultVendorID(policy: OnyxEntry<Policy>, origin?: ConnectionName): string | undefined {
+    const integrationOrigin = origin ?? getActiveVendorMatchingIntegration(policy);
+    if (!policy?.connections || !integrationOrigin) {
+        return undefined;
+    }
+
+    if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.QBO) {
+        const qboConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.QBO]?.config;
+        if (qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD) {
+            return qboConfig.nonReimbursableCreditCardDefaultVendor ?? undefined;
+        }
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
+        const intacctConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.config;
+        return intacctConfig?.export?.nonReimbursableCreditCardChargeDefaultVendor ?? undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.XERO) {
+        const xeroConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.XERO]?.config;
+        return xeroConfig?.defaultVendor ?? undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.RILLET) {
+        const rilletConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.config;
+        return rilletConfig?.export?.defaultVendorID ?? undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
+        const dualentryConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.config;
+        return dualentryConfig?.export?.defaultVendorID ?? undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE) {
+        const campfireConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.config;
+        return campfireConfig?.export?.defaultVendorID ?? undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
+        const businessCentralConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]?.config;
+        return businessCentralConfig?.export?.defaultVendorID ?? undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
+        const certiniaConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
+        return certiniaConfig?.export?.vendorAccount ?? undefined;
+    }
+
+    return undefined;
 }
 
 /**
@@ -417,8 +448,8 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
-                title: translate('workspace.xero.noSuppliersFound'),
-                subtitle: translate('workspace.xero.noSuppliersFoundDescription'),
+                title: translate('workspace.xero.noVendorsFound'),
+                subtitle: translate('workspace.xero.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.RILLET:
             return {
@@ -517,6 +548,7 @@ export {
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    getDefaultVendorID,
     sortVendors,
     getVendorEmptyState,
     getVendorRuleDisplayValue,
@@ -529,7 +561,6 @@ export {
     isBusinessCentralVendorMatchingActive,
     isDualEntryVendorMatchingActive,
     isCertiniaVendorMatchingActive,
-    isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,
     hasVendorFeatureOnAnyPolicy,
