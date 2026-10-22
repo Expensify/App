@@ -8859,6 +8859,10 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Zoho Books 组织',
+            organizationSelectDescription: '选择您要从中导入数据的 Zoho Books 组织。',
+            noOrganizationsFound: '未找到组织',
+            noOrganizationsFoundDescription: '请在 Zoho Books 中添加一个组织，然后重新同步连接',
+            multiLocationNotSupported: '尚不支持多地点组织',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central 设置',

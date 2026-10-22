@@ -9216,6 +9216,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         zohoBooks: {
             organization: 'Organizacja Zoho Books',
+            organizationSelectDescription: 'Wybierz organizację w Zoho Books, z której chcesz importować dane.',
+            noOrganizationsFound: 'Nie znaleziono organizacji',
+            noOrganizationsFoundDescription: 'Dodaj organizację w Zoho Books i ponownie zsynchronizuj połączenie',
+            multiLocationNotSupported: 'Organizacje z wieloma lokalizacjami nie są jeszcze obsługiwane',
         },
         businessCentral: {
             businessCentralSetup: 'Konfiguracja Dynamics 365 Business Central',

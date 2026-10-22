@@ -9305,6 +9305,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         zohoBooks: {
             organization: 'Organisation Zoho Books',
+            organizationSelectDescription: 'Choisissez l’organisation dans Zoho Books à partir de laquelle vous souhaitez importer des données.',
+            noOrganizationsFound: 'Aucune organisation trouvée',
+            noOrganizationsFoundDescription: 'Veuillez ajouter une organisation dans Zoho Books et synchroniser à nouveau la connexion',
+            multiLocationNotSupported: 'Les organisations multi-sites ne sont pas encore prises en charge',
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',

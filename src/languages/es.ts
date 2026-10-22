@@ -9096,6 +9096,10 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Organización Zoho Books',
+            organizationSelectDescription: 'Elige la organización de Zoho Books desde la que deseas importar datos.',
+            noOrganizationsFound: 'No se encontraron organizaciones',
+            noOrganizationsFoundDescription: 'Añade una organización en Zoho Books y vuelve a sincronizar la conexión',
+            multiLocationNotSupported: 'Las organizaciones con varias ubicaciones aún no son compatibles',
         },
         businessCentral: {
             businessCentralSetup: 'Configuración de Dynamics 365 Business Central',
