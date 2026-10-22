@@ -4028,6 +4028,20 @@ describe('actions/Report', () => {
             expect(apiReadSpy).not.toHaveBeenCalled();
             apiReadSpy.mockRestore();
         });
+
+        it('fetches private notes for a passed signed-in session even when the stored session is anonymous', async () => {
+            // Given an anonymous session stored in Onyx, as during an anonymous-to-signed-in transition
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await waitForBatchedUpdates();
+            const apiReadSpy = jest.spyOn(require('@libs/API'), 'read');
+
+            // When private notes are requested for a signed-in session passed by the caller
+            Report.getReportPrivateNote('4201', {accountID: 1, email: 'user@example.com'});
+
+            // Then the passed session decides: the signed-in user's notes are fetched
+            expect(apiReadSpy).toHaveBeenCalledTimes(1);
+            apiReadSpy.mockRestore();
+        });
     });
 
     describe('markAllMessagesAsRead', () => {
@@ -4051,6 +4065,21 @@ describe('actions/Report', () => {
             // Then the passed session decides: anonymous users can't mark reports read, so the report keeps its read time
             const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${unreadReport.reportID}` as const);
             expect(report?.lastReadTime).toBe(unreadReport.lastReadTime);
+        });
+
+        it('goes past the anonymous-user check for a passed signed-in session even when the stored session is anonymous', async () => {
+            // Given an anonymous session stored in Onyx, as during an anonymous-to-signed-in transition, and a report to check
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}4101`, createRandomReport(4101, undefined));
+            await waitForBatchedUpdates();
+            const isUnreadSpy = jest.spyOn(require('@libs/ReportUtils'), 'isUnread');
+
+            // When marking everything as read for a signed-in session passed by the caller
+            markAllMessagesAsRead(undefined, undefined, undefined, {accountID: 1, email: 'user@example.com'});
+
+            // Then the passed session decides: the action is not blocked as anonymous and goes on to check the reports
+            expect(isUnreadSpy).toHaveBeenCalled();
+            isUnreadSpy.mockRestore();
         });
 
         it('should mark all unread reports as read', async () => {
