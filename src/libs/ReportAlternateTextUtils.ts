@@ -504,6 +504,7 @@ function getLastMessageTextForReport({
     oneTransactionThreadReportID,
     lastOriginalAction,
     rules,
+    linkedTransaction,
     bankAccountList,
     formatPhoneNumber,
 }: {
@@ -532,6 +533,7 @@ function getLastMessageTextForReport({
     oneTransactionThreadReportID?: string;
     lastOriginalAction?: OnyxEntry<ReportAction>;
     rules: OnyxCollection<Rule>;
+    linkedTransaction?: OnyxEntry<Transaction>;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 
     /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
@@ -598,6 +600,8 @@ function getLastMessageTextForReport({
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
+        // `linkedTransaction` belongs to the caller's last action, which can differ from `lastReportAction` after the one-transaction fallback above.
+        const isLinkedTransactionForLastReportAction = !!linkedTransaction && linkedTransaction.transactionID === getOriginalMessage(lastReportAction)?.IOUTransactionID;
         const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayString, {
             personalDetails,
             reportOrID: report,
@@ -605,6 +609,7 @@ function getLastMessageTextForReport({
             shouldConsiderScanningReceiptOrPendingRoute: true,
             policy,
             isForListPreview: true,
+            linkedTransaction: isLinkedTransactionForLastReportAction ? linkedTransaction : undefined,
             bankAccountList,
         });
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
@@ -1214,6 +1219,7 @@ type GetReportAlternateTextParams = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     rules: OnyxCollection<Rule>;
+    linkedTransaction?: OnyxEntry<Transaction>;
 
     /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
     bankAccountList?: OnyxEntry<BankAccountList>;
@@ -1255,6 +1261,7 @@ function getReportAlternateText({
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
     rules,
+    linkedTransaction,
     bankAccountList,
 }: GetReportAlternateTextParams): string | undefined {
     let alternateText: string | undefined;
@@ -1318,6 +1325,7 @@ function getReportAlternateText({
             oneTransactionThreadReportID: resolvedOneTransactionThreadReportID,
             lastOriginalAction,
             rules,
+            linkedTransaction,
             bankAccountList,
             formatPhoneNumber,
         });

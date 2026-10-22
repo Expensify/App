@@ -763,6 +763,7 @@ function getOptionData({
     isTrackIntentUser,
     formatPhoneNumber,
     rules,
+    linkedTransaction,
     bankAccountList,
 }: {
     report: OnyxEntry<Report>;
@@ -794,6 +795,7 @@ function getOptionData({
     isTrackIntentUser?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
+    linkedTransaction?: OnyxEntry<Transaction>;
 
     /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
     bankAccountList?: OnyxEntry<BankAccountList>;
@@ -949,6 +951,7 @@ function getOptionData({
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
         rules,
+        linkedTransaction,
         bankAccountList,
     });
 
