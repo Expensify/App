@@ -13,7 +13,7 @@ import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {BankAccountList, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
@@ -174,6 +174,118 @@ describe('getSecondaryAction', () => {
                 cardList: undefined,
             }),
         ).toEqual(result);
+    });
+
+    it('includes TOGGLE_SINGLE_EXPENSE_VIEW right before VIEW_DETAILS on a report with one expense', () => {
+        // Given a report that holds exactly one expense
+        const report = createMock<Report>({reportID: REPORT_ID});
+        const policy = createMock<Policy>({});
+        const transaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
+
+        // When the More menu actions are computed
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the option to switch views is offered, just before "View details"
+        const toggleIndex = result.indexOf(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
+        expect(toggleIndex).toBeGreaterThan(-1);
+        expect(result.at(toggleIndex + 1)).toBe(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
+    });
+
+    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on a report with more than one expense', () => {
+        // Given a report with two expenses, which always uses the table view
+        const report = createMock<Report>({reportID: REPORT_ID});
+        const policy = createMock<Policy>({});
+        const firstTransaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
+        const secondTransaction = createMock<Transaction>({transactionID: '2', reportID: REPORT_ID});
+
+        // When the More menu actions are computed
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [firstTransaction, secondTransaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then there's no option to switch views
+        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
+    });
+
+    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on an empty report', () => {
+        // Given a report with no expenses
+        const report = createMock<Report>({reportID: REPORT_ID});
+        const policy = createMock<Policy>({});
+
+        // When the More menu actions are computed
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then there's no option to switch views
+        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
+    });
+
+    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on a "Pay someone" report', () => {
+        // Given a "Pay someone" report, whose one expense comes from a pay action with IOUDetails
+        const report = createMock<Report>({reportID: REPORT_ID});
+        const policy = createMock<Policy>({});
+        const transaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
+        const sentMoneyAction = createMock<ReportAction>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUTransactionID: '1', IOUDetails: {amount: 100, comment: '', currency: CONST.CURRENCY.USD}},
+        });
+
+        // When the More menu actions are computed
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [sentMoneyAction],
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then there's no option to switch views, because the report has no expense thread for a table row to open
+        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
     });
 
     it('includes DOWNLOAD_RECEIPTS when at least one transaction has a receipt', () => {
@@ -524,6 +636,135 @@ describe('getSecondaryAction', () => {
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+    });
+
+    describe('CANCEL_PAYMENT for a non-payer admin on a workspace with a connected bank account', () => {
+        const DESIGNATED_PAYER_EMAIL = 'payer@vba-test.com';
+        const WORKSPACE_BANK_ACCOUNT_ID = 1111;
+        const ADMIN_OWN_BANK_ACCOUNT_ID = 2222;
+        const PAY_ACTION_ID = 'pay_action_id';
+
+        // Reimbursement is configured (reimburseYes) and someone else is the reimburser, so `isPayer` is false for
+        // ADMIN_EMAIL and Cancel can only come from the non-payer admin path.
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: DESIGNATED_PAYER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            reimburser: DESIGNATED_PAYER_EMAIL,
+            outputCurrency: CONST.CURRENCY.USD,
+            achAccount: {reimburser: DESIGNATED_PAYER_EMAIL, bankAccountID: WORKSPACE_BANK_ACCOUNT_ID},
+            employeeList: {
+                [ADMIN_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
+                [DESIGNATED_PAYER_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
+            },
+        });
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: POLICY_ID,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            total: -10000,
+            isWaitingOnBankAccount: false,
+            // Auth reports whether this viewer can cancel the bank reimbursement.
+            canCancelReimbursement: true,
+        });
+        const transaction = createMock<Transaction>({reportID: REPORT_ID, amount: 10000});
+
+        function buildPayAction(paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, bankAccountID?: number): ReportAction {
+            return createMock<ReportAction>({
+                reportActionID: PAY_ACTION_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: ADMIN_ACCOUNT_ID,
+                message: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType, bankAccountID, accountNumber: 'XXXX1234'},
+                created: '2020-01-01 00:00:00.000',
+            });
+        }
+
+        async function getActionsForAdmin(payAction: ReportAction, bankAccountList: BankAccountList, reportOverrides: Partial<Report> = {}) {
+            const viewerReport = {...report, ...reportOverrides};
+            // beforeEach's Onyx.clear isn't awaited; explicit clear guarantees a clean policy collection for this seed.
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, viewerReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[PAY_ACTION_ID]: payAction});
+            await waitForBatchedUpdates();
+
+            return getSecondaryReportActions({
+                currentUserLogin: ADMIN_EMAIL,
+                currentUserAccountID: ADMIN_ACCOUNT_ID,
+                submitterLogin: EMPLOYEE_EMAIL,
+                report: viewerReport,
+                chatReport,
+                reportTransactions: [transaction],
+                originalTransaction: createMock<Transaction>({}),
+                violations: {},
+                bankAccountList,
+                policy,
+                reportActions: [payAction],
+                rules: undefined,
+                cardList: undefined,
+            });
+        }
+
+        it('includes CANCEL_PAYMENT for a paid-elsewhere payment without server cancellation permission', async () => {
+            // Given a non-payer admin whose report was marked as paid elsewhere.
+            // When Auth does not mark a bank reimbursement as cancellable.
+            const result = await getActionsForAdmin(buildPayAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE), {}, {canCancelReimbursement: false});
+
+            // Then the admin can still undo the manual payment.
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        });
+
+        it('includes CANCEL_PAYMENT when Auth permits cancellation with a matching bank account ID', async () => {
+            // Given a non-payer admin with the bank account recorded on an optimistic pay action.
+            // When Auth permits cancellation for this viewer.
+            const result = await getActionsForAdmin(buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA, ADMIN_OWN_BANK_ACCOUNT_ID), {
+                [ADMIN_OWN_BANK_ACCOUNT_ID]: {methodID: ADMIN_OWN_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
+            });
+
+            // Then cancellation remains available before the pay action is reloaded.
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        });
+
+        it('includes CANCEL_PAYMENT when Auth permits cancellation with different shared bank account IDs', async () => {
+            // Given a payment whose funding account ID differs from the viewer's shared account ID.
+            // When Auth permits cancellation for this viewer.
+            const result = await getActionsForAdmin(buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA, ADMIN_OWN_BANK_ACCOUNT_ID), {
+                [WORKSPACE_BANK_ACCOUNT_ID]: {methodID: WORKSPACE_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
+            });
+
+            // Then the per-viewer account IDs do not hide cancellation.
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        });
+
+        it('includes CANCEL_PAYMENT after reloading a pay action without a bank account ID', async () => {
+            // Given a persisted pay action with accountNumber but no bankAccountID and no loaded bank accounts.
+            const payAction = buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA);
+
+            // When Auth permits cancellation for this viewer after a cold load.
+            const result = await getActionsForAdmin(payAction, {});
+
+            // Then cancellation does not depend on optimistic payment metadata or locally loaded accounts.
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        });
+
+        it.each([false, undefined])('excludes CANCEL_PAYMENT when server cancellation permission is %s despite a matching bank account', async (canCancelReimbursement) => {
+            // Given a non-payer admin with the funding account in their bank account list.
+            // When Auth does not grant cancellation permission for this viewer.
+            const result = await getActionsForAdmin(
+                buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA, ADMIN_OWN_BANK_ACCOUNT_ID),
+                {[ADMIN_OWN_BANK_ACCOUNT_ID]: {methodID: ADMIN_OWN_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US}},
+                {canCancelReimbursement},
+            );
+
+            // Then local access cannot enable cancellation of a bank reimbursement.
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+        });
     });
 
     it('does not include CANCEL_PAYMENT past the NACHA cutoff after a paid-elsewhere payment was cancelled and re-paid via bank', async () => {
@@ -6250,7 +6491,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [createMock<Report>({reportID: '1', type: CONST.REPORT.TYPE.EXPENSE})];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
         });
@@ -6264,7 +6505,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             ];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
         });
@@ -6278,7 +6519,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 {id: 'policy3', role: CONST.POLICY.ROLE.ADMIN},
             ]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
         });
@@ -6290,10 +6531,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined, undefined);
         });
 
         it('should return true for single transaction when report is eligible for merge', () => {
@@ -6303,10 +6544,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(true);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined, undefined);
         });
 
         it('should return true for two eligible transactions', () => {
@@ -6329,7 +6570,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(true);
         });
@@ -6354,7 +6595,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
         });
@@ -6364,7 +6605,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [createMock<Report>({reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'nonexistent'})];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             // Should return true because when policy is not found, function doesn't prevent merging
             // (since we have 1 transaction, it will return true after the policy check)
@@ -6378,10 +6619,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(true);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined, undefined);
         });
 
         it('should return false for non-admin user with ineligible reports', () => {
@@ -6391,10 +6632,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined, undefined);
         });
 
         it('should return false when one of multiple reports is not eligible', () => {
@@ -6412,12 +6653,12 @@ describe('getSecondaryTransactionThreadActions', () => {
                 .mockReturnValueOnce(true) // First report eligible
                 .mockReturnValueOnce(false); // Second report not eligible
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledTimes(2);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(1, reports.at(0), true, undefined);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(2, reports.at(1), false, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(1, reports.at(0), true, undefined, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(2, reports.at(1), false, undefined, undefined);
         });
 
         describe('preventing merge for transactions belonging to different users', () => {
@@ -6440,7 +6681,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports: Report[] = [];
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
                 expect(result).toBe(true);
             });
@@ -6463,7 +6704,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 ]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(true);
             });
@@ -6486,7 +6727,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 ]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(false);
             });
@@ -6506,7 +6747,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(true);
             });
@@ -6526,7 +6767,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(true);
             });
@@ -6546,7 +6787,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1'}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, MANAGER_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, MANAGER_ACCOUNT_ID);
 
                 expect(result).toBe(false);
             });
@@ -6566,7 +6807,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, MANAGER_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, MANAGER_ACCOUNT_ID);
 
                 expect(result).toBe(false);
             });

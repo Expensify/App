@@ -287,6 +287,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD:
             return booleanList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:

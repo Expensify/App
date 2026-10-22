@@ -2,6 +2,7 @@ import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 
 import type {ForwardedRef} from 'react';
 import type {GestureType} from 'react-native-gesture-handler';
+import type {BaseGestureConfig} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
 
@@ -28,7 +29,7 @@ type AttachmentCarouselPagerStateContextType = {
     activePage: number;
 
     /** Ref to the active attachment */
-    pagerRef?: ForwardedRef<PagerView | GestureType>;
+    pagerRef?: ForwardedRef<PagerView | GestureType> | BaseGestureConfig['ref'];
 
     /** Indicates if the pager is currently scrolling */
     isPagerScrolling: SharedValue<boolean>;
