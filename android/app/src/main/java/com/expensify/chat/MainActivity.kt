@@ -41,6 +41,8 @@ class MainActivity : ReactActivity() {
     ))
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        BootSplash.init(this)
+
         val initialIntent = intent
         val isColdShareIntent = initialIntent?.action == Intent.ACTION_SEND
         if (isColdShareIntent && handleIntent(initialIntent, shouldLaunchActivity = false)) {
@@ -53,7 +55,6 @@ class MainActivity : ReactActivity() {
             .edit()
             .putLong(APP_START_TIME_PREFERENCES, System.currentTimeMillis())
             .apply()
-        BootSplash.init(this)
         super.onCreate(null)
 
         // Sets translucent status bar. This code is based on what the react-native StatusBar
