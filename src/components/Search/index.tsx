@@ -1289,7 +1289,17 @@ function Search({
             isAmountColumnWide: amountIndicators.shouldShowAmountInWideColumn,
             isTaxAmountColumnWide: amountIndicators.shouldShowTaxAmountInWideColumn,
         }),
-        [isActionColumnWide, yearIndicators, amountIndicators],
+        [
+            isActionColumnWide,
+            yearIndicators.shouldShowYearCreated,
+            yearIndicators.shouldShowYearSubmitted,
+            yearIndicators.shouldShowYearApproved,
+            yearIndicators.shouldShowYearPosted,
+            yearIndicators.shouldShowYearExported,
+            yearIndicators.shouldShowYearWithdrawn,
+            amountIndicators.shouldShowAmountInWideColumn,
+            amountIndicators.shouldShowTaxAmountInWideColumn,
+        ],
     );
 
     const onSortPress = useCallback(
