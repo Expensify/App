@@ -12,13 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {
-    getReportOrDraftReport,
-    isInvoiceRoom,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
-    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
-    isSelfDM,
-} from '@libs/ReportUtils';
+import {getChatReportFromMoneyRequestReport, isInvoiceRoom, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
@@ -43,7 +37,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {
-    Beta,
     GpsDraftDetails,
     IntroSelected,
     LastSelectedDistanceRates,
@@ -95,7 +88,6 @@ type CreateTransactionParams = {
     reimbursable?: boolean;
     allTransactionDrafts: OnyxCollection<Transaction>;
     isSelfTourViewed: boolean;
-    betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     optimisticTransactionIDs: string[];
@@ -147,7 +139,6 @@ function createTransaction({
     reimbursable = true,
     allTransactionDrafts,
     isSelfTourViewed,
-    betas,
     personalDetails,
     recentWaypoints,
     optimisticTransactionIDs,
@@ -216,7 +207,6 @@ function createTransaction({
                 conciergeChat,
                 quickAction,
                 recentWaypoints,
-                betas,
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
@@ -291,6 +281,7 @@ type GetMoneyRequestParticipantOptionsParams = {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     dateFnsLocale: DateFnsLocale | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function getMoneyRequestParticipantOptions({
@@ -306,6 +297,7 @@ function getMoneyRequestParticipantOptions({
     translate,
     convertToDisplayString,
     dateFnsLocale,
+    formatPhoneNumber,
 }: GetMoneyRequestParticipantOptionsParams): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
@@ -325,8 +317,11 @@ function getMoneyRequestParticipantOptions({
                       translate,
                       dateFnsLocale,
                       convertToDisplayString,
+                      formatPhoneNumber,
                   },
                   rules,
+                  // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
+                  pendingDeleteMemberAccountIDs: undefined,
               });
     });
 }
@@ -342,6 +337,7 @@ type InitMoneyRequestParams = {
     report: OnyxEntry<Report>;
     parentReport: OnyxEntry<Report>;
     currentDate: string | undefined;
+    overrideCurrency?: string;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
     isTrackDistanceExpense?: boolean;
     hasOnlyPersonalPolicies: boolean;
@@ -372,6 +368,7 @@ function initMoneyRequest({
     report,
     parentReport,
     currentDate,
+    overrideCurrency,
     lastSelectedDistanceRates,
     hasOnlyPersonalPolicies,
     draftTransactionIDs,
@@ -379,7 +376,7 @@ function initMoneyRequest({
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const currency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const currency = overrideCurrency ?? policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const created = currentDate ?? format(new Date(), 'yyyy-MM-dd');
 
@@ -597,7 +594,7 @@ function setMoneyRequestParticipants(transactionID: string, participants: Partic
  */
 function getMoneyRequestParticipantsFromReport(report: OnyxEntry<Report>, currentUserAccountID?: number): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
-    const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
+    const chatReport = getChatReportFromMoneyRequestReport(report);
     const isSelfDMChat = !isEmptyObject(chatReport) && isSelfDM(chatReport);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     let participants: Participant[] = [];

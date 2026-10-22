@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
@@ -28,9 +28,15 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 const DOMAIN_ACCOUNT_ID = 4242;
 const CURRENT_USER_ACCOUNT_ID = 1;
+const DOMAIN_ADMIN_ACCESS = {
+    [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`]: CURRENT_USER_ACCOUNT_ID,
+};
 
 const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+// Runs the follow-up right away so the redirect target can be asserted without a real dismiss transition
+const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
 
 const Stack = createPlatformStackNavigator<WorkspacesDomainModalNavigatorParamList>();
 
@@ -76,6 +82,8 @@ describe('DomainAlreadyExistsPage', () => {
     });
 
     afterEach(async () => {
+        // Unmount first so clearing Onyx doesn't look like an access change to a still-mounted page
+        cleanup();
         await act(async () => {
             await Onyx.clear();
         });
@@ -164,5 +172,23 @@ describe('DomainAlreadyExistsPage', () => {
         const button = screen.getByRole('button', {name: TestHelper.translateLocal('domain.requestSent')});
         expect(button).toBeDisabled();
         expect(screen.queryByRole('button', {name: TestHelper.translateLocal('domain.domainAlreadyExists.requestAccess')})).toBeNull();
+    });
+
+    it('sends a domain admin to the domain page instead of offering to request access', async () => {
+        // Given the current user already administers the domain, as when they deep-link here or their request was approved while waiting
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, {
+                accountID: DOMAIN_ACCOUNT_ID,
+                ...DOMAIN_ADMIN_ACCESS,
+            });
+        });
+        renderDomainAlreadyExistsPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the RHP is dismissed for the admin, who never sees the request access button
+        await waitFor(() => expect(dismissModalSpy).toHaveBeenCalled());
+        expect(navigateSpy).not.toHaveBeenCalled();
+        expect(screen.queryByRole('button', {name: TestHelper.translateLocal('domain.domainAlreadyExists.requestAccess')})).toBeNull();
+        expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP, expect.anything(), expect.anything());
     });
 });

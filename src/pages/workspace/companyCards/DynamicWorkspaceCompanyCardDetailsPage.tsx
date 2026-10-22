@@ -99,6 +99,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',
     ]);
@@ -255,12 +256,10 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                             {!!card?.nameValuePairs?.errorFields?.cardTitle && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                         </MenuItemField>
                     </OfflineWithFeedback>
-                    <MenuItemWithTopDescription
-                        numberOfLinesTitle={3}
-                        description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                        title={maskCardNumber(card?.cardName ?? '', bank, true)}
-                        interactive={false}
-                        titleStyle={styles.walletCardNumber}
+                    <MenuItemField
+                        name={translate('workspace.moreFeatures.companyCards.cardNumber')}
+                        value={maskCardNumber(card?.cardName ?? '', bank, true)}
+                        numberOfLinesValue={3}
                     />
                     <OfflineWithFeedback
                         pendingAction={card?.pendingFields?.scrapeMinDate}

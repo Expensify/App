@@ -1,4 +1,4 @@
-import {getVendorRuleDisplayValue, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getVendorRuleDisplayValue, hasVendorFeature} from '@libs/PolicyUtils';
 
 import {getSelectedVendorItem, getVendorSelectionItems} from '@pages/workspace/rules/MerchantRules/AddVendorPage';
 
@@ -36,7 +36,7 @@ const buildIntacctPolicy = (vendors: Array<{id: string; name: string; value: str
         }),
     });
 
-/** Xero policy whose supplier list scopes vendor matching to Xero (label flips vendor -> supplier). */
+/** Xero policy whose supplier list scopes vendor matching to Xero. */
 const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; email: string}>): Policy =>
     createMock<Policy>({
         ...createRandomPolicy(0),
@@ -161,8 +161,13 @@ describe('AddVendorPage', () => {
             expect(hasVendorFeature(intacctPolicy, false)).toBe(true);
         });
 
-        it('hides the row on Xero when the beta is off because Xero vendor matching is not generally available yet', () => {
-            expect(hasVendorFeature(xeroPolicy, false)).toBe(false);
+        it('shows the row on Xero with the beta off because Xero vendor matching is generally available', () => {
+            // Given a configured Xero workspace with synced contacts
+            // When the vendor feature is checked without the vendorMatching beta
+            const isVendorFeatureAvailable = hasVendorFeature(xeroPolicy, false);
+
+            // Then the row is shown because Xero does not depend on the beta
+            expect(isVendorFeatureAvailable).toBe(true);
         });
 
         it('hides the row when no vendor integration is connected', () => {
@@ -171,11 +176,6 @@ describe('AddVendorPage', () => {
 
         it('shows the row when the beta is on and a vendor integration is connected', () => {
             expect(hasVendorFeature(qboPolicy, true)).toBe(true);
-        });
-
-        it('labels the row "vendor" on QBO and flips to "supplier" on Xero', () => {
-            expect(isXeroActiveMatchingSource(qboPolicy)).toBe(false);
-            expect(isXeroActiveMatchingSource(xeroPolicy)).toBe(true);
         });
 
         it('uses the shared vendor display resolver for the row title', () => {

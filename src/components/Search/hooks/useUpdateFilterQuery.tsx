@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
 import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
 
@@ -40,16 +41,13 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
     }
 
     function setFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
-        const queryString =
-            buildFilterQueryWithSortDefaults(
-                values,
-                {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
-                {sortBy: queryJSON?.sortBy, sortOrder: queryJSON?.sortOrder},
-                policies,
-            ) ?? '';
+        const queryString = buildFilterQueryWithSortDefaults(values, {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy}, queryJSON ?? {}, policies) ?? '';
         if (!queryString) {
             return;
         }
+
+        // Mark the query as a refinement so SearchPage holds the previous results while it loads
+        markQueryAsRefinement(queryString);
 
         const shouldResetSearchKey = !!values.type && values.type !== searchAdvancedFiltersForm.type;
 

@@ -62,3 +62,35 @@
 - Upstream library: https://github.com/johngray1965/PdfiumAndroidKt
 - E/App issue: https://github.com/Expensify/App/issues/93839
 - PR introducing patch: https://github.com/Expensify/App/pull/94894
+
+
+### [react-native-pdf+7.0.2+005+report-full-page-count-single-page-android.patch](react-native-pdf+7.0.2+005+report-full-page-count-single-page-android.patch)
+
+- Reason:
+
+    ```
+    This patch makes onLoadComplete report the document's real page count on Android when singlePage is set.
+
+    With singlePage, Android restricts the viewer to one page (configurator.pages(page - 1)), so loadComplete receives numberOfPages = 1 even for a multi-page PDF. iOS already reports the full count in the same mode. The patch reads the real count with Android's PdfRenderer (the same API the library uses for enableRTL) and sends it instead. It only changes the reported count; the viewer still renders just the first page. If PdfRenderer can't open the file (for example, a password-protected PDF), it falls back to the loaded page count.
+    ```
+
+- Upstream PR/issue: https://github.com/wonday/react-native-pdf/issues/674
+- E/App issue: https://github.com/Expensify/App/issues/101895
+- PR introducing patch: https://github.com/Expensify/App/pull/102389
+
+
+### [react-native-pdf+7.0.2+006+fix-scale-changed-on-resize.patch](react-native-pdf+7.0.2+006+fix-scale-changed-on-resize.patch)
+
+- Reason:
+
+    ```
+    This patch stops onScaleChanged on Android from reporting a zoom change when the PDF view is resized, e.g. when rotating the device between portrait and landscape.
+
+    Android reported the scale as the drawn page width divided by the page width of the first draw. A resize changes the page width, so after rotating the scale was reported as e.g. 2 or 0.5 even though the user didn't zoom. The patch reports the viewer's zoom (getZoom()) instead, which is relative to the page size fitted to the current view size, and only emits the event when the zoom changes. This matches iOS, which recalculates its base scale factor for the new view size on every resize.
+
+    In the attachment carousel a scale different from 1 is treated as zoomed in, which hid the carousel arrows and disabled swiping between attachments after rotating.
+    ```
+
+- Upstream PR/issue: https://github.com/wonday/react-native-pdf/pull/1050, https://github.com/wonday/react-native-pdf/issues/1049
+- E/App issue: https://github.com/Expensify/App/issues/103207
+- PR introducing patch: https://github.com/Expensify/App/pull/103781

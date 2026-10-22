@@ -1,4 +1,5 @@
 import {setInboxTab} from '@libs/actions/User';
+import getReportAttributesUpdates from '@libs/getReportAttributesUpdates';
 import Log from '@libs/Log';
 import SidebarUtils from '@libs/SidebarUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -71,6 +72,9 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
     hasStaleUnreadReport: false,
 });
 
+/** The Inbox tab's status alone, so tab bars re-render only when it changes, not on every LHN update. */
+const SidebarChatTabBrickRoadContext = createContext<BrickRoad>(undefined);
+
 const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
     clearLHNCache: () => {},
     setActiveTab: () => {},
@@ -116,6 +120,8 @@ function SidebarOrderedReportsContextProvider({
     const prevGuideAccountIDs = usePrevious(guideAccountIDs);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
+    const prevReportAttributes = usePrevious(reportAttributes);
+    const reportAttributesUpdates = useMemo(() => getReportAttributesUpdates(reportAttributes, prevReportAttributes), [reportAttributes, prevReportAttributes]);
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
@@ -152,6 +158,11 @@ function SidebarOrderedReportsContextProvider({
         if (reportNameValuePairsUpdates) {
             for (const key of Object.keys(reportNameValuePairsUpdates ?? {}).map((reportKey) => reportKey.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT))) {
                 reportsToUpdate.add(key);
+            }
+        }
+        if (reportAttributesUpdates) {
+            for (const reportID of reportAttributesUpdates) {
+                reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             }
         }
         if (transactionsUpdates) {
@@ -196,6 +207,7 @@ function SidebarOrderedReportsContextProvider({
     }, [
         reportUpdates,
         reportNameValuePairsUpdates,
+        reportAttributesUpdates,
         transactionsUpdates,
         transactionViolationsUpdates,
         reportsDraftsUpdates,
@@ -218,9 +230,8 @@ function SidebarOrderedReportsContextProvider({
         const updatedReports = getUpdatedReports();
         const hasCachedReports = Object.keys(currentReportsToDisplay).length > 0;
 
-        // When reportAttributes changes (e.g. on startup hydration) but no report-specific keys were
-        // updated, getUpdatedReports() returns []. Rather than falling through to a full scan of all
-        // reports, recheck only the already-displayed reports with the new reportAttributes.
+        // When a dependency changes but no report-specific keys were updated, getUpdatedReports() returns [].
+        // Rather than falling through to a full scan of all reports, recheck only the already-displayed reports.
         let effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
 
         // When guide personal details hydrate after the reports collection, guideAccountIDs changes but
@@ -466,13 +477,19 @@ function SidebarOrderedReportsContextProvider({
 
     return (
         <SidebarOrderedReportsStateContext.Provider value={stateValue}>
-            <SidebarOrderedReportsActionsContext.Provider value={actionsValue}>{children}</SidebarOrderedReportsActionsContext.Provider>
+            <SidebarChatTabBrickRoadContext.Provider value={stateValue.chatTabBrickRoad}>
+                <SidebarOrderedReportsActionsContext.Provider value={actionsValue}>{children}</SidebarOrderedReportsActionsContext.Provider>
+            </SidebarChatTabBrickRoadContext.Provider>
         </SidebarOrderedReportsStateContext.Provider>
     );
 }
 
 function useSidebarOrderedReportsState() {
     return useContext(SidebarOrderedReportsStateContext);
+}
+
+function useChatTabBrickRoad() {
+    return useContext(SidebarChatTabBrickRoadContext);
 }
 
 function useSidebarOrderedReportsActions() {
@@ -487,5 +504,5 @@ function useSidebarOrderedReports() {
     return useMemo(() => ({...state, ...actions}), [state, actions]);
 }
 
-export {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
+export {SidebarOrderedReportsContextProvider, useChatTabBrickRoad, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
 export type {ReportsToDisplayInLHN};

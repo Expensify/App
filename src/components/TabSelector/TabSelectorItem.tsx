@@ -43,10 +43,12 @@ function TabSelectorItem({
     badgeText,
     isBadgeCondensed = false,
     badgeStyles,
+    isBadgeError = false,
     isDisabled = false,
     disabledAction,
     pendingAction,
     badgeEducationalTooltipProps,
+    tabButtonStyles,
 }: TabSelectorItemProps) {
     const {isOffline} = useNetwork();
 
@@ -75,6 +77,7 @@ function TabSelectorItem({
                 styles.tabBackground(isHovered, isActive, isDisabled, backgroundColor),
                 styles.userSelectNone,
                 isOfflineWithPendingAction ? styles.offlineFeedbackPending : undefined,
+                tabButtonStyles,
             ]}
             wrapperStyle={equalWidth ? styles.flex1 : styles.flexGrow1}
             onSecondaryInteraction={isPressableDisabled ? undefined : onLongPress}
@@ -110,7 +113,8 @@ function TabSelectorItem({
                     <View style={styles.ml2}>
                         <Badge
                             text={badgeText}
-                            success
+                            success={!isBadgeError}
+                            error={isBadgeError}
                             isCondensed={isBadgeCondensed}
                             badgeStyles={[badgeStyles, styles.ml0]}
                         />

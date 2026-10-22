@@ -8,6 +8,8 @@ type ColumnMappingIndexes = {
     amount?: number | boolean;
     /** Category column index or false if not mapped */
     category?: number | boolean;
+    /** Tag column index or false if not mapped */
+    tag?: number | boolean;
     /** Ignore column index or false if not mapped */
     ignore?: number | boolean;
     /** Type (debit/credit) column index or false if not mapped */
@@ -24,6 +26,8 @@ type ColumnMappingNames = {
     amount?: string | boolean;
     /** Category column header name or false if not mapped */
     category?: string | boolean;
+    /** Tag column header name or false if not mapped */
+    tag?: string | boolean;
     /** Ignore column header name or false if not mapped */
     ignore?: string | boolean;
     /** Type (debit/credit) column header name or false if not mapped */

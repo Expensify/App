@@ -1,4 +1,6 @@
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import usePrevious from '@hooks/usePrevious';
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 
 import Parser from '@libs/Parser';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
@@ -28,6 +30,8 @@ function useDraftMessageVideoAttributeCache({
     isEditInProgressRef,
 }: UseDraftMessageVideoAttributeCacheProps): DraftMessageVideoAttributeCache {
     const prevDraftMessage = usePrevious(draftMessage);
+    const accountIDToName = useAccountIDToNameMap();
+    const reportIDToName = useReportIDToNameMap();
 
     useEffect(() => {
         if (!isEditing) {
@@ -37,6 +41,8 @@ function useDraftMessageVideoAttributeCache({
         draftMessageVideoAttributeCache.clear();
 
         const originalMessage = Parser.htmlToMarkdown(getReportActionHtml(editingReportAction), {
+            reportIDToName,
+            accountIDToName,
             cacheVideoAttributes: (videoSource, attrs) => draftMessageVideoAttributeCache.set(videoSource, attrs),
         });
         if (
@@ -47,7 +53,7 @@ function useDraftMessageVideoAttributeCache({
             return;
         }
         updateDraftMessageProp(draftMessage);
-    }, [draftMessage, editingReportAction, isEditInProgressRef, isEditing, prevDraftMessage, updateDraftMessageProp]);
+    }, [draftMessage, editingReportAction, isEditInProgressRef, isEditing, prevDraftMessage, accountIDToName, reportIDToName, updateDraftMessageProp]);
 
     return draftMessageVideoAttributeCache;
 }
