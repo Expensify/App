@@ -124,7 +124,6 @@ function getActionReportIDs(action: OnyxEntry<ReportAction>): Array<string | und
  * OptionRowLHN is auto-memoized by React Compiler, so it will
  * only re-render when the inputs derived from this wrapper change.
  */
-
 function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', reportID, ...propsToForward}: OptionRowLHNDataProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
