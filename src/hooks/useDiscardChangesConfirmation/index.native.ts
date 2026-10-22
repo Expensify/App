@@ -65,7 +65,12 @@ function useDiscardChangesConfirmation({
                 return;
             }
             runDiscardConfirmation(
-                onConfirm,
+                () => {
+                    // Some confirmation callbacks close or reset their flow. Suppress the guard before invoking
+                    // them so that cleanup navigation is not interpreted as a second attempt to discard changes.
+                    isSavingRef.current = true;
+                    return onConfirm?.();
+                },
                 () =>
                     continueNavigationAfterDiscard({
                         clearBlockedNavigation: () => {
@@ -92,6 +97,7 @@ function useDiscardChangesConfirmation({
                         },
                     }),
                 () => {
+                    isSavingRef.current = false;
                     blockedNavigationAction.current = undefined;
                     navigationCallbackRef.current = undefined;
                 },

@@ -331,6 +331,21 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockNavigationDispatch).not.toHaveBeenCalled();
         });
 
+        it('does not show a second modal when onConfirm closes the guarded flow', async () => {
+            let cleanupNavigationEvent: MockBeforeRemoveEvent | undefined;
+            renderDiscardHook(() => true, {
+                onConfirm: () => {
+                    cleanupNavigationEvent = invokeBeforeRemove('POP');
+                },
+            });
+
+            invokeBeforeRemove('POP');
+            await resolveModalWith('CONFIRM');
+
+            expect(cleanupNavigationEvent?.defaultPrevented).toBe(false);
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
+
         it('suppresses the prompt while a save is in progress, and re-arms when notified it ended', () => {
             const {result} = renderDiscardHook(() => true);
 

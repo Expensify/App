@@ -335,6 +335,19 @@ describe('useDiscardChangesConfirmation (native)', () => {
             expect(mockNavigationDispatch).not.toHaveBeenCalled();
             expect(mockNavigationGoBack).not.toHaveBeenCalled();
         });
+
+        it('does not show a second modal when onConfirm closes the guarded flow', async () => {
+            renderDiscardHook(() => true, {
+                onConfirm: () => {
+                    mockPreventRemoveCallback?.({data: {action: {type: 'POP'}}});
+                },
+            });
+
+            invokeBeforeRemove('POP');
+            await resolveModalWith('CONFIRM');
+
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('confirmNavigation', () => {
