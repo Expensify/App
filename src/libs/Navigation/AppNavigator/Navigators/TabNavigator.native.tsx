@@ -1,4 +1,5 @@
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
+import type {ScreenLayoutProps} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import HomePage from '@pages/home/HomePage';
@@ -9,12 +10,13 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
-import React from 'react';
+import React, {useState} from 'react';
 
 import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
+import TabBarShapeProbe, {TabBarShapeContext} from './NativeTabNavigator/TabBarShapeProbe';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
@@ -36,7 +38,15 @@ const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout 
 
 function TabNavigator() {
     const {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
-    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels});
+    const [isTabBarVertical, setIsTabBarVertical] = useState(false);
+    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, isAccountAvatarShown, dotColors, tabLabels});
+    const renderTabScreenLayout = (props: ScreenLayoutProps) => (
+        <>
+            {bottomTabScreenLayoutWrapper(props)}
+            <TabBarShapeProbe isTabBarShown={shouldShowNativeTabBar} />
+        </>
+    );
+
     // A tab with no bar item draws no icon.
     const getScreenOptions = ({route}: {route: {name: NativeTabName}}) =>
         route.name === tabWithoutBarItem
@@ -48,41 +58,43 @@ function TabNavigator() {
               };
 
     return (
-        <Tab.Navigator
-            backBehavior="fullHistory"
-            layout={renderNativeTabLayout}
-            screenLayout={bottomTabScreenLayoutWrapper}
-            screenOptions={getScreenOptions}
-            UNSTABLE_router={tabRouterOverride}
-            screenListeners={tabScreenListeners}
-        >
-            <Tab.Screen
-                name={SCREENS.HOME}
-                component={HomePage}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                component={ReportsSplitNavigator}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                component={SearchFullscreenNavigator}
-            />
-            <Tab.Screen
-                name={SCREENS.INSIGHTS}
-                component={InsightsPage}
-                // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
-                initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                component={WorkspaceNavigator}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigator}
-            />
-        </Tab.Navigator>
+        <TabBarShapeContext.Provider value={setIsTabBarVertical}>
+            <Tab.Navigator
+                backBehavior="fullHistory"
+                layout={renderNativeTabLayout}
+                screenLayout={renderTabScreenLayout}
+                screenOptions={getScreenOptions}
+                UNSTABLE_router={tabRouterOverride}
+                screenListeners={tabScreenListeners}
+            >
+                <Tab.Screen
+                    name={SCREENS.HOME}
+                    component={HomePage}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                    component={ReportsSplitNavigator}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                    component={SearchFullscreenNavigator}
+                />
+                <Tab.Screen
+                    name={SCREENS.INSIGHTS}
+                    component={InsightsPage}
+                    // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
+                    initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                    component={WorkspaceNavigator}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                    component={SettingsSplitNavigator}
+                />
+            </Tab.Navigator>
+        </TabBarShapeContext.Provider>
     );
 }
 

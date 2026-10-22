@@ -101,3 +101,4 @@ function ScreenLayout({children, navigation}: ScreenLayoutProps) {
 
 export default screenLayoutWrapper;
 export {bottomTabScreenLayoutWrapper};
+export type {ScreenLayoutProps};
