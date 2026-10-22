@@ -266,6 +266,9 @@ describe('staging worker serving Brotli twins', () => {
                 assert.equal(await response.text(), '', `${path} ${ifNoneMatch}`);
                 assert.equal(response.headers.get('ETag'), etag, `${path} ${ifNoneMatch}`);
                 assert.equal(response.headers.get('Cache-Control'), 'public, max-age=0, must-revalidate', `${path} ${ifNoneMatch}`);
+                if (path === '/service-worker.js') {
+                    assert.match(response.headers.get('Vary') ?? '', /Accept-Encoding/, `${path} ${ifNoneMatch}`);
+                }
             }
         }
     });
@@ -281,6 +284,18 @@ describe('staging worker serving Brotli twins', () => {
         assert.equal(response.status, 200);
         assert.match(response.headers.get('ETag') ?? '', /-br"$/);
         assert.equal(await response.text(), 'self.fixtureServiceWorker = true;');
+    });
+
+    test('serves the original when the build has no twin', async () => {
+        // Given a script the build did not compress
+        // When a browser requests it
+        const response = await server.fetch('/workbox-01234567.js', {headers: BROTLI});
+
+        // Then it gets the original with the asset's own ETag, for Cloudflare to compress at the edge
+        assert.equal(response.status, 200);
+        assert.doesNotMatch(response.headers.get('ETag') ?? '', /-br"$/);
+        assert.match(response.headers.get('ETag') ?? '', /^(W\/)?"[^"]+"$/);
+        assert.equal(await response.text(), 'self.fixtureWorkbox = true;');
     });
 
     test('answers HEAD for a twin without a body', async () => {
