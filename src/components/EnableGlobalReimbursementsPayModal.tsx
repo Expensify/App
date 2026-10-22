@@ -32,7 +32,7 @@ function EnableGlobalReimbursementsPayModal() {
         }
         const navigationPathAtSignal = Navigation.getActiveRoute();
 
-        // The signal arrives after a pay attempt, so betas are loaded; an unknown beta state should take the Corpay path.
+        // The signal arrives after a pay attempt, so betas are loaded. An unknown beta state should take the Corpay path.
         if (isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS)) {
             if (isAccountLocked) {
                 showLockedAccountModal();
