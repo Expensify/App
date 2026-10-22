@@ -232,59 +232,43 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
 }
 
 /**
- * Change a member's role in Expensify Travel. It is stored on the member even when it matches the role their workspace
- * role gives them, so a later workspace role change does not change their travel role.
+ * Change members' roles in Expensify Travel. The role is stored on each member even when it matches the role their
+ * workspace role gives them, so a later workspace role change does not change their travel role.
  */
-function setPolicyTravelMemberRole(policy: OnyxEntry<OnyxTypes.Policy>, member: TravelMemberAccessTarget, travelRole: ValueOf<typeof CONST.TRAVEL.MEMBER_ROLE>) {
+function setPolicyTravelMemberRole(policy: OnyxEntry<OnyxTypes.Policy>, members: TravelMemberAccessTarget[], travelRole: ValueOf<typeof CONST.TRAVEL.MEMBER_ROLE>) {
     const policyID = policy?.id;
-    const employee = policy?.employeeList?.[member.email];
-    if (!policyID || !employee || getTravelMemberRole(policy, member.email) === travelRole) {
+    const employeeList = policy?.employeeList ?? {};
+    const targets = members.filter((member) => !!employeeList[member.email] && getTravelMemberRole(policy, member.email) !== travelRole);
+    if (!policyID || targets.length === 0) {
         return;
+    }
+
+    const employeeListOptimisticUpdate: Record<string, NullishDeep<OnyxTypes.PolicyEmployee>> = {};
+    const employeeListSuccessUpdate: Record<string, NullishDeep<OnyxTypes.PolicyEmployee>> = {};
+    const employeeListFailureUpdate: Record<string, NullishDeep<OnyxTypes.PolicyEmployee>> = {};
+    for (const target of targets) {
+        employeeListOptimisticUpdate[target.email] = {
+            travelRole,
+            pendingFields: {travelRole: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        };
+        employeeListSuccessUpdate[target.email] = {pendingFields: {travelRole: null}};
+        employeeListFailureUpdate[target.email] = {
+            travelRole: employeeList[target.email]?.travelRole ?? null,
+            pendingFields: {travelRole: null},
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+        };
     }
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: policyKey,
-                value: {
-                    employeeList: {
-                        [member.email]: {
-                            travelRole,
-                            pendingFields: {travelRole: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                        },
-                    },
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: policyKey,
-                value: {employeeList: {[member.email]: {pendingFields: {travelRole: null}}}},
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: policyKey,
-                value: {
-                    employeeList: {
-                        [member.email]: {
-                            travelRole: employee.travelRole ?? null,
-                            pendingFields: {travelRole: null},
-                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
-                        },
-                    },
-                },
-            },
-        ],
+        optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: employeeListOptimisticUpdate}}],
+        successData: [{onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: employeeListSuccessUpdate}}],
+        failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: employeeListFailureUpdate}}],
     };
 
     const parameters: SetPolicyTravelMemberRoleParams = {
         policyID,
-        employeeAccountIDList: String(member.accountID),
+        employeeAccountIDList: targets.map((target) => target.accountID).join(','),
         travelRole,
     };
 

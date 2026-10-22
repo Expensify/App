@@ -125,7 +125,7 @@ function TravelMembersSection({policyID}: TravelMembersSectionProps) {
                         errors={member.errors}
                         canEdit={canWrite}
                         onToggleTravelAccess={(enabled) => setPolicyTravelMemberAccess(policy, [member], enabled)}
-                        onSaveTravelRole={(travelRole) => setPolicyTravelMemberRole(policy, member, travelRole)}
+                        onSaveTravelRole={(travelRole) => setPolicyTravelMemberRole(policy, [member], travelRole)}
                         onReadOnlyPress={withReadOnlyFallback()}
                         onDismissError={() => clearPolicyTravelMemberAccessError(policyID, member.email)}
                     />
