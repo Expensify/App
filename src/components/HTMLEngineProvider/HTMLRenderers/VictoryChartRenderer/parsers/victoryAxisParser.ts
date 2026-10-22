@@ -26,7 +26,7 @@ function computeAxisSize(axisSide: XAxisSide | YAxisSide, labels: Array<string |
     }
     if (axisSide === 'bottom' || axisSide === 'top') {
         const lineHeight = getSkiaLineMetrics(font).lineHeight;
-        return 2 * lineHeight + (labelOffset ?? 0);
+        return lineHeight + 2 * (labelOffset ?? 0);
     }
     const maxLabelWidth = Math.max(...labels.map((label) => getFontGlyphWidth(String(label), font)));
     return maxLabelWidth + (labelOffset ?? 0);
