@@ -679,6 +679,27 @@ describe('useReportActionsScroll', () => {
         });
     });
 
+    describe('new-message following', () => {
+        it.each([
+            {distance: 50, shouldFollow: true},
+            {distance: 250, shouldFollow: false},
+            {distance: 300, shouldFollow: false},
+        ])('preserves the pixel threshold at $distance pixels from the newest action', async ({distance, shouldFollow}) => {
+            // Given a loaded latest page and the reader's current bottom-relative offset.
+            const {rerender} = await renderScroll();
+            mockScrollOffsetRef.current = distance;
+            mockScrollToBottom.mockClear();
+            const newestAction = makeAction('2');
+
+            // When another user's message is appended to the chronological list.
+            rerender(buildParams({sortedVisibleReportActions: [newestAction, makeAction('1')], renderedVisibleReportActions: [makeAction('1'), newestAction]}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it follows only inside the same 250-pixel range used before the migration.
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(shouldFollow ? 1 : 0);
+        });
+    });
+
     describe('scrollToBottomAndMarkReportAsRead', () => {
         it('scrolls to bottom and marks as read when the newest action is present', async () => {
             // Default created === lastVisibleActionCreated → newest present.
@@ -839,7 +860,7 @@ describe('useReportActionsScroll', () => {
     });
 
     describe('effects', () => {
-        it('leaves incoming-message following to LegendList', async () => {
+        it('follows incoming messages through the shared pixel-based policy', async () => {
             mockScrollOffsetRef.current = 0;
 
             const {rerender} = await renderScroll();
@@ -847,7 +868,7 @@ describe('useReportActionsScroll', () => {
             const actions = [makeAction('2'), makeAction('1')];
             rerender(buildParams({sortedVisibleReportActions: actions, renderedVisibleReportActions: actions.toReversed()}));
 
-            expect(mockScrollToBottom).not.toHaveBeenCalled();
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
         });
 
         it('clears the X Replies flag once it has been applied', async () => {

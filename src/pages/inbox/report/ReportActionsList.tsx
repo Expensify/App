@@ -99,7 +99,6 @@ type ReportActionsListContentProps = {
 type ReportActionsListProps = ReportActionsListContentProps;
 
 const PAGINATION_THRESHOLD = 0.75;
-const MAINTAIN_SCROLL_AT_END_THRESHOLD = 0.01;
 const REPORT_ACTIONS_DRAW_DISTANCE = 1500;
 
 const REPORT_ACTION_COMMENT_SIZE = {
@@ -257,7 +256,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const linkedReportActionID = reportActionIDFromRoute;
 
-    const {getScrollOffset} = useActionListContext();
+    const {getScrollOffset, scrollOffsetRef} = useActionListContext();
     const listRef = useActionListRef();
     const legendListRef = useRef<LegendListRef>(null);
 
@@ -592,7 +591,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         const isNearStart = contentOffset.y <= layoutMeasurement.height * PAGINATION_THRESHOLD;
         const previousMetrics = lastScrollMetricsRef.current;
         if (readyEndListIDRef.current === listID && !hasNewerActions) {
-            if (distanceFromBottom <= layoutMeasurement.height * MAINTAIN_SCROLL_AT_END_THRESHOLD) {
+            if (distanceFromBottom < CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD) {
                 shouldFollowEndOnResizeRef.current = true;
             } else if (
                 (previousMetrics && contentOffset.y < previousMetrics.offset - 1) ||
@@ -767,6 +766,12 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
      */
     const recordTimeToMeasureItemLayout = (event: LayoutChangeEvent) => {
         onLayout?.(event);
+        const state = legendListRef.current?.getState();
+        if (state && readyEndListIDRef.current === listID) {
+            const distanceFromBottom = Math.max(0, state.contentLength - state.scrollLength - state.scroll);
+            scrollOffsetRef.current = distanceFromBottom;
+            distanceFromBottomRef.current = distanceFromBottom;
+        }
         scheduleEndCorrection();
         if (didLayout.current) {
             return;
@@ -841,10 +846,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     initialScrollAtEnd={initialScrollIndex === undefined}
                     initialScrollIndex={initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams}}
                     alignItemsAtEnd={!shouldBeAlignedToTop}
-                    // Follow new actions on the latest page. Layout changes use the cancellable correction above.
-                    maintainScrollAtEnd={!hasNewerActions && {animated: false, on: {dataChange: true}}}
-                    // Leave the end-follow region as soon as the user starts reading older messages.
-                    maintainScrollAtEndThreshold={MAINTAIN_SCROLL_AT_END_THRESHOLD}
+                    // Keep the existing pixel-based new-message policy in useReportActionsScroll.
+                    maintainScrollAtEnd={false}
                     maintainVisibleContentPosition
                     onReady={handleListReady}
                     onItemSizeChanged={onItemSizeChanged}

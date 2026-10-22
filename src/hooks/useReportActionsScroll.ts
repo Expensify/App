@@ -36,6 +36,7 @@ import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useReportScrollManager from './useReportScrollManager';
+import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageReceived';
 
 type UseReportActionsScrollParams = {
     /** Identifies the mounted list, including linked-message and hydration remounts. */
@@ -257,7 +258,6 @@ function useReportActionsScroll({
 
     // Consume an explicit live-tail request after the data render, not on an unrelated future
     // viewport layout (for example, opening the keyboard after the user has scrolled away).
-    // Incoming messages and streaming draft growth are followed by LegendList itself.
     useEffect(() => {
         if (!isScrollToBottomEnabled) {
             return;
@@ -353,6 +353,19 @@ function useReportActionsScroll({
         linkedReportActionID: initialScrollKey === linkedReportActionID ? linkedReportActionID : undefined,
         targetIndex,
         isLastAction: targetIndex === renderedVisibleReportActions.length - 1,
+    });
+
+    useScrollToEndOnNewMessageReceived({
+        scrollOffsetRef,
+        lastActionID: lastAction?.reportActionID,
+        visibleActionsLength: sortedVisibleReportActions.length,
+        hasNewestReportAction,
+        setIsFloatingMessageCounterVisible,
+        scrollToEnd: () => {
+            stopLinkedMessagePositioning();
+            reportScrollManager.scrollToBottom();
+        },
+        resetKey: `${reportID}:${linkedReportActionID}`,
     });
 
     const scrollToBottomAndMarkReportAsRead = () => {
