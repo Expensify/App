@@ -1754,6 +1754,7 @@ describe('ReportAlternateTextUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 lastAction: action,
+                lastOriginalAction: undefined,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
