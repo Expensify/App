@@ -62,9 +62,6 @@ function EditReportFieldDropdown({
 
     const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
-    // Tapping a row used to call `onSubmit` straight away, which closed the page on input (WCAG 3.2.2 On Input).
-    // The tap now only stages the value, and `onSubmit` runs from an explicit Save.
-    // An empty string is a meaningful staged value (it clears the field), so `undefined` means "nothing staged yet".
     const [draftValue, setDraftValue] = useState<string>();
     const currentValue = draftValue ?? fieldValue;
 
@@ -115,8 +112,6 @@ function EditReportFieldDropdown({
             titleNumberOfLines={shouldUseCompactRows ? 2 : undefined}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
-            // Re-selecting the value the field already holds stages that same value rather than an empty string,
-            // which leaves '' free to mean "cleared". Staging the stored value keeps Save disabled.
             onSelectRow={(option) => setDraftValue(option?.text ?? '')}
             confirmButtonOptions={{
                 showButton: true,
