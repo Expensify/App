@@ -18,7 +18,7 @@ import type TabRootScrollViewMarkerProps from './types';
 function TabRootScrollViewMarker({children}: TabRootScrollViewMarkerProps) {
     const styles = useThemeStyles();
 
-    return null;
+    return <ScrollViewMarker style={styles.flex1}>{children}</ScrollViewMarker>;
 }
 
 /**
