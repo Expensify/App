@@ -4897,6 +4897,22 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         }
     }
 
+    // Travel section
+    {
+        const travelSection: SearchTypeMenuSection = {
+            translationPath: 'search.tabs.travel',
+            menuItems: [],
+        };
+
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.TRIPS]) {
+            travelSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TRIPS]);
+        }
+
+        if (travelSection.menuItems.length > 0) {
+            typeMenuSections.push(travelSection);
+        }
+    }
+
     // Accounting section
     {
         const accountingSection: SearchTypeMenuSection = {
@@ -4956,22 +4972,6 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
         if (accountingSection.menuItems.length > 0) {
             typeMenuSections.push(accountingSection);
-        }
-    }
-
-    // Travel section
-    {
-        const travelSection: SearchTypeMenuSection = {
-            translationPath: 'search.tabs.travel',
-            menuItems: [],
-        };
-
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.TRIPS]) {
-            travelSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TRIPS]);
-        }
-
-        if (travelSection.menuItems.length > 0) {
-            typeMenuSections.push(travelSection);
         }
     }
 

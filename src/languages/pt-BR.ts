@@ -10415,7 +10415,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             topCategories: 'Principais categorias',
             topMerchants: 'Principais estabelecimentos',
             violationsBySubmitter: 'Violações por quem enviou',
-            travel: 'Viagens',
+            travel: 'Viagem',
             trips: 'Viagens',
         },
         mergeReports: {
