@@ -19,14 +19,12 @@ import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
 
 import useChatWithAgent from './useChatWithAgent';
-import useCleanupSelectedOptions from './useCleanupSelectedOptions';
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useRuleBotGuardModal from './useRuleBotGuardModal';
-import useSearchBackPress from './useSearchBackPress';
 import useSwitchToDelegator from './useSwitchToDelegator';
 
 function handleErrorClose(pendingAction: PendingAction | null | undefined, accountID: number): void {
@@ -152,11 +150,6 @@ function useAgents() {
     });
 
     const clearSelectedAgents = () => setSelectedAgents((prevSelectedAgents) => (prevSelectedAgents.length > 0 ? [] : prevSelectedAgents));
-    useCleanupSelectedOptions(clearSelectedAgents);
-    useSearchBackPress({
-        onClearSelection: clearSelectedAgents,
-        onNavigationCallBack: () => Navigation.goBack(),
-    });
 
     const removeSelectedAgents = () => {
         for (const accountIDString of selectedAgentKeys) {
