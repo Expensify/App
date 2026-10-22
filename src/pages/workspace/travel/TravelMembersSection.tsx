@@ -18,6 +18,7 @@ import {clearPolicyTravelMemberAccessError, setPolicyTravelMemberAccess, setPoli
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {canMemberUseTravel, getTravelMemberRole} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import type {TravelMemberRole} from '@libs/TravelMemberOptionUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -28,8 +29,6 @@ import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
 import {View} from 'react-native';
-
-import type {TravelMemberRole} from './TravelMemberRolePickerModal';
 
 import TravelMemberRow from './TravelMemberRow';
 

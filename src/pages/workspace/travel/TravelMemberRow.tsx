@@ -2,10 +2,14 @@ import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
 import TextWithTooltip from '@components/TextWithTooltip';
+import TravelMemberPickerCell from '@components/TravelMemberPickerCell';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getTravelMemberRoleName, getTravelMemberRoleOptions, isTravelMemberRole} from '@libs/TravelMemberOptionUtils';
+import type {TravelMemberRole} from '@libs/TravelMemberOptionUtils';
 
 import variables from '@styles/variables';
 
@@ -14,10 +18,6 @@ import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
 import {View} from 'react-native';
-
-import type {TravelMemberRole} from './TravelMemberRolePickerModal';
-
-import TravelMemberRoleCell from './TravelMemberRoleCell';
 
 type TravelMemberRowProps = {
     accountID: number;
@@ -100,10 +100,17 @@ function TravelMemberRow({
                     />
                 </View>
                 <View style={StyleUtils.getWidthStyle(variables.tableTravelRoleColumnWidth)}>
-                    <TravelMemberRoleCell
-                        role={travelRole}
+                    <TravelMemberPickerCell
+                        value={travelRole}
+                        label={getTravelMemberRoleName(translate, travelRole)}
+                        options={getTravelMemberRoleOptions(translate, travelRole)}
                         canEdit={canEdit}
-                        onSave={onSaveTravelRole}
+                        onSave={(value) => {
+                            if (!isTravelMemberRole(value)) {
+                                return;
+                            }
+                            onSaveTravelRole(value);
+                        }}
                     />
                 </View>
                 <View style={[StyleUtils.getWidthStyle(variables.tableSwitchColumnWidth), styles.alignItemsEnd]}>
