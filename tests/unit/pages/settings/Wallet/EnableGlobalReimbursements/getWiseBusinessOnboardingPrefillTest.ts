@@ -1,16 +1,24 @@
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 
 import getWiseBusinessOnboardingPrefill, {getMissingPrefill} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseBusinessOnboardingPrefill';
+import type {WiseBusinessAccountData} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseBusinessOnboardingPrefill';
 
 import CONST from '@src/CONST';
-import type {BankAccount, PrivatePersonalDetails} from '@src/types/onyx';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 const ADDRESS_KEYS = getAddressInputKeys('address');
+const BANK_ACCOUNT_ID = 1;
 
-const BANK_ACCOUNT: BankAccount = {
-    bankCurrency: CONST.CURRENCY.USD,
-    bankCountry: CONST.COUNTRY.US,
-    accountData: {bankAccountID: 1, addressName: 'Boulder Development Inc.'},
+const BUSINESS_ACCOUNT_DATA: WiseBusinessAccountData = {
+    bankAccountID: BANK_ACCOUNT_ID,
+    companyName: 'Boulder Development Inc.',
+    companyTaxID: '123456789',
+    website: 'https://boulder.dev',
+    addressStreet: '100 Pearl St',
+    addressCity: 'Boulder',
+    addressState: 'CO',
+    addressZipCode: '80302',
+    incorporationType: CONST.INCORPORATION_TYPES.LLC,
 };
 
 const PRIVATE_PERSONAL_DETAILS: PrivatePersonalDetails = {
@@ -25,13 +33,14 @@ const PRIVATE_PERSONAL_DETAILS: PrivatePersonalDetails = {
 };
 
 describe('getWiseBusinessOnboardingPrefill', () => {
-    it('fills the representative from private details and the business name from the bank account', () => {
-        // Given a user with private details on file and a business bank account
+    it('fills the representative from private details and the business from the bank account details', () => {
+        // Given a user with private details on file and the details of the business bank account being onboarded
 
         // When the onboarding builds its starting answers
-        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT, PRIVATE_PERSONAL_DETAILS);
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, BUSINESS_ACCOUNT_DATA, PRIVATE_PERSONAL_DETAILS);
 
-        // Then the representative comes from the current address, with both street lines on the one street input the form has
+        // Then the representative comes from the current address, with both street lines on the one street input the form has,
+        // and the business rows use the bank account's own keys, in the US, with the LLC as its Wise company type
         expect(prefill).toEqual({
             firstName: 'Alice',
             lastName: 'Nguyen',
@@ -43,8 +52,56 @@ describe('getWiseBusinessOnboardingPrefill', () => {
             [ADDRESS_KEYS.zipCode]: '78704',
             [ADDRESS_KEYS.country]: CONST.COUNTRY.US,
             companyName: 'Boulder Development Inc.',
+            companyTaxID: '123456789',
+            website: 'https://boulder.dev',
+            addressStreet: '100 Pearl St',
+            addressCity: 'Boulder',
+            addressState: 'CO',
+            addressZipCode: '80302',
+            addressCountry: CONST.COUNTRY.US,
+            companyType: CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY,
         });
     });
+
+    it('leaves the business empty when the reimbursement account holds another bank account', () => {
+        // Given reimbursement account details that belong to a different bank account
+        const otherAccountData: WiseBusinessAccountData = {...BUSINESS_ACCOUNT_DATA, bankAccountID: 2};
+
+        // When the onboarding builds its starting answers for this bank account
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, otherAccountData, undefined);
+
+        // Then no detail of the other account reaches the form, and only the fixed country is filled
+        expect(getMissingPrefill(prefill, {})).toEqual({addressCountry: CONST.COUNTRY.US});
+    });
+
+    it.each([
+        [CONST.INCORPORATION_TYPES.LLC, CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY],
+        [CONST.INCORPORATION_TYPES.CORPORATION, CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION],
+        [CONST.INCORPORATION_TYPES.SOLE_PROPRIETORSHIP, CONST.WISE.COMPANY_TYPE.SOLE_PROPRIETORSHIP],
+    ])('picks the Wise company type that matches the incorporation type %s', (incorporationType, companyType) => {
+        // Given a bank account whose incorporation type has one Wise company type
+        const accountData: WiseBusinessAccountData = {...BUSINESS_ACCOUNT_DATA, incorporationType};
+
+        // When the onboarding builds its starting answers
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, accountData, undefined);
+
+        // Then the company type starts on that Wise type
+        expect(prefill.companyType).toBe(companyType);
+    });
+
+    it.each([CONST.INCORPORATION_TYPES.PARTNERSHIP, CONST.INCORPORATION_TYPES.COOPERATIVE, CONST.INCORPORATION_TYPES.OTHER, undefined])(
+        'leaves the company type for the admin when the incorporation type is %s',
+        (incorporationType) => {
+            // Given a bank account whose incorporation type has no single Wise company type, or none at all
+            const accountData: WiseBusinessAccountData = {...BUSINESS_ACCOUNT_DATA, incorporationType};
+
+            // When the onboarding builds its starting answers
+            const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, accountData, undefined);
+
+            // Then the company type is not guessed
+            expect(prefill.companyType).toBeUndefined();
+        },
+    );
 
     it('turns country and state names from older addresses into the codes the pickers take', () => {
         // Given an address saved with full names
@@ -52,7 +109,7 @@ describe('getWiseBusinessOnboardingPrefill', () => {
         const details: PrivatePersonalDetails = {addresses: [{street: '1 Main St', city: 'Fresno', state: 'California', zip: '93650', country: 'United States'}]};
 
         // When the onboarding builds its starting answers
-        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT, details);
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, BUSINESS_ACCOUNT_DATA, details);
 
         // Then the pickers get codes they can show
         expect(prefill).toMatchObject({[ADDRESS_KEYS.country]: CONST.COUNTRY.US, [ADDRESS_KEYS.state]: 'CA'});
@@ -63,7 +120,7 @@ describe('getWiseBusinessOnboardingPrefill', () => {
         const details: PrivatePersonalDetails = {addresses: [{street: '1 Main St', city: 'Springfield', state: 'Nowhere', zip: '12345', country: CONST.COUNTRY.US}]};
 
         // When the onboarding builds its starting answers
-        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT, details);
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, BUSINESS_ACCOUNT_DATA, details);
 
         // Then the unknown state is not prefilled, so the user picks it instead of carrying a value the picker cannot show
         expect(prefill[ADDRESS_KEYS.state]).toBeUndefined();
@@ -71,21 +128,21 @@ describe('getWiseBusinessOnboardingPrefill', () => {
     });
 
     it('leaves out what is not on file', () => {
-        // Given a user with no private details yet
+        // Given a user with no private details yet and no details of the bank account, such as an admin who shares the account but does not own it
 
         // When the onboarding builds its starting answers
-        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT, undefined);
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, undefined, undefined);
 
-        // Then nothing is made up, so getMissingPrefill writes only the business name
-        expect(getMissingPrefill(prefill, {})).toEqual({companyName: 'Boulder Development Inc.'});
+        // Then nothing is made up, so getMissingPrefill writes only the form's fixed country
+        expect(getMissingPrefill(prefill, {})).toEqual({addressCountry: CONST.COUNTRY.US});
     });
 });
 
 describe('getMissingPrefill', () => {
     it('keeps what the user typed, even an emptied field', () => {
-        // Given a draft where the user changed the first name and cleared the phone number
-        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT, PRIVATE_PERSONAL_DETAILS);
-        const draft = {firstName: 'Alicia', phoneNumber: ''};
+        // Given a draft where the user changed the first name and the company type, and cleared the phone number
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, BUSINESS_ACCOUNT_DATA, PRIVATE_PERSONAL_DETAILS);
+        const draft = {firstName: 'Alicia', phoneNumber: '', companyType: CONST.WISE.COMPANY_TYPE.TRUST};
 
         // When the onboarding decides what to prefill
         const missing = getMissingPrefill(prefill, draft);
@@ -93,35 +150,40 @@ describe('getMissingPrefill', () => {
         // Then the user's answers stay, and only the untouched fields are filled
         expect(missing).not.toHaveProperty('firstName');
         expect(missing).not.toHaveProperty('phoneNumber');
+        expect(missing).not.toHaveProperty('companyType');
         expect(missing).toMatchObject({lastName: 'Nguyen', dateOfBirth: '1985-04-12'});
     });
 
-    it('updates the business name, since it is a read-only row that follows the bank account', () => {
-        // Given a draft holding an older business name
-        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT, undefined);
+    it('updates the read-only business rows, since they follow the bank account', () => {
+        // Given a draft holding older business details
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, BUSINESS_ACCOUNT_DATA, undefined);
+        const draft = {companyName: 'Old Name LLC', addressCity: 'Denver', addressState: 'CO', addressCountry: CONST.COUNTRY.US};
 
         // When the onboarding decides what to prefill
-        const missing = getMissingPrefill(prefill, {companyName: 'Old Name LLC'});
+        const missing = getMissingPrefill(prefill, draft);
 
-        // Then the bank account's name replaces it
-        expect(missing).toEqual({companyName: 'Boulder Development Inc.'});
+        // Then the bank account's details replace the changed ones, and the rows that still match are left alone
+        expect(missing).toMatchObject({companyName: 'Boulder Development Inc.', addressCity: 'Boulder'});
+        expect(missing).not.toHaveProperty('addressState');
+        expect(missing).not.toHaveProperty('addressCountry');
     });
 
-    it('empties the business name when the bank account has none, so the name of another account does not stay', () => {
-        // Given a draft holding another account's name and a bank account without a name
-        const prefill = getWiseBusinessOnboardingPrefill({...BANK_ACCOUNT, accountData: {bankAccountID: 2}}, undefined);
+    it('empties the read-only rows when the bank account details are gone, so the details of another account do not stay', () => {
+        // Given a draft holding another account's details, and no details for this bank account
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, undefined, undefined);
+        const draft = {companyName: 'Old Name LLC', companyTaxID: '987654321', addressCountry: CONST.COUNTRY.US};
 
         // When the onboarding decides what to prefill
-        const missing = getMissingPrefill(prefill, {companyName: 'Old Name LLC'});
+        const missing = getMissingPrefill(prefill, draft);
 
-        // Then the read-only row is emptied, and once the draft holds that nothing is left to write
-        expect(missing).toEqual({companyName: ''});
-        expect(getMissingPrefill(prefill, missing)).toEqual({});
+        // Then the read-only rows are emptied, and once the draft holds that nothing is left to write
+        expect(missing).toEqual({companyName: '', companyTaxID: ''});
+        expect(getMissingPrefill(prefill, {...draft, ...missing})).toEqual({});
     });
 
     it('writes nothing once the draft holds every prefill answer', () => {
         // Given a draft the prefill already landed in
-        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT, PRIVATE_PERSONAL_DETAILS);
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, BUSINESS_ACCOUNT_DATA, PRIVATE_PERSONAL_DETAILS);
 
         // When the onboarding decides what to prefill again
         const missing = getMissingPrefill(prefill, prefill);
