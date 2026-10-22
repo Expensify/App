@@ -1,5 +1,3 @@
-import {IsTabRouteAtRootProvider} from '@components/Navigation/TabBarBottomContent/IsTabRouteAtRootContext';
-
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 
@@ -32,11 +30,7 @@ function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBa
 // Same as screenLayoutWrapper above, but for bottom-tab navigators, JS and native. No cast needed here - their
 // `navigation` props' `addListener` structurally satisfies TransitionAwareNavigation.
 function bottomTabScreenLayoutWrapper(props: ScreenLayoutProps) {
-    return (
-        <IsTabRouteAtRootProvider routeKey={props.route.key}>
-            <ScreenLayout {...props} />
-        </IsTabRouteAtRootProvider>
-    );
+    return <ScreenLayout {...props} />;
 }
 
 type ScreenLayoutProps = ScreenLayoutArgs<
