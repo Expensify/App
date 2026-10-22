@@ -30,9 +30,8 @@ function LinkedActionNotFoundGuard({children}: LinkedActionNotFoundGuardProps) {
     const routeParams = route.params as {reportActionID?: string} | undefined;
     const reportActionIDFromRoute = routeParams?.reportActionID;
 
-    // The gate is a sibling rather than a wrapper so that setting, changing or clearing the linked action never remounts
-    // the report subtree (header, actions list, composer) and drops its local state, e.g. the composer text.
-    // It comes after children so its recovery effects still run after theirs, as they did when it wrapped them.
+    // Render the gate next to children, not around them, so changing the linked action doesn't remount the report
+    // and lose its state (e.g. composer text). It comes after children so its effects run after theirs.
     return (
         <>
             {children}

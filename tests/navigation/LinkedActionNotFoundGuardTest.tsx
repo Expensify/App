@@ -68,9 +68,8 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 
 let mockIsReportActionVisible = true;
 
-// The gate no longer re-renders when its parent does, only when its own subscriptions change, so the useOnyx mock
-// notifies subscribers like Onyx does. Visibility is derived from DERIVED.VISIBLE_REPORT_ACTIONS, so an update
-// also replaces that value.
+// The gate only re-renders when its Onyx subscriptions change, so the useOnyx mock notifies subscribers like Onyx does.
+// Each update also replaces DERIVED.VISIBLE_REPORT_ACTIONS, which visibility is derived from.
 const mockOnyxListeners = new Set<() => void>();
 let mockOnyxVersion = 0;
 let mockVisibleReportActions: Record<string, unknown> = {};
