@@ -84,6 +84,7 @@ function getAlternateText({
     currentUserAccountID = CURRENT_USER_ACCOUNT_ID,
 }: Case): string | undefined {
     const result = SidebarUtils.getOptionData({
+        lastOriginalAction: undefined,
         report,
         reportAttributes: undefined,
         oneTransactionThreadReport: undefined,

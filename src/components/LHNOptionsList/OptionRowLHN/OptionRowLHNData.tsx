@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions as ReportActionsType} from '@src/types/onyx';
-import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {SortedReportActionsDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ViewStyle} from 'react-native';
@@ -86,6 +86,8 @@ function OptionRowLHNData({
         [reportID, oneTransactionThreadReportID],
     );
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: visibleActionsSelector});
+
+    const [lastOriginalAction] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: (data: SortedReportActionsDerivedValue | undefined) => data?.lastActions?.[reportID]});
 
     // Per-item NVP subscription instead of collection-level subscription in parent
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
@@ -162,6 +164,7 @@ function OptionRowLHNData({
         invoiceReceiverPolicy,
         card,
         lastAction,
+        lastOriginalAction,
         translate,
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,

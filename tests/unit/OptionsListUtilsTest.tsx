@@ -6865,6 +6865,7 @@ describe('OptionsListUtils', () => {
             await seedActions(reportID, comment);
 
             const lhnOption = SidebarUtils.getOptionData({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 report,
                 reportAttributes: undefined,
@@ -6928,6 +6929,7 @@ describe('OptionsListUtils', () => {
                 await seedActions(reportID, action);
 
                 const lhnOption = SidebarUtils.getOptionData({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     report,
                     reportAttributes: undefined,

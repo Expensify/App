@@ -73,6 +73,7 @@ describe('SidebarUtils', () => {
 
         await measureFunction(() =>
             SidebarUtils.getOptionData({
+                lastOriginalAction: undefined,
                 dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
