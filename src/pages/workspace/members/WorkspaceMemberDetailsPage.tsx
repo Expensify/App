@@ -47,7 +47,6 @@ import {
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
-    getMemberLoginByOptimisticAccountID,
     hasActiveExpensifyCard,
     isControlPolicy,
     isPolicyAdmin,
