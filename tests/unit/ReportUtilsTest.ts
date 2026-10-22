@@ -3362,6 +3362,44 @@ describe('ReportUtils', () => {
                     expect(reportName).toBe('Deleted report');
                 });
 
+                test('should only consider a closed expense report with zero totals empty when it has no linked transactions', () => {
+                    // Given a closed expense report whose totals are zero and has no transactionCount,
+                    // so only the linked transactions can tell us whether it has expenses
+                    const expenseReport: Report = {
+                        ...baseExpenseReport,
+                        statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                        total: 0,
+                        transactionCount: 0,
+                    };
+
+                    // When we check it with and without linked transactions
+                    const withTransactions = isClosedExpenseReportWithNoExpenses(expenseReport, true);
+                    const withoutTransactions = isClosedExpenseReportWithNoExpenses(expenseReport, false);
+
+                    // Then only the report without linked transactions is considered closed with no expenses
+                    expect(withTransactions).toBe(false);
+                    expect(withoutTransactions).toBe(true);
+                });
+
+                test('should not show deleted report name for closed expense report that has a linked transaction', () => {
+                    // Given a closed expense report with zero totals and a transaction that belongs to it
+                    const expenseReport: Report = {
+                        ...baseExpenseReport,
+                        statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                        total: 0,
+                        transactionCount: 0,
+                    };
+                    const transaction: Transaction = {...createRandomTransaction(1), reportID: expenseReport.reportID};
+                    const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy};
+                    const transactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction};
+
+                    // When computing the report name with the transaction available
+                    const reportName = computeReportName(expenseReport, undefined, policies, transactions, undefined, participantsPersonalDetails);
+
+                    // Then the transaction lookup by reportID prevents the "Deleted report" fallback
+                    expect(reportName).not.toBe('Deleted report');
+                });
+
                 test('closed expense report with total and transactions not loaded', () => {
                     // Given a closed (submitted) expense report with a total and no transactions yet loaded
                     const expenseReport: Report = {
@@ -3371,7 +3409,7 @@ describe('ReportUtils', () => {
                     };
 
                     // Then it should not be considered closed without expenses, because it has a total
-                    expect(isClosedExpenseReportWithNoExpenses(expenseReport)).toBe(false);
+                    expect(isClosedExpenseReportWithNoExpenses(expenseReport, false)).toBe(false);
                 });
 
                 test('closed expense report with zero total but non-reimbursable total exists', () => {
@@ -3385,7 +3423,7 @@ describe('ReportUtils', () => {
                     };
 
                     // Then it should not be considered closed without expenses, because nonReimbursableTotal indicates expenses exist
-                    expect(isClosedExpenseReportWithNoExpenses(expenseReport)).toBe(false);
+                    expect(isClosedExpenseReportWithNoExpenses(expenseReport, false)).toBe(false);
                 });
 
                 test('should handle paid elsewhere money request', () => {
@@ -8286,6 +8324,68 @@ describe('ReportUtils', () => {
                     reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
+        });
+
+        it('should allow editing the RECEIPT of a manual expense, but not a scan expense, while the receipt is SCAN_READY', async () => {
+            // Given an OPEN expense report the approver can edit, with an expense whose receipt is waiting to be scanned
+            const openExpenseReport: Report = {
+                reportID: '12360',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const scanReadyTransaction: Transaction = {
+                transactionID: 'txn12360',
+                reportID: openExpenseReport.reportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: 'Test expense'},
+                created: '2025-01-01',
+                merchant: 'Test Merchant',
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+            };
+
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'action12360',
+                actorAccountID: submitterAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: openExpenseReport.reportID,
+                    IOUTransactionID: scanReadyTransaction.transactionID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
+                created: '2025-01-01 12:00:00',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
+            await waitForBatchedUpdates();
+
+            const canEditReceipt = (transaction: Transaction) =>
+                canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction: moneyRequestAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction,
+                    report: openExpenseReport,
+                    policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
+                });
+
+            // When checking whether the receipt can be edited during the scan, once for a manual expense and once for a scan expense
+            const canEditManualReceipt = canEditReceipt({...scanReadyTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+            const canEditScanReceipt = canEditReceipt({...scanReadyTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+
+            // Then the backend scan the user never sees doesn't block the manual expense's receipt edit,
+            // but the scan expense's receipt edit stays blocked until the scan finishes because the user sees that scan in progress
+            expect(canEditManualReceipt).toBe(true);
+            expect(canEditScanReceipt).toBe(false);
         });
 
         it('should NOT allow workflow approver to edit money request on SUBMITTED expense report', async () => {

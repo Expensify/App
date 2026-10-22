@@ -7464,6 +7464,11 @@ const translations = {
             emptySubtitle: 'Vendors will appear here after your accounting sync completes.',
             findVendor: 'Find vendor',
             managedInAccountingSoftware: 'Vendors are managed in your',
+            enableVendor: 'Enable vendor',
+            enableVendors: 'Enable vendors',
+            disableVendor: 'Disable vendor',
+            disableVendors: 'Disable vendors',
+            updateFailureMessage: 'An error occurred while updating the vendor, please try again',
         },
         tags: {
             tagName: 'Tag name',
@@ -7511,6 +7516,7 @@ const translations = {
             tagRules: 'Tag rules',
             approverDescription: 'Approver',
             importTags: 'Import tags',
+            appendCustomTagList: 'Append custom tag list',
             importTagsSupportingText: 'Code your expenses with one type of tag or many.',
             configureMultiLevelTags: 'Configure your list of tags for multi-level tagging.',
             importMultiLevelTagsSupportingText: `Here's a preview of your tags. If everything looks good, click below to import them.`,
@@ -7700,6 +7706,10 @@ const translations = {
                 optionNoRegularWorkspaceHelp: "Member works from home or travels between locations with no regular office, so commute rules don't apply.",
                 futureOnlyNote: 'Changes apply only to future mileage calculations. Existing mileage expenses are not recalculated.',
             },
+            officeLocation: 'Office location',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Change office location',
+            changeWorkArrangement: 'Change work arrangement',
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -10028,6 +10038,11 @@ const translations = {
             setAsPrimary: ({name}: {name: string}) => `set the office location "${name}" as primary`,
             setCompanyAddressAsPrimary: 'set the company address as primary',
             removed: ({name}: {name: string}) => `removed the office location "${name}"`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `changed ${displayName}'s office location to ${officeLocation} (previously ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `"${name}"`,
+            companyAddress: 'the company address',
+            primaryOffice: 'the primary office',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `set the default work arrangement to ${arrangement}`,
@@ -10795,8 +10810,6 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
-        switchToTableView: 'Switch to table view',
-        switchToExpenseView: 'Switch to expense view',
     },
     report: {
         newReport: {
