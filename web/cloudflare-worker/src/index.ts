@@ -136,23 +136,29 @@ async function getPreviousBuildFile(env: Env, url: URL, method: string, mayHaveT
         return null;
     }
 
-    if (mayHaveTwin) {
-        const twin = await getPreviousBuildObject(env.PREVIOUS_BUILDS, `${key}.br`, method);
-        if (twin) {
-            const extension = key.slice(key.lastIndexOf('.') + 1);
-            // The twin's stored type describes the `.br` file, not the content it encodes.
-            const headers = new Headers({'Cache-Control': REVALIDATE_CACHE_CONTROL, 'Content-Type': PRECOMPRESSED_CONTENT_TYPES[extension] ?? 'application/octet-stream'});
-            return {response: createBrotliResponse('body' in twin ? twin.body : null, headers, twin.httpEtag), isBrotli: true};
+    try {
+        if (mayHaveTwin) {
+            const twin = await getPreviousBuildObject(env.PREVIOUS_BUILDS, `${key}.br`, method);
+            if (twin) {
+                const extension = key.slice(key.lastIndexOf('.') + 1);
+                // The twin's stored type describes the `.br` file, not the content it encodes.
+                const headers = new Headers({'Cache-Control': REVALIDATE_CACHE_CONTROL, 'Content-Type': PRECOMPRESSED_CONTENT_TYPES[extension] ?? 'application/octet-stream'});
+                return {response: createBrotliResponse('body' in twin ? twin.body : null, headers, twin.httpEtag), isBrotli: true};
+            }
         }
-    }
 
-    const object = await getPreviousBuildObject(env.PREVIOUS_BUILDS, key, method);
-    if (!object) {
+        const object = await getPreviousBuildObject(env.PREVIOUS_BUILDS, key, method);
+        if (!object) {
+            return null;
+        }
+        const headers = new Headers({'Cache-Control': REVALIDATE_CACHE_CONTROL, ETag: object.httpEtag});
+        object.writeHttpMetadata(headers);
+        return {response: new Response('body' in object ? object.body : null, {headers}), isBrotli: false};
+    } catch (error) {
+        // A 404 lets the tab recover with a reload, as it does for a file no build has.
+        console.error(`Failed to read ${key} from the previous builds bucket`, error);
         return null;
     }
-    const headers = new Headers({'Cache-Control': REVALIDATE_CACHE_CONTROL, ETag: object.httpEtag});
-    object.writeHttpMetadata(headers);
-    return {response: new Response('body' in object ? object.body : null, {headers}), isBrotli: false};
 }
 
 export default {

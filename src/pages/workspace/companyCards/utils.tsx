@@ -388,7 +388,6 @@ function getPolicyCardExportSettings(
                             defaultLabel: defaultCard,
                             // A card with no export NVP of its own is titled from `defaultLabel`, so this id is never
                             // looked up. It is kept for parity with the other integrations.
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             workspaceDefaultAccountID: exportConfig?.nonReimbursableAccount || defaultVendorAccount?.id,
                         },
                     };

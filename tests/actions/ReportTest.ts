@@ -4069,7 +4069,7 @@ describe('actions/Report', () => {
             };
 
             // When the user saves the same description, with the reportID-to-name map used to seed the input
-            Report.updateDescription(report, '# test #room', currentUserAccountID, {'123': '#room'});
+            Report.updateDescription(report, '# test #room', currentUserAccountID, {'123': '#room'}, {});
 
             await waitForBatchedUpdates();
 
@@ -4088,7 +4088,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             mockFetch?.fail?.();
-            Report.updateDescription(report, '# test1', currentUserAccountID, {});
+            Report.updateDescription(report, '# test1', currentUserAccountID, {}, {});
 
             await waitForBatchedUpdates();
             let updateReport: OnyxEntry<OnyxTypes.Report>;
@@ -7811,6 +7811,43 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
+        });
+
+        it('should bump the explained action reply count so the parent shows the Replies link', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const EXISTING_CHILD_REPORT = {...createRandomReport(2, undefined), parentReportID: PARENT_REPORT.reportID, parentReportActionID: '1'};
+            const REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+                childReportID: EXISTING_CHILD_REPORT.reportID,
+                childVisibleActionCount: 0,
+                childCommenterCount: 0,
+            };
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT.reportID}`, {[REPORT_ACTION.reportActionID]: REPORT_ACTION});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${EXISTING_CHILD_REPORT.reportID}`, EXISTING_CHILD_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.explain({
+                childReport: EXISTING_CHILD_REPORT,
+                originalReport: PARENT_REPORT,
+                reportAction: REPORT_ACTION,
+                translate: TestHelper.translateLocal,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: INTRO_SELECTED,
+                conciergeChat: undefined,
+                isSelfTourViewed: undefined,
+                delegateAccountID: undefined,
+                participantsPersonalDetails: undefined,
+                timezone: CONST.DEFAULT_TIME_ZONE,
+            });
+            await waitForBatchedUpdates();
+
+            const parentActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT.reportID}`);
+            expect(parentActions?.[REPORT_ACTION.reportActionID]?.childVisibleActionCount).toBe(1);
+            expect(parentActions?.[REPORT_ACTION.reportActionID]?.childCommenterCount).toBe(1);
         });
 
         it('should work with new explain thread scenario', async () => {

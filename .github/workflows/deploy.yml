@@ -769,14 +769,7 @@ jobs:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
           HOST: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
-      # The staging host is verified by webDeployStagingWorker, which deploys after this job.
-      - name: Verify deploy
-        if: ${{ env.DEPLOY_ENV == 'production' }}
-        run: |
-          APP_VERSION=$(jq -r .version < package.json)
-          ./.github/scripts/verifyDeploy.sh "$HOST" "$APP_VERSION"
-        env:
-          HOST: ${{ vars.WEB_PRODUCTION_HOST }}
+      # The host is verified by webDeployWorker, which deploys after this job.
 
   webDeployTestStaging:
     name: Deploy Web to test-staging.new.expensify.com
@@ -836,11 +829,11 @@ jobs:
         env:
           HOST: https://test-staging.new.expensify.com
 
-  webDeployStagingWorker:
-    name: Deploy Web to the staging Cloudflare Worker
+  webDeployWorker:
+    name: Deploy Web to the Cloudflare Worker
     # After webDeploy, so the S3 copy of this build is in place before the Worker's version check.
     needs: [prep, webBuild, buildStorybook, webDeploy]
-    if: ${{ always() && needs.webBuild.result == 'success' && needs.prep.outputs.DEPLOY_ENV == 'staging' }}
+    if: ${{ always() && needs.webBuild.result == 'success' }}
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -876,7 +869,7 @@ jobs:
           fi
           aws configure set default.s3.preferred_transfer_client classic
           # Re-uploads every file, so files that stay the same across builds don't hit the bucket's 60-day expiry while still in use.
-          aws s3 cp dist s3://new-expensify-web-assets-staging/ --recursive \
+          aws s3 cp dist "s3://new-expensify-web-assets-$DEPLOY_ENV/" --recursive \
             --endpoint-url "https://$CLOUDFLARE_ACCOUNT_ID.r2.cloudflarestorage.com" \
             --no-progress \
             --exclude '*.map'
@@ -900,7 +893,7 @@ jobs:
 
       - name: Deploy to Cloudflare Workers
         working-directory: web/cloudflare-worker
-        run: npx wrangler deploy --env staging
+        run: npx wrangler deploy --env "$DEPLOY_ENV"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -911,7 +904,7 @@ jobs:
           APP_VERSION=$(jq -r .version < package.json)
           ./.github/scripts/verifyDeploy.sh "$HOST" "$APP_VERSION"
         env:
-          HOST: ${{ vars.WEB_STAGING_HOST }}
+          HOST: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
   buildStorybook:
     name: Build storybook docs
@@ -960,7 +953,7 @@ jobs:
         iosSubmit,
         webBuild,
         webDeploy,
-        webDeployStagingWorker,
+        webDeployWorker,
         victoryChartRendererBuild,
       ]
     steps:
@@ -976,7 +969,7 @@ jobs:
     name: Post a Slack message when the deploy is cancelled manually
     runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ cancelled() }}
-    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy, webDeployStagingWorker]
+    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy, webDeployWorker]
     steps:
       - name: Check whether a newer deploy run exists
         id: check
@@ -1015,7 +1008,7 @@ jobs:
       ANDROID_RESULT: ${{ steps.platformResults.outputs.ANDROID_RESULT }}
       IOS_RESULT: ${{ steps.platformResults.outputs.IOS_RESULT }}
       WEB_RESULT: ${{ steps.platformResults.outputs.WEB_RESULT }}
-    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy, webDeployStagingWorker, victoryChartRendererBuild]
+    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy, webDeployWorker, victoryChartRendererBuild]
     if: ${{ always() }}
     steps:
       # Determine effective result for each platform
@@ -1050,11 +1043,11 @@ jobs:
             echo "IOS_RESULT=${{ needs.iosUploadTestflight.result }}" >> "$GITHUB_OUTPUT"
           fi
 
-          # Web: propagate build failure even when deploy is skipped. Staging is only deployed once its Worker is too.
+          # Web: propagate build failure even when deploy is skipped. Web is only deployed once its Worker is too.
           if [ "${{ needs.webBuild.result }}" == "failure" ]; then
             echo "WEB_RESULT=failure" >> "$GITHUB_OUTPUT"
-          elif [ "${{ env.DEPLOY_ENV }}" == "staging" ] && [ "${{ needs.webDeployStagingWorker.result }}" != "success" ]; then
-            echo "WEB_RESULT=${{ needs.webDeployStagingWorker.result }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ needs.webDeployWorker.result }}" != "success" ]; then
+            echo "WEB_RESULT=${{ needs.webDeployWorker.result }}" >> "$GITHUB_OUTPUT"
           else
             echo "WEB_RESULT=${{ needs.webDeploy.result }}" >> "$GITHUB_OUTPUT"
           fi

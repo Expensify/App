@@ -4,6 +4,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.UiThreadUtil
 
 import com.expensify.chat.MainActivity
 
@@ -23,6 +24,16 @@ class AppStateTrackerModule(reactContext: ReactApplicationContext) : ReactContex
             activity.wasAppRelaunchedFromIcon = false
         } else {
             promise.resolve(false)
+        }
+    }
+
+    /**
+     * Tells Android that NewDot finished its first screen, which records time to full display for this launch.
+     */
+    @ReactMethod
+    fun reportFullyDrawn() {
+        UiThreadUtil.runOnUiThread {
+            reactApplicationContext.getCurrentActivity()?.reportFullyDrawn()
         }
     }
 }

@@ -4,10 +4,13 @@ import {getLoneField, getVisibleContent} from '@components/DynamicForm/utils/get
 import isHeading from '@components/DynamicForm/utils/isHeading';
 import type {FormValue} from '@components/Form/types';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useLocalize from '@hooks/useLocalize';
+
 import CONST from '@src/CONST';
 import type {DynamicFormContentItem, DynamicFormField, DynamicFormListItem} from '@src/types/onyx';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 import DynamicFormFieldRow from './DynamicFormFieldRow';
 import DynamicFormHeadingRow from './DynamicFormHeadingRow';
@@ -57,8 +60,25 @@ function DynamicFormFields({
     onListItemsChange,
     isSensitive = false,
 }: DynamicFormFieldsProps) {
+    const {translate} = useLocalize();
     const visibleContent = getVisibleContent(content, values, allFields);
-    const loneField = getLoneField(getContentFields(visibleContent));
+    const visibleFields = getContentFields(visibleContent);
+    const loneField = getLoneField(visibleFields);
+
+    // Questions appear and disappear as answers or refreshed requirements change, which a screen reader user can't see, so each change is announced
+    const visibleFieldKeys = visibleFields.map((field) => field.key).join(',');
+    const [shownFieldKeys, setShownFieldKeys] = useState(visibleFieldKeys);
+    const [questionsChangeCount, setQuestionsChangeCount] = useState(0);
+    if (shownFieldKeys !== visibleFieldKeys) {
+        setShownFieldKeys(visibleFieldKeys);
+        setQuestionsChangeCount((count) => count + 1);
+    }
+    useAccessibilityAnnouncement(translate('dynamicForm.questionsChanged'), questionsChangeCount > 0, {
+        shouldAnnounceOnNative: true,
+        shouldAnnounceOnWeb: true,
+        politeness: 'polite',
+        announcementKey: questionsChangeCount,
+    });
     const renderFields = (itemFields: DynamicFormField[], itemValues: DynamicFormValues, isItemSensitive: boolean) => (
         <DynamicFormFields
             content={itemFields}
