@@ -139,6 +139,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Réflexion en cours…',
         addCardTermsOfService: 'Conditions d’utilisation d’Expensify',
         perPerson: 'par personne',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `${count} nuit • ${nightlyRate} par nuit`,
+            other: `${count} nuits • ${nightlyRate} par nuit`,
+        }),
         phone: 'Téléphone',
         phoneNumber: 'Numéro de téléphone',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -4001,6 +4005,7 @@ ${amount} pour ${merchant} - ${date}`,
             removeDelegate: 'Supprimer le délégué de vacances',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, terminé`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Étape ${step}`;
         if (total) {
@@ -4108,11 +4113,14 @@ ${amount} pour ${merchant} - ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Saisissez une valeur entre ${min} et ${max}`,
             tooFewItems: ({min}: {min: number}) => `Ajoutez au moins ${min}`,
             tooManyItems: ({max}: {max: number}) => `Ajoutez au plus ${max}`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item} : ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field} : ${error}`,
         },
         addItem: ({item}: {item: string}) => `Ajouter ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Supprimer ${item} ?`,
         removeItemPrompt: ({name}: {name: string}) => `Voulez-vous vraiment supprimer ${name} ?`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} se terminant par ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'Les questions de cette page ont changé',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Le code SWIFT/BIC doit comporter 8 ou 11 caractères, avec 6 lettres suivies de 2 ou 5 lettres ou chiffres.',
@@ -6333,12 +6341,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.'},
-            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyages',
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage consolidés',
             travelInvoicingSettlementAccount: {
-                label: 'Compte de règlement de facturation de voyage',
+                label: 'Compte de règlement de facturation de voyage consolidée',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.',
             },
-            travelInvoicingPayableAccount: {label: 'Compte créditeur de facturation de voyages'},
+            travelInvoicingPayableAccount: {label: 'Compte fournisseur de facturation de voyage consolidée'},
         },
         type: {
             free: 'Gratuit',
@@ -9272,12 +9280,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.'},
-            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage consolidés',
             travelInvoicingSettlementAccount: {
-                label: 'Compte de règlement de facturation de voyage',
+                label: 'Compte de règlement de facturation de voyage consolidée',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.',
             },
-            travelInvoicingPayableAccount: {label: 'Compte fournisseur pour la facturation de voyage'},
+            travelInvoicingPayableAccount: {label: 'Compte fournisseur de facturation de voyage consolidée'},
             exportToMultipleAccounts: 'Configurer l’exportation vers plusieurs comptes',
             cardProgramAccount: {
                 label: 'Compte du programme de carte',
@@ -10535,6 +10543,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             topCategories: 'Catégories principales',
             topMerchants: 'Meilleurs commerçants',
             violationsBySubmitter: 'Infractions par déclarant',
+            travel: 'Voyage',
+            trips: 'Voyages',
         },
         mergeReports: {
             title: 'Fusionner des notes de frais',
@@ -10592,8 +10602,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             category: 'Catégorie',
             tag: 'Tag',
         },
-        switchToTableView: 'Passer à la vue tableau',
-        switchToExpenseView: 'Passer à la vue dépense',
     },
     report: {
         newReport: {
@@ -11663,6 +11671,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} remboursé le ${date}`,
             },
             billedTo: 'Facturé à',
+            activity: 'Activité',
+            findActiveUser: 'Rechercher un utilisateur actif',
             viewReceipt: 'Voir le reçu',
             viewInvoice: 'Voir la facture',
         },

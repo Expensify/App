@@ -238,6 +238,7 @@ const RULE_TRIGGERS = {
     REPORT_SUBMIT: 'ReportSubmit',
     REPORT_APPROVE: 'ReportApprove',
     CREATE_TRANSACTION: 'CreateTransaction',
+    UPDATE_TRANSACTION: 'UpdateTransaction',
 } as const;
 
 const EMAIL = {
@@ -433,9 +434,6 @@ const CONST = {
     RECEIPT_CAMERA: {
         PHOTO_WIDTH: 2880,
         PHOTO_HEIGHT: 2160,
-        // iPhones offer no 4:3 photo size between 3 MP and 12 MP, so the 6 MP target above selects 2016x1512
-        IOS_STILL_WIDTH: 4032,
-        IOS_STILL_HEIGHT: 3024,
         PHOTO_ASPECT_RATIO: 4 / 3,
     },
 
@@ -1436,6 +1434,7 @@ const CONST = {
         COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         DESCRIBE_RULE: 'describeRule',
+        TRAVEL_APPROVAL: 'travelApproval',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1947,7 +1946,6 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2511,10 +2509,6 @@ const CONST = {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
         },
-        SINGLE_EXPENSE_REPORT_VIEW: {
-            EXPENSE: 'expense',
-            TABLE: 'table',
-        },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
     COMPOSER: {
@@ -2808,6 +2802,9 @@ const CONST = {
         // report list, so durations that include the openApp wait can be excluded from render measurements.
         ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         ATTRIBUTE_IS_PRELOADED: 'is_preloaded',
+        // Leaving a tab is paid inside the navigate-to-inbox-tab span, so the same tap costs more from some tabs.
+        ATTRIBUTE_SOURCE_TAB: 'source_tab',
+        ATTRIBUTE_MS_SINCE_PRELOAD: 'ms_since_preload',
         // The tap also kicked off an OpenReport request, so exclude these from render-only comparisons.
         ATTRIBUTE_WAITED_ON_OPEN_REPORT: 'waited_on_open_report',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
@@ -2845,10 +2842,7 @@ const CONST = {
         ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
         ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
         ATTRIBUTE_SOURCE: 'source',
-        ATTRIBUTE_PHASE_DETECTION_FORMAT_COUNT: 'phase_detection_format_count',
         ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM: 'selected_format_af_system',
-        ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT: 'has_interchangeable_phase_format',
-        ATTRIBUTE_MIN_FOCUS_DISTANCE: 'min_focus_distance',
         ATTRIBUTE_PHYSICAL_DEVICE_COUNT: 'physical_device_count',
         ATTRIBUTE_NEUTRAL_ZOOM: 'neutral_zoom',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
@@ -8857,6 +8851,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
+            TRIPS: 'trips',
         },
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
@@ -10190,7 +10185,6 @@ const CONST = {
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',

@@ -200,6 +200,11 @@ const translations = {
         agentThinking: 'Thinking...',
         addCardTermsOfService: 'Expensify Terms of Service',
         perPerson: 'per person',
+        // @context Hint under the Category field of a multi-night reservation expense, for example “3 nights • $232.42 per night”. nightlyRate is a formatted currency amount.
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 night • ${nightlyRate} per night`,
+            other: `${count} nights • ${nightlyRate} per night`,
+        }),
         phone: 'Phone',
         phoneNumber: 'Phone number',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -4168,6 +4173,7 @@ const translations = {
             removeDelegate: 'Remove vacation delegate',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, completed`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Step ${step}`;
 
@@ -4275,11 +4281,14 @@ const translations = {
             outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
             tooFewItems: ({min}: {min: number}) => `Add at least ${min}`,
             tooManyItems: ({max}: {max: number}) => `Add at most ${max}`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `Add ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Remove ${item}?`,
         removeItemPrompt: ({name}: {name: string}) => `Are you sure you want to remove ${name}?`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} ending in ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'The questions on this page changed',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
@@ -6499,13 +6508,13 @@ const translations = {
                 label: 'Expensify Card settlement account',
                 description: "Choose your settlement account and we'll create the payment in DualEntry.",
             },
-            syncTravelInvoicingSettlements: 'Sync Travel Invoicing settlements',
+            syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
             travelInvoicingSettlementAccount: {
-                label: 'Travel Invoicing settlement account',
+                label: 'Consolidated Travel Billing settlement account',
                 description: "Choose your settlement account and we'll create the payment in DualEntry.",
             },
             travelInvoicingPayableAccount: {
-                label: 'Travel Invoicing payable account',
+                label: 'Consolidated Travel Billing payable account',
             },
         },
         campfire: {
@@ -6622,13 +6631,13 @@ const translations = {
                 label: 'Expensify Card settlement account',
                 description: "Choose your settlement account and we'll create the payment in Campfire.",
             },
-            syncTravelInvoicingSettlements: 'Sync Travel Invoicing settlements',
+            syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
             travelInvoicingSettlementAccount: {
-                label: 'Travel Invoicing settlement account',
+                label: 'Consolidated Travel Billing settlement account',
                 description: "Choose your settlement account and we'll create the payment in Campfire.",
             },
             travelInvoicingPayableAccount: {
-                label: 'Travel Invoicing payable account',
+                label: 'Consolidated Travel Billing payable account',
             },
         },
         zohoBooks: {
@@ -10424,6 +10433,8 @@ const translations = {
             topCategories: 'Top categories',
             topMerchants: 'Top merchants',
             violationsBySubmitter: 'Violations by submitter',
+            travel: 'Travel',
+            trips: 'Trips',
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
@@ -10810,8 +10821,6 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
-        switchToTableView: 'Switch to table view',
-        switchToExpenseView: 'Switch to expense view',
     },
     report: {
         newReport: {
@@ -11906,6 +11915,8 @@ const translations = {
                 refundedAmountOn: ({amount, date}: PaymentDetailsPartialRefundParams) => `Refunded ${amount} on ${date}`,
             },
             billedTo: 'Billed to',
+            activity: 'Activity',
+            findActiveUser: 'Find an active user',
             viewReceipt: 'View receipt',
             viewInvoice: 'View invoice',
         },
