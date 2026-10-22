@@ -100,7 +100,7 @@ import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
@@ -629,7 +629,7 @@ function Search({
 
     // Read at press time rather than closed over, so rebuilding the rows doesn't give onSelectRow (and every row) a new identity.
     const carouselSiblingTransactionIDsRef = useRef(carouselSiblingTransactionIDs);
-    useEffect(() => {
+    useLayoutEffect(() => {
         carouselSiblingTransactionIDsRef.current = carouselSiblingTransactionIDs;
     }, [carouselSiblingTransactionIDs]);
 
