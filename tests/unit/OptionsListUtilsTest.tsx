@@ -1471,7 +1471,7 @@ describe('OptionsListUtils', () => {
                         action: CONST.IOU.ACTION.CREATE,
                         personalDetails: PERSONAL_DETAILS,
                     },
-                    translateLocal,
+                    {translate: translateLocal, formatPhoneNumber},
                     undefined,
                 );
             };
