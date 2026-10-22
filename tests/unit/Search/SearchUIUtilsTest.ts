@@ -8129,6 +8129,83 @@ describe('SearchUIUtils', () => {
                 expect(item?.paid).toBe(receivedAt);
             });
 
+            it('should keep the first received date when the submitter marks the payment as received again', () => {
+                // Given a report marked as received on two days, which the backend dates from the first marking
+                const firstReceivedAt = '2024-12-22 09:30:00';
+                const secondReceivedAt = '2024-12-23 10:00:00';
+                const receivedActions = (id: string, created: string) => [
+                    {
+                        reportActionID: `received-pay-${id}`,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, isSubmitterMarkedPaymentReceived: true},
+                        actorAccountID: adminAccountID,
+                        created,
+                    },
+                    {reportActionID: `received-reimbursed-${id}`, actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, actorAccountID: adminAccountID, created},
+                    {reportActionID: `received-redeemed-${id}`, actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED, actorAccountID: adminAccountID, created},
+                ];
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    ownerAccountID: adminAccountID,
+                    paid: firstReceivedAt,
+                });
+
+                // When the row is built after the report's actions are loaded
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [...receivedActions('1', firstReceivedAt), ...receivedActions('2', secondReceivedAt)]},
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then Paid keeps the first marking, so it doesn't change once the actions load
+                expect(item?.paid).toBe(firstReceivedAt);
+            });
+
+            it('should keep the first received date and no payer right after the submitter marks the payment as received again', () => {
+                // Given a report marked as received twice, where the second marking was just made in this session, so only its
+                // flagged pay action and MARKED_REIMBURSED are stored yet; its MARKED_REDEEMED only arrives once the report reloads
+                const firstReceivedAt = '2024-12-22 09:30:00';
+                const secondReceivedAt = '2024-12-23 10:00:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    ownerAccountID: adminAccountID,
+                    paid: firstReceivedAt,
+                });
+
+                // When the row is built from those stored actions
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'received-pay-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, isSubmitterMarkedPaymentReceived: true},
+                                actorAccountID: adminAccountID,
+                                created: firstReceivedAt,
+                            },
+                            {reportActionID: 'received-reimbursed-1', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, actorAccountID: adminAccountID, created: firstReceivedAt},
+                            {reportActionID: 'received-redeemed-1', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED, actorAccountID: adminAccountID, created: firstReceivedAt},
+                            {reportActionID: 'received-reimbursed-2', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, actorAccountID: adminAccountID, created: secondReceivedAt},
+                            {
+                                reportActionID: 'received-pay-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, isSubmitterMarkedPaymentReceived: true},
+                                actorAccountID: adminAccountID,
+                                created: '2024-12-23 10:00:01',
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the second marking is still recognised as received: Paid keeps the first date and Paid by stays blank
+                expect(item?.paid).toBe(firstReceivedAt);
+                expect(item?.paidByAccountID).toBeUndefined();
+            });
+
             it('should populate paid from the report paid date when the response has no payment actions', () => {
                 // Given a paid report that carries its paid date but no payment actions, which is what Search returns when the Paid by column is not requested
                 const reportPaidAt = '2024-12-22 09:30:00';
