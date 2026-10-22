@@ -234,6 +234,9 @@ jobs:
           path: /tmp/ios-artifacts
           merge-multiple: true
 
+      - name: Block compromised Java certificates
+        uses: Expensify/GitHub-Actions/block-compromised-java-certificates@main
+
       - name: Publish to GitHub Packages Maven
         run: ./android/gradlew -p scripts/artifacts-utils/ios/publish publish -PartifactsDir="/tmp/ios-artifacts" -PpatchedVersion="${PATCHED_VERSION}" -PpatchesHash="${PATCHES_HASH}" -PpackageName="${PACKAGE_NAME}"
         env:

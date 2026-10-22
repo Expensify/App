@@ -80,6 +80,16 @@ jobs:
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
+      - name: Setup Java
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
+        with:
+          distribution: adopt
+          java-version: 17
+          cache: gradle
+
+      - name: Block compromised Java certificates
+        uses: Expensify/GitHub-Actions/block-compromised-java-certificates@main
+
       - name: Configure AWS Credentials
         # v6
         uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59
@@ -98,6 +108,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
+          # Keep the protected JVM instead of installing another one inside Rock.
+          setup-java: false
           variant: ${{ matrix.variant }}
           rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
           comment-bot: false
