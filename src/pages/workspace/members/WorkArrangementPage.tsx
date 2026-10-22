@@ -96,7 +96,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
             navigateBackToDetails();
             return;
         }
-        setEmployeeWorkArrangement(policy, [accountID], value, personalDetails, translate);
+        setEmployeeWorkArrangement(policy, [accountID], value, personalDetails);
         navigateBackToDetails();
     };
 

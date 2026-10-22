@@ -7379,6 +7379,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     'Das Mitglied arbeitet von zu Hause aus oder reist zwischen verschiedenen Standorten ohne festes Büro, daher gelten die Pendelregelungen nicht.',
                 futureOnlyNote: 'Änderungen gelten nur für zukünftige Kilometerberechnungen. Bestehende Kilometerabrechnungen werden nicht neu berechnet.',
             },
+            officeLocation: 'Bürostandort',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Bürostandort ändern',
+            changeWorkArrangement: 'Arbeitsvereinbarung ändern',
             changeRole: 'Rolle ändern',
         },
         card: {
@@ -9881,6 +9885,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             setAsPrimary: ({name}: {name: string}) => `Legen Sie den Bürositz „${name}“ als primär fest`,
             setCompanyAddressAsPrimary: 'Firmenadresse als primär festlegen',
             removed: ({name}: {name: string}) => `hat den Bürostandort „${name}“ entfernt`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `hat den Bürostandort von ${displayName} in ${officeLocation} geändert (zuvor ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `„${name}“`,
+            companyAddress: 'die Firmenadresse',
+            primaryOffice: 'das Hauptbüro',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `Standard-Arbeitsmodell auf ${arrangement} festlegen`,

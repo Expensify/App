@@ -7065,6 +7065,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 optionNoRegularWorkspaceHelp: '成员在家办公或在各地点之间出差，没有固定办公地点，因此通勤规则不适用。',
                 futureOnlyNote: '更改仅适用于未来的里程计算，现有的里程报销将不会重新计算。',
             },
+            officeLocation: '办公室地点',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
+            changeOfficeLocation: '更改办公室位置',
+            changeWorkArrangement: '更改工作安排',
             changeRole: '更改角色',
         },
         card: {
@@ -9438,6 +9442,11 @@ ${reportName}`,
             setAsPrimary: ({name}: {name: string}) => `将办公地点“${name}”设为主要地点`,
             setCompanyAddressAsPrimary: '将公司地址设为主要地址',
             removed: ({name}: {name: string}) => `已移除办公室地点“${name}”`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `已将 ${displayName} 的办公地点更改为 ${officeLocation}（先前为 ${previousOfficeLocation}）`,
+            quotedName: ({name}: {name: string}) => `“${name}”`,
+            companyAddress: '公司地址',
+            primaryOffice: '主办公地点',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `将默认工作安排设置为 ${arrangement}`,
