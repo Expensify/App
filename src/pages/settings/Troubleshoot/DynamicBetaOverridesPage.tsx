@@ -17,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions, {canApplyBetaOverrides} from '@libs/Permissions';
 
-import {clearSingleRHPWidth} from '@userActions/SingleRHPWidth';
 import {clearBetaOverride, clearBetaOverrides, setBetaOverride} from '@userActions/User';
 
 import CONST from '@src/CONST';
@@ -54,9 +53,6 @@ function DynamicBetaOverridesPage() {
     // Only betas that differ from the account keep an override, so toggling back to the account value drops it
     const toggleBeta = (beta: Beta) => {
         const nextValue = !isBetaEnabled(beta);
-        if (beta === CONST.BETAS.RESIZABLE_RHP && !nextValue) {
-            clearSingleRHPWidth();
-        }
         if (nextValue === isEnabledOnAccount(beta)) {
             clearBetaOverride(beta);
             return;

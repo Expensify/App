@@ -4,11 +4,13 @@ import type {SingleRHPWidthBounds} from '@libs/Navigation/helpers/singleRHPWidth
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import lodashClamp from 'lodash/clamp';
 
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 import useResponsiveLayout from './useResponsiveLayout';
 import useSidePanelState from './useSidePanelState';
 import useWindowDimensions from './useWindowDimensions';
@@ -20,6 +22,7 @@ type SingleRHPWidth = SingleRHPWidthBounds & {
 /** Clamped at render rather than when saved, so a window that shrinks and grows back returns to the dragged width. */
 function useSingleRHPWidth(): SingleRHPWidth {
     const [storedWidth] = useOnyx(ONYXKEYS.SINGLE_RHP_WIDTH);
+    const {isBetaEnabled} = usePermissions();
     const {windowWidth} = useWindowDimensions();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
     const {shouldHideSidePanel} = useSidePanelState();
@@ -27,7 +30,10 @@ function useSingleRHPWidth(): SingleRHPWidth {
     // Mirrors when SidePanelContextProvider shifts the RHP left by the panel's width.
     const {min, max} = getSingleRHPWidthBounds(windowWidth, isExtraLargeScreenWidth && !shouldHideSidePanel ? variables.sidePanelWidth : 0);
 
-    return {width: lodashClamp(storedWidth ?? variables.rhpWidth, min, max), min, max};
+    // The beta can turn off without a chance to clear the saved width, and there is no handle to drag it back then.
+    const savedWidth = isBetaEnabled(CONST.BETAS.RESIZABLE_RHP) ? storedWidth : undefined;
+
+    return {width: lodashClamp(savedWidth ?? variables.rhpWidth, min, max), min, max};
 }
 
 export default useSingleRHPWidth;

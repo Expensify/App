@@ -89,6 +89,7 @@ jest.mock('@components/Search/SearchContext', () => ({
 
 jest.mock('@components/WideRHPContextProvider', () => ({
     useWideRHPActions: () => ({markReportRHPWidth: jest.fn(), unmarkReportRHPWidth: jest.fn()}),
+    useWideRHPState: () => ({superWideRHPRouteKeys: [], wideRHPRouteKeys: []}),
 }));
 
 jest.mock('@components/OnyxListItemProvider', () => ({
