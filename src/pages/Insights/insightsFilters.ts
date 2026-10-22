@@ -24,7 +24,7 @@ type InsightsFilters = {
     compare?: SearchCompareMode;
 
     /** Plots each point as the spend accumulated from the start of the date range, instead of each period's own total. */
-    runningTotal?: boolean;
+    shouldShowRunningTotal?: boolean;
 };
 
 const DEFAULT_INSIGHTS_FILTERS: Omit<InsightsFilters, 'groupCurrency'> = {

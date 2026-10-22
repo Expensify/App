@@ -37,7 +37,7 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersR
     const [storedFilter, storedFilterMetadata] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {
         selector: (searchFilters) => {
             const entry = searchFilters?.[searchKey];
-            return typeof entry === 'object' ? {query: entry.query, runningTotal: entry.runningTotal} : {query: entry, runningTotal: undefined};
+            return typeof entry === 'object' ? {query: entry.query, shouldShowRunningTotal: entry.shouldShowRunningTotal} : {query: entry, shouldShowRunningTotal: undefined};
         },
     });
 
@@ -45,7 +45,7 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersR
         ...DEFAULT_INSIGHTS_FILTERS,
         groupCurrency: activePolicy?.outputCurrency ?? CONST.CURRENCY.USD,
     };
-    const filters: InsightsFilters = {...defaultFilters, ...parseInsightsFilters(storedFilter?.query), runningTotal: storedFilter?.runningTotal};
+    const filters: InsightsFilters = {...defaultFilters, ...parseInsightsFilters(storedFilter?.query), shouldShowRunningTotal: storedFilter?.shouldShowRunningTotal};
 
     const setFilters = (update: Partial<InsightsFilters>) => {
         const next = {...filters, ...update};
@@ -55,7 +55,7 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersR
             saveInsightsFilters(searchKey, query);
             return;
         }
-        setInsightsFilters(searchKey, query, next.runningTotal ?? false);
+        setInsightsFilters(searchKey, query, next.shouldShowRunningTotal ?? false);
     };
 
     return {

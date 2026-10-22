@@ -16,7 +16,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import INSIGHTS_CONTROL_ANCHOR_ALIGNMENT from './insightsControls';
@@ -34,7 +34,7 @@ type InsightsGroupByDropdownProps = {
     options: Array<InsightsFilters['groupBy']>;
 
     /** Whether Running total is the current selection */
-    runningTotal: boolean;
+    shouldShowRunningTotal: boolean;
 
     onChange: (update: Partial<InsightsFilters>) => void;
 };
@@ -42,19 +42,19 @@ type InsightsGroupByDropdownProps = {
 /** Maps a radio choice back to the filters it stores: Running total keeps the time bucket so turning it off returns to it. */
 function toFilters(value: GroupByValue): Partial<InsightsFilters> {
     if (value === RUNNING_TOTAL_VALUE) {
-        return {runningTotal: true};
+        return {shouldShowRunningTotal: true};
     }
-    return {groupBy: value, runningTotal: false};
+    return {groupBy: value, shouldShowRunningTotal: false};
 }
 
-function InsightsGroupByDropdown({groupBy, options, runningTotal, onChange}: InsightsGroupByDropdownProps) {
+function InsightsGroupByDropdown({groupBy, options, shouldShowRunningTotal, onChange}: InsightsGroupByDropdownProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const label = translate('search.display.groupBy');
     const runningTotalText = translate('insightsPage.runningTotal');
-    const selectedValue: GroupByValue = runningTotal ? RUNNING_TOTAL_VALUE : groupBy;
-    const pillText = runningTotal ? runningTotalText : translate(`search.filters.groupBy.${groupBy}`);
+    const selectedValue: GroupByValue = shouldShowRunningTotal ? RUNNING_TOTAL_VALUE : groupBy;
+    const pillText = shouldShowRunningTotal ? runningTotalText : translate(`search.filters.groupBy.${groupBy}`);
 
     const groupByPopover = ({closeOverlay}: PopoverComponentProps) => (
         <InsightsGroupByPopup
@@ -112,19 +112,19 @@ function InsightsGroupByPopup({options, runningTotalText, selectedValue, label, 
 
     const itemCount = groupByItems.length + runningTotalItems.length + 1;
 
-    const updateSelectedItem = useCallback((item: ListItem<GroupByValue>) => {
+    const updateSelectedItem = (item: ListItem<GroupByValue>) => {
         setSelected(item.keyForList);
-    }, []);
+    };
 
-    const applyChanges = useCallback(() => {
+    const applyChanges = () => {
         onChange(toFilters(selected));
         closeOverlay();
-    }, [closeOverlay, onChange, selected]);
+    };
 
-    const resetChanges = useCallback(() => {
-        onChange({groupBy: DEFAULT_INSIGHTS_FILTERS.groupBy, runningTotal: false});
+    const resetChanges = () => {
+        onChange({groupBy: DEFAULT_INSIGHTS_FILTERS.groupBy, shouldShowRunningTotal: false});
         closeOverlay();
-    }, [closeOverlay, onChange]);
+    };
 
     return (
         <BasePopup

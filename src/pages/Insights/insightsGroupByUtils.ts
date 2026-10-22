@@ -73,10 +73,10 @@ function getRunningTotalGroupBy(date: InsightsFilters['date']): InsightsGroupBy 
 
 /** Returns the Group by the charts are queried with, fitted to the date range. Running total queries at its own grouping, so the data behind it is ready to accumulate. */
 function getQueryGroupBy(filters: InsightsFilters): InsightsGroupBy {
-    if (filters.runningTotal && isRunningTotalAvailable(filters.date)) {
+    if (filters.shouldShowRunningTotal && isRunningTotalAvailable(filters.date)) {
         return getRunningTotalGroupBy(filters.date);
     }
     return getFittingGroupBy(filters.groupBy, getInsightsGroupByOptions(filters.date));
 }
 
-export {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy, getRunningTotalGroupBy, isRunningTotalAvailable};
+export {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable};
