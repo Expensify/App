@@ -320,7 +320,7 @@ async function getCarouselTransactionIDs(): Promise<string[] | undefined> {
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS,
             callback: (ids) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(ids);
             },
         });

@@ -242,12 +242,12 @@ describe('actions/IOU/Hold', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
                             callback: (report) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 const lastVisibleActionCreated = report?.lastVisibleActionCreated;
                                 const connection2 = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
                                     callback: (reportActions) => {
-                                        Onyx.disconnect(connection2);
+                                        connection2.unsubscribe();
                                         resolve();
                                         const lastAction = getSortedReportActions(Object.values(reportActions ?? {}), true).at(0);
                                         const message = getReportActionMessage(lastAction);
@@ -318,7 +318,7 @@ describe('actions/IOU/Hold', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
                             callback: (reportActions) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 const updatedIOUAction = reportActions?.[iouAction.reportActionID];
                                 // Verify that IOU action now has childReportID set optimistically
                                 expect(updatedIOUAction?.childReportID).toBeDefined();
@@ -423,7 +423,7 @@ describe('actions/IOU/Hold', () => {
                         const connection1 = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`,
                             callback: (updatedTransaction1) => {
-                                Onyx.disconnect(connection1);
+                                connection1.unsubscribe();
                                 // Both transactions should have pending hold action set
                                 expect(updatedTransaction1?.comment?.hold).toBeDefined();
                                 checkBothTransactions();
@@ -432,7 +432,7 @@ describe('actions/IOU/Hold', () => {
                         const connection2 = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`,
                             callback: (updatedTransaction2) => {
-                                Onyx.disconnect(connection2);
+                                connection2.unsubscribe();
                                 expect(updatedTransaction2?.comment?.hold).toBeDefined();
                                 checkBothTransactions();
                             },
@@ -755,7 +755,7 @@ describe('actions/IOU/Hold', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                     callback: (reportActions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reportActions);
                     },
                 });
@@ -897,12 +897,12 @@ describe('actions/IOU/Hold', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
                             callback: (report) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 const lastVisibleActionCreated = report?.lastVisibleActionCreated;
                                 const connection2 = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
                                     callback: (reportActions) => {
-                                        Onyx.disconnect(connection2);
+                                        connection2.unsubscribe();
                                         resolve();
                                         const lastAction = getSortedReportActions(Object.values(reportActions ?? {}), true).at(0);
                                         // Then the transaction thread report lastVisibleActionCreated should equal the unhold action created timestamp.

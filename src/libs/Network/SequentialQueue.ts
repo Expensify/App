@@ -694,7 +694,7 @@ function flush(shouldResetPromise = true) {
                 requestsLength: getAllPersistedRequests().length,
                 ongoingCommand: getPersistedOngoingRequest()?.command ?? 'null',
             });
-            Onyx.disconnect(connection);
+            connection.unsubscribe();
             process().finally(() => {
                 const remainingPersistedRequests = getAllPersistedRequests().length;
                 const hasOngoingRequest = !!getPersistedOngoingRequest();

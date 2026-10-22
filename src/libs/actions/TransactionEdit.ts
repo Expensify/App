@@ -11,7 +11,7 @@ import Onyx from 'react-native-onyx';
 
 import {generateTransactionID} from './Transaction';
 
-let connection: Connection;
+let connection: Connection | undefined;
 
 /**
  * Makes a backup copy of a transaction object that can be restored when the user cancels editing a transaction.
@@ -24,7 +24,7 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: b
     // In Strict Mode, the backup logic useEffect is triggered twice on mount. The restore logic is delayed because we need to connect to the onyx first,
     // so it's possible that the restore logic is executed after creating the backup for the 2nd time which will completely clear the backup.
     // To avoid that, we need to cancel the pending connection.
-    Onyx.disconnect(connection);
+    connection?.unsubscribe();
     const newTransaction = {
         ...transaction,
     };
@@ -41,7 +41,7 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: b
     const conn = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`,
         callback: (transactionBackup) => {
-            Onyx.disconnect(conn);
+            conn.unsubscribe();
             // Treat a backup missing `transactionID` as corrupted (a partial route-fetch shape can
             // leak in via Pusher) and overwrite it instead of restoring from it.
             if (transactionBackup?.transactionID) {
@@ -76,7 +76,7 @@ function restoreOriginalTransactionFromBackup(transactionID: string | undefined,
     connection = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
         callback: (backupTransaction) => {
-            Onyx.disconnect(connection);
+            connection?.unsubscribe();
 
             // Use set to completely overwrite the original transaction
             Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction ?? null);
@@ -197,11 +197,11 @@ function removeBackupTransactionWithImageCleanup(transactionID: string | undefin
     const backupConn = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
         callback: (backupTransaction) => {
-            Onyx.disconnect(backupConn);
+            backupConn.unsubscribe();
             const currentConn = Onyx.connectWithoutView({
                 key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 callback: (currentTransaction) => {
-                    Onyx.disconnect(currentConn);
+                    currentConn.unsubscribe();
                     revokeOdometerImageUri(backupTransaction?.comment?.odometerStartImage, currentTransaction?.comment?.odometerStartImage);
                     revokeOdometerImageUri(backupTransaction?.comment?.odometerEndImage, currentTransaction?.comment?.odometerEndImage);
                     removeBackupTransaction(transactionID);
@@ -220,11 +220,11 @@ function restoreOriginalTransactionFromBackupWithImageCleanup(transactionID: str
         connection = Onyx.connectWithoutView({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
             callback: (backupTransaction) => {
-                Onyx.disconnect(connection);
+                connection?.unsubscribe();
                 const currentConn = Onyx.connectWithoutView({
                     key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     callback: (currentTransaction) => {
-                        Onyx.disconnect(currentConn);
+                        currentConn.unsubscribe();
                         revokeOdometerImageUri(currentTransaction?.comment?.odometerStartImage, backupTransaction?.comment?.odometerStartImage);
                         revokeOdometerImageUri(currentTransaction?.comment?.odometerEndImage, backupTransaction?.comment?.odometerEndImage);
                         Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction ?? null)

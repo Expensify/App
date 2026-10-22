@@ -15,7 +15,7 @@ function getAddPaymentCardDraft(): Promise<OnyxEntry<AddPaymentCardForm>> {
         const connection = Onyx.connect({
             key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });

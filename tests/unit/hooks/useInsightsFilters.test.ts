@@ -34,7 +34,7 @@ async function getStoredQuery(): Promise<string | undefined> {
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.SEARCH_FILTERS,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value as Record<string, unknown> | undefined);
             },
         });

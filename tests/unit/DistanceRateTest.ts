@@ -261,7 +261,7 @@ describe('DistanceRate', () => {
                     // eslint-disable-next-line rulesdir/prefer-early-return
                     callback: (value) => {
                         if (value !== undefined) {
-                            Onyx.disconnect(connection);
+                            connection.unsubscribe();
                             resolve(value);
                         }
                     },
@@ -502,7 +502,7 @@ describe('DistanceRate', () => {
                         if (!value) {
                             return;
                         }
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -689,7 +689,7 @@ describe('DistanceRate', () => {
                     // eslint-disable-next-line rulesdir/prefer-early-return
                     callback: (value) => {
                         if (value !== undefined) {
-                            Onyx.disconnect(connection);
+                            connection.unsubscribe();
                             resolve(value);
                         }
                     },
@@ -704,7 +704,7 @@ describe('DistanceRate', () => {
                     // eslint-disable-next-line rulesdir/prefer-early-return
                     callback: (value) => {
                         if (value !== undefined) {
-                            Onyx.disconnect(connection);
+                            connection.unsubscribe();
                             resolve(value);
                         }
                     },
