@@ -7,6 +7,9 @@ import {clearBlockedRoleChange, clearUpdateMemberRoleError} from '@userActions/P
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type BlockedRoleChange from '@src/types/onyx/BlockedRoleChange';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
@@ -26,11 +29,11 @@ function useApproveOnlyRoleBlockedModal() {
     const {translate} = useLocalize();
     const {showConfirmModal, closeModalByID} = useConfirmModal();
     const [blockedRoleChange] = useOnyx(ONYXKEYS.BLOCKED_ROLE_CHANGE);
-    const lastShownCreatedRef = useRef(0);
+    const lastShownRef = useRef<OnyxEntry<BlockedRoleChange>>(undefined);
     const isModalOpenRef = useRef(false);
 
     useEffect(() => {
-        if (!blockedRoleChange?.created) {
+        if (!blockedRoleChange) {
             if (isModalOpenRef.current) {
                 isModalOpenRef.current = false;
                 closeModalByID(APPROVE_ONLY_ROLE_BLOCKED_MODAL_ID);
@@ -38,10 +41,10 @@ function useApproveOnlyRoleBlockedModal() {
             return;
         }
 
-        if (lastShownCreatedRef.current === blockedRoleChange.created) {
+        if (lastShownRef.current === blockedRoleChange) {
             return;
         }
-        lastShownCreatedRef.current = blockedRoleChange.created;
+        lastShownRef.current = blockedRoleChange;
         isModalOpenRef.current = true;
 
         const {policyID, email, blockedReasons = []} = blockedRoleChange;

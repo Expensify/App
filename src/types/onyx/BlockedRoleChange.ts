@@ -9,9 +9,6 @@ type BlockedRoleChange = {
     /** Reason keys from the API explaining why the role was refused */
     blockedReasons: string[];
 
-    /** Time in milliseconds when the refusal was generated */
-    created: number;
-
     /** Server error message */
     message?: string;
 };

@@ -6,6 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
+import useSingleExecution from '@hooks/useSingleExecution';
 
 import {updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
@@ -38,6 +39,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
     const showRuleBotGuardModal = useRuleBotGuardModal();
+    const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
