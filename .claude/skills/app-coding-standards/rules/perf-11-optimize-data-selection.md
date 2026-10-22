@@ -145,7 +145,7 @@ Flag ONLY when ANY of these are true:
 - The selector meaningfully reduces a large dataset to a small result (e.g., a primitive or a few items) by iterating over the subscribed collection itself — the `deepEqual` cost on a small result is negligible
 - The `useOnyx` call is on a single-item key (not a collection), and the selector picks specific fields
 - The data structure is static or the function requires the entire object for valid operations
-- The code is a list row reading a broad key. Report [PERF-22](perf-22-row-single-member-subscriptions.md) instead
+- The code is a list row subscribing to a whole collection (`ONYXKEYS.COLLECTION.*`) or a derived map with an entry per record. Report [PERF-22](perf-22-row-single-member-subscriptions.md) instead. A row reading any other broad key, such as `BANK_ACCOUNT_LIST`, is still in scope here
 
 **Search Patterns** (hints for reviewers):
 - `useOnyx`
