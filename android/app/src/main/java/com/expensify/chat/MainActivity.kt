@@ -131,7 +131,7 @@ class MainActivity : ReactActivity() {
     // It lets us tell "leaving the app" from "another activity we opened ourselves" (e.g. Plaid)
     private var startedActivityOurselves = false
 
-    // Overridden, not called: intercepts every activity start
+    // Deprecated to steer callers to registerForActivityResult. Overriding it is safe: startActivity() and registerForActivityResult still go through it
     @Deprecated("Deprecated in Java")
     override fun startActivityForResult(intent: Intent, requestCode: Int, options: Bundle?) {
         startedActivityOurselves = true
@@ -183,6 +183,6 @@ class MainActivity : ReactActivity() {
     }
 
     private fun hidePrivacyDialog() {
-        PrivacyCover.hide(this)
+        PrivacyCover.hide()
     }
 }

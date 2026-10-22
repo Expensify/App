@@ -6,13 +6,12 @@ import android.os.Build;
 import android.view.Window;
 import android.view.WindowManager;
 import com.expensify.chat.R;
-import java.util.HashMap;
-import java.util.Map;
 
 // Covers the UI with the boot splash while the app is leaving the foreground
 public final class PrivacyCover {
 
-  private static final Map<Activity, BootSplashDialog> covers = new HashMap<>();
+  // Only MainActivity shows the cover
+  private static BootSplashDialog cover;
 
   private PrivacyCover() {}
 
@@ -23,7 +22,7 @@ public final class PrivacyCover {
 
   public static void show(Activity activity) {
     if (!isSupported() || activity.isFinishing() || activity.isDestroyed()
-        || activity.isInMultiWindowMode() || covers.get(activity) != null) {
+        || activity.isInMultiWindowMode() || cover != null) {
       return;
     }
     BootSplashDialog dialog = new BootSplashDialog(activity, R.style.BootTheme);
@@ -37,13 +36,13 @@ public final class PrivacyCover {
       window.setWindowAnimations(0);
     }
     dialog.show();
-    covers.put(activity, dialog);
+    cover = dialog;
   }
 
-  public static void hide(Activity activity) {
-    BootSplashDialog dialog = covers.remove(activity);
-    if (dialog != null) {
-      dialog.dismiss();
+  public static void hide() {
+    if (cover != null) {
+      cover.dismiss();
+      cover = null;
     }
   }
 
