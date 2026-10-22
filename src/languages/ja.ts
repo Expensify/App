@@ -307,7 +307,6 @@ const translations: TranslationDeepObject<typeof en> = {
         change: '変更',
         category: 'カテゴリ',
         vendor: 'ベンダー',
-        supplier: 'サプライヤー',
         report: 'レポート',
         billable: '請求可能',
         nonBillable: '請求不可',
@@ -1018,6 +1017,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: '管理',
             },
             emailDeliveryFailure: {title: 'メール通知をお送りできません', subtitle: 'アカウント'},
+            upgradeNetSuiteConnection: {title: 'NetSuite 接続をアップグレードする'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1169,6 +1169,11 @@ const translations: TranslationDeepObject<typeof en> = {
             label: '比較',
             previousPeriod: '前の期間',
             average: '平均',
+            dayLabel: (day?: number) => (day === undefined ? '日' : `${day}日目`),
+            weekLabel: (week?: number) => (week === undefined ? '週' : `${week}週目`),
+            monthLabel: (month?: number) => (month === undefined ? '月' : `${month}か月目`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? '四半期' : `第${quarter}四半期`),
+            yearLabel: (year?: number) => (year === undefined ? '年' : `${year}年目`),
             increase: (percentage: string) => `${percentage} 増加`,
             decrease: (percentage: string) => `${percentage} 減少`,
         },
@@ -2168,6 +2173,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `支払いの完了を待機しています${formattedETA}。`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta}までに` : ` ${eta}`;
+                }
+                return `キャンセルされた支払いの処理完了を待機しています${formattedETA}。`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2802,7 +2819,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'このアカウントには対応が必要です',
             unlock: 'ロック解除',
         },
-        wiseGlobalReimbursementsIntro: {title: 'グローバル払い戻しを設定しますか？', subtitle: '世界中のメンバーに現地通貨で支払えます。', getStarted: '使い始める'},
+        wiseGlobalReimbursementsIntro: {
+            title: 'グローバル払い戻しを設定しますか？',
+            subtitle: '世界中のメンバーに現地通貨で支払えます。',
+            getStarted: '使い始める',
+            headerTitle: 'グローバル払い戻し',
+        },
+        wiseGlobalReimbursementsBanner: {title: '世界中の人に支払いましょう', subtitle: 'USD アカウントでグローバル払い戻しを有効にします。'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `${walletName} にカードを追加`,
@@ -5391,8 +5414,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'Xero にアカウントを追加して、もう一度同期してください',
-            noSuppliersFound: '仕入先が見つかりません',
-            noSuppliersFoundDescription: 'Xero に仕入先を追加して、もう一度同期してください。',
+            noVendorsFound: '取引先が見つかりません',
+            noVendorsFoundDescription: 'Xero にベンダーを追加して、もう一度接続を同期してください',
             accountingMethods: {
                 label: 'エクスポートのタイミング',
                 description: '経費をエクスポートするタイミングを選択:',
@@ -6910,6 +6933,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             emptySubtitle: '会計システムとの同期が完了すると、ここに取引先が表示されます。',
             findVendor: '取引先を検索',
             managedInAccountingSoftware: '取引先は次の場所で管理されます：',
+            enableVendor: 'ベンダーを有効にする',
+            enableVendors: 'ベンダーを有効にする',
+            disableVendor: '取引先を無効にする',
+            disableVendors: '取引先を無効化',
+            updateFailureMessage: '仕入先の更新中にエラーが発生しました。もう一度お試しください。',
         },
         tags: {
             tagName: 'タグ名',
@@ -7216,6 +7244,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 optionNoRegularWorkspaceHelp: 'メンバーは在宅勤務、または決まったオフィスがなく拠点間を移動しているため、通勤規程は適用されません。',
                 futureOnlyNote: '変更は今後の走行距離計算にのみ適用されます。既存の走行距離経費は再計算されません。',
             },
+            changeRole: 'ロールを変更',
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -7328,6 +7357,12 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Expensify Classic で設定されている接続にエラーがあります。[この問題を解決するには Expensify Classic に移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classic に移動してください。',
+            exactOnline: {
+                comingSoon: '近日公開予定',
+                joinWaitlist: 'ウェイトリストに参加',
+                onWaitlist: '順番待ちリストに登録されています',
+                waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
+            },
             setup: '接続',
             connectToSandbox: 'Sandbox に接続',
             lastSync: (relativeDate: string) => `最終同期：${relativeDate}`,
@@ -7610,6 +7645,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `QuickBooks Online との接続は ${date} に有効期限が切れます。`,
             qboConnectionExpired: ({date}: {date: string}) => `QuickBooks Online との接続は ${date} に期限切れになりました。`,
+            netSuiteOAuthMigrationRequired: '2027年2月までに、NetSuite 接続を OAuth 2.0 にアップグレードしてください。',
+            netSuiteOAuthMigrationRequiredUrgent: 'NetSuite との接続は、ただちに OAuth 2.0 へのアップグレードが必要です。',
+            netSuiteOAuthUpgradeNow: '今すぐアップグレード',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
@@ -8376,7 +8414,6 @@ ${reportName}`,
                 ifAnyExpenseMatches: 'いずれかの経費が次の条件に一致する場合：',
                 thenApplyFollowingDefaults: '次に、以下のデフォルトを適用します。',
                 vendorUnavailable: 'ベンダーを利用できません',
-                supplierUnavailable: 'サプライヤーを利用できません',
                 confirmErrorCategory: 'カテゴリを選択してください',
                 confirmErrorCategoryTax: '税率を選択してください',
                 confirmErrorCondition: '店舗名を入力してください',
@@ -8611,6 +8648,9 @@ ${reportName}`,
                 describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
                 gotIt: '了解しました',
                 createRule: 'ルールを作成',
+                fallbackBanner:
+                    'これは標準ルールではないため、エージェントルールとして作成しました。エージェントルールは、経費やレポートに変更があった後に動作し、例えば経費を保留にしたり、レポートを却下したりします。',
+                fallbackBannerWithExplanation: (explanation: string) => `これは標準ルールではないため、エージェントルールとして作成しました。${explanation}`,
             },
             tabs: {
                 general: '一般',
@@ -8673,16 +8713,21 @@ ${reportName}`,
             newRule: {
                 title: '新しいルール',
                 subtitle: '何をしたいですか？',
+                startWithTemplate: 'テンプレートから始める',
                 restrictCardSpend: 'カード利用を制限',
                 restrictCardSpendDescription: '販売時点で支出をブロックまたは制限する',
                 applyExpenseDefaults: '経費のデフォルトを適用',
-                applyExpenseDefaultsDescription: '申請者が何も操作しなくてもフィールドを更新する',
+                applyExpenseDefaultsDescription: 'フィールドを自動で更新する',
                 flagForReview: '確認のためにフラグを付ける',
-                flagForReviewDescription: '条件が満たされたときに通知します。',
+                flagForReviewDescription: '条件が満たされたときに通知する',
                 requireFields: 'フィールドの必須条件を設定',
-                requireFieldsDescription: '特定の経費項目フィールドを必須にするか、必須条件を免除します。',
+                requireFieldsShort: '必須フィールド',
+                requireFieldsDescription: '領収書、カテゴリなど',
                 createAgentRule: 'エージェントルールの説明',
                 createAgentRuleDescription: '必要なときに実行される柔軟なルールを作成できます。',
+                describeItBelow: 'または、下で説明してください',
+                describeRulePlaceholder: '2,000ドルを超えるすべての支出をブロック',
+                selectTemplateOrDescribe: '続行するには、テンプレートを選択するかルールを説明してください',
                 describe: '説明する',
                 describeRule: 'ルールを自然な言葉で説明すると、Concierge がルールを作成します',
                 describeRuleInputLabel: 'ルールを説明',
@@ -8690,6 +8735,15 @@ ${reportName}`,
                     unsupported: 'そのルールはまだ対応していません。現在対応を進めています。ほかのルールをお試しください。',
                     unintelligible: '「経費が100ドルを超える場合は領収書を必須にする」のように書いてみてください。',
                     multipleRules: '一度に1つのルールのみです。「すべてのカードで小売店での購入をブロックする」のように、1つのルールを説明してください。',
+                    categoryHasRule: 'このカテゴリにはすでにルールがあります。既存のルールを編集するか、別のカテゴリのルールを説明してください。',
+                },
+                impossible: {
+                    noTrigger: 'そのイベントからルールを開始することはできません。',
+                    noCapability: 'ルールではその操作はできません。',
+                    missingData: 'Expensify はその情報を持っていません。',
+                    retroactive: 'ルールは新しいアクティビティにのみ適用されます。',
+                    historyLimit: 'ルールはそれほど前までさかのぼることができません。',
+                    tryThisInstead: '代わりにこちらをお試しください',
                 },
             },
             expenseDefaultsTable: {
@@ -8875,7 +8929,7 @@ ${reportName}`,
             dontSeeYourATS: `<muted-text-label>ご利用のATSが見つかりませんか？<a href="#">Concierge にお問い合わせ</a>いただければ、追加できます。</muted-text-label>`,
             importSettings: 'インポート設定',
             defaultApprover: 'デフォルト承認者',
-            approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター'},
+            approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター', hiringManager: '採用マネージャー'},
             filters: {
                 description: (providerName: string) => `${providerName} からインポートするメンバーを選択してください。採用ステージ、タグ、オフィスから選択できます。`,
                 stages: {
@@ -8904,8 +8958,12 @@ ${reportName}`,
             finalApprover: `最終承認者`,
             finalApproverOptional: '最終承認者（任意）',
             approvalModeDescription: (providerName: string) => `${providerName} から Expensify にインポートされる新しいメンバーの承認者を設定します。`,
-            approverFieldDescription: (providerName: string) =>
-                `候補者の最初の承認者を選択します。${providerName} で割り当てられているリクルーターまたはコーディネーターのいずれかを指定してください。`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `${fieldNames.slice(0, -1).join(', ')} または ${lastFieldName}` : `または ${fieldNames.join('またはその')} のいずれか`;
+                return `候補者の最初の承認者を選択してください：${providerName} で割り当てられている ${fieldList}`;
+            },
             approvalModeDescriptions: {
                 basic: '承認者を 1 名選択してください',
                 advanced: `候補者のリクルーターまたはコーディネーターが、その候補者の経費承認者になります`,
@@ -9040,6 +9098,9 @@ ${reportName}`,
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Zoho Books 組織',
+        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
             prerequisitesTitle: '接続する前に…',
@@ -9133,11 +9194,8 @@ ${reportName}`,
                 exportToNextOpenPeriod: '次の未締め期間にエクスポート',
                 exportToNextOpenPeriodDescription: 'レポートの日付が Dynamics 365 Business Central の締め済み期間にある場合、次の未締め期間にエクスポートします。',
                 syncReimbursedReports: '精算済みレポートを同期',
-                syncReimbursedReportsDescription: 'レポートが ACH で支払われると、この口座に支払伝票が作成されます。',
-                reimbursementBankAccount: {
-                    label: '請求支払用口座',
-                    description: '請求書の支払い元を選択すると、Dynamics 365 Business Central 内に支払いを作成します。',
-                },
+                syncReimbursedReportsDescription: 'レポートが ACH で支払われると、この勘定科目に総勘定元帳の仕訳行が作成されます。',
+                reimbursementBankAccount: {label: '支払用銀行口座', description: '請求書の支払い元を選択すると、Dynamics 365 Business Central 内に支払いを作成します。'},
                 syncExpensifyCardSettlements: 'Expensify カード清算を同期する',
                 settlementsBankAccount: {
                     label: 'Expensify カードの決済口座',
@@ -9762,6 +9820,7 @@ ${reportName}`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `「${rateName}」レート（${rateValue}）を${endDate}まで有効として追加しました`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `「${rateName}」レート（${rateValue}）を追加しました。有効期間：${startDate}〜${endDate}`,
+        addCustomUnitRateTaxReclaimableSuffix: (taxReclaimableAmount: string, taxRateName: string) => `。「${taxRateName}」で${taxReclaimableAmount}の税額を還付できます`,
         updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
             `距離レート「${rateName}」を更新し、${newDateRange} に適用しました（以前は ${oldDateRange}）`,
         customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
@@ -10054,6 +10113,12 @@ ${reportName}`,
                 },
                 customDay: 'カスタム日',
             },
+            describeSearch: {
+                title: '検索内容を入力してください',
+                description: '表示したい経費をわかりやすい英語で入力してください。適切なフィルターを自動的に適用します。',
+                inputLabel: '検索内容を入力してください',
+                buttonText: '適用',
+            },
             status: 'ステータス',
             keyword: 'キーワード',
             keywords: 'キーワード',
@@ -10099,6 +10164,7 @@ ${reportName}`,
             withdrawn: '取下済み',
             billable: '請求可能',
             rejected: '却下済み',
+            held: '保留中',
             reimbursable: '払い戻し対象',
             purchaseCurrency: '購入通貨',
             sortOrder: {
@@ -10285,6 +10351,8 @@ ${reportName}`,
             category: 'カテゴリ',
             tag: 'タグ',
         },
+        switchToTableView: 'テーブル表示に切り替え',
+        switchToExpenseView: '経費表示に切り替え',
     },
     report: {
         newReport: {
@@ -10306,6 +10374,8 @@ ${reportName}`,
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `${fieldName} を「${newValue}」（以前は「${oldValue}」）に変更しました`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `${fieldName} を「${newValue}」に設定`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `${fieldName} を削除しました（以前は「${oldValue}」）`,
+                changeFieldCleared: (fieldName: string) => `${fieldName} を削除しました`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `ワークスペース${fromPolicyName ? `（以前は${fromPolicyName}）` : ''}を変更しました`;
@@ -10784,7 +10854,7 @@ ${reportName}`,
         duplicatedTransaction: '重複の可能性',
         fieldRequired: 'レポートの項目は必須です',
         futureDate: '将来の日付は使用できません',
-        inactiveVendor: (isSupplier = false) => (isSupplier ? 'サプライヤーは無効です' : 'ベンダーは無効です'),
+        inactiveVendor: 'ベンダーは無効です',
         invoiceMarkup: (invoiceMarkup: number) => `${invoiceMarkup}%値上げ済み`,
         maxAge: (maxAge: number) => `日付が${maxAge}日より前です`,
         missingCategory: 'カテゴリが未選択です',
@@ -11931,5 +12001,6 @@ ${reportName}`,
         mobileRenewPrompt: '早期に更新するには、ウェブブラウザで Expensify にアクセスしてください。',
         mobileClaimPrompt: '更新割引を受け取るには、Web ブラウザで Expensify にアクセスしてください。',
     },
+    bulkActionBar: {label: '一括操作', clearSelection: '選択をクリア', loadingSelection: '選択内容を読み込み中'},
 };
 export default translations;

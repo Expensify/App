@@ -102,6 +102,15 @@ const VictoryTheme = {
         innerRadiusRatio: 0.8,
         /** Gap between pie slices in degrees */
         padAngle: 1,
+        /**
+         * Minimum width (px) the donut legend column keeps in the side-by-side layout, wide enough for a
+         * common category name on two lines. The card switches to the stacked layout below this.
+         */
+        legendMinWidth: 180,
+        /** Gap (px) between the donut and its legend in the side-by-side layout */
+        legendGap: 24,
+        /** Gap (px) between the donut and the legend below it in the stacked layout */
+        legendStackGap: 32,
     },
 } as const;
 
@@ -134,6 +143,12 @@ const X_AXIS_LABEL_MIN_GAP = 24;
 
 const ELLIPSIS = '...';
 
+/** Single-character ellipsis used when a wrapped label overflows its last allowed line. */
+const WRAPPED_LABEL_ELLIPSIS = '…';
+
+/** Maximum number of lines a wrapped bar label uses before it is truncated. */
+const MAX_BAR_LABEL_LINES = 2;
+
 /** Minimum visible characters (excluding ellipsis) for truncation to be worthwhile */
 const MIN_TRUNCATED_CHARS = 10;
 
@@ -162,6 +177,8 @@ export {
     SIN_45,
     LABEL_PADDING,
     ELLIPSIS,
+    WRAPPED_LABEL_ELLIPSIS,
+    MAX_BAR_LABEL_LINES,
     MIN_TRUNCATED_CHARS,
     DIAGONAL_ANGLE_RADIAN_THRESHOLD,
     MAX_X_AXIS_LABEL_WIDTH,
