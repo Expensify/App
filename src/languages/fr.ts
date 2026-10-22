@@ -6764,6 +6764,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     subtitle: 'Choisissez les membres qui peuvent réserver et gérer des voyages dans cet espace de travail.',
                     allMembers: 'Tous les membres peuvent réserver des voyages',
                     canBookTravel: 'Peut réserver des voyages',
+                    travelRole: 'Rôle voyage',
+                    access: 'Accès',
+                    traveler: 'Voyageur',
+                    travelAdmin: 'Administrateur voyage',
+                    travelerDescription: 'Peut réserver et gérer ses propres voyages',
+                    travelAdminDescription: "Peut aussi gérer les paramètres et les voyages de l'entreprise",
                 },
                 travelInvoicing: {
                     travelBookingSection: {

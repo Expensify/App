@@ -6469,6 +6469,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     subtitle: '选择哪些成员可以在此工作区预订和管理差旅。',
                     allMembers: '所有成员都可以预订差旅',
                     canBookTravel: '可以预订差旅',
+                    travelRole: '差旅角色',
+                    access: '访问权限',
+                    traveler: '出差人',
+                    travelAdmin: '差旅管理员',
+                    travelerDescription: '可以预订和管理自己的行程',
+                    travelAdminDescription: '还可以管理公司的差旅设置和行程',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

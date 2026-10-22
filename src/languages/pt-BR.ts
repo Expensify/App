@@ -6697,6 +6697,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     subtitle: 'Escolha quais membros podem reservar e gerenciar viagens neste workspace.',
                     allMembers: 'Todos os membros podem reservar viagens',
                     canBookTravel: 'Pode reservar viagens',
+                    travelRole: 'Função de viagem',
+                    access: 'Acesso',
+                    traveler: 'Viajante',
+                    travelAdmin: 'Administrador de viagens',
+                    travelerDescription: 'Pode reservar e gerenciar as próprias viagens',
+                    travelAdminDescription: 'Também pode gerenciar as configurações e as viagens da empresa',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

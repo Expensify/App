@@ -6624,6 +6624,12 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     subtitle: 'このワークスペースで出張を予約・管理できるメンバーを選択してください。',
                     allMembers: 'すべてのメンバーが出張を予約できます',
                     canBookTravel: '出張を予約可能',
+                    travelRole: '出張ロール',
+                    access: 'アクセス',
+                    traveler: '出張者',
+                    travelAdmin: '出張管理者',
+                    travelerDescription: '自分の出張を予約・管理できます',
+                    travelAdminDescription: '会社の出張設定と出張も管理できます',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

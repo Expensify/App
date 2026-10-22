@@ -6699,6 +6699,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     subtitle: 'Kies welke leden reizen kunnen boeken en beheren in deze workspace.',
                     allMembers: 'Alle leden kunnen reizen boeken',
                     canBookTravel: 'Kan reizen boeken',
+                    travelRole: 'Reisrol',
+                    access: 'Toegang',
+                    traveler: 'Reiziger',
+                    travelAdmin: 'Reisbeheerder',
+                    travelerDescription: 'Kan eigen reizen boeken en beheren',
+                    travelAdminDescription: 'Kan ook reisinstellingen en reizen van het bedrijf beheren',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

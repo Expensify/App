@@ -6609,6 +6609,12 @@ ${amount} para ${merchant} - ${date}`,
                     subtitle: 'Elige qué miembros pueden reservar y gestionar viajes en este espacio de trabajo.',
                     allMembers: 'Todos los miembros pueden reservar viajes',
                     canBookTravel: 'Puede reservar viajes',
+                    travelRole: 'Rol de viaje',
+                    access: 'Acceso',
+                    traveler: 'Viajero',
+                    travelAdmin: 'Administrador de viajes',
+                    travelerDescription: 'Puede reservar y gestionar sus propios viajes',
+                    travelAdminDescription: 'También puede gestionar la configuración y los viajes de la empresa',
                 },
                 travelInvoicing: {
                     travelBookingSection: {
