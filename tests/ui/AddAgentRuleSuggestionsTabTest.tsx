@@ -299,6 +299,20 @@ describe('AddAgentRuleSuggestionsTab', () => {
         expect(onSelectSuggestion).not.toHaveBeenCalled();
     });
 
+    it('disables Next while offline even with a suggestion selected', () => {
+        // Given the device is offline and a suggestion is selected
+        const onSelectSuggestion = jest.fn();
+        mockedUseNetwork.mockReturnValue({isOffline: true});
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={onSelectSuggestion} />);
+        fireEvent.press(screen.getByLabelText(getCardLabel(SUGGESTIONS.at(0))));
+
+        // When the admin presses Next
+        fireEvent.press(screen.getByText('common.next'));
+
+        // Then nothing is selected, because Next must stay disabled offline just like every other rule editor's submit
+        expect(onSelectSuggestion).not.toHaveBeenCalled();
+    });
+
     it('shows a loading indicator while suggestions are loading', () => {
         mockedUseSuggestedAgentRules.mockReturnValue({data: [], isLoading: true});
         render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);

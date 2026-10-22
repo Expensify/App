@@ -65,7 +65,6 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             style={[styles.flex1, styles.ph5]}
             submitFlexEnabled={false}
             shouldUseScrollView={false}
-            enabledWhenOffline
             shouldHideFixErrorsAlert
             shouldValidateOnChange
             shouldValidateOnBlur

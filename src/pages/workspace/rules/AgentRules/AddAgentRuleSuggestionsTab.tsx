@@ -117,7 +117,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
             variant="success"
             size={CONST.BUTTON_SIZE.LARGE}
             onPress={goToEditWithSelection}
-            isDisabled={!selectedSuggestion}
+            isDisabled={!selectedSuggestion || isOffline}
         >
             <Button.Text>{translate('common.next')}</Button.Text>
         </Button>
