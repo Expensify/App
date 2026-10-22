@@ -24,7 +24,7 @@ function handleDownload(translate: LocalizedTranslate, url: string, fileName?: s
 
         // Android files will download to Download directory
         const path = dirs.DownloadDir;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and since fileName can be an empty string we want to default to `FileUtils.getFileName(url)`
+        // `fileName` can be an empty string, so fall back to `FileUtils.getFileName(url)`
         const resolvedFileName = fileName || getFileName(url);
         const attachmentName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
 

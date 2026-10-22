@@ -52,6 +52,7 @@ function PayActionButton() {
     const {buttonMaxWidth} = useReportPreviewUIState();
     const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton} = useReportPreviewActionState();
 
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -88,6 +89,7 @@ function PayActionButton() {
             if (isInvoiceReportUtils(iouReport)) {
                 startAnimation();
                 payInvoice({
+                    bankAccountList,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
                     paymentMethodType: type,
@@ -115,6 +117,7 @@ function PayActionButton() {
                 payReportsViaABA([iouReport.reportID], policy);
             } else {
                 payMoneyRequest({
+                    bankAccountList,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
                     paymentType: type,

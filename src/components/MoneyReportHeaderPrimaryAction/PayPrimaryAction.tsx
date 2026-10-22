@@ -144,6 +144,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                bankAccountList,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentMethodType: type,
@@ -174,6 +175,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
         } else {
             startAnimation();
             payMoneyRequest({
+                bankAccountList,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentType: type,

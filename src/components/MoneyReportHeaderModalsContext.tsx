@@ -1,11 +1,11 @@
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
+import type {RejectModalAction} from '@hooks/useHoldRejectEducationalModal';
 
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {createContext, useContext} from 'react';
 
 import type {PaymentMethod} from './KYCWall/types';
-import type {RejectModalAction} from './MoneyReportHeaderEducationalModals';
 
 type HoldMenuParams = {
     requestType?: ActionHandledType;

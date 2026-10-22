@@ -300,7 +300,6 @@ function TransactionPreviewContent({
                 <View style={[(isTransactionScanning || isWhisper) && [styles.reportPreviewBoxHoverBorderColor, styles.reportContainerBorderRadius]]}>
                     <ReportActionItemImages
                         images={receiptImages}
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isHovered={isHovered || isTransactionScanning}
                         size={1}
                         shouldUseAspectRatio={!isMapDistanceRequest(transaction) && !isGPSDistanceRequest(transaction)}
