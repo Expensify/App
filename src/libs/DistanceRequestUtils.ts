@@ -165,7 +165,6 @@ function getFormattedRateValue(
 
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     const formattedRate = getUnitRateValue(toLocaleDigit, {rate}, useShortFormUnit);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currencySymbol = getCurrencySymbol(currency) || `${currency} `;
 
     return `${currencySymbol}${formattedRate} / ${useShortFormUnit ? unit : singularDistanceUnit}`;
