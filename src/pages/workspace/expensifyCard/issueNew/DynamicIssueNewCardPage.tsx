@@ -6,6 +6,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 
 import {startIssueNewCardFlow} from '@libs/actions/Card';
+import {getIssueNewCardShippingStepCount, getIssueNewCardStartStepIndex} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -19,9 +20,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {IssueNewCard, IssueNewCardStep} from '@src/types/onyx/Card';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useMemo} from 'react';
 
@@ -31,28 +29,11 @@ import CardTypeStep from './CardTypeStep';
 import ConfirmationStep from './ConfirmationStep';
 import InviteNewMemberStep from './InviteNewMemberStep';
 import LimitTypeStep from './LimitTypeStep';
+import PhoneNumberStep from './PhoneNumberStep';
+import ShippingAddressStep from './ShippingAddressStep';
 import SetSpendRulesStep from './spendRules/SetSpendRulesStep';
 
 type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW>;
-
-function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
-    if (!issueNewCard) {
-        return 0;
-    }
-
-    const STEP_INDEXES: Record<IssueNewCardStep, number> = {
-        [CONST.EXPENSIFY_CARD.STEP.ASSIGNEE]: 0,
-        [CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER]: 0,
-        [CONST.EXPENSIFY_CARD.STEP.CARD_TYPE]: 1,
-        [CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE]: 2,
-        [CONST.EXPENSIFY_CARD.STEP.SPEND_RULES]: 3,
-        [CONST.EXPENSIFY_CARD.STEP.CARD_NAME]: 4,
-        [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: 5,
-    };
-
-    const stepIndex = STEP_INDEXES[issueNewCard.currentStep];
-    return issueNewCard.isChangeAssigneeDisabled ? stepIndex - 1 : stepIndex;
-}
 
 function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const policyID = route.params.policyID;
@@ -62,12 +43,11 @@ function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
 
     const stepNames = useMemo(() => {
-        if (issueNewCard?.isChangeAssigneeDisabled) {
-            return CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES;
-        }
-        return CONST.EXPENSIFY_CARD.STEP_NAMES;
-    }, [issueNewCard?.isChangeAssigneeDisabled]);
-    const startStepIndex = useMemo(() => getStartStepIndex(issueNewCard), [issueNewCard]);
+        const baseStepNames = issueNewCard?.isChangeAssigneeDisabled ? CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES : CONST.EXPENSIFY_CARD.STEP_NAMES;
+        const shippingStepNames = Array.from({length: getIssueNewCardShippingStepCount(issueNewCard)}, (_, index) => String(baseStepNames.length + index + 1));
+        return [...baseStepNames, ...shippingStepNames];
+    }, [issueNewCard]);
+    const startStepIndex = useMemo(() => getIssueNewCardStartStepIndex(issueNewCard), [issueNewCard]);
 
     useEffect(() => {
         startIssueNewCardFlow(policyID);
@@ -111,6 +91,22 @@ function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
             case CONST.EXPENSIFY_CARD.STEP.SPEND_RULES:
                 return (
                     <SetSpendRulesStep
+                        policyID={policyID}
+                        stepNames={stepNames}
+                        startStepIndex={startStepIndex}
+                    />
+                );
+            case CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS:
+                return (
+                    <ShippingAddressStep
+                        policyID={policyID}
+                        stepNames={stepNames}
+                        startStepIndex={startStepIndex}
+                    />
+                );
+            case CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER:
+                return (
+                    <PhoneNumberStep
                         policyID={policyID}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
