@@ -36,6 +36,18 @@ function canMemberUseTravel(policy: OnyxEntry<Policy>, login: string | undefined
     return !!login && policy.employeeList?.[login]?.canUseTravel === true;
 }
 
+/**
+ * A member's role in Expensify Travel. Members without one of their own follow their workspace role, so workspace admins
+ * are travel admins and everyone else is a traveler.
+ */
+function getTravelMemberRole(policy: OnyxEntry<Policy>, login: string | undefined): ValueOf<typeof CONST.TRAVEL.MEMBER_ROLE> {
+    const employee = login ? policy?.employeeList?.[login] : undefined;
+    if (employee?.travelRole) {
+        return employee.travelRole;
+    }
+    return employee?.role === CONST.POLICY.ROLE.ADMIN ? CONST.TRAVEL.MEMBER_ROLE.ADMIN : CONST.TRAVEL.MEMBER_ROLE.TRAVELER;
+}
+
 function isNonUSDPolicy(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.outputCurrency && policy.outputCurrency !== CONST.CURRENCY.USD;
 }
@@ -66,4 +78,4 @@ function getTravelStep(
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
 }
 
-export {isWorkspaceProvisionedForTravel, hasAcceptedTravelTerms, canMemberUseTravel, isNonUSDPolicy, getTravelStep};
+export {isWorkspaceProvisionedForTravel, hasAcceptedTravelTerms, canMemberUseTravel, getTravelMemberRole, isNonUSDPolicy, getTravelStep};
