@@ -199,13 +199,22 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         superWideRHPSidePanelOffset,
     );
 
+    // Stacked cards draw their own border inside their width; a standalone frame adds its border outside the content width.
+    const shouldUseCenteredFrame =
+        !shouldUseNarrowLayout &&
+        (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
+    const frameBorderWidth = shouldUseCenteredFrame ? 0 : 2 * variables.rhpFloatingCardBorderWidth;
+
     let rhpWidth: number = singleRHPWidth;
     if (superWideRHPRouteKeys.length > 0) {
         rhpWidth = calculateSuperWideRHPWidth(windowWidth);
     } else if (wideRHPRouteKeys.length > 0) {
         rhpWidth = calculateWideRHPWidth(windowWidth);
     }
-    const dismissalPositionRight = getRHPLayoutValue(rhpWidth, Animated.add<number>(animatedWidth, sidePanelOffset.current));
+    const dismissalPositionRight = getRHPLayoutValue(
+        rhpWidth + frameBorderWidth + variables.rhpFloatingCardMargin,
+        Animated.add<number>(Animated.add(animatedWidth, sidePanelOffset.current), frameBorderWidth + variables.rhpFloatingCardMargin),
+    );
 
     // Width of the focused card. The super wide animated width already gives up the Side Panel offset.
     let focusedRHPWidth: number = singleRHPWidth;
@@ -214,19 +223,15 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     } else if (isWideRHPFocused) {
         focusedRHPWidth = calculateWideRHPWidth(windowWidth);
     }
+    const focusedCardWidth = focusedRHPWidth + frameBorderWidth;
 
     // Where the focused card starts, measured from the right window edge and from the left.
     const tertiaryOverlayColumn = Animated.add(
         sidePanelOffset.current,
-        Animated.add(isSuperWideRHPFocused ? getRHPLayoutValue(focusedRHPWidth, animatedWidth) : focusedRHPWidth, 2 * variables.rhpFloatingCardBorderWidth + variables.rhpFloatingCardMargin),
+        Animated.add(isSuperWideRHPFocused ? getRHPLayoutValue(focusedCardWidth, animatedWidth) : focusedCardWidth, variables.rhpFloatingCardMargin),
     );
-    const tertiaryOverlayCardBandLeft = getRHPLayoutValue(windowWidth - focusedRHPWidth, Animated.subtract(windowWidth, tertiaryOverlayColumn));
-    const tertiaryOverlayVerticalGapInset = windowHeight - getRHPLayoutValue(0, variables.rhpFloatingCardMargin);
-
-    // With a report or expense stacked in the RHP every card draws its own modal, so the frame is invisible.
-    const shouldUseCenteredFrame =
-        !shouldUseNarrowLayout &&
-        (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
+    const tertiaryOverlayCardBandLeft = getRHPLayoutValue(windowWidth - focusedCardWidth - variables.rhpFloatingCardMargin, Animated.subtract(windowWidth, tertiaryOverlayColumn));
+    const tertiaryOverlayVerticalGapInset = windowHeight - variables.rhpFloatingCardMargin;
 
     const frameStyle = getRHPFrameStyle({styles, animatedWidth: getRHPLayoutValue(rhpWidth, animatedWidth), shouldUseNarrowLayout, shouldUseCenteredFrame});
 
@@ -272,7 +277,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const floatingCardGapProgress = shouldRenderTertiaryOverlay ? thirdOverlayProgress : undefined;
     const handleFloatingCardGapPress = shouldRenderTertiaryOverlay ? Navigation.dismissToPreviousRHP : handleOverlayPress;
     // The gap on the right stops before the Side Panel, which shares that edge.
-    const floatingCardGapRightBandLeft = getRHPLayoutValue(windowWidth, Animated.subtract(Animated.subtract(windowWidth, sidePanelOffset.current), variables.rhpFloatingCardMargin));
+    const floatingCardGapRightBandLeft = getRHPLayoutValue(
+        windowWidth - variables.rhpFloatingCardMargin,
+        Animated.subtract(Animated.subtract(windowWidth, sidePanelOffset.current), variables.rhpFloatingCardMargin),
+    );
 
     const clearWideRHPKeysAfterTabChanged = useCallback(() => {
         const isRhpOpened = navigationRef?.getRootState()?.routes?.some((rootStateRoute) => rootStateRoute.key === route.key);
@@ -577,13 +585,13 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
                     <RHPOverlay
                         progress={thirdOverlayProgress}
-                        positionRightValue={getRHPLayoutValue(focusedRHPWidth, tertiaryOverlayColumn)}
+                        positionRightValue={getRHPLayoutValue(focusedCardWidth + variables.rhpFloatingCardMargin, tertiaryOverlayColumn)}
                         onPress={Navigation.dismissToPreviousRHP}
                         transparent
                     />
                 )}
                 {/* Keeps the dimmed margin above, below and to the right of the focused card pressable. */}
-                {!shouldUseNarrowLayout && shouldUseCenteredFrame && (
+                {!shouldUseNarrowLayout && (
                     <>
                         <RHPOverlay
                             progress={floatingCardGapProgress}

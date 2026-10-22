@@ -55,7 +55,7 @@ describe.each(['ios', 'android', 'web'] as const)('RHP transition ownership on %
         const {result} = renderHook(() => ({root: useRootRHPCardStyleInterpolator(), frame: useRHPFrameStyle()}));
         const host = result.current.root(animation).cardStyle;
 
-        // Then animation and the web Concierge offset must affect only the frame, without overriding its layout dimensions
+        // Then all platforms retain the floating margin, while only web adds the Concierge offset
         expect(host).not.toHaveProperty('transform');
         expect(host).not.toHaveProperty('opacity');
         expect(host).not.toHaveProperty('paddingRight');
@@ -67,7 +67,7 @@ describe.each(['ios', 'android', 'web'] as const)('RHP transition ownership on %
                 style={result.current.frame}
             />,
         );
-        expect(screen.getByTestId('rhp-frame')).toHaveStyle({right: platform === 'web' ? 332 : 0});
+        expect(screen.getByTestId('rhp-frame')).toHaveStyle({right: platform === 'web' ? 332 : 12});
         expect(result.current.frame).not.toHaveProperty('width');
         expect(result.current.frame).not.toHaveProperty('height');
         expect(result.current.frame).not.toHaveProperty('position');

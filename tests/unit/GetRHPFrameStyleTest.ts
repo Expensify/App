@@ -1,3 +1,4 @@
+import getRHPFrameStyle from '@libs/Navigation/AppNavigator/Navigators/getRHPFrameStyle';
 import type GetRHPFrameStyle from '@libs/Navigation/AppNavigator/Navigators/getRHPFrameStyle/types';
 
 import type {ThemeStyles} from '@styles/index';
@@ -9,17 +10,17 @@ import {Animated} from 'react-native';
 
 import createMock from '../utils/createMock';
 
-// Both variants are loaded explicitly because jest-expo resolves the bare specifier to index.native.ts, which would leave the web card uncovered.
+// The resolved import exercises native resolution; the explicit web entry also covers animated widths, which only web passes to the frame.
 const getRHPFrameStyleWeb = jest.requireActual<{default: GetRHPFrameStyle}>('@libs/Navigation/AppNavigator/Navigators/getRHPFrameStyle/index.ts').default;
-const getRHPFrameStyleNative = jest.requireActual<{default: GetRHPFrameStyle}>('@libs/Navigation/AppNavigator/Navigators/getRHPFrameStyle/index.native.ts').default;
 
-const RHP_WIDTH = 375;
+const RHP_WIDTH = variables.rhpWidth;
 
 const styles = createMock<ThemeStyles>({
     pAbsolute: {position: 'absolute'},
     r0: {right: 0},
     h100: {height: '100%'},
     overflowHidden: {overflow: 'hidden'},
+    translateZ0: {},
     RHPFloatingCard: {borderWidth: variables.rhpFloatingCardBorderWidth},
     RHPCenteredFrame: {right: variables.rhpFloatingCardMargin},
 });
@@ -85,20 +86,52 @@ describe('getRHPFrameStyle', () => {
         expect(getWidth(style)).toBe('100%');
     });
 
-    it('keeps native full-bleed and leaves the width untouched', () => {
-        // Given the same wide window on native, where the floating card treatment does not exist at all
-        const animatedWidth = buildAnimatedWidth();
-        const params = {styles, animatedWidth, shouldUseNarrowLayout: false, shouldUseCenteredFrame: true};
+    it('gives a standalone native RHP the same floating card as web without animating its width', () => {
+        // Given one wide native RHP with a numeric width, because native stacks do not consume animated frame widths
+        const params = {styles, animatedWidth: RHP_WIDTH, shouldUseNarrowLayout: false, shouldUseCenteredFrame: false};
 
-        // When the native frame style is built for it
-        const style = getRHPFrameStyleNative(params);
+        // When the frame is built through native module resolution rather than an explicit platform file
+        const style = getRHPFrameStyle(params);
 
-        // Then it stays full-bleed with the animated width passed through untouched, because native draws no card border that would need absorbing into the width.
+        // Then native shares web's floating frame and border compensation, but the width stays numeric for its plain View.
+        expect(style).toEqual(getRHPFrameStyleWeb(params));
+        expect(style).toContain(styles.RHPFloatingCard);
+        expect(style).toContain(styles.overflowHidden);
+        expect(style).not.toContain(styles.RHPCenteredFrame);
+        expect(style).not.toContain(styles.r0);
+        expect(style).not.toContain(styles.h100);
+        expect(getWidth(style)).toBe(RHP_WIDTH + 2 * variables.rhpFloatingCardBorderWidth);
+    });
+
+    it('gives stacked native cards the same invisible frame as web at their numeric width', () => {
+        // Given a wide native report with an expense stacked on top, where each card owns its border and shadow
+        const params = {styles, animatedWidth: RHP_WIDTH, shouldUseNarrowLayout: false, shouldUseCenteredFrame: true};
+
+        // When the resolved helper positions the stack without using an Animated component
+        const style = getRHPFrameStyle(params);
+
+        // Then the frame is invisible and does not clip the cards or add a second border to their numeric width.
+        expect(style).toEqual(getRHPFrameStyleWeb(params));
+        expect(style).toContain(styles.RHPCenteredFrame);
+        expect(style).not.toContain(styles.RHPFloatingCard);
+        expect(style).not.toContain(styles.overflowHidden);
+        expect(getWidth(style)).toBe(RHP_WIDTH);
+    });
+
+    it('keeps native narrow layouts full-bleed even when cards are stacked', () => {
+        // Given a phone-width native stack, where floating margins must not leave gaps around a full-screen sheet
+        const params = {styles, animatedWidth: RHP_WIDTH, shouldUseNarrowLayout: true, shouldUseCenteredFrame: true};
+
+        // When native resolution builds the frame with both narrow and stacked flags
+        const style = getRHPFrameStyle(params);
+
+        // Then the narrow layout takes precedence and fills the viewport just as it does on web.
+        expect(style).toEqual(getRHPFrameStyleWeb(params));
         expect(style).toContain(styles.r0);
         expect(style).toContain(styles.h100);
         expect(style).not.toContain(styles.RHPFloatingCard);
         expect(style).not.toContain(styles.RHPCenteredFrame);
-        expect(getWidth(style)).toBe(animatedWidth);
+        expect(getWidth(style)).toBe('100%');
     });
 });
 
@@ -124,27 +157,31 @@ describe('getRHPFrameStyle - two-factor (MFA) security-code panel', () => {
         expect(getWidth(style)).toBe(variables.rhpWidth + 2 * variables.rhpFloatingCardBorderWidth);
     });
 
-    it('keeps the panel full-bleed on native', () => {
-        // Given the same panel on native, where the RHP slides in over the whole screen
-        const animatedWidth = mfaPanelWidth;
-        const params = {...mfaParams, animatedWidth};
+    it('floats the panel as the same numeric-width card on native', () => {
+        // Given the wide native security-code panel, which uses a plain View and the same RHP width as web
+        const params = {...mfaParams, animatedWidth: mfaPanelWidth};
 
-        // When the native frame style is built for it
-        const style = getRHPFrameStyleNative(params);
+        // When the navigator's resolved helper builds the frame without an Animated wrapper
+        const style = getRHPFrameStyle(params);
 
-        // Then it keeps the full-bleed panel the apps shipped with, at the width it was given, so the web floating card treatment cannot leak into native layouts.
-        expect(style).toContain(styles.r0);
-        expect(style).toContain(styles.h100);
-        expect(style).not.toContain(styles.RHPFloatingCard);
-        expect(getWidth(style)).toBe(animatedWidth);
+        // Then it matches web's floating frame and keeps border compensation numeric so the panel remains the shared content width.
+        expect(style).toEqual(getRHPFrameStyleWeb(params));
+        expect(style).toContain(styles.RHPFloatingCard);
+        expect(style).not.toContain(styles.r0);
+        expect(style).not.toContain(styles.h100);
+        expect(style).not.toContain(styles.RHPCenteredFrame);
+        expect(getWidth(style)).toBe(mfaPanelWidth + 2 * variables.rhpFloatingCardBorderWidth);
     });
 
-    it('keeps the panel full width on a narrow layout', () => {
+    it.each([
+        {platform: 'native', getFrameStyle: getRHPFrameStyle},
+        {platform: 'web', getFrameStyle: getRHPFrameStyleWeb},
+    ])('keeps the panel full width on a narrow $platform layout', ({getFrameStyle}) => {
         // Given the panel opened on a phone-width window, where it is the only thing on screen
         const params = {...mfaParams, shouldUseNarrowLayout: true, animatedWidth: mfaPanelWidth};
 
-        // When the web frame style is built for it
-        const style = getRHPFrameStyleWeb(params);
+        // When the platform's helper builds the panel frame at a width where it cannot float
+        const style = getFrameStyle(params);
 
         // Then it fills the viewport, because at that width there is no card behind it to float above.
         expect(style).toContain(styles.r0);

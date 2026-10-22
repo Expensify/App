@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 
 import {useCardAnimation} from '@react-navigation/stack';
-// The frame follows react-navigation's Animated offset while preserving the web floating-card margin.
+// The frame follows react-navigation's Animated offset while preserving the shared floating-card margin.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 
@@ -40,7 +40,7 @@ function useRHPFrameStyle() {
 
     return {
         ...getModalCardMotionStyle(props, CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB, true),
-        right: getRHPLayoutValue(0, Animated.add<number>(sidePanelOffset.current, variables.rhpFloatingCardMargin)),
+        right: getRHPLayoutValue(variables.rhpFloatingCardMargin, Animated.add<number>(sidePanelOffset.current, variables.rhpFloatingCardMargin)),
     };
 }
 

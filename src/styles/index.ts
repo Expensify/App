@@ -1,7 +1,7 @@
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
-import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
+import {animatedReceiptPaneRHPWidth} from '@components/WideRHPContextProvider';
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
@@ -85,20 +85,13 @@ type SelectionListPopover = {
     extraHeight?: number;
 };
 
-// Shared chrome of every RHP card in the stacked report flow, where the frame is invisible and each card draws its own inset bordered modal. Only the width differs.
-const getRHPExtendedCardFrame = (theme: ThemeColors): ViewStyle => ({
-    position: 'absolute',
-    top: Platform.OS === 'web' ? variables.rhpFloatingCardMargin : 0,
-    bottom: Platform.OS === 'web' ? variables.rhpFloatingCardMargin : 0,
-    right: 0,
-    height: Platform.OS === 'web' ? 'auto' : '100%',
-    ...(Platform.OS === 'web' && {
-        borderRadius: variables.componentBorderRadiusLarge,
-        borderWidth: variables.rhpFloatingCardBorderWidth,
-        borderColor: theme.border,
-        boxShadow: theme.shadow,
-    }),
-    overflow: 'hidden',
+const getRHPCardFrame = (theme: ThemeColors): ViewStyle => ({
+    top: variables.rhpFloatingCardMargin,
+    bottom: variables.rhpFloatingCardMargin,
+    borderRadius: variables.componentBorderRadiusLarge,
+    borderWidth: variables.rhpFloatingCardBorderWidth,
+    borderColor: theme.border,
+    boxShadow: theme.shadow,
 });
 
 const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, paddingVertical: number): ViewStyle => ({
@@ -3448,15 +3441,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        // Anchors the floating RHP card on web wide layout in place of `r0` and `h100`. Width comes from the call site.
+        // Width comes from the call site; standalone and stacked cards share their visible frame.
         RHPFloatingCard: {
-            top: variables.rhpFloatingCardMargin,
+            ...getRHPCardFrame(theme),
             right: variables.rhpFloatingCardMargin,
-            bottom: variables.rhpFloatingCardMargin,
-            borderRadius: variables.componentBorderRadiusLarge,
-            borderWidth: variables.rhpFloatingCardBorderWidth,
-            borderColor: theme.border,
-            boxShadow: theme.shadow,
         },
 
         invisible: {
@@ -6784,16 +6772,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: colors.green800,
         },
 
-        wideRHPExtendedCardInterpolatorStyles: {
-            ...getRHPExtendedCardFrame(theme),
-            width: animatedWideRHPWidth,
-        },
-
-        singleRHPExtendedCardInterpolatorStyles: {
-            ...getRHPExtendedCardFrame(theme),
-            width: variables.rhpWidth,
-        },
-
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
@@ -7227,9 +7205,13 @@ const dynamicStyles = (theme: ThemeColors) =>
         // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
         // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
         // See https://github.com/Expensify/App/issues/99035
-        getSuperWideRHPExtendedCardInterpolatorStyles: (width: number | Animated.AnimatedSubtraction<number>) =>
+        getRHPExtendedCardStyle: (width: number | Animated.Value | Animated.AnimatedSubtraction<number>) =>
             ({
-                ...getRHPExtendedCardFrame(theme),
+                ...getRHPCardFrame(theme),
+                position: 'absolute',
+                right: 0,
+                height: 'auto',
+                overflow: 'hidden',
                 width,
             }) satisfies ViewStyle,
 

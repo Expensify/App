@@ -24,11 +24,11 @@ describe('calculateSuperWideRHPWidth', () => {
         const superWideRHPWidth = calculateSuperWideRHPWidth(windowWidth);
 
         // Then the wide RHP floor wins over the raw 900 - 360 = 540, so the sheet is never narrower than the layout it shows.
-        // The floor is the window less the floating card's 12px margin and 2px of border, which is what keeps the card's left edge on-screen.
-        expect(superWideRHPWidth).toBe(886);
+        // The floor leaves a floating gutter on both sides as well as space for the border.
+        expect(superWideRHPWidth).toBe(874);
     });
 
-    it('keeps the floating card fully on-screen on every wide layout width', () => {
+    it('keeps a floating gutter on both sides on every wide layout width', () => {
         // Given every window width between the narrow layout breakpoint and where the Side Panel starts docking
         const windowWidths = Array.from({length: 500}, (_, index) => 801 + index);
 
@@ -37,9 +37,18 @@ describe('calculateSuperWideRHPWidth', () => {
             [calculateWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)].map((cardWidth) => windowWidth - 12 - 2 - cardWidth),
         );
 
-        // Then no width pushes it off the left of the window, which is what regressed at 801-811 when only part of the inset was charged.
-        expect(cardLeftEdges.filter((cardLeftEdge) => cardLeftEdge < 0)).toEqual([]);
-        expect(cardLeftEdges.at(0)).toBe(0);
+        // Then the widest cards retain the same 12px gutter as their top, bottom, and right edges.
+        expect(cardLeftEdges.filter((cardLeftEdge) => cardLeftEdge < 12)).toEqual([]);
+        expect(cardLeftEdges.at(0)).toBe(12);
+    });
+
+    it.each([720, 780])('retains gutters when safe-area insets leave only %i points in a wide navigator', (windowWidth) => {
+        // Given the outer device width selects wide layout but horizontal safe-area insets reduce the navigator's actual width
+        // When the receipt and report calculate their widths inside that smaller navigator
+        const widths = [calculateWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)];
+
+        // Then the responsive minimum cannot push either card outside its floating left gutter
+        expect(widths).toEqual([windowWidth - 26, windowWidth - 26]);
     });
 
     it('pins the exact window width where the wide RHP floor takes over', () => {

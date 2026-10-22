@@ -107,13 +107,15 @@ describe('Native RHP layout', () => {
             layouts: {screen: {width: 1440, height: 820}},
         });
 
-        // Then widths stay numeric and each card stays full-height without the web floating-card inset
-        expect(expense.web?.cardStyleInterpolator?.(interpolationProps).cardStyle).toMatchObject({width: 1080, right: 0, top: 0, bottom: 0, height: '100%'});
-        expect(transaction.web?.cardStyleInterpolator?.(interpolationProps).cardStyle).toMatchObject({width: 925, right: 0, top: 0, bottom: 0, height: '100%'});
+        // Then native and JS-rendered cards share the floating frame while native widths stay numeric
+        const floatingFrame = {right: 0, top: 12, bottom: 12, height: 'auto', borderRadius: 16, borderWidth: 1, overflow: 'hidden'};
+        expect(expense.web?.cardStyleInterpolator?.(interpolationProps).cardStyle).toMatchObject({...floatingFrame, width: 1080});
+        expect(transaction.web?.cardStyleInterpolator?.(interpolationProps).cardStyle).toMatchObject({...floatingFrame, width: 925});
         expect(detail.web?.cardStyleInterpolator?.(interpolationProps).cardStyle).toMatchObject({width: 440, right: 0});
-        expect(StyleSheet.flatten(expense.native?.contentStyle)).toMatchObject({width: 1080, maxWidth: '100%'});
-        expect(StyleSheet.flatten(transaction.native?.contentStyle)).toMatchObject({width: 925, maxWidth: '100%'});
-        expect(StyleSheet.flatten(detail.native?.contentStyle)).toMatchObject({width: 440, maxWidth: '100%'});
+        expect(StyleSheet.flatten(expense.native?.contentStyle)).toMatchObject({...floatingFrame, width: 1080, maxWidth: '100%'});
+        expect(StyleSheet.flatten(transaction.native?.contentStyle)).toMatchObject({...floatingFrame, width: 925, maxWidth: '100%'});
+        expect(StyleSheet.flatten(detail.native?.contentStyle)).toMatchObject({...floatingFrame, width: 440, maxWidth: '100%'});
+        expect(StyleSheet.flatten(transaction.native?.contentStyle)).toHaveProperty('boxShadow');
     });
 
     it('fills an ordinary native panel even without a wide report underneath', () => {
@@ -126,6 +128,8 @@ describe('Native RHP layout', () => {
 
         // Then the form fills the panel instead of leaving a 65-point blank strip
         expect(StyleSheet.flatten(detail.native?.contentStyle)).toMatchObject({width: 440, maxWidth: '100%'});
+        expect(StyleSheet.flatten(detail.native?.contentStyle)).not.toHaveProperty('boxShadow');
+        expect(StyleSheet.flatten(detail.native?.contentStyle)).not.toHaveProperty('borderWidth');
     });
 
     it.each([
@@ -149,7 +153,7 @@ describe('Native RHP layout', () => {
         const cardStyle = StyleSheet.flatten(expense.web?.cardStyleInterpolator?.(interpolationProps).cardStyle);
 
         // Then its left edge stays visible instead of starting at -58px and clipping the report's controls
-        expect(cardStyle).toMatchObject({width: 853, right: 0});
+        expect(cardStyle).toMatchObject({width: 841, right: 0});
     });
 
     it('updates all pane widths when only the safe-area insets change', () => {
@@ -167,9 +171,9 @@ describe('Native RHP layout', () => {
 
         // Then the frame and receipt pane share the same usable width, without removing vertical insets a second time
         expect(result.current).toEqual({windowWidth: 867, windowHeight: 669});
-        expect(setReportWidth).toHaveBeenLastCalledWith(853);
-        expect(setTransactionWidth).toHaveBeenLastCalledWith(853);
-        expect(setReceiptWidth).toHaveBeenLastCalledWith(393);
+        expect(setReportWidth).toHaveBeenLastCalledWith(841);
+        expect(setTransactionWidth).toHaveBeenLastCalledWith(841);
+        expect(setReceiptWidth).toHaveBeenLastCalledWith(381);
     });
 
     it('retains the base scene and uses JS-stack horizontal transitions on native', () => {
