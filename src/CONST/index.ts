@@ -126,7 +126,9 @@ type UnofferedOnboardingAccountingConnection =
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
     | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
     // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
-    | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
+    | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
+    // Still behind the ZOHO_BOOKS beta.
+    | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
 
 type UnhandledAccountingConnection = Exclude<TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>, OnboardingAccountingOption | UnofferedOnboardingAccountingConnection>;
 
@@ -624,7 +626,16 @@ const CONST = {
             UNSUPPORTED: 'unsupported',
             MULTIPLE_RULES: 'multipleRules',
             UNINTELLIGIBLE: 'unintelligible',
+            AGENT_RULE: 'agentRule',
+            IMPOSSIBLE: 'impossible',
             FAILED: 'failed',
+        },
+        IMPOSSIBLE_REASON: {
+            NO_TRIGGER: 'noTrigger',
+            NO_CAPABILITY: 'noCapability',
+            MISSING_DATA: 'missingData',
+            RETROACTIVE: 'retroactive',
+            HISTORY_LIMIT: 'historyLimit',
         },
         RULE_TYPE: {
             REQUIRE_FIELDS: 'requireFields',
@@ -1398,7 +1409,9 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
+        INDIRECT_TAG_UPLOADS: 'indirectTagUploads',
         BUSINESS_CENTRAL: 'businessCentral',
+        ZOHO_BOOKS: 'zohoBooks',
         EXACT_ONLINE: 'exactOnline2026',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
@@ -1414,6 +1427,7 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
+        NL_FILTERS: 'nlFilters',
         PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
@@ -1933,7 +1947,6 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2150,6 +2163,7 @@ const CONST = {
                     ADD_OFFICE_LOCATION: 'POLICYCHANGELOG_ADD_OFFICE_LOCATION',
                     UPDATE_OFFICE_LOCATION: 'POLICYCHANGELOG_UPDATE_OFFICE_LOCATION',
                     DELETE_OFFICE_LOCATION: 'POLICYCHANGELOG_DELETE_OFFICE_LOCATION',
+                    UPDATE_EMPLOYEE_OFFICE_LOCATION: 'POLICYCHANGELOG_UPDATE_EMPLOYEE_OFFICE_LOCATION',
                     ADD_RULE: 'POLICYCHANGELOG_ADD_RULE',
                     UPDATE_RULE: 'POLICYCHANGELOG_UPDATE_RULE',
                     REMOVE_RULE: 'POLICYCHANGELOG_REMOVE_RULE',
@@ -2496,10 +2510,6 @@ const CONST = {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
         },
-        SINGLE_EXPENSE_REPORT_VIEW: {
-            EXPENSE: 'expense',
-            TABLE: 'table',
-        },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
     COMPOSER: {
@@ -2793,6 +2803,9 @@ const CONST = {
         // report list, so durations that include the openApp wait can be excluded from render measurements.
         ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         ATTRIBUTE_IS_PRELOADED: 'is_preloaded',
+        // Leaving a tab is paid inside the navigate-to-inbox-tab span, so the same tap costs more from some tabs.
+        ATTRIBUTE_SOURCE_TAB: 'source_tab',
+        ATTRIBUTE_MS_SINCE_PRELOAD: 'ms_since_preload',
         // The tap also kicked off an OpenReport request, so exclude these from render-only comparisons.
         ATTRIBUTE_WAITED_ON_OPEN_REPORT: 'waited_on_open_report',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
@@ -3765,6 +3778,7 @@ const CONST = {
         },
         ATS_APPROVER_FIELD: {
             RECRUITER: 'recruiter',
+            HIRING_MANAGER: 'hiringManager',
             RECRUITING_COORDINATOR: 'coordinator',
         },
         ATS_FILTER_TYPE: {
@@ -5040,6 +5054,7 @@ const CONST = {
         ID_FAKE: '_FAKE_',
         SECONDARY_ACTIONS: {
             IMPORT_SPREADSHEET: 'importSpreadsheet',
+            APPEND_CUSTOM_TAG_LIST: 'appendCustomTagList',
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
             EXPORT: 'export',
@@ -5050,11 +5065,9 @@ const CONST = {
             REMOVE: 'remove',
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
-            MAKE_AUDITOR: 'makeAuditor',
-            MAKE_GUEST: 'makeGuest',
-            MAKE_CARD_ADMIN: 'makeCardAdmin',
-            MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
-            MAKE_PAYMENTS_ADMIN: 'makePaymentsAdmin',
+            CHANGE_ROLE: 'changeRole',
+            CHANGE_OFFICE_LOCATION: 'changeOfficeLocation',
+            CHANGE_WORK_ARRANGEMENT: 'changeWorkArrangement',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -5211,6 +5224,8 @@ const CONST = {
             ADDRESS: 'address',
             IS_DEFAULT: 'isDefault',
         },
+        // The officeID that assigns a member to the company address, which isn't keyed in the workspace's officeLocations
+        COMPANY_ADDRESS_OFFICE_ID: '1',
         WORK_ARRANGEMENT: {
             OFFICE_BASED: 'officeBased',
             NO_REGULAR_WORKPLACE: 'noRegularWorkplace',
@@ -5313,6 +5328,7 @@ const CONST = {
                     this.NAME.RILLET,
                     this.NAME.DUALENTRY,
                     this.NAME.CAMPFIRE,
+                    this.NAME.ZOHO_BOOKS,
                     this.NAME.BUSINESS_CENTRAL,
                 ] as const;
             },
@@ -5329,6 +5345,7 @@ const CONST = {
                     [this.NAME.RILLET]: 'rillet',
                     [this.NAME.DUALENTRY]: 'dualentry',
                     [this.NAME.CAMPFIRE]: 'campfire',
+                    [this.NAME.ZOHO_BOOKS]: 'zohoBooks',
                     [this.NAME.BUSINESS_CENTRAL]: 'businessCentral',
                 } as const;
             },
@@ -7398,8 +7415,11 @@ const CONST = {
         SINGLE_MARKER_ZOOM: 15,
         DEFAULT_COORDINATE: [-122.4021, 37.7911] as [number, number],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
-        ANIMATION_DURATION_ON_CENTER_ME: 1000,
+        ANIMATION_DURATION_DEFAULT: 1000,
+        ANIMATION_DURATION_LONG: 1500,
         GPS_ROUTE_ANIMATION_DURATION_MS: 1000,
+        CAMERA_ANIMATION_MODE: 'flyTo',
+        FLY_TO_SPEED: 4,
     },
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
@@ -10168,7 +10188,6 @@ const CONST = {
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',
@@ -10554,6 +10573,7 @@ const CONST = {
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_DESCRIBE: 'WorkspaceRules-SpendRuleDescribe',
+                DESCRIBE_RULE_TRY_SUGGESTION: 'WorkspaceRules-DescribeRuleTrySuggestion',
                 SPEND_RULE_DELETE: 'WorkspaceRules-SpendRuleDelete',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
                 AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',

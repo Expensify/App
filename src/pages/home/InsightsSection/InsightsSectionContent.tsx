@@ -97,7 +97,7 @@ function InsightsSectionContent() {
                         data={data}
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
                         shouldShowSinglePointAsBar={isInsightsPageEnabled}
-                        shouldShowGroupLabels={!isInsightsPageEnabled}
+                        shouldUseResponsiveLabels
                         shouldDrillDownOnPress={!isInsightsPageEnabled}
                     />
                 </View>

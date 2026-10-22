@@ -34,7 +34,6 @@ function CertiniaPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
     const {config} = policy?.connections?.financialforce ?? {};
     const exportConfig = config?.export;
     // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string on a fresh connection
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const selectedExporter = exportConfig?.exporter || policyOwner;
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
