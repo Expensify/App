@@ -561,30 +561,37 @@ function getExpenseDefaultConditionSummary(filters: RuleFilterNode | undefined):
 }
 
 /**
- * The rule that holds a category's tax default: one that matches on that category alone and sets a tax.
+ * The rule that holds a category's tax default: any rule the policy has that matches on that category.
  *
  * Category settings addresses this rule by category name rather than by ID, because a category holds one tax
  * default, so the ID is resolved here instead of being carried on every route.
+ *
+ * A rule reached from category settings can also match on a merchant or a tag and can leave the tax unset, so
+ * narrowing to a category-only rule that sets a tax would hide it and offer to add a second one.
  */
 function getCategoryTaxDefaultRule(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): RuleWithID | undefined {
     if (!categoryName) {
         return undefined;
     }
 
-    return getPolicyExpenseDefaultRules(rulesCollection, policyID).find(({rule}) => {
+    const matchingRules = getPolicyExpenseDefaultRules(rulesCollection, policyID).filter(({rule}) => {
         // A rule deleted offline sticks around until the request goes through, and category settings would keep
         // offering it to edit.
         if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return false;
         }
 
-        const {merchants, categories, tags} = getExpenseDefaultConditionSummary(rule.filters);
-        if (merchants.length > 0 || tags.length > 0 || categories.length !== 1 || categories.at(0) !== categoryName) {
-            return false;
-        }
-
-        return getRuleActions(rule).some((action) => action?.name === ACTION.SET && 'field' in action && action.field === FIELD.TAX);
+        return getExpenseDefaultConditionSummary(rule.filters).categories.includes(categoryName);
     });
+
+    // More than one rule can match a category, so the one that matches on nothing else is the category's own
+    // default. Without this the category would show whichever rule the collection happened to yield first.
+    const categoryOnlyRule = matchingRules.find(({rule}) => {
+        const {merchants, categories, tags} = getExpenseDefaultConditionSummary(rule.filters);
+        return merchants.length === 0 && tags.length === 0 && categories.length === 1;
+    });
+
+    return categoryOnlyRule ?? matchingRules.at(0);
 }
 
 /** The tax rate a category's tax default applies. See `getCategoryTaxDefaultRule`. */

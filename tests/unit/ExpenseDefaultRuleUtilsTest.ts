@@ -558,6 +558,56 @@ describe('ExpenseDefaultRuleUtils', () => {
             // Then nothing is returned, because a deleted rule no longer applies and must not be offered for editing
             expect(getCategoryTaxDefaultRule(collection, POLICY_ID, 'Coffee')).toBeUndefined();
         });
+
+        it('finds a rule that also matches on a merchant, which category settings can create', () => {
+            // Given a rule the category settings flow made that matches the category and a merchant
+            const ruleWithMerchant: ExpenseDefaultRule = {
+                ...categoryTaxRuleBody,
+                filters: {
+                    operator: AND,
+                    left: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
+                    right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Starbucks'},
+                },
+            };
+            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(ruleWithMerchant)};
+
+            // When the category's tax default is looked up
+            // Then it is found, because hiding it would offer to add a second rule for the same category
+            expect(getCategoryTaxDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
+        });
+
+        it('finds a rule that sets no tax, which is the rule a duplicate used to be created against', () => {
+            // Given a rule matching the category that sets a merchant rather than a tax
+            const ruleWithoutTax: ExpenseDefaultRule = {
+                ...categoryTaxRuleBody,
+                actions: toIndexMap([{name: ACTION.SET, field: FIELD.MERCHANT, value: 'Starbucks Coffee'} as ExpenseDefaultAction]),
+            };
+            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(ruleWithoutTax)};
+
+            // When the category's tax default is looked up
+            // Then it is found, so category settings edits it instead of adding another rule
+            expect(getCategoryTaxDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
+        });
+
+        it('prefers the rule that matches on the category alone', () => {
+            // Given a rule matching the category and a merchant, stored ahead of one matching the category alone
+            const ruleWithMerchant: ExpenseDefaultRule = {
+                ...categoryTaxRuleBody,
+                filters: {
+                    operator: AND,
+                    left: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
+                    right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Starbucks'},
+                },
+            };
+            const collection = {
+                [`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(ruleWithMerchant),
+                [`${ONYXKEYS.COLLECTION.RULE}2`]: asStoredRule(categoryTaxRuleBody),
+            };
+
+            // When the category's tax default is looked up
+            // Then the category-only rule wins, rather than whichever the collection happens to yield first
+            expect(getCategoryTaxDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('2');
+        });
     });
 
     describe('hasExpenseDefaultRuleErrors', () => {

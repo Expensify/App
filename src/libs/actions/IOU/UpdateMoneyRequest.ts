@@ -1977,7 +1977,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
               isSplitTransaction,
               policy,
               personalPolicyOutputCurrency,
-              getCurrencyDecimals,
               getCurrencySymbol,
           })
         : undefined;
@@ -2568,7 +2567,7 @@ function getUpdateTrackExpenseParams(
         distanceOriginalPolicy,
         currentTransactionViolations,
     } = params;
-    const {personalPolicyOutputCurrency, getCurrencyDecimals, getCurrencySymbol} = currencyContext;
+    const {personalPolicyOutputCurrency, getCurrencySymbol} = currencyContext;
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
@@ -2608,7 +2607,6 @@ function getUpdateTrackExpenseParams(
               isFromExpenseReport: false,
               policy: policyForTransaction,
               personalPolicyOutputCurrency,
-              getCurrencyDecimals,
               getCurrencySymbol,
           })
         : null;

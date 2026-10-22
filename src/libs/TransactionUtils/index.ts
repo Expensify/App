@@ -64,7 +64,6 @@ import {getClearedPendingFields, getDistanceMerchantForTransaction, getUpdatedTr
 import {
     calculateTaxAmount,
     getCalculatedTaxAmount,
-    getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceRateTaxUpdates,
     getEnabledTaxRateCount,
@@ -1967,7 +1966,6 @@ export {
     getAllSortedTransactions,
     getFormattedPostedDate,
     getPostedDate,
-    getCategoryTaxDetails,
     isPerDiemRequest,
     isViolationDismissed,
     isPartialTransaction,

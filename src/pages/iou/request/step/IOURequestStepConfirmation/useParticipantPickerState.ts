@@ -1,5 +1,4 @@
 import type useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultParticipants from '@hooks/useDefaultParticipants';
 import useOnyx from '@hooks/useOnyx';
@@ -56,7 +55,6 @@ function useParticipantPickerState({
     isManualRequest,
     blockDistanceRequestIfNeeded,
 }: UseParticipantPickerStateParams) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
@@ -216,7 +214,7 @@ function useParticipantPickerState({
                         });
                         setCustomUnitRateID(activeTransactionID, p2pRateID, transaction, undefined, false, personalPolicy?.outputCurrency);
                     }
-                    setMoneyRequestCategory(activeTransactionID, '', undefined, getCurrencyDecimals);
+                    setMoneyRequestCategory(activeTransactionID, '', undefined);
                     setMoneyRequestTag(activeTransactionID, '');
                 } else {
                     const workspacePolicy = selectedPolicy;
@@ -241,7 +239,7 @@ function useParticipantPickerState({
                     // policy so the previous workspace's category-derived tax is cleared along with the category.
                     if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
                         const defaultCategory = isDistanceRequest ? (getDistanceRateCustomUnit(workspacePolicy)?.defaultCategory ?? '') : '';
-                        setMoneyRequestCategory(activeTransactionID, defaultCategory, undefined, getCurrencyDecimals);
+                        setMoneyRequestCategory(activeTransactionID, defaultCategory, undefined);
                         setMoneyRequestTag(activeTransactionID, '');
                     }
                 }
