@@ -66,6 +66,9 @@ type ExpensifyCardSettingsBase = {
     /** Number of the bank account used for the card settlement */
     paymentBankAccountNumber?: string;
 
+    /** Whether the bank account used for the card settlement is connected with Plaid */
+    isPaymentBankAccountConnectedWithPlaid?: boolean;
+
     /** Whether Expensify Card cash back should be applied toward payment of the Expensify bill */
     shouldApplyCashbackToBill?: boolean;
 

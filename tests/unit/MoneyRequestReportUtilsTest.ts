@@ -1,9 +1,18 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import {getReportIDForTransaction, isBillableEnabledOnPolicy, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
+import {
+    getEffectiveTransactionThreadReportID,
+    getReportIDForTransaction,
+    isBillableEnabledOnPolicy,
+    isEveryReportTransactionSelected,
+    isSelectableReportTransaction,
+    shouldDisplayReportTableView,
+    shouldUseMultiExpenseReportLayout,
+    shouldWaitForTransactions,
+} from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportLoadingState} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -119,6 +128,9 @@ const transactionItemBaseMock: TransactionListItemType = {
     violations: [],
 };
 
+/** Errors the backend records are keyed by when they happened. */
+const REJECTED_AT = '1700000000000';
+
 describe('MoneyRequestReportUtils', () => {
     describe('getReportIDForTransaction', () => {
         it('returns transaction thread ID if its not from one transaction report', () => {
@@ -176,6 +188,69 @@ describe('MoneyRequestReportUtils', () => {
         });
     });
 
+    describe('isSelectableReportTransaction', () => {
+        test('accepts an ordinary expense, which is what a click, Select All and a range all reach', () => {
+            // Given an expense with nothing against it
+            const transaction = createMock<Transaction>({transactionID: '1'});
+
+            // When the list asks whether anything may select it
+            // Then it counts as selectable
+            expect(isSelectableReportTransaction(transaction)).toBe(true);
+        });
+
+        test('refuses an expense being deleted, since its checkbox is disabled', () => {
+            // Given an expense the user has deleted, still on screen until the server drops it
+            const transaction = createMock<Transaction>({transactionID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            // When the list asks whether anything may select it
+            // Then nothing may select it
+            expect(isSelectableReportTransaction(transaction)).toBe(false);
+        });
+
+        test('refuses an expense the backend rejected, whose checkbox is disabled for the same reason', () => {
+            // Given an expense carrying a reject the backend recorded against it
+            const transaction = createMock<Transaction>({transactionID: '1', errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}});
+
+            // When the list asks whether anything may select it
+            // Then nothing may select it, so Select All and a range agree with the checkbox
+            expect(isSelectableReportTransaction(transaction)).toBe(false);
+        });
+    });
+
+    describe('isEveryReportTransactionSelected', () => {
+        const ordinary = createMock<Transaction>({transactionID: '1'});
+        const other = createMock<Transaction>({transactionID: '2'});
+        const rejected = createMock<Transaction>({transactionID: '3', errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}});
+
+        test('counts a report covered once every row Select All can write is selected', () => {
+            // Given a report whose third expense the backend refused to reject, so no checkbox can put it in the selection
+            // When the other two are selected, which is everything Select All writes
+            // Then the report reads covered, or the report-level actions would be unreachable on it for good
+            expect(isEveryReportTransactionSelected([ordinary, other, rejected], ['1', '2'])).toBe(true);
+        });
+
+        test('does not count a report while a row the user can still check is out', () => {
+            // Given the same report
+            // When only one of its two selectable rows is selected
+            // Then it does not read covered, since a checkbox is left the user has not pressed
+            expect(isEveryReportTransactionSelected([ordinary, other, rejected], ['1'])).toBe(false);
+        });
+
+        test('does not count an empty selection, whichever rows the report holds', () => {
+            // Given a report of two ordinary expenses
+            // When nothing is selected
+            // Then the report is not covered, so pressing nothing cannot offer an action over everything
+            expect(isEveryReportTransactionSelected([ordinary, other], [])).toBe(false);
+        });
+
+        test('does not count a report holding no row anything can select', () => {
+            // Given a report whose only expense carries a refused reject
+            // When a selection is left holding its ID
+            // Then it does not read covered: `every` over an empty list is vacuously true, which would offer the actions on nothing
+            expect(isEveryReportTransactionSelected([rejected], ['3'])).toBe(false);
+        });
+    });
+
     describe('shouldWaitForTransactions', () => {
         const zeroTotalReport = {...reportBaseMock, total: 0};
 
@@ -201,6 +276,69 @@ describe('MoneyRequestReportUtils', () => {
             const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false};
 
             expect(shouldWaitForTransactions(reportBaseMock, [], reportLoadingState, false, false)).toBe(true);
+        });
+    });
+
+    describe('shouldDisplayReportTableView', () => {
+        const singleTransaction = createMock<Transaction>({transactionID: '555', reportID: reportBaseMock.reportID});
+        const secondTransaction = createMock<Transaction>({transactionID: '556', reportID: reportBaseMock.reportID});
+
+        test('uses the single-expense view for a single-expense report by default', () => {
+            // Given a report with one expense and no saved preference
+            // Then it renders in the single-expense view
+            expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction])).toBe(false);
+        });
+
+        test('uses the table view for a single-expense report when the user picked the table view', () => {
+            // Given a report with one expense and a user who picked the table view
+            // Then it renders in the table view
+            expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction], true)).toBe(true);
+        });
+
+        test('always uses the table view for a report with more than one expense', () => {
+            // Given a report with two expenses, the preference doesn't apply
+            expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction, secondTransaction])).toBe(true);
+            expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction, secondTransaction], true)).toBe(true);
+        });
+    });
+
+    describe('shouldUseMultiExpenseReportLayout', () => {
+        test('uses the multi-expense layout for a report with more than one expense', () => {
+            // Given a report with two expenses, the preference doesn't apply
+            expect(shouldUseMultiExpenseReportLayout(2, false)).toBe(true);
+            expect(shouldUseMultiExpenseReportLayout(2, true)).toBe(true);
+        });
+
+        test('uses the multi-expense layout for a single-expense report only when the user picked the table view', () => {
+            // Given a report with one expense
+            // Then only the table view preference gives it the multi-expense layout
+            expect(shouldUseMultiExpenseReportLayout(1, false)).toBe(false);
+            expect(shouldUseMultiExpenseReportLayout(1, true)).toBe(true);
+        });
+
+        test('keeps the default layout for an empty report', () => {
+            // Given a report with no expenses, the table view preference doesn't apply
+            expect(shouldUseMultiExpenseReportLayout(0, true)).toBe(false);
+        });
+    });
+
+    describe('getEffectiveTransactionThreadReportID', () => {
+        test('sends comments to the transaction thread in the single-expense view', () => {
+            // Given a single-expense report in the single-expense view
+            // Then comments go to the transaction thread
+            expect(getEffectiveTransactionThreadReportID('123', false, false)).toBe('123');
+        });
+
+        test('sends comments to the report itself in the table view', () => {
+            // Given a single-expense report in the table view, where the thread's actions aren't shown
+            // Then comments go to the report itself
+            expect(getEffectiveTransactionThreadReportID('123', false, true)).toBeUndefined();
+        });
+
+        test('sends comments to the report itself for a sent money report', () => {
+            // Given a sent money report
+            // Then comments go to the report itself
+            expect(getEffectiveTransactionThreadReportID('123', true, false)).toBeUndefined();
         });
     });
 });

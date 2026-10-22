@@ -44,7 +44,7 @@ import createMock from '../utils/createMock';
 
 type GetWorkspaceMenuItems = typeof getWorkspaceMenuItems;
 
-const mockUseSearchTypeMenuSections = jest.fn<SearchTypeMenuSection[], [queryParams: unknown, isScreenFocused: boolean]>();
+const mockUseSearchTypeMenuSections = jest.fn<SearchTypeMenuSection[], [isScreenFocused?: boolean]>();
 const mockUseMemoizedLazyExpensifyIcons = jest.fn<Record<string, IconAsset>, []>();
 const mockUseCreateNavigationSuggestions = jest.fn<NavigationSuggestionSourceItem[], []>(() => []);
 const mockUseSettingsNavigationMenuData = jest.fn<{accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection}, []>();
@@ -137,7 +137,8 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 
 jest.mock('@hooks/useSearchTypeMenuSections', () => ({
     __esModule: true,
-    default: (queryParams: unknown, isScreenFocused: boolean) => mockUseSearchTypeMenuSections(queryParams, isScreenFocused),
+    default: (isScreenFocused?: boolean) => mockUseSearchTypeMenuSections(isScreenFocused),
+    useSearchTypeMenuSectionsForNavigation: (isScreenFocused?: boolean) => mockUseSearchTypeMenuSections(isScreenFocused),
 }));
 
 jest.mock('@pages/settings/useSettingsNavigationMenuData', () => ({
@@ -203,6 +204,7 @@ const workspaceIcons = {
     Hashtag: mockIcon,
     Document: mockIcon,
     Sync: mockIcon,
+    Connect: mockIcon,
     Receipt: mockIcon,
     Briefcase: mockIcon,
     Folder: mockIcon,
@@ -703,15 +705,18 @@ describe('Workspace Search Router navigation source', () => {
         jest.clearAllMocks();
     });
 
-    const buildItems = (policies: Policy[], isOffline = false) =>
+    const buildItems = (policies: Policy[], isOffline = false, isUnifiedConnectionsBetaEnabled = false) =>
         buildWorkspaceNavigationItems({
             policies: Object.fromEntries(policies.map((policy) => [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy])),
             policyCategories: undefined,
             currentUserLogin: workspaceCurrentUserLogin,
+            currentUserPersonalDetails: {accountID: 1},
             icons: workspaceIcons,
             isOffline,
             isVendorMatchingBetaEnabled: false,
             isRecruitingBetaEnabled: false,
+            isCompanyAgentsBetaEnabled: false,
+            isUnifiedConnectionsBetaEnabled,
             shouldUseNarrowLayout: false,
             convertToDisplayString: () => '$0.00',
             getItemText: (item) => {
@@ -720,6 +725,7 @@ describe('Workspace Search Router navigation source', () => {
                     ['workspace.common.members', 'Members'],
                     ['workspace.common.rooms', 'Rooms'],
                     ['workspace.common.workflows', 'Workflows'],
+                    ['workspace.common.connections', 'Connections'],
                     ['workspace.common.hr', 'HR'],
                 ]);
                 return labels.get(item.translationKey) ?? item.translationKey;
@@ -754,6 +760,17 @@ describe('Workspace Search Router navigation source', () => {
             `workspace_2_${SCREENS.WORKSPACE.HR}`,
             `workspace_1_${SCREENS.WORKSPACE.HR}`,
         ]);
+    });
+
+    it('matches the Connections row by the name of a page it replaced when the unified Connections beta is on', () => {
+        // Given a workspace with the HR feature on, viewed with the beta on so HR has no row of its own
+        const items = buildItems([createWorkspacePolicy('1', 'Alpha Workspace', {isHREnabled: true})], false, true);
+
+        // When searching for the old HR page by its short name
+        const suggestions = buildNavigationSuggestions('hr', [items], localeCompare);
+
+        // Then the Connections row is suggested, because HR moved onto the Connections page
+        expect(suggestions.map((item) => item.keyForList)).toEqual([`workspace_1_${SCREENS.WORKSPACE.CONNECTIONS}`]);
     });
 
     it('includes workspace identity and navigates through the Workspace synchronization helper', () => {
@@ -975,7 +992,7 @@ describe('Spend Search Router navigation source', () => {
             initialProps: {shouldWatchForApprovals: false},
         });
 
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(false, undefined);
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(false);
         expect(result.current).toHaveLength(1);
         expect(result.current.at(0)).toMatchObject({
             text: 'Go to Reports',
@@ -992,7 +1009,7 @@ describe('Spend Search Router navigation source', () => {
         expect(rightElement.props).toMatchObject({text: 'Spend', icon: spendContextIcon, iconSize: variables.fontSizeLabel, showTooltip: false});
 
         rerender({shouldWatchForApprovals: true});
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true, undefined);
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true);
     });
 
     it('keeps Create rows reachable when top-level and Spend sources are present', () => {

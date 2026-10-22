@@ -9,6 +9,14 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
+// Jest resolves the native implementation, which cannot measure text, so dynamic columns would be inert. The remount
+// these tests guard against only happens where measurement is possible.
+jest.mock('@libs/measureTextWidth', () => ({
+    __esModule: true,
+    default: () => null,
+    canMeasureText: () => true,
+}));
+
 // `TableSemanticContainer` only reads styles from the theme hook, so stub it to a plain object (no provider needed).
 jest.mock('@hooks/useThemeStyles', () => ({
     __esModule: true,
@@ -45,9 +53,18 @@ function renderContainer(
     {
         isEnabled = true,
         rowCount = 3,
+        hasHeaderRow = true,
         rendersBodyWhenEmpty = false,
+        shouldUseDynamicColumns = false,
         onLayout,
-    }: {isEnabled?: boolean; rowCount?: number; rendersBodyWhenEmpty?: boolean; onLayout?: React.ComponentProps<typeof TableSemanticContainer>['onLayout']} = {},
+    }: {
+        isEnabled?: boolean;
+        rowCount?: number;
+        hasHeaderRow?: boolean;
+        rendersBodyWhenEmpty?: boolean;
+        shouldUseDynamicColumns?: boolean;
+        onLayout?: React.ComponentProps<typeof TableSemanticContainer>['onLayout'];
+    } = {},
 ) {
     render(
         <TableSemanticContainer
@@ -55,9 +72,13 @@ function renderContainer(
             title="Members"
             rowCount={rowCount}
             columnCount={4}
+            hasHeaderRow={hasHeaderRow}
             rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+            shouldUseDynamicColumns={shouldUseDynamicColumns}
             scrollWidth={undefined}
+            measureWidthRef={undefined}
             onLayout={onLayout}
+            onScopeElement={undefined}
         >
             {children}
         </TableSemanticContainer>,
@@ -105,6 +126,12 @@ describe('TableSemanticContainer', () => {
         expect(within(table).getByTestId('stub-body')).toBeTruthy();
     });
 
+    it('leaves the header row out of aria-rowcount when the table has no column header', () => {
+        renderContainer([React.createElement(TableHeader, {key: 'h'}), React.createElement(TableBody, {key: 'b'})], {hasHeaderRow: false});
+
+        expect(screen.getByLabelText('Members').props['aria-rowcount']).toBe(3);
+    });
+
     it('keeps non-header/body children outside the table container', () => {
         const filterBar = React.createElement(View, {key: 'f', testID: 'filter-bar'});
         renderContainer([filterBar, React.createElement(TableHeader, {key: 'h'}), React.createElement(TableBody, {key: 'b'})]);
@@ -149,9 +176,13 @@ describe('TableSemanticContainer', () => {
                 title="Members"
                 rowCount={rowCount}
                 columnCount={4}
+                hasHeaderRow
                 rendersBodyWhenEmpty={false}
+                shouldUseDynamicColumns={false}
                 scrollWidth={undefined}
+                measureWidthRef={undefined}
                 onLayout={undefined}
+                onScopeElement={undefined}
             >
                 <TrackedFilterBar />
                 <TableHeader />
@@ -169,5 +200,73 @@ describe('TableSemanticContainer', () => {
         // The filter bar instance survived both transitions, so its search-clearing cleanup never fired.
         expect(mockTrackedFilterBarUnmount).not.toHaveBeenCalled();
         expect(mockTrackedFilterBarMount).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not remount children when a dynamically sized table crosses the narrow layout breakpoint', () => {
+        // A table sized from its content only measures and scrolls in the wide layout, so `onLayout` and `scrollWidth`
+        // both fall away below the breakpoint. `shouldUseDynamicColumns` holds the wrapper in place across that change,
+        // because dropping it would swap the returned tree and remount the body, losing its scroll position and
+        // wiping the active search string through `Table.FilterBar`'s unmount cleanup.
+        mockTrackedFilterBarMount.mockClear();
+        mockTrackedFilterBarUnmount.mockClear();
+
+        const onLayout = jest.fn();
+        const element = (isWideLayout: boolean) => (
+            <TableSemanticContainer
+                isEnabled={false}
+                title="Members"
+                rowCount={3}
+                columnCount={4}
+                hasHeaderRow
+                rendersBodyWhenEmpty={false}
+                shouldUseDynamicColumns
+                scrollWidth={undefined}
+                measureWidthRef={undefined}
+                onLayout={isWideLayout ? onLayout : undefined}
+                onScopeElement={undefined}
+            >
+                <TrackedFilterBar />
+                <TableHeader />
+                <TableBody />
+            </TableSemanticContainer>
+        );
+
+        const {rerender} = render(element(true));
+        expect(mockTrackedFilterBarMount).toHaveBeenCalledTimes(1);
+
+        // Resized below the breakpoint and back above it.
+        rerender(element(false));
+        rerender(element(true));
+
+        expect(mockTrackedFilterBarUnmount).not.toHaveBeenCalled();
+        expect(mockTrackedFilterBarMount).toHaveBeenCalledTimes(1);
+    });
+
+    it('hands the measured node to the measure ref, so the table is measured before its first paint', () => {
+        // Given a resizable table with a measure ref
+        const measureWidthRef = jest.fn();
+
+        // When it mounts
+        render(
+            <TableSemanticContainer
+                isEnabled={false}
+                title="Members"
+                rowCount={3}
+                columnCount={4}
+                hasHeaderRow
+                rendersBodyWhenEmpty={false}
+                shouldUseDynamicColumns
+                scrollWidth={undefined}
+                measureWidthRef={measureWidthRef}
+                onLayout={jest.fn()}
+                onScopeElement={undefined}
+            >
+                <TableHeader />
+                <TableBody />
+            </TableSemanticContainer>,
+        );
+
+        // Then the ref receives the mounted node that `onLayout` measures
+        expect(measureWidthRef).toHaveBeenCalledWith(expect.anything());
     });
 });

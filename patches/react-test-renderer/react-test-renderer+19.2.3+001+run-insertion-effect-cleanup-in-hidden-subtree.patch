@@ -1,0 +1,36 @@
+diff --git a/node_modules/react-test-renderer/cjs/react-test-renderer.development.js b/node_modules/react-test-renderer/cjs/react-test-renderer.development.js
+index 4ce1c7e..f02351e 100644
+--- a/node_modules/react-test-renderer/cjs/react-test-renderer.development.js
++++ b/node_modules/react-test-renderer/cjs/react-test-renderer.development.js
+@@ -10364,12 +10364,11 @@
+         case 11:
+         case 14:
+         case 15:
+-          offscreenSubtreeWasHidden ||
+-            commitHookEffectListUnmount(
+-              Insertion,
+-              deletedFiber,
+-              nearestMountedAncestor
+-            );
++          commitHookEffectListUnmount(
++            Insertion,
++            deletedFiber,
++            nearestMountedAncestor
++          );
+           offscreenSubtreeWasHidden ||
+             commitHookLayoutUnmountEffects(
+               deletedFiber,
+diff --git a/node_modules/react-test-renderer/cjs/react-test-renderer.production.js b/node_modules/react-test-renderer/cjs/react-test-renderer.production.js
+index 7a89ebc..383739d 100644
+--- a/node_modules/react-test-renderer/cjs/react-test-renderer.production.js
++++ b/node_modules/react-test-renderer/cjs/react-test-renderer.production.js
+@@ -6623,8 +6623,7 @@ function commitDeletionEffectsOnFiber(
+     case 11:
+     case 14:
+     case 15:
+-      offscreenSubtreeWasHidden ||
+-        commitHookEffectListUnmount(2, deletedFiber, nearestMountedAncestor);
++      commitHookEffectListUnmount(2, deletedFiber, nearestMountedAncestor);
+       offscreenSubtreeWasHidden ||
+         commitHookEffectListUnmount(4, deletedFiber, nearestMountedAncestor);
+       recursivelyTraverseDeletionEffects(

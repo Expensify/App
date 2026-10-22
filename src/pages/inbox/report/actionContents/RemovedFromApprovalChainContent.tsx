@@ -1,12 +1,11 @@
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import {getOriginalMessage, getRemovedFromApprovalChainMessage} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
 import type CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetailsList, ReportAction} from '@src/types/onyx';
 
@@ -26,7 +25,7 @@ function submitterNamesSelector(submittersAccountIDs: number[] | undefined) {
 
 function RemovedFromApprovalChainContent({action}: RemovedFromApprovalChainContentProps) {
     const {translate} = useLocalize();
-    const [submitterNames] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: submitterNamesSelector(getOriginalMessage(action)?.submittersAccountIDs)});
+    const [submitterNames] = useAllPersonalDetails(submitterNamesSelector(getOriginalMessage(action)?.submittersAccountIDs));
 
     return <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(translate, submitterNames ?? [])} />;
 }

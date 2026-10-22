@@ -25,6 +25,7 @@ import PDF from 'react-native-pdf';
 
 import type {PDFViewNativeProps} from './types';
 
+import isAllowedPDFLink from './isAllowedPDFLink';
 import PDFPasswordForm from './PDFPasswordForm';
 
 /**
@@ -139,6 +140,10 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
      */
     const handlePressLink = useCallback(
         (url: string) => {
+            if (!isAllowedPDFLink(url)) {
+                return;
+            }
+
             if (isTravelLink(url) && activePolicyID) {
                 const postLoginPath = getRelativeUrl(url);
                 openTravelDotLink(activePolicyID, postLoginPath);
@@ -210,7 +215,6 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             fullDisabled={successToLoadPDF}
             style={[themeStyles.flex1, themeStyles.alignSelfStretch, !failedToLoadPDF && themeStyles.flexRow]}
             accessibilityRole={CONST.ROLE.BUTTON}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
             sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.DOCUMENT}
         >

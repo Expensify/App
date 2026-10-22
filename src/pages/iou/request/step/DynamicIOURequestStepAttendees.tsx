@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
@@ -23,10 +24,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Attendee} from '@src/types/onyx/IOU';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {loginSelector} from '@selectors/PersonalDetails';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
@@ -55,7 +56,7 @@ function DynamicIOURequestStepAttendees({
     const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
     const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, reportOwnerAsAttendee));
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);

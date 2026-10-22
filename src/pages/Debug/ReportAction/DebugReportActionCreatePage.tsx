@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
@@ -32,7 +33,7 @@ import type {PersonalDetails, ReportAction, Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type DebugReportActionCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
@@ -73,14 +74,15 @@ function DebugReportActionCreatePage({
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, currentUserPersonalDetail));
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const reportsParentHierarchy = useReportsParentHierarchy(reportID);
 
-    const reportAction = useMemo(() => parseReportActionJSON(draftReportAction), [draftReportAction]);
+    const reportAction = parseReportActionJSON(draftReportAction);
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
 
     const [error, setError] = useState<string>();
 
-    const createReportAction = useCallback(() => {
+    const createReportAction = () => {
         if (!reportAction) {
             return;
         }
@@ -88,22 +90,18 @@ function DebugReportActionCreatePage({
             [reportAction.reportActionID]: reportAction,
         });
         Navigation.navigate(ROUTES.DEBUG_REPORT_TAB_ACTIONS.getRoute(reportID));
-    }, [reportAction, reportID]);
+    };
 
-    const editJSON = useCallback(
-        (updatedJSON: string) => {
-            try {
-                DebugUtils.validateReportActionJSON(updatedJSON);
-                setError('');
-            } catch (e) {
-                const {cause, message} = e as SyntaxError;
-                setError(cause ? translate(message as TranslationPaths, cause as never) : message);
-            } finally {
-                setDraftReportAction(updatedJSON);
-            }
-        },
-        [translate],
-    );
+    const editJSON = (updatedJSON: string) => {
+        try {
+            DebugUtils.validateReportActionJSON(updatedJSON);
+            setError('');
+        } catch (e) {
+            const {cause, message} = e as SyntaxError;
+            setError(cause ? translate(message as TranslationPaths, cause as never) : message);
+        }
+        setDraftReportAction(updatedJSON);
+    };
 
     return (
         <ScreenWrapper
@@ -146,6 +144,7 @@ function DebugReportActionCreatePage({
                                     shouldDisplayNewMarker={false}
                                     isFirstVisibleReportAction={false}
                                     shouldDisplayContextMenu={false}
+                                    reportsParentHierarchy={reportsParentHierarchy}
                                 />
                             ) : (
                                 <Text>{translate('debug.nothingToPreview')}</Text>

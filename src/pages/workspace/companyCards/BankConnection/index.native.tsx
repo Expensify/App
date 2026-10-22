@@ -1,10 +1,11 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCompanyCardConnectionError from '@hooks/useCompanyCardConnectionError';
 import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
@@ -22,7 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 
-import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {clearAddNewCompanyCardErrors, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 
 import CONST from '@src/CONST';
@@ -72,7 +73,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
-    const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
+    const {errorMessage, hasError: isNewFeedHasError} = useCompanyCardConnectionError({cardFeeds, addNewCard, newFeed, isAddingNewCard: !feed});
     // importPlaidAccounts only writes these errors while repairing an existing feed, so the add-card flow ignores them
     const hasImportError = !!feed && !isEmptyObject(assignCard?.errors);
     const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection']);
@@ -101,6 +102,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
             return;
         }
 
+        clearAddNewCompanyCardErrors();
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
@@ -215,13 +217,11 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     />
                 )}
                 {hasImportError && (
-                    <ConfirmationPage
+                    <ConfirmationPageDefault
                         heading={translate('workspace.companyCards.error.feedCouldNotBeLoadedTitle')}
                         description={translate('common.genericErrorMessage')}
                         illustration={illustrations.BrokenCompanyCardBankConnection}
                         illustrationStyle={styles.errorStateCardIllustration}
-                        containerStyle={styles.h100}
-                        shouldShowButton
                         buttonText={translate('common.buttonConfirm')}
                         onButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID))}
                     />
@@ -230,6 +230,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     <WorkspaceCompanyCardsErrorConfirmation
                         policyID={policyID}
                         newFeed={newFeed}
+                        errorMessage={errorMessage}
                     />
                 )}
             </FullPageOfflineBlockingView>

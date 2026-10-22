@@ -89,7 +89,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                 personalDetails,
                 report,
                 policy,
-                {translate, dateFnsLocale, convertToDisplayString},
+                {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 rules,
                 reportAttributesDerived,
@@ -182,14 +182,16 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                             <MoneyRequestConfirmationList
                                 payeePersonalDetails={payeePersonalDetails}
                                 selectedParticipants={participantsExcludingPayee}
-                                shouldDisplayReceipt
                                 // Split bill details never render an editable participant row (the transaction is not from global create), so there is nothing to open.
                                 onOpenParticipantPicker={() => {}}
                                 iouType={CONST.IOU.TYPE.SPLIT}
                                 isReadOnly={!isEditingSplitBill}
                                 shouldShowSmartScanFields
-                                receiptPath={transaction?.receipt?.source}
-                                receiptFilename={transaction?.receipt?.filename}
+                                receiptOptions={{
+                                    shouldDisplayReceipt: true,
+                                    receiptPath: transaction?.receipt?.source,
+                                    receiptFilename: transaction?.receipt?.filename,
+                                }}
                                 isEditingSplitBill={isEditingSplitBill}
                                 hasSmartScanFailed={hasSmartScanFailed}
                                 reportID={reportID}

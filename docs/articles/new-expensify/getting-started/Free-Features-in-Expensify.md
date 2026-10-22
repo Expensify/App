@@ -77,15 +77,15 @@ For purchases without receipts, enter expenses by hand.
 
 ### Web
 1. Click the **+** icon in the navigation tabs on the left > **Create expense** > **Manual**.
-2. Enter the expense amount and click **Next**.
-3. Choose yourself as the recipient.
-4. Fill out the expense details and click **Create expense**.
+2. Confirm yourself as the recipient.
+3. Enter the expense amount and select the currency.
+4. Fill out the remaining expense details and click **Create expense**.
 
 ### Mobile
 1. Tap the **+** icon at the bottom > **Create expense** > **Manual**.
-2. Enter the expense amount and click **Next**.
-3. Choose yourself as the recipient
-4. Fill out the expense details and click **Create expense**.
+2. Confirm yourself as the recipient.
+3. Enter the expense amount and select the currency.
+4. Fill out the remaining expense details and tap **Create expense**.
 
 ---
 
@@ -96,8 +96,7 @@ Export your data for taxes, budgeting, or sharing with an accountant.
 ### Web
 1. Click **Spend** > **Expenses**.
 2. Tick the boxes of the expenses you want to export. 
-3. Click **Selected** at the top.
-4. Choose **Export** from the dropdown menu.
+3. In the bar that appears at the bottom of the list, click **Export**. If you don't see it, click **More** first.
 
 ### Mobile
 CSV export is only available on the web. Log in on desktop to export expenses.
