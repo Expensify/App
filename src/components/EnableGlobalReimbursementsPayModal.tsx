@@ -6,11 +6,11 @@ import usePermissions from '@hooks/usePermissions';
 import {getEnableGlobalReimbursementsBusinessNavigationRoute, getWiseGlobalReimbursementsIntroNavigationRoute} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {clearCorpayPayModal} from '@userActions/App';
+import {clearEnableGlobalReimbursementsModal} from '@userActions/App';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type CorpayPayModal from '@src/types/onyx/CorpayPayModal';
+import type EnableGlobalReimbursementsModal from '@src/types/onyx/EnableGlobalReimbursementsModal';
 
 import {useEffect, useEffectEvent, useRef} from 'react';
 
@@ -19,14 +19,14 @@ import {ModalActions} from './Modal/Global/ModalContext';
 
 function EnableGlobalReimbursementsPayModal() {
     const {translate} = useLocalize();
-    const [corpayPayModal] = useOnyx(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL);
+    const [enableGlobalReimbursementsModal] = useOnyx(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL);
     const {showConfirmModal} = useConfirmModal();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const {isBetaEnabled} = usePermissions();
     const isModalOpenRef = useRef(false);
 
-    const showCorpayPayModal = useEffectEvent(async (modalData: CorpayPayModal) => {
+    const showEnableGlobalReimbursementsModal = useEffectEvent(async (modalData: EnableGlobalReimbursementsModal) => {
         if (isModalOpenRef.current) {
             return;
         }
@@ -39,7 +39,7 @@ function EnableGlobalReimbursementsPayModal() {
             } else {
                 Navigation.navigate(getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal), {skipMatchingFullScreenRoute: true});
             }
-            clearCorpayPayModal();
+            clearEnableGlobalReimbursementsModal();
             return;
         }
 
@@ -72,15 +72,15 @@ function EnableGlobalReimbursementsPayModal() {
                 );
             }
         }
-        clearCorpayPayModal();
+        clearEnableGlobalReimbursementsModal();
     });
 
     useEffect(() => {
-        if (!corpayPayModal) {
+        if (!enableGlobalReimbursementsModal) {
             return;
         }
-        showCorpayPayModal(corpayPayModal);
-    }, [corpayPayModal]);
+        showEnableGlobalReimbursementsModal(enableGlobalReimbursementsModal);
+    }, [enableGlobalReimbursementsModal]);
 
     return null;
 }
