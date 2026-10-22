@@ -17,6 +17,7 @@ import type {
     CompanyCardFeed,
     CurrencyList,
     Domain,
+    ExpensifyCardManualBilling,
     ExpensifyCardSettings,
     ExpensifyCardSettingsBase,
     NestedExpensifyCardSettings,
@@ -1900,6 +1901,28 @@ function getCardProgramKey(cardSettings: OnyxEntry<ExpensifyCardSettings>): Card
     });
 }
 
+type QueuedExpensifyCardSettlement = {
+    /** Whether any settlement is waiting for the next billing run */
+    isQueued: boolean;
+
+    /** Whether the queued settlement covers only part of the balance */
+    isPartial: boolean;
+
+    /** The amount a queued partial settlement will bill, in cents */
+    amount?: number;
+};
+
+/**
+ * Reads what is queued for the next billing run. The backend sends "true" for a full settlement and an object for a
+ * partial one, and older values can be a boolean, so every reader goes through here instead of testing truthiness.
+ */
+function getQueuedExpensifyCardSettlement(manualBilling: OnyxEntry<ExpensifyCardManualBilling>): QueuedExpensifyCardSettlement {
+    if (manualBilling && typeof manualBilling === 'object') {
+        return {isQueued: true, isPartial: manualBilling.type === CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL, amount: manualBilling.amount};
+    }
+    return {isQueued: manualBilling === true || manualBilling === 'true', isPartial: false};
+}
+
 function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): NestedExpensifyCardSettings | undefined {
     if (!cardSettings) {
         return undefined;
@@ -2649,6 +2672,7 @@ export {
     getCardSettings,
     getSettlementAccountErrors,
     getCardProgramKey,
+    getQueuedExpensifyCardSettlement,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
     getDomainNameFromExpensifyCardSettings,
@@ -2714,4 +2738,4 @@ export {
     resolveTransactionCardFields,
 };
 
-export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};
+export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey, QueuedExpensifyCardSettlement};
