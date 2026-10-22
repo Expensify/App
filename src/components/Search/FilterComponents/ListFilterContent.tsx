@@ -139,6 +139,7 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
 
 function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
         return (
@@ -152,7 +153,6 @@ function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.S
         );
     }
 
-    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
     const items = getMultiSelectFilterOptions(baseFilterKey, type, translate, undefined, undefined, shouldReturnTripRooms);
     const selectedValues = shouldReturnTripRooms && baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS ? normalizeTripStatuses(value as string[]) : (value as string[]);
     const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));

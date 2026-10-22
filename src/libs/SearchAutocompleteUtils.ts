@@ -283,7 +283,7 @@ function filterOutRangesWithCorrectValue(
             if (currentType !== CONST.SEARCH.DATA_TYPES.EXPENSE && currentType !== CONST.SEARCH.DATA_TYPES.INVOICE && currentType !== CONST.SEARCH.DATA_TYPES.TRIP) {
                 return false;
             }
-            if (currentType === CONST.SEARCH.DATA_TYPES.TRIP && shouldReturnTripRooms) {
+            if (shouldReturnTripRooms) {
                 return false;
             }
             return groupByList.includes(range.value);

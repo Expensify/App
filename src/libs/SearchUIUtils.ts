@@ -583,6 +583,16 @@ function normalizeTripStatuses(statuses: string[]): string[] {
     return [...new Set(statuses.map((status) => legacyTripStatusToTripRoomStatus[status] ?? status))];
 }
 
+/** Normalizes a trip rooms filters form's statuses, so the status chip of a saved status:current reads Upcoming */
+function getFiltersFormWithTripRoomStatuses(form: Partial<SearchAdvancedFiltersForm>): Partial<SearchAdvancedFiltersForm> {
+    const {[FILTER_KEYS.STATUS]: status, [FILTER_KEYS.STATUS_NOT]: statusNot} = form;
+    return {
+        ...form,
+        ...(status && {[FILTER_KEYS.STATUS]: normalizeTripStatuses(status)}),
+        ...(statusNot && {[FILTER_KEYS.STATUS_NOT]: normalizeTripStatuses(statusNot)}),
+    };
+}
+
 function getTaskStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
     return [
         {text: translate('common.outstanding'), value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
@@ -6203,7 +6213,7 @@ function getDisplayValue(
         if (!status?.length) {
             return;
         }
-        // A trip query can hold the statuses from before trip rooms too, so both sets are labelled
+        // Trip rooms statuses only come from beta queries and current/past from the rest, so both sets are labelled
         const statusOptions = type === CONST.SEARCH.DATA_TYPES.TRIP ? [...getTripRoomStatusOptions(translate), ...getTripStatusOptions(translate)] : getStatusOptions(translate, type);
         return statusOptions
             .filter((option) => status.includes(option.value))
@@ -7648,6 +7658,7 @@ export {
     isTaskListItemType,
     isTripListItemType,
     normalizeTripStatuses,
+    getFiltersFormWithTripRoomStatuses,
     getActions,
     getPrimaryAction,
     createTypeMenuSections,

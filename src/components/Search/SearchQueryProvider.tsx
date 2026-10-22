@@ -5,8 +5,16 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
-import {buildSearchQueryJSON, buildSearchQueryString, getQueryWithoutFooterSelections, getSearchRootParamsFromRootState, hasFooterSelections} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    getQueryWithoutFooterSelections,
+    getQueryWithoutGroupBy,
+    getSearchRootParamsFromRootState,
+    hasFooterSelections,
+} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -58,8 +66,12 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const parsedSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
     const {isBetaEnabled} = usePermissions();
     const shouldDropFooterSelections = !isBetaEnabled(CONST.BETAS.SPEND_FOOTER_SELECTORS) && !!parsedSearchQueryJSON && hasFooterSelections(parsedSearchQueryJSON);
-    const currentSearchQueryJSON =
+    const searchQueryJSONWithFooter =
         shouldDropFooterSelections && parsedSearchQueryJSON ? buildSearchQueryJSON(getQueryWithoutFooterSelections(parsedSearchQueryJSON), rawQueryParam) : parsedSearchQueryJSON;
+    // Trip rooms can't be grouped, so a group-by from a saved or typed trip query is dropped
+    const shouldDropGroupBy = useShouldReturnTripRooms(searchQueryJSONWithFooter?.type) && !!searchQueryJSONWithFooter?.groupBy;
+    const currentSearchQueryJSON =
+        shouldDropGroupBy && searchQueryJSONWithFooter ? buildSearchQueryJSON(getQueryWithoutGroupBy(searchQueryJSONWithFooter), rawQueryParam) : searchQueryJSONWithFooter;
     const shouldLoadCategoryData = currentSearchQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) ?? false;
     useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 
