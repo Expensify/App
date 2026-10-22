@@ -216,7 +216,7 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
 
     // Reaching here: USER always, plus GUEST/AUDITOR/APPROVE_ONLY only on corporate policies (control-only roles are
     // already filtered out on non-corporate policies above). Assigning these needs the
-    // MEMBERS permission, and only on corporate policies. APPROVE_ONLY stays within a People Admin's
+    // MEMBERS permission, and only on corporate policies. The following roles stays within a People Admin's
     // authority because it is less permissive than USER.
     const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.GUEST || role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.APPROVE_ONLY;
     return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
