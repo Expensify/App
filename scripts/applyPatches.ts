@@ -8,6 +8,7 @@ import {existsSync} from 'node:fs';
 import {mkdtemp, rm} from 'node:fs/promises';
 import {basename, join, relative} from 'node:path';
 
+import getFailedPatchPackages from './utils/getFailedPatchPackages';
 import {error, info, success} from './utils/Logger';
 
 const projectRoot = join(import.meta.dir, '..');
@@ -55,14 +56,6 @@ async function runPatchPackage(patchDirectory: string): Promise<PatchResult> {
     return {exitCode: result.exitCode, output: result.stdout.toString()};
 }
 
-function getFailedPackages(output: string): string[] {
-    const packages = new Set<string>();
-    for (const match of stripANSI(output).matchAll(/The patches for (\S+)/g)) {
-        packages.add(match[1]);
-    }
-    return [...packages];
-}
-
 function hasWarnings(output: string): boolean {
     return output.includes('Warning:');
 }
@@ -96,7 +89,7 @@ async function main(): Promise<number> {
             return 0;
         }
 
-        const failedPackages = getFailedPackages(result.output);
+        const failedPackages = getFailedPatchPackages(stripANSI(result.output));
         if (failedPackages.length === 0) {
             error('patch-package failed');
             return 1;
