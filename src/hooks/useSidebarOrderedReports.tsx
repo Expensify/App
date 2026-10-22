@@ -355,11 +355,14 @@ function SidebarOrderedReportsContextProvider({
         if (!orderedReportIDs.includes(stickyReportID)) {
             // While opening the report, reading it can briefly drop it from the LHN set entirely (before
             // navigation marks it as the focused report). Keep it at the top so the list doesn't flash empty.
+            if (!chatReports?.[`${ONYXKEYS.COLLECTION.REPORT}${stickyReportID}`]) {
+                return baseFilteredReportIDs;
+            }
             return [stickyReportID, ...baseFilteredReportIDs];
         }
         const baseSet = new Set(baseFilteredReportIDs);
         return orderedReportIDs.filter((reportID) => baseSet.has(reportID) || reportID === stickyReportID);
-    }, [orderedReportIDs, reportsToDisplayInLHN, activeTab, stickyReportTab, stickyReportID]);
+    }, [orderedReportIDs, reportsToDisplayInLHN, activeTab, stickyReportTab, stickyReportID, chatReports]);
     const filteredReportIDs = useStableArrayReference(computedFilteredReportIDs);
 
     // Derived from the full "All" set (not the currently filtered view).
