@@ -6759,6 +6759,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         subtitle:
                             'Envoyez les catégories, tags et champs de note de frais de cet espace de travail vers Expensify Travel pour que les voyageurs y répondent au moment de la réservation.',
                     },
+                    autoEnableNewMembers: {
+                        title: 'Activer automatiquement les voyages pour les nouveaux membres',
+                        subtitle: 'Toute personne qui rejoint cet espace de travail peut réserver des voyages immédiatement.',
+                    },
                 },
                 members: {
                     travelRole: 'Rôle voyage',
@@ -6781,6 +6785,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     makeTravelAdminsDescription: "Active les voyages, et les membres peuvent gérer les paramètres et les voyages de l'entreprise",
                     makeTravelers: 'Nommer voyageurs',
                     makeTravelersDescription: 'Active les voyages, et les membres peuvent réserver et gérer leurs propres voyages',
+                    manageMembers: 'Gérer les membres',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Peuvent réserver des voyages : ${enabledCount} sur ${totalCount}`,
                 },
                 travelInvoicing: {
                     travelBookingSection: {

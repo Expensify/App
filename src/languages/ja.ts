@@ -6619,6 +6619,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         title: 'コーディングを Expensify Travel と同期する',
                         subtitle: 'このワークスペースのカテゴリ、タグ、レポートフィールドを Expensify Travel にプッシュして、出張者が予約時にそれらに回答できるようにします。',
                     },
+                    autoEnableNewMembers: {
+                        title: '新しいメンバーの出張を自動でオンにする',
+                        subtitle: 'このワークスペースに参加したメンバーはすぐに出張を予約できます。',
+                    },
                 },
                 members: {
                     travelRole: '出張ロール',
@@ -6641,6 +6645,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     makeTravelAdminsDescription: '出張をオンにし、メンバーは会社の出張設定と出張を管理できます',
                     makeTravelers: '出張者にする',
                     makeTravelersDescription: '出張をオンにし、メンバーは自分の出張を予約・管理できます',
+                    manageMembers: 'メンバーを管理',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `出張を予約できるメンバー: ${totalCount}人中${enabledCount}人`,
                 },
                 travelInvoicing: {
                     travelBookingSection: {

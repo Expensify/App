@@ -6464,6 +6464,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 settings: {
                     autoAddTripName: {title: '将行程名称添加到报销单', subtitle: '为在 Expensify 中预订的行程，自动将行程名称添加到报销事由描述中。'},
                     codingSync: {title: '将编码同步到 Expensify Travel', subtitle: '将此工作区的类别、标签和报表字段推送到 Expensify Travel，以便出行人能在预订时填写。'},
+                    autoEnableNewMembers: {
+                        title: '自动为新成员开启差旅',
+                        subtitle: '加入此工作区的任何人都可以立即预订差旅。',
+                    },
                 },
                 members: {
                     travelRole: '差旅角色',
@@ -6486,6 +6490,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     makeTravelAdminsDescription: '开启差旅，成员可以管理公司的差旅设置和行程',
                     makeTravelers: '设为出差人',
                     makeTravelersDescription: '开启差旅，成员可以预订和管理自己的行程',
+                    manageMembers: '管理成员',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `可预订差旅：${enabledCount}/${totalCount}`,
                 },
                 travelInvoicing: {
                     travelBookingSection: {

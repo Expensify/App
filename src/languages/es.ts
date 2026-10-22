@@ -6604,6 +6604,10 @@ ${amount} para ${merchant} - ${date}`,
                         subtitle:
                             'Envía las categorías, etiquetas y campos de informe de este espacio de trabajo a Expensify Travel para que los viajeros los completen en el momento de la reserva.',
                     },
+                    autoEnableNewMembers: {
+                        title: 'Activar los viajes automáticamente para los nuevos miembros',
+                        subtitle: 'Cualquier persona que se una a este espacio de trabajo puede reservar viajes de inmediato.',
+                    },
                 },
                 members: {
                     travelRole: 'Rol de viaje',
@@ -6626,6 +6630,8 @@ ${amount} para ${merchant} - ${date}`,
                     makeTravelAdminsDescription: 'Activa los viajes y los miembros pueden gestionar la configuración y los viajes de la empresa',
                     makeTravelers: 'Convertir en viajeros',
                     makeTravelersDescription: 'Activa los viajes y los miembros pueden reservar y gestionar sus propios viajes',
+                    manageMembers: 'Gestionar miembros',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Pueden reservar viajes: ${enabledCount} de ${totalCount}`,
                 },
                 travelInvoicing: {
                     travelBookingSection: {

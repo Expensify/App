@@ -6,6 +6,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -14,13 +15,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearPolicyErrorField} from '@libs/actions/Policy/Policy';
 import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
+import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+import {canMemberUseTravel, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -37,10 +41,11 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const StyleUtils = useStyleUtils();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
-    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines']);
+    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'Users']);
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
+    const {isOffline} = useNetwork();
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 
@@ -58,6 +63,17 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const toggleCodingSync = (enabled: boolean) => {
         setPolicyTravelSettings(policy, {isCodingSyncEnabled: enabled});
     };
+
+    const autoEnableNewMembers = policy?.travelSettings?.autoEnableNewMembers ?? false;
+
+    const toggleAutoEnableNewMembers = (enabled: boolean) => {
+        setPolicyTravelSettings(policy, {autoEnableNewMembers: enabled});
+    };
+
+    const memberLogins = Object.entries(policy?.employeeList ?? {})
+        .filter(([, employee]) => !isDeletedPolicyEmployee(employee, isOffline))
+        .map(([login]) => login);
+    const membersWithTravelCount = memberLogins.filter((login) => canMemberUseTravel(policy, login)).length;
 
     const handleManageTravel = () => {
         if (isPreventSpotnanaTravelEnabled) {
@@ -141,6 +157,40 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                         wrapperStyle={styles.mt3}
                     />
                 )}
+                <ToggleSettingOptionRow
+                    title={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.title')}
+                    subtitle={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.subtitle')}
+                    shouldPlaceSubtitleBelowSwitch
+                    switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.title')}
+                    isActive={autoEnableNewMembers}
+                    onToggle={toggleAutoEnableNewMembers}
+                    disabled={!canWriteMoreFeatures}
+                    disabledAction={withReadOnlyFallback()}
+                    showLockIcon={!canWriteMoreFeatures}
+                    pendingAction={policy?.pendingFields?.autoEnableNewMembers}
+                    errors={policy?.errorFields?.autoEnableNewMembers ?? undefined}
+                    onCloseError={() => clearPolicyErrorField(policyID, 'autoEnableNewMembers')}
+                    wrapperStyle={styles.mt3}
+                />
+                <View style={styles.mt3}>
+                    <MenuItemSectionRoot
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.MANAGE_MEMBERS_BUTTON}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Icon src={icons.Users} />
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('workspace.moreFeatures.travel.members.manageMembers')}</MenuItem.Title>
+                                <MenuItem.Description>
+                                    {translate('workspace.moreFeatures.travel.members.membersWithTravelAccess', {enabledCount: membersWithTravelCount, totalCount: memberLogins.length})}
+                                </MenuItem.Description>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItemSectionRoot>
+                </View>
             </Section>
             <WorkspaceTravelBillingSection policyID={policyID} />
         </>
