@@ -2,6 +2,7 @@ import AlwaysPaintedView from '@components/AlwaysPaintedView';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
+import useOpenRecipientPicker from '@hooks/useOpenRecipientPicker';
 
 import getPlatform from '@libs/getPlatform';
 
@@ -100,6 +101,8 @@ function MoneyRequestParticipantsSelector({
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
+
+    useOpenRecipientPicker(shouldExcludeWorkspaces);
 
     useImperativeHandle(ref, () => ({
         focus: () => {
