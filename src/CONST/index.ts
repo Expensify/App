@@ -238,6 +238,7 @@ const RULE_TRIGGERS = {
     REPORT_SUBMIT: 'ReportSubmit',
     REPORT_APPROVE: 'ReportApprove',
     CREATE_TRANSACTION: 'CreateTransaction',
+    UPDATE_TRANSACTION: 'UpdateTransaction',
 } as const;
 
 const EMAIL = {
@@ -433,9 +434,6 @@ const CONST = {
     RECEIPT_CAMERA: {
         PHOTO_WIDTH: 2880,
         PHOTO_HEIGHT: 2160,
-        // iPhones offer no 4:3 photo size between 3 MP and 12 MP, so the 6 MP target above selects 2016x1512
-        IOS_STILL_WIDTH: 4032,
-        IOS_STILL_HEIGHT: 3024,
         PHOTO_ASPECT_RATIO: 4 / 3,
     },
 
@@ -2846,10 +2844,7 @@ const CONST = {
         ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
         ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
         ATTRIBUTE_SOURCE: 'source',
-        ATTRIBUTE_PHASE_DETECTION_FORMAT_COUNT: 'phase_detection_format_count',
         ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM: 'selected_format_af_system',
-        ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT: 'has_interchangeable_phase_format',
-        ATTRIBUTE_MIN_FOCUS_DISTANCE: 'min_focus_distance',
         ATTRIBUTE_PHYSICAL_DEVICE_COUNT: 'physical_device_count',
         ATTRIBUTE_NEUTRAL_ZOOM: 'neutral_zoom',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
