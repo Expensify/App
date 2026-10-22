@@ -210,8 +210,11 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
         drawStatusDot(canvas, contentLeft + contentSize, contentTop, scale, dotColor);
     }
     if (paragraph) {
+        // Centers the label in its bold-sized box: horizontally under the icon, vertically beside it.
         const isStacked = layout.direction === 'stacked';
-        paragraph.paint(canvas, labelLeft + (isStacked ? (labelWidth - paragraph.getLongestLine()) / 2 : 0), labelTop + (isStacked ? 0 : (labelHeight - paragraph.getHeight()) / 2));
+        const centeringOffsetX = isStacked ? (labelWidth - paragraph.getLongestLine()) / 2 : 0;
+        const centeringOffsetY = isStacked ? 0 : (labelHeight - paragraph.getHeight()) / 2;
+        paragraph.paint(canvas, labelLeft + centeringOffsetX, labelTop + centeringOffsetY);
         paragraph.dispose();
     }
 
