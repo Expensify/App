@@ -10517,6 +10517,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             topCategories: 'Topkategorien',
             topMerchants: 'Top-Händler',
             violationsBySubmitter: 'Verstöße durch Einreichende',
+            travel: 'Reisen',
+            trips: 'Reisen',
         },
         mergeReports: {
             title: 'Berichte zusammenführen',

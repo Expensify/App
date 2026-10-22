@@ -10460,6 +10460,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             topCategories: 'Najpopularniejsze kategorie',
             topMerchants: 'Najważniejsi sprzedawcy',
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
+            travel: 'Podróże',
+            trips: 'Podróże',
         },
         mergeReports: {
             title: 'Połącz raporty',

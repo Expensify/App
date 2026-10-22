@@ -10043,6 +10043,8 @@ ${reportName}`,
             topCategories: '热门类别',
             topMerchants: '热门商家',
             violationsBySubmitter: '提交人违规',
+            travel: '差旅',
+            trips: '行程',
         },
         mergeReports: {
             title: '合并报表',

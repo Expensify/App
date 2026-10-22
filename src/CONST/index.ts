@@ -1436,6 +1436,7 @@ const CONST = {
         COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         DESCRIBE_RULE: 'describeRule',
+        TRAVEL_APPROVAL: 'travelApproval',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -8855,6 +8856,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
+            TRIPS: 'trips',
         },
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',

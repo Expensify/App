@@ -10433,6 +10433,8 @@ const translations = {
             topCategories: 'Top categories',
             topMerchants: 'Top merchants',
             violationsBySubmitter: 'Violations by submitter',
+            travel: 'Travel',
+            trips: 'Trips',
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',

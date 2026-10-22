@@ -10543,6 +10543,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             topCategories: 'Catégories principales',
             topMerchants: 'Meilleurs commerçants',
             violationsBySubmitter: 'Infractions par déclarant',
+            travel: 'Voyage',
+            trips: 'Voyages',
         },
         mergeReports: {
             title: 'Fusionner des notes de frais',

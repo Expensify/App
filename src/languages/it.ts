@@ -10471,6 +10471,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             topCategories: 'Categorie principali',
             topMerchants: 'Principali esercenti',
             violationsBySubmitter: 'Violazioni da parte dell’autore dell’invio',
+            travel: 'Viaggi',
+            trips: 'Viaggi',
         },
         mergeReports: {
             title: 'Unisci report',
