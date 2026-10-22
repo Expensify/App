@@ -214,11 +214,15 @@ function analyze(filename, sourceText) {
             );
         }
         const label = error.labels?.[0];
+        // eslint-plugin-react-hooks skips a diagnostic with no location; reporting it at 1:0 would be oxlint-only.
+        if (!label) {
+            continue;
+        }
         diagnostics.push({
             ruleName,
             loc: {
-                start: offsetToPoint(label?.start ?? 0),
-                end: offsetToPoint(label?.end ?? label?.start ?? 0),
+                start: offsetToPoint(label.start),
+                end: offsetToPoint(label.end ?? label.start),
             },
             message: buildMessage(category, error),
         });
