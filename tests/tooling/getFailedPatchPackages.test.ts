@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'bun:test';
 
-import getFailedPatchPackages from '../../scripts/utils/getFailedPatchPackages';
+import {getFailedPatchPackages} from '../../scripts/applyPatches';
 
 describe('getFailedPatchPackages', () => {
     it('extracts packages from patch-package apply failures', () => {

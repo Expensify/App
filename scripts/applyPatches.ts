@@ -8,7 +8,6 @@ import {existsSync} from 'node:fs';
 import {mkdtemp, rm} from 'node:fs/promises';
 import {basename, join, relative} from 'node:path';
 
-import getFailedPatchPackages from './utils/getFailedPatchPackages';
 import {error, info, success} from './utils/Logger';
 
 const projectRoot = join(import.meta.dir, '..');
@@ -54,6 +53,14 @@ async function runPatchPackage(patchDirectory: string): Promise<PatchResult> {
     const patchPackage = join(projectRoot, 'node_modules', '.bin', 'patch-package');
     const result = await $`${patchPackage} --patch-dir ${relative(projectRoot, patchDirectory)} --error-on-fail --color=always 2>&1`.cwd(projectRoot).nothrow();
     return {exitCode: result.exitCode, output: result.stdout.toString()};
+}
+
+export function getFailedPatchPackages(output: string): string[] {
+    const packages = new Set<string>();
+    for (const match of output.matchAll(/(?:The patches for|Failed to apply patch for package)\s+(\S+)/g)) {
+        packages.add(match[1]);
+    }
+    return [...packages];
 }
 
 function hasWarnings(output: string): boolean {
@@ -124,9 +131,11 @@ async function main(): Promise<number> {
     }
 }
 
-try {
-    process.exitCode = await main();
-} catch (caughtError) {
-    error(caughtError);
-    process.exitCode = 1;
+if (import.meta.main) {
+    try {
+        process.exitCode = await main();
+    } catch (caughtError) {
+        error(caughtError);
+        process.exitCode = 1;
+    }
 }
