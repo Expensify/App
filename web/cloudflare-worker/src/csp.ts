@@ -170,16 +170,14 @@ const PRODUCTION_CSP = buildCSP({
 });
 
 function getCSP(environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, connectSrcHosts: string[] = []): string {
-    const csp =
-        environment === 'development'
-            ? buildCSP({
-                  fontSrcHosts: ["'self'"],
-                  scriptSrcHashes: INLINE_SCRIPT_HASHES,
-                  connectSrcHosts: ['https://www.expensify.com.dev', 'https://secure.expensify.com.dev', 'http://localhost:9000', ...connectSrcHosts],
-              })
-            : environment === 'staging'
-              ? STAGING_CSP
-              : PRODUCTION_CSP;
+    let csp = environment === 'staging' ? STAGING_CSP : PRODUCTION_CSP;
+    if (environment === 'development') {
+        csp = buildCSP({
+            fontSrcHosts: ["'self'"],
+            scriptSrcHashes: INLINE_SCRIPT_HASHES,
+            connectSrcHosts: ['https://www.expensify.com.dev', 'https://secure.expensify.com.dev', 'http://localhost:9000', ...connectSrcHosts],
+        });
+    }
     return csp.replace(NONCE_PLACEHOLDER, `nonce-${nonce}`);
 }
 

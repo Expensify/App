@@ -46,8 +46,8 @@ async function fetchDevelopmentResponse(request: Request, env: DevelopmentEnv): 
         return response;
     }
     const location = response.headers.get('Location');
-    if (location && new URL(location, url).origin === upstream.origin) {
-        const redirect = new URL(location, url);
+    const redirect = location ? new URL(location, url) : null;
+    if (redirect?.origin === upstream.origin) {
         redirect.protocol = publicURL.protocol;
         redirect.host = publicURL.host;
         response = new Response(response.body, response);
@@ -56,4 +56,4 @@ async function fetchDevelopmentResponse(request: Request, env: DevelopmentEnv): 
     return response;
 }
 
-export {fetchDevelopmentResponse, getDevelopmentUpstream, isAPIRequest};
+export {fetchDevelopmentResponse, isAPIRequest};

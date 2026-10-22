@@ -68,8 +68,7 @@ export default defineConfig(async ({command}) => {
             ...common.source,
             define: {
                 ...common.source?.define,
-                // The dev server's resolved port can differ from BASE_PORT if 8082 is already in use.
-                // CONFIG.DEV_PORT (src/CONFIG.ts) reads this at runtime to build correct dev environment URLs.
+                // CONFIG.DEV_PORT builds browser-facing links, so it must not use the private Rsbuild port.
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'process.env.PORT': publicPort,
             },

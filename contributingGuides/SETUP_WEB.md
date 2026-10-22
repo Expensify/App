@@ -30,7 +30,7 @@ If you already generated certificates before the Webpack → Rsbuild migration, 
 - To run the **development web app**: `npm run web`
 - Changes applied to Javascript will be applied automatically via Rsbuild as configured in `config/rsbuild/rsbuild.config.ts`
 
-`npm run web` starts the API proxy, Rsbuild, and the Cloudflare Worker in local workerd through Wrangler. It opens `https://dev.new.expensify.com:8082/` after the Worker serves the app. The Worker uses your existing mkcert certificate and forwards to a private loopback HTTP Rsbuild listener; you do not need ngrok, a Cloudflare account, or a `dist/` build.
+`npm run web` starts the API proxy, Rsbuild, and the Cloudflare Worker in local workerd through Wrangler. It opens `https://dev.new.expensify.com:8082/` after the Worker serves the app. The Worker uses your existing mkcert certificate and forwards to a private loopback HTTP Rsbuild listener.
 
 React edits use Fast Refresh through the Worker's WSS connection. Worker entry-point and imported module edits (including CSP changes) use Wrangler's native reload without restarting the command or the other services. A new document request/reload is needed to receive changed CSP headers; existing pages do not automatically acquire new response headers.
 

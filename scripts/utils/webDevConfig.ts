@@ -6,21 +6,19 @@ function getWebDevFlags(env: Record<string, string | undefined>) {
 }
 
 function getDevelopmentConnectOrigins(env: Record<string, string | undefined>): string[] {
-    return [
-        ...new Set(
-            LOCAL_BACKEND_KEYS.flatMap((key) => {
-                const value = env[key];
-                if (!value) {
-                    return [];
-                }
-                const url = new URL(value);
-                if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
-                    throw new Error(`${key} must be an HTTP(S) URL without credentials`);
-                }
-                return [url.origin];
-            }),
-        ),
-    ];
+    const origins = new Set<string>();
+    for (const key of LOCAL_BACKEND_KEYS) {
+        const value = env[key];
+        if (!value) {
+            continue;
+        }
+        const url = new URL(value);
+        if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
+            throw new Error(`${key} must be an HTTP(S) URL without credentials`);
+        }
+        origins.add(url.origin);
+    }
+    return [...origins];
 }
 
 /** Fail on conflicts rather than letting a child silently attach to another worktree's server. */
