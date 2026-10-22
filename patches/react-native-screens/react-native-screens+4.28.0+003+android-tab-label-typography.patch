@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
-index 10cd91b..6f059bd 100644
+index 10cd91b..a317dad 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 @@ -3,6 +3,7 @@ package com.swmansion.rnscreens.gamma.tabs.appearance
@@ -10,8 +10,18 @@ index 10cd91b..6f059bd 100644
  import android.graphics.drawable.StateListDrawable
  import android.util.TypedValue
  import android.view.MenuItem
-@@ -161,13 +162,18 @@ internal class TabsAppearanceApplicator(
-                 tabBarAppearance?.tabBarItemTitleLargeLabelFontSize?.takeIf { it > 0 }?.let { PixelUtil.toPixelFromSP(it) }
+@@ -154,20 +155,26 @@ internal class TabsAppearanceApplicator(
+                 with SP, if there will be a need for skipping scale, the we should introduce similar
+                 `allowFontScaling` prop.
+              */
++            // The App scales its font sizes by the system font scale itself, so they are read as dp, not sp.
+             val smallFontSize =
+-                tabBarAppearance?.tabBarItemTitleSmallLabelFontSize?.takeIf { it > 0 }?.let { PixelUtil.toPixelFromSP(it) }
++                tabBarAppearance?.tabBarItemTitleSmallLabelFontSize?.takeIf { it > 0 }?.let { PixelUtil.toPixelFromDIP(it) }
+                     ?: context.resources.getDimension(R.dimen.design_bottom_navigation_text_size)
+             val largeFontSize =
+-                tabBarAppearance?.tabBarItemTitleLargeLabelFontSize?.takeIf { it > 0 }?.let { PixelUtil.toPixelFromSP(it) }
++                tabBarAppearance?.tabBarItemTitleLargeLabelFontSize?.takeIf { it > 0 }?.let { PixelUtil.toPixelFromDIP(it) }
                      ?: context.resources.getDimension(R.dimen.design_bottom_navigation_text_size)
  
 +            // Both labels drop the 0.5sp letter tracking of Material's text appearance, which reads wider than the app's labels.
