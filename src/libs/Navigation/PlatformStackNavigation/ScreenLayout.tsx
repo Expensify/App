@@ -42,24 +42,22 @@ type ScreenLayoutProps = ScreenLayoutArgs<
 
 function ScreenLayout({children, navigation}: ScreenLayoutProps) {
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
-    // Net-count overlapping starts so a single handle spans rapid back/forward re-fires — no decrement-to-zero seam for `runAfterTransitions` to flush through, and `transitionEnd` for the wrong leg can't end the active one.
-    const pendingTransitionsRef = useRef(0);
 
     useLayoutEffect(() => {
         const transitionStartListener = navigation.addListener('transitionStart', () => {
-            pendingTransitionsRef.current += 1;
-            if (!transitionHandleRef.current) {
-                transitionHandleRef.current = TransitionTracker.startTransition('navigation');
+            const interruptedHandle = transitionHandleRef.current;
+            // JS stacks suppress transitionEnd for interrupted animations. Register the replacement first so deferred work cannot flush between them.
+            transitionHandleRef.current = TransitionTracker.startTransition('navigation');
+            if (interruptedHandle) {
+                TransitionTracker.endTransition(interruptedHandle);
             }
         });
         const transitionEndListener = navigation.addListener('transitionEnd', () => {
-            if (pendingTransitionsRef.current > 0) {
-                pendingTransitionsRef.current -= 1;
+            if (!transitionHandleRef.current) {
+                return;
             }
-            if (pendingTransitionsRef.current === 0 && transitionHandleRef.current) {
-                TransitionTracker.endTransition(transitionHandleRef.current);
-                transitionHandleRef.current = null;
-            }
+            TransitionTracker.endTransition(transitionHandleRef.current);
+            transitionHandleRef.current = null;
         });
 
         return () => {
@@ -67,7 +65,6 @@ function ScreenLayout({children, navigation}: ScreenLayoutProps) {
             transitionEndListener();
             const handleToEnd = transitionHandleRef.current;
             transitionHandleRef.current = null;
-            pendingTransitionsRef.current = 0;
             if (!handleToEnd) {
                 return;
             }
