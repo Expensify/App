@@ -3906,6 +3906,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/members/:accountID/office-location',
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/office-location` as const,
     },
+    WORKSPACE_MEMBER_TRAVEL_ACCESS: {
+        route: 'workspaces/:policyID/members/:accountID/travel-access',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/travel-access` as const,
+    },
+    WORKSPACE_MEMBER_TRAVEL_ROLE: {
+        route: 'workspaces/:policyID/members/:accountID/travel-role',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/travel-role` as const,
+    },
     WORKSPACE_CUSTOM_FIELDS: {
         route: 'workspaces/:policyID/members/:accountID/:customFieldType',
         getRoute: (policyID: string, accountID: number, customFieldType: CustomFieldType) => `/workspaces/${policyID}/members/${accountID}/${customFieldType}` as const,
