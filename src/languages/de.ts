@@ -7063,6 +7063,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             emptySubtitle: 'Anbieter werden hier angezeigt, nachdem Ihre Buchhaltungssynchronisierung abgeschlossen ist.',
             findVendor: 'Lieferanten finden',
             managedInAccountingSoftware: 'Lieferanten werden verwaltet in Ihrem',
+            enableVendor: 'Lieferanten aktivieren',
+            enableVendors: 'Anbieter aktivieren',
+            disableVendor: 'Lieferanten deaktivieren',
+            disableVendors: 'Lieferanten deaktivieren',
+            updateFailureMessage: 'Beim Aktualisieren des Lieferanten ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
         },
         tags: {
             tagName: 'Tag-Name',
@@ -7373,6 +7378,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     'Das Mitglied arbeitet von zu Hause aus oder reist zwischen verschiedenen Standorten ohne festes Büro, daher gelten die Pendelregelungen nicht.',
                 futureOnlyNote: 'Änderungen gelten nur für zukünftige Kilometerberechnungen. Bestehende Kilometerabrechnungen werden nicht neu berechnet.',
             },
+            changeRole: 'Rolle ändern',
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
@@ -9274,6 +9280,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Zoho Books-Organisation',
+        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
             prerequisitesTitle: 'Bevor Sie eine Verbindung herstellen …',
@@ -10298,6 +10307,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Letzter Auszug',
                 },
                 customDay: 'Benutzerdefinierter Tag',
+            },
+            describeSearch: {
+                title: 'Beschreiben Sie Ihre Suche',
+                description: 'Beschreiben Sie in einfachem Englisch, welche Ausgaben Sie sehen möchten, und wir wenden automatisch die richtigen Filter an.',
+                inputLabel: 'Beschreiben Sie Ihre Suche',
+                buttonText: 'Anwenden',
             },
             status: 'Status',
             keyword: 'Schlüsselwort',
@@ -12214,5 +12229,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         mobileRenewPrompt: 'Besuchen Sie Expensify in Ihrem Webbrowser, um vorzeitig zu verlängern.',
         mobileClaimPrompt: 'Besuchen Sie Expensify in Ihrem Webbrowser, um Ihren Verlängerungsrabatt zu erhalten.',
     },
+    bulkActionBar: {label: 'Sammelaktionen', clearSelection: 'Auswahl aufheben', loadingSelection: 'Auswahl wird geladen'},
 };
 export default translations;

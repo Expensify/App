@@ -340,8 +340,7 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
     }
 
     return lastActorDetails.accountID !== currentUserAccountID
-        ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          lastActorDetails.firstName || temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils})
+        ? lastActorDetails.firstName || temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils})
         : translate('common.you');
 }
 
@@ -409,7 +408,6 @@ function getExpenseReportPreviewText(
 
     const formattedAmount = convertToDisplayString(amount, currency);
     const description = linkedTransaction ? getDescription(linkedTransaction) : '';
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const comment = Parser.htmlToText(description || originalMessage?.comment || '').trim();
 
     return formatReportLastMessageText(translate('iou.expenseAmount', formattedAmount, comment || undefined));
@@ -461,7 +459,6 @@ function getLastActorDisplayNameFromLastVisibleActions(
     const lastReportAction = lastAction ?? getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsData, oneTransactionThreadReportID);
 
     if (lastReportAction) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const lastActorAccountID = getReportActionActorAccountID(lastReportAction, undefined, undefined) || report?.lastActorAccountID;
         let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
 
@@ -580,9 +577,7 @@ function getLastMessageTextForReport({
     let lastMessageTextFromReport = '';
 
     if (isArchivedNonExpenseReport(report, isReportArchived)) {
-        const archiveReason =
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (isClosedAction(lastOriginalReportAction) && getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+        const archiveReason = (isClosedAction(lastOriginalReportAction) && getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
@@ -1281,7 +1276,6 @@ function getReportAlternateText({
         return Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
     };
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
@@ -1300,7 +1294,6 @@ function getReportAlternateText({
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate);
     // An empty precomputed text means "not computed yet", so `||` (not `??`) keeps the recompute fallback meaningful.
     const lastMessageTextFromReport =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastMessageTextFromReportProp ||
         getLastMessageTextForReport({
             translate,
@@ -1708,7 +1701,6 @@ function getReportAlternateText({
                     derivedReportName: reportAttributesDerived?.[report.reportID]?.reportName,
                     isReportArchived,
                     formatPhoneNumber,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 }).messageText || translate('report.noActivityYet'),
             );
         }
