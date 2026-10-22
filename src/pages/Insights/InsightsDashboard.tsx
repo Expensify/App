@@ -50,6 +50,7 @@ import useInsightsFilters from './useInsightsFilters';
 type InsightsDashboardContentProps = {
     state: InsightsDashboardState;
     aiInsights: InsightsCard[] | undefined;
+    isLoadingAIInsights: boolean;
     headlineChart: InsightsDashboardChart;
 
     /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
@@ -65,7 +66,7 @@ type InsightsDashboardContentProps = {
     onGroupByChange: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsDashboardContent({state, aiInsights, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({state, aiInsights, isLoadingAIInsights, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
@@ -145,7 +146,10 @@ function InsightsDashboardContent({state, aiInsights, headlineChart, supportingC
                 addBottomSafeAreaPadding
             >
                 <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
-                    <InsightsAICardRow cards={aiInsights} />
+                    <InsightsAICardRow
+                        cards={aiInsights}
+                        isLoading={isLoadingAIInsights}
+                    />
                     <InsightsChartWidget
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
@@ -263,6 +267,8 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             <InsightsDashboardContent
                 state={state}
                 aiInsights={dashboard?.aiInsights}
+                // Only a GetInsights response sets inputQuery. Offline no response is coming, so the row hides instead of loading forever
+                isLoadingAIInsights={!dashboard?.inputQuery && !isOffline}
                 headlineChart={headlineChart}
                 supportingCharts={supportingCharts}
                 filters={filters}
