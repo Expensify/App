@@ -33,6 +33,7 @@ type ConciergeDraft = {
 
 type BuildConciergeDraftReportActionParams = {
     actorAccountID?: number;
+    accountIDToName?: Record<string, string>;
     bodyMarkdown?: string;
     created: string;
     finalRenderedHTML?: string;
@@ -585,6 +586,7 @@ function stripIncompleteMarkdown(markdown: string): string {
 
 function buildConciergeDraftReportAction({
     actorAccountID,
+    accountIDToName,
     bodyMarkdown,
     created,
     finalRenderedHTML,
@@ -612,7 +614,7 @@ function buildConciergeDraftReportAction({
         actorAccountID: resolvedActorAccountID,
         person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
         created,
-        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html, text: Parser.htmlToText(html)}],
+        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html, text: Parser.htmlToText(html, {accountIDToName})}],
         originalMessage: {html, whisperedTo: []},
         shouldShow: true,
     } as ReportAction;
@@ -687,7 +689,13 @@ function setCachedDraft(reportID: string, draft: ConciergeDraft | null): void {
     }
 }
 
-function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: ConciergeDraftEvent, reportID: string, isGroupPolicyReport: boolean): ConciergeDraft | null {
+function applyConciergeDraftEvent(
+    currentDraft: ConciergeDraft | null,
+    event: ConciergeDraftEvent,
+    reportID: string,
+    isGroupPolicyReport: boolean,
+    accountIDToName?: Record<string, string>,
+): ConciergeDraft | null {
     if (event.reportID !== reportID) {
         return currentDraft;
     }
@@ -709,6 +717,7 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     const nextReportAction =
         buildConciergeDraftReportAction({
             actorAccountID: event.actorAccountID,
+            accountIDToName,
             bodyMarkdown: event.bodyMarkdown,
             created: event.created,
             finalRenderedHTML: event.finalRenderedHTML,

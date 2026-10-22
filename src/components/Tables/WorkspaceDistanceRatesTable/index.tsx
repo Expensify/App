@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -108,11 +109,11 @@ function WorkspaceDistanceRatesTable({
             if (diff !== 0) {
                 return diff * orderMultiplier;
             }
-            return localeCompare(a.rate.name ?? '', b.rate.name ?? '') * orderMultiplier;
+            return DistanceRequestUtils.compareRatesByDisplayName(a.rate, b.rate, localeCompare, orderMultiplier);
         }
 
         if (activeSorting.columnKey === 'name') {
-            return localeCompare(a.rate.name ?? '', b.rate.name ?? '') * orderMultiplier;
+            return DistanceRequestUtils.compareRatesByDisplayName(a.rate, b.rate, localeCompare, orderMultiplier);
         }
 
         if (activeSorting.columnKey === 'rate') {

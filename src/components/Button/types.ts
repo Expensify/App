@@ -1,3 +1,5 @@
+import type {AccessibilityHasPopup} from '@components/Pressable/PressResponder/PressResponderContext';
+
 import type {ButtonVariant} from '@styles/utils/types';
 
 import type CONST from '@src/CONST';
@@ -109,6 +111,8 @@ type BaseButtonProps = WithSentryLabel &
 
         /** Extends the touch area past the button's edges, for a button smaller than the 44x44 minimum */
         hitSlop?: Insets;
+        /** What the button opens, for a button that opens a menu or a dialog rather than acting straight away */
+        accessibilityHasPopup?: AccessibilityHasPopup;
 
         ref?: ForwardedRef<ComponentRef<typeof View>>;
     };

@@ -9,9 +9,11 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -47,7 +49,9 @@ type RoomDescriptionPageProps = {
 function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path);
     const styles = useThemeStyles();
-    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(getReportDescription(report)));
+    const reportIDToName = useReportIDToNameMap();
+    const accountIDToName = useAccountIDToNameMap();
+    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(getReportDescription(report), {reportIDToName, accountIDToName}));
     const reportDescriptionInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const {translate} = useLocalize();
@@ -64,9 +68,9 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     const submitForm = useCallback(() => {
         const newValue = description.trim();
 
-        updateDescription(report, newValue, currentUserAccountID);
+        updateDescription(report, newValue, currentUserAccountID, reportIDToName, accountIDToName);
         goBack();
-    }, [report, description, goBack, currentUserAccountID]);
+    }, [report, description, goBack, currentUserAccountID, reportIDToName, accountIDToName]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>): Errors => {

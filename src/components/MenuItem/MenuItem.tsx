@@ -61,7 +61,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
 import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
-import type {GestureResponderEvent, ImageStyle, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, ImageStyle, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
@@ -234,7 +234,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
         titleComponent?: ReactElement;
-        titleContainerStyle?: StyleProp<ViewStyle>;
 
         /** A right-aligned subtitle for this menu option */
         subtitle?: string | number;
@@ -417,6 +416,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** The accessibility role to use for this menu item */
         role?: Role;
 
+        /** Overrides the computed accessibilityState (e.g. `{checked}` for a row that acts as a switch) */
+        accessibilityState?: AccessibilityState;
+
         shouldShowBadgeInSeparateRow?: boolean;
 
         /** Whether to show the badge below the title */
@@ -505,7 +507,6 @@ function MenuItem({
     title,
     accessibilityLabel,
     titleComponent,
-    titleContainerStyle,
     subtitle,
     subtitleStyle,
     shouldShowBasicTitle,
@@ -579,6 +580,7 @@ function MenuItem({
     shouldUseNativeHoverEvents = false,
     sentryLabel,
     role = CONST.ROLE.BUTTON,
+    accessibilityState,
     shouldBeAccessible = true,
     tabIndex = 0,
     titleAccessibilityRole,
@@ -898,7 +900,7 @@ function MenuItem({
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
                                 accessibilityHint={accessibilityHint}
                                 accessible={shouldBeAccessible}
-                                accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
+                                accessibilityState={accessibilityState ?? (role === CONST.ROLE.TAB ? {selected: focused} : undefined)}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
@@ -1036,12 +1038,7 @@ function MenuItem({
                                                         </View>
                                                     )}
                                                     <View
-                                                        style={[
-                                                            styles.justifyContentCenter,
-                                                            styles.flex1,
-                                                            StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu || isCompact),
-                                                            titleContainerStyle,
-                                                        ]}
+                                                        style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu || isCompact)]}
                                                     >
                                                         {shouldShowDescriptionOnTop && renderDescriptionView()}
                                                         {(!!title || !!shouldShowTitleIcon) && (
