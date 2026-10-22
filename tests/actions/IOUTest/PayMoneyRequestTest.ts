@@ -962,7 +962,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     const connection = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
                         callback: (reportActions) => {
-                            Onyx.disconnect(connection);
+                            connection.unsubscribe();
                             resolve(Object.values(reportActions ?? {}).pop());
                         },
                     });
