@@ -50,6 +50,7 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => {
     return {__esModule: true, default: () => <reactNative.View testID="NotFoundPage" />};
 });
 jest.mock('@userActions/DynamicForm', () => ({saveDraftAnswers: jest.fn()}));
+jest.mock('@userActions/BankAccounts', () => ({openReimbursementAccountPage: jest.fn()}));
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/1'));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 
@@ -90,6 +91,12 @@ async function renderPage(bankAccount: BankAccount = ELIGIBLE_BANK_ACCOUNT) {
             </NavigationContainer>
         </OnyxListItemProvider>,
     );
+    await waitForBatchedUpdatesWithAct();
+
+    // The page waits for its read of the server's saved answers, which runs and returns nothing new here
+    await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true}));
+    await waitForBatchedUpdatesWithAct();
+    await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: false}));
     await waitForBatchedUpdatesWithAct();
 }
 
