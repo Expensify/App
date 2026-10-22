@@ -1,11 +1,13 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Icon from '@components/Icon';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -34,6 +36,9 @@ type WorkspaceMembersTableRowProps = {
     /** Whether the custom field 2 column is visible on web screens or not */
     shouldShowCustomField2Column: boolean;
 
+    /** Whether the approver column is visible on web screens or not */
+    shouldShowApproverColumn: boolean;
+
     /** Whether the bank account column is visible on web screens or not */
     shouldShowBankAccountColumn: boolean;
 
@@ -46,12 +51,14 @@ export default function WorkspaceMembersTableRow({
     rowIndex,
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
+    shouldShowApproverColumn,
     shouldShowBankAccountColumn,
     shouldUseNarrowTableLayout,
     policy,
 }: WorkspaceMembersTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
@@ -61,7 +68,8 @@ export default function WorkspaceMembersTableRow({
     const roleLabel = translate('workspace.common.roleName', item.role);
     const bankAccountLabel =
         !shouldUseNarrowTableLayout && shouldShowBankAccountColumn && item.bankAccountLastFour ? `${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}` : '';
-    const accessibilityLabel = [item.name, item.email, bankAccountLabel, roleLabel].filter(Boolean).join(', ');
+    const approverLabel = shouldShowApproverColumn && item.approverDisplayName ? `${translate('common.approver')}: ${item.approverDisplayName}` : '';
+    const accessibilityLabel = [item.name, item.email, approverLabel, bankAccountLabel, roleLabel].filter(Boolean).join(', ');
     const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;
 
     return (
@@ -113,6 +121,34 @@ export default function WorkspaceMembersTableRow({
                             />
                         </View>
                     </View>
+
+                    {!shouldUseNarrowTableLayout && shouldShowApproverColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            {!!item.approverDisplayName && !!item.approverAccountID && (
+                                <OfflineWithFeedback
+                                    pendingAction={item.approverPendingAction}
+                                    style={styles.flex1}
+                                    contentContainerStyle={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}
+                                >
+                                    <AccountAvatar
+                                        accountID={item.approverAccountID}
+                                        accountEmail={item.approverLogin}
+                                        fallbackDisplayName={item.approverDisplayName}
+                                        size={CONST.AVATAR_SIZE.XXX_SMALL}
+                                        containerStyle={StyleUtils.getWidthAndHeightStyle(variables.avatarSizeXxxSmall)}
+                                    />
+                                    <TextWithTooltip
+                                        shouldShowTooltip
+                                        numberOfLines={1}
+                                        text={item.approverDisplayName}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
+                        </View>
+                    )}
 
                     {!shouldUseNarrowTableLayout && shouldShowCustomField1Column && (
                         <View
