@@ -7706,6 +7706,10 @@ const translations = {
                 optionNoRegularWorkspaceHelp: "Member works from home or travels between locations with no regular office, so commute rules don't apply.",
                 futureOnlyNote: 'Changes apply only to future mileage calculations. Existing mileage expenses are not recalculated.',
             },
+            officeLocation: 'Office location',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Change office location',
+            changeWorkArrangement: 'Change work arrangement',
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -10034,6 +10038,11 @@ const translations = {
             setAsPrimary: ({name}: {name: string}) => `set the office location "${name}" as primary`,
             setCompanyAddressAsPrimary: 'set the company address as primary',
             removed: ({name}: {name: string}) => `removed the office location "${name}"`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `changed ${displayName}'s office location to ${officeLocation} (previously ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `"${name}"`,
+            companyAddress: 'the company address',
+            primaryOffice: 'the primary office',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `set the default work arrangement to ${arrangement}`,

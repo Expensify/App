@@ -310,6 +310,7 @@ const WRITE_COMMANDS = {
     ADD_OFFICE_LOCATION: 'AddOfficeLocation',
     UPDATE_OFFICE_LOCATION: 'UpdateOfficeLocation',
     DELETE_OFFICE_LOCATION: 'DeleteOfficeLocation',
+    UPDATE_EMPLOYEE_OFFICE_LOCATION: 'UpdateEmployeeOfficeLocation',
     SET_POLICY_REQUIRE_MAP_OR_GPS: 'SetPolicyRequireMapOrGPS',
     SET_POLICY_EXPENSE_MAX_AGE: 'SetPolicyExpenseMaxAge',
     ADD_POLICY_AGENT_RULE: 'AddPolicyAgentRule',
@@ -1262,6 +1263,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ADD_OFFICE_LOCATION]: Parameters.AddOfficeLocationParams;
     [WRITE_COMMANDS.UPDATE_OFFICE_LOCATION]: Parameters.UpdateOfficeLocationParams;
     [WRITE_COMMANDS.DELETE_OFFICE_LOCATION]: Parameters.DeleteOfficeLocationParams;
+    [WRITE_COMMANDS.UPDATE_EMPLOYEE_OFFICE_LOCATION]: Parameters.UpdateEmployeeOfficeLocationParams;
     [WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS]: Parameters.SetPolicyRequireMapOrGPSParams;
     [WRITE_COMMANDS.RETRACT_REPORT]: Parameters.RetractReportParams;
     [WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING]: Parameters.FinishCorpayBankAccountOnboardingParams;
