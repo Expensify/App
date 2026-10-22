@@ -87,6 +87,7 @@ function BaseSelectionListWithSectionsImpl({
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldPreventAutoScrollOnSelect = false,
+    shouldAllowArrowUpToSearchInput = false,
     titleNumberOfLines,
     shouldDisableHoverStyle,
     selectionButtonPosition,
@@ -100,7 +101,7 @@ function BaseSelectionListWithSectionsImpl({
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const triggerScrollEvent = useScrollEventEmitter();
-    const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
+    const paddingBottomStyle = !isKeyboardShown && !footerContent && !confirmButtonOptions?.showButton && safeAreaPaddingBottomStyle;
 
     const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
 
@@ -123,9 +124,16 @@ function BaseSelectionListWithSectionsImpl({
         debouncedScrollToIndex,
         announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
         setShouldDisableHoverStyle,
+        shouldAllowArrowUpToSearchInput,
+        onArrowUpToSearchInput: focusSearchInputFromList,
     });
 
     const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
+
+    // A Tab-focused row keeps DOM focus after ArrowUp clears the focused index, so move it back to the search input
+    function focusSearchInputFromList() {
+        focusTextInput();
+    }
 
     const getFocusedItem = useCallback((): ListItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {
@@ -268,6 +276,7 @@ function BaseSelectionListWithSectionsImpl({
                 accessibilityLabel={textInputOptions?.label}
                 options={textInputOptions}
                 onSubmit={selectFocusedItem}
+                onPress={shouldAllowArrowUpToSearchInput ? () => setFocusedIndex(-1) : undefined}
                 dataLength={itemsCount}
                 isLoading={isLoadingNewOptions}
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
@@ -329,10 +338,11 @@ function BaseSelectionListWithSectionsImpl({
         }
     };
 
-    // Footer renders nothing when there is no footer content
+    // Footer renders nothing when there is no footer content and no confirm button
     const footer = (
         <Footer<ListItem>
             footerContent={footerContent}
+            confirmButtonOptions={confirmButtonOptions}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />
     );

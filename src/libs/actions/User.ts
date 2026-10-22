@@ -86,7 +86,7 @@ Onyx.connectWithoutView({
     },
 });
 
-// This value is used in the handler for a RECONNECT_APP Pusher event (anonymous users), so it's not possible to use useOnyx().
+// This value is used in the handler for a RECONNECT_APP Pusher event, so it's not possible to use useOnyx().
 let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
@@ -963,14 +963,12 @@ function subscribeToUserEvents(
     // We have an event to reconnect the App. It is triggered when we detect that the user passed updateID
     // is not in the DB
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, () => {
-        // Anonymous public-room sessions already have report actions from OpenReport. A full ReconnectApp
-        // uses setCollection and clears them, which flashes the loading skeleton until GetNewerActions
-        // refills. Pass lastUpdateID so reconnect stays incremental for anonymous users (#97847).
-        if (isAnonymousUser()) {
-            reconnectApp(lastUpdateIDAppliedToClient);
-        } else {
-            reconnectApp();
-        }
+        // This event is broadcast on the account-wide channel, so every signed-in device receives it, not only
+        // the one whose updateID is missing. A full ReconnectApp uses setCollection and clears report actions the
+        // device already holds (#97847, #100791). Pass lastUpdateID so the server can reply incrementally. It
+        // still returns full data when it can't serve that range, and we fall back to a full reconnect when the
+        // client has no lastUpdateID yet.
+        reconnectApp(lastUpdateIDAppliedToClient);
         return Promise.resolve();
     });
 }
@@ -1333,6 +1331,55 @@ function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValueP
     });
 }
 
+function joinExactOnlineWaitlist() {
+    const signupTimestamp = DateUtils.getDBTime();
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                errorFields: {exactOnlineWaitlist: null},
+            },
+        },
+    ];
+    // The confirmation modal must not treat a queued signup as confirmed membership.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST | typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST,
+            value: signupTimestamp,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {pendingFields: {exactOnlineWaitlist: null}},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST | typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST,
+            value: '',
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                pendingFields: {exactOnlineWaitlist: null},
+                errorFields: {exactOnlineWaitlist: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+    ];
+
+    // The queued request keeps this timestamp when it retries, preserving the original signup time.
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp}, {optimisticData, successData, failureData});
+}
+
+function clearExactOnlineWaitlistError() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {exactOnlineWaitlist: null}});
+}
+
 function dismissMarketingWindow(updateKey: string) {
     const optimisticData: AnyOnyxUpdate[] = [
         {
@@ -1663,6 +1710,16 @@ function respondToProactiveAppReview(
             lastPrompt: originalLastPrompt,
         },
     });
+
+    // Record locally that this client prompted and got an answer. This is not optimistic data: the prompt
+    // happened regardless of what the request returns, and nvp_appReview is server-owned, so the timestamp
+    // we merge into it can be dropped by any authoritative push of that key.
+    // The record is scoped by the session's accountID, not userAccountID: the modal can be on screen before
+    // the personal details list hydrates, and until it does the caller's accountID is CONST.DEFAULT_NUMBER_ID,
+    // which would stamp a record that never matches the signed-in account again.
+    if (sessionAccountID) {
+        Onyx.set(ONYXKEYS.APP_REVIEW_LAST_PROMPT, {accountID: sessionAccountID, lastPrompt: DateUtils.getDBTime()});
+    }
 
     API.write(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, params, {optimisticData, successData, failureData});
 }
@@ -2041,6 +2098,8 @@ export {
     clearDraftCustomStatus,
     requestRefund,
     setNameValuePair,
+    joinExactOnlineWaitlist,
+    clearExactOnlineWaitlistError,
     setSubmitMigrationModalShown,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,

@@ -1,7 +1,9 @@
+import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 import compareOptionalValues from '@components/Table/compareOptionalValues';
 
+import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,7 +26,7 @@ import React from 'react';
 
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
-type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2';
+type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'officeLocation' | 'customField1' | 'customField2' | 'bankAccount';
 
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
@@ -32,6 +34,8 @@ type WorkspaceMemberRowData = TableData & {
     role?: ValueOf<typeof CONST.POLICY.ROLE>;
     employeeUserID?: string;
     employeePayrollID?: string;
+    officeLocationName?: string;
+    bankAccountLastFour?: string;
     name: string;
     email: string;
     shouldShowEmployeeUserID: boolean;
@@ -54,8 +58,13 @@ type WorkspaceMembersTableProps = {
     selectedKeys: string[];
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
+    shouldShowOfficeLocationColumn: boolean;
+    shouldShowBankAccountColumn: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected members support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<WorkspaceMemberBulkActionType>>;
 };
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
@@ -77,13 +86,17 @@ export default function WorkspaceMembersTable({
     selectedKeys,
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
+    shouldShowOfficeLocationColumn,
+    shouldShowBankAccountColumn,
     members,
     onRowSelectionChange,
     headerComponent,
+    bulkActionOptions,
 }: WorkspaceMembersTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    useCopySelectionEvent();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [
@@ -102,6 +115,18 @@ export default function WorkspaceMembersTable({
             },
         },
 
+        ...(shouldShowOfficeLocationColumn
+            ? [
+                  {
+                      sortable: true,
+                      key: 'officeLocation' as const,
+                      label: translate('workspace.people.officeLocation'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.officeLocationName ? [{text: item.officeLocationName, fontSize: fontScale.text}] : []),
+                      },
+                  },
+              ]
+            : []),
         ...(shouldShowCustomField1Column
             ? [
                   {
@@ -122,6 +147,19 @@ export default function WorkspaceMembersTable({
                       label: translate('workspace.common.customField2'),
                       dynamicSizing: {
                           getContentToMeasure: (item: WorkspaceMemberRowData) => (item.employeePayrollID ? [{text: item.employeePayrollID, fontSize: fontScale.text}] : []),
+                      },
+                  },
+              ]
+            : []),
+        ...(shouldShowBankAccountColumn
+            ? [
+                  {
+                      sortable: true,
+                      key: 'bankAccount' as const,
+                      label: translate('common.bankAccount'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) =>
+                              item.bankAccountLastFour ? [{text: `${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}`, fontSize: fontScale.text}] : [],
                       },
                   },
               ]
@@ -163,12 +201,20 @@ export default function WorkspaceMembersTable({
             return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, memberNameComparison);
         }
 
+        if (activeSorting.columnKey === 'officeLocation') {
+            return compareOptionalValues(item1.officeLocationName, item2.officeLocationName, localeCompare, orderMultiplier, memberNameComparison);
+        }
+
         if (activeSorting.columnKey === 'customField1') {
             return compareOptionalValues(item1.employeeUserID, item2.employeeUserID, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'customField2') {
             return compareOptionalValues(item1.employeePayrollID, item2.employeePayrollID, localeCompare, orderMultiplier, memberNameComparison);
+        }
+
+        if (activeSorting.columnKey === 'bankAccount') {
+            return compareOptionalValues(item1.bankAccountLastFour, item2.bankAccountLastFour, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         return 1;
@@ -297,6 +343,8 @@ export default function WorkspaceMembersTable({
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 shouldShowCustomField1Column={shouldShowCustomField1Column}
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
+                shouldShowOfficeLocationColumn={shouldShowOfficeLocationColumn}
+                shouldShowBankAccountColumn={shouldShowBankAccountColumn}
                 policy={policy}
             />
         );
@@ -326,6 +374,7 @@ export default function WorkspaceMembersTable({
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

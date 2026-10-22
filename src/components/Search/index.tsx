@@ -1,5 +1,6 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -159,6 +160,7 @@ function Search({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const chartTabRootScrollProps = useTabRootScrollProps(styles.flexGrow1, {fillsVisibleArea: true});
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
@@ -226,6 +228,8 @@ function Search({
     const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
     const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
     const shouldCalculateTotals = (areAllMatchingItemsSelected && !isExpenseAllMatchingSelection) || shouldCalculateExpenseTotals;
+    // Live to-do pages load without totals. A response with totals restarts the counted reports, so a later page would drop page 1's.
+    const shouldCalculateNextPageTotals = shouldCalculateTotals && !shouldUseLiveData;
     const previousShouldCalculateTotals = usePrevious(shouldCalculateTotals);
     const searchRequestOffset = getSearchRequestOffsetForMissingAllMatchingCount(offset, searchResults?.search?.offset, isAllMatchingItemsCountMissing);
     // For an expense-report "select all matching", the total the bulk-actions button waits for is the server
@@ -1015,7 +1019,14 @@ function Search({
             // a reload strands an adopted page in loading, so re-ask it once; search() drops it if it is still running
             if (isLivePageAdopted && !isOffline) {
                 setIsLivePageAdopted(false);
-                handleSearch({queryJSON, searchKey: currentSearchKey, offset: nextOffset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: false});
+                handleSearch({
+                    queryJSON,
+                    searchKey: currentSearchKey,
+                    offset: nextOffset,
+                    shouldCalculateTotals: shouldCalculateNextPageTotals,
+                    prevReportsLength: filteredDataLength,
+                    isLoading: false,
+                });
             }
             return;
         }
@@ -1038,7 +1049,7 @@ function Search({
             queryJSON,
             searchKey: currentSearchKey,
             offset: nextOffset,
-            shouldCalculateTotals,
+            shouldCalculateTotals: shouldCalculateNextPageTotals,
             prevReportsLength: filteredDataLength,
             isLoading: false,
         });
@@ -1065,7 +1076,7 @@ function Search({
         handleSearch,
         queryJSON,
         currentSearchKey,
-        shouldCalculateTotals,
+        shouldCalculateNextPageTotals,
         filteredDataLength,
     ]);
 
@@ -1254,6 +1265,35 @@ function Search({
         [searchResults?.data],
     );
 
+    // The same flags the column header below is built from, so a row and its heading can't disagree about how wide a
+    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
+    // Memoized above the early returns: this file doesn't compile with React Compiler, and a new object re-renders every row.
+    const isActionColumnWide = isTask || hasDeletedTransaction;
+    const columnSizeOptions: GetReportTableColumnStylesParams = useMemo(
+        () => ({
+            isActionColumnWide,
+            isDateColumnWide: yearIndicators.shouldShowYearCreated,
+            isSubmittedColumnWide: yearIndicators.shouldShowYearSubmitted,
+            isApprovedColumnWide: yearIndicators.shouldShowYearApproved,
+            isPostedColumnWide: yearIndicators.shouldShowYearPosted,
+            isExportedColumnWide: yearIndicators.shouldShowYearExported,
+            isWithdrawnColumnWide: yearIndicators.shouldShowYearWithdrawn,
+            isAmountColumnWide: amountIndicators.shouldShowAmountInWideColumn,
+            isTaxAmountColumnWide: amountIndicators.shouldShowTaxAmountInWideColumn,
+        }),
+        [
+            isActionColumnWide,
+            yearIndicators.shouldShowYearCreated,
+            yearIndicators.shouldShowYearSubmitted,
+            yearIndicators.shouldShowYearApproved,
+            yearIndicators.shouldShowYearPosted,
+            yearIndicators.shouldShowYearExported,
+            yearIndicators.shouldShowYearWithdrawn,
+            amountIndicators.shouldShowAmountInWideColumn,
+            amountIndicators.shouldShowTaxAmountInWideColumn,
+        ],
+    );
+
     const onSortPress = useCallback(
         (column: SearchSortBy, order: SortOrder) => {
             clearSelectedTransactions();
@@ -1424,7 +1464,7 @@ function Search({
             <SearchScopeProvider>
                 <Animated.ScrollView
                     style={styles.flex1}
-                    contentContainerStyle={styles.flexGrow1}
+                    {...chartTabRootScrollProps}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
@@ -1478,7 +1518,7 @@ function Search({
                 shouldShowSorting
                 groupBy={validGroupBy}
                 isExpenseReportView={isExpenseReportType}
-                isActionColumnWide={isTask || hasDeletedTransaction}
+                isActionColumnWide={isActionColumnWide}
             />
         </View>
     );
@@ -1493,20 +1533,6 @@ function Search({
                 isLoadMore
             />
         ) : undefined;
-
-    // The same flags the column header above is built from, so a row and its heading can't disagree about how wide a
-    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
-    const columnSizeOptions: GetReportTableColumnStylesParams = {
-        isActionColumnWide: isTask || hasDeletedTransaction,
-        isDateColumnWide: shouldShowYearCreated,
-        isSubmittedColumnWide: shouldShowYearSubmitted,
-        isApprovedColumnWide: shouldShowYearApproved,
-        isPostedColumnWide: shouldShowYearPosted,
-        isExportedColumnWide: shouldShowYearExported,
-        isWithdrawnColumnWide: shouldShowYearWithdrawn,
-        isAmountColumnWide: shouldShowAmountInWideColumn,
-        isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
-    };
 
     const commonViewProps: CommonSearchViewProps = {
         queryJSON,
@@ -1526,7 +1552,7 @@ function Search({
         isMobileSelectionModeEnabled,
         newTransactions,
         hasLoadedAllTransactions,
-        isActionColumnWide: isTask || hasDeletedTransaction,
+        isActionColumnWide,
         columnSizeOptions,
     };
 
