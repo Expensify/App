@@ -230,6 +230,20 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         completeSkippedMarkAsRead,
     });
 
+    const [editScrollRequestID, setEditScrollRequestID] = useState(0);
+    const completedEditScrollRequestIDRef = useRef(0);
+    const requestScrollToNewestAfterEdit = () => {
+        // Force a layout commit even when closing the editor leaves the row's height unchanged.
+        setEditScrollRequestID((requestID) => requestID + 1);
+    };
+    const onCommitLayoutEffect = () => {
+        if (editScrollRequestID <= completedEditScrollRequestIDRef.current) {
+            return;
+        }
+        completedEditScrollRequestIDRef.current = editScrollRequestID;
+        scrollToBottom();
+    };
+
     // Wait for the actions to arrive before jumping, and clear the route param afterwards so a later remount
     // doesn't yank the user back down.
     useEffect(() => {
@@ -249,7 +263,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         const isNewestReportAction = indexWithinReportActions === visibleReportActions.length - 1;
 
         return (
-            <ReportActionScrollToNewestContext.Provider value={scrollToBottom}>
+            <ReportActionScrollToNewestContext.Provider value={requestScrollToNewestAfterEdit}>
                 <ReportActionPositionContextProvider
                     index={indexWithinReportActions}
                     isNewest={isNewestReportAction}
@@ -355,6 +369,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         onLastItemIndexChange={updateLastItemIndex}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         onListLayout={onListLayout}
+                        onCommitLayoutEffect={onCommitLayoutEffect}
                         onScroll={trackVerticalScrolling}
                         onScrollBeginDrag={onListScrollBeginDrag}
                         onContentSizeChange={onListContentSizeChange}

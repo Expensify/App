@@ -98,6 +98,9 @@ type MoneyRequestReportUnifiedListProps = {
     /** Called when the list lays out. */
     onLayout: (event: LayoutChangeEvent) => void;
 
+    /** Called after FlashList finishes measuring and committing its rows. */
+    onCommitLayoutEffect?: () => void;
+
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Called when the user starts dragging the list. */
@@ -140,6 +143,7 @@ function MoneyRequestReportUnifiedList({
     listRef,
     accessibilityLabel,
     onLayout,
+    onCommitLayoutEffect,
     onScroll,
     onScrollBeginDrag,
     onContentSizeChange,
@@ -357,6 +361,7 @@ function MoneyRequestReportUnifiedList({
             maintainVisibleContentPosition={{autoscrollToBottomThreshold: undefined}}
             onViewableItemsChanged={onViewableItemsChangedAdjusted}
             onLayout={handleLayout}
+            onCommitLayoutEffect={onCommitLayoutEffect}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.75}
             onStartReached={onStartReached}

@@ -139,6 +139,9 @@ type MoneyRequestReportTransactionListProps = {
     /** FlashList onLayout callback (distinct from the empty-state `onLayout` above). */
     onListLayout: (event: LayoutChangeEvent) => void;
 
+    /** Called after FlashList finishes measuring and committing its rows. */
+    onCommitLayoutEffect?: () => void;
+
     /** FlashList onScroll callback. */
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
@@ -189,6 +192,7 @@ function MoneyRequestReportTransactionList({
     onLastItemIndexChange,
     accessibilityLabel,
     onListLayout,
+    onCommitLayoutEffect,
     onScroll,
     onScrollBeginDrag,
     onContentSizeChange,
@@ -467,6 +471,7 @@ function MoneyRequestReportTransactionList({
                 onLastItemIndexChange={onLastItemIndexChange}
                 accessibilityLabel={accessibilityLabel}
                 onLayout={onListLayout}
+                onCommitLayoutEffect={onCommitLayoutEffect}
                 onScroll={onScroll}
                 onScrollBeginDrag={onScrollBeginDrag}
                 onContentSizeChange={onContentSizeChange}

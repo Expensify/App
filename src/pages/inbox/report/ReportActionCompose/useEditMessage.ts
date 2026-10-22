@@ -62,20 +62,16 @@ function useEditMessage({
 
         clearAllReportActionDrafts();
 
-        // Give the edit-state update a frame before scrolling the newest action.
-        // Inline edits do not start a tracked transition, so TransitionTracker.runAfterTransitions
-        // cannot wait for their layout. This frame delay is not a layout-completion guarantee.
         if (!shouldScrollToLastMessage) {
             return;
         }
 
-        requestAnimationFrame(() => {
-            if (scrollToLastMessage) {
-                scrollToLastMessage();
-                return;
-            }
-            reportScrollManager.scrollToBottom();
-        });
+        // The list owns this request after the editor unmounts and waits for its layout commit.
+        if (scrollToLastMessage) {
+            scrollToLastMessage();
+            return;
+        }
+        reportScrollManager.scrollToBottom();
     }
 
     /**

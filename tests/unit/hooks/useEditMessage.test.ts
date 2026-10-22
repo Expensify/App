@@ -90,18 +90,8 @@ function makeDebouncedValidator({flushResult}: {flushResult: boolean}): Debounce
 }
 
 describe('useEditMessage', () => {
-    let pendingAnimationFrame: FrameRequestCallback | undefined;
-
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-    });
-
-    beforeEach(() => {
-        pendingAnimationFrame = undefined;
-        jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
-            pendingAnimationFrame = callback;
-            return 1;
-        });
     });
 
     afterEach(async () => {
@@ -111,10 +101,6 @@ describe('useEditMessage', () => {
         jest.clearAllMocks();
         jest.restoreAllMocks();
     });
-
-    function finishActionLayout() {
-        act(() => pendingAnimationFrame?.(0));
-    }
 
     function renderUseEditMessage(overrides?: Partial<HookProps>) {
         const report = LHNTestUtils.getFakeReport();
@@ -160,8 +146,10 @@ describe('useEditMessage', () => {
     });
 
     it('scrolls to the bottom after deleting the newest message draft without a list-specific callback', () => {
+        // Given the newest message uses the list registered with the scroll manager.
         const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true});
 
+        // When deleting the draft closes its editor.
         act(() => {
             hook.result.current.publishDraft('   ');
         });
@@ -169,15 +157,16 @@ describe('useEditMessage', () => {
             mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
         });
 
-        expect(mockScrollToBottom).not.toHaveBeenCalled();
-        finishActionLayout();
+        // Then the list receives the request immediately and owns its layout scheduling.
         expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
     });
 
     it('uses the list-specific scroll after deleting the newest message draft', () => {
+        // Given the list supplies its own edit-scroll request handler.
         const scrollToLastMessage = jest.fn();
         const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true, scrollToLastMessage});
 
+        // When deleting the draft closes its editor.
         act(() => {
             hook.result.current.publishDraft('   ');
         });
@@ -185,23 +174,20 @@ describe('useEditMessage', () => {
             mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
         });
 
-        expect(scrollToLastMessage).not.toHaveBeenCalled();
-        finishActionLayout();
+        // Then scheduling belongs to that list instead of a callback on the unmounting editor.
         expect(scrollToLastMessage).toHaveBeenCalledTimes(1);
         expect(mockScrollToBottom).not.toHaveBeenCalled();
     });
 
-    it('scrolls to the final saved action after the editor layout has been replaced', () => {
+    it('requests the newest action after saving without scheduling an editor frame', () => {
         // Given a draft on the newest action.
         const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true});
 
-        // When the edit is submitted, its optimistic update is queued before layout settles.
+        // When the edit is submitted and the editor closes.
         act(() => hook.result.current.publishDraft('Updated message'));
         expect(mockEditReportComment).toHaveBeenCalledTimes(1);
-        expect(mockScrollToBottom).not.toHaveBeenCalled();
 
-        // Then scrolling runs after the restored action row gets a layout frame.
-        finishActionLayout();
+        // Then the list already owns the scroll request before the editor can unmount.
         expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
     });
 
