@@ -29,39 +29,48 @@ jobs:
         id: oxlint
         continue-on-error: true
         # oxlint runs JS plugins on one thread (oxc#26621), so OxlintLinter splits them into 4 shards on this 8 vCPU runner.
+        # While oxlint is a non-blocking shadow job, the post-merge run on main absorbs new findings into the
+        # baseline as well as removing fixed ones, so later PRs are only warned about findings they add.
+        # Runs started by OSBotify's own baseline commit only tighten, so a finding that flickers between
+        # runs cannot make every run commit again. Remove this when oxlint becomes the blocking linter:
+        # from then on main only tightens, like ESLint.
+        env:
+          SEATBELT_INCREASE: ${{ github.event_name == 'push' && github.event.head_commit.author.name != 'OSBotify' && 'all' || '' }}
         run: npm run lint -- --linter=oxlint --shards=4
 
       - name: Report the Oxlint result without failing the job
         run: |
-          if [[ "${{ steps.oxlint.outcome }}" == "success" ]]; then
+          if [[ "${{ steps.oxlint.outcome }}" == "success" && "${{ github.event_name }}" == "push" ]]; then
+            echo "::notice::Shadow mode: new oxlint findings from this merge were added to the baseline instead of reported, so later PRs only see findings they introduce. ESLint is still the blocking check."
+          elif [[ "${{ steps.oxlint.outcome }}" == "success" ]]; then
             echo "::notice::Oxlint found no errors above its baseline."
           else
             echo "::warning::Oxlint reported errors above its baseline. Non-blocking during the migration; see the step log."
           fi
 
-      - name: Check for tightened oxlint-seatbelt baseline
+      - name: Check for an updated oxlint-seatbelt baseline
         id: seatbelt_diff
         if: github.event_name == 'push'
         run: |
           if git diff --quiet config/oxlint/oxlint.seatbelt.tsv; then
-            echo "tightened=false" >> "$GITHUB_OUTPUT"
+            echo "updated=false" >> "$GITHUB_OUTPUT"
             echo "::notice::oxlint.seatbelt.tsv unchanged; skipping auto-commit."
           else
-            echo "tightened=true" >> "$GITHUB_OUTPUT"
+            echo "updated=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Setup git for OSBotify
-        if: steps.seatbelt_diff.outputs.tightened == 'true'
+        if: steps.seatbelt_diff.outputs.updated == 'true'
         uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
         with:
           OP_VAULT: ${{ vars.OP_VAULT }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           SETUP_AS_APP: false
 
-      - name: Auto-commit tightened oxlint-seatbelt baseline
-        if: steps.seatbelt_diff.outputs.tightened == 'true'
+      - name: Auto-commit updated oxlint-seatbelt baseline
+        if: steps.seatbelt_diff.outputs.updated == 'true'
         continue-on-error: true
         run: |
           git add config/oxlint/oxlint.seatbelt.tsv
-          git commit -m "Auto-tighten oxlint-seatbelt baseline"
+          git commit -m "Auto-update oxlint-seatbelt baseline"
           git push origin main
