@@ -52,7 +52,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {GestureResponderEvent} from 'react-native';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {View} from 'react-native';
 
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
@@ -89,8 +89,8 @@ function AnnualSavingsTooltip() {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
     };
 
-    const handleLinkPress = (href: string) => {
-        if (href.endsWith('adminsRoom')) {
+    const openTooltipLink = (href: string) => {
+        if (href.endsWith(CONST.SUBSCRIPTION.ADMINS_ROOM_LINK)) {
             openAdminsRoom();
             return;
         }
@@ -109,21 +109,12 @@ function AnnualSavingsTooltip() {
 
     return (
         <Tooltip
+            isEducationTooltip
             minWidth={360}
             maxWidth={360}
             shouldForceRenderingBelow
             renderTooltipContentKey={[String(!!adminsChatReportID)]}
-            wrapperStyle={[
-                styles.pv4,
-                styles.ph4,
-                {
-                    backgroundColor: theme.appBG,
-                    borderWidth: 1,
-                    borderColor: theme.border,
-                    borderRadius: variables.componentBorderRadiusLarge,
-                    boxShadow: theme.shadow,
-                },
-            ]}
+            wrapperStyle={[styles.pv4, styles.ph4, styles.appBG, styles.borderedContentCardLarge, styles.cardShadow]}
             renderTooltipContent={() => (
                 <View style={styles.gap2}>
                     <Text style={[styles.textStrong, styles.themeTextColor]}>{translate('subscription.subscriptionSettings.saveWithAnnualSubscription')}</Text>
@@ -131,7 +122,7 @@ function AnnualSavingsTooltip() {
                     <View style={styles.renderHTML}>
                         <RenderHTML
                             html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
-                            onLinkPress={(_event, href) => handleLinkPress(href)}
+                            onLinkPress={(_event, href) => openTooltipLink(href)}
                         />
                     </View>
                 </View>
@@ -175,7 +166,9 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
 
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const {isSecretPromoCode} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
@@ -224,6 +217,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             conciergePersonalDetails,
             shouldDismissModal: false,
         });
@@ -383,7 +377,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                     >
                         <ToggleSettingOptionRow
                             title={translate('subscription.subscriptionSettings.autoRenew')}
-                            subtitle={autoRenewalDate ? translate('subscription.subscriptionSettings.renewsOn', autoRenewalDate) : undefined}
+                            subtitle={(privateSubscription.autoRenew ?? true) && autoRenewalDate ? translate('subscription.subscriptionSettings.renewsOn', autoRenewalDate) : undefined}
                             switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
                             onToggle={toggleAutoRenew}
                             isActive={privateSubscription.autoRenew}
