@@ -14,7 +14,7 @@ Every request runs the Worker first (`run_worker_first: true`), which reads the 
 | HTML (`/`, `/index.html`, any SPA deep link) | Each `<script nonce="nonce-random-value">` gets a per-request nonce that matches the CSP. `Cache-Control: no-cache`, with no `ETag` or `Last-Modified`, since a 304 would pair a cached body with a new nonce |
 | Content-hashed files (`main-<16 hex>.bundle.js`, `name.<10 hex>.css`) | `Cache-Control: public, max-age=31536000, immutable` |
 | Files with fixed names (`version.json`, `service-worker.js`, `manifest.json`, ...) | Default `public, max-age=0, must-revalidate`, with an `ETag` |
-| A file the current build doesn't have (`/main-<old hash>.bundle.js`) | The file from a previous build, if the environment has a `PREVIOUS_BUILDS` bucket that holds it (see [Files from previous builds](#files-from-previous-builds)). Otherwise `404`, so a stale tab gets a `ChunkLoadError` and recovers instead of parsing HTML as JavaScript |
+| A file the current build doesn't have (`/main-<old hash>.bundle.js`) | The file from a previous build, if the environment has a `PREVIOUS_BUILDS` bucket that holds it (see [Files from previous builds](#files-from-previous-builds)). Otherwise `404`, also when the bucket can't be read, so a stale tab gets a `ChunkLoadError` and recovers instead of parsing HTML as JavaScript |
 | Any other path that does not exist (`/r/123`) | The app shell (`index.html`) with `200` |
 | `/.well-known/apple-app-site-association` and `/apple-app-site-association` | The same file with `Content-Type: application/json` |
 
