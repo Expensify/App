@@ -413,7 +413,6 @@ function BaseValidateCodeForm({
                         style={[shouldShowSkipButton ? styles.mt3 : styles.mt4]}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isLoading={account?.isLoading || isLoading}
                         sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.VERIFY}
                     >
