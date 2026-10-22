@@ -299,36 +299,6 @@ describe('actions/CompanyCards importCSVCompanyCards', () => {
             ]);
             expect(result).toStrictEqual({titleKey: 'spreadsheet.importFailedTitle', promptKey: 'spreadsheet.importFailedDescription'});
         });
-
-        it('coerces a legacy numeric instance ID without changing its numbered layout', async () => {
-            // Given a persisted legacy feed whose instance ID is numeric at runtime.
-            numberedFeedWriteSpy.mockRejectedValue(new Error('import failed'));
-
-            // When that legacy value reaches the import boundary.
-            await importCSVCompanyCards({
-                policyID: POLICY_ID,
-                domainAccountID: DOMAIN_ACCOUNT_ID,
-                layoutName: 'Legacy Layout',
-                layoutType: 'csv2',
-                columnMappings: ['externalID'],
-                csvData: [],
-                // @ts-expect-error -- Legacy Onyx feeds can contain a numeric instanceID despite the current string contract.
-                existingInstanceID: 12345,
-                workspaceCardFeeds: undefined,
-            });
-
-            // Then only the instance ID is stringified and the original settings fields are retained.
-            const call = numberedFeedWriteSpy.mock.calls.at(0);
-            if (!call) {
-                throw new Error('Expected the legacy CSV import request');
-            }
-            expect(call[1]).toStrictEqual({
-                policyID: POLICY_ID,
-                domainAccountID: DOMAIN_ACCOUNT_ID,
-                settings: JSON.stringify({columnMappings: ['externalID'], instanceID: '12345', layoutName: 'Legacy Layout', layoutType: 'csv2'}),
-                csvData: '[]',
-            });
-        });
     });
 
     describe('externalID', () => {

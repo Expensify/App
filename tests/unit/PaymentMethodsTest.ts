@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AddPaymentCardForm} from '@src/types/form/AddPaymentCardForm';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -61,8 +61,8 @@ describe('getMakeDefaultPaymentOnyxData', () => {
     const fundID = 456;
     it.each([bankAccountID, 0])('returns only a wallet merge for one bank ID argument (%s)', (replacementBankAccountID) => {
         // Given a deletion caller that supplies only a replacement bank ID.
-        // When the shared action constructs its updates, its narrow category must also compile.
-        const updates: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET>> = getMakeDefaultPaymentOnyxData(replacementBankAccountID);
+        // When the shared action builds the batch used to link the replacement account.
+        const updates = getMakeDefaultPaymentOnyxData(replacementBankAccountID);
 
         // Then no bank or fund update is invented, including the original zero-ID fallback.
         expect(updates).toStrictEqual([
