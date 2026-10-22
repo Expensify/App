@@ -17,7 +17,7 @@ import {Skia} from '@shopify/react-native-skia';
 
 /**
  * For y-axis this returns the widest rendered label plus its offset from the axis line
- * For x-axis this returns the label line height plus plus its offset from the axis line
+ * For x-axis this returns the label line height plus its offset from the axis line
  */
 function computeAxisSize(axisSide: XAxisSide | YAxisSide, labels: Array<string | number> | undefined, font: SkFont | null, labelOffset: number | undefined): number | undefined {
     if (!font || !labels?.length) {
