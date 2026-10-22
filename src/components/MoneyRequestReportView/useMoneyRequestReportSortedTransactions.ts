@@ -97,7 +97,6 @@ function useMoneyRequestReportSortedTransactions({
     policyTagLists,
 }: UseMoneyRequestReportSortedTransactionsParams): UseMoneyRequestReportSortedTransactionsResult {
     const {translate, localeCompare} = useLocalize();
-    // The selector factory must be reference-stable across renders, otherwise useOnyx re-subscribes on every render.
     const ownerLoginSelector = personalDetailsLoginSelector(report?.ownerAccountID);
     const [ownerLogin] = useAllPersonalDetails(ownerLoginSelector);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
