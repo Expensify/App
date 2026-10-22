@@ -3960,7 +3960,7 @@ function getSortedSections(
         return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare, translate, sortBy, sortOrder);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TRIP && options?.shouldReturnTripRooms) {
-        return getSortedTripData(data as TripListItemType[], localeCompare, sortBy, sortOrder);
+        return getSortedTripData(data, localeCompare, sortBy, sortOrder);
     }
 
     if (groupBy) {
@@ -4271,18 +4271,19 @@ function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContex
 /**
  * Sorts trip rows based on a specified column and sort order.
  */
-function getSortedTripData(data: TripListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchSortBy, sortOrder?: SortOrder) {
+function getSortedTripData(data: SearchListItem[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchSortBy, sortOrder?: SortOrder) {
+    const trips = data.filter(isTripListItemType);
     if (!sortBy || !sortOrder) {
-        return data;
+        return trips;
     }
 
     const sortingProperty =
         sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE || sortBy === CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE ? undefined : tripColumnNamesToSortingProperty[sortBy];
     if (!sortingProperty) {
-        return data;
+        return trips;
     }
 
-    return data.sort((a, b) => compareValues(a[sortingProperty], b[sortingProperty], sortOrder, sortingProperty, localeCompare));
+    return trips.sort((a, b) => compareValues(a[sortingProperty], b[sortingProperty], sortOrder, sortingProperty, localeCompare));
 }
 
 /**

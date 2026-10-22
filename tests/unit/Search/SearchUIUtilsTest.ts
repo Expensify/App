@@ -15804,7 +15804,7 @@ describe('Trip search', () => {
         // When the rows are sorted by those keys
         // Then title follows the trip name and from follows the traveler's name
         expect(sortBy(CONST.SEARCH.TABLE_COLUMNS.TITLE)).toEqual(['3', '2', '1']);
-        expect(sortBy(CONST.SEARCH.TABLE_COLUMNS.FROM)[0]).toBe('2');
+        expect(sortBy(CONST.SEARCH.TABLE_COLUMNS.FROM).at(0)).toBe('2');
     });
 
     it('offers the trip columns in Sort by with the trip search sort keys', () => {
