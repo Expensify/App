@@ -85,7 +85,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Verify Android PGO on a disposable emulator
         if: matrix.platform == 'android'
-        uses: ReactiveCircus/android-emulator-runner@ed009f5318f15b1cf93a191b856c4f1748a2d4c1
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
           api-level: 36
           arch: x86_64
