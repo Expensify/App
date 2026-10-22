@@ -101,7 +101,7 @@ function BaseSelectionListWithSectionsImpl({
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const triggerScrollEvent = useScrollEventEmitter();
-    const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
+    const paddingBottomStyle = !isKeyboardShown && !footerContent && !confirmButtonOptions?.showButton && safeAreaPaddingBottomStyle;
 
     const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
 
@@ -338,10 +338,11 @@ function BaseSelectionListWithSectionsImpl({
         }
     };
 
-    // Footer renders nothing when there is no footer content
+    // Footer renders nothing when there is no footer content and no confirm button
     const footer = (
         <Footer<ListItem>
             footerContent={footerContent}
+            confirmButtonOptions={confirmButtonOptions}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />
     );

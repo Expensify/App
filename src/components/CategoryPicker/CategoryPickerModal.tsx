@@ -19,9 +19,10 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
-import getBottomSheetHeight from '@libs/getBottomSheetHeight';
+import getBottomSheetHeight, {BOTTOM_SHEET_TOP_PADDING} from '@libs/getBottomSheetHeight';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
+import isTablet from '@libs/isTablet';
 
 import variables from '@styles/variables';
 
@@ -31,12 +32,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ComponentRef} from 'react';
 
 import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Dimensions, View} from 'react-native';
+import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 
 import CategoryPicker from '.';
 
-/** Height of the add-category header the list shows above its options. Shared with the row sizing the container, so the two never disagree. */
-const CATEGORY_PICKER_HEADER_HEIGHT = variables.componentSizeNormal;
+/**
+ * Height of the add-category header the list shows above its options: its 20px row, 4px above it (20px from the edge
+ * with the 16px top padding of the list, or of the sheet) and 20px below. Shared with the row sizing the container, so
+ * the two never disagree.
+ */
+const CATEGORY_PICKER_HEADER_HEIGHT = variables.iconSizeNormal + 24;
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -103,7 +110,7 @@ function CategoryPickerModal({
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Plus']);
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
     const viewportOffsetTop = useViewportOffsetTop();
@@ -116,26 +123,50 @@ function CategoryPickerModal({
     const categoriesCount = policyCategories ?? 0;
     const isSearchable = categoriesCount >= searchInputThreshold;
     const headerHeight = onAddCategory ? CATEGORY_PICKER_HEADER_HEIGHT : 0;
-    const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable}) + headerHeight;
+    // The bottom sheet already pads its own top, so under a header it skips the list's top padding to keep the header 20px from the edge.
+    const shouldSkipListTopPadding = isSmallScreenWidth && !!onAddCategory;
+    const estimatedContentHeight =
+        getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable}) +
+        headerHeight -
+        (shouldSkipListTopPadding ? styles.pt4.paddingTop : 0);
 
     // The sheet pads itself above the home indicator, except while the keyboard already covers it. The offline indicator
     // is drawn on the page behind the sheet, so no room is kept for it.
     const bottomSafeAreaPadding = isSmallScreenWidth && !isKeyboardActive ? safeAreaPaddingBottom : 0;
-    const bottomSheetHeight = getBottomSheetHeight({
-        preferredHeight: popoverHeight,
-        windowHeight,
-        keyboardHeight: isKeyboardActive ? keyboardActiveHeight : 0,
-        topSafeAreaInset: safeAreaTop,
-        minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable}),
-    });
+    // A phone in landscape is too short for a sheet over the form, so there the sheet fills the screen.
+    const shouldFillWindow = isInLandscapeMode;
+    // A list with a search input makes room for the keyboard inside the sheet, frame by frame with it, in both orientations:
+    // flipping `avoidKeyboard` on rotation would swap the modal's wrapper and remount the sheet, replaying its entry animation
+    // and dropping the input's focus. On mobile web the keyboard shrinks the window instead, which the sheet's height follows.
+    const shouldPadForKeyboard = isSmallScreenWidth && isSearchable && !isTablet();
+    // In portrait that list opens as tall as a sheet may be and its top edge stays put when the keyboard comes up, so the gap
+    // above it is sized off the screen, which the keyboard leaves alone.
+    const shouldKeepTopEdge = shouldPadForKeyboard && !isInLandscapeMode;
+    const minSheetHeight = getSelectionListPopoverContentHeight({optionCount: 1, isSearchable});
+    const keptTopEdgeSheetHeight = windowHeight - Dimensions.get('screen').height * (1 - CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO) - BOTTOM_SHEET_TOP_PADDING;
+    const bottomSheetHeight = shouldKeepTopEdge
+        ? Math.max(minSheetHeight, keptTopEdgeSheetHeight)
+        : getBottomSheetHeight({
+              preferredHeight: popoverHeight,
+              windowHeight,
+              keyboardHeight: isKeyboardActive && !shouldPadForKeyboard ? keyboardActiveHeight : 0,
+              topSafeAreaInset: safeAreaTop,
+              minHeight: minSheetHeight,
+              shouldFillWindow,
+          });
     // A short list gets a sheet only as tall as its rows, still within the room the window and keyboard leave.
-    const fittedSheetHeight = shouldFitContentHeight ? Math.min(bottomSheetHeight, estimatedContentHeight + bottomSafeAreaPadding) : bottomSheetHeight;
+    const fittedSheetHeight =
+        shouldFitContentHeight && !shouldFillWindow && !shouldKeepTopEdge ? Math.min(bottomSheetHeight, estimatedContentHeight + bottomSafeAreaPadding) : bottomSheetHeight;
     const popoverContentHeight = shouldFitContentHeight ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
     const resolvedHeight = isSmallScreenWidth ? fittedSheetHeight : popoverContentHeight;
     const popoverDimensions = {width: popoverWidth, height: resolvedHeight};
     // Mobile Safari ignores `interactive-widget=resizes-content` and leaves the sheet docked behind the keyboard, so on mobile browsers
     // the sheet is sized and offset to the visual viewport, which the keyboard does shrink.
     const outerStyle = isSmallScreenWidth ? {...styles.w100, ...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)} : undefined;
+
+    // The keyboard's offset is negative while it is open. It covers the home indicator, so the sheet pads for whichever is taller.
+    const {height: keyboardOffset} = useReanimatedKeyboardAnimation();
+    const keyboardRoomStyle = useAnimatedStyle(() => ({paddingBottom: Math.max(safeAreaPaddingBottom, -keyboardOffset.get())}));
 
     const handleCategorySelect = (item: ListItem) => {
         // If clicking the same category that's already selected, treat it as deselection
@@ -163,29 +194,41 @@ function CategoryPickerModal({
             shouldSkipRemeasurement
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
-            avoidKeyboard={isSmallScreenWidth}
+            avoidKeyboard={isSmallScreenWidth && !shouldPadForKeyboard}
             outerStyle={outerStyle}
+            // The sheet sizes itself to the window and its list scrolls on its own, so the modal must not cap or wrap it in landscape.
+            shouldLimitHeightIfBottomDockedInLandscapeMode={false}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
-            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4, StyleUtils.getPaddingBottom(bottomSafeAreaPadding)]}>
+            <Animated.View
+                style={[
+                    StyleUtils.getHeight(popoverDimensions.height),
+                    styles.flexColumn,
+                    !shouldSkipListTopPadding && styles.pt4,
+                    shouldPadForKeyboard ? keyboardRoomStyle : StyleUtils.getPaddingBottom(bottomSafeAreaPadding),
+                ]}
+            >
                 {!!onAddCategory && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pt1, styles.pb4, StyleUtils.getHeight(headerHeight)]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pt1, styles.pb5, StyleUtils.getHeight(headerHeight)]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                            <Tooltip text={translate('common.back')}>
-                                <PressableWithFeedback
-                                    accessibilityLabel={translate('common.back')}
-                                    role={CONST.ROLE.BUTTON}
-                                    onPress={onClose}
-                                    shouldUseAutoHitSlop
-                                    sentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
-                                >
-                                    <Icon
-                                        src={icons.BackArrow}
-                                        fill={theme.icon}
-                                        width={variables.iconSizeNormal}
-                                        height={variables.iconSizeNormal}
-                                    />
-                                </PressableWithFeedback>
-                            </Tooltip>
+                            {isSmallScreenWidth && (
+                                <Tooltip text={translate('common.back')}>
+                                    <PressableWithFeedback
+                                        accessibilityLabel={translate('common.back')}
+                                        role={CONST.ROLE.BUTTON}
+                                        onPress={onClose}
+                                        shouldUseAutoHitSlop
+                                        sentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
+                                    >
+                                        <Icon
+                                            src={icons.BackArrow}
+                                            fill={theme.icon}
+                                            width={variables.iconSizeNormal}
+                                            height={variables.iconSizeNormal}
+                                        />
+                                    </PressableWithFeedback>
+                                </Tooltip>
+                            )}
                             <Text style={styles.textLabelSupporting}>{translate('common.category')}</Text>
                         </View>
                         <Tooltip text={translate('workspace.categories.addCategory')}>
@@ -215,7 +258,7 @@ function CategoryPickerModal({
                     shouldAlwaysShowGLCode={shouldAlwaysShowGLCode}
                     searchInputThreshold={searchInputThreshold}
                 />
-            </View>
+            </Animated.View>
         </PopoverWithMeasuredContent>
     );
 }
