@@ -9666,6 +9666,8 @@ const CONST = {
             TRAVELER: 'traveler',
             ADMIN: 'admin',
         },
+        // The travel value of a member who can't book travel, shown in place of their travel role
+        MEMBER_ACCESS_OFF: 'off',
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
             ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',
