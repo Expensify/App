@@ -45,6 +45,11 @@ const CASES = {
     'a multi-line disable-line, which ESLint rejects': ['a == 1; /* eslint-disable-line', '   eqeqeq */', 'b == 2;'],
     'a multi-line block disable': ['/* eslint-disable', '   eqeqeq */', 'a == 1;'],
     'a multi-line block disable, then a multi-line block enable': ['/* eslint-disable', '   eqeqeq */', 'a == 1;', '/* eslint-enable', '   eqeqeq */', 'b == 2;'],
+    'a line-comment eslint-disable, which ESLint ignores': ['// eslint-disable eqeqeq', 'a == 1;'],
+    'a line-comment eslint-enable, which ESLint ignores': ['/* eslint-disable eqeqeq */', '// eslint-enable eqeqeq', 'a == 1;'],
+    'a block disable after the problem on the same line': ['a == 1; /* eslint-disable eqeqeq */', 'b == 2;'],
+    'a problem after a block disable on the same line': ['/* eslint-disable eqeqeq */ a == 1;', 'b == 2;'],
+    'a block enable between two problems on one line': ['/* eslint-disable eqeqeq */', 'a == 1; /* eslint-enable eqeqeq */ b == 2;', 'c == 3;'],
 };
 
 const linter = new Linter();
@@ -95,11 +100,11 @@ function moduleLines(source, filename) {
         report: (descriptor) => reported.push(descriptor.loc.line),
     });
 
+    // At the operator's column, where eqeqeq reports, so directives on the same line are placed as ESLint sees them.
     for (const [index, text] of source.split('\n').entries()) {
-        if (!text.includes('==')) {
-            continue;
+        for (const match of text.matchAll(/==/g)) {
+            innerContext.report({loc: {line: index + 1, column: match.index}, message: 'probe'});
         }
-        innerContext.report({loc: {line: index + 1, column: 0}, message: 'probe'});
     }
     return reported;
 }

@@ -34,6 +34,11 @@ function parseDirectives(comments) {
         if (!parsed || start == null || end == null) {
             continue;
         }
+        // ESLint reads `eslint-disable` and `eslint-enable` only from block comments.
+        const isBlockKind = parsed.kind === 'eslint-disable' || parsed.kind === 'eslint-enable';
+        if (isBlockKind && comment.type !== 'Block') {
+            continue;
+        }
         for (const ruleId of parsed.ruleIds) {
             if (parsed.kind === 'eslint-disable-next-line' || parsed.kind === 'eslint-disable-line') {
                 // ESLint rejects only a multi-line `-line` directive; a multi-line `-next-line` is
@@ -46,7 +51,7 @@ function parseDirectives(comments) {
                 }
                 lines.get(ruleId).add(parsed.kind === 'eslint-disable-line' ? start : end + 1);
             } else {
-                blocks.push({line: start, ruleId, disable: parsed.kind === 'eslint-disable'});
+                blocks.push({line: start, column: comment.loc.start.column ?? 0, ruleId, disable: parsed.kind === 'eslint-disable'});
             }
         }
     }
@@ -62,35 +67,33 @@ function directivesFor(filename, comments) {
     return cache.get(key);
 }
 
-// Mirrors ESLint: the last block directive at or before the line that names the rule (or no rule)
-// decides. A bare `eslint-disable` followed by `eslint-enable foo` therefore re-enables `foo` alone,
-// and a bare `eslint-enable` re-enables every rule.
-function isSuppressed(directives, eslintRuleId, line) {
-    if (line == null) {
+// Mirrors ESLint: the last block directive before the report, by line and then column, that names the
+// rule (or no rule) decides. A bare `eslint-disable` followed by `eslint-enable foo` therefore
+// re-enables `foo` alone, and a bare `eslint-enable` re-enables every rule.
+function isSuppressed(directives, eslintRuleId, position) {
+    if (position == null) {
         return false;
     }
+    const {line, column} = position;
     if (directives.lines.get(eslintRuleId)?.has(line) || directives.lines.get(ALL_RULES)?.has(line)) {
         return true;
     }
     let disabled = false;
     for (const block of directives.blocks) {
-        if (block.line > line || (block.ruleId !== ALL_RULES && block.ruleId !== eslintRuleId)) {
+        const isAfterReport = block.line > line || (block.line === line && block.column > column);
+        if (isAfterReport || (block.ruleId !== ALL_RULES && block.ruleId !== eslintRuleId)) {
             continue;
         }
-        // A report on the `eslint-enable` line itself stays suppressed, as with the previous inclusive range.
-        if (block.disable) {
-            disabled = true;
-        } else if (block.line < line) {
-            disabled = false;
-        }
+        disabled = block.disable;
     }
     return disabled;
 }
 
-function reportLine(args) {
+function reportPosition(args) {
     const first = args[0];
-    const candidates = [first?.loc?.start?.line, first?.loc?.line, first?.node?.loc?.start?.line, first?.node?.loc?.line];
-    return candidates.find((line) => typeof line === 'number') ?? null;
+    const candidates = [first?.loc?.start, first?.loc, first?.node?.loc?.start, first?.node?.loc];
+    const point = candidates.find((candidate) => typeof candidate?.line === 'number');
+    return point ? {line: point.line, column: typeof point.column === 'number' ? point.column : 0} : null;
 }
 
 function withEslintDirectiveIds(rule, eslintRuleId) {
@@ -102,11 +105,11 @@ function withEslintDirectiveIds(rule, eslintRuleId) {
                     // Forwarded as-is rather than as one descriptor: ESLint also accepts the legacy
                     // `report(node, message)` form, and dropping the extra arguments would change the message.
                     value(...args) {
-                        const line = reportLine(args);
-                        if (line != null) {
+                        const position = reportPosition(args);
+                        if (position != null) {
                             const sourceCode = context.sourceCode ?? context.getSourceCode();
                             const filename = context.filename ?? context.getFilename();
-                            if (isSuppressed(directivesFor(filename, sourceCode.getAllComments()), eslintRuleId, line)) {
+                            if (isSuppressed(directivesFor(filename, sourceCode.getAllComments()), eslintRuleId, position)) {
                                 return;
                             }
                         }
