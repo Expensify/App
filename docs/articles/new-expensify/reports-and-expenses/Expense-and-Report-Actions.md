@@ -87,8 +87,8 @@ Use this guide to understand:
 - Cancel payment (before processing)
 
 **Payments admin**
-- Pay reports on a workspace that tracks payments made elsewhere
-- Cancel payment on a workspace that tracks payments made elsewhere
+- Pay reports
+- Cancel payment (before processing)
 
 **Workspace Admin**
 - Export reports
@@ -153,7 +153,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Reject** | Submitted reports | Approver, Admin | Sends report back for changes |
 | **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report |
 | **View details** | Any report | All roles | Opens report details |
-| **Cancel payment** | Before payment processing | Payer, or a Payments admin on a workspace that tracks payments made elsewhere | Cancels a pending payment |
+| **Cancel payment** | Before payment processing | Payer, Workspace Admin, or Payments admin. For a bank payment, only someone with access to that bank account | Cancels a pending payment |
 | **Hold** | On draft or submitted reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
 | **Change workspace** | Draft reports | Submitter | Moves the report to a different workspace |
 | **Change workspace** | Before report is exported | Approver, Admin | Moves the report to a different workspace |
@@ -171,7 +171,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Approve** | For outstanding reports | Admin | Skips current approver  |
 | **View details** | Any report | All roles | Opens details view with options to share, pin, view members |
 | **Received payment** | On approved, closed, or reimbursed expense reports where no bank payment has been initiated | Submitter | Confirms that payment was received outside of Expensify and marks the report as paid |
-| **Cancel payment** | After payment is initiated, but before the payment has been processed, or always for a manual payment | Payer, or a Payments admin on a workspace that tracks payments made elsewhere | Cancels pending payment |
+| **Cancel payment** | After payment is initiated, but before the payment has been processed, or always for a manual payment | Payer, Workspace Admin, or Payments admin. For a bank payment, only someone with access to that bank account | Cancels pending payment |
 
 ---
 
