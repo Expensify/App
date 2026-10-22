@@ -10457,8 +10457,7 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
     const reportLastReadTime = report.lastReadTime ?? '';
     const threadLastReadTime = oneTransactionThreadReport?.lastReadTime ?? '';
-    const isManuallyMarkedUnread =
-        !!report.manuallyMarkedUnreadReportActionID || (!!reportLastReadTime && getReportMetadata(report.reportID)?.manuallyMarkedUnreadTime === reportLastReadTime);
+    const isManuallyMarkedUnread = !!reportLastReadTime && getReportMetadata(report.reportID)?.manuallyMarkedUnreadTime === reportLastReadTime;
     // A manual mark on the report takes precedence over the thread's read cursor and the last message's author.
     const lastReadTime = isManuallyMarkedUnread || reportLastReadTime > threadLastReadTime ? reportLastReadTime : threadLastReadTime;
     const lastMentionedTime = report.lastMentionedTime ?? '';
