@@ -65,6 +65,7 @@ describe.each([500, 5000])('SidebarLinks write path with %i reports', (reportCou
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        // Required lazily so LHNTestUtils registers its @react-navigation/native mock before the engine's imports load it
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         require('@userActions/OnyxDerived').default();
     });
