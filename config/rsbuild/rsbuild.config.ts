@@ -48,9 +48,9 @@ export default defineConfig(async ({command}) => {
         };
     }
 
-    const useWorker = process.env.USE_CLOUDFLARE_WORKER === 'true';
+    const isWorkerEnabled = process.env.USE_CLOUDFLARE_WORKER === 'true';
     const publicPort = process.env.WEB_PORT ? Number(process.env.WEB_PORT) : await portfinder.getPortPromise({port: BASE_PORT});
-    const port = useWorker ? Number(process.env.WEB_INTERNAL_PORT) : publicPort;
+    const port = isWorkerEnabled ? Number(process.env.WEB_INTERNAL_PORT) : publicPort;
     // Check if the USE_WEB_PROXY variable has been provided and rewrite any requests to the local proxy server
     const proxy = process.env.USE_WEB_PROXY === 'false' ? undefined : [{pathFilter: ['/api', '/staging', '/staging-secure', '/chat-attachments', '/receipts'], target: 'http://[::1]:9000'}];
 
@@ -63,7 +63,7 @@ export default defineConfig(async ({command}) => {
             assetPrefix: '/',
             lazyCompilation: false,
         },
-        security: useWorker ? {nonce: 'nonce-random-value'} : common.security,
+        security: isWorkerEnabled ? {nonce: 'nonce-random-value'} : common.security,
         source: {
             ...common.source,
             define: {
@@ -78,11 +78,11 @@ export default defineConfig(async ({command}) => {
             proxy,
             port,
             strictPort: !!process.env.WEB_PORT,
-            host: useWorker ? '127.0.0.1' : 'dev.new.expensify.com',
+            host: isWorkerEnabled ? '127.0.0.1' : 'dev.new.expensify.com',
             // Rsbuild's --open flag defaults to the first entry's route, e.g. "/main" for our "main" entry key,
             // which 404s since the app has no route by that name. Open the actual app root instead.
             open: process.env.WEB_PORT ? false : '/',
-            https: useWorker
+            https: isWorkerEnabled
                 ? undefined
                 : {
                       key: fs.readFileSync(path.join(dirname, 'key.pem')),

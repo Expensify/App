@@ -7,9 +7,9 @@ import {assertWebPortAvailable, getDevelopmentConnectOrigins, getWebDevFlags, ge
 
 async function startWeb() {
     // Bun loads .env automatically, preserving explicit shell overrides.
-    const {useWorker, useProxy, openBrowser} = getWebDevFlags(Bun.env);
-    const {publicPort, internalPort} = getWebDevPorts(Bun.env, useWorker);
-    if (useProxy) {
+    const {isWorkerEnabled, isProxyEnabled, shouldOpenBrowser} = getWebDevFlags(Bun.env);
+    const {publicPort, internalPort} = getWebDevPorts(Bun.env, isWorkerEnabled);
+    if (isProxyEnabled) {
         assertWebPortAvailable(9000, '::');
     }
     for (const file of ['key.pem', 'certificate.pem']) {
@@ -17,23 +17,23 @@ async function startWeb() {
             throw new Error('Missing local HTTPS certificate. Run npm run setup-https first.');
         }
     }
-    if (useWorker && !(await Bun.file('web/cloudflare-worker/node_modules/wrangler/bin/wrangler.js').exists())) {
+    if (isWorkerEnabled && !(await Bun.file('web/cloudflare-worker/node_modules/wrangler/bin/wrangler.js').exists())) {
         throw new Error('Missing Worker dependencies. Run npm install to finish App setup.');
     }
     const origin = `https://dev.new.expensify.com:${publicPort}`;
     Bun.env.WEB_PORT = String(publicPort);
     Bun.env.WEB_INTERNAL_PORT = String(internalPort);
-    Bun.env.USE_CLOUDFLARE_WORKER = String(useWorker);
-    Bun.env.USE_WEB_PROXY = String(useProxy);
+    Bun.env.USE_CLOUDFLARE_WORKER = String(isWorkerEnabled);
+    Bun.env.USE_WEB_PROXY = String(isProxyEnabled);
     const root = process.cwd();
     const workerDir = `${root}/web/cloudflare-worker`;
     const caRoot = (await $`mkcert -CAROOT`.text()).trim();
     const ca = await Bun.file(`${caRoot}/rootCA.pem`).text();
     // concurrently accepts command strings, so escape its dynamic paths and JSON bindings.
     const commands = [
-        ...(useProxy ? [{name: 'api', command: 'npm run web-proxy'}] : []),
+        ...(isProxyEnabled ? [{name: 'api', command: 'npm run web-proxy'}] : []),
         {name: 'rsbuild', command: 'node node_modules/@rsbuild/core/bin/rsbuild.js dev --config config/rsbuild/rsbuild.config.ts'},
-        ...(useWorker
+        ...(isWorkerEnabled
             ? [
                   {
                       name: 'worker',
@@ -65,10 +65,10 @@ async function startWeb() {
         const deadline = Date.now() + 180_000;
         while (!controller.signal.aborted) {
             try {
-                const ready = await checkWebServer(origin, ca, useWorker, controller.signal);
-                if (ready) {
-                    console.log(`Web app ready at ${origin}/ (${useWorker ? 'Cloudflare Worker' : 'direct Rsbuild'})`);
-                    if (openBrowser && !controller.signal.aborted) {
+                const isReady = await checkWebServer(origin, ca, isWorkerEnabled, controller.signal);
+                if (isReady) {
+                    console.log(`Web app ready at ${origin}/ (${isWorkerEnabled ? 'Cloudflare Worker' : 'direct Rsbuild'})`);
+                    if (shouldOpenBrowser && !controller.signal.aborted) {
                         const browserCommands: Partial<Record<NodeJS.Platform, string>> = {darwin: 'open', win32: 'cmd'};
                         const command = browserCommands[process.platform] ?? 'xdg-open';
                         const args = process.platform === 'win32' ? ['/c', 'start', '', `${origin}/`] : [`${origin}/`];

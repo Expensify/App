@@ -2,7 +2,7 @@
 const LOCAL_BACKEND_KEYS = ['EXPENSIFY_URL', 'SECURE_EXPENSIFY_URL', 'STAGING_EXPENSIFY_URL', 'STAGING_SECURE_EXPENSIFY_URL', 'NGROK_URL', 'SECURE_NGROK_URL'];
 
 function getWebDevFlags(env: Record<string, string | undefined>) {
-    return {useWorker: env.USE_CLOUDFLARE_WORKER !== 'false', useProxy: env.USE_WEB_PROXY !== 'false', openBrowser: env.WEB_OPEN !== 'false'};
+    return {isWorkerEnabled: env.USE_CLOUDFLARE_WORKER !== 'false', isProxyEnabled: env.USE_WEB_PROXY !== 'false', shouldOpenBrowser: env.WEB_OPEN !== 'false'};
 }
 
 function getDevelopmentConnectOrigins(env: Record<string, string | undefined>): string[] {
@@ -41,13 +41,13 @@ function assertWebPortAvailable(port: number, host = '127.0.0.1'): void {
     }
 }
 
-function getWebDevPorts(env: Record<string, string | undefined>, useWorker: boolean) {
+function getWebDevPorts(env: Record<string, string | undefined>, isWorkerEnabled: boolean) {
     const publicPort = Number(env.WEB_PORT ?? 8082);
     const internalPort = Number(env.WEB_INTERNAL_PORT ?? publicPort + 1);
-    if (useWorker && publicPort === internalPort) {
+    if (isWorkerEnabled && publicPort === internalPort) {
         throw new Error('WEB_PORT and WEB_INTERNAL_PORT must differ');
     }
-    for (const port of useWorker ? [publicPort, internalPort] : [publicPort]) {
+    for (const port of isWorkerEnabled ? [publicPort, internalPort] : [publicPort]) {
         if (!Number.isInteger(port) || port < 1024 || port > 65535) {
             throw new Error('WEB_PORT and WEB_INTERNAL_PORT must be integers between 1024 and 65535');
         }

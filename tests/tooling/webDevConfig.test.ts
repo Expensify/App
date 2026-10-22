@@ -9,10 +9,10 @@ describe('web development configuration', () => {
         // When flags are resolved
         const defaults = getWebDevFlags({});
         // Then neither opt-out changes the meaning of the other
-        expect(defaults).toEqual({useWorker: true, useProxy: true, openBrowser: true});
-        expect(getWebDevFlags({USE_WEB_PROXY: 'false'})).toMatchObject({useWorker: true, useProxy: false});
-        expect(getWebDevFlags({USE_CLOUDFLARE_WORKER: 'false', WEB_OPEN: 'false'})).toEqual({useWorker: false, useProxy: true, openBrowser: false});
-        expect(getWebDevFlags({USE_CLOUDFLARE_WORKER: 'false', USE_WEB_PROXY: 'false'})).toMatchObject({useWorker: false, useProxy: false});
+        expect(defaults).toEqual({isWorkerEnabled: true, isProxyEnabled: true, shouldOpenBrowser: true});
+        expect(getWebDevFlags({USE_WEB_PROXY: 'false'})).toMatchObject({isWorkerEnabled: true, isProxyEnabled: false});
+        expect(getWebDevFlags({USE_CLOUDFLARE_WORKER: 'false', WEB_OPEN: 'false'})).toEqual({isWorkerEnabled: false, isProxyEnabled: true, shouldOpenBrowser: false});
+        expect(getWebDevFlags({USE_CLOUDFLARE_WORKER: 'false', USE_WEB_PROXY: 'false'})).toMatchObject({isWorkerEnabled: false, isProxyEnabled: false});
     });
 
     test('validates and deduplicates explicit backend origins', () => {

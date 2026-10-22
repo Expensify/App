@@ -13,9 +13,9 @@ describe('public web server readiness', () => {
             const get = spyOn(globalThis, 'fetch').mockRejectedValue(error);
             const signal = new AbortController().signal;
             // When the launcher probes the public origin
-            const ready = await checkWebServer('https://dev.new.expensify.com:8082', 'test CA', true, signal);
+            const isReady = await checkWebServer('https://dev.new.expensify.com:8082', 'test CA', true, signal);
             // Then it can retry without disabling TLS verification
-            expect(ready).toBe(false);
+            expect(isReady).toBe(false);
             const [url, init] = get.mock.calls.at(0) ?? [];
             expect(url).toBe('https://dev.new.expensify.com:8082');
             expect(init).toMatchObject({tls: {ca: 'test CA'}});
@@ -59,22 +59,22 @@ describe('public web server readiness', () => {
     });
 
     test.each([
-        {status: 200, csp: true, worker: true, ready: true},
-        {status: 200, csp: false, worker: true, ready: false},
-        {status: 503, csp: true, worker: true, ready: false},
-        {status: 200, csp: false, worker: false, ready: true},
-    ])('requires a usable response from the selected public listener: %j', async ({status, csp, worker, ready}) => {
+        {status: 200, hasCSP: true, isWorkerEnabled: true, isReady: true},
+        {status: 200, hasCSP: false, isWorkerEnabled: true, isReady: false},
+        {status: 503, hasCSP: true, isWorkerEnabled: true, isReady: false},
+        {status: 200, hasCSP: false, isWorkerEnabled: false, isReady: true},
+    ])('requires a usable response from the selected public listener: %j', async ({status, hasCSP, isWorkerEnabled, isReady}) => {
         // Given either the direct server or the Worker listener
         const headers = new Headers();
-        if (csp) {
+        if (hasCSP) {
             headers.set('Content-Security-Policy', "default-src 'self'");
         }
         const response = new Response('app shell', {status, headers});
         spyOn(globalThis, 'fetch').mockResolvedValue(response);
         // When the listener returns its response
-        const result = await checkWebServer('https://dev.new.expensify.com:8082', 'test CA', worker, new AbortController().signal);
+        const isServerReady = await checkWebServer('https://dev.new.expensify.com:8082', 'test CA', isWorkerEnabled, new AbortController().signal);
         // Then only a successful response with the expected Worker headers can open the browser
-        expect(result).toBe(ready);
+        expect(isServerReady).toBe(isReady);
         expect(response.bodyUsed).toBe(true);
     });
 });
