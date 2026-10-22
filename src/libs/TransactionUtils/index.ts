@@ -211,7 +211,15 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         reducedDistance < fullDistance &&
         (!transaction.modifiedCurrency || transaction.modifiedCurrency === transaction.currency)
     ) {
-        const fullRateText = parseDistanceMerchant({merchant: transaction.merchant, distance: fullDistance, unit: storedUnit})?.rateText;
+        const snapshotCurrency = getCurrency(transaction);
+        const parsedFullMerchant = parseDistanceMerchant({
+            merchant: transaction.merchant,
+            distance: fullDistance,
+            unit: storedUnit,
+            currency: snapshotCurrency,
+            currencySymbol: getCurrencySymbol(snapshotCurrency),
+        });
+        const fullRateText = parsedFullMerchant?.rateText;
         const reducedRateText = parseDistanceMerchant({merchant: transaction.modifiedMerchant, distance: reducedDistance, unit: storedUnit})?.rateText;
         if (fullRateText && fullRateText === reducedRateText && Number.isFinite(transaction.amount) && (modifiedAmount === undefined || Number.isFinite(modifiedAmount))) {
             const roundedFullDistance = Number(fullDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
@@ -226,6 +234,17 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
                 const calculatedReducedAmount = Math.round(roundedReducedDistance * lowerRate);
                 let isCalculatedAmount =
                     modifiedAmount === undefined || (calculatedReducedAmount === Math.round(roundedReducedDistance * upperRate) && calculatedReducedAmount === Math.abs(modifiedAmount));
+                if (!isCalculatedAmount && modifiedAmount !== undefined) {
+                    const savedRate = parsedFullMerchant?.rate;
+                    // Validate both snapshots with their historical rate before consulting a mutable policy rate.
+                    if (savedRate !== undefined) {
+                        const fullDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(roundedFullDistance, storedUnit);
+                        const reducedDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(roundedReducedDistance, storedUnit);
+                        isCalculatedAmount =
+                            Math.abs(transaction.amount) === DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, storedUnit, savedRate) &&
+                            Math.abs(modifiedAmount) === DistanceRequestUtils.getDistanceRequestAmount(reducedDistanceInMeters, storedUnit, savedRate);
+                    }
+                }
                 if (!isCalculatedAmount && modifiedAmount !== undefined && typeof rate === 'number' && unit === storedUnit) {
                     const resolvedCurrency = mileageRate?.currency ?? getCurrency(transaction);
                     const savedCurrency = getCurrency(transaction);

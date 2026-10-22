@@ -2211,6 +2211,61 @@ describe('TransactionUtils', () => {
             expect(displayTransaction).toBe(transaction);
         });
 
+        it.each([
+            {fullDistance: 2.06, reducedDistance: 1.06, amount: 3, modifiedAmount: -2, liveRate: 2, expectedAmount: -3},
+            {fullDistance: 56.64, reducedDistance: 55.64, amount: 85, modifiedAmount: -83, liveRate: 2, expectedAmount: -85},
+            {fullDistance: 2.06, reducedDistance: 1.06, amount: 3, modifiedAmount: -2, liveRate: 100, expectedAmount: -3},
+            {fullDistance: 2.06, reducedDistance: 1.06, amount: 3, modifiedAmount: -50, liveRate: 2, expectedAmount: -50},
+            {fullDistance: 2.06, reducedDistance: 1.06, amount: -2, modifiedAmount: -2, liveRate: 2, expectedAmount: -2},
+        ])(
+            'validates paired snapshots at $fullDistance miles with live rate $liveRate and modified amount $modifiedAmount',
+            ({fullDistance, reducedDistance, amount, modifiedAmount, liveRate, expectedAmount}) => {
+                // Given matching historical rate labels, including manual-override and pre-sync reduced-only controls
+                const transaction = generateTransaction({
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    amount,
+                    modifiedAmount,
+                    currency: CONST.CURRENCY.USD,
+                    merchant: `${fullDistance.toFixed(2)} mi @ $0.015 / mi`,
+                    modifiedMerchant: `${reducedDistance.toFixed(2)} mi @ $0.015 / mi`,
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: 'rate1',
+                            quantity: fullDistance,
+                            reimbursableDistance: reducedDistance,
+                            commuterExclusion: 1,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                });
+                const policy: Policy = {
+                    ...policyWithDistanceRate,
+                    customUnits: {
+                        distance: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID: 'distance',
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            rates: {rate1: {customUnitRateID: 'rate1', currency: CONST.CURRENCY.USD, rate: liveRate}},
+                        },
+                    },
+                };
+
+                // When Self DM normalizes the expense after the workspace rate changes
+                const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    policy,
+                    translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                });
+
+                // Then only verified full/reduced pairs restore the full amount; other saved amounts remain protected
+                expect(displayTransaction?.amount).toBe(expectedAmount);
+                expect(displayTransaction?.merchant).toBe(transaction.merchant);
+                expect(displayTransaction?.modifiedAmount).toBeUndefined();
+            },
+        );
+
         it('preserves the saved rate when the workspace rate changes', () => {
             // Given a personal distance expense saved at Af2 per mile before its workspace rate changed to Af3
             const policyWithChangedRate: Policy = {
