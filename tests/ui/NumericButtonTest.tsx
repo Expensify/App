@@ -122,6 +122,7 @@ describe('Numeric buttons', () => {
 
         it('renders the button when negative values are allowed', async () => {
             // Given a numeric input that allows negative values
+            // When the flip button is rendered
             renderFlipButton();
             await waitForBatchedUpdatesWithAct();
 
@@ -132,6 +133,7 @@ describe('Numeric buttons', () => {
 
         it('hides the text label when shouldShowLabel is false, keeping the accessible name', async () => {
             // Given a numeric flip button configured not to display its text label
+            // When the component is rendered
             renderWithProviders(
                 <NumericComponent
                     value="12"

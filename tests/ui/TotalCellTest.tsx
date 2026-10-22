@@ -268,7 +268,10 @@ describe('TotalCell', () => {
 
         it('edits the magnitude of a negative amount and shows its sign beside the input', async () => {
             // Given a tracked expense of -$10.00
-            const input = await renderEditingTotalCell(createTrackedTransaction(-1000), jest.fn());
+            const transaction = createTrackedTransaction(-1000);
+
+            // When the cell is opened for editing
+            const input = await renderEditingTotalCell(transaction, jest.fn());
 
             // Then the input holds only the magnitude and the sign is rendered on its own, so the cell reads -$10.00
             expect(input.props.value).toBe('10.00');
@@ -397,14 +400,14 @@ describe('TotalCell', () => {
 
         it('seeds the edit input empty for a failed-scan amount placeholder', async () => {
             // Given a failed-scan placeholder amount
-            const input = await renderEditingTotalCell(
-                createBaseTransaction({
-                    amount: 0,
-                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-                    receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
-                }),
-                jest.fn(),
-            );
+            const transaction = createBaseTransaction({
+                amount: 0,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            });
+
+            // When the cell is opened for editing
+            const input = await renderEditingTotalCell(transaction, jest.fn());
 
             // Then the input starts empty instead of showing the placeholder amount
             expect(input.props.value).toBe('');
@@ -487,8 +490,10 @@ describe('TotalCell', () => {
 
         it('does not render the flip button for a Split Bill, whose sign the user may not change', async () => {
             // Given a Split Bill on a touch device
+            const splitTransaction = {...createTrackedTransaction(1000), comment: {source: CONST.IOU.TYPE.SPLIT}};
+
             // When the cell is opened for editing
-            await renderEditingTotalCell({...createTrackedTransaction(1000), comment: {source: CONST.IOU.TYPE.SPLIT}}, jest.fn());
+            await renderEditingTotalCell(splitTransaction, jest.fn());
 
             // Then there is no way to flip the sign
             expect(screen.queryByLabelText('Flip')).not.toBeOnTheScreen();
