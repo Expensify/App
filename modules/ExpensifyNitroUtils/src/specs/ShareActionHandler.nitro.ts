@@ -12,7 +12,7 @@ type SharedFile = {
 };
 
 interface ShareActionHandler extends HybridObject<{ios: 'swift'; android: 'kotlin'}> {
-    /** Returns an empty array when no share is pending; rejects if pending data cannot be read. */
+    /** Returns an empty array when no share is pending. Rejects if pending data cannot be read. */
     processFiles(): Promise<SharedFile[]>;
 }
 
