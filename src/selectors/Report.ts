@@ -36,6 +36,10 @@ function getReportChatType(report: OnyxEntry<Report>) {
     return report?.chatType;
 }
 
+function getReportType(report: OnyxEntry<Report>) {
+    return report?.type;
+}
+
 function getReportPolicyID(report: OnyxEntry<Report>) {
     return report?.policyID;
 }
@@ -429,6 +433,7 @@ const reportsByIDsSelector =
 export {
     getArchiveReason,
     getReportChatType,
+    getReportType,
     groupChatAvatarReportSelector,
     getReportOwnerAccountID,
     getReportParentReportID,
