@@ -19,7 +19,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
-import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -35,14 +34,13 @@ import {
     shouldRefreshActiveTransactionIDs,
 } from '@libs/actions/TransactionThreadNavigation';
 import Log from '@libs/Log';
-import {shouldUseMultiExpenseReportLayout} from '@libs/MoneyRequestReportUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
-import {isCreatedTaskReportAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
+import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -185,7 +183,6 @@ function Search({
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -759,10 +756,7 @@ function Search({
                     }
                 }
 
-                // A single-expense report in the table view opens at the same width as a multi-expense report.
-                // A "Pay someone" report always uses the expense view, so it keeps the normal wide width.
-                const isSentMoneyReport = isSentMoneyReportAction(firstTransaction?.reportAction);
-                if (shouldUseMultiExpenseReportLayout(item.transactions.length, shouldUseTableViewForSingleExpense && !isSentMoneyReport)) {
+                if (item.transactions.length > 1) {
                     markReportRHPWidth(reportID, 'super-wide');
                 } else {
                     unmarkReportRHPWidth(reportID, 'super-wide');
@@ -850,7 +844,6 @@ function Search({
             getCurrencyDecimals,
             conciergeChat,
             delegateAccountID,
-            shouldUseTableViewForSingleExpense,
         ],
     );
 
