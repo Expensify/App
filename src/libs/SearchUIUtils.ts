@@ -373,6 +373,8 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     // Sorted as stored, so amounts in different currencies are ranked without conversion.
     [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED]: 'debitedAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'creditedAmount' as const,
+    // The IDs are in ascending order, so this ranks reports by their lowest withdrawal ID, matching the backend.
+    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawalIDs' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
 };
 
@@ -6552,10 +6554,16 @@ function getColumnsToShow({
         if (column === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED) {
             return !!reportToCheck?.creditedAmount && !!reportToCheck?.creditedCurrency;
         }
+        if (column === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID) {
+            return !!reportToCheck?.withdrawalIDs;
+        }
         return !!getReportCustomColumnValue(column, reportToCheck);
     };
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        // Expense searches show each expense's own withdrawal, so only report searches hide this column by the report's withdrawals.
+        const expenseReportCustomColumns = new Set<SearchColumnType>([...reportCustomColumns, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]);
+
         const defaultReportColumns: SearchColumnType[] = [
             CONST.SEARCH.TABLE_COLUMNS.AVATAR,
             CONST.SEARCH.TABLE_COLUMNS.DATE,
@@ -6595,7 +6603,7 @@ function getColumnsToShow({
         }
 
         return result.filter((column) => {
-            if (!reportCustomColumns.has(column)) {
+            if (!expenseReportCustomColumns.has(column)) {
                 return true;
             }
 

@@ -8816,6 +8816,31 @@ describe('SearchUIUtils', () => {
             ]);
         });
 
+        it('should sort expense reports by their lowest withdrawal ID, leaving the reports without a withdrawal at the empty end', () => {
+            // Given reports whose comma separated withdrawal IDs start with numbers of different lengths, and one report without a withdrawal
+            const withWithdrawals = (keyForList: string, withdrawalIDs?: string) =>
+                createMock<TransactionReportGroupListItemType>({
+                    groupedBy: 'expense-report',
+                    keyForList,
+                    reportID: keyForList,
+                    created: '2025-08-12 17:11:22',
+                    currency: 'USD',
+                    transactions: [],
+                    ...(withdrawalIDs ? {withdrawalIDs} : {}),
+                });
+            const reports = [withWithdrawals('report_high', '100,250'), withWithdrawals('report_none'), withWithdrawals('report_low', '99')];
+
+            // When the reports are sorted by Withdrawal ID
+            const sortReports = (sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [...reports], localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID, sortOrder).map(
+                    (report) => report.keyForList,
+                );
+
+            // Then they are ranked numerically by their first ID, as the backend ranks them, rather than as text
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['report_none', 'report_low', 'report_high']);
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['report_high', 'report_low', 'report_none']);
+        });
+
         it('should sort category group data when type is EXPENSE and groupBy is category', () => {
             expect(
                 SearchUIUtils.getSortedSections(
@@ -11978,6 +12003,35 @@ describe('SearchUIUtils', () => {
             });
             expect(sortedColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
             expect(sortedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
+        });
+
+        test('Should only show the Withdrawal ID column on report searches when a report on the page has a withdrawal', () => {
+            // Given a page of reports where only one report has withdrawals
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID];
+            const unpaidReport = {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, total: -10000, currency: 'USD'};
+            const paidReport = {...unpaidReport, reportID: '2', withdrawalIDs: '1234,5678'};
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const unpaidData: OnyxTypes.SearchResults['data'] = {[`${ONYXKEYS.COLLECTION.REPORT}${unpaidReport.reportID}`]: unpaidReport};
+            const paidData: OnyxTypes.SearchResults['data'] = {...unpaidData, [`${ONYXKEYS.COLLECTION.REPORT}${paidReport.reportID}`]: paidReport};
+
+            // When no report on the page has a withdrawal, then the column is hidden
+            const unpaidColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: unpaidData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            expect(unpaidColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
+
+            // When a report on the page has a withdrawal, then the column is shown
+            const paidColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: paidData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            expect(paidColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
+
+            // When the reports are sorted by the empty column, then it stays so the sort can still be changed
+            const sortedColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data: unpaidData,
+                visibleColumns,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+            });
+            expect(sortedColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
         });
 
         test('Should only show the conversion amount columns for withdrawal groups that converted currencies', () => {
