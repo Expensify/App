@@ -8,6 +8,9 @@ import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
+import useHoldRejectEducationalModal from '@hooks/useHoldRejectEducationalModal';
+import type {RejectModalAction} from '@hooks/useHoldRejectEducationalModal';
+import useHoldSubmitterEducationalModal from '@hooks/useHoldSubmitterEducationalModal';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -91,14 +94,12 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import {billingRestrictionPolicySelector, createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef} from 'react';
 
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
-import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
-import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import {ModalActions} from './Modal/Global/ModalContext';
 import {usePersonalDetails} from './OnyxListItemProvider';
 import {useSearchQueryContext, useSearchSelectionActions} from './Search/SearchContext';
@@ -222,11 +223,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
-    // State
-    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
-    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
-        typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
-    > | null>(null);
     const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null);
 
     // Derived computations
@@ -330,7 +326,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     };
 
     const dismissModalAndUpdateUseHold = () => {
-        setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (parentReportAction) {
             changeMoneyRequestHoldStatus(
@@ -348,7 +343,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         }
     };
 
-    const dismissRejectModalBasedOnAction = () => {
+    const dismissRejectModalBasedOnAction = (rejectModalAction: RejectModalAction) => {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (parentReportAction) {
@@ -371,8 +366,10 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 rejectMoneyRequestReason(parentReportAction);
             }
         }
-        setRejectModalAction(null);
     };
+
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal();
+    const {showHoldSubmitterEducationalModal} = useHoldSubmitterEducationalModal();
 
     // Secondary actions
     const secondaryActions = (() => {
@@ -456,9 +453,9 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                         rules,
                     );
                 } else if (shouldShowHoldEducationalModal) {
-                    setIsHoldEducationalModalVisible(true);
+                    showHoldSubmitterEducationalModal({isDM: isParentChatReportDM}).finally(dismissModalAndUpdateUseHold);
                 } else {
-                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
+                    showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD));
                 }
             },
         },
@@ -668,7 +665,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                         rejectMoneyRequestReason(parentReportAction);
                     }
                 } else {
-                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                    showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT));
                 }
             },
         },
@@ -744,31 +741,16 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const shouldPopoverUseScrollView = getShouldPopoverUseScrollView(applicableSecondaryActions);
 
     return (
-        <>
-            <ButtonWithDropdownMenu
-                ref={dropdownMenuRef}
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('common.more')}
-                options={applicableSecondaryActions}
-                shouldPopoverUseScrollView={shouldPopoverUseScrollView}
-                isSplitButton={false}
-                wrapperStyle={!isNarrowButton && !hasPrimaryAction ? [styles.flexGrow4] : undefined}
-            />
-            {!!rejectModalAction && (
-                <HoldOrRejectEducationalModal
-                    onClose={dismissRejectModalBasedOnAction}
-                    onConfirm={dismissRejectModalBasedOnAction}
-                />
-            )}
-            {!!isHoldEducationalModalVisible && (
-                <HoldSubmitterEducationalModal
-                    onClose={dismissModalAndUpdateUseHold}
-                    onConfirm={dismissModalAndUpdateUseHold}
-                    isDM={isParentChatReportDM}
-                />
-            )}
-        </>
+        <ButtonWithDropdownMenu
+            ref={dropdownMenuRef}
+            onPress={() => {}}
+            shouldAlwaysShowDropdownMenu
+            customText={translate('common.more')}
+            options={applicableSecondaryActions}
+            shouldPopoverUseScrollView={shouldPopoverUseScrollView}
+            isSplitButton={false}
+            wrapperStyle={!isNarrowButton && !hasPrimaryAction ? [styles.flexGrow4] : undefined}
+        />
     );
 }
 
