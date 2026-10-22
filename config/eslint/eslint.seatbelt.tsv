@@ -537,7 +537,6 @@
 "../../src/libs/actions/__mocks__/OnyxUpdates.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/App.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/applyOnyxUpdatesReliably.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/BankAccounts.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/BankAccounts.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/CanvasSize.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Card.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -545,7 +544,6 @@
 "../../src/libs/actions/Chronos.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/clearOnyxAndSeedFullReconnect.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/ClearReportActionErrors.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/actions/CompanyCards.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/CompanyCards.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/CompanyCards.ts"	"no-restricted-syntax"	4
 "../../src/libs/actions/connections/index.ts"	"no-restricted-syntax"	2
@@ -725,7 +723,6 @@
 "../../src/libs/focusComposerWithDelay/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/focusComposerWithDelay/setTextInputSelection.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Formula.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
-"../../src/libs/Fullstory/common.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/getPlatform/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/getReturnValue.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/hadTabNavigation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -866,7 +863,6 @@
 "../../src/libs/StatusBar/index.android.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/StatusBar/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/StatusBar/types.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/StringUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/telemetry/forwardLogsToSentry.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/telemetry/TelemetrySynchronizer.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/TransactionPreviewUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -880,7 +876,6 @@
 "../../src/libs/updateMultilineInputRange/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Url.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/UserAvatarUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/libs/ValidationUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Violations/ViolationsUtils.ts"	"no-restricted-syntax"	1
 "../../src/libs/Wallet/index.ios.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/WorkspaceReportFieldUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
