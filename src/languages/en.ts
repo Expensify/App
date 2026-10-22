@@ -10618,6 +10618,7 @@ const translations = {
             billable: 'Billable',
             rejected: 'Rejected',
             held: 'Held',
+            searchFilters: 'Search filters',
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
             sortOrder: {

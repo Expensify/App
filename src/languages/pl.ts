@@ -10295,6 +10295,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             billable: 'Fakturowalne',
             rejected: 'Odrzucone',
             held: 'Wstrzymane',
+            searchFilters: 'Szukaj filtrów',
             reimbursable: 'Podlegające zwrotowi',
             purchaseCurrency: 'Waluta zakupu',
             sortOrder: {

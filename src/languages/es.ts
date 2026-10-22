@@ -10197,6 +10197,7 @@ ${reportName}`,
             billable: 'Facturable',
             rejected: 'Rechazado',
             held: 'Retenido',
+            searchFilters: 'Buscar filtros',
             reimbursable: 'Reembolsable',
             purchaseCurrency: 'Moneda de compra',
             sortOrder: {

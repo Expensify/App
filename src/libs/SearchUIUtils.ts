@@ -6228,10 +6228,14 @@ function isMappedFilterKey(key: string): key is MappedFilterKey {
 }
 
 function getFilterViewLabelKey(filterKey: keyof typeof FILTER_VIEW_MAP, type?: SearchDataTypes): TranslationPaths {
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && isCreatedDateType(type)) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && (isCreatedDateType(type) || type === CONST.SEARCH.DATA_TYPES.INVOICE)) {
         return 'search.filters.createdDate';
     }
     return FILTER_VIEW_MAP[filterKey].labelKey;
+}
+
+function isFilterMatchingSearchValue(filterKey: keyof typeof FILTER_VIEW_MAP, type: SearchDataTypes | undefined, searchValue: string, translate: LocalizedTranslate): boolean {
+    return translate(getFilterViewLabelKey(filterKey, type)).toLowerCase().includes(searchValue.trim().toLowerCase());
 }
 
 function mapFiltersFormToLabelValueList(
@@ -7551,6 +7555,7 @@ export {
     RECONCILIATION_SEARCH_KEYS,
     FILTER_VIEW_MAP,
     getFilterViewLabelKey,
+    isFilterMatchingSearchValue,
     isCreatedDateType,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,

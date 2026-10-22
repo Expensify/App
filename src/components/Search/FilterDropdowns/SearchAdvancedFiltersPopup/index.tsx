@@ -22,7 +22,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasFilterContentValuesChanged} from '@libs/SearchUIUtils';
+import {hasFilterContentValuesChanged, isFilterMatchingSearchValue} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -134,6 +134,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
     const {isBetaEnabled} = usePermissions();
     const canUseNLFilters = isBetaEnabled(CONST.BETAS.NL_FILTERS);
     const [isDescribeMode, setIsDescribeMode] = useState(false);
+    const [filterSearchValue, setFilterSearchValue] = useState('');
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const filterContentRef = useRef<ComponentRef<typeof View>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
@@ -147,6 +148,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
     }));
     const {activeFilter, mountedFilters, formWhileHidden, contentVersions, readyFilters} = mountedFilterState;
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    const isActiveFilterListed = isFilterMatchingSearchValue(activeFilter, searchAdvancedFiltersForm?.type, filterSearchValue, translate);
 
     // Shows a filter's content. A visited one stays mounted, so a return reveals it rather than building it again.
     const showFilter = (filterKey: SearchFilter['key']) => {
@@ -278,6 +280,8 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                         style={[styles.flex1]}
                         type={searchAdvancedFiltersForm?.type}
                         selectedFilter={isDescribeMode ? undefined : activeFilter}
+                        searchValue={filterSearchValue}
+                        onSearchValueChange={setFilterSearchValue}
                         onHoverIn={hoverFilter}
                         onPointerMove={trackPointerMovement}
                         onPointerLeave={stopTrackingPointer}
@@ -296,7 +300,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                             // effects, so it holds no Onyx subscriptions until it is shown again.
                             <Activity
                                 key={`${filterKey}-${contentVersions[filterKey] ?? 0}`}
-                                mode={filterKey === activeFilter ? 'visible' : 'hidden'}
+                                mode={filterKey === activeFilter && isActiveFilterListed ? 'visible' : 'hidden'}
                             >
                                 <MountedFilterContent
                                     filterKey={filterKey}

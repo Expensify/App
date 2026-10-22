@@ -10360,6 +10360,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             billable: 'Abrechenbar',
             rejected: 'Abgelehnt',
             held: 'Zurückgestellt',
+            searchFilters: 'Filter durchsuchen',
             reimbursable: 'Erstattungsfähig',
             purchaseCurrency: 'Kaufwährung',
             sortOrder: {

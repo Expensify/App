@@ -25,7 +25,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {View} from 'react-native';
 
 function SearchAdvancedFiltersBase() {
@@ -39,6 +39,7 @@ function SearchAdvancedFiltersBase() {
     const {isBetaEnabled} = usePermissions();
     const canUseNLFilters = isBetaEnabled(CONST.BETAS.NL_FILTERS);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
+    const [filterSearchValue, setFilterSearchValue] = useState('');
 
     return (
         <ScreenWrapper
@@ -84,6 +85,8 @@ function SearchAdvancedFiltersBase() {
             <FilterList
                 contentContainerStyle={[styles.pb5]}
                 type={currentDraftFilters.type}
+                searchValue={filterSearchValue}
+                onSearchValueChange={setFilterSearchValue}
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
             <View style={[isInLandscapeMode ? [styles.flexRow, styles.gap2] : [styles.gap3], styles.ph5, styles.pb5]}>

@@ -10386,6 +10386,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             billable: 'Facturable',
             rejected: 'Rejeté',
             held: 'En attente',
+            searchFilters: 'Rechercher des filtres',
             reimbursable: 'Remboursable',
             purchaseCurrency: 'Devise d’achat',
             sortOrder: {

@@ -9896,6 +9896,7 @@ ${reportName}`,
             billable: '可计费',
             rejected: '已拒绝',
             held: '已搁置',
+            searchFilters: '搜索筛选器',
             reimbursable: '可报销',
             purchaseCurrency: '购买货币',
             sortOrder: {

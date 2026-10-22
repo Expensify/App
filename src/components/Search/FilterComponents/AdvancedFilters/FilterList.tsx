@@ -1,10 +1,12 @@
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
+import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -36,6 +38,11 @@ type FilterListProps = FilterItemCallbacks & {
     selectedFilter?: SearchFilter['key'];
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Text in the search input above the list. Only the filters whose label contains it are listed. */
+    searchValue: string;
+
+    onSearchValueChange: (searchValue: string) => void;
 
     /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
     onPointerMove?: (event: {clientX: number; clientY: number}) => void;
@@ -108,40 +115,62 @@ function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: 
     );
 }
 
-function FilterList({type, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress, onPointerMove, onPointerLeave}: FilterListProps) {
+function FilterList({type, selectedFilter, style, contentContainerStyle, searchValue, onSearchValueChange, onHoverIn, onFocus, onPress, onPointerMove, onPointerLeave}: FilterListProps) {
     const styles = useThemeStyles();
-    const typeFiltersKeys = useAdvancedSearchFilters(type);
+    const {translate} = useLocalize();
+    const typeFiltersKeys = useAdvancedSearchFilters(type, searchValue);
+    const noResultsFoundText = translate('common.noResultsFound');
+    const shouldShowNoResultsFound = typeFiltersKeys.length === 0;
+
+    useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldShowNoResultsFound, searchValue);
 
     return (
-        <ScrollView
-            style={[style]}
-            contentContainerStyle={[contentContainerStyle]}
-            showsVerticalScrollIndicator={false}
-            onMouseMove={onPointerMove}
-            onMouseLeave={onPointerLeave}
-        >
-            {typeFiltersKeys.map((section, index) => (
-                <View key={`${section.at(0)}`}>
-                    {index !== 0 && (
-                        <SpacerView
-                            shouldShow
-                            style={[styles.reportHorizontalRule]}
-                        />
-                    )}
-                    {section.map((item) => (
-                        <FilterItem
-                            key={item}
-                            filterKey={item}
-                            type={type}
-                            isSelected={item === selectedFilter}
-                            onHoverIn={onHoverIn}
-                            onFocus={onFocus}
-                            onPress={onPress}
-                        />
-                    ))}
+        <View style={[styles.flex1, style]}>
+            <CompactSearchBar
+                label={translate('search.filters.searchFilters')}
+                inputValue={searchValue}
+                onChangeText={onSearchValueChange}
+                style={styles.mb3}
+            />
+            {shouldShowNoResultsFound && (
+                <View style={[styles.ph5, styles.pb5]}>
+                    <Text
+                        style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
+                        aria-hidden
+                    >
+                        {noResultsFoundText}
+                    </Text>
                 </View>
-            ))}
-        </ScrollView>
+            )}
+            <ScrollView
+                contentContainerStyle={[contentContainerStyle]}
+                showsVerticalScrollIndicator={false}
+                onMouseMove={onPointerMove}
+                onMouseLeave={onPointerLeave}
+            >
+                {typeFiltersKeys.map((section, index) => (
+                    <View key={`${section.at(0)}`}>
+                        {index !== 0 && (
+                            <SpacerView
+                                shouldShow
+                                style={[styles.reportHorizontalRule]}
+                            />
+                        )}
+                        {section.map((item) => (
+                            <FilterItem
+                                key={item}
+                                filterKey={item}
+                                type={type}
+                                isSelected={item === selectedFilter}
+                                onHoverIn={onHoverIn}
+                                onFocus={onFocus}
+                                onPress={onPress}
+                            />
+                        ))}
+                    </View>
+                ))}
+            </ScrollView>
+        </View>
     );
 }
 

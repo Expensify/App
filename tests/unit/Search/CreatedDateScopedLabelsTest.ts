@@ -46,13 +46,13 @@ describe('Created date scoped labels (#98148)', () => {
     });
 
     describe('getFilterViewLabelKey (filter menu row, applied chip, filter subpage title)', () => {
-        it('returns "Created date" for the DATE filter in expense-report and task search', () => {
+        it('returns "Created date" for the DATE filter in expense-report, task and invoice search', () => {
             expect(getFilterViewLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, EXPENSE_REPORT)).toBe('search.filters.createdDate');
             expect(getFilterViewLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, TASK)).toBe('search.filters.createdDate');
+            expect(getFilterViewLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, INVOICE)).toBe('search.filters.createdDate');
         });
 
-        it('keeps "Date" for the DATE filter in invoice, expense, trip and with no type', () => {
-            expect(getFilterViewLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, INVOICE)).toBe('common.date');
+        it('keeps "Date" for the DATE filter in expense, trip and with no type', () => {
             expect(getFilterViewLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, EXPENSE)).toBe('common.date');
             expect(getFilterViewLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, TRIP)).toBe('common.date');
             expect(getFilterViewLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE)).toBe('common.date');
