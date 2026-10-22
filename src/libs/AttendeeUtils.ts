@@ -7,7 +7,7 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {sortAlphabetically} from './OptionsListUtils';
+import sortAlphabetically from './sortAlphabetically';
 
 function getNormalizedString(value?: string): string | undefined {
     const normalizedValue = value?.trim();
@@ -149,9 +149,9 @@ function enrichAndSortAttendees(
             return {
                 ...a,
                 accountID,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
+                // intentional || to fall back when personalDetails has an empty string
                 displayName: pd?.displayName || a?.displayName,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
+                // intentional || to fall back when personalDetails has an empty string
                 avatarUrl: freshAvatar || a?.avatarUrl,
             };
         }),

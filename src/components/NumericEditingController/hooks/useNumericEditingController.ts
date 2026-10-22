@@ -1,3 +1,4 @@
+import type {NumericEditingSelection} from '@components/NumericEditingController/types';
 import {normalizeNumericInput, toCanonicalValueDefault, toDisplayTextDefault} from '@components/NumericEditingController/utils';
 
 import useLocalize from '@hooks/useLocalize';
@@ -24,8 +25,8 @@ type UseNumericEditingControllerParams = {
     /** Maps canonical values to displayed text. Defaults to identity. */
     toDisplayText?: (canonicalValue: string) => string;
 
-    /** Maps validated text to a canonical value. Defaults to identity. */
-    toCanonicalValue?: (displayText: string, previousCanonicalValue: string) => string;
+    /** Maps validated text to a canonical value, given the selection the edit replaced. Defaults to identity. */
+    toCanonicalValue?: (displayText: string, previousCanonicalValue: string, previousSelection: NumericEditingSelection) => string;
 };
 
 /** Runs on mount and whenever `decimals` changes, sanitizing values that exceed the new precision. */
@@ -65,7 +66,9 @@ function useNumericEditingController({
 
     const formattedNumber = replaceAllDigits(toDisplayText(currentValue), toLocaleDigit);
 
-    const {selection, collapse, reset, syncToEnd, syncAfterEdit, handleKeyPress, rejectEdit, handleNativeSelectionChange} = useNumericSelection({displayText: formattedNumber});
+    const {selection, collapse, reset, syncToEnd, syncAfterEdit, handleKeyPress, rejectEdit, handleNativeSelectionChange, setShouldUpdateSelection} = useNumericSelection({
+        displayText: formattedNumber,
+    });
 
     // Reset when the external value is cleared. Ignore other external changes while editing.
     if (previousExternalValue !== externalValue) {
@@ -98,7 +101,8 @@ function useNumericEditingController({
             return;
         }
 
-        const nextValue = toCanonicalValue(numberWithLeadingZero, committedValueRef.current);
+        // The change event lands before the native selection event, so this is still the selection the edit replaced.
+        const nextValue = toCanonicalValue(numberWithLeadingZero, committedValueRef.current, selection);
         const previousValue = applyValue(nextValue);
 
         syncAfterEdit({previousText: toDisplayText(previousValue), nextText: toDisplayText(nextValue)});
@@ -115,6 +119,23 @@ function useNumericEditingController({
         applyValue(nextValue, {notify});
     };
 
+    // Replaces the selected range with text, or inserts it at the caret.
+    const insertAtSelection = (text: string) => {
+        setNumber(`${formattedNumber.slice(0, selection.start)}${text}${formattedNumber.slice(selection.end)}`);
+    };
+
+    // Deletes the selected range, or the character before the caret when nothing is selected.
+    const deleteBackward = () => {
+        const isCollapsed = selection.start === selection.end;
+
+        if (isCollapsed && selection.start === 0) {
+            return;
+        }
+
+        const deleteStart = isCollapsed ? selection.start - 1 : selection.start;
+        setNumber(`${formattedNumber.slice(0, deleteStart)}${formattedNumber.slice(selection.end)}`);
+    };
+
     const getNumber = () => committedValueRef.current;
 
     useLayoutEffect(() => {
@@ -128,7 +149,11 @@ function useNumericEditingController({
             return;
         }
 
-        setNumber(toDisplayText(stripDecimalsFromAmount(currentValue)));
+        // Preserve the canonical sign because text conversion treats a full selection as a replacement.
+        const nextValue = stripDecimalsFromAmount(currentValue);
+        const previousValue = applyValue(nextValue);
+
+        syncAfterEdit({previousText: toDisplayText(previousValue), nextText: toDisplayText(nextValue)});
     });
 
     return {
@@ -136,12 +161,15 @@ function useNumericEditingController({
         formattedNumber,
         selection,
         setNumber,
+        insertAtSelection,
+        deleteBackward,
         setCanonicalValue,
         updateNumber,
         getNumber,
         clearSelection: collapse,
         handleSelectionChange: handleNativeSelectionChange,
         handleKeyPress,
+        setShouldUpdateSelection,
     };
 }
 

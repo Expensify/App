@@ -16,6 +16,7 @@ import type {
     SetPolicyTagsRequired,
     SetPolicyShowTagGLCodesParams,
     UpdatePolicyTagGLCodeParams,
+    SetPolicyRequiresTag,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
@@ -32,7 +33,8 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 
-import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
+import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
+import {getFinishOnboardingTaskOnyxData, withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,7 +82,46 @@ function openPolicyTagsPage(policyID: string) {
         policyID,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params);
+    type TagsLoadingKey = typeof ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE;
+    const loadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${policyID}` as const;
+
+    const optimisticData: Array<OnyxUpdate<TagsLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: true},
+        },
+    ];
+
+    // `hasOnceLoaded` is only ever written here, so a read that never landed leaves the policy eligible for a retry.
+    // The collection existing in Onyx cannot stand in for this: it may hold only the tag already on the expense.
+    const successData: Array<OnyxUpdate<TagsLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: false, hasOnceLoaded: true},
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<TagsLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: false},
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears the in-flight flag for a policy's tags read.
+ *
+ * A read cut off by a disconnect never gets a response, so its `failureData` never applies and `isLoading` would stay
+ * true for the rest of the session, blocking every retry. Callers clear it on reconnect.
+ */
+function clearPolicyTagsLoadingState(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${policyID}`, {isLoading: false});
 }
 
 type BuildOptimisticPolicyRecentlyUsedTagsProps = {
@@ -103,7 +144,8 @@ function buildOptimisticPolicyRecentlyUsedTags({policyTags, policyRecentlyUsedTa
         }
 
         const tagListKey = policyTagKeys.at(index) ?? '';
-        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(policyRecentlyUsedTags?.[tagListKey] ?? [])])];
+        const recentlyUsedTagsForList = policyRecentlyUsedTags?.[tagListKey];
+        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(Array.isArray(recentlyUsedTagsForList) ? recentlyUsedTagsForList : [])])];
     }
 
     return newOptimisticPolicyRecentlyUsedTags;
@@ -859,6 +901,10 @@ function setImportedSpreadsheetIsImportingIndependentMultiLevelTags(isImportingI
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isImportingIndependentMultiLevelTags});
 }
 
+function setImportedSpreadsheetIsAppendingToExistingLists(isAppendingToExistingLists: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isAppendingToExistingLists});
+}
+
 function setImportedSpreadsheetIsFirstLineHeader(containsHeader: boolean) {
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {containsHeader});
 }
@@ -874,6 +920,19 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
 
     const importFinalModalID = getImportFinalModalID();
     const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [
+        getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal()),
+    ];
+    // When appending, the accounting connection tag lists are kept, so a failed append shouldn't change whether the policy has multiple tag lists
+    if (!spreadsheet.isAppendingToExistingLists) {
+        failureData.unshift({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                hasMultipleTagLists: false,
+            },
+        });
+    }
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
@@ -885,16 +944,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
             },
             getImportFinalModalOnyxData(importFinalModalID, getImportMultiLevelTagsFinalModal()),
         ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    hasMultipleTagLists: false,
-                },
-            },
-            getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal()),
-        ],
+        failureData,
     };
 
     return new Promise((resolve) => {
@@ -907,6 +957,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                     isFirstLineHeader: spreadsheet.containsHeader,
                     isIndependent: spreadsheet.isImportingIndependentMultiLevelTags,
                     isGLAdjacent: spreadsheet.isGLAdjacent,
+                    appendToExistingLists: !!spreadsheet.isAppendingToExistingLists,
                     file,
                 };
 
@@ -979,7 +1030,13 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
 }
 
 /** extraPolicyUpdate folds a caller's same-save requiresCategory change into this action's single violation recompute. */
-function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean, isVendorMatchingBetaEnabled: boolean | undefined, extraPolicyUpdate: Partial<Policy> = {}) {
+function setPolicyRequiresTag(
+    policyData: PolicyData,
+    requiresTag: boolean,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    extraPolicyUpdate: Partial<Policy> = {},
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
 
     const policyOptimisticData: Partial<Policy> = {
@@ -1051,12 +1108,13 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean, isVe
     onyxData.successData?.push(getUpdatedTagsOnyxData(requiresTag));
 
     pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, policyOptimisticData, {}, getUpdatedTagsData(requiresTag));
-    const parameters = {
+    const parameters: SetPolicyRequiresTag = {
         policyID,
         requiresTag,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyShowTagGLCodes(policyID: string | undefined, showTagGLCodes: boolean, currentShowTagGLCodes: boolean | undefined) {
@@ -1281,11 +1339,18 @@ type SetPolicyTagGLCodeProps = {
     tagListIndex: number;
     glCode: string;
     policyTags: OnyxEntry<PolicyTagLists>;
+    parentTagsFilter?: string;
 };
 
-function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags}: SetPolicyTagGLCodeProps) {
+function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags, parentTagsFilter}: SetPolicyTagGLCodeProps) {
     const tagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
-    const policyTagToUpdate = policyTags?.[tagListName]?.tags?.[tagName] ?? {};
+    const policyTagEntry = PolicyUtils.findPolicyTagEntryByParentFilter(policyTags?.[tagListName]?.tags, tagName, parentTagsFilter);
+
+    if (!policyTagEntry) {
+        return;
+    }
+
+    const {tag: policyTagToUpdate, tagKey} = policyTagEntry;
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
@@ -1295,7 +1360,7 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
                 value: {
                     [tagListName]: {
                         tags: {
-                            [tagName]: {
+                            [tagKey]: {
                                 ...policyTagToUpdate,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 pendingFields: {
@@ -1317,7 +1382,7 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
                 value: {
                     [tagListName]: {
                         tags: {
-                            [tagName]: {
+                            [tagKey]: {
                                 errors: null,
                                 pendingAction: null,
                                 pendingFields: {
@@ -1337,7 +1402,7 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
                 value: {
                     [tagListName]: {
                         tags: {
-                            [tagName]: {
+                            [tagKey]: {
                                 ...policyTagToUpdate,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.updateGLCodeFailureMessage'),
                             },
@@ -1350,10 +1415,11 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
 
     const parameters: UpdatePolicyTagGLCodeParams = {
         policyID,
-        tagName,
+        tagName: policyTagToUpdate.name,
         tagListName,
         tagListIndex,
         glCode,
+        ...(parentTagsFilter ? {parentTagsFilter} : {}),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
@@ -1473,6 +1539,7 @@ export {
     deletePolicyTags,
     enablePolicyTags,
     openPolicyTagsPage,
+    clearPolicyTagsLoadingState,
     renamePolicyTag,
     renamePolicyTagList,
     setWorkspaceTagEnabled,
@@ -1484,6 +1551,7 @@ export {
     cleanPolicyTags,
     setImportedSpreadsheetIsImportingMultiLevelTags,
     setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
+    setImportedSpreadsheetIsAppendingToExistingLists,
     setImportedSpreadsheetIsFirstLineHeader,
     setImportedSpreadsheetIsGLAdjacent,
     importMultiLevelTags,

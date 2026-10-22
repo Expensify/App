@@ -1,10 +1,11 @@
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
@@ -77,6 +78,9 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
     const {allPolicies, perDiemOriginalPolicy} = usePerDiemPolicyData(transaction);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const {setSelectedTransactions} = useSearchSelectionActions();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const {currentSearchResults} = useSearchResultsContext();
+    useHydrateReportsFromSnapshot(currentSearchResults, allReports);
     const reportOrDraftReport = useReportOrReportDraft(reportIDFromRoute);
     const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOrDraftReport?.parentReportID}`, {selector: getIOUActionsSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;

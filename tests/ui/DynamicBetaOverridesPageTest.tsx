@@ -20,11 +20,19 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-let mockIsProduction = false;
-jest.mock('@hooks/useEnvironment', () => ({
-    __esModule: true,
-    default: () => ({isProduction: mockIsProduction}),
-}));
+// The resolved environment, which the page reads through useEnvironment
+let mockResolvedEnvironment: string = CONST.ENVIRONMENT.DEV;
+jest.mock('@hooks/useEnvironment', () => {
+    // CONST cannot be referenced from a mock factory, so it is required inside it
+    const {ENVIRONMENT} = jest.requireActual<{default: {ENVIRONMENT: Record<string, string>}}>('@src/CONST').default;
+    return {
+        __esModule: true,
+        default: () => ({
+            environment: mockResolvedEnvironment,
+            isProduction: mockResolvedEnvironment === ENVIRONMENT.PRODUCTION,
+        }),
+    };
+});
 
 // The page also checks the compiled environment, read through a getter so it stays settable per test
 let mockConfigEnvironment: string = CONST.ENVIRONMENT.DEV;
@@ -85,7 +93,7 @@ describe('DynamicBetaOverridesPage', () => {
     });
 
     afterEach(() => {
-        mockIsProduction = false;
+        mockResolvedEnvironment = CONST.ENVIRONMENT.DEV;
         mockConfigEnvironment = CONST.ENVIRONMENT.DEV;
     });
 
@@ -230,7 +238,7 @@ describe('DynamicBetaOverridesPage', () => {
 
     it('shows the not found page in production, since the route can still be reached by a deep link', async () => {
         // Given A production build, where overrides are ignored anyway
-        mockIsProduction = true;
+        mockResolvedEnvironment = CONST.ENVIRONMENT.PRODUCTION;
         mockConfigEnvironment = CONST.ENVIRONMENT.PRODUCTION;
 
         // When The page is opened, which a deep link still allows even though the row is hidden
@@ -244,7 +252,7 @@ describe('DynamicBetaOverridesPage', () => {
 
     it('renders outside production even before the environment context resolves', async () => {
         // Given A staging build whose environment context has not resolved, so it still reports production
-        mockIsProduction = true;
+        mockResolvedEnvironment = CONST.ENVIRONMENT.PRODUCTION;
         mockConfigEnvironment = CONST.ENVIRONMENT.STAGING;
 
         // When The page is opened

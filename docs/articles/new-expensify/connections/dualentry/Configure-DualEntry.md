@@ -28,8 +28,6 @@ Each Workspace has its own DualEntry integration. To view or update the configur
 2. Select **Accounting**.
 3. On the DualEntry connection, select **Import**, **Export**, or **Advanced**.
 
-![The Accounting page showing the connected DualEntry integration with the Import, Export, and Advanced settings visible.]({{site.url}}/assets/images/DualEntry_configure.png){:width="100%"}
-
 ---
 
 ## How to configure DualEntry import settings
@@ -69,6 +67,8 @@ When **Configure exporting to multiple accounts** is enabled:
 An individual card uses its per-card account when one is configured. Otherwise, it uses its card program account. If the card program doesn't have an account override, it uses the workspace **Company card account**.
 
 You can also change an individual company card's DualEntry export account from its card details.
+
+To review or change the vendor on an individual expense before it exports, learn how to [manage vendor matching for DualEntry](/articles/new-expensify/connections/dualentry/Manage-Vendor-Matching-for-DualEntry).
 
 ---
 

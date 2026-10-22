@@ -26,7 +26,7 @@ import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getFooterCountItems, getFooterTotalItems, getSearchColumnTranslationKey, getValidGroupBy, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
@@ -119,7 +119,7 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
 
 function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>, queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate) {
     const appliedDisplays = [];
-    const groupBy = searchAdvancedFiltersForm.groupBy;
+    const groupBy = getValidGroupBy(searchAdvancedFiltersForm.groupBy);
     if (groupBy) {
         appliedDisplays.push({label: translate('search.display.groupBy'), value: translate(`search.filters.groupBy.${groupBy}`)});
     }
@@ -136,8 +136,24 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
         appliedDisplays.push({label: translate('search.view.label'), value: translate(`search.view.${searchAdvancedFiltersForm.view}`)});
     }
 
+    // The Spend footer's choices summarize the results rather than narrow them, so they sit with the display settings.
+    // The query leaves defaults out, so only a choice the user made shows here.
+    if (searchAdvancedFiltersForm.footerCount) {
+        const footerCount = searchAdvancedFiltersForm.footerCount;
+        appliedDisplays.push({label: translate('common.count'), value: getFooterCountItems(translate).find((item) => item.value === footerCount)?.text ?? footerCount});
+    }
+
+    if (searchAdvancedFiltersForm.footerTotal) {
+        const footerTotal = searchAdvancedFiltersForm.footerTotal;
+        appliedDisplays.push({label: translate('common.total'), value: getFooterTotalItems(translate).find((item) => item.value === footerTotal)?.text ?? footerTotal});
+    }
+
+    if (searchAdvancedFiltersForm.footerCurrency) {
+        appliedDisplays.push({label: translate('common.currency'), value: searchAdvancedFiltersForm.footerCurrency});
+    }
+
     if (queryJSON?.sortBy) {
-        appliedDisplays.push({label: translate('search.display.sortBy'), value: translate(getSearchColumnTranslationKey(queryJSON.sortBy))});
+        appliedDisplays.push({label: translate('search.display.sortBy'), value: translate(getSearchColumnTranslationKey(queryJSON.sortBy, queryJSON.type))});
     }
 
     if (queryJSON?.sortOrder) {
@@ -151,7 +167,7 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
 
         const isDefaultState = columns.length === defaultCustomColumns.length && columns.every((col, index) => col === defaultCustomColumns.at(index));
         if (!isDefaultState) {
-            appliedDisplays.push({label: translate('search.columns'), value: columns.map((column) => translate(getSearchColumnTranslationKey(column))).join(', ')});
+            appliedDisplays.push({label: translate('search.columns'), value: columns.map((column) => translate(getSearchColumnTranslationKey(column, queryType))).join(', ')});
         }
     }
 

@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import type {SecurityGroupKey, UserSecurityGroupData} from '@src/types/onyx/Domain';
 import type {DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
@@ -6,7 +7,7 @@ import type {DomainSecurityGroupPendingActions} from '@src/types/onyx/DomainPend
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 import isObject from 'lodash/isObject';
@@ -222,6 +223,11 @@ function hasPendingAdminshipRequestSelector(accountID: number | undefined) {
     return (domain: OnyxEntry<Domain>): boolean => !!accountID && !!domain?.domain_adminRequesters?.[accountID];
 }
 
+/** Picks just what deciding whether a user still belongs on a non-admin domain screen needs: the name proves the domain loaded, the flag says they became an admin */
+function domainAccessSelector(accountID: number | undefined) {
+    return (domain: OnyxEntry<Domain>) => ({domainName: domainNameSelector(domain), isAdmin: isAdminSelector(accountID)(domain)});
+}
+
 /**
  * Extracts the accountIDs of all pending domain adminship requesters from the domain object.
  */
@@ -244,6 +250,55 @@ function pendingAdminRequesterAccountIDsSelector(domain: OnyxEntry<Domain>): num
 }
 
 const adminshipRequesterPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.adminshipRequester ?? {};
+
+type PendingDomainAdminRequests = {
+    /** Total pending domain adminship requests across every domain the current user administers */
+    count: number;
+    /** accountIDs of the domains that contributed at least one pending request, for navigation */
+    domainAccountIDs: number[];
+};
+
+const EMPTY_PENDING_DOMAIN_ADMIN_REQUESTS: PendingDomainAdminRequests = {count: 0, domainAccountIDs: []};
+
+/**
+ * Counts pending domain adminship requests visible to the current user.
+ * A domain only contributes to the count when the current user administers it — requesters get their own
+ * entry in `domain_adminRequesters` too (see the "Request sent" state), so without this gate a requester
+ * would see a review prompt for a domain they don't administer. Requesters whose decline is still pending
+ * (their `adminshipRequester` action is `DELETE`, see `declineDomainAdminshipRequest`) are excluded, matching
+ * `hasPendingDomainAdminRequestsToReview` so the home task and the Domains badge stay in sync offline.
+ */
+function getPendingDomainAdminRequests(
+    domains: OnyxCollection<Domain>,
+    allDomainPendingActions: OnyxCollection<DomainPendingActions>,
+    currentUserAccountID: number | undefined,
+): PendingDomainAdminRequests {
+    if (!domains || !currentUserAccountID) {
+        return EMPTY_PENDING_DOMAIN_ADMIN_REQUESTS;
+    }
+
+    let count = 0;
+    const domainAccountIDs: number[] = [];
+
+    for (const domain of Object.values(domains)) {
+        if (!domain || !isAdminSelector(currentUserAccountID)(domain)) {
+            continue;
+        }
+
+        const requesterPendingActions = adminshipRequesterPendingActionSelector(allDomainPendingActions?.[`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domain.accountID}`]);
+        const requesterAccountIDs = pendingAdminRequesterAccountIDsSelector(domain).filter(
+            (accountID) => accountID !== currentUserAccountID && requesterPendingActions[accountID]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        if (requesterAccountIDs.length === 0) {
+            continue;
+        }
+
+        count += requesterAccountIDs.length;
+        domainAccountIDs.push(domain.accountID);
+    }
+
+    return count > 0 ? {count, domainAccountIDs} : EMPTY_PENDING_DOMAIN_ADMIN_REQUESTS;
+}
 
 /** Creates a selector that extracts the pending action for a security group's setting */
 function domainSecurityGroupSettingPendingActionSelector(settingName: keyof DomainSecurityGroupPendingActions, groupID?: string) {
@@ -287,9 +342,11 @@ export {
     vacationDelegateSelector,
     accountLockSelector,
     isAdminSelector,
+    domainAccessSelector,
     hasPendingAdminshipRequestSelector,
     pendingAdminRequesterAccountIDsSelector,
     adminshipRequesterPendingActionSelector,
+    getPendingDomainAdminRequests,
     selectGroupByID,
     domainSecurityGroupSettingPendingActionSelector,
     domainSecurityGroupSettingErrorsSelector,

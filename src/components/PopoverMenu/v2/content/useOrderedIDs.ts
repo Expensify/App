@@ -1,3 +1,4 @@
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import type {FocusableItem} from './ContentContext';
@@ -11,7 +12,7 @@ function useOrderedIDs(registry: Map<string, FocusableItem>): string[] {
     return [...registry.entries()].sort(([, a], [, b]) => compareNodes(a.ref.current, b.ref.current)).map(([id]) => id);
 }
 
-function compareNodes(a: View | null, b: View | null): number {
+function compareNodes(a: ComponentRef<typeof View> | null, b: ComponentRef<typeof View> | null): number {
     // Stable-sort fallback: refs may not have attached on the first commit after registration.
     if (a === null || b === null) {
         return 0;

@@ -5,6 +5,7 @@ on:
     inputs:
       PULL_REQUEST_URL:
         description: The full URL of the E/App or E/Mobile-Expensify pull request to cherry-pick
+        type: string
         required: true
       TARGET:
         description: CP to staging or production?

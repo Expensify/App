@@ -1,7 +1,8 @@
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 type SafeTriangleProps = {
-    submenuRef: React.RefObject<View | null>;
+    submenuRef: React.RefObject<ComponentRef<typeof View> | null>;
     children: React.ReactNode;
 };
 

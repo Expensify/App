@@ -22,9 +22,9 @@ import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposit
 import {shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 
 import type {ListRenderItem} from '@shopify/flash-list';
+import type {ComponentRef} from 'react';
 
 import throttle from 'lodash/throttle';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -65,13 +65,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         spacersIndexes,
     } = useEmojiPickerMenu();
 
-    const headerRefs = useRef<Record<number, React.RefObject<View | null>>>({});
+    const headerRefs = useRef<Record<number, React.RefObject<ComponentRef<typeof View> | null>>>({});
     const pendingHeaderFocusIndexRef = useRef<number | null>(null);
     const [selectedHeaderIndex, setSelectedHeaderIndex] = useState<number | null>(null);
 
     const getHeaderRef = useCallback((index: number) => {
         if (!headerRefs.current[index]) {
-            headerRefs.current[index] = React.createRef<View>();
+            headerRefs.current[index] = React.createRef<ComponentRef<typeof View>>();
         }
         return headerRefs.current[index];
     }, []);
@@ -83,7 +83,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         }
         pendingHeaderFocusIndexRef.current = null;
 
-        (headerRef.current as unknown as HTMLElement).focus?.();
+        headerRef.current.focus();
         return true;
     }, []);
 
@@ -342,7 +342,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                             target === 'StickyHeader' ? styles.stickyHeaderEmoji : undefined,
                         ]}
                     >
-                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>
+                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${item.code}`)}</Text>
                     </View>
                 );
             }
@@ -419,7 +419,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                         setSearchText(text);
                         filterEmojis(text);
                     }}
-                    defaultValue=""
+                    value={searchText}
+                    shouldHideClearButton={false}
                     ref={searchInputRef}
                     autoFocus={shouldFocusInputOnScreenFocus}
                     onFocus={() => {

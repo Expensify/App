@@ -14,7 +14,6 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 
-import Button from './Button';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -52,12 +51,7 @@ type BannerProps = {
     /** Styles to be assigned to the Banner text */
     textStyles?: StyleProp<TextStyle>;
 
-    /** Whether to display button in the banner */
-    shouldShowButton?: boolean;
-
-    onButtonPress?: () => void;
-
-    /** Custom action content rendered in the right side of the banner. Overrides the configured `shouldShowButton` when provided. */
+    /** Custom action content rendered in the right side of the banner. */
     children?: React.ReactNode;
 };
 
@@ -67,14 +61,12 @@ function Banner({
     icon,
     onClose,
     onPress,
-    onButtonPress,
     containerStyles,
     textStyles,
     children,
     shouldRenderHTML = false,
     shouldShowIcon = false,
     shouldShowCloseButton = false,
-    shouldShowButton = false,
 }: BannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -125,16 +117,7 @@ function Banner({
                                     </Text>
                                 ))}
                         </View>
-                        {children ??
-                            (shouldShowButton && (
-                                <Button
-                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                    style={[styles.ph3]}
-                                    onPress={onButtonPress}
-                                >
-                                    <Button.Text>{translate('common.chatNow')}</Button.Text>
-                                </Button>
-                            ))}
+                        {children}
                         {shouldShowCloseButton && !!onClose && (
                             <Tooltip text={translate('common.close')}>
                                 <PressableWithFeedback
