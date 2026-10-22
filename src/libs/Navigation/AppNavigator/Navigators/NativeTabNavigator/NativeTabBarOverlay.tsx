@@ -22,6 +22,7 @@ import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 import type {NativeTabLayoutProps} from './NativeTabLayout';
 
+import doesTabHostSpanHorizontalSafeArea from './doesTabHostSpanHorizontalSafeArea';
 import NativeTabBarShadow from './NativeTabBarShadow';
 import {getFloatingButtonsBottom} from './useNativeTabBarOptions';
 
@@ -56,8 +57,12 @@ function NativeTabBarOverlay({state, descriptors}: Pick<NativeTabLayoutProps, 's
                 >
                     <NativeTabBarShadow />
                     <View
-                        // The tab host spans the whole window, so the buttons keep out of the horizontal safe area themselves.
-                        style={styles.nativeTabBarFloatingButtons(getFloatingButtonsBottom(bottomInset), leftInset, rightInset)}
+                        // Where the tab host spans the whole window, the buttons keep out of the horizontal safe area themselves.
+                        style={styles.nativeTabBarFloatingButtons(
+                            getFloatingButtonsBottom(bottomInset),
+                            doesTabHostSpanHorizontalSafeArea ? leftInset : 0,
+                            doesTabHostSpanHorizontalSafeArea ? rightInset : 0,
+                        )}
                         pointerEvents="box-none"
                     >
                         <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>

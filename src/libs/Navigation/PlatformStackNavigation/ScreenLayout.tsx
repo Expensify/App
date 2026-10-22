@@ -1,5 +1,6 @@
 import HorizontalSafeArea from '@components/HorizontalSafeArea';
 
+import doesTabHostSpanHorizontalSafeArea from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/doesTabHostSpanHorizontalSafeArea';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 
@@ -32,10 +33,10 @@ function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBa
         />
     );
 
-    // Root screens keep out of the horizontal safe area, and the screens nested in them sit inside it already. The tab
-    // navigator spans the whole window so the native tab bar can sit in the inset, and its tabs keep out of it instead.
+    // Root screens keep out of the horizontal safe area, and the screens nested in them sit inside it already. Where the
+    // tab navigator spans the whole window so the native tab bar can sit in the inset, its tabs keep out of it instead.
     const isRootScreen = !transitionAwareNavigation.getParent();
-    if (!isRootScreen || rest.route.name === NAVIGATORS.TAB_NAVIGATOR) {
+    if (!isRootScreen || (rest.route.name === NAVIGATORS.TAB_NAVIGATOR && doesTabHostSpanHorizontalSafeArea)) {
         return screen;
     }
     return <HorizontalSafeArea>{screen}</HorizontalSafeArea>;
@@ -44,6 +45,9 @@ function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBa
 // Same as screenLayoutWrapper above, but for bottom-tab navigators, JS and native. No cast needed here - their
 // `navigation` props' `addListener` structurally satisfies TransitionAwareNavigation.
 function bottomTabScreenLayoutWrapper(props: ScreenLayoutProps) {
+    if (!doesTabHostSpanHorizontalSafeArea) {
+        return <ScreenLayout {...props} />;
+    }
     return (
         <HorizontalSafeArea>
             <ScreenLayout {...props} />

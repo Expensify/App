@@ -7522,11 +7522,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             width,
         }),
 
-        getSplashScreenHiderPosition: (left: number, right: number): ViewStyle => ({
-            left: -left,
-            right: -right,
-        }),
-
         getSelectionListPopoverHeight: ({
             itemCount,
             itemHeight = variables.optionRowHeightCompact,

@@ -28,6 +28,7 @@ import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
+import LandscapeKeyboardDismissAreas from './components/LandscapeKeyboardDismissAreas';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import {ModalProvider} from './components/Modal/Global/ModalContext';
 import NavigationBar from './components/NavigationBar';
@@ -140,6 +141,7 @@ function App() {
                                         </ColorSchemeWrapper>
                                     </ErrorBoundary>
                                     <NavigationBar />
+                                    <LandscapeKeyboardDismissAreas />
                                 </ComposeProviders>
                             </View>
                         </SafeAreaProvider>
