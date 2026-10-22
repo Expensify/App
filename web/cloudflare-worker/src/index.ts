@@ -72,13 +72,19 @@ async function getPreviousBuildFile(env: Env, url: URL, method: string): Promise
         return null;
     }
 
-    if (method === 'HEAD') {
-        const object = await env.PREVIOUS_BUILDS.head(key);
-        return object ? new Response(null, {headers: getPreviousBuildFileHeaders(object)}) : null;
-    }
+    try {
+        if (method === 'HEAD') {
+            const object = await env.PREVIOUS_BUILDS.head(key);
+            return object ? new Response(null, {headers: getPreviousBuildFileHeaders(object)}) : null;
+        }
 
-    const object = await env.PREVIOUS_BUILDS.get(key);
-    return object ? new Response(object.body, {headers: getPreviousBuildFileHeaders(object)}) : null;
+        const object = await env.PREVIOUS_BUILDS.get(key);
+        return object ? new Response(object.body, {headers: getPreviousBuildFileHeaders(object)}) : null;
+    } catch (error) {
+        // A 404 lets the tab recover with a reload, as it does for a file no build has.
+        console.error(`Failed to read ${key} from the previous builds bucket`, error);
+        return null;
+    }
 }
 
 export default {

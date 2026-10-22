@@ -260,6 +260,18 @@ describe('staging worker with files from previous builds', () => {
         assert.equal(await response.text(), '');
     });
 
+    test('returns 404 when the previous builds bucket fails', async () => {
+        // Given a chunk path whose bucket lookup fails (R2 rejects keys over 1,024 bytes)
+        for (const method of ['GET', 'HEAD']) {
+            // When it is requested
+            const response = await server.fetch(`/${'a'.repeat(1100)}.bundle.js`, {method});
+
+            // Then the Worker answers as it does for a chunk no build has, instead of throwing
+            assert.equal(response.status, 404, method);
+            assertSecurityHeaders(response);
+        }
+    });
+
     test('serves the current build when a previous build has the same file', async () => {
         // Given a file that is in both the current build and the bucket
         // When it is requested
@@ -335,10 +347,12 @@ describe('test-staging worker', () => {
 });
 
 describe('production worker', () => {
-    const {server, cleanup} = createWorkerHarness('production', {vars: {DEV_UPSTREAM: 'http://127.0.0.1:1', DEV_CONNECT_ORIGINS: '["https://dev-only.invalid"]'}});
+    const {server, addPreviousBuildFiles, cleanup} = createWorkerHarness('production', {vars: {DEV_UPSTREAM: 'http://127.0.0.1:1', DEV_CONNECT_ORIGINS: '["https://dev-only.invalid"]'}});
+    const PREVIOUS_CHUNK_PATH = '/main-aaaaaaaaaaaaaaaa.bundle.js';
 
     before(async () => {
         await server.listen();
+        await addPreviousBuildFiles([{path: PREVIOUS_CHUNK_PATH.slice(1), contents: 'window.previousBuildChunk = true;', contentType: 'text/javascript'}]);
     });
 
     after(async () => {
@@ -358,12 +372,22 @@ describe('production worker', () => {
         assertTemplateInlineScriptsAllowed(csp);
     });
 
-    test('returns 404 for a missing chunk without a previous builds bucket', async () => {
-        // Given production has no PREVIOUS_BUILDS binding yet
-        // When a chunk the current build doesn't have is requested
+    test('serves a chunk the current build no longer has from a previous build', async () => {
+        // Given a tab still running an older production build, whose chunk is in the production bucket
+        // When the tab lazy-loads it after a newer deploy
+        const response = await server.fetch(PREVIOUS_CHUNK_PATH);
+
+        // Then it loads from the previous build
+        assert.equal(response.status, 200);
+        assert.equal(await response.text(), 'window.previousBuildChunk = true;');
+    });
+
+    test('returns 404 for a chunk no build has', async () => {
+        // Given a chunk that is neither in the current build nor in the bucket
+        // When it is requested
         const response = await server.fetch('/main-ffffffffffffffff.bundle.js');
 
-        // Then it is a 404 rather than an error from the missing binding
+        // Then it is a 404, so the tab gets a ChunkLoadError and recovers
         assert.equal(response.status, 404);
     });
 });
