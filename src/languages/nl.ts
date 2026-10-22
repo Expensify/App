@@ -10279,7 +10279,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             billable: 'Factureerbaar',
             rejected: 'Afgekeurd',
             held: 'In de wacht',
-            searchFilters: 'Filters zoeken',
             reimbursable: 'Vergoedbaar',
             purchaseCurrency: 'Aankoopvaluta',
             sortOrder: {

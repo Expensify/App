@@ -10564,7 +10564,6 @@ ${reportName}`,
             billable: 'Χρεώσιμη',
             rejected: 'Απορρίφθηκε',
             held: 'Σε αναμονή',
-            searchFilters: 'Αναζήτηση φίλτρων',
             reimbursable: 'Επανεντάξιμο',
             purchaseCurrency: 'Νόμισμα αγοράς',
             sortOrder: {
