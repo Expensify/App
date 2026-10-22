@@ -769,14 +769,7 @@ jobs:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
           HOST: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
-      # webDeployWorker verifies staging, and verifies production once WEB_PRODUCTION_WORKER_HOST is set to WEB_PRODUCTION_HOST.
-      - name: Verify deploy
-        if: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_WORKER_HOST != vars.WEB_PRODUCTION_HOST }}
-        run: |
-          APP_VERSION=$(jq -r .version < package.json)
-          ./.github/scripts/verifyDeploy.sh "$HOST" "$APP_VERSION"
-        env:
-          HOST: ${{ vars.WEB_PRODUCTION_HOST }}
+      # The host is verified by webDeployWorker, which deploys after this job.
 
   webDeployTestStaging:
     name: Deploy Web to test-staging.new.expensify.com
@@ -908,15 +901,10 @@ jobs:
 
       - name: Verify deploy
         run: |
-          if [[ -z "$HOST" ]]; then
-            echo "::error::No host to verify this deploy on. Set the WEB_PRODUCTION_WORKER_HOST repository variable."
-            exit 1
-          fi
           APP_VERSION=$(jq -r .version < package.json)
           ./.github/scripts/verifyDeploy.sh "$HOST" "$APP_VERSION"
         env:
-          # Until production switches over, the production Worker is only served on WEB_PRODUCTION_WORKER_HOST.
-          HOST: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_WORKER_HOST || vars.WEB_STAGING_HOST }}
+          HOST: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
   buildStorybook:
     name: Build storybook docs

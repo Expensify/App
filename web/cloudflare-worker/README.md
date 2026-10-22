@@ -109,11 +109,11 @@ The script diffs status, caching and security headers for a fixed set of paths. 
 | --- | --- | --- | --- |
 | `test-staging` | `test-staging-new-expensify-assets` | `test-staging.new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Staging |
 | `staging` | `staging-new-expensify-assets` | `staging.new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Staging |
-| `production` | `new-expensify-assets` | The host in the `WEB_PRODUCTION_WORKER_HOST` repository variable until switchover, then `new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Production |
+| `production` | `new-expensify-assets` | None until switchover, then `new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Production |
 
 Every staging and production deploy also deploys the same build to that environment's Worker (the `webDeployWorker` job in `.github/workflows/deploy.yml`). Staging deploys also deploy it to the `test-staging` Worker (`webDeployTestStaging`). They use `CLOUDFLARE_WORKERS_DEPLOY_TOKEN`, which can only edit these three Workers. That token can't read zones, so routes aren't in `wrangler.jsonc`: wrangler would try to sync them and fail.
 
-The Worker deploy runs after `webDeploy` and is required: if it fails, or the Worker doesn't report the new version in `/version.json`, the deploy fails. Staging is checked on `WEB_STAGING_HOST` and production on `WEB_PRODUCTION_WORKER_HOST`. While `WEB_PRODUCTION_WORKER_HOST` differs from `WEB_PRODUCTION_HOST`, the `webDeploy` job also checks `WEB_PRODUCTION_HOST`; setting both to `new.expensify.com` at switchover leaves the check to the Worker job. The `test-staging` deploy is a trial, so its failures don't affect the staging deploy.
+The Worker deploy runs after `webDeploy` and is required: if it fails, or `WEB_STAGING_HOST` or `WEB_PRODUCTION_HOST` doesn't report the new version in `/version.json`, the deploy fails. The version is checked there because both jobs have deployed by then, whichever one serves the host. The `test-staging` deploy is a trial, so its failures don't affect the staging deploy.
 
 `test-staging` serves a staging build on a hostname nobody else uses.
 
