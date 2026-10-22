@@ -4665,6 +4665,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             inputLabel: '法人税号',
             error: {required: '请输入您的法人税号。'},
         },
+        travelMembers: {
+            headline: '谁可以预订差旅？',
+            subtitle: '选择此工作区中可以预订差旅的人员。你可以随时在“成员”页面更改。',
+            everyone: '此工作区中的所有人',
+        },
         nudge: {
             airfareManual:
                 '你知道吗？你可以直接在 Expensify 预订机票，同时照常累积常旅客计划的里程！下次无需手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',

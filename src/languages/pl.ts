@@ -4843,6 +4843,11 @@ ${amount} dla ${merchant} - ${date}`,
             inputLabel: 'NIP podmiotu prawnego',
             error: {required: 'Podaj swój identyfikator podatkowy podmiotu prawnego.'},
         },
+        travelMembers: {
+            headline: 'Kto może rezerwować podróże?',
+            subtitle: 'Wybierz, kto w tym obszarze roboczym może rezerwować podróże. Możesz to zmienić w dowolnym momencie na stronie Członkowie.',
+            everyone: 'Wszyscy w tym obszarze roboczym',
+        },
         nudge: {
             airfareManual:
                 'Wiesz, że możesz rezerwować loty bezpośrednio w Expensify i nadal zbierać mile w swoich programach lojalnościowych dla często podróżujących? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',

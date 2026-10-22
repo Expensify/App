@@ -4803,6 +4803,11 @@ ${amount} para ${merchant} - ${date}`,
             inputLabel: 'CNPJ da pessoa jurídica',
             error: {required: 'Insira o CNPJ da sua entidade legal.'},
         },
+        travelMembers: {
+            headline: 'Quem pode reservar viagens?',
+            subtitle: 'Escolha quem neste espaço de trabalho pode reservar viagens. Você pode alterar isso a qualquer momento na página Membros.',
+            everyone: 'Todos neste espaço de trabalho',
+        },
         nudge: {
             airfareManual:
                 'Você sabia que pode reservar voos diretamente no Expensify e ainda acumular milhas nos seus programas de passageiro frequente? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',

@@ -4686,6 +4686,11 @@ ${amount} para ${merchant} - ${date}`,
             inputLabel: 'ID fiscal de la entidad jurídica',
             error: {required: 'Introduce el NIF fiscal de tu entidad legal.'},
         },
+        travelMembers: {
+            headline: '¿Quién puede reservar viajes?',
+            subtitle: 'Elige quién de este espacio de trabajo puede reservar viajes. Puedes cambiarlo en cualquier momento desde la página de Miembros.',
+            everyone: 'Todos en este espacio de trabajo',
+        },
         domainPermissionInfo: {
             title: 'Dominio',
             restriction: (domain) =>

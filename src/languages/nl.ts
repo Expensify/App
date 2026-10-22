@@ -4811,6 +4811,11 @@ ${amount} voor ${merchant} - ${date}`,
             inputLabel: 'Belastingnummer rechtspersoon',
             error: {required: 'Vul het fiscale identificatienummer van je rechtspersoon in.'},
         },
+        travelMembers: {
+            headline: 'Wie kan reizen boeken?',
+            subtitle: 'Kies wie in deze workspace reizen kan boeken. Je kunt dit altijd wijzigen op de pagina Leden.',
+            everyone: 'Iedereen in deze workspace',
+        },
         nudge: {
             airfareManual:
                 'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en nog steeds miles spaart met je frequent flyer-programma’s? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',

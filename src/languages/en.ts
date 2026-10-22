@@ -4955,6 +4955,11 @@ const translations = {
                 required: 'Please enter your legal entity tax ID.',
             },
         },
+        travelMembers: {
+            headline: 'Who can book travel?',
+            subtitle: 'Choose who on this workspace can book travel. You can change this anytime from the Members page.',
+            everyone: 'Everyone on this workspace',
+        },
         domainPermissionInfo: {
             title: 'Domain',
             restriction: (domain: string) =>

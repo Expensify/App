@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setTravelProvisioningEnabledSteps} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {getAdminsPrivateEmailDomains, isNonUSDPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {getAdminsPrivateEmailDomains, isNonUSDPolicy, isPolicyAdmin, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -29,6 +29,7 @@ import DomainSelectorStep from './subPages/DomainSelectorStep';
 import LegalNameStep from './subPages/LegalNameStep';
 import TaxIDStep from './subPages/TaxIDStep';
 import TermsStep from './subPages/TermsStep';
+import TravelMembersStep from './subPages/TravelMembersStep';
 import WorkspaceAddressStep from './subPages/WorkspaceAddressStep';
 
 const STEP_COMPONENT_BY_PAGE_NAME: Record<string, typeof LegalNameStep> = {
@@ -36,6 +37,7 @@ const STEP_COMPONENT_BY_PAGE_NAME: Record<string, typeof LegalNameStep> = {
     [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR]: DomainSelectorStep,
     [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS]: WorkspaceAddressStep,
     [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID]: TaxIDStep,
+    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TRAVEL_MEMBERS]: TravelMembersStep,
     [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS]: TermsStep,
 };
 
@@ -67,6 +69,9 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
     const needsDomainSelector = !isProvisioned && adminDomains.length > 1;
     const needsAddress = !isProvisioned && isEmptyObject(policy?.address);
     const needsTaxID = isNonUSDPolicy(policy) && !isProvisioned && !policy?.travelSettings?.taxID;
+
+    // Admins enabling travel choose who gets it, which only matters when the workspace has members besides them
+    const needsTravelMembers = !isProvisioned && isPolicyAdmin(policy) && Object.keys(policy?.employeeList ?? {}).length > 1;
 
     const resolvedDomain = useMemo(() => {
         if (isProvisioned) {
@@ -126,6 +131,9 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
         }
         if (needsTaxID) {
             nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID);
+        }
+        if (needsTravelMembers) {
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TRAVEL_MEMBERS);
         }
         nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS);
         return nextEnabledStepNames;
