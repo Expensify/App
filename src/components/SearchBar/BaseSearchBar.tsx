@@ -25,6 +25,7 @@ type SharedSearchBarProps = {
     style?: StyleProp<ViewStyle>;
     shouldShowEmptyState?: boolean;
     emptyStateContainerStyle?: StyleProp<ViewStyle>;
+    autoFocus?: boolean;
     ref?: React.Ref<BaseTextInputRef>;
 };
 
@@ -33,7 +34,20 @@ type BaseSearchBarProps = SharedSearchBarProps & {
     textInputProps?: BaseTextInputProps;
 };
 
-function BaseSearchBar({ref, label, style, inputValue, onChangeText, onSubmitEditing, onFocus, onBlur, shouldShowEmptyState, emptyStateContainerStyle, textInputProps}: BaseSearchBarProps) {
+function BaseSearchBar({
+    ref,
+    label,
+    style,
+    inputValue,
+    onChangeText,
+    onSubmitEditing,
+    onFocus,
+    onBlur,
+    shouldShowEmptyState,
+    emptyStateContainerStyle,
+    autoFocus,
+    textInputProps,
+}: BaseSearchBarProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -59,6 +73,7 @@ function BaseSearchBar({ref, label, style, inputValue, onChangeText, onSubmitEdi
                     onSubmitEditing={() => onSubmitEditing?.(inputValue)}
                     shouldShowClearButton
                     shouldHideClearButton={!inputValue?.length}
+                    autoFocus={autoFocus}
                     {...textInputProps}
                 />
             </View>

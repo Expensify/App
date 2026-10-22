@@ -15620,3 +15620,38 @@ describe('getDatePresets', () => {
         expect(presets).not.toContain(CONST.SEARCH.DATE_PRESETS.NEVER);
     });
 });
+
+describe('isFilterMatchingSearchValue', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('matches a filter whose label contains the search value, ignoring case and surrounding spaces', () => {
+        // Given a search value in a different case from the label, typed with spaces around it
+        // When the Paid by filter is checked against it
+        const isMatching = SearchUIUtils.isFilterMatchingSearchValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY, CONST.SEARCH.DATA_TYPES.EXPENSE, ' PAID ', translateLocal);
+
+        // Then it matches, because "Paid by" contains "paid"
+        expect(isMatching).toBe(true);
+    });
+
+    it('does not match a filter whose label does not contain the search value', () => {
+        // Given a search value the Status label does not contain
+        // When the Status filter is checked against it
+        const isMatching = SearchUIUtils.isFilterMatchingSearchValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, CONST.SEARCH.DATA_TYPES.EXPENSE, 'paid', translateLocal);
+
+        // Then it does not match, so the popover hides the Status content while this search is typed
+        expect(isMatching).toBe(false);
+    });
+
+    it('matches the label shown for the type, not the default one', () => {
+        // Given the date filter, which is labelled "Created date" for invoices and "Date" for expenses
+        // When it is checked against "created" for both types
+        const isMatchingForInvoice = SearchUIUtils.isFilterMatchingSearchValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, CONST.SEARCH.DATA_TYPES.INVOICE, 'created', translateLocal);
+        const isMatchingForExpense = SearchUIUtils.isFilterMatchingSearchValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, CONST.SEARCH.DATA_TYPES.EXPENSE, 'created', translateLocal);
+
+        // Then only the invoice one matches, because the search reads the label the user sees
+        expect(isMatchingForInvoice).toBe(true);
+        expect(isMatchingForExpense).toBe(false);
+    });
+});

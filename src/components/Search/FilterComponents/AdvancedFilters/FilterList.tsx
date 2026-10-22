@@ -44,6 +44,9 @@ type FilterListProps = FilterItemCallbacks & {
 
     onSearchValueChange: (searchValue: string) => void;
 
+    /** Whether the search input is focused when the list mounts. */
+    autoFocus?: boolean;
+
     /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
     onPointerMove?: (event: {clientX: number; clientY: number}) => void;
 
@@ -115,7 +118,20 @@ function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: 
     );
 }
 
-function FilterList({type, selectedFilter, style, contentContainerStyle, searchValue, onSearchValueChange, onHoverIn, onFocus, onPress, onPointerMove, onPointerLeave}: FilterListProps) {
+function FilterList({
+    type,
+    selectedFilter,
+    style,
+    contentContainerStyle,
+    searchValue,
+    onSearchValueChange,
+    autoFocus,
+    onHoverIn,
+    onFocus,
+    onPress,
+    onPointerMove,
+    onPointerLeave,
+}: FilterListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const typeFiltersKeys = useAdvancedSearchFilters(type, searchValue);
@@ -131,6 +147,7 @@ function FilterList({type, selectedFilter, style, contentContainerStyle, searchV
                 inputValue={searchValue}
                 onChangeText={onSearchValueChange}
                 style={styles.mb3}
+                autoFocus={autoFocus}
             />
             {shouldShowNoResultsFound && (
                 <View style={[styles.ph5, styles.pb5]}>

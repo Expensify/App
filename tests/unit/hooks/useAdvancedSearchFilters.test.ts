@@ -537,4 +537,28 @@ describe('useAdvancedSearchFilters', () => {
             });
         });
     });
+
+    describe('filter search', () => {
+        it('lists only the filters whose label contains the search value, ignoring case', async () => {
+            // Given a search value in a different case from the labels
+            // When the expense report filters are listed with it
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 'PAID'), {wrapper});
+
+            // Then only the paid filters are left, and the sections without a match are dropped
+            await waitFor(() => {
+                expect(result.current).toEqual([[CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID, CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY, CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS]]);
+            });
+        });
+
+        it('lists nothing when no filter label contains the search value', async () => {
+            // Given a search value no filter label contains
+            // When the expense filters are listed with it
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE, 'unicorn'), {wrapper});
+
+            // Then no section is left, so the list can show its no results message
+            await waitFor(() => {
+                expect(result.current).toEqual([]);
+            });
+        });
+    });
 });

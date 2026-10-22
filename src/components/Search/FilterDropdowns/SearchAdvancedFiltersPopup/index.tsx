@@ -282,6 +282,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                         selectedFilter={isDescribeMode ? undefined : activeFilter}
                         searchValue={filterSearchValue}
                         onSearchValueChange={setFilterSearchValue}
+                        autoFocus
                         onHoverIn={hoverFilter}
                         onPointerMove={trackPointerMovement}
                         onPointerLeave={stopTrackingPointer}
