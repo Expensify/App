@@ -1,3 +1,4 @@
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
@@ -6,7 +7,7 @@ import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import {dismissMarketingWindow} from '@libs/actions/User';
 import {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import openExternalLink from '@libs/openExternalLink';
-import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, isProductMarketingAnnouncementDismissed} from '@libs/ProductMarketingWindowUtils';
+import {getActiveProductMarketingAnnouncement, isProductMarketingAnnouncementDismissed} from '@libs/ProductMarketingWindowUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -74,7 +75,8 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
         setAccountIDsWithObservedActiveOnboarding((accountIDs) => new Set(accountIDs).add(currentAccountID));
     }
 
-    const announcement = ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT;
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const announcement = getActiveProductMarketingAnnouncement(hasActiveAdminPolicies);
     const illustrationNames = announcement?.visual.type === 'illustration' ? [announcement.visual.name] : [];
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
     const isDismissed = isProductMarketingAnnouncementDismissed(announcement, lastDismissedMarketingWindow);

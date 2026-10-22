@@ -1,6 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
-import September2026PromoImage from '@assets/images/september2026-promo.png';
+import October2026PromoImage from '@assets/images/october2026-promo.png';
 
 import ActivityIndicator from '@components/ActivityIndicator';
 import ComposeProviders from '@components/ComposeProviders';
@@ -19,7 +19,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {dismissMarketingWindow} from '@libs/actions/User';
 import openExternalLink from '@libs/openExternalLink';
-import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT} from '@libs/ProductMarketingWindowUtils';
+import {getActiveProductMarketingAnnouncement} from '@libs/ProductMarketingWindowUtils';
 
 import colors from '@styles/theme/colors';
 import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
@@ -79,7 +79,7 @@ jest.mock('@libs/actions/User', () => {
     };
 });
 
-const announcement = ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT;
+const announcement = getActiveProductMarketingAnnouncement(false);
 if (!announcement) {
     throw new Error('These tests require an active product marketing announcement; update them if the active announcement is removed.');
 }
@@ -90,8 +90,10 @@ const mockUseNetwork = jest.mocked(useNetwork);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockUseSafeAreaPaddings = jest.mocked(useSafeAreaPaddings);
 
-const windowHeading = en.productMarketingWindow.heading;
-const windowBody = en.productMarketingWindow.body;
+const windowHeading = en.productMarketingWindow.member.heading;
+const windowBody = en.productMarketingWindow.member.body;
+const adminWindowHeading = en.productMarketingWindow.admin.heading;
+const adminWindowBody = en.productMarketingWindow.admin.body;
 const ctaLabel = en.common.learnMore;
 
 function buildAdminPolicy(): Policy {
@@ -466,7 +468,33 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.getByText(windowHeading)).toBeTruthy();
         expect(screen.getByText(windowBody)).toBeTruthy();
         expect(screen.getByText(ctaLabel)).toBeTruthy();
-        expect(screen.UNSAFE_getByType(Image).props.source).toBe(September2026PromoImage);
+        expect(screen.UNSAFE_getByType(Image).props.source).toBe(October2026PromoImage);
+    });
+
+    it('renders the admin variant for a user who is an admin of a workspace', async () => {
+        // Given an eligible account that is an admin of an active workspace
+        await act(async () => {
+            await setupOnyxBaseline();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildAdminPolicy());
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the marketing window is rendered
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the admin-targeted content is shown instead of the member content, since admin prevails
+        expect(screen.getByText(adminWindowHeading)).toBeTruthy();
+        expect(screen.getByText(adminWindowBody)).toBeTruthy();
+        expect(screen.queryByText(windowHeading)).toBeNull();
+        expect(screen.queryByText(windowBody)).toBeNull();
+
+        // When the admin dismisses the window
+        fireEvent.press(screen.getByText(en.common.dismiss));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the shared update key is stored, so the member variant stays hidden too if the user loses the admin role
+        expect(mockDismissMarketingWindow).toHaveBeenCalledWith(announcement.updateKey);
     });
 
     it('shows a loading spinner until the promotional image finishes loading', async () => {
@@ -486,7 +514,7 @@ describe('ProductMarketingWindowManager', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByTestId('ProductMarketingWindowImageLoading')).toBeNull();
-        expect(screen.UNSAFE_getByType(Image).props.source).toBe(September2026PromoImage);
+        expect(screen.UNSAFE_getByType(Image).props.source).toBe(October2026PromoImage);
 
         fireEvent(image, 'onLoadStart');
         await waitForBatchedUpdatesWithAct();
@@ -838,7 +866,7 @@ describe('ProductMarketingWindowManager', () => {
         expect(mockDismissMarketingWindow).toHaveBeenCalledTimes(1);
         expect(mockDismissMarketingWindow).toHaveBeenCalledWith(announcement.updateKey);
         expect(mockOpenExternalLink).toHaveBeenCalledTimes(1);
-        expect(mockOpenExternalLink).toHaveBeenCalledWith(CONST.CLAUDE_MCP_HELP_URL);
+        expect(mockOpenExternalLink).toHaveBeenCalledWith(CONST.DISTANCE_EXPENSES_HELP_URL);
 
         const dismissCallOrder = mockDismissMarketingWindow.mock.invocationCallOrder.at(0) ?? Number.NaN;
         const openLinkCallOrder = mockOpenExternalLink.mock.invocationCallOrder.at(0) ?? Number.NaN;
@@ -872,7 +900,7 @@ describe('ProductMarketingWindowManager', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then it works right away instead of waiting on data it never needed
-        expect(mockOpenExternalLink).toHaveBeenCalledWith(CONST.CLAUDE_MCP_HELP_URL);
+        expect(mockOpenExternalLink).toHaveBeenCalledWith(CONST.DISTANCE_EXPENSES_HELP_URL);
     });
 
     it('uses the fixed-width bottom-right overlay on wide layouts', async () => {
