@@ -494,6 +494,7 @@ describe('ReportAlternateTextUtils', () => {
             isReportArchived: false,
             lastAction,
             currentUserLogin: CURRENT_USER_LOGIN,
+            formatPhoneNumber,
             rules: undefined,
         });
         const alternateText = getAlternateText({report, lastAction});
