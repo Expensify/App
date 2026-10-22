@@ -80,7 +80,7 @@ If the value re-runs an effect, directly or through a callback in a dependency a
 ### - Reapply the `selector` and never mutate the result
 `Onyx.get()` returns the stored value, not the `selector` projection `useOnyx` hands out, and a read returns the cached object itself, for a single key and for every member of a collection, so writing to it changes the cache without telling subscribers.
 
-`rulesdir/no-unsafe-onyx-read` enforces where a read may run and cannot be disabled inline in any linted file outside `tests/`. `rulesdir/no-onyx-get-snapshot-key` enforces which keys it may read, and can be disabled only with a reason after `--`. [ONYX-1](../../.claude/skills/app-coding-standards/rules/onyx-1-no-render-reachable-onyx-read.md) covers the rest in review, with examples.
+`rulesdir/no-unsafe-onyx-read` enforces where a read may run, that it sits inside a component or hook in those directories, and that `Onyx.get` and `Onyx.multiGet` are called directly, and cannot be disabled inline in any linted file outside `tests/`. `rulesdir/no-onyx-get-snapshot-key` enforces which keys it may read, and can be disabled only with a reason after `--`. [ONYX-1](../../.claude/skills/app-coding-standards/rules/onyx-1-no-render-reachable-onyx-read.md) covers the rest in review, with examples.
 
 ## Onyx Derived Values
 

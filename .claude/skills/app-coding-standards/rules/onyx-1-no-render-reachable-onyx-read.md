@@ -16,6 +16,8 @@ Do not re-check these:
 | `Onyx.get` or `Onyx.multiGet` outside `src/components`, `src/pages`, `src/hooks` and `tests` | `no-unsafe-onyx-read` |
 | A read written in a component or hook body (including `memo` and `forwardRef` wrappers and any function with a top-level `return <JSX>`), in a JSX expression, in a `useMemo` callback, a `selector`, a lazy initializer or a `useSyncExternalStore` snapshot, in a same-file function passed by name to a `useMemo`, `useState`, `useReducer` or `useSyncExternalStore` slot, to `memo` or `forwardRef`, or to a `selector`, in a same-file helper that render or module scope calls, or at module scope. Not a helper imported from another file, see A | `no-unsafe-onyx-read` |
 | A read inside an effect, or in a same-file function an effect calls | `no-unsafe-onyx-read` |
+| A read in a module-level function, object or class in `src/components`, `src/pages` or `src/hooks`, outside a component or hook body | `no-unsafe-onyx-read` |
+| A reference to `Onyx.get` or `Onyx.multiGet` that is not a direct call (`.call`, `.bind`, `keys.map(Onyx.get)`, `const read = Onyx.get`, `const {get} = Onyx`) | `no-unsafe-onyx-read` |
 | A Search snapshot key, or a key lint can't resolve, including any `multiGet` element | `no-onyx-get-snapshot-key` |
 | A runtime import of `react-native-onyx/dist/OnyxUtils` | `@typescript-eslint/no-restricted-imports` |
 | An inline `eslint-disable` that covers `no-unsafe-onyx-read`, named or blanket, or one over a runtime OnyxUtils import, in any linted file outside `tests/` | `scripts/checkOnyxLintBypass.ts` |
