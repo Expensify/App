@@ -6,6 +6,7 @@ import {
     getOriginalMessage,
     getSortedReportActions,
     isActionOfType,
+    isSentMoneyReportAction,
 } from '@libs/ReportActionsUtils';
 import {hasReportBeenForwardedSinceLastSubmit} from '@libs/ReportUtils';
 
@@ -152,6 +153,9 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
+/** Returns whether the report is a "Pay someone" (sent money) report, which has a pay action with IOUDetails instead of an expense-creating one. */
+const isSentMoneyReportSelector = (reportActions: OnyxEntry<ReportActions>) => Object.values(reportActions ?? {}).some(isSentMoneyReportAction);
+
 /** Returns the ID of the author's newest comment in the report that can show the feedback prompt. */
 const getLatestFeedbackActionIDByAuthorSelector = (authorAccountID: number | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     authorAccountID ? getLatestConciergeFeedbackActionIDFromReportActions(reportActions, authorAccountID) : undefined;
@@ -187,6 +191,7 @@ function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: 
 }
 
 export {
+    isSentMoneyReportSelector,
     getLatestFeedbackActionIDByAuthorSelector,
     getParentReportActionSelector,
     getLastClosedReportAction,

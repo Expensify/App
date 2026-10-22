@@ -10,6 +10,8 @@ import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
@@ -18,10 +20,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {MapState} from '@rnmapbox/maps';
 
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import Mapbox, {MarkerView} from '@rnmapbox/maps';
 import {getForegroundPermissionsAsync} from 'expo-location';
-import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
@@ -34,6 +36,10 @@ import PendingMapView from './PendingMapView';
 import responder from './responder';
 import useAccessToken from './useAccessToken';
 import utils from './utils';
+
+// Default is 1000ms which feels a bit too long for the animations when coming back from waypoints
+// selection screen. 300ms is much lower and animations still trigger correctly
+const MAX_WAIT_FOR_TRANSITION_TIME_FOR_CAMERA_MOVEMENTS_MS = 300;
 
 function MapView({
     accessToken,
@@ -50,22 +56,24 @@ function MapView({
     interactive = true,
     distanceInMeters,
     unit,
-    ref,
     shouldDisplayCurrentLocation = true,
     shouldDisplayCompass = true,
 }: MapViewProps) {
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
-    const navigation = useNavigation();
     const {isOffline} = useNetwork();
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'Expand', 'MapCurrentLocation']);
     const cameraRef = useRef<Mapbox.Camera>(null);
+    const pendingFramingRef = useRef<CancelHandle | null>(null);
     const [isIdle, setIsIdle] = useState(false);
     const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
     const currentPosition = userLocation ?? initialLocation;
+    const currentPositionLongitude = currentPosition?.longitude;
+    const currentPositionLatitude = currentPosition?.latitude;
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
+    const [isWaypointsNextCenterTarget, setIsWaypointsNextCenterTarget] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
     const isAccessTokenReady = useAccessToken({accessToken});
 
@@ -139,55 +147,77 @@ function MapView({
 
         cameraRef.current.setCamera({
             zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
-            animationDuration: 1500,
+            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_LONG,
+            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
             centerCoordinate: [currentPosition.longitude, currentPosition.latitude],
         });
     }, [currentPosition, shouldPanMapToCurrentPosition]);
 
-    useImperativeHandle(
-        ref,
-        () => ({
-            flyTo: (location: [number, number], zoomLevel: number = CONST.MAPBOX.DEFAULT_ZOOM, animationDuration?: number) =>
-                cameraRef.current?.setCamera({zoomLevel, centerCoordinate: location, animationDuration}),
-            fitBounds: (northEast: [number, number], southWest: [number, number], paddingConfig?: number | number[] | undefined, animationDuration?: number | undefined) =>
-                cameraRef.current?.fitBounds(northEast, southWest, paddingConfig, animationDuration),
-        }),
-        [],
-    );
-
     const allDirectionCoordinates = utils.getCoordinatesFromAllDirections(directionCoordinates, alternateDirection);
 
-    // When the page loses focus, we temporarily set the "idled" state to false.
-    // When the page regains focus, the onIdled method of the map will set the actual "idled" state,
-    // which in turn triggers the callback.
+    // Frames the camera on every focus once the map has loaded.
     useFocusEffect(
         useCallback(() => {
-            if (!waypoints || waypoints.length === 0 || !isIdle) {
+            if (!isIdle) {
                 return;
             }
 
+            // The camera goes back to its default framing below, so the center button starts the cycle again from the current position.
+            setIsWaypointsNextCenterTarget(false);
+
+            if (!waypoints || waypoints.length === 0) {
+                if (currentPositionLongitude === undefined || currentPositionLatitude === undefined) {
+                    return;
+                }
+
+                pendingFramingRef.current = TransitionTracker.runAfterTransitions({
+                    callback: () =>
+                        cameraRef.current?.setCamera({
+                            zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
+                            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                            centerCoordinate: [currentPositionLongitude, currentPositionLatitude],
+                        }),
+                    waitForUpcomingTransition: true,
+                    maxWaitForUpcomingTransitionMs: MAX_WAIT_FOR_TRANSITION_TIME_FOR_CAMERA_MOVEMENTS_MS,
+                });
+                return () => pendingFramingRef.current?.cancel();
+            }
+
             if (waypoints.length === 1) {
-                cameraRef.current?.setCamera({
-                    zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
-                    animationDuration: 1500,
-                    centerCoordinate: waypoints.at(0)?.coordinate,
+                pendingFramingRef.current = TransitionTracker.runAfterTransitions({
+                    callback: () =>
+                        cameraRef.current?.setCamera({
+                            zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_LONG,
+                            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                            centerCoordinate: waypoints.at(0)?.coordinate,
+                        }),
+                    waitForUpcomingTransition: true,
+                    maxWaitForUpcomingTransitionMs: MAX_WAIT_FOR_TRANSITION_TIME_FOR_CAMERA_MOVEMENTS_MS,
                 });
             } else {
                 const {southWest, northEast} = utils.getBounds(
                     waypoints.map((waypoint) => waypoint.coordinate),
                     allDirectionCoordinates,
                 );
-                cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
-            }
-        }, [mapPadding, waypoints, isIdle, allDirectionCoordinates]),
-    );
 
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('blur', () => {
-            setIsIdle(false);
-        });
-        return unsubscribe;
-    }, [navigation]);
+                pendingFramingRef.current = TransitionTracker.runAfterTransitions({
+                    callback: () =>
+                        cameraRef.current?.setCamera({
+                            bounds: {ne: northEast, sw: southWest},
+                            padding: utils.getCameraPadding(mapPadding),
+                            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                        }),
+                    waitForUpcomingTransition: true,
+                    maxWaitForUpcomingTransitionMs: MAX_WAIT_FOR_TRANSITION_TIME_FOR_CAMERA_MOVEMENTS_MS,
+                });
+            }
+
+            return () => pendingFramingRef.current?.cancel();
+        }, [mapPadding, waypoints, isIdle, allDirectionCoordinates, currentPositionLongitude, currentPositionLatitude]),
+    );
 
     useEffect(() => {
         if (!isOffline) {
@@ -212,20 +242,62 @@ function MapView({
         mapHeading.set(e.properties.heading ?? 0);
     };
 
+    // Only a real, displayed user location is something to alternate with. currentPosition falls back to initialState
+    // (e.g. the first waypoint), which would otherwise make the first press zoom into that waypoint instead of framing the route.
+    const canCenterOnCurrentPosition = shouldDisplayCurrentLocation && !!userLocation;
+    const {singleWaypointCoordinate, hasWaypointsTarget} = utils.getCenterTargets(
+        waypoints,
+        allDirectionCoordinates,
+        canCenterOnCurrentPosition ? [userLocation.longitude, userLocation.latitude] : undefined,
+    );
+
+    // The waypoints can disappear after the user centered on their location, so the button only offers them while they are still a target.
+    const shouldShowWaypointsCenterIcon = isWaypointsNextCenterTarget && hasWaypointsTarget;
+
     const centerMap = useCallback(() => {
+        pendingFramingRef.current?.cancel();
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
-        if (waypointCoordinates.length > 1 || (allDirectionCoordinates ?? []).length > 1) {
-            const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], allDirectionCoordinates);
-            cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
+        const shouldCenterOnWaypoints = hasWaypointsTarget && (isWaypointsNextCenterTarget || !canCenterOnCurrentPosition);
+        setIsWaypointsNextCenterTarget(!shouldCenterOnWaypoints && hasWaypointsTarget && canCenterOnCurrentPosition);
+
+        if (shouldCenterOnWaypoints) {
+            if (singleWaypointCoordinate) {
+                cameraRef.current?.setCamera({
+                    heading: 0,
+                    centerCoordinate: singleWaypointCoordinate,
+                    zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                    animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                    animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                });
+                return;
+            }
+            const {southWest, northEast} = utils.getBounds(waypointCoordinates, allDirectionCoordinates);
+            cameraRef.current?.setCamera({
+                bounds: {ne: northEast, sw: southWest},
+                padding: utils.getCameraPadding(mapPadding),
+                animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+            });
             return;
         }
         cameraRef?.current?.setCamera({
             heading: 0,
-            centerCoordinate: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
-            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
+            centerCoordinate: [currentPositionLongitude ?? 0, currentPositionLatitude ?? 0],
+            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
             zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
         });
-    }, [allDirectionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapPadding, waypoints]);
+    }, [
+        allDirectionCoordinates,
+        canCenterOnCurrentPosition,
+        currentPositionLongitude,
+        currentPositionLatitude,
+        hasWaypointsTarget,
+        isWaypointsNextCenterTarget,
+        mapPadding,
+        singleWaypointCoordinate,
+        waypoints,
+    ]);
 
     const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
 
@@ -240,8 +312,23 @@ function MapView({
         return {ne: northEast, sw: southWest};
     }, [waypoints, allDirectionCoordinates]);
 
+    const hasWaypoints = !!waypoints?.length;
+
     const defaultSettings: Mapbox.CameraStop | undefined = useMemo(() => {
         if (interactive) {
+            // Start framed on the waypoints the same way the focus effect frames them, so the map does not fly in from the current location
+            if (waypoints?.length === 1) {
+                return {
+                    zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                    centerCoordinate: waypoints.at(0)?.coordinate,
+                };
+            }
+            if (waypoints?.length && waypointsBounds) {
+                return {
+                    bounds: waypointsBounds,
+                    padding: utils.getCameraPadding(mapPadding),
+                };
+            }
             if (!centerCoordinate) {
                 return undefined;
             }
@@ -256,9 +343,10 @@ function MapView({
         return {
             bounds: waypointsBounds,
         };
-    }, [interactive, centerCoordinate, waypointsBounds, initialState?.zoom]);
+    }, [interactive, waypoints, waypointsBounds, mapPadding, centerCoordinate, initialState?.zoom]);
 
-    const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
+    // The controlled centerCoordinate is applied after defaultSettings, so skip it while waypoints are shown or it would pull the camera back to the current location
+    const initCenterCoordinate = useMemo(() => (interactive && !hasWaypoints ? centerCoordinate : undefined), [interactive, hasWaypoints, centerCoordinate]);
     const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
 
     // Localize the map labels to the user's preferred app locale so they match the rest of the app.
@@ -275,7 +363,11 @@ function MapView({
                 localizeLabels={localizeLabels}
                 onMapIdle={setMapIdle}
                 onCameraChanged={onCameraChanged}
-                onTouchStart={() => setUserInteractedWithMap(true)}
+                onTouchStart={() => {
+                    pendingFramingRef.current?.cancel();
+                    setUserInteractedWithMap(true);
+                    setIsWaypointsNextCenterTarget(false);
+                }}
                 pitchEnabled={pitchEnabled}
                 attributionPosition={{...styles.r2, ...styles.b2}}
                 scaleBarEnabled={false}
@@ -287,11 +379,15 @@ function MapView({
             >
                 <Mapbox.Camera
                     ref={cameraRef}
-                    defaultSettings={defaultSettings}
+                    defaultSettings={
+                        defaultSettings ? {...defaultSettings, animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT, animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE} : undefined
+                    }
                     // Include centerCoordinate here as well to address the issue of incorrect coordinates
                     // displayed after the first render when the app's storage is cleared.
                     centerCoordinate={initCenterCoordinate}
                     bounds={initBounds}
+                    animationDuration={CONST.MAPBOX.ANIMATION_DURATION_DEFAULT}
+                    animationMode={CONST.MAPBOX.CAMERA_ANIMATION_MODE}
                 />
                 {interactive && shouldDisplayCurrentLocation && (
                     <MarkerView
@@ -349,7 +445,7 @@ function MapView({
                         accessibilityLabel={translate('common.center')}
                     >
                         <Button.Icon
-                            src={expensifyIcons.Crosshair}
+                            src={shouldShowWaypointsCenterIcon ? expensifyIcons.Expand : expensifyIcons.Crosshair}
                             fill={theme.icon}
                             hoverFill={theme.icon}
                         />

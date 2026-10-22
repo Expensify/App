@@ -6,6 +6,7 @@ import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     Card,
     GuideAccountIDsDerivedValue,
     PersonalDetails,
@@ -219,7 +220,6 @@ function shouldDisplayReportInLHN({
         (isPublicRoom(report) && isAnonymousUser()) ||
         isSystemChat ||
         !!report.isPinned ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         requiresAttention ||
         (report.isOwnPolicyExpenseChat && !isReportArchived);
 
@@ -442,7 +442,6 @@ function updateReportsToDisplayInLHN({
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
             const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const hasFlags = requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport;
             const existingEntry = displayedReports[reportID];
 
@@ -765,6 +764,7 @@ function getOptionData({
     formatPhoneNumber,
     rules,
     linkedTransaction,
+    bankAccountList,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -796,6 +796,9 @@ function getOptionData({
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
     linkedTransaction?: OnyxEntry<Transaction>;
+
+    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
+    bankAccountList?: OnyxEntry<BankAccountList>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -949,6 +952,7 @@ function getOptionData({
         convertToDisplayStringWithoutCurrency,
         rules,
         linkedTransaction,
+        bankAccountList,
     });
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
