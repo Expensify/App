@@ -113,7 +113,7 @@ type GetWorkspaceMenuItemsParams = {
     isConnectionInProgress?: boolean;
     /** Categories used to determine category-related errors. */
     policyCategories?: OnyxTypes.PolicyCategories;
-    /** Policy agents (owned agend and member agents) used for RBR. */
+    /** Policy agents (owned agents and member agents) used for RBR. */
     policyAgents?: AgentForDisplay[];
     /** Whether any of the policy's merchant rules failed to save, used to surface a red dot on the Rules row. */
     hasMerchantRuleErrors?: boolean;
