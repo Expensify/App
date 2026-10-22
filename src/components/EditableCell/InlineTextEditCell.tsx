@@ -25,7 +25,7 @@ type InlineTextEditCellProps = {
 
     accessibilityLabel: string;
 
-    /** Style applied to the display text and to the TextInput while editing, so font size and color stay in sync */
+    /** Style for the default display text and the TextInput while editing. With children, only the input uses it. */
     displayTextStyle?: StyleProp<TextStyle>;
 
     /**
