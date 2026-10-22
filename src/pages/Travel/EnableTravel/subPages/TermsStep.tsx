@@ -97,7 +97,13 @@ function TermsStep({policyID, resolvedDomain, firstIncompletePrerequisitePageNam
             resetToPage?.(firstIncompletePrerequisitePageName);
             return;
         }
-        acceptSpotnanaTerms(domain, policyID, travelProvisioning?.taxID)
+        // The member choice only applies when this session asked for it, so a choice left by an abandoned session isn't sent
+        const hasChosenTravelMembers =
+            !!travelProvisioning?.enabledSteps?.includes(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TRAVEL_MEMBERS) && travelProvisioning.shouldEnableAllTravelMembers !== undefined;
+        const travelMembers = hasChosenTravelMembers
+            ? {shouldEnableAllTravelMembers: !!travelProvisioning?.shouldEnableAllTravelMembers, travelMemberAccountIDs: travelProvisioning?.travelMemberAccountIDs ?? []}
+            : undefined;
+        acceptSpotnanaTerms(domain, policyID, travelProvisioning?.taxID, travelMembers)
             .then((response) => {
                 // Extract the error code from onyxData - the backend sets errors in TRAVEL_PROVISIONING via onyxData
                 const travelProvisioningData = response?.onyxData?.find((data) => data.key === ONYXKEYS.TRAVEL_PROVISIONING);

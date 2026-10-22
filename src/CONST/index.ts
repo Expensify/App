@@ -9680,6 +9680,7 @@ const CONST = {
                 DOMAIN_SELECTOR: 'domain-selector',
                 WORKSPACE_ADDRESS: 'workspace-address',
                 LEGAL_ENTITY_TAX_ID: 'legal-entity-tax-id',
+                TRAVEL_MEMBERS: 'travel-members',
                 TERMS: 'terms',
             },
         },

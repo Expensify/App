@@ -28,6 +28,12 @@ type TravelProvisioning = {
     /** Booking domain selected during the enable-travel flow when the admin belongs to multiple private domains */
     domain?: string;
 
+    /** Whether every workspace member gets travel when it's enabled, chosen during the enable-travel flow */
+    shouldEnableAllTravelMembers?: boolean;
+
+    /** The members chosen to get travel when not every member gets it. The admin enabling travel always gets it too. */
+    travelMemberAccountIDs?: number[];
+
     /**
      * Ordered list of step names the enablement stepper decided this workspace needs, frozen at flow entry.
      * Each step of the flow is a separate navigation push (a fresh mount of EnableTravelContent), and completing
