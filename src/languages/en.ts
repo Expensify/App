@@ -4169,6 +4169,7 @@ const translations = {
             removeDelegate: 'Remove vacation delegate',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, completed`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Step ${step}`;
 
@@ -4276,11 +4277,14 @@ const translations = {
             outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
             tooFewItems: ({min}: {min: number}) => `Add at least ${min}`,
             tooManyItems: ({max}: {max: number}) => `Add at most ${max}`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `Add ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Remove ${item}?`,
         removeItemPrompt: ({name}: {name: string}) => `Are you sure you want to remove ${name}?`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} ending in ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'The questions on this page changed',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
@@ -6500,13 +6504,13 @@ const translations = {
                 label: 'Expensify Card settlement account',
                 description: "Choose your settlement account and we'll create the payment in DualEntry.",
             },
-            syncTravelInvoicingSettlements: 'Sync Travel Invoicing settlements',
+            syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
             travelInvoicingSettlementAccount: {
-                label: 'Travel Invoicing settlement account',
+                label: 'Consolidated Travel Billing settlement account',
                 description: "Choose your settlement account and we'll create the payment in DualEntry.",
             },
             travelInvoicingPayableAccount: {
-                label: 'Travel Invoicing payable account',
+                label: 'Consolidated Travel Billing payable account',
             },
         },
         campfire: {
@@ -6623,13 +6627,13 @@ const translations = {
                 label: 'Expensify Card settlement account',
                 description: "Choose your settlement account and we'll create the payment in Campfire.",
             },
-            syncTravelInvoicingSettlements: 'Sync Travel Invoicing settlements',
+            syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
             travelInvoicingSettlementAccount: {
-                label: 'Travel Invoicing settlement account',
+                label: 'Consolidated Travel Billing settlement account',
                 description: "Choose your settlement account and we'll create the payment in Campfire.",
             },
             travelInvoicingPayableAccount: {
-                label: 'Travel Invoicing payable account',
+                label: 'Consolidated Travel Billing payable account',
             },
         },
         zohoBooks: {
@@ -7707,6 +7711,10 @@ const translations = {
                 optionNoRegularWorkspaceHelp: "Member works from home or travels between locations with no regular office, so commute rules don't apply.",
                 futureOnlyNote: 'Changes apply only to future mileage calculations. Existing mileage expenses are not recalculated.',
             },
+            officeLocation: 'Office location',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Change office location',
+            changeWorkArrangement: 'Change work arrangement',
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -10035,6 +10043,11 @@ const translations = {
             setAsPrimary: ({name}: {name: string}) => `set the office location "${name}" as primary`,
             setCompanyAddressAsPrimary: 'set the company address as primary',
             removed: ({name}: {name: string}) => `removed the office location "${name}"`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `changed ${displayName}'s office location to ${officeLocation} (previously ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `"${name}"`,
+            companyAddress: 'the company address',
+            primaryOffice: 'the primary office',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `set the default work arrangement to ${arrangement}`,
@@ -10802,8 +10815,6 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
-        switchToTableView: 'Switch to table view',
-        switchToExpenseView: 'Switch to expense view',
     },
     report: {
         newReport: {

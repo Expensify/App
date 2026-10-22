@@ -19,7 +19,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
-import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -35,14 +34,13 @@ import {
     shouldRefreshActiveTransactionIDs,
 } from '@libs/actions/TransactionThreadNavigation';
 import Log from '@libs/Log';
-import {shouldUseMultiExpenseReportLayout} from '@libs/MoneyRequestReportUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
-import {isCreatedTaskReportAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
+import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -185,7 +183,6 @@ function Search({
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -759,10 +756,7 @@ function Search({
                     }
                 }
 
-                // A single-expense report in the table view opens at the same width as a multi-expense report.
-                // A "Pay someone" report always uses the expense view, so it keeps the normal wide width.
-                const isSentMoneyReport = isSentMoneyReportAction(firstTransaction?.reportAction);
-                if (shouldUseMultiExpenseReportLayout(item.transactions.length, shouldUseTableViewForSingleExpense && !isSentMoneyReport)) {
+                if (item.transactions.length > 1) {
                     markReportRHPWidth(reportID, 'super-wide');
                 } else {
                     unmarkReportRHPWidth(reportID, 'super-wide');
@@ -850,7 +844,6 @@ function Search({
             getCurrencyDecimals,
             conciergeChat,
             delegateAccountID,
-            shouldUseTableViewForSingleExpense,
         ],
     );
 
@@ -1272,6 +1265,35 @@ function Search({
         [searchResults?.data],
     );
 
+    // The same flags the column header below is built from, so a row and its heading can't disagree about how wide a
+    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
+    // Memoized above the early returns: this file doesn't compile with React Compiler, and a new object re-renders every row.
+    const isActionColumnWide = isTask || hasDeletedTransaction;
+    const columnSizeOptions: GetReportTableColumnStylesParams = useMemo(
+        () => ({
+            isActionColumnWide,
+            isDateColumnWide: yearIndicators.shouldShowYearCreated,
+            isSubmittedColumnWide: yearIndicators.shouldShowYearSubmitted,
+            isApprovedColumnWide: yearIndicators.shouldShowYearApproved,
+            isPostedColumnWide: yearIndicators.shouldShowYearPosted,
+            isExportedColumnWide: yearIndicators.shouldShowYearExported,
+            isWithdrawnColumnWide: yearIndicators.shouldShowYearWithdrawn,
+            isAmountColumnWide: amountIndicators.shouldShowAmountInWideColumn,
+            isTaxAmountColumnWide: amountIndicators.shouldShowTaxAmountInWideColumn,
+        }),
+        [
+            isActionColumnWide,
+            yearIndicators.shouldShowYearCreated,
+            yearIndicators.shouldShowYearSubmitted,
+            yearIndicators.shouldShowYearApproved,
+            yearIndicators.shouldShowYearPosted,
+            yearIndicators.shouldShowYearExported,
+            yearIndicators.shouldShowYearWithdrawn,
+            amountIndicators.shouldShowAmountInWideColumn,
+            amountIndicators.shouldShowTaxAmountInWideColumn,
+        ],
+    );
+
     const onSortPress = useCallback(
         (column: SearchSortBy, order: SortOrder) => {
             clearSelectedTransactions();
@@ -1496,7 +1518,7 @@ function Search({
                 shouldShowSorting
                 groupBy={validGroupBy}
                 isExpenseReportView={isExpenseReportType}
-                isActionColumnWide={isTask || hasDeletedTransaction}
+                isActionColumnWide={isActionColumnWide}
             />
         </View>
     );
@@ -1511,20 +1533,6 @@ function Search({
                 isLoadMore
             />
         ) : undefined;
-
-    // The same flags the column header above is built from, so a row and its heading can't disagree about how wide a
-    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
-    const columnSizeOptions: GetReportTableColumnStylesParams = {
-        isActionColumnWide: isTask || hasDeletedTransaction,
-        isDateColumnWide: shouldShowYearCreated,
-        isSubmittedColumnWide: shouldShowYearSubmitted,
-        isApprovedColumnWide: shouldShowYearApproved,
-        isPostedColumnWide: shouldShowYearPosted,
-        isExportedColumnWide: shouldShowYearExported,
-        isWithdrawnColumnWide: shouldShowYearWithdrawn,
-        isAmountColumnWide: shouldShowAmountInWideColumn,
-        isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
-    };
 
     const commonViewProps: CommonSearchViewProps = {
         queryJSON,
@@ -1544,7 +1552,7 @@ function Search({
         isMobileSelectionModeEnabled,
         newTransactions,
         hasLoadedAllTransactions,
-        isActionColumnWide: isTask || hasDeletedTransaction,
+        isActionColumnWide,
         columnSizeOptions,
     };
 

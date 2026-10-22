@@ -205,7 +205,10 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const isAccessible = accessibleDashboards.includes(dashboardID);
 
     const isCompareEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE);
-    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, isCompareEnabled) : undefined;
+    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
+    const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
+    const query = isResolved && !isLoadingOnyxValue(policiesMetadata) ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, isCompareEnabled) : undefined;
     const hash = query?.hash;
 
     const requestDashboard = () => {
@@ -224,15 +227,13 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             return;
         }
         onRequestConditionsChanged();
-        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. Group by is listed because the hash leaves it out
-    }, [dashboardID, hash, filters.groupBy, isCompareEnabled, isFocused, isOffline, isAccessible]);
+        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. Group by and the eligible charts are listed because the hash leaves them out
+    }, [dashboardID, hash, filters.groupBy, eligibleGraphKeys, isCompareEnabled, isFocused, isOffline, isAccessible]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
-    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
-    // Until the filters resolve, the charts have no query to read data for, so they show their loading state
+    // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
-        ? [query.headlineChart, ...query.supportingCharts.filter(({chart}) => eligibleCharts.includes(chart))]
+        ? [query.headlineChart, ...query.supportingCharts]
         : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart, queryJSON: undefined}));
     const snapshots = useMultipleSnapshots(
         visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>

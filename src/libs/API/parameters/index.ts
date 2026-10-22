@@ -644,6 +644,7 @@ export type {default as DisablePolicyCommuterExclusionsParams} from './DisablePo
 export type {default as AddOfficeLocationParams} from './AddOfficeLocationParams';
 export type {default as UpdateOfficeLocationParams} from './UpdateOfficeLocationParams';
 export type {default as DeleteOfficeLocationParams} from './DeleteOfficeLocationParams';
+export type {default as UpdateEmployeeOfficeLocationParams} from './UpdateEmployeeOfficeLocationParams';
 export type {default as SetPolicyRequireMapOrGPSParams} from './SetPolicyRequireMapOrGPSParams';
 export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
 export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuideCallAvailabilitySchedule';
