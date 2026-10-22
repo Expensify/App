@@ -5,6 +5,7 @@ import isDynamicRouteSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/is
 import {
     getEnableGlobalReimbursementsBusinessNavigationRoute,
     getWiseGlobalReimbursementsIntroNavigationRoute,
+    isWiseGlobalReimbursementsIntroOverPayReportScreen,
     shouldUseDynamicEnableGlobalReimbursementsBase,
 } from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 
@@ -125,6 +126,33 @@ describe('Enable global reimbursements dynamic routes', () => {
 
             // Then the intro opens over the wallet because it has no static route
             expect(route).toBe('settings/wallet/global-reimbursements/456');
+        });
+    });
+
+    describe('isWiseGlobalReimbursementsIntroOverPayReportScreen', () => {
+        it.each([
+            ['a report', 'r/123'],
+            ['the search root', 'search'],
+            ['a search report RHP with backTo', 'search/view/123?backTo=search'],
+        ])('treats the intro over %s as opened by paying a report', (_label, backPath) => {
+            // Given the intro sits on top of a screen where the admin can pay a report
+            // When the page checks where it was opened from
+            const isOverPayReportScreen = isWiseGlobalReimbursementsIntroOverPayReportScreen(backPath);
+
+            // Then it shows the copy explaining why paying this report needs global reimbursements
+            expect(isOverPayReportScreen).toBe(true);
+        });
+
+        it.each([
+            ['the wallet', 'settings/wallet'],
+            ['workspace workflows', 'workspaces/123/workflows'],
+        ])('treats the intro over %s as opened from a banner', (_label, backPath) => {
+            // Given the intro sits on top of a screen that only reaches it through the Wise banner or menu
+            // When the page checks where it was opened from
+            const isOverPayReportScreen = isWiseGlobalReimbursementsIntroOverPayReportScreen(backPath);
+
+            // Then it keeps the generic copy because the admin asked to enable global reimbursements directly
+            expect(isOverPayReportScreen).toBe(false);
         });
     });
 });

@@ -5,6 +5,7 @@ import Log from '@libs/Log';
 
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 import createDynamicRoute from './dynamicRoutesUtils/createDynamicRoute';
 import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
@@ -56,6 +57,9 @@ const ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTE
 
 const WISE_GLOBAL_REIMBURSEMENTS_INTRO_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.entryScreens);
 
+// The wallet is excluded because it is both the banner entry point and the fallback when a pay signal arrives elsewhere
+const PAY_REPORT_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.entryScreens.filter((screen) => screen !== SCREENS.SETTINGS.WALLET.ROOT));
+
 function shouldUseDynamicEnableGlobalReimbursementsBase(basePath: string, entryScreens: Set<string> = ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS): boolean {
     const pathWithoutQuery = basePath.split('?').at(0) ?? '';
 
@@ -103,11 +107,17 @@ function getWiseGlobalReimbursementsIntroNavigationRoute(bankAccountID: number, 
     return createDynamicRoute(introRoute, ROUTES.SETTINGS_WALLET);
 }
 
+/** Whether the intro was opened over a report or search screen, which means the admin got there by paying a report */
+function isWiseGlobalReimbursementsIntroOverPayReportScreen(introBackPath: string): boolean {
+    return shouldUseDynamicEnableGlobalReimbursementsBase(introBackPath, PAY_REPORT_ENTRY_SCREENS);
+}
+
 export type {EnableGlobalReimbursementsRouteParams};
 export {
     getDynamicBasePathFromNavigationPath,
     getEnableGlobalReimbursementsBusinessNavigationRoute,
     getEnableGlobalReimbursementsRootBackPath,
     getWiseGlobalReimbursementsIntroNavigationRoute,
+    isWiseGlobalReimbursementsIntroOverPayReportScreen,
     shouldUseDynamicEnableGlobalReimbursementsBase,
 };
