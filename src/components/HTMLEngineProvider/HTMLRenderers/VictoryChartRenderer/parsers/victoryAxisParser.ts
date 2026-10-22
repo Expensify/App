@@ -132,7 +132,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
 
     // The axis size is used to reduce the size of the padding since the axis labels consume part of the drawing window
     // and we need to compensate for that otherwise the chart will look smaller
-    if (rootProcessedResult && axisSize) {
+    if (rootProcessedResult && axisSize && tickCount) {
         if (!rootProcessedResult.padding || typeof rootProcessedResult.padding === 'number') {
             rootProcessedResult.padding = {
                 left: rootProcessedResult.padding,
