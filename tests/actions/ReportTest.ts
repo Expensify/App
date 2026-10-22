@@ -6360,6 +6360,70 @@ describe('actions/Report', () => {
     });
 
     describe('openReport with hasOnceLoadedReportActions', () => {
+        it.each([false, true])('expires a read manual anchor before reopening for a newer message (report-level mark: %s)', async (isReportLevelMark) => {
+            // Given a manual unread mark that has been opened and automatically read
+            const reportID = 'manual-anchor-new-arrival';
+            const markedAction = createMock<OnyxTypes.ReportAction>({
+                reportActionID: 'marked-message',
+                actorAccountID: 2,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-01-01 10:00:00.000',
+                message: [{type: 'COMMENT', text: 'Marked message', html: 'Marked message'}],
+            });
+            const reportActions = {[markedAction.reportActionID]: markedAction};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                lastReadTime: '2026-01-01 11:00:00.000',
+                lastVisibleActionCreated: markedAction.created,
+                lastActorAccountID: markedAction.actorAccountID,
+                lastMessageText: 'Marked message',
+            });
+            await waitForBatchedUpdates();
+            Report.markCommentAsUnread(reportID, reportActions, isReportLevelMark ? createMock<OnyxTypes.ReportAction>({}) : markedAction, 1, false);
+            await waitForBatchedUpdates();
+            Report.flagReportNavigatedAway(reportID);
+            const openParams = {reportID, conciergeChat: undefined, introSelected: undefined, hasReportActions: true, currentUserAccountID: 1};
+            Report.openReport(openParams);
+            await waitForBatchedUpdates();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.manuallyMarkedUnreadReportActionID).toBe(markedAction.reportActionID);
+            Report.readNewestAction(reportID, true);
+            await waitForBatchedUpdates();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.manuallyMarkedUnreadReportActionID).toBe(markedAction.reportActionID);
+
+            // When the user leaves, another message arrives, and the report is reopened
+            Report.flagReportNavigatedAway(reportID);
+            const newAction = {
+                ...markedAction,
+                reportActionID: 'new-message',
+                created: format(addSeconds(new Date(), 60), CONST.DATE.FNS_DB_FORMAT_STRING),
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastVisibleActionCreated: newAction.created});
+            await waitForBatchedUpdates();
+            Report.openReport(openParams);
+            await waitForBatchedUpdates();
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            const metadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
+
+            // Then the consumed manual mark is cleared and the new visit's divider targets the new message
+            expect(report?.manuallyMarkedUnreadReportActionID).toBeFalsy();
+            expect(metadata?.manuallyMarkedUnreadTime).toBeFalsy();
+            expect(
+                getUnreadMarkerReportAction({
+                    visibleReportActions: [newAction, markedAction],
+                    earliestReceivedOfflineMessageIndex: undefined,
+                    currentUserAccountID: 1,
+                    prevSortedVisibleReportActionsObjects: {...reportActions, [newAction.reportActionID]: newAction},
+                    unreadMarkerTime: report?.lastReadTime,
+                    isScrolledOverThreshold: false,
+                    isOffline: false,
+                    isReversed: false,
+                    manuallyMarkedUnreadReportActionID: report?.manuallyMarkedUnreadReportActionID,
+                    manuallyMarkedUnreadTime: metadata?.manuallyMarkedUnreadTime,
+                }),
+            ).toEqual([newAction.reportActionID, 0]);
+        });
+
         it('preserves a pending manual mark whose unread cursor comes from the transaction thread', async () => {
             // Given an expense report marked unread at its newer transaction-thread boundary
             global.fetch = TestHelper.createGlobalFetchMock();

@@ -222,6 +222,37 @@ describe('useUnreadMarker', () => {
         expect(result.current.unreadMarkerReportActionIndex).toBe(0);
     });
 
+    it('uses the return visit read cursor when a consumed manual anchor is cleared before newer history loads', () => {
+        // Given a manual divider retained during the visit even after the report was automatically read
+        mockManuallyMarkedUnreadReportActionID = 'marked';
+        const markedAction = makeAction('marked');
+        const {result, rerender} = renderHook(
+            (actions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions: actions,
+                    sortedReportActions: actions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: [markedAction]},
+        );
+        mockLastReadTime = '2023-01-01 12:00:00.000';
+        rerender([markedAction]);
+        expect(result.current.unreadMarkerReportActionID).toBe(markedAction.reportActionID);
+
+        // When returning clears that consumed anchor and pagination supplies the newer unread message afterward
+        mockManuallyMarkedUnreadReportActionID = null;
+        rerender([markedAction]);
+        const newAction = makeAction('newer', {created: '2023-01-01 13:00:00.000'});
+        rerender([newAction, markedAction]);
+
+        // Then the divider targets the newer history rather than the old anchor or treating history as read-on-arrival
+        expect(result.current.unreadMarkerReportActionID).toBe(newAction.reportActionID);
+        expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
     it('keeps an existing divider across repeated renders after a filtered offline action arrives', () => {
         jest.spyOn(ReportActionsUtils, 'wasMessageReceivedWhileOffline').mockImplementation((action) => action.reportActionID === 'export');
         const olderUnread = makeAction('older-unread');
