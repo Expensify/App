@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import {useMouseActions} from '@hooks/useMouseContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getLocalizedCurrencySymbol, hasSpaceBetweenSymbolAndAmount} from '@libs/CurrencyUtils';
 import mergeRefs from '@libs/mergeRefs';
 
 import CONST from '@src/CONST';
@@ -30,11 +31,8 @@ type EditableTotalAmountInputProps = {
     /** Number of decimal places accepted for the currency. */
     decimals: number;
 
-    /** Currency symbol rendered before the amount. */
-    currencySymbol: string;
-
-    /** Whether the display string puts a space between the symbol and the amount, mirrored here to avoid a shift on edit. */
-    hasSymbolSpaceInPreview: boolean;
+    /** Currency code of the amount being edited. */
+    currency: string;
 
     /** Accessibility label of the input. */
     accessibilityLabel: string;
@@ -54,22 +52,14 @@ type EditableTotalAmountInputProps = {
  * auto-growing input as separate texts, so a negative amount reads `-$12.34`, which an input prefix cannot produce.
  * Pressing the cell's empty area keeps the input focused, since the cell saves on blur.
  */
-function EditableTotalAmountInput({
-    initialValue,
-    onChange,
-    allowNegative,
-    decimals,
-    currencySymbol,
-    hasSymbolSpaceInPreview,
-    accessibilityLabel,
-    onBlur,
-    onSubmitEditing,
-    ref,
-}: EditableTotalAmountInputProps) {
+function EditableTotalAmountInput({initialValue, onChange, allowNegative, decimals, currency, accessibilityLabel, onBlur, onSubmitEditing, ref}: EditableTotalAmountInputProps) {
     const styles = useThemeStyles();
-    const {numberFormat} = useLocalize();
+    const {numberFormat, preferredLocale} = useLocalize();
     const {setMouseDown, setMouseUp} = useMouseActions();
     const inputRef = useRef<BaseTextInputRef | null>(null);
+
+    const currencySymbol = getLocalizedCurrencySymbol(preferredLocale, currency) ?? '';
+    const hasSymbolSpaceInPreview = hasSpaceBetweenSymbolAndAmount(preferredLocale, currency);
 
     // The controller keeps editing the value it was seeded with, so the sign handling is fixed together with the seed.
     // Otherwise an amount or permission update arriving mid-edit would re-add or drop a sign around the edited magnitude.
@@ -99,6 +89,8 @@ function EditableTotalAmountInput({
         setMouseUp();
     };
 
+    const isNegative = hasFixedNegativeSign || controller.isNegative;
+
     return (
         <ScrollView
             contentContainerStyle={[styles.flexGrow1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}
@@ -110,10 +102,23 @@ function EditableTotalAmountInput({
                 inputRef.current?.focus();
             }}
         >
-            {(hasFixedNegativeSign || controller.isNegative) && <Text style={[styles.iouAmountText, styles.editableCellSymbolStyle]}>-</Text>}
-            <Text style={[styles.iouAmountText, styles.editableCellSymbolStyle, hasSymbolSpaceInPreview && styles.pr1]}>{currencySymbol}</Text>
+            {isNegative && (
+                <Text
+                    aria-hidden
+                    style={styles.editableCellSymbolStyle}
+                >
+                    -
+                </Text>
+            )}
+            <Text
+                aria-hidden
+                style={[styles.editableCellSymbolStyle, hasSymbolSpaceInPreview && styles.pr1]}
+            >
+                {currencySymbol}
+            </Text>
             <TextInput
-                accessibilityLabel={accessibilityLabel}
+                // Screen readers speak U+2212 as "minus"
+                accessibilityLabel={isNegative ? `\u2212${accessibilityLabel}` : accessibilityLabel}
                 // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
                 // See https://github.com/Expensify/App/issues/51868 for more information
                 autoCapitalize="words"

@@ -254,7 +254,7 @@ describe('TotalCell', () => {
             await waitForBatchedUpdates();
 
             fireEvent.press(await screen.findByTestId('mock-edit-button'));
-            return screen.findByLabelText('Amount (USD)');
+            return screen.findByLabelText(/-?Amount \(USD\)/);
         };
 
         it('edits the magnitude of a negative amount and shows its sign beside the input', async () => {
@@ -263,17 +263,24 @@ describe('TotalCell', () => {
 
             // Then the input holds only the magnitude and the sign is rendered on its own, so the cell reads -$10.00
             expect(input.props.value).toBe('10.00');
-            expect(screen.getByText('-')).toBeOnTheScreen();
-            expect(screen.getByText('$')).toBeOnTheScreen();
+            expect(screen.getByText('-', {includeHiddenElements: true})).toBeOnTheScreen();
+            expect(screen.getByText('$', {includeHiddenElements: true})).toBeOnTheScreen();
+
+            // And the sign and symbol are hidden from assistive tech, since the input's label carries both
+            expect(input.props.accessibilityLabel).toBe('-Amount (USD)');
+            expect(screen.queryByText('-')).not.toBeOnTheScreen();
+            expect(screen.queryByText('$')).not.toBeOnTheScreen();
         });
 
         it('saves a negative amount when the user enters a negative number', async () => {
             // Given a tracked expense of $10.00 being edited
             const onSave = jest.fn();
             const input = await renderEditingTotalCell(createTrackedTransaction(1000), onSave);
+            expect(input.props.accessibilityLabel).toBe('Amount (USD)');
 
             // When the user enters a negative amount and leaves the cell
             fireEvent.changeText(input, '-12.50');
+            expect(input.props.accessibilityLabel).toBe('-Amount (USD)');
             fireEvent(input, 'blur');
 
             // Then the signed amount is saved in the backend format
@@ -284,14 +291,16 @@ describe('TotalCell', () => {
             // Given a tracked expense of -$10.00 with the caret at the start of its magnitude
             const onSave = jest.fn();
             const input = await renderEditingTotalCell(createTrackedTransaction(-1000), onSave);
+            expect(input.props.accessibilityLabel).toBe('-Amount (USD)');
             fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
 
             // When the user presses backspace and leaves the cell
             fireEvent(input, 'keyPress', {nativeEvent: {key: 'Backspace'}});
+            expect(input.props.accessibilityLabel).toBe('Amount (USD)');
             fireEvent(input, 'blur');
 
             // Then the sign is gone and the positive amount is saved
-            expect(screen.queryByText('-')).not.toBeOnTheScreen();
+            expect(screen.queryByText('-', {includeHiddenElements: true})).not.toBeOnTheScreen();
             expect(onSave).toHaveBeenCalledWith(1000);
         });
 
@@ -311,7 +320,7 @@ describe('TotalCell', () => {
             // Given a negative Split Bill amount being edited, whose sign the cell shows but does not let the user change
             const onSave = jest.fn();
             const input = await renderEditingTotalCell({...createTrackedTransaction(-1000), comment: {source: CONST.IOU.TYPE.SPLIT}}, onSave);
-            expect(screen.getByText('-')).toBeOnTheScreen();
+            expect(screen.getByText('-', {includeHiddenElements: true})).toBeOnTheScreen();
 
             // When the user types a minus before the magnitude, which would flip a sign the user may change, then changes the magnitude and leaves the cell
             fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
@@ -351,7 +360,7 @@ describe('TotalCell', () => {
             fireEvent(input, 'blur');
 
             // Then the typed number replaces the whole amount, sign included, as in the full-screen amount editor
-            expect(screen.queryByText('-')).not.toBeOnTheScreen();
+            expect(screen.queryByText('-', {includeHiddenElements: true})).not.toBeOnTheScreen();
             expect(onSave).toHaveBeenCalledWith(500);
         });
 
@@ -365,7 +374,7 @@ describe('TotalCell', () => {
             act(() => mockEscapeShortcutHandler?.());
 
             // Then the cell leaves edit mode without saving the draft
-            expect(screen.queryByLabelText('Amount (USD)')).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(/-?Amount \(USD\)/)).not.toBeOnTheScreen();
             expect(onSave).not.toHaveBeenCalled();
         });
 
@@ -395,7 +404,7 @@ describe('TotalCell', () => {
 
             // Then the new amount is saved and the cell exits edit mode
             expect(onSave).toHaveBeenCalledWith(1500);
-            expect(screen.queryByLabelText('Amount (USD)')).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(/-?Amount \(USD\)/)).not.toBeOnTheScreen();
         });
 
         it('does not save when the cell is opened and submitted with Enter without changes', async () => {
@@ -408,7 +417,7 @@ describe('TotalCell', () => {
 
             // Then nothing is saved and the cell exits edit mode
             expect(onSave).not.toHaveBeenCalled();
-            expect(screen.queryByLabelText('Amount (USD)')).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(/-?Amount \(USD\)/)).not.toBeOnTheScreen();
         });
     });
 });

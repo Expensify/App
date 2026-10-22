@@ -8,7 +8,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol, hasSpaceBetweenSymbolAndAmount} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDisplayAmount, isInvoiceReport, isSettled, shouldEnableNegative} from '@libs/ReportUtils';
 import showInlineEditError from '@libs/showInlineEditError';
@@ -44,7 +44,7 @@ function getTransactionItemIouType(transactionItem: TransactionItem) {
 
 function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report, policy}: TotalCellProps) {
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const currency = getTransactionCurrency(transactionItem);
 
@@ -125,8 +125,6 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
         inputRef.current?.blur();
     };
 
-    const hasSymbolSpaceInPreview = hasSpaceBetweenSymbolAndAmount(preferredLocale, currency);
-
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscape, {captureOnInputs: true, isActive: isEditing});
 
     const displayContent = (
@@ -152,8 +150,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
                     onChange={handleAmountChange}
                     allowNegative={!isSplitBill && allowNegative}
                     decimals={decimals}
-                    currencySymbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
-                    hasSymbolSpaceInPreview={hasSymbolSpaceInPreview}
+                    currency={currency}
                     accessibilityLabel={`${translate('iou.amount')} (${currency})`}
                     onBlur={save}
                     onSubmitEditing={save}
