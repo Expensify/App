@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -25,11 +25,10 @@ function WorkspaceConfirmationSuccessPage() {
                 title={translate('workspace.new.confirmWorkspace')}
                 onBackButtonPress={closePage}
             />
-            <ConfirmationPage
+            <ConfirmationPageDefault
                 heading={translate('workspace.createdForClient.title')}
                 description={translate('workspace.createdForClient.description')}
                 descriptionStyle={[styles.ph5, styles.textSupporting]}
-                shouldShowButton
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={closePage}
             />

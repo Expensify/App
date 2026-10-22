@@ -591,6 +591,12 @@ type OriginalMessagePolicyChangeLog = {
     /** End date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
     endDate?: string;
 
+    /** Share of the custom unit rate that is tax reclaimable, used in ADD actions */
+    taxClaimablePercentage?: number;
+
+    /** Name of the tax rate the custom unit rate's reclaimable tax falls under, used in ADD actions */
+    taxRateName?: string;
+
     /** New start date of the custom unit rate (yyyy-MM-dd), used in UPDATE actions */
     newStartDate?: string;
 
@@ -1281,6 +1287,9 @@ type OriginalMessageReimbursed = {
 
     /** Currency the creditedAmount is denominated in (the employee's deposit currency) */
     creditedCurrency?: string;
+
+    /** The Concierge reasoning for the action */
+    reasoning?: string;
 };
 
 /** Model of `trip room preview` report action */
