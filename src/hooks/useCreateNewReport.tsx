@@ -24,15 +24,13 @@ function useCreateNewReport() {
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    // A new report has no expenses yet, so it can't have violations.
-    const hasViolations = false;
-
     return useCallback(
         (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
             return createNewReport(
                 currentUserPersonalDetails,
-                hasViolations,
+                // A new report has no expenses yet, so it can't have violations.
+                false,
                 isASAPSubmitBetaEnabled,
                 policy,
                 isTrackIntentUser,
@@ -42,7 +40,7 @@ function useCreateNewReport() {
                 shouldDismissEmptyReportsConfirmation,
             );
         },
-        [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals, rules],
+        [currentUserPersonalDetails, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals, rules],
     );
 }
 

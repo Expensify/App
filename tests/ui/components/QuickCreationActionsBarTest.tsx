@@ -65,12 +65,16 @@ const CURRENT_USER_EMAIL = 'user@test.com';
 const CURRENT_USER_DOMAIN = 'test.com';
 const MOCK_POLICY_ID = 'policy-123';
 
-function renderComponent() {
-    return render(
+function QuickCreationActionsBarWithProviders() {
+    return (
         <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
             <QuickCreationActionsBar />
-        </ComposeProviders>,
+        </ComposeProviders>
     );
+}
+
+function renderComponent() {
+    return render(<QuickCreationActionsBarWithProviders />);
 }
 
 describe('QuickCreationActionsBar - empty report confirmation', () => {
@@ -397,14 +401,12 @@ describe('QuickCreationActionsBar - transaction violations', () => {
         // Given the bar is rendered inside a Profiler and has settled, so the render count is a stable baseline
         const onRender = jest.fn();
         render(
-            <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
-                <Profiler
-                    id="QuickCreationActionsBar"
-                    onRender={onRender}
-                >
-                    <QuickCreationActionsBar />
-                </Profiler>
-            </ComposeProviders>,
+            <Profiler
+                id="QuickCreationActionsBar"
+                onRender={onRender}
+            >
+                <QuickCreationActionsBarWithProviders />
+            </Profiler>,
         );
         await waitForBatchedUpdatesWithAct();
         const renderCountBeforeChange = onRender.mock.calls.length;

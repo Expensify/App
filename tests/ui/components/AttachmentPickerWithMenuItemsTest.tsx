@@ -290,33 +290,13 @@ describe('AttachmentPickerWithMenuItems - transaction violations', () => {
     it('does not re-render when a transaction violation changes', async () => {
         // Given the composer is rendered inside a Profiler and has settled, so the render count is a stable baseline
         const onRender = jest.fn();
-        const actionButtonRef = React.createRef<ComponentRef<typeof View>>();
         render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <Profiler
-                    id="AttachmentPickerWithMenuItems"
-                    onRender={onRender}
-                >
-                    <AttachmentPickerWithMenuItems
-                        report={MOCK_REPORT}
-                        currentUserPersonalDetails={MOCK_PERSONAL_DETAILS}
-                        reportID={MOCK_REPORT_ID}
-                        onAttachmentPicked={jest.fn()}
-                        isFullComposerAvailable
-                        isComposerFullSize={false}
-                        disabled={false}
-                        setMenuVisibility={jest.fn()}
-                        isMenuVisible={false}
-                        onTriggerAttachmentPicker={jest.fn()}
-                        onCanceledAttachmentPicker={jest.fn()}
-                        onMenuClosed={jest.fn()}
-                        onAddActionPressed={jest.fn()}
-                        onItemSelected={jest.fn()}
-                        actionButtonRef={actionButtonRef}
-                        raiseIsScrollLikelyLayoutTriggered={jest.fn()}
-                    />
-                </Profiler>
-            </ComposeProviders>,
+            <Profiler
+                id="AttachmentPickerWithMenuItems"
+                onRender={onRender}
+            >
+                {renderPicker(false)}
+            </Profiler>,
         );
         await waitForBatchedUpdatesWithAct();
         const renderCountBeforeChange = onRender.mock.calls.length;
