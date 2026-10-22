@@ -3347,6 +3347,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         return buildResult(options);
     }, [
+        formatPhoneNumber,
         selectedTransactionsKeys,
         showOfflineModal,
         showDownloadErrorModal,

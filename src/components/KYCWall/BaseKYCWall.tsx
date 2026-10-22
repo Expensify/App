@@ -307,6 +307,7 @@ function KYCWall({
             }
         },
         [
+            formatPhoneNumber,
             bankAccountList,
             getPersonalBankAccountOnSuccessFallbackRoute,
             onSelectPaymentMethod,
