@@ -27,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -42,6 +43,7 @@ type ReportDetailsContentProps = {
 };
 
 function ReportDetailsContent({reportID}: ReportDetailsContentProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const {translate} = useLocalize();
@@ -64,8 +66,8 @@ function ReportDetailsContent({reportID}: ReportDetailsContentProps) {
             return;
         }
 
-        getReportPrivateNote(report?.reportID);
-    }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
+        getReportPrivateNote(report?.reportID, session);
+    }, [report?.reportID, session, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     return (
         <ScreenWrapper testID="DynamicReportDetailsPage">

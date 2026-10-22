@@ -253,6 +253,7 @@ import type {
     ReportAction,
     ReportUserIsTyping,
     Rule,
+    Session,
     SidePanelContext,
     Transaction,
     TransactionViolation,
@@ -6301,8 +6302,8 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
 };
 
 /** Fetches all the private notes for a given report */
-function getReportPrivateNote(reportID: string | undefined) {
-    if (isAnonymousUser()) {
+function getReportPrivateNote(reportID: string | undefined, session: OnyxEntry<Session>) {
+    if (isAnonymousUser(session)) {
         return;
     }
 

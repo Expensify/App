@@ -46,6 +46,24 @@ describe('actions/User', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
+    describe('updateTheme', () => {
+        it('only stores the theme locally for a passed anonymous session even when the stored session is signed in', async () => {
+            // Given a signed-in session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'user@example.com'});
+            await waitForBatchedUpdates();
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write');
+
+            // When the theme is updated for an anonymous session passed by the caller
+            UserActions.updateTheme(CONST.THEME.DARK_CONTRAST, false, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await waitForBatchedUpdates();
+
+            // Then the passed session decides: the preference is saved locally and not sent to the server
+            expect(apiWriteSpy).not.toHaveBeenCalled();
+            expect(await getOnyxValue(ONYXKEYS.PREFERRED_THEME)).toBe(CONST.THEME.DARK_CONTRAST);
+            apiWriteSpy.mockRestore();
+        });
+    });
+
     describe('joinExactOnlineWaitlist', () => {
         afterEach(() => {
             jest.restoreAllMocks();
