@@ -5,6 +5,8 @@ import hasManualMapDistanceOverride from '@pages/iou/request/step/confirmation/s
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
+import createRandomTransaction from '../utils/collections/transaction';
+
 const MILES = CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 const toMeters = (miles: number) => DistanceRequestUtils.convertToDistanceInMeters(miles, MILES);
 
@@ -18,16 +20,16 @@ function buildMapTransaction({
     routes?: Record<string, number>;
     selectedRouteKey?: string;
     routeDistanceMeters?: number;
-}) {
+}): Transaction {
     return {
-        transactionID: '1',
+        ...createRandomTransaction(1),
         iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
         comment: {
             selectedRouteKey,
             customUnit: {quantity, distanceUnit: MILES, routeDistanceMeters},
         },
         routes: Object.fromEntries(Object.entries(routes ?? {}).map(([key, distance]) => [key, {distance, geometry: {coordinates: []}}])),
-    } as unknown as Transaction;
+    };
 }
 
 describe('hasManualMapDistanceOverride', () => {
