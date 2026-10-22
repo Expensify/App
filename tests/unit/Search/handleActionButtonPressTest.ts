@@ -365,6 +365,7 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
+            bankAccountList: undefined,
             confirmSubmitReportViolations: jest.fn(),
             personalDetailsByLogins: {},
         });
@@ -399,6 +400,7 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
+            bankAccountList: undefined,
             confirmSubmitReportViolations: jest.fn(),
             personalDetailsByLogins: {},
         });
@@ -439,6 +441,7 @@ describe('handleActionButtonPress', () => {
             personalDetailsByLogins: {},
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            bankAccountList: undefined,
             confirmSubmitReportViolations: jest.fn(),
         });
 
