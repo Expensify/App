@@ -37,6 +37,8 @@ const MOCK_REPORT_ACTION: ReportAction = {
 
 const MOCK_TRANSACTION: Transaction = {
     ...createRandomTransaction(0),
+    initialAmount: 0,
+    initialIsAmountSet: false,
 
     // The shared factory leaves this off, so name it here to exercise its branch of the draft property validator.
     commuterExclusionPreview: {policyID: '1', hasExclusion: true, isWholeTripExcluded: false, commuteDistanceMeters: 100},

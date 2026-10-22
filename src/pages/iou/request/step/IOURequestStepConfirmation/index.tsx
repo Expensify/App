@@ -104,6 +104,10 @@ function IOURequestStepConfirmationContent({
     isLoadingTransaction,
     shouldHideHeader = false,
     navigation,
+    onSignDirtyChange,
+    onInputFocus,
+    onInputBlur,
+    suppressDiscardPrompt,
 }: IOURequestStepConfirmationProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const params = route.params;
@@ -776,8 +780,14 @@ function IOURequestStepConfirmationContent({
                                     isParticipantPickerVisible={isParticipantPickerVisible}
                                     onOpenParticipantPicker={openParticipantPicker}
                                     onToggleBillable={setBillable}
-                                    onConfirm={onConfirm}
-                                    onSendMoney={handleSendMoney}
+                                    onConfirm={() => {
+                                        suppressDiscardPrompt?.();
+                                        onConfirm();
+                                    }}
+                                    onSendMoney={(paymentMethod) => {
+                                        suppressDiscardPrompt?.();
+                                        handleSendMoney(paymentMethod);
+                                    }}
                                     showRemoveExpenseConfirmModal={() => {
                                         confirmRemoveCurrentTransaction();
                                     }}
@@ -807,6 +817,9 @@ function IOURequestStepConfirmationContent({
                                     expensesNumber={transactions.length}
                                     isTimeRequest={isTimeRequest}
                                     shouldHideToSection={shouldHideToSection}
+                                    onSignDirtyChange={onSignDirtyChange}
+                                    onInputFocus={onInputFocus}
+                                    onInputBlur={onInputBlur}
                                 />
                             )}
                         </SubmitExpenseOrchestrator>
