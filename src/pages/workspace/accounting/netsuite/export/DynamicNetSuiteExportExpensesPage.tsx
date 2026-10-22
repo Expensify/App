@@ -87,7 +87,16 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
                     {areSettingsInErrorFields([exportDestinationSettingName], config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                 </MenuItemField>
                 {!!exportDestination && (
-                    <MenuItem.HelpTextHTML>{Parser.replace(translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`))}</MenuItem.HelpTextHTML>
+                    <MenuItem.HelpTextHTML>
+                        {Parser.replace(
+                            translate(
+                                // Credit card charges apply only to company cards, so they have no reimbursable description
+                                exportDestination === CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE
+                                    ? 'workspace.netsuite.exportDestination.values.CREDIT_CARD_CHARGE.nonReimbursableDescription'
+                                    : `workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`,
+                            ),
+                        )}
+                    </MenuItem.HelpTextHTML>
                 )}
             </OfflineWithFeedback>
             {!shouldHideReimbursableDefaultVendor(isReimbursable, config) && (
