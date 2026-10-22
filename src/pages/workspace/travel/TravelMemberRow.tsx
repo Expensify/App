@@ -4,13 +4,20 @@ import Switch from '@components/Switch';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
 import {View} from 'react-native';
+
+import type {TravelMemberRole} from './TravelMemberRolePickerModal';
+
+import TravelMemberRoleCell from './TravelMemberRoleCell';
 
 type TravelMemberRowProps = {
     accountID: number;
@@ -26,14 +33,18 @@ type TravelMemberRowProps = {
     /** Whether the member can book travel on the workspace */
     canUseTravel: boolean;
 
+    travelRole: TravelMemberRole;
+
     pendingAction?: PendingAction;
 
     errors?: Errors;
 
-    /** Whether the current user can change the member's travel access */
+    /** Whether the current user can change the member's travel access and travel role */
     canEdit: boolean;
 
     onToggleTravelAccess: (canUseTravel: boolean) => void;
+
+    onSaveTravelRole: (travelRole: TravelMemberRole) => void;
 
     /** Called when the switch is pressed while the current user can't change it */
     onReadOnlyPress?: () => void | Promise<void>;
@@ -41,8 +52,23 @@ type TravelMemberRowProps = {
     onDismissError: () => void;
 };
 
-function TravelMemberRow({accountID, login, name, displayLogin, canUseTravel, pendingAction, errors, canEdit, onToggleTravelAccess, onReadOnlyPress, onDismissError}: TravelMemberRowProps) {
+function TravelMemberRow({
+    accountID,
+    login,
+    name,
+    displayLogin,
+    canUseTravel,
+    travelRole,
+    pendingAction,
+    errors,
+    canEdit,
+    onToggleTravelAccess,
+    onSaveTravelRole,
+    onReadOnlyPress,
+    onDismissError,
+}: TravelMemberRowProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     return (
@@ -73,14 +99,23 @@ function TravelMemberRow({accountID, login, name, displayLogin, canUseTravel, pe
                         numberOfLines={1}
                     />
                 </View>
-                <Switch
-                    isOn={canUseTravel}
-                    onToggle={onToggleTravelAccess}
-                    accessibilityLabel={`${translate('workspace.moreFeatures.travel.members.canBookTravel')}: ${name}`}
-                    disabled={!canEdit}
-                    showLockIcon={!canEdit}
-                    disabledAction={onReadOnlyPress}
-                />
+                <View style={StyleUtils.getWidthStyle(variables.tableTravelRoleColumnWidth)}>
+                    <TravelMemberRoleCell
+                        role={travelRole}
+                        canEdit={canEdit}
+                        onSave={onSaveTravelRole}
+                    />
+                </View>
+                <View style={[StyleUtils.getWidthStyle(variables.tableSwitchColumnWidth), styles.alignItemsEnd]}>
+                    <Switch
+                        isOn={canUseTravel}
+                        onToggle={onToggleTravelAccess}
+                        accessibilityLabel={`${translate('workspace.moreFeatures.travel.members.canBookTravel')}: ${name}`}
+                        disabled={!canEdit}
+                        showLockIcon={!canEdit}
+                        disabledAction={onReadOnlyPress}
+                    />
+                </View>
             </View>
         </OfflineWithFeedback>
     );

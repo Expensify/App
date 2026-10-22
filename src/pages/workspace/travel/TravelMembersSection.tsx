@@ -4,26 +4,32 @@
  */
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
+import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useSearchResults from '@hooks/useSearchResults';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceMembers from '@hooks/useWorkspaceMembers';
 
-import {clearPolicyTravelMemberAccessError, setPolicyTravelMemberAccess} from '@libs/actions/Policy/Travel';
+import {clearPolicyTravelMemberAccessError, setPolicyTravelMemberAccess, setPolicyTravelMemberRole} from '@libs/actions/Policy/Travel';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {canMemberUseTravel} from '@libs/PolicyUtils';
+import {canMemberUseTravel, getTravelMemberRole} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
 import {View} from 'react-native';
+
+import type {TravelMemberRole} from './TravelMemberRolePickerModal';
 
 import TravelMemberRow from './TravelMemberRow';
 
@@ -37,6 +43,7 @@ type TravelMember = {
     name: string;
     displayLogin: string;
     canUseTravel: boolean;
+    travelRole: TravelMemberRole;
     pendingAction?: PendingAction;
     errors?: Errors;
 };
@@ -46,6 +53,7 @@ const filterMember = (member: TravelMember, searchInput: string) => tokenizedSea
 function TravelMembersSection({policyID}: TravelMembersSectionProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const policy = usePolicy(policyID);
     const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const workspaceMembers = useWorkspaceMembers(policy);
@@ -57,7 +65,8 @@ function TravelMembersSection({policyID}: TravelMembersSectionProps) {
             name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
             displayLogin: formatPhoneNumber(email),
             canUseTravel: canMemberUseTravel(policy, email),
-            pendingAction: policyEmployee.pendingFields?.canUseTravel,
+            travelRole: getTravelMemberRole(policy, email),
+            pendingAction: policyEmployee.pendingFields?.canUseTravel ?? policyEmployee.pendingFields?.travelRole,
             errors: policyEmployee.errors,
         }))
         .sort((member1, member2) => localeCompare(member1.name, member2.name));
@@ -95,6 +104,15 @@ function TravelMembersSection({policyID}: TravelMembersSectionProps) {
                 />
             )}
             <View style={styles.mt3}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv2, styles.borderBottom]}>
+                    <Text style={[styles.flex1, styles.lh16, styles.textMicroSupporting]}>{translate('common.member')}</Text>
+                    <View style={[StyleUtils.getWidthStyle(variables.tableTravelRoleColumnWidth), styles.editableCellHeader]}>
+                        <Text style={[styles.lh16, styles.textMicroSupporting]}>{translate('workspace.moreFeatures.travel.members.travelRole')}</Text>
+                    </View>
+                    <View style={[StyleUtils.getWidthStyle(variables.tableSwitchColumnWidth), styles.alignItemsEnd]}>
+                        <Text style={[styles.lh16, styles.textMicroSupporting]}>{translate('workspace.moreFeatures.travel.members.access')}</Text>
+                    </View>
+                </View>
                 {filteredMembers.map((member) => (
                     <TravelMemberRow
                         key={member.email}
@@ -103,10 +121,12 @@ function TravelMembersSection({policyID}: TravelMembersSectionProps) {
                         name={member.name}
                         displayLogin={member.displayLogin}
                         canUseTravel={member.canUseTravel}
+                        travelRole={member.travelRole}
                         pendingAction={member.pendingAction}
                         errors={member.errors}
                         canEdit={canWrite}
                         onToggleTravelAccess={(enabled) => setPolicyTravelMemberAccess(policy, [member], enabled)}
+                        onSaveTravelRole={(travelRole) => setPolicyTravelMemberRole(policy, member, travelRole)}
                         onReadOnlyPress={withReadOnlyFallback()}
                         onDismissError={() => clearPolicyTravelMemberAccessError(policyID, member.email)}
                     />
