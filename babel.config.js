@@ -6,7 +6,6 @@ require('dotenv').config();
 process.env.EXPO_PUBLIC_USE_RN_FETCH = process.env.EXPO_PUBLIC_USE_RN_FETCH ?? '1';
 
 const {expoInlineEnvVars} = require('babel-preset-expo/build/plugins/inline-env-vars');
-const oxcReactCompilerConfig = require('./config/babel/oxcReactCompilerConfig');
 
 /**
  * Custom plugin that prints a file name when it's being processed by babel.
@@ -153,16 +152,6 @@ if (process.env.CAPTURE_METRICS === 'true') {
     ]);
 }
 
-// Jest coverage runs send app source through babel-jest instead of OXC (see oxcJestTransformer.js), so this
-// lane still needs the Babel React Compiler. It shares OXC's options so both compile the same way.
-const jest = {
-    ...metro,
-    plugins: [
-        ['babel-plugin-react-compiler', oxcReactCompilerConfig({sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/')})], // must run first!
-        ...metro.plugins,
-    ],
-};
-
 const repack = {
     ...metro,
     plugins: metro.plugins
@@ -192,9 +181,5 @@ module.exports = (api) => {
         return repack;
     }
 
-    if (runningIn === 'babel-jest') {
-        return jest;
-    }
-
-    return runningIn === 'metro' ? metro : {};
+    return runningIn === 'babel-jest' || runningIn === 'metro' ? metro : {};
 };
