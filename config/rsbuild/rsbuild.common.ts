@@ -1,5 +1,5 @@
 import type {RsbuildConfig} from '@rsbuild/core';
-import type {Compilation, DefinePluginOptions, RspackPluginInstance, SwcJsMinimizerRspackPluginOptions} from '@rspack/core';
+import type {DefinePluginOptions, RspackPluginInstance, SwcJsMinimizerRspackPluginOptions} from '@rspack/core';
 
 import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
@@ -56,24 +56,6 @@ const localBranchName = getCurrentBranchName();
  * See https://github.com/Expensify/App/issues/102042.
  */
 const CANVASKIT_WASM_FILENAME = `canvaskit-${canvaskitPackageJson.version}.wasm`;
-
-function isCompilation(value: unknown): value is Compilation {
-    return typeof value === 'object' && value !== null && 'getAssets' in value;
-}
-
-/**
- * The URL a font from `assets/fonts/web` is emitted under. `fonts.css` and the charts load each font from its
- * content-hashed file, so the inline `@font-face` rules in `web/index.html`, which start the splash screen's fonts
- * downloading while the HTML is parsed, must name the same file or the browser downloads the font twice.
- */
-function getEmittedFontURL(compilation: unknown, fontFilename: string): string {
-    const sourceFilename = `assets/fonts/web/${fontFilename}`;
-    const asset = isCompilation(compilation) ? compilation.getAssets().find(({info}) => info.sourceFilename === sourceFilename) : undefined;
-    if (!asset) {
-        throw new Error(`[rsbuild] ${sourceFilename} was not emitted, so web/index.html can't reference it`);
-    }
-    return `/${asset.name}`;
-}
 
 /**
  * React Compiler + react-native-worklets loaders.
@@ -449,16 +431,13 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
         },
         html: {
             template: 'web/index.html',
-            templateParameters: (defaultParameters) => ({
-                ...defaultParameters,
+            templateParameters: {
                 splashLogo: fs.readFileSync(path.resolve(dirname, `../../assets/images/new-expensify${mapEnvironmentToLogoSuffix(file)}.svg`), 'utf-8'),
                 isWeb: platform === 'web',
                 isProduction: file === '.env.production',
                 isStaging: file === '.env.staging',
                 useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || (platform === 'web' && ['.env.production', '.env.staging'].includes(file)),
-                expensifyNeueRegularFontURL: getEmittedFontURL(defaultParameters.compilation, 'ExpensifyNeue-Regular.woff2'),
-                expensifyNeueBoldFontURL: getEmittedFontURL(defaultParameters.compilation, 'ExpensifyNeue-Bold.woff2'),
-            }),
+            },
         },
         performance: {
             // Rsbuild's default exclusion, plus the `.br` twins BrotliCompressionPlugin emits below: listing them would
