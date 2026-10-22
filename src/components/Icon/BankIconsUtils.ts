@@ -6,7 +6,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type BankIconParams = {
     styles: ThemeStyles;
-    bankName?: BankName;
+    bankName?: string;
     isCard?: boolean;
     maxIconSize?: number;
 };

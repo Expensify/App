@@ -17,6 +17,7 @@ import {
 } from '@libs/CardUtils';
 import {getCategoryNameError, getCategoryNameErrorMessage, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getDistanceRateNameError, getDistanceRateNameErrorMessage, getDistanceRateValueError, getDistanceRateValueErrorMessage} from '@libs/PolicyDistanceRatesUtils';
 import {getPerDiemAmountError, getPerDiemAmountErrorMessage, getPerDiemNameError, getPerDiemNameErrorMessage} from '@libs/PolicyPerDiemUtils';
 import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
@@ -104,20 +105,21 @@ function renameCompanyCardInline(
 }
 
 function renameDistanceRateInline(translate: LocalizedTranslate, policyID: string, customUnit: CustomUnit, rate: Rate, newName: string): string | undefined {
-    const sanitized = StringUtils.sanitizeName(newName);
+    // The cell edits the name without the hidden date suffix, so check and save the full name that gets stored
+    const nameToSave = DistanceRequestUtils.getRateNameWithDateSuffix(rate, StringUtils.sanitizeName(newName));
     const currentName = rate.name ?? '';
     const existingRateNames = Object.values(customUnit.rates ?? {}).map((existingRate) => existingRate.name ?? '');
 
-    if (sanitized === currentName) {
+    if (nameToSave === currentName) {
         return;
     }
 
-    const nameError = getDistanceRateNameError(existingRateNames, newName, currentName);
+    const nameError = getDistanceRateNameError(existingRateNames, nameToSave, currentName);
     if (nameError) {
-        return getDistanceRateNameErrorMessage(translate, nameError, newName);
+        return getDistanceRateNameErrorMessage(translate, nameError, nameToSave);
     }
 
-    updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: sanitized}]);
+    updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: nameToSave}]);
 }
 
 function updateDistanceRateValueInline(

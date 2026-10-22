@@ -350,5 +350,42 @@ describe('MoneyReportHeader selection mode header', () => {
             expect(mockTurnOffMobileSelectionMode).toHaveBeenCalled();
             expect(lastHeaderTitle()).toBeUndefined();
         });
+
+        describe('when the user chose the table view for single-expense reports', () => {
+            beforeEach(() => {
+                mockUseOnyx.mockImplementation((key) => {
+                    if (key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`) {
+                        return createOnyxResult<Report>(report);
+                    }
+                    if (key === ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW) {
+                        return createOnyxResult(CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
+                    }
+                    return createOnyxResult(undefined);
+                });
+            });
+
+            it('keeps selection mode on in a narrow window when a single transaction is left', () => {
+                // Given a single-expense report that shows its expense in the table, where a row can be selected
+                mockTransactions([null]);
+
+                // When the header renders with selection mode on
+                renderHeader();
+
+                // Then selection mode stays on, so the user can select the only row
+                expect(mockTurnOffMobileSelectionMode).not.toHaveBeenCalled();
+                expect(lastHeaderTitle()).toBe('common.selectMultiple');
+            });
+
+            it('turns selection mode off in a narrow window when no transactions are left', () => {
+                // Given the report's only expense was deleted, so there is no row left to select
+                mockTransactions([CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE]);
+
+                // When the header renders with selection mode on
+                renderHeader();
+
+                // Then selection mode is turned off
+                expect(mockTurnOffMobileSelectionMode).toHaveBeenCalled();
+            });
+        });
     });
 });

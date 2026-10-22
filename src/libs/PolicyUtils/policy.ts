@@ -160,6 +160,21 @@ function canCreateCategoryInSitu(policy: OnyxEntry<Policy>, login?: string) {
     return canEditWorkspaceSettings(policy, login) && !hasAccountingConnections(policy) && !!policy?.areCategoriesEnabled;
 }
 
+/**
+ * Whether the policy lets an expense with the given `reimbursable` value show the reimbursable toggle.
+ *
+ * A locked field (`disabledFields.reimbursable`) normally hides the toggle, but an expense that already
+ * disagrees with the policy default has to stay correctable - otherwise it is silently stuck on the wrong value.
+ * An absent `defaultReimbursable` or `isReimbursable` means "reimbursable", matching the expense creation path
+ * and `getReimbursable`.
+ */
+function canShowReimbursableToggleForPolicy(policy: OnyxEntry<Policy>, isReimbursable: boolean | undefined): boolean {
+    if (!policy?.disabledFields?.reimbursable) {
+        return true;
+    }
+    return (isReimbursable ?? true) !== (policy.defaultReimbursable ?? true);
+}
+
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
@@ -410,6 +425,7 @@ export {
     getPoliciesForRoomCreation,
     getOwnedPaidPolicies,
     canCreateCategoryInSitu,
+    canShowReimbursableToggleForPolicy,
     getActiveAdminWorkspaces,
     getActiveEmployeeWorkspaces,
     hasActiveAdminWorkspaces,
