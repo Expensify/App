@@ -12016,15 +12016,19 @@ describe('SearchUIUtils', () => {
             const unpaidData: OnyxTypes.SearchResults['data'] = {[`report_${unpaidReportID}`]: unpaidReport};
             const paidData: OnyxTypes.SearchResults['data'] = {...unpaidData, [`report_${paidReportID}`]: paidReport};
 
-            // When no report on the page has a withdrawal, then the column is hidden
+            // When no report on the page has a withdrawal
             const unpaidColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: unpaidData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+
+            // Then the Withdrawal ID column is hidden
             expect(unpaidColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
 
-            // When a report on the page has a withdrawal, then the column is shown
+            // When a report on the page has a withdrawal
             const paidColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: paidData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+
+            // Then the Withdrawal ID column is shown
             expect(paidColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
 
-            // When the reports are sorted by the empty column, then it stays so the sort can still be changed
+            // When no report has a withdrawal but the reports are sorted by Withdrawal ID
             const sortedColumns = SearchUIUtils.getColumnsToShow({
                 currentAccountID: 1,
                 data: unpaidData,
@@ -12032,6 +12036,8 @@ describe('SearchUIUtils', () => {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
             });
+
+            // Then the Withdrawal ID column stays visible so the sort can still be changed
             expect(sortedColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
         });
 
