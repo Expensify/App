@@ -1447,7 +1447,7 @@ describe('OptionsListUtils', () => {
                     createMockReportAttributesDerived(workspaceChatReports, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
                     EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                     policies,
-                    {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+                    {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
                     undefined,
                 );
 
