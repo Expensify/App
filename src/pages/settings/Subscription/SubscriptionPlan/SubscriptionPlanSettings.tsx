@@ -118,10 +118,9 @@ function AnnualSavingsTooltip() {
             renderTooltipContent={() => (
                 <View style={styles.gap2}>
                     <Text style={[styles.textStrong, styles.themeTextColor]}>{translate('subscription.subscriptionSettings.saveWithAnnualSubscription')}</Text>
-                    <Text style={styles.textLabelSupporting}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
                     <View style={styles.renderHTML}>
                         <RenderHTML
-                            html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
+                            html={translate('subscription.subscriptionSettings.annualSavingsDescription', !!adminsChatReportID)}
                             onLinkPress={(_event, href) => openTooltipLink(href)}
                         />
                     </View>
@@ -187,8 +186,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
 
     const subscriptionTypeValue = cardView.subscriptionTypeLabel === 'annual' ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
     const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate, dateFnsLocale);
-    const saveUpTo = translate('subscription.subscriptionSettings.saveUpTo', convertToShortDisplayString(possibleCostSavings, preferredCurrency));
-    const autoIncreaseSubtitle = `${saveUpTo}. ${translate('subscription.subscriptionSettings.extraSeats')}`;
+    const autoIncreaseSubtitle = translate('subscription.subscriptionSettings.autoIncreaseDescription', convertToShortDisplayString(possibleCostSavings, preferredCurrency));
 
     const navigateToSubscriptionDetails = () => {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS);
@@ -278,42 +276,43 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
     return (
         <View testID="SubscriptionPlanSettings">
             <View style={[cardPaddingHorizontal, cardPaddingTop, styles.pb2]}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
-                        <Icon
-                            src={planIcon}
-                            width={variables.iconHeader}
-                            height={variables.iconHeader}
-                            additionalStyles={styles.mr3}
+                <View>
+                    <Text style={styles.textLabelSupporting}>{translate('subscription.yourPlan.plan')}</Text>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
+                            <Text
+                                style={[styles.headerText, styles.textHeadlineH2, styles.flexShrink1]}
+                                accessibilityRole={CONST.ROLE.HEADER}
+                                numberOfLines={1}
+                            >
+                                {planTitle}
+                            </Text>
+                            <Icon
+                                src={planIcon}
+                                width={variables.iconHeader}
+                                height={variables.iconHeader}
+                                additionalStyles={styles.ml2}
+                            />
+                        </View>
+                        <ThreeDotsMenu
+                            shouldSelfPosition
+                            menuItems={overflowMenu}
+                            anchorAlignment={anchorAlignment}
+                            shouldOverlay
+                            testID="SubscriptionPlanSettings-menu"
                         />
-                        <Text
-                            style={[styles.headerText, styles.textHeadlineH2, styles.flexShrink1]}
-                            accessibilityRole={CONST.ROLE.HEADER}
-                            numberOfLines={1}
-                        >
-                            {planTitle}
-                        </Text>
                     </View>
-                    <ThreeDotsMenu
-                        shouldSelfPosition
-                        menuItems={overflowMenu}
-                        anchorAlignment={anchorAlignment}
-                        shouldOverlay
-                        testID="SubscriptionPlanSettings-menu"
-                    />
                 </View>
                 {(cardView.showExpensifyCodeBadge || cardView.showTaxExemptBadge) && (
                     <View style={[styles.flexRow, styles.flexWrap, styles.gap2, styles.mt2]}>
                         {cardView.showExpensifyCodeBadge && (
                             <Badge
-                                success
                                 text={translate('subscription.subscriptionSettings.expensifyCodeApplied')}
                                 icon={icons.Tag}
                             />
                         )}
                         {cardView.showTaxExemptBadge && (
                             <Badge
-                                success
                                 text={translate('subscription.details.taxExemptEnabled')}
                                 icon={icons.Coins}
                             />
