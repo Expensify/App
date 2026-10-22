@@ -278,10 +278,12 @@ describe('WorkspaceInvoiceVBASection', () => {
         });
 
         afterEach(async () => {
-            global.fetch = originalFetch;
+            // A test that fails while fetch is paused would otherwise leave the request queue blocked for the next test.
             await act(async () => {
+                await mockFetch.resume();
                 await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
             });
+            global.fetch = originalFetch;
         });
 
         it('treats the first eligible account as the default when no default is saved', async () => {
@@ -441,12 +443,12 @@ describe('WorkspaceInvoiceVBASection', () => {
                 await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
             });
             await seedBankAccounts([primaryBankAccount, secondBankAccountBeingDeleted, buildBusinessBankAccount(THIRD_BANK_ACCOUNT_ID, THIRD_TITLE)], PRIMARY_BANK_ACCOUNT_ID);
-            mockShowConfirmModal.mockImplementationOnce(() => Promise.resolve({action: ModalActions.CONFIRM}));
             renderSection();
             await waitForBatchedUpdatesWithAct();
 
-            // When the user deletes the saved default
+            // When the user deletes the saved default and confirms
             await openThreeDotsMenu(PRIMARY_TITLE);
+            mockShowConfirmModal.mockImplementationOnce(() => Promise.resolve({action: ModalActions.CONFIRM}));
             fireEvent.press(screen.getByText(TestHelper.translateLocal('common.delete')), {nativeEvent: {}});
             // Jest never finishes the menu's close animation, so fire the callback the delete flow waits for.
             await act(async () => {
@@ -457,6 +459,27 @@ describe('WorkspaceInvoiceVBASection', () => {
             // Then the saved default moves to the third account, because the second one is about to disappear
             const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`);
             expect(policy?.invoice?.bankAccount?.transferBankAccountID).toBe(THIRD_BANK_ACCOUNT_ID);
+        });
+
+        it('does not save the next account as the invoice default when deleting an account that only stands in as the default', async () => {
+            // Given two eligible accounts and no saved default, so the first account only stands in as the default
+            await seedBankAccounts([primaryBankAccount, secondBankAccount]);
+            renderSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user deletes the first account and confirms
+            await openThreeDotsMenu(PRIMARY_TITLE);
+            mockShowConfirmModal.mockImplementationOnce(() => Promise.resolve({action: ModalActions.CONFIRM}));
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.delete')), {nativeEvent: {}});
+            // Jest never finishes the menu's close animation, so fire the callback the delete flow waits for.
+            await act(async () => {
+                onModalDidClose();
+            });
+            await waitForRequestQueue();
+
+            // Then only the delete reaches the server, because the second account stands in by itself, and saving it would restore the deleted account if the request failed
+            expect(TestHelper.getFetchMockCalls(WRITE_COMMANDS.DELETE_PAYMENT_BANK_ACCOUNT)).toHaveLength(1);
+            expect(TestHelper.getFetchMockCalls(WRITE_COMMANDS.SET_INVOICING_TRANSFER_BANK_ACCOUNT)).toHaveLength(0);
         });
 
         it('puts the badge back on the saved default, not the Wallet default, when Make default fails', async () => {
