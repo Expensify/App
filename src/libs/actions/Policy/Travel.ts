@@ -230,5 +230,14 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
     API.write(WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS, parameters, onyxData);
 }
 
-export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelMemberAccess};
+/** Dismiss the error left on a member after their travel access failed to update. */
+function clearPolicyTravelMemberAccessError(policyID: string, login: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        employeeList: {
+            [login]: {errors: null},
+        },
+    });
+}
+
+export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelMemberAccess, clearPolicyTravelMemberAccessError};
 export type {TravelMemberAccessTarget};
