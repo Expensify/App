@@ -1,11 +1,12 @@
 import {isAuthenticationError} from '@libs/actions/connections';
 import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/NetSuiteUtils';
+import {isArchivedPolicy} from '@libs/PolicyUtils/policyType';
 
 import CONST from '@src/CONST';
 import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteSubsidiary} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 function shouldHideReimbursedReportsSection(config?: NetSuiteConnectionConfig) {
@@ -120,6 +121,67 @@ function getNonReimbursableNetSuiteExportDestinations(config?: Pick<NetSuiteConn
     return destinations.filter((destination) => destination !== CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE);
 }
 
+type NetSuiteOAuthMigrationSeverity = 'info' | 'warning' | 'danger';
+
+const NETSUITE_OAUTH_DEADLINE = new Date('2027-02-01');
+const NETSUITE_OAUTH_DANGER_THRESHOLD_DAYS = 30;
+const NETSUITE_OAUTH_WARNING_THRESHOLD_DAYS = 90;
+
+function hasSimpleNetSuiteSyncConfiguration(policy?: Policy): boolean {
+    const syncOptions = policy?.connections?.netsuite?.options?.config?.syncOptions;
+    return (
+        !!syncOptions &&
+        !syncOptions.syncTax &&
+        !syncOptions.syncReimbursedReports &&
+        !syncOptions.syncCustomSegments &&
+        !syncOptions.customSegments?.length &&
+        !syncOptions.syncCustomLists &&
+        !syncOptions.customLists?.length
+    );
+}
+
+function shouldShowNetSuiteOAuthMigrationNudge(policy: Policy | undefined, allPolicies: OnyxCollection<Policy> | undefined): boolean {
+    const netsuite = policy?.connections?.netsuite;
+    if (
+        !netsuite ||
+        netsuite.verified === false ||
+        netsuite.config?.authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2 ||
+        !netsuite.accountID ||
+        !netsuite.tokenID ||
+        !netsuite.tokenSecret ||
+        !hasSimpleNetSuiteSyncConfiguration(policy) ||
+        !allPolicies
+    ) {
+        return false;
+    }
+
+    // OAuth updates all policies that share a NetSuite account.
+    // Therefore each policy must have a simple configuration before we show the nudge.
+    return !Object.values(allPolicies).some((sharedPolicy) => {
+        const sharedNetSuite = sharedPolicy?.connections?.netsuite;
+        return (
+            !!sharedPolicy &&
+            sharedPolicy.role === CONST.POLICY.ROLE.ADMIN &&
+            !isArchivedPolicy(sharedPolicy) &&
+            sharedNetSuite?.accountID === netsuite.accountID &&
+            sharedNetSuite.config?.authType !== CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2 &&
+            !hasSimpleNetSuiteSyncConfiguration(sharedPolicy)
+        );
+    });
+}
+
+function getNetSuiteOAuthMigrationSeverity(): NetSuiteOAuthMigrationSeverity {
+    const now = new Date();
+    const daysRemaining = (NETSUITE_OAUTH_DEADLINE.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+    if (daysRemaining <= NETSUITE_OAUTH_DANGER_THRESHOLD_DAYS) {
+        return 'danger';
+    }
+    if (daysRemaining <= NETSUITE_OAUTH_WARNING_THRESHOLD_DAYS) {
+        return 'warning';
+    }
+    return 'info';
+}
+
 export {
     shouldHideReimbursedReportsSection,
     shouldHideReportsExportTo,
@@ -141,4 +203,6 @@ export {
     getNonReimbursableNetSuiteExportDestinations,
     getImportCustomFieldsSettings,
     getInitialSubPageForNetsuiteTokenInput,
+    shouldShowNetSuiteOAuthMigrationNudge,
+    getNetSuiteOAuthMigrationSeverity,
 };

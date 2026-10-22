@@ -1248,11 +1248,8 @@ type NetSuiteConnection = {
 
     lastSync?: ConnectionLastSync;
 
-    /** Connection-level config (OAuth credentials and autosync) */
+    /** Config object used to store autosync settings and authentication type */
     config: OnyxCommon.OnyxValueWithOfflineFeedback<{
-        /** OAuth2 REST connections set authType to oauth2. SOAP connections omit this field. */
-        authType?: string;
-
         /** NetSuite auto synchronization configs */
         autoSync: {
             /** Whether data should be automatically synched between the app and NetSuite */
@@ -1266,6 +1263,9 @@ type NetSuiteConnection = {
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
+
+        /** Authentication method used for this connection */
+        authType?: 'tba' | 'oauth2';
     }>;
 
     /** Encrypted token secret for authenticating to NetSuite */
