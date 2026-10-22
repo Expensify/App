@@ -13,8 +13,12 @@ function resolvePadding(
     bottomAxisSize: ProcessNodeResult['bottomAxisSize'],
     topAxisSize: ProcessNodeResult['topAxisSize'],
 ): ProcessNodeResult['padding'] {
+    if (!padding) {
+        return;
+    }
+
     let resolvedPadding = padding;
-    if (!resolvedPadding || typeof resolvedPadding === 'number') {
+    if (typeof resolvedPadding === 'number') {
         resolvedPadding = {
             left: resolvedPadding,
             right: resolvedPadding,
