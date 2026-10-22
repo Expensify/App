@@ -5,8 +5,8 @@ import type {ValueOf} from 'type-fest';
 import type {RuleFilterNode} from './RuleFilters';
 
 /**
- * A transaction lifecycle event that can fire an expense-default rule. The backend fires a category tax default on
- * both, so that editing the category of an existing expense applies the rule too.
+ * A transaction lifecycle event that can fire an expense-default rule. A rule fires on both, so that editing the
+ * category of an existing expense applies the rule too.
  */
 type ExpenseDefaultTrigger = typeof CONST.RULES.TRIGGERS.CREATE_TRANSACTION | typeof CONST.RULES.TRIGGERS.UPDATE_TRANSACTION;
 

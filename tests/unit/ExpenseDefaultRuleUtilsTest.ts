@@ -65,7 +65,7 @@ function buildRuleWithOverrides(overrides: Record<string, unknown>): ExpenseDefa
 
 describe('ExpenseDefaultRuleUtils', () => {
     describe('buildExpenseDefaultRule', () => {
-        it('builds the CreateTransaction trigger, the merchant filter and one Set action per field', () => {
+        it('builds both transaction triggers, the merchant filter and one Set action per field', () => {
             const rule = buildExpenseDefaultRule(
                 {
                     merchantToMatch: 'Starbucks',
@@ -83,7 +83,7 @@ describe('ExpenseDefaultRuleUtils', () => {
             );
 
             expect(rule).toEqual({
-                triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION]),
+                triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION, TRIGGER.UPDATE_TRANSACTION]),
                 filters: {left: FIELD.MERCHANT, operator: EQUAL_TO, right: 'Starbucks'},
                 actions: toIndexMap([
                     {name: ACTION.SET, field: FIELD.MERCHANT, value: 'Starbucks Coffee'},
@@ -425,12 +425,12 @@ describe('ExpenseDefaultRuleUtils', () => {
             expect(rule?.triggers).toEqual(backendTriggers);
         });
 
-        it('sets only CreateTransaction on a new rule', () => {
+        it('sets both triggers on a new rule', () => {
             // When a rule is built with no existing triggers to carry over
             const rule = buildExpenseDefaultRule({categoriesToMatch: ['Coffee'], tax: TAX_KEY}, policy);
 
-            // Then it fires on creation alone
-            expect(rule?.triggers).toEqual(toIndexMap([TRIGGER.CREATE_TRANSACTION]));
+            // Then it fires on creation and on an edit, matching what the backend writes
+            expect(rule?.triggers).toEqual(backendTriggers);
         });
 
         it('stays read-only when a trigger is one the form does not know', () => {

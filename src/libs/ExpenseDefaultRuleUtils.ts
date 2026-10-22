@@ -324,7 +324,7 @@ function buildExpenseDefaultRule(formValues: Partial<ExpenseDefaultFormValues>, 
 
     // A rule the backend wrote can fire on more than one event, and the form has no input for that, so an edit
     // hands back the triggers the rule already carries instead of rebuilding them.
-    const triggers: ExpenseDefaultTriggers = getEditableTriggers(existingTriggers) ?? toIndexMap([TRIGGER.CREATE_TRANSACTION]);
+    const triggers: ExpenseDefaultTriggers = getEditableTriggers(existingTriggers) ?? toIndexMap([TRIGGER.CREATE_TRANSACTION, TRIGGER.UPDATE_TRANSACTION]);
 
     return {triggers, filters, actions};
 }
@@ -687,7 +687,7 @@ function isEditableExpenseDefaultRule(rule: Rule | ExpenseDefaultRule | undefine
  * stale link or a bookmark can resolve to another policy's rule or to an approval workflow. Saving from the
  * editor writes a freshly built merchant rule over that same ruleID, so anything it can't represent has to be
  * refused rather than opened. A rule the form can edit is already an expense default rule, because the form only
- * accepts `CreateTransaction` triggers and `Set` actions.
+ * accepts `CreateTransaction` and `UpdateTransaction` triggers and `Set` actions.
  */
 function canEditExpenseDefaultRule(rule: Rule | undefined, policyID: string | undefined): boolean {
     return isPolicyScopedRule(rule, policyID) && isEditableExpenseDefaultRule(rule);
