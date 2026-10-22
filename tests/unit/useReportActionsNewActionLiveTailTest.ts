@@ -84,7 +84,6 @@ type HookParams = Parameters<typeof useReportActionsNewActionLiveTail>[0];
 const reportScrollManager = {
     scrollToBottom: jest.fn(),
     scrollToIndex: jest.fn(),
-    scrollToEnd: jest.fn(),
     scrollToOffset: jest.fn(),
 };
 

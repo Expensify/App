@@ -42,7 +42,6 @@ jest.mock('@hooks/useReportScrollManager', () => ({
     default: () => ({
         scrollToBottom: mockScrollToBottom,
         scrollToIndex: mockScrollToIndex,
-        scrollToEnd: jest.fn(),
         scrollToOffset: jest.fn(),
     }),
 }));

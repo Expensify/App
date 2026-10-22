@@ -28,8 +28,6 @@ function useReportScrollManager(): ReportScrollManagerData {
         listRef.current.scrollToEnd({animated: false});
     };
 
-    const scrollToEnd = scrollToBottom;
-
     const scrollToOffset = (offset: number) => {
         const listRef = getListRef();
         if (!listRef?.current) {
@@ -39,7 +37,7 @@ function useReportScrollManager(): ReportScrollManagerData {
         listRef.current.scrollToOffset({animated: true, offset});
     };
 
-    return {scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
+    return {scrollToIndex, scrollToBottom, scrollToOffset};
 }
 
 export default useReportScrollManager;
