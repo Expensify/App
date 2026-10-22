@@ -3994,6 +3994,7 @@ ${amount} für ${merchant} – ${date}`,
             removeDelegate: 'Urlaubsvertretung entfernen',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, abgeschlossen`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Schritt ${step}`;
         if (total) {
@@ -4101,11 +4102,14 @@ ${amount} für ${merchant} – ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Gib einen Wert zwischen ${min} und ${max} ein`,
             tooFewItems: ({min}: {min: number}) => `Füge mindestens ${min} hinzu`,
             tooManyItems: ({max}: {max: number}) => `Füge höchstens ${max} hinzu`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `${item} hinzufügen`,
         removeItemTitle: ({item}: {item: string}) => `${item} entfernen?`,
         removeItemPrompt: ({name}: {name: string}) => `Möchtest du ${name} wirklich entfernen?`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} mit der Endung ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'Die Fragen auf dieser Seite haben sich geändert',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
@@ -6328,12 +6332,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             },
             syncExpensifyCardSettlements: 'Expensify Karten-Abrechnungen synchronisieren',
             settlementAccount: {label: 'Expensify Karte Verrechnungskonto', description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in DualEntry.'},
-            syncTravelInvoicingSettlements: 'Abstimmungen der Reiseabrechnungen synchronisieren',
+            syncTravelInvoicingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
             travelInvoicingSettlementAccount: {
-                label: 'Reisekostenabrechnungs-Verrechnungskonto',
+                label: 'Abrechnungskonto für konsolidierte Reiseabrechnung',
                 description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in DualEntry.',
             },
-            travelInvoicingPayableAccount: {label: 'Verbindlichkeitenkonto für Reiseabrechnungen'},
+            travelInvoicingPayableAccount: {label: 'Verbindlichkeitskonto für konsolidierte Reisekostenabrechnung'},
         },
         type: {
             free: 'Kostenlos',
@@ -7379,6 +7383,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     'Das Mitglied arbeitet von zu Hause aus oder reist zwischen verschiedenen Standorten ohne festes Büro, daher gelten die Pendelregelungen nicht.',
                 futureOnlyNote: 'Änderungen gelten nur für zukünftige Kilometerberechnungen. Bestehende Kilometerabrechnungen werden nicht neu berechnet.',
             },
+            officeLocation: 'Bürostandort',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Bürostandort ändern',
+            changeWorkArrangement: 'Arbeitsvereinbarung ändern',
             changeRole: 'Rolle ändern',
         },
         card: {
@@ -9245,12 +9253,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie das Verrechnungskonto „Campfire-Guthaben“, wenn Expensify eine Rechnung als bezahlt markiert.'},
             syncExpensifyCardSettlements: 'Expensify Karte-Abrechnungen synchronisieren',
             settlementAccount: {label: 'Verrechnungskonto der Expensify Karte', description: 'Wählen Sie Ihr Verrechnungskonto aus, und wir erstellen die Zahlung in Campfire.'},
-            syncTravelInvoicingSettlements: 'Reiseabrechnungs-Ausgleiche synchronisieren',
+            syncTravelInvoicingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
             travelInvoicingSettlementAccount: {
-                label: 'Abrechnungskonto für Reiseabrechnungen',
+                label: 'Abrechnungskonto für konsolidierte Reiseabrechnung',
                 description: 'Wählen Sie Ihr Verrechnungskonto aus, und wir erstellen die Zahlung in Campfire.',
             },
-            travelInvoicingPayableAccount: {label: 'Verbindlichkeitskonto für Reiseabrechnungen'},
+            travelInvoicingPayableAccount: {label: 'Verbindlichkeitskonto für konsolidierte Reisekostenabrechnung'},
             exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
             cardProgramAccount: {
                 label: 'Kartenprogramm-Konto',
@@ -9881,6 +9889,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             setAsPrimary: ({name}: {name: string}) => `Legen Sie den Bürositz „${name}“ als primär fest`,
             setCompanyAddressAsPrimary: 'Firmenadresse als primär festlegen',
             removed: ({name}: {name: string}) => `hat den Bürostandort „${name}“ entfernt`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `hat den Bürostandort von ${displayName} in ${officeLocation} geändert (zuvor ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `„${name}“`,
+            companyAddress: 'die Firmenadresse',
+            primaryOffice: 'das Hauptbüro',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `Standard-Arbeitsmodell auf ${arrangement} festlegen`,
@@ -10557,8 +10570,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             category: 'Kategorie',
             tag: 'Tag',
         },
-        switchToTableView: 'Zur Tabellenansicht wechseln',
-        switchToExpenseView: 'Zur Ausgabenansicht wechseln',
     },
     report: {
         newReport: {

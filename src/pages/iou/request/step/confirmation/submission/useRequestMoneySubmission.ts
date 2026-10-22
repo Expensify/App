@@ -59,6 +59,7 @@ type UseRequestMoneySubmissionParams = TransactionTaxValues & {
     transactions: Transaction[];
     receiptFiles: Record<string, Receipt>;
     canEnterScanFieldsManually: boolean;
+    isPolicyExpenseChat: boolean;
     report: OnyxEntry<Report>;
     reportDrafts: OnyxCollection<Report>;
     policy: OnyxEntry<Policy>;
@@ -86,6 +87,7 @@ function useRequestMoneySubmission({
     transactions,
     receiptFiles,
     canEnterScanFieldsManually,
+    isPolicyExpenseChat,
     report,
     reportDrafts,
     policy,
@@ -274,7 +276,7 @@ function useRequestMoneySubmission({
                     merchant: merchantToUse,
                     comment: item?.comment?.comment?.trim() ?? '',
                     receipt,
-                    receiptState: getCurrentReceiptState({item, receiptFiles, canEnterScanFieldsManually}),
+                    receiptState: getCurrentReceiptState({item, receiptFiles, canEnterScanFieldsManually, isPolicyExpenseChat}),
                     category: item.category,
                     tag: item.tag,
                     taxCode: transactionTaxCode,

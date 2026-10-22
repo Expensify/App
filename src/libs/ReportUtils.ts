@@ -305,6 +305,7 @@ import {
     isPending,
     isPerDiemRequest,
     isReceiptBeingScanned,
+    isReceiptScanBlockingEdit,
     isScanning,
     isScanningTransaction,
     isScanRequest as isScanRequestTransactionUtils,
@@ -6159,7 +6160,7 @@ function canEditFieldOfMoneyRequest({
         return (
             !isClosedReport(moneyRequestReport) &&
             !isInvoiceReport(moneyRequestReport) &&
-            !isReceiptBeingScanned(transaction) &&
+            !isReceiptScanBlockingEdit(transaction) &&
             !isPerDiemRequest(transaction) &&
             (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequest(transaction)) &&
             canEditExpense &&

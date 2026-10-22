@@ -4001,6 +4001,7 @@ ${amount} pour ${merchant} - ${date}`,
             removeDelegate: 'Supprimer le délégué de vacances',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, terminé`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Étape ${step}`;
         if (total) {
@@ -4108,11 +4109,14 @@ ${amount} pour ${merchant} - ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Saisissez une valeur entre ${min} et ${max}`,
             tooFewItems: ({min}: {min: number}) => `Ajoutez au moins ${min}`,
             tooManyItems: ({max}: {max: number}) => `Ajoutez au plus ${max}`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item} : ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field} : ${error}`,
         },
         addItem: ({item}: {item: string}) => `Ajouter ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Supprimer ${item} ?`,
         removeItemPrompt: ({name}: {name: string}) => `Voulez-vous vraiment supprimer ${name} ?`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} se terminant par ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'Les questions de cette page ont changé',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Le code SWIFT/BIC doit comporter 8 ou 11 caractères, avec 6 lettres suivies de 2 ou 5 lettres ou chiffres.',
@@ -6333,12 +6337,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.'},
-            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyages',
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage consolidés',
             travelInvoicingSettlementAccount: {
-                label: 'Compte de règlement de facturation de voyage',
+                label: 'Compte de règlement de facturation de voyage consolidée',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.',
             },
-            travelInvoicingPayableAccount: {label: 'Compte créditeur de facturation de voyages'},
+            travelInvoicingPayableAccount: {label: 'Compte fournisseur de facturation de voyage consolidée'},
         },
         type: {
             free: 'Gratuit',
@@ -7398,6 +7402,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                     'Le membre travaille à domicile ou se déplace entre plusieurs sites sans bureau fixe, donc les règles relatives aux trajets domicile-travail ne s’appliquent pas.',
                 futureOnlyNote: 'Les modifications s’appliquent uniquement aux calculs de kilométrage futurs. Les dépenses de kilométrage existantes ne sont pas recalculées.',
             },
+            officeLocation: 'Lieu de bureau',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Modifier le lieu de travail',
+            changeWorkArrangement: 'Modifier l’organisation du travail',
             changeRole: 'Modifier le rôle',
         },
         card: {
@@ -9268,12 +9276,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.'},
-            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage consolidés',
             travelInvoicingSettlementAccount: {
-                label: 'Compte de règlement de facturation de voyage',
+                label: 'Compte de règlement de facturation de voyage consolidée',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.',
             },
-            travelInvoicingPayableAccount: {label: 'Compte fournisseur pour la facturation de voyage'},
+            travelInvoicingPayableAccount: {label: 'Compte fournisseur de facturation de voyage consolidée'},
             exportToMultipleAccounts: 'Configurer l’exportation vers plusieurs comptes',
             cardProgramAccount: {
                 label: 'Compte du programme de carte',
@@ -9904,6 +9912,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             setAsPrimary: ({name}: {name: string}) => `définir le lieu de travail « ${name} » comme principal`,
             setCompanyAddressAsPrimary: 'définir l’adresse de l’entreprise comme principale',
             removed: ({name}: {name: string}) => `a supprimé le lieu de bureau « ${name} »`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `a modifié le lieu de travail de ${displayName} en ${officeLocation} (précédemment ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `« ${name} »`,
+            companyAddress: 'l’adresse de l’entreprise',
+            primaryOffice: 'le bureau principal',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `définir l’organisation de travail par défaut sur ${arrangement}`,
@@ -10583,8 +10596,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             category: 'Catégorie',
             tag: 'Tag',
         },
-        switchToTableView: 'Passer à la vue tableau',
-        switchToExpenseView: 'Passer à la vue dépense',
     },
     report: {
         newReport: {
