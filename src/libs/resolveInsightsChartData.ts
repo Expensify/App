@@ -1,6 +1,7 @@
 import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
 
 import type SearchResults from '@src/types/onyx/SearchResults';
+import type {SearchGroupBase} from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -38,6 +39,11 @@ type InsightsChartData = {
     state: InsightsChartState;
 };
 
+/** Checks whether any group holds expenses, since snapshots may include empty buckets. */
+function hasGroupWithExpenses(groups: Array<Pick<SearchGroupBase, 'count'>>): boolean {
+    return groups.some((group) => group.count > 0);
+}
+
 /** Resolves one chart's rows and state from its snapshot, whether GetInsights or Search loaded it. */
 function resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline = false}: ResolveInsightsChartDataParams): InsightsChartData {
     const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
@@ -55,11 +61,11 @@ function resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline = 
         return {data: [], state: INSIGHTS_CHART_STATE.LOADING};
     }
 
-    if (!sortedData?.length) {
+    if (!sortedData || !hasGroupWithExpenses(sortedData)) {
         return {data: [], state: INSIGHTS_CHART_STATE.EMPTY};
     }
 
     return {data: sortedData, state: INSIGHTS_CHART_STATE.READY};
 }
 
-export {INSIGHTS_CHART_STATE, resolveInsightsChartData};
+export {INSIGHTS_CHART_STATE, hasGroupWithExpenses, resolveInsightsChartData};

@@ -1,8 +1,9 @@
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex} from '@libs/SubPageUtils';
@@ -16,6 +17,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import type {DynamicFormFlowProps, DynamicFormSubPageProps, DynamicFormValues} from './types';
 
@@ -60,6 +62,7 @@ function DynamicFormFlow({
     layout = 'auto',
     hasConfirmation = true,
 }: DynamicFormFlowProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [draft, draftMetadata] = useOnyx(`${formID}Draft`);
     const [sensitiveAnswersByForm] = useOnyx(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS);
@@ -312,7 +315,9 @@ function DynamicFormFlow({
             shouldShowStepIndicator={isStepIndicatorAsked && stepNames.length > 1}
         >
             {isDraftLoading || isRedirecting || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
-                <FullscreenLoadingIndicator />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
             ) : (
                 <CurrentPage
                     isEditing={isEditing}

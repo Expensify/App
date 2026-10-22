@@ -1,3 +1,5 @@
+import type {AccessibilityHasPopup} from '@components/Pressable/PressResponder/PressResponderContext';
+
 import type {StartWithLoading} from '@hooks/usePressLoading';
 
 import type {ButtonVariant} from '@styles/utils/types';
@@ -116,6 +118,9 @@ type BaseButtonProps = WithSentryLabel &
 
         /** Accessibility state to pass to the pressable */
         accessibilityState?: AccessibilityState;
+
+        /** What the button opens, for a button that opens a menu or a dialog rather than acting straight away */
+        accessibilityHasPopup?: AccessibilityHasPopup;
 
         ref?: ForwardedRef<ComponentRef<typeof View>>;
     };
