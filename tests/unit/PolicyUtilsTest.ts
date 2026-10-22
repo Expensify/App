@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
     areSettingsInErrorFields,
+    canAdminPayReport,
     canCreateCategoryInSitu,
     canEditWorkspaceSettings,
     canMemberAssignRole,
@@ -18,6 +19,7 @@ import {
     canMemberWrite,
     canSendInvoice,
     canSendInvoiceFromWorkspace,
+    canShowReimbursableToggleForPolicy,
     canSubmitPerDiemExpenseFromWorkspace,
     canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
@@ -135,6 +137,7 @@ import {
     shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
     sortPoliciesByName,
+    getDefaultVendorID,
     sortVendors,
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -733,6 +736,67 @@ describe('PolicyUtils', () => {
                 // When we check whether the category picker can offer to add one
                 // Then it cannot, because new categories have to be created in the integration
                 expect(canCreateCategoryInSitu(policy)).toBe(false);
+            });
+        });
+
+        describe('canShowReimbursableToggleForPolicy', () => {
+            const teamBase = createMock<Policy>({id: 'policy1', type: CONST.POLICY.TYPE.TEAM});
+
+            it('returns true when the reimbursable field is not locked', () => {
+                // Given a workspace that lets members change the reimbursable field
+                const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: false}};
+
+                // When checking an expense that already matches the default
+                // Then the toggle is shown, because nothing stops the member from editing it
+                expect(canShowReimbursableToggleForPolicy(policy, false)).toBe(true);
+            });
+
+            it('returns false when the field is locked and the expense matches the policy default', () => {
+                // Given a workspace locked to "cash expenses are always non-reimbursable"
+                const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+                // When checking an expense that is already non-reimbursable
+                // Then the toggle is hidden, because the lock says members cannot change it
+                expect(canShowReimbursableToggleForPolicy(policy, false)).toBe(false);
+            });
+
+            it('returns true when the field is locked but the expense disagrees with the policy default', () => {
+                // Given a workspace locked to "cash expenses are always non-reimbursable"
+                const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+                // When checking an expense that drifted to reimbursable
+                // Then the toggle is shown so the expense can be corrected instead of staying stuck
+                expect(canShowReimbursableToggleForPolicy(policy, true)).toBe(true);
+            });
+
+            it('treats an absent defaultReimbursable as reimbursable when the field is locked', () => {
+                // Given a locked workspace with no stored defaultReimbursable
+                const policy = {...teamBase, defaultReimbursable: undefined, disabledFields: {reimbursable: true}};
+
+                // When checking a reimbursable expense and a non-reimbursable expense
+                // Then only the non-reimbursable one disagrees with the implied "reimbursable" default
+                expect(canShowReimbursableToggleForPolicy(policy, true)).toBe(false);
+                expect(canShowReimbursableToggleForPolicy(policy, false)).toBe(true);
+            });
+
+            it('treats an absent expense reimbursable value as reimbursable when the field is locked', () => {
+                // Given a locked workspace whose default is reimbursable, stored or implied
+                const policyWithDefault = {...teamBase, defaultReimbursable: true, disabledFields: {reimbursable: true}};
+                const policyWithoutDefault = {...teamBase, defaultReimbursable: undefined, disabledFields: {reimbursable: true}};
+
+                // When checking an expense with no stored reimbursable value
+                // Then the toggle is hidden, because the expense defaults to reimbursable and already matches the policy
+                expect(canShowReimbursableToggleForPolicy(policyWithDefault, undefined)).toBe(false);
+                expect(canShowReimbursableToggleForPolicy(policyWithoutDefault, undefined)).toBe(false);
+            });
+
+            it('shows the toggle for an expense with no reimbursable value on a locked non-reimbursable workspace', () => {
+                // Given a workspace locked to "cash expenses are always non-reimbursable"
+                const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+                // When checking an expense with no stored reimbursable value, which defaults to reimbursable
+                // Then the toggle is shown, because the expense disagrees with the policy default
+                expect(canShowReimbursableToggleForPolicy(policy, undefined)).toBe(true);
             });
         });
 
@@ -4131,6 +4195,51 @@ describe('PolicyUtils', () => {
             });
         });
 
+        describe('canAdminPayReport', () => {
+            describe.each([CONST.POLICY.ROLE.ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN])('for a non-payer %s', (role) => {
+                it.each([
+                    [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, true],
+                    [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+                    [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+                    [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+                    [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+                ])('should allow payment for %s: %s', (reimbursementChoice, expected) => {
+                    // Given a non-payer admin on a workspace using a current or deprecated reimbursement choice
+                    const policy = createMock<Policy>({
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        role,
+                        reimbursementChoice,
+                        reimburser: 'payer@example.com',
+                        owner: 'payer@example.com',
+                    });
+
+                    // When the admin's permission to pay a report is checked
+                    const canPay = canAdminPayReport(policy, 'admin@example.com');
+
+                    // Then deprecated choices preserve the same payment access as their current equivalents
+                    expect(canPay).toBe(expected);
+                });
+            });
+
+            it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
+                'should not allow a regular member to pay for %s',
+                (reimbursementChoice) => {
+                    // Given a regular member on a workspace with manual reimbursement enabled
+                    const policy = createMock<Policy>({
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        role: CONST.POLICY.ROLE.USER,
+                        reimbursementChoice,
+                    });
+
+                    // When payment access is checked with either representation of manual reimbursement
+                    const canPay = canAdminPayReport(policy, 'member@example.com');
+
+                    // Then normalizing the reimbursement choice does not grant payment permissions to regular members
+                    expect(canPay).toBe(false);
+                },
+            );
+        });
+
         describe('isPolicyPayer', () => {
             // The owner is the payer under Indirect reimbursement, so both values have to resolve to the same payer.
             it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
@@ -7410,6 +7519,171 @@ describe('PolicyUtils', () => {
                 const result = sortVendors(vendors, localeCompare);
                 expect(result).toHaveLength(1);
                 expect(result.at(0)?.name).toBe('Only');
+            });
+
+            it('breaks name ties using externalID when id is absent', () => {
+                const vendors = [
+                    {externalID: 'vendor_b', name: 'Acme'},
+                    {externalID: 'vendor_a', name: 'Acme'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result.map((v) => v.externalID)).toEqual(['vendor_a', 'vendor_b']);
+            });
+        });
+
+        describe('getDefaultVendorID', () => {
+            it('resolves QBO credit card default vendor when destination is credit_card', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {
+                                nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+                                nonReimbursableCreditCardDefaultVendor: 'qbo_vendor_1',
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe('qbo_vendor_1');
+            });
+
+            it('returns undefined for QBO when destination is not credit_card', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {
+                                nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
+                                nonReimbursableCreditCardDefaultVendor: 'qbo_vendor_1',
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
+            });
+
+            it('resolves Sage Intacct credit card charge default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {
+                                export: {
+                                    nonReimbursableCreditCardChargeDefaultVendor: 'intacct_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toBe('intacct_vendor_1');
+            });
+
+            it('resolves Xero default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            config: {
+                                defaultVendor: 'xero_contact_1',
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.XERO)).toBe('xero_contact_1');
+            });
+
+            it('resolves Rillet default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                            config: {
+                                export: {
+                                    defaultVendorID: 'rillet_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.RILLET)).toBe('rillet_vendor_1');
+            });
+
+            it('resolves DualEntry default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                            config: {
+                                export: {
+                                    defaultVendorID: 'dualentry_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.DUALENTRY)).toBe('dualentry_vendor_1');
+            });
+
+            it('resolves Campfire default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                            config: {
+                                export: {
+                                    defaultVendorID: 'campfire_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBe('campfire_vendor_1');
+            });
+
+            it('resolves Business Central default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                            config: {
+                                export: {
+                                    defaultVendorID: 'bc_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL)).toBe('bc_vendor_1');
+            });
+
+            it('resolves Certinia default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                            config: {
+                                export: {
+                                    vendorAccount: 'certinia_acc_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA)).toBe('certinia_acc_1');
+            });
+
+            it('returns undefined when policy has no connections', () => {
+                expect(getDefaultVendorID(undefined, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
             });
         });
     });
