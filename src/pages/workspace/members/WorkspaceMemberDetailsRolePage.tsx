@@ -92,7 +92,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
                     confirmButtonOptions={{
                         showButton: true,
                         text: translate('common.save'),
-                        onConfirm: saveRole,
+                        onConfirm: singleExecution(saveRole),
                         isDisabled: !selectedRole || selectedRole === member?.role,
                     }}
                 />
