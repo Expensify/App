@@ -44,6 +44,7 @@ import {
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDeletedOfficeLocationMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getHumanAgentAccountIDFromReportAction,
     getHumanAgentFirstName,
@@ -1865,6 +1866,22 @@ describe('ReportActionsUtils', () => {
 
             // Then it says the field was removed and shows the old value, instead of `changed Project to ""`
             expect(message).toBe('removed Project (previously "Apollo")');
+        });
+
+        it('should return the cleared field message when a field without a saved value is cleared', () => {
+            // Given a field change where both values are empty, which is what clearing a field that only showed its default can send
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: '', newValue: ''},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was removed, instead of `set Project to ""`
+            expect(message).toBe('removed Project');
         });
 
         it('should return the set field message when a field without a value is filled in', () => {
@@ -5212,6 +5229,41 @@ describe('ReportActionsUtils', () => {
             // When the change log is rendered
             // Then it reads the same as the message Auth stores for it
             expect(getDeletedOfficeLocationMessage(translateLocal, action)).toBe('removed the office location "New Jersey Office"');
+        });
+
+        it.each([
+            [
+                'an office assigned to a member who followed the primary office',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+                `changed Bob Smith's office location to "New Jersey Office" (previously the primary office)`,
+            ],
+            [
+                'a member moved from the company address to an office',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: 'OFFICE1', officeName: 'Headquarters', oldOfficeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, oldOfficeName: ''},
+                `changed Bob Smith's office location to "Headquarters" (previously the company address)`,
+            ],
+            [
+                'a cleared assignment',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: '', officeName: '', oldOfficeID: 'OFFICE1', oldOfficeName: 'Headquarters'},
+                `changed Bob Smith's office location to the primary office (previously "Headquarters")`,
+            ],
+            [
+                'a member without a name moved off an office that was removed since',
+                {email: 'bob@smith.com', officeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, officeName: '', oldOfficeID: 'OFFICE9', oldOfficeName: ''},
+                `changed bob@smith.com's office location to the company address (previously the primary office)`,
+            ],
+        ])('describes %s', (_description, originalMessage, expected) => {
+            // Given a member whose office assignment changed
+            const action: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {accountID: 1, ...originalMessage},
+            };
+
+            // When the change log is rendered
+            // Then it reads the same as the message Auth stores for it
+            expect(getUpdatedEmployeeOfficeLocationMessage(translateLocal, action)).toBe(expected);
         });
     });
 

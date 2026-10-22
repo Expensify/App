@@ -554,7 +554,6 @@ function IOURequestStepConfirmationContent({
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
                 Navigation.goBack(
                     createDynamicRoute(
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action, iouType, transactionID: initialTransactionID, reportID: transaction?.reportID || reportID}),
                         ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport),
                     ),
