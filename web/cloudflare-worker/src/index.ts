@@ -105,9 +105,14 @@ type ServedFile = {
     isBrotli: boolean;
 };
 
-function createBrotliResponse(body: ReadableStream | null, headers: Headers, etag: string): Response {
+function createBrotliResponse(body: ReadableStream | null, headers: Headers, etag: string | null): Response {
     headers.set('Content-Encoding', 'br');
-    headers.set('ETag', getBrotliETag(etag));
+    // A shared fallback tag would let one twin's 304 answer another's revalidation.
+    if (etag) {
+        headers.set('ETag', getBrotliETag(etag));
+    } else {
+        headers.delete('ETag');
+    }
     headers.delete('Content-Length');
     return new Response(body, {headers});
 }
@@ -126,7 +131,7 @@ async function getAsset(env: Env, request: Request, url: URL, mayHaveTwin: boole
     }
 
     await asset.body?.cancel();
-    return {response: createBrotliResponse(twin.body, new Headers(asset.headers), asset.headers.get('ETag') ?? twin.headers.get('ETag') ?? ''), isBrotli: true};
+    return {response: createBrotliResponse(twin.body, new Headers(asset.headers), asset.headers.get('ETag') ?? twin.headers.get('ETag')), isBrotli: true};
 }
 
 async function getPreviousBuildObject(bucket: R2Bucket, key: string, method: string): Promise<R2Object | R2ObjectBody | null> {
