@@ -18,7 +18,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
-import {useMemo, useState} from 'react';
+import {useState} from 'react';
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     /** Whether the transaction should be highlighted, when it is added to the report */
@@ -98,7 +98,7 @@ function useMoneyRequestReportSortedTransactions({
 }: UseMoneyRequestReportSortedTransactionsParams): UseMoneyRequestReportSortedTransactionsResult {
     const {translate, localeCompare} = useLocalize();
     // The selector factory must be reference-stable across renders, otherwise useOnyx re-subscribes on every render.
-    const ownerLoginSelector = useMemo(() => personalDetailsLoginSelector(report?.ownerAccountID), [report?.ownerAccountID]);
+    const ownerLoginSelector = personalDetailsLoginSelector(report?.ownerAccountID);
     const [ownerLogin] = useAllPersonalDetails(ownerLoginSelector);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [sortConfig, setSortConfig] = useState<SortConfig>({
