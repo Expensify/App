@@ -8221,25 +8221,50 @@ describe('ReportActionsUtils', () => {
             }) as ReportAction;
 
         it('says a document was added when none existed before', () => {
-            expect(ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, buildRulesDocumentAction(false))).toBe('added an expense policy document');
-            expect(ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, buildRulesDocumentAction())).toBe('added an expense policy document');
+            // Given change logs for a first upload, where the backend sends either an explicit false or leaves the flag out
+            const explicitFirstUpload = buildRulesDocumentAction(false);
+            const omittedFlag = buildRulesDocumentAction();
+
+            // When the message is built for each of them
+            const explicitMessage = ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, explicitFirstUpload);
+            const omittedMessage = ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, omittedFlag);
+
+            // Then both read as an addition, because an absent flag must not be mistaken for a replacement
+            expect(explicitMessage).toBe('added an expense policy document');
+            expect(omittedMessage).toBe('added an expense policy document');
         });
 
         it('says the document was replaced when one already existed', () => {
-            expect(ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, buildRulesDocumentAction(true))).toBe('replaced the expense policy document');
+            // Given a change log for an upload that overwrote an existing document
+            const action = buildRulesDocumentAction(true);
+
+            // When the message is built
+            const message = ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, action);
+
+            // Then admins see a replacement, so they know the previous document is gone
+            expect(message).toBe('replaced the expense policy document');
         });
 
         it('links to the workspace Overview page in the rendered message only', () => {
+            // Given a change log that carries the workspace it happened in
             const action = {...buildRulesDocumentAction(false), originalMessage: {isReplacement: false, policyID: 'ABC123'}} as ReportAction;
+
+            // When the room renders its message fragments
             const [fragment] = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
 
+            // Then the HTML points admins to the Overview page where the file can be opened, while the text stays plain for search and previews
             expect(fragment.text).toBe('added an expense policy document');
             expect(fragment.html).toMatch(/^<muted-text>added an expense policy document in <a href=".*\/workspaces\/ABC123\/overview">Workspace &gt; Overview<\/a><\/muted-text>$/);
         });
 
         it('stays plain text when the change log has no workspace', () => {
-            const [fragment] = ReportActionsUtils.getReportActionMessageFragments(translateLocal, buildRulesDocumentAction(false));
+            // Given a change log without a policyID, such as one written before the backend started sending it
+            const action = buildRulesDocumentAction(false);
 
+            // When the room renders its message fragments
+            const [fragment] = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+
+            // Then no link is built, because there is no workspace to point to
             expect(fragment.html).toBe('<muted-text>added an expense policy document</muted-text>');
         });
     });
