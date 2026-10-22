@@ -85,7 +85,7 @@ function getActionReportIDs(action: OnyxEntry<ReportAction>): Array<string | und
  * only re-render when the inputs derived from this wrapper change.
  */
 
-function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'default', reportID, ...propsToForward}: OptionRowLHNDataProps) {
+function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', reportID, ...propsToForward}: OptionRowLHNDataProps) {
     const styles = useThemeStyles();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
@@ -93,6 +93,7 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
+    const [fullReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const reportAttributes = useReportAttributesByID(reportID);
     const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
 

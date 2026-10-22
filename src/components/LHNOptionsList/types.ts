@@ -1,10 +1,8 @@
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Report} from '@src/types/onyx';
 
 import type {ComponentRef, RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, View, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
@@ -16,7 +14,8 @@ type CustomLHNOptionsListProps = {
     /** Extra styles for the section list container */
     contentContainerStyles?: StyleProp<ViewStyle>;
 
-    data: Report[];
+    /** The ordered IDs of the reports to render */
+    data: string[];
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<ComponentRef<typeof View> | null>) => void;
 
     /** Toggle between compact and default view of the option */
@@ -34,7 +33,6 @@ type OptionRowLHNDataProps = {
     /** Whether row should be focused */
     isOptionFocused?: boolean;
 
-    fullReport: OnyxEntry<Report>;
     reportID: string;
 
     /** Toggle between compact and default view */
@@ -72,6 +70,6 @@ type OptionRowLHNProps = {
     shouldShowMarkAsDoneCopy?: boolean;
 };
 
-type RenderItemProps = {item: Report; index: number};
+type RenderItemProps = {item: string; index: number};
 
 export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, RenderItemProps};

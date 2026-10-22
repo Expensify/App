@@ -12,7 +12,6 @@ import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
 
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
@@ -28,14 +27,14 @@ import LHNTooltipContextProvider from './LHNTooltipContextProvider';
 import OptionRowLHNData from './OptionRowLHN';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
 
-const keyExtractor = (item: Report) => `report_${item.reportID}`;
+const keyExtractor = (reportID: string) => `report_${reportID}`;
 const platform = getPlatform();
 const isWeb = platform === CONST.PLATFORM.WEB;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
-    const flashListRef = useRef<FlashListRef<Report>>(null);
+    const flashListRef = useRef<FlashListRef<string>>(null);
     const route = useRoute();
     const styles = useThemeStyles();
     const tabRootScrollProps = useTabRootScrollProps(contentContainerStyles, {hasBottomSafeAreaPadding: true});
@@ -65,8 +64,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         }
         return (
             <OptionRowLHNData
-                reportID={item.reportID}
-                fullReport={item}
+                reportID={item}
                 viewMode={optionMode}
                 isOptionFocused={!shouldDisableFocusOptions}
                 onSelectRow={onSelectRow}
