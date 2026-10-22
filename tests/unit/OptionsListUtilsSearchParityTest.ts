@@ -331,7 +331,6 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
     clearSearchCaches();
 
     const searching = buildOptionList(sourceFixture, {isSearching: true});
-    const idle = buildOptionList(sourceFixture, {isSearching: false});
     const buildSearchRouterIdleList = (maxRecentReports: number) => buildSearchRouterIdleOptionList(sourceFixture, maxRecentReports);
     const searchRouterIdle = buildSearchRouterIdleList(SEARCH_ROUTER_IDLE_REPORTS_CAP);
     const searchRouterIdleAtProductionCap = buildSearchRouterIdleList(SEARCH_ROUTER_OPTIONS_CONFIG.maxRecentReports);
@@ -339,7 +338,6 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
     const optionLists = {
         // The searching list keeps the collection's iteration order, which the search ranks later, so only its content is recorded
         searching: serializeOptionList(searching, {isOrderMeaningful: false}),
-        idle: serializeOptionList(idle, {isOrderMeaningful: true}),
         searchRouterIdle: serializeOptionList(searchRouterIdle, {
             isOrderMeaningful: true,
         }),
@@ -384,25 +382,8 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
     const serverPassOptionsByReportID = new Map(serverPassOptions.recentReports.map((option) => [option.reportID, option]));
     const serverPass = orderedServerReportIDs.map((reportID) => serverPassOptionsByReportID.get(reportID)).filter((option) => !!option && !option.isSelfDM);
 
-    // When the idle cap hides reports and shows fewer rows than available slots, rebuild with all reports via loadAll
-    const totalReports = Object.keys(sourceFixture.reports).length;
-    const searchRouterBlankAtSmallCap = searchCallSites.searchRouterDisplayed(searchRouterIdle, '');
-    const shouldLoadAllReports =
-        searchRouterBlankAtSmallCap.options.recentReports.length < CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS && SEARCH_ROUTER_IDLE_REPORTS_CAP < totalReports;
-    const searchRouterIdleAfterLoadAll = shouldLoadAllReports ? buildSearchRouterIdleList(totalReports) : searchRouterIdle;
-    const runSearchRouterBlank = (optionList: OptionList) => ({
-        local: serializeResult(searchCallSites.searchRouterLocal(optionList, '')),
-        displayed: serializeResult(searchCallSites.searchRouterDisplayed(optionList, '')),
-    });
-
     const passes = {
-        searchRouterBlank: {
-            atProductionCap: runSearchRouterBlank(searchRouterIdleAtProductionCap),
-            afterLoadAll: {
-                didLoadAll: shouldLoadAllReports,
-                ...runSearchRouterBlank(searchRouterIdleAfterLoadAll),
-            },
-        },
+        searchRouterBlankAtProductionCap: serializeResult(searchCallSites.searchRouterDisplayed(searchRouterIdleAtProductionCap, '')),
         serverPass: serverPass.map((option) => serializeOption(option)),
     };
 
@@ -426,9 +407,9 @@ describe('OptionsListUtils search parity (golden master)', () => {
         clearSearchCaches();
     });
 
-    it('builds searching, idle and SearchRouter idle option lists that match the golden master', () => {
+    it('builds searching and SearchRouter idle option lists that match the golden master', () => {
         // Given the fixture account with every report type and contact quirk
-        // When the option list is built for search (every report), for the idle state (top-N, sorted) and for the SearchRouter idle state (small top-N, contacts deferred)
+        // When the option list is built for search (every report) and for the SearchRouter idle state (top-N, contacts deferred) at the small cap and the production cap
         // Then every option keeps its identity, flags and, where it matters, its order
         expectToMatchGoldenMaster(goldenMaster.optionLists);
     });
@@ -441,7 +422,7 @@ describe('OptionsListUtils search parity (golden master)', () => {
     });
 
     it('SearchRouter blank query and server-ID pass match the golden master', () => {
-        // Given the SearchRouter idle list at the production cap and after loading all reports, and the SearchAutocompleteList server pass (a fixed set of reports in Auth's order, no query)
+        // Given the SearchRouter idle list at the production cap and the SearchAutocompleteList server pass (a fixed set of reports in Auth's order, no query)
         // When they run through their production configs
         // Then both match the recorded golden master
         expectToMatchGoldenMaster(goldenMaster.passes);

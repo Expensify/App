@@ -205,6 +205,14 @@ const SEARCH_QUERIES = [
     '[',
     '\\',
     '.*',
+    // Query-side normalization: case, diacritics (an NFC query against the NFD-stored "René"), ß, a dotted capital I, and an existing contact's phone and the own login, which must not invite
+    'V\u00edt',
+    'JOS\u00c9',
+    'Gro\u00df',
+    'Ren\u00e9',
+    '\u0130SMAIL',
+    '+15005550006',
+    'CURRENT.USER@EXAMPLE.COM',
 ];
 
 const FIRST_NAMES = ['Ada', 'Bea', 'Cyd', 'Dan', 'Eve', 'Fay', 'Gus', 'Hal', 'Ivy', 'Jon', 'Kim', 'Lou'];
@@ -644,7 +652,7 @@ const ARCHIVED_REPORT_NAME_VALUE_PAIRS = {
 };
 
 /** The account's Onyx keys and values, for every key the search reads back. */
-function getOnyxEntries(fixture: SearchFixture): Record<string, unknown> {
+function getOnyxEntries(fixture: SearchFixture): OnyxMultiSetInput {
     return {
         [ONYXKEYS.SESSION]: SESSION,
         [ONYXKEYS.PERSONAL_DETAILS_LIST]: fixture.personalDetails,
@@ -658,9 +666,8 @@ function getOnyxEntries(fixture: SearchFixture): Record<string, unknown> {
     };
 }
 
-async function writeOnyxEntries(entries: Record<string, unknown>): Promise<SearchFixtureDerivedData> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the entries come from the fixture's typed collections, which Onyx's per-key input type cannot follow through Object.entries
-    await Onyx.multiSet(entries as OnyxMultiSetInput);
+async function writeOnyxEntries(entries: OnyxMultiSetInput): Promise<SearchFixtureDerivedData> {
+    await Onyx.multiSet(entries);
     await waitForBatchedUpdates();
     const [reportAttributes, visibleReportActions, sortedReportActions] = await Promise.all([
         getOnyxValue(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES),
