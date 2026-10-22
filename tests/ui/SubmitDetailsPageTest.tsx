@@ -269,7 +269,7 @@ function getUserLocationFromOnyx(): Promise<unknown> {
             key: ONYXKEYS.USER_LOCATION,
             callback: (val) => {
                 resolve(val);
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
             },
         });
     });

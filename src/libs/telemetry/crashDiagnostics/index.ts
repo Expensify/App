@@ -532,7 +532,7 @@ function cleanupCrashDiagnostics() {
         livenessChannel = undefined;
     }
     if (reportsConnection) {
-        Onyx.disconnect(reportsConnection);
+        reportsConnection.unsubscribe();
         reportsConnection = undefined;
     }
     if (typeof window !== 'undefined') {

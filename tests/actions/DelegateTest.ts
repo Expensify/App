@@ -67,7 +67,7 @@ describe('actions/Delegate', () => {
                     callback: (account) => {
                         // @ts-expect-error - errorFields is not defined in the type
                         expect(account?.delegatedAccess?.delegators?.at(0)?.errorFields).toBeDefined();
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -82,7 +82,7 @@ describe('actions/Delegate', () => {
                     callback: (account) => {
                         // @ts-expect-error - errorFields is not defined in the type
                         expect(account?.delegatedAccess?.delegators?.at(0)?.errorFields).toBeUndefined();
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -105,7 +105,7 @@ describe('actions/Delegate', () => {
                     callback: (account) => {
                         expect(account?.delegatedAccess?.delegates?.at(0)?.email).toBe('test@test.com');
                         expect(account?.delegatedAccess?.delegates?.at(0)?.role).toBe(CONST.DELEGATE_ROLE.ALL);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -165,7 +165,7 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
                         expect(account?.delegatedAccess?.delegates?.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -214,7 +214,7 @@ describe('actions/Delegate', () => {
                         // The targeted errors should be cleared
                         expect(errorFields?.addDelegate?.['test@test.com']).toBeUndefined();
 
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -248,7 +248,7 @@ describe('actions/Delegate', () => {
                         const firstDelegate = account?.delegatedAccess?.delegates?.at(0);
                         expect(firstDelegate?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         expect(firstDelegate?.pendingFields?.role).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -276,7 +276,7 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
                         expect(isConnectedAsDelegate({delegatedAccess: account?.delegatedAccess})).toBe(false);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -438,7 +438,7 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.IS_LOADING_APP,
                     callback: (value) => {
                         expect(value).toBe(true);
-                        Onyx.disconnect(conn);
+                        conn.unsubscribe();
                         resolve();
                     },
                 });
@@ -450,7 +450,7 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.HAS_LOADED_APP,
                     callback: (value) => {
                         expect(value).toBe(true);
-                        Onyx.disconnect(conn);
+                        conn.unsubscribe();
                         resolve();
                     },
                 });
@@ -462,7 +462,7 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.NVP_PRIORITY_MODE,
                     callback: (value) => {
                         expect(value).toBeUndefined();
-                        Onyx.disconnect(conn);
+                        conn.unsubscribe();
                         resolve();
                     },
                 });
@@ -489,7 +489,7 @@ describe('actions/Delegate', () => {
                         expect(typeof value).toBe('string');
                         expect(value && value.length > 0).toBe(true);
                         expect((value ?? '') >= before).toBe(true);
-                        Onyx.disconnect(conn);
+                        conn.unsubscribe();
                         resolve();
                     },
                 });
@@ -501,7 +501,7 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.NVP_PRIORITY_MODE,
                     callback: (value) => {
                         expect(value).toBeUndefined();
-                        Onyx.disconnect(conn);
+                        conn.unsubscribe();
                         resolve();
                     },
                 });

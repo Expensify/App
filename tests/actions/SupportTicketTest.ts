@@ -138,8 +138,8 @@ describe('actions/Report', () => {
             // Then the report ID is never observable without its fetch guard
             expect(reportStates).toEqual([true]);
         } finally {
-            Onyx.disconnect(reportConnection);
-            Onyx.disconnect(loadingStateConnection);
+            reportConnection.unsubscribe();
+            loadingStateConnection.unsubscribe();
         }
     });
 

@@ -110,7 +110,7 @@ async function getCopyPolicySettings(): Promise<CopyPolicySettingsState | null> 
         const connection = Onyx.connect({
             key: ONYXKEYS.COPY_POLICY_SETTINGS,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value ?? null);
             },
         });

@@ -8,7 +8,7 @@ function readOnceOnyxValue<TKey extends OnyxKey>(key: TKey): Promise<OnyxValue<T
         const connection = Onyx.connectWithoutView({
             key,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });

@@ -92,7 +92,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 deviceBiometricsState = data;
             },
         });
-        return () => Onyx.disconnect(connection);
+        return () => connection.unsubscribe();
     }, [accountID]);
 
     const startStateRef = useRef<CredentialsState | undefined>(undefined);
