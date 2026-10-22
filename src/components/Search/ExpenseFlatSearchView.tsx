@@ -1,5 +1,7 @@
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
+import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
+
 import CONST from '@src/CONST';
 
 import type {NativeSyntheticEvent} from 'react-native';
@@ -60,6 +62,8 @@ function ExpenseFlatSearchView({
     containerStyle,
 }: ExpenseFlatSearchViewProps) {
     const {type} = queryJSON;
+    // Normalize copied expense rows so their grid cells paste as one space-separated row.
+    useCopySelectionEvent();
 
     const {
         isOffline,
