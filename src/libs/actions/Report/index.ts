@@ -1733,9 +1733,7 @@ function openReport(params: OpenReportActionParams) {
         // reports so marking a different inbox row still shows the divider on its first open or after refreshing.
         const isFirstLoadAfterRefresh = !hasOnceLoadedReportActions;
         const manuallyMarkedUnreadTime = getReportMetadata(reportID)?.manuallyMarkedUnreadTime;
-        const hasUnopenedManualUnreadMark =
-            (!!manuallyMarkedUnreadTime && manuallyMarkedUnreadTime === existingReport?.lastReadTime) ||
-            (!!existingReport?.manuallyMarkedUnreadReportActionID && (existingReport.lastReadTime ?? '') < (existingReport.lastVisibleActionCreated ?? ''));
+        const hasUnopenedManualUnreadMark = !!manuallyMarkedUnreadTime && manuallyMarkedUnreadTime === existingReport?.lastReadTime;
         shouldClearManualUnreadMarker = (didNavigateBackToReport || isFirstLoadAfterRefresh) && !hasUnopenedManualUnreadMark;
     }
     const optimisticReport: Partial<Pick<Report, 'reportName' | 'manuallyMarkedUnreadReportActionID'>> = hasReportActions || !existingReportName ? {} : {reportName: existingReportName};

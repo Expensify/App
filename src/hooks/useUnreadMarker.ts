@@ -1,3 +1,4 @@
+import DateUtils from '@libs/DateUtils';
 import {canReportActionTriggerUnreadMarker, isReportActionUnread, wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
@@ -84,6 +85,17 @@ function useUnreadMarker({
     });
 
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
+    const hasManualUnreadMark = !!manuallyMarkedUnreadReportActionID || !!manuallyMarkedUnreadTime;
+    const [hadManualUnreadMark, setHadManualUnreadMark] = useState(hasManualUnreadMark);
+    const [manualMarkerResetTime, setManualMarkerResetTime] = useState<string>();
+    if (hadManualUnreadMark !== hasManualUnreadMark) {
+        setHadManualUnreadMark(hasManualUnreadMark);
+        if (!hasManualUnreadMark) {
+            // A return visit consumes the manual anchor. History loaded after this reset is not a live arrival.
+            setUnreadMarkerTime(reportLastReadTime);
+            setManualMarkerResetTime(DateUtils.getDBTime());
+        }
+    }
 
     useEffect(() => {
         if (isAnonymousUser) {
@@ -148,7 +160,7 @@ function useUnreadMarker({
         manuallyMarkedUnreadReportActionID,
         manuallyMarkedUnreadTime,
         hasWindowFocus: Visibility.hasFocus(),
-        newMessageBoundaryTime,
+        newMessageBoundaryTime: newMessageBoundaryTime ?? manualMarkerResetTime,
     });
     // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
     // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.
