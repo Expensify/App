@@ -78,7 +78,7 @@ jobs:
       - name: Setup Android build tools and emulator access
         if: matrix.platform == 'android'
         run: |
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-37' 'build-tools;36.0.0' 'ndk;27.1.12297006' 'cmake;3.22.1'
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-37.0' 'build-tools;36.0.0' 'ndk;27.1.12297006' 'cmake;3.22.1'
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.1.12297006" >> "$GITHUB_ENV"
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
@@ -99,13 +99,18 @@ jobs:
         uses: ./.github/actions/composite/getXcodeVersion
       - name: Setup Ruby and CocoaPods
         if: matrix.platform == 'ios'
+        id: ruby
         uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f
         with:
           ruby-version: .ruby-version
           bundler-cache: true
       - name: Verify iOS PGO on a disposable simulator
         if: matrix.platform == 'ios'
-        run: npm run pgo:verify-ci -- ios
+        env:
+          BUNDLE_GEMFILE: ${{ github.workspace }}/Gemfile
+        run: |
+          export PATH="${{ steps.ruby.outputs.ruby-prefix }}/bin:$PATH"
+          npm run pgo:verify-ci -- ios
 
       - name: Upload verification profiles and report
         if: always()
