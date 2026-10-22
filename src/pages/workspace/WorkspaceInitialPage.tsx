@@ -329,7 +329,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                         highlighted={!!item?.highlighted}
                                         focused={getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName))}
                                         role={CONST.ROLE.TAB}
-                                        badgeText={item.badgeText}
+                                        badgeText={item.badgeTranslationKey ? translate(item.badgeTranslationKey) : item.badgeText}
                                         shouldIconUseAutoWidthStyle
                                         sentryLabel={item.sentryLabel}
                                         shouldGreyOutWhenDisabled={hasPolicyCreationError}
