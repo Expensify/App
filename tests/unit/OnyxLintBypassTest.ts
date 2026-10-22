@@ -1,4 +1,15 @@
-import {BANNED_RULE_ID, ONYX_READ_BAN, ONYX_UTILS_IMPORT_BAN, collectDisableDirectivesFromSource, findNewBypasses} from '../../scripts/onyxLintBypass';
+import fs from 'fs';
+import path from 'path';
+
+import {
+    BANNED_RULE_ID,
+    ONYX_READ_BAN,
+    ONYX_UTILS_IMPORT_BAN,
+    SEATBELT_FORBIDDEN_RULES,
+    collectDisableDirectivesFromSource,
+    findForbiddenSeatbeltRows,
+    findNewBypasses,
+} from '../../scripts/onyxLintBypass';
 
 const ONYX_CONNECT_CALL = `Onyx${'.connect'}`;
 const onyxConnectCall = (key: string): string => `${ONYX_CONNECT_CALL}({key: "${key}"});`;
@@ -443,6 +454,64 @@ describe('no-unsafe-onyx-read bypasses', () => {
     });
 });
 
+describe('no-unsafe-onyx-read member uses', () => {
+    const onyxImport = "import Onyx from 'react-native-onyx';";
+
+    it('flags a blanket disable over a read method passed as a callback', () => {
+        // Given Onyx.get handed to map without being called, under a blanket next-line directive
+        const source = [onyxImport, '// eslint-disable-next-line', `const values = await Promise.all(keys.map(Onyx${'.get'}));`].join('\n');
+
+        // When the read ban scans it
+        // Then it counts, because no-unsafe-onyx-read reports any reference to the read method that is not a direct call
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
+    });
+
+    it('flags a blanket disable over a read method stored in a variable', () => {
+        // Given Onyx.get assigned to a const under a blanket next-line directive, with no call in the file
+        const source = [onyxImport, '// eslint-disable-next-line', `const readOnyx = Onyx${'.get'};`, 'export default readOnyx;'].join('\n');
+
+        // When the read ban scans it
+        // Then it counts, since the rule reports the alias declaration itself and an importer's call is out of its reach
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
+    });
+
+    it('flags a blanket disable over a read invoked through call', () => {
+        // Given Onyx.get invoked with .call under a blanket next-line directive
+        const source = [onyxImport, '// eslint-disable-next-line', `await Onyx${'.get'}.call(Onyx, ONYXKEYS.SESSION);`].join('\n');
+
+        // When the read ban scans it
+        // Then it counts, because the callee is `.call`, so only the member reference identifies the read
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
+    });
+
+    it('flags a blanket disable over a destructured read method', () => {
+        // Given the read method destructured off Onyx under a blanket next-line directive, with no call in the file
+        const source = [onyxImport, '// eslint-disable-next-line', 'const {get} = Onyx;', 'export default get;'].join('\n');
+
+        // When the read ban scans it
+        // Then it counts, since destructuring takes the method by reference just like `const read = Onyx.get`
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
+    });
+
+    it('ignores a blanket disable over an unrelated line in a file that references a read method', () => {
+        // Given a file that passes Onyx.get to map, with a blanket next-line directive over an unrelated line
+        const source = [onyxImport, `const values = await Promise.all(keys.map(Onyx${'.get'}));`, '// eslint-disable-next-line', 'console.log(values);'].join('\n');
+
+        // When the read ban scans it
+        // Then nothing is reported, because the directive covers no read reference
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([]);
+    });
+
+    it('still flags a blanket disable on an inner line of a multi-line multiGet', () => {
+        // Given a multi-line multiGet call with a blanket next-line directive above one of its key lines
+        const source = [onyxImport, `await Onyx${'.multiGet'}([`, '    ONYXKEYS.SESSION,', '    // eslint-disable-next-line', '    ONYXKEYS.COLLECTION.REPORT,', ']);'].join('\n');
+
+        // When the read ban scans it
+        // Then it counts, because member uses add ranges next to the call range instead of replacing it, so coversInnerLines still applies
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 4}]);
+    });
+});
+
 describe('OnyxUtils import bypasses', () => {
     const onyxUtilsImport = `import OnyxUtils from 'react-native-onyx/dist/${'OnyxUtils'}';`;
     const scan = (lines: string[]) => collectDisableDirectivesFromSource(lines.join('\n'), 'src/libs/Foo.ts', ONYX_UTILS_IMPORT_BAN);
@@ -589,5 +658,71 @@ describe('eslint config comments', () => {
         const source = ['/* eslint no-console: off */', ...connectFile, 'const = ;', '<<<'].join('\n');
 
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+});
+
+describe('findForbiddenSeatbeltRows', () => {
+    const header = ['# eslint-seatbelt temporarily allowed errors', '# docs: https://github.com/justjake/eslint-seatbelt#readme'];
+    const connectRow = '"../../src/libs/ReportUtils.ts"\t"rulesdir/no-onyx-connect"\t13';
+
+    it('allows rows of the grandfathered connect ban', () => {
+        // Given a seatbelt TSV whose only Onyx rows are for no-onyx-connect
+        const tsv = [...header, connectRow, '"../../src/libs/Parser.ts"\t"rulesdir/no-onyx-connect"\t1', ''].join('\n');
+
+        // When it is scanned for the forbidden rules
+        // Then nothing is reported, since the connect ban keeps its migration backlog in the seatbelt
+        expect(findForbiddenSeatbeltRows(tsv, SEATBELT_FORBIDDEN_RULES)).toEqual([]);
+    });
+
+    it('reports a no-unsafe-onyx-read row with its line', () => {
+        // Given a seatbelt TSV with a no-unsafe-onyx-read row after a connect row, as SEATBELT_INCREASE would write it
+        const tsv = [...header, connectRow, '"../../src/libs/ProbeSeatbelt.ts"\t"rulesdir/no-unsafe-onyx-read"\t1', ''].join('\n');
+
+        // When it is scanned for the forbidden rules
+        // Then the row is reported with its file and 1-based line, so the lint run can name it
+        expect(findForbiddenSeatbeltRows(tsv, SEATBELT_FORBIDDEN_RULES)).toEqual([{file: '../../src/libs/ProbeSeatbelt.ts', rule: 'rulesdir/no-unsafe-onyx-read', line: 4}]);
+    });
+
+    it('reports a no-onyx-get-snapshot-key row with its line', () => {
+        // Given a seatbelt TSV with a no-onyx-get-snapshot-key row
+        const tsv = [...header, '"../../src/pages/Foo.tsx"\t"rulesdir/no-onyx-get-snapshot-key"\t2'].join('\n');
+
+        // When it is scanned for the forbidden rules
+        // Then the row is reported, since the snapshot rule cannot be grandfathered either
+        expect(findForbiddenSeatbeltRows(tsv, SEATBELT_FORBIDDEN_RULES)).toEqual([{file: '../../src/pages/Foo.tsx', rule: 'rulesdir/no-onyx-get-snapshot-key', line: 3}]);
+    });
+
+    it('skips header, comment and blank lines', () => {
+        // Given comment lines and blank lines that mention a forbidden rule, around a single forbidden row
+        const tsv = [
+            '# rulesdir/no-unsafe-onyx-read',
+            '',
+            '   ',
+            '  # "../../src/libs/A.ts"\t"rulesdir/no-unsafe-onyx-read"\t1',
+            '"../../src/libs/B.ts"\t"rulesdir/no-unsafe-onyx-read"\t1',
+            '',
+        ].join('\n');
+
+        // When it is scanned for the forbidden rules
+        // Then only the data row is reported, on the line it sits on
+        expect(findForbiddenSeatbeltRows(tsv, SEATBELT_FORBIDDEN_RULES)).toEqual([{file: '../../src/libs/B.ts', rule: 'rulesdir/no-unsafe-onyx-read', line: 5}]);
+    });
+
+    it('decodes JSON escapes in the rule id like the seatbelt does', () => {
+        // Given a row whose rule id spells the slash as a JSON unicode escape
+        const tsv = '"../../src/libs/A.ts"\t"rulesdir\\u002fno-unsafe-onyx-read"\t1\r\n';
+
+        // When it is scanned for the forbidden rules
+        // Then it is reported, because the seatbelt reads cells as JSON and would honor the row
+        expect(findForbiddenSeatbeltRows(tsv, SEATBELT_FORBIDDEN_RULES)).toEqual([{file: '../../src/libs/A.ts', rule: 'rulesdir/no-unsafe-onyx-read', line: 1}]);
+    });
+
+    it('finds no forbidden row in the committed seatbelt TSV', () => {
+        // Given the seatbelt TSV checked into the repo
+        const tsv = fs.readFileSync(path.resolve(__dirname, '../../config/eslint/eslint.seatbelt.tsv'), 'utf8');
+
+        // When it is scanned for the forbidden rules
+        // Then nothing is reported, so a row added through SEATBELT_INCREASE fails this suite as well as the lint run
+        expect(findForbiddenSeatbeltRows(tsv, SEATBELT_FORBIDDEN_RULES)).toEqual([]);
     });
 });

@@ -5,13 +5,16 @@
  * None of these may be disabled inline. Directives beyond each ban's grandfathered count fail the lint run.
  *
  * A directive counts when it names the ban's rule, or when it is a blanket disable over a banned
- * use: `Onyx.connect` for the connect ban, `Onyx.get()` or `Onyx.multiGet()` for the read ban.
+ * use: `Onyx.connect` for the connect ban, a call of or any other reference to `Onyx.get` or `Onyx.multiGet` for the read ban.
  * For the OnyxUtils ban it counts only when it covers a runtime import of the module. Blanket
  * disables over unrelated code, like the ones around ReportUtils, are ignored. A file Babel cannot
  * parse fails closed: every disable in it counts.
  *
  * Calls and imports are located in the Babel AST, so spacing, comments and parentheses cannot hide
  * them the way they could from a text scan.
+ *
+ * The seatbelt ratchet is the other way to turn a rule's error into an allowed one, so the two Onyx read rules in
+ * `SEATBELT_FORBIDDEN_RULES` may not have a row in the seatbelt TSV at all.
  */
 
 import type {ParserPlugin} from '@babel/parser';
@@ -46,11 +49,18 @@ type BannedRule = {
     methods: Set<string>;
     /** Bans runtime imports of these modules instead of `objects`/`methods` calls. */
     importSources?: Set<string>;
-    /** The rule reports on the member access itself (`Onyx.connect`), so an alias or `.call` line is a use too. */
+    /**
+     * The rule reports on the member access itself, not only on a call, so a line holding `Onyx.connect` or `Onyx.get`
+     * as a value (`const read = Onyx.get`, `keys.map(Onyx.get)`, `Onyx.get.call(...)`) or a destructured
+     * `const {get} = Onyx` is a use too. Calls, including calls through an alias, count for every ban. no-onyx-connect
+     * reports neither alias calls nor destructuring, so counting them there is part of the name-based superset described
+     * at `collectBannedNames`.
+     */
     reportsOnMember?: boolean;
     /**
-     * Both Onyx read rules report on the call line, but a directive on an inner line of a multi-line
-     * `Onyx.multiGet([...])` is still an attempt to silence the read, so it counts too.
+     * A directive on an inner line of a multi-line banned call, such as an element line of `Onyx.multiGet([...])`,
+     * counts too. The read rule reports a call on its first line, but a directive inside the call is still an
+     * attempt to silence the read.
      */
     coversInnerLines?: boolean;
     grandfathered: Map<string, number>;
@@ -87,6 +97,8 @@ const ONYX_READ_BAN: BannedRule = {
     name: 'no-unsafe-onyx-read',
     objects: new Set(['Onyx']),
     methods: new Set(['get', 'multiGet']),
+    // The rule reports every reference to Onyx.get / Onyx.multiGet that is not a direct call, so a blanket directive there silences it
+    reportsOnMember: true,
     coversInnerLines: true,
     grandfathered: new Map<string, number>(),
     appliesTo: isCheckedSourceFile,
@@ -325,14 +337,43 @@ type BannedRange = {
     end: number;
 };
 
+/** The properties of `const {get} = Onyx` that pull a banned method off the banned object, since a rule reporting on member access reports these too. */
+function bannedDestructuredProperties(node: ASTNode, ban: BannedRule, objects: Set<string>): ASTNode[] {
+    if (
+        node.type !== 'VariableDeclarator' ||
+        !BabelASTUtils.isASTNode(node.id) ||
+        node.id.type !== 'ObjectPattern' ||
+        !BabelASTUtils.isASTNode(node.init) ||
+        !Array.isArray(node.id.properties)
+    ) {
+        return [];
+    }
+    const initName = identifierName(unwrapExpression(node.init));
+    if (initName === null || !objects.has(initName)) {
+        return [];
+    }
+    return node.id.properties.filter((property): property is ASTNode => {
+        if (!BabelASTUtils.isASTNode(property) || property.type !== 'ObjectProperty') {
+            return false;
+        }
+        const keyName = staticKeyName(property.key, property.computed === true);
+        return keyName !== null && ban.methods.has(keyName);
+    });
+}
+
 function collectBannedCallRanges(root: ASTNode, ban: BannedRule): BannedRange[] {
     const names = collectBannedNames(root, ban);
     const ranges: BannedRange[] = [];
     const visit = (node: ASTNode) => {
-        const isBannedUse = ban.reportsOnMember ? isBannedMember(node, ban, names.objects) : isBannedCall(node, ban, names);
-        if (isBannedUse) {
+        if (isBannedCall(node, ban, names)) {
             // Unless a rule reports inside the call, the first line alone silences it
             ranges.push({start: node.start, end: ban.coversInnerLines ? node.end : node.start});
+        }
+        if (ban.reportsOnMember) {
+            const memberUses = isBannedMember(node, ban, names.objects) ? [node] : bannedDestructuredProperties(node, ban, names.objects);
+            for (const use of memberUses) {
+                ranges.push({start: use.start, end: use.start});
+            }
         }
         for (const child of BabelASTUtils.children(node, NON_CHILD_KEYS)) {
             visit(child);
@@ -445,8 +486,9 @@ function lineNumberAtOffset(source: string, offset: number): number {
 }
 
 /**
- * A directive covers a banned call when it reaches any line of the call, not only its first: both rules report on the
- * call line, but a line directive inside a multi-line `Onyx.multiGet([...])` is still an attempt to silence the read.
+ * A directive covers a banned use when it reaches any line of its range. A range spans every line of a call only for a
+ * ban with `coversInnerLines`, where a line directive inside a multi-line `Onyx.multiGet([...])` is still an attempt to
+ * silence the read; every other range is the first line of the use.
  */
 function blanketDirectiveCoversCall(source: string, match: DirectiveMatch, bannedRanges: BannedRange[], enableMatches: DirectiveMatch[], ban: BannedRule): boolean {
     const directiveLine = lineNumberAtOffset(source, match.index);
@@ -534,13 +576,57 @@ function findNewBypasses(suppressedBans: readonly SuppressedBan[], rule: BannedR
     return newBypasses;
 }
 
+/**
+ * Rules the seatbelt ratchet must never grandfather. `SEATBELT_INCREASE=<rule>` writes a row that turns the rule's
+ * errors in that file into allowed ones, which silences the rule as thoroughly as a disable directive.
+ * `rulesdir/no-onyx-connect` is not listed, because its existing rows are the grandfathered migration backlog.
+ */
+const SEATBELT_FORBIDDEN_RULES: readonly string[] = ['rulesdir/no-unsafe-onyx-read', 'rulesdir/no-onyx-get-snapshot-key'];
+
+/** A seatbelt TSV row that allows errors of a forbidden rule. `file` is as written in the TSV, relative to its directory. */
+type ForbiddenSeatbeltRow = {
+    file: string;
+    rule: string;
+    line: number;
+};
+
+/** A TSV cell, decoded the way the seatbelt reads it (as JSON), so an escape such as `\u002f` cannot hide a rule id. */
+function decodeSeatbeltCell(cell: string): string {
+    try {
+        const value: unknown = JSON.parse(cell);
+        if (typeof value === 'string') {
+            return value;
+        }
+    } catch {
+        // Not JSON: fall back to stripping one pair of surrounding quotes
+    }
+    return cell.trim().replace(/^"(.*)"$/, '$1');
+}
+
+/** Rows of a seatbelt TSV whose rule id is one of `forbiddenRules`, with their 1-based line numbers. Blank and `#` lines are skipped. */
+function findForbiddenSeatbeltRows(tsvText: string, forbiddenRules: readonly string[]): ForbiddenSeatbeltRow[] {
+    const rows: ForbiddenSeatbeltRow[] = [];
+    for (const [index, rawLine] of tsvText.split(/\r?\n/).entries()) {
+        if (rawLine.trim().length === 0 || /^\s*#/.test(rawLine)) {
+            continue;
+        }
+        const [file = '', rule = ''] = rawLine.split('\t').map(decodeSeatbeltCell);
+        if (forbiddenRules.includes(rule)) {
+            rows.push({file, rule, line: index + 1});
+        }
+    }
+    return rows;
+}
+
 export {
     BANNED_RULE_ID,
     BANNED_RULES,
     ONYX_READ_BAN,
     ONYX_UTILS_IMPORT_BAN,
+    SEATBELT_FORBIDDEN_RULES,
     collectDirectiveMatches,
     collectDisableDirectivesFromSource,
+    findForbiddenSeatbeltRows,
     configDirectiveNamesBan,
     directiveTargetsBan,
     findNewBypasses,
@@ -551,4 +637,4 @@ export {
     lineNumberAtOffset,
     parseSource,
 };
-export type {BannedRule};
+export type {BannedRule, ForbiddenSeatbeltRow};
