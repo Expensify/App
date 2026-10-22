@@ -9188,8 +9188,8 @@ const translations = {
                 ifAnyExpenseMatches: 'If any expense matches:',
                 thenApplyFollowingDefaults: 'Then apply the following defaults:',
                 confirmErrorCategory: 'Please select a category',
-                confirmErrorCondition: 'Please enter a merchant',
-                confirmErrorConditionAndDefault: 'Enter a merchant, and apply at least one default',
+                confirmErrorCondition: 'Please add at least one condition',
+                confirmErrorConditionAndDefault: 'Add at least one condition, and apply at least one default',
             },
             newRule: {
                 title: 'New rule',

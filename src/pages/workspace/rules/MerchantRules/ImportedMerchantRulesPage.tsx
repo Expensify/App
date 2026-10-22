@@ -66,10 +66,16 @@ function getRuleContentKey(formValues: Partial<ExpenseDefaultFormValues>): strin
     return JSON.stringify([
         formValues.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
         formValues.merchantToMatch?.toLowerCase() ?? '',
+        // A spreadsheet can't set these conditions, but a rule the policy already has can carry them, and a rule
+        // that matches on more than the row does is a different rule.
+        formValues.categoriesToMatch ?? [],
+        formValues.tagsToMatch ?? [],
         formValues.merchant ?? '',
         formValues.category ?? '',
         formValues.tag ?? '',
         formValues.comment ?? '',
+        formValues.amount ?? null,
+        formValues.tax ?? null,
         formValues.reimbursable ?? null,
         formValues.billable ?? null,
         formValues.vendorID ?? null,
