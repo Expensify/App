@@ -16,6 +16,8 @@ import {BENCHMARK_SPANS_ENVIRONMENT} from './shared';
 const ANDROID_JAVA_NAMESPACE = 'org.me.mobiexpensifyg';
 const PROFILE_BROADCAST_ACTION = 'com.expensify.chat.action.WRITE_PGO_PROFILES';
 const INSTRUMENTED_LIBRARIES = ['libreactnative.so', 'libhermesvm.so', 'libjsi.so', 'libExpensifyNitroUtils.so'];
+// FullStory's APK transform writes the final APK listing. Without it, AGP's IDE listing redirect fails on a clean build.
+const FULLSTORY_EXCLUSIONS = ['-x', 'fullstoryRelease', '-x', 'createReleaseApkListingFileRedirect'];
 
 function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdentifier?: string): PlatformAdapter {
     const architecture = process.env.PGO_ANDROID_ARCH ?? 'arm64-v8a';
@@ -263,11 +265,11 @@ function androidReleasePipeline(value?: string, shrinkValue?: string): {enabled:
             artifactDirectory: 'apk-shrunk',
             task: ':packageRelease',
             apkTask: 'packageRelease',
-            arguments: ['-x', 'fullstoryRelease', '-PpgoSkipFullStory=true', '--init-script', join(rootDirectory, 'scripts/pgo/androidRelease.init.gradle')],
+            arguments: [...FULLSTORY_EXCLUSIONS, '-PpgoSkipFullStory=true', '--init-script', join(rootDirectory, 'scripts/pgo/androidRelease.init.gradle')],
         };
     }
     if (value !== 'true') {
-        return {enabled: false, shrinking: false, artifactDirectory: 'apk', task: ':packageRelease', apkTask: 'packageRelease', arguments: ['-x', 'fullstoryRelease']};
+        return {enabled: false, shrinking: false, artifactDirectory: 'apk', task: ':packageRelease', apkTask: 'packageRelease', arguments: [...FULLSTORY_EXCLUSIONS]};
     }
     return {
         enabled: true,

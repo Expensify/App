@@ -24,8 +24,15 @@ describe('PGO Android release processing', () => {
         // Given no explicit release pipeline request.
         // When the build selects its task and artifact.
         const options = androidReleasePipeline();
-        // Then bootstrap processing does not masquerade as the final release pipeline.
-        expect(options).toEqual({enabled: false, shrinking: false, artifactDirectory: 'apk', task: ':packageRelease', apkTask: 'packageRelease', arguments: ['-x', 'fullstoryRelease']});
+        // Then bootstrap processing does not masquerade as the final release pipeline, and a clean build skips the IDE listing redirect that needs FullStory's output.
+        expect(options).toEqual({
+            enabled: false,
+            shrinking: false,
+            artifactDirectory: 'apk',
+            task: ':packageRelease',
+            apkTask: 'packageRelease',
+            arguments: ['-x', 'fullstoryRelease', '-x', 'createReleaseApkListingFileRedirect'],
+        });
     });
 
     it('selects the processed APK without overriding local credentials', () => {
@@ -51,13 +58,14 @@ describe('PGO Android release processing', () => {
         // Given a request for release shrinking without asset uploads.
         // When the build selects its tasks and output directory.
         const options = androidReleasePipeline(undefined, 'true');
-        // Then the APK remains distinct and FullStory is both excluded and disabled.
+        // Then the APK remains distinct, FullStory is both excluded and disabled, and the IDE listing redirect that needs its output is skipped.
         expect(options.shrinking).toBe(true);
         expect(options.enabled).toBe(false);
         expect(options.artifactDirectory).toBe('apk-shrunk');
         expect(options.task).toBe(':packageRelease');
         expect(options.arguments).toContain('-PpgoSkipFullStory=true');
         expect(options.arguments).toContain('-x');
+        expect(options.arguments).toContain('createReleaseApkListingFileRedirect');
     });
 
     it('rejects simultaneous shrinking and upload pipeline requests', () => {
