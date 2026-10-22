@@ -17,6 +17,8 @@ import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import TabBarShapeProbe, {TabBarShapeContext} from './NativeTabNavigator/TabBarShapeProbe';
+import TabHostHorizontalSafeArea from './NativeTabNavigator/TabHostHorizontalSafeArea';
+import TabScreenHorizontalSafeArea from './NativeTabNavigator/TabScreenHorizontalSafeArea';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
@@ -42,7 +44,7 @@ function TabNavigator() {
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, isAccountAvatarShown, dotColors, tabLabels});
     const renderTabScreenLayout = (props: ScreenLayoutProps) => (
         <>
-            {bottomTabScreenLayoutWrapper(props)}
+            <TabScreenHorizontalSafeArea>{bottomTabScreenLayoutWrapper(props)}</TabScreenHorizontalSafeArea>
             <TabBarShapeProbe isTabBarShown={shouldShowNativeTabBar} />
         </>
     );
@@ -59,41 +61,43 @@ function TabNavigator() {
 
     return (
         <TabBarShapeContext.Provider value={setIsTabBarVertical}>
-            <Tab.Navigator
-                backBehavior="fullHistory"
-                layout={renderNativeTabLayout}
-                screenLayout={renderTabScreenLayout}
-                screenOptions={getScreenOptions}
-                UNSTABLE_router={tabRouterOverride}
-                screenListeners={tabScreenListeners}
-            >
-                <Tab.Screen
-                    name={SCREENS.HOME}
-                    component={HomePage}
-                />
-                <Tab.Screen
-                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                    component={ReportsSplitNavigator}
-                />
-                <Tab.Screen
-                    name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                    component={SearchFullscreenNavigator}
-                />
-                <Tab.Screen
-                    name={SCREENS.INSIGHTS}
-                    component={InsightsPage}
-                    // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
-                    initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
-                />
-                <Tab.Screen
-                    name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                    component={WorkspaceNavigator}
-                />
-                <Tab.Screen
-                    name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                    component={SettingsSplitNavigator}
-                />
-            </Tab.Navigator>
+            <TabHostHorizontalSafeArea>
+                <Tab.Navigator
+                    backBehavior="fullHistory"
+                    layout={renderNativeTabLayout}
+                    screenLayout={renderTabScreenLayout}
+                    screenOptions={getScreenOptions}
+                    UNSTABLE_router={tabRouterOverride}
+                    screenListeners={tabScreenListeners}
+                >
+                    <Tab.Screen
+                        name={SCREENS.HOME}
+                        component={HomePage}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                        component={ReportsSplitNavigator}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                        component={SearchFullscreenNavigator}
+                    />
+                    <Tab.Screen
+                        name={SCREENS.INSIGHTS}
+                        component={InsightsPage}
+                        // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
+                        initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                        component={WorkspaceNavigator}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                        component={SettingsSplitNavigator}
+                    />
+                </Tab.Navigator>
+            </TabHostHorizontalSafeArea>
         </TabBarShapeContext.Provider>
     );
 }
