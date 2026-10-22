@@ -116,6 +116,7 @@ describe('Session', () => {
         });
 
         test('allows an anonymous action for a passed anonymous session', () => {
+            // Given an action that anonymous users are allowed to perform, and an anonymous session from the caller
             const callback = jest.fn();
 
             // When an action that anonymous users may perform is wrapped for an anonymous session
