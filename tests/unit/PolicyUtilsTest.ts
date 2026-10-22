@@ -4265,6 +4265,10 @@ describe('PolicyUtils', () => {
                 ['the workspace is not AUD', {outputCurrency: CONST.CURRENCY.USD}],
                 ['the workspace has no AU withdrawal account', {reimbursement: {countries: {}}}],
                 ['the AU withdrawal account is not open', {reimbursement: {countries: {[CONST.COUNTRY.AU]: {...AUWithdrawalAccount, state: CONST.BANK_ACCOUNT.STATE.PENDING}}}}],
+                [
+                    'the AU withdrawal account was set up through Corpay',
+                    {reimbursement: {countries: {[CONST.COUNTRY.AU]: {...AUWithdrawalAccount, additionalData: {verifications: {corpay: {clientCode: 123}}}}}}},
+                ],
             ])('should return false when %s', (_, overrides: Partial<Policy>) => {
                 // Given a workspace that only misses one of the requirements
                 const policy = createMock<Policy>({

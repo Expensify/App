@@ -3461,6 +3461,13 @@ type ReimbursementCountryAccount = {
 
     /** One of `CONST.BANK_ACCOUNT.STATE` */
     state?: string;
+
+    additionalData?: {
+        verifications?: {
+            /** Only set on accounts set up through Corpay */
+            corpay?: Record<string, unknown>;
+        };
+    };
 };
 
 /** Commuter exclusion configuration for a policy */

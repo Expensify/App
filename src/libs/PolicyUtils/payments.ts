@@ -125,7 +125,12 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
  * Whether the current user can pay the workspace's reports via ABA
  */
 function canPayViaABA(policy: OnyxInputOrEntry<Policy>): boolean {
-    return isPolicyAdmin(policy) && policy?.outputCurrency === CONST.CURRENCY.AUD && policy.reimbursement?.countries?.[CONST.COUNTRY.AU]?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+    const withdrawalAccount = policy?.reimbursement?.countries?.[CONST.COUNTRY.AU];
+
+    // Accounts set up through Corpay don't have the bank user ID and company name that the ABA file needs
+    const isCorpayAccount = !!withdrawalAccount?.additionalData?.verifications?.corpay;
+
+    return isPolicyAdmin(policy) && policy?.outputCurrency === CONST.CURRENCY.AUD && withdrawalAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isCorpayAccount;
 }
 
 export {
