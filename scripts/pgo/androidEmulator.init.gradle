@@ -15,4 +15,11 @@ gradle.beforeProject { application ->
             task.enabled = false
         }
     }
+    // Without a Gradle cache, the app sends every Maven Central lookup through repo.grails.org, which answers hosted runners with HTTP 429.
+    // Grails only mirrors Maven Central for this build, so ask Maven Central directly.
+    application.repositories.withType(MavenArtifactRepository).configureEach { repository ->
+        if (repository.url.host == 'repo.grails.org') {
+            repository.url = 'https://repo.maven.apache.org/maven2/'
+        }
+    }
 }
