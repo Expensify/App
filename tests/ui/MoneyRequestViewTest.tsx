@@ -389,7 +389,7 @@ describe('MoneyRequestView edit fields', () => {
         expect(screen.queryByTestId('menu-item-Location')).not.toBeOnTheScreen();
     });
 
-    it("shows every level of another user's unreported expense tag instead of the viewer's own workspace tag lists", async () => {
+    it("shows another user's full unreported expense tag in a single row instead of the viewer's own workspace tag lists", async () => {
         // Given an unreported self-DM expense with a three-level tag that was created by another user
         const selfDMReportID = 'self_dm_mrv_tags';
         const otherUserAccountID = 20;
@@ -451,13 +451,11 @@ describe('MoneyRequestView edit fields', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        // Then one row is shown per level of the expense's tag, not one row per level of the viewer's workspace
+        // Then a single generic tag row shows every level of the expense's tag, since the viewer can't see the owner's tag list names
         await waitFor(() => {
-            expect(screen.getAllByTestId('menu-item-common.tag')).toHaveLength(3);
+            expect(screen.getAllByTestId('menu-item-common.tag')).toHaveLength(1);
         });
-        expect(screen.getByText('Engineering')).toBeOnTheScreen();
-        expect(screen.getByText('Berlin')).toBeOnTheScreen();
-        expect(screen.getByText('Floor 2')).toBeOnTheScreen();
+        expect(screen.getByText('Engineering, Berlin, Floor 2')).toBeOnTheScreen();
         expect(screen.queryByTestId('menu-item-Tag')).not.toBeOnTheScreen();
     });
 

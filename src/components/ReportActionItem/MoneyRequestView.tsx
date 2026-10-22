@@ -112,7 +112,6 @@ import {
     getOriginalAmountForDisplay,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
-    getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -522,11 +521,9 @@ function MoneyRequestView({
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 
     // For unreported expenses `policy` is the viewer's own workspace, so when someone other than the expense owner views it,
-    // its tag lists have nothing to do with the expense. Show one row per level of the expense's own tag instead.
-    const shouldUseTransactionTagLevels = isExpenseUnreported && !isPerDiemRequest && !!parentReportAction && !isActionCreator(parentReportAction, currentUserAccountIDParam);
-    const policyTagLists = shouldUseTransactionTagLevels
-        ? getTagArrayFromName(transactionTag ?? '').map((_, index) => ({name: translate('common.tag'), required: false, tags: {}, orderWeight: index}))
-        : getTagLists(policyTagList);
+    // its tag lists have nothing to do with the expense. Show the expense's full tag in a single generic "Tag" row instead.
+    const shouldShowFullTransactionTag = isExpenseUnreported && !isPerDiemRequest && !!parentReportAction && !isActionCreator(parentReportAction, currentUserAccountIDParam);
+    const policyTagLists = shouldShowFullTransactionTag ? [{name: translate('common.tag'), required: false, tags: {}, orderWeight: 0}] : getTagLists(policyTagList);
     const policyHasEnabledTags = hasEnabledTags(policyTagLists);
 
     const category = transactionCategory ?? '';
@@ -1170,7 +1167,7 @@ function MoneyRequestView({
         </>
     );
 
-    const hasDependentTags = !shouldUseTransactionTagLevels && hasDependentTagsPolicyUtils(policy, policyTagList);
+    const hasDependentTags = !shouldShowFullTransactionTag && hasDependentTagsPolicyUtils(policy, policyTagList);
     const shouldShowTagList = hasDependentTags ? getDependentTagVisibility(policyTagLists, transactionTag) : [];
 
     const [previousTransactionTag, setPreviousTransactionTag] = useState(transactionTag);
@@ -1190,7 +1187,7 @@ function MoneyRequestView({
     const areAttendeesCopyable = !!attendeesCopyValue;
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
-        const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
+        const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, shouldShowFullTransactionTag ? undefined : index);
         const shouldShow = hasDependentTags ? !!shouldShowTagList.at(index) : !!tagForDisplay || (canEdit && hasEnabledOptions(tags));
 
         if (!shouldShow) {
@@ -1210,7 +1207,7 @@ function MoneyRequestView({
 
         return (
             <OfflineWithFeedback
-                key={`${orderWeight}-${name}`}
+                key={name}
                 pendingAction={getPendingFieldAction('tag')}
             >
                 <HighlightableMenuItemWithTopDescription
