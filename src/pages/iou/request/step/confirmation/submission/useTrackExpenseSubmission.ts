@@ -15,6 +15,7 @@ import {rand64} from '@libs/NumberUtils';
 import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
 import {generateReportID, getAllPolicyExpenseChatReportActions, getChatReportFromMoneyRequestReport} from '@libs/ReportUtils';
 import {getDistanceRequestType, getIsFromGlobalCreate, getRateID, getSelectedRouteDistance, getValidWaypoints} from '@libs/TransactionUtils';
+import hasManualMapDistanceOverride from '@libs/TransactionUtils/hasManualMapDistanceOverride';
 
 import {trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
@@ -39,7 +40,6 @@ import type {SubmitWithGpsPoint} from './useGpsCapture';
 import type {TransactionTaxValues} from './utils/getTransactionTaxValues';
 
 import getCurrentReceiptState from './utils/getCurrentReceiptState';
-import hasManualMapDistanceOverride from './utils/hasManualMapDistanceOverride';
 import logSubmittedReceiptMilestone from './utils/logSubmittedReceiptMilestone';
 import performPostBatchCleanup from './utils/performPostBatchCleanup';
 

@@ -49,6 +49,7 @@ import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil, isSelfDM} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, hasManualDistanceOverride, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+import hasManualMapDistanceOverride from '@libs/TransactionUtils/hasManualMapDistanceOverride';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,7 +76,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 import getSkipConfirmationPreMountDestinationRoute from './confirmation/getSkipConfirmationPreMountDestinationRoute';
-import hasManualMapDistanceOverride from './confirmation/submission/utils/hasManualMapDistanceOverride';
 import DistanceManualTabContent from './DistanceManualTabContent';
 import DistanceMapTabContent from './DistanceMapTabContent';
 import useDistanceNavigation from './IOURequestStepDistance/hooks/useDistanceNavigation';

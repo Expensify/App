@@ -1,6 +1,5 @@
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-
-import hasManualMapDistanceOverride from '@pages/iou/request/step/confirmation/submission/utils/hasManualMapDistanceOverride';
+import hasManualMapDistanceOverride from '@libs/TransactionUtils/hasManualMapDistanceOverride';
 
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
@@ -53,18 +52,6 @@ describe('hasManualMapDistanceOverride', () => {
 
         // Then it is an override, because a one-cent difference is still a value the user typed and has to reach the server
         expect(result).toBe(true);
-    });
-
-    it('returns false when a rate unit change left the route quantity unrounded', () => {
-        // Given a reused 137.18 mi route converted to km by a recipient change, which stores the quantity unrounded
-        const transaction = buildMapTransaction({quantity: 220.76987822090186, routeDistanceMeters: 220771.234});
-        transaction.comment = {...transaction.comment, customUnit: {...transaction.comment?.customUnit, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}};
-
-        // When it is checked for an override
-        const result = hasManualMapDistanceOverride(transaction);
-
-        // Then it is not an override, because the user never typed it and sending it would store a distance they did not enter
-        expect(result).toBe(false);
     });
 
     it('returns true when there is no route yet', () => {

@@ -1,13 +1,12 @@
 import useOnyx from '@hooks/useOnyx';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import hasManualMapDistanceOverride from '@libs/TransactionUtils/hasManualMapDistanceOverride';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
-
-import hasManualMapDistanceOverride from './utils/hasManualMapDistanceOverride';
 
 type UseDistanceDraftDataParams = {
     transaction: OnyxEntry<Transaction>;
