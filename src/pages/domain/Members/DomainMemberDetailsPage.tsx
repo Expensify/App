@@ -52,6 +52,7 @@ import {View} from 'react-native';
 type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_DETAILS>;
 
 function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {domainAccountID, accountID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -220,7 +221,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 ) : (
                     <MenuItem.Root
                         key="ReportSuspiciousActivity"
-                        onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)))}
+                        onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)), false, session)}
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>

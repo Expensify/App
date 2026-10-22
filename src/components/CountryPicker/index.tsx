@@ -2,6 +2,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 
 import type {Option} from '@libs/searchOptions';
 
@@ -9,6 +10,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useState} from 'react';
 
@@ -28,6 +30,7 @@ type CountryPickerProps = {
 };
 
 function CountryPicker({value, errorText, onInputChange = () => {}, label}: CountryPickerProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -42,7 +45,7 @@ function CountryPicker({value, errorText, onInputChange = () => {}, label}: Coun
 
     return (
         <>
-            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true))}>
+            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}>
                 <MenuItemField.Row
                     name={label ?? translate('common.country')}
                     value={value ? translate(`allCountries.${value}` as TranslationPaths) : undefined}

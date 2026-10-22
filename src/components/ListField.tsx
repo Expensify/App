@@ -1,5 +1,6 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -8,6 +9,7 @@ import {getLetterAvatarURLForName} from '@libs/UserAvatarUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import variables from '@src/styles/variables';
 
 import React from 'react';
@@ -59,6 +61,7 @@ type ListFieldProps = {
 
 /** A list of named items on a page, each with an avatar, an Edit button and a remove button, followed by an add row */
 function ListField({rows, addTitle, addDescription, canAddMore = true, errorText = '', onAdd, onEdit, onRemove}: ListFieldProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -112,7 +115,7 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
                 </MenuItem.Root>
             ))}
             {canAddMore && (
-                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(onAdd)}>
+                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(onAdd, false, session)}>
                     <MenuItem.Row>
                         <MenuItem.Leading>
                             <MenuItem.Icon src={icons.Plus} />

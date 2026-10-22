@@ -57,6 +57,7 @@ type WorkspaceRowThreeDotsMenuProps = {
  * subscriptions (the full policy entry) exist only while the corresponding action is in progress.
  */
 function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -109,7 +110,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             menuItems.push({
                 icon: icons.Exit,
                 text: translate('common.leave'),
-                onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE)),
+                onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE), false, session),
                 shouldCallAfterModalHide: true,
             });
         }
@@ -177,7 +178,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
         menuItems.push({
             icon: icons.ArrowCircleClockwise,
             text: translate('workspace.common.unarchive'),
-            onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE)),
+            onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE), false, session),
             shouldCallAfterModalHide: true,
         });
     }

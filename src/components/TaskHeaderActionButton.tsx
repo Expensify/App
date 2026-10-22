@@ -27,6 +27,7 @@ type TaskHeaderActionButtonProps = {
 };
 
 function TaskHeaderActionButton({reportID}: TaskHeaderActionButtonProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -47,17 +48,21 @@ function TaskHeaderActionButton({reportID}: TaskHeaderActionButtonProps) {
             <Button
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isDisabled={!isTaskActionable}
-                onPress={callFunctionIfActionIsAllowed(() => {
-                    // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                    if (isActiveTaskEditRoute(reportID)) {
-                        return;
-                    }
-                    if (isCompletedTaskReport(report)) {
-                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
-                    } else {
-                        completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail);
-                    }
-                })}
+                onPress={callFunctionIfActionIsAllowed(
+                    () => {
+                        // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
+                        if (isActiveTaskEditRoute(reportID)) {
+                            return;
+                        }
+                        if (isCompletedTaskReport(report)) {
+                            reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
+                        } else {
+                            completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail);
+                        }
+                    },
+                    false,
+                    session,
+                )}
                 style={styles.flex1}
                 sentryLabel={CONST.SENTRY_LABEL.TASK.HEADER_ACTION_BUTTON}
             >

@@ -6,6 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getQBONonReimbursableExportAccountType} from '@libs/ConnectionUtils';
@@ -21,11 +22,13 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
 function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
@@ -94,7 +97,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                     key={section.title}
                     pendingAction={settingsPendingAction(section.subscribedSettings, qboConfig?.pendingFields)}
                 >
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress)}>
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress, false, session)}>
                         <MenuItemField.Row
                             name={section.description}
                             value={section.title}

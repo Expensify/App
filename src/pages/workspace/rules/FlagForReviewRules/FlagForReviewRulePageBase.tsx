@@ -73,6 +73,7 @@ function FlagForReviewRulePageBase({
     isCategoryScopedFlow = false,
     testID,
 }: FlagForReviewRulePageBaseProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);
@@ -262,7 +263,9 @@ function FlagForReviewRulePageBase({
                         <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
                     </View>
                     <MenuItem.Root
-                        onPress={canEditCategory ? callFunctionIfActionIsAllowed(() => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName))) : undefined}
+                        onPress={
+                            canEditCategory ? callFunctionIfActionIsAllowed(() => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)), false, session) : undefined
+                        }
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_CATEGORY}
                     >
                         <MenuItem.Row>
@@ -288,12 +291,15 @@ function FlagForReviewRulePageBase({
                     <MenuItem.Root
                         onPress={
                             canWriteRules
-                                ? callFunctionIfActionIsAllowed(() =>
-                                      Navigation.navigate(
-                                          isCategoryScopedFlow
-                                              ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path)
-                                              : getFlagForReviewRuleAmountRoute(policyID, categoryName, isCategoryLocked),
-                                      ),
+                                ? callFunctionIfActionIsAllowed(
+                                      () =>
+                                          Navigation.navigate(
+                                              isCategoryScopedFlow
+                                                  ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path)
+                                                  : getFlagForReviewRuleAmountRoute(policyID, categoryName, isCategoryLocked),
+                                          ),
+                                      false,
+                                      session,
                                   )
                                 : undefined
                         }

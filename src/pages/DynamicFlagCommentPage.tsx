@@ -52,6 +52,7 @@ type SeverityItem = {
 type SeverityItemList = SeverityItem[];
 
 function DynamicFlagCommentPage({parentReportAction, report, parentReport, reportAction}: DynamicFlagCommentPageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -140,7 +141,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
             shouldShowRightIcon
             title={item.name}
             description={item.description}
-            onPress={callFunctionIfActionIsAllowed(() => flagComment(item.severity))}
+            onPress={callFunctionIfActionIsAllowed(() => flagComment(item.severity), false, session)}
             style={[styles.pt2, styles.pb4, styles.ph5, styles.flexRow]}
             furtherDetails={item.furtherDetails}
             furtherDetailsIcon={item.furtherDetailsIcon}

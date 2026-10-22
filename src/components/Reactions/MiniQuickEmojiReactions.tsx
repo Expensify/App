@@ -45,6 +45,7 @@ type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
  * a message.
  */
 function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected, onPressOpenPicker = () => {}, onEmojiPickerClosed = () => {}}: MiniQuickEmojiReactionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -79,7 +80,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
-                    onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone))}
+                    onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone), false, session)}
                     sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.QUICK_REACTION}
                 >
                     <Text
@@ -92,13 +93,17 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={callFunctionIfActionIsAllowed(() => {
-                    if (!emojiPickerRef.current?.isEmojiPickerVisible) {
-                        openEmojiPicker();
-                    } else {
-                        emojiPickerRef.current?.hideEmojiPicker();
-                    }
-                })}
+                onPress={callFunctionIfActionIsAllowed(
+                    () => {
+                        if (!emojiPickerRef.current?.isEmojiPickerVisible) {
+                            openEmojiPicker();
+                        } else {
+                            emojiPickerRef.current?.hideEmojiPicker();
+                        }
+                    },
+                    false,
+                    session,
+                )}
                 isDelayButtonStateComplete={false}
                 tooltipText={translate('emojiReactions.addReactionTooltip')}
                 sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.EMOJI_PICKER_BUTTON}

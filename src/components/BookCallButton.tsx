@@ -1,10 +1,12 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 
 import {openExternalLink} from '@libs/actions/Link';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -27,6 +29,7 @@ type BookCallButtonProps = {
 };
 
 function BookCallButton({calendarLink, avatarAccountID, isNested = false, style}: BookCallButtonProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Phone']);
     const personalDetails = usePersonalDetails();
@@ -39,7 +42,7 @@ function BookCallButton({calendarLink, avatarAccountID, isNested = false, style}
     const label = translate('videoChatButtonAndMenu.tooltip');
 
     const commonProps = {
-        onPress: callFunctionIfActionIsAllowed(() => openExternalLink(calendarLink)),
+        onPress: callFunctionIfActionIsAllowed(() => openExternalLink(calendarLink), false, session),
         sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_MANAGER_BOOK_CALL.BUTTON,
         accessibilityLabel: label,
         isNested,

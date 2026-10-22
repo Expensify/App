@@ -78,6 +78,7 @@ type RequireFieldsRulePageBaseProps = {
 };
 
 function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName, isCategoryLocked: isCategoryLockedProp, testID}: RequireFieldsRulePageBaseProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabledOrUnknown} = usePermissions();
@@ -500,7 +501,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                     <MenuItem.Root
                         onPress={
                             canEditCategory
-                                ? callFunctionIfActionIsAllowed(() => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)))
+                                ? callFunctionIfActionIsAllowed(() => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)), false, session)
                                 : undefined
                         }
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_CATEGORY}

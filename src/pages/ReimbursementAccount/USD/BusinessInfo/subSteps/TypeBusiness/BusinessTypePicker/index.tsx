@@ -2,10 +2,12 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -33,6 +35,7 @@ type BusinessTypePickerProps = {
 };
 
 function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputChange, label, onBlur}: BusinessTypePickerProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -61,7 +64,7 @@ function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputCh
 
     return (
         <View style={wrapperStyle}>
-            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(showPickerModal)}>
+            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(showPickerModal, false, session)}>
                 <MenuItemField.Row
                     name={label}
                     value={title}

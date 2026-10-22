@@ -212,6 +212,7 @@ function MoneyRequestView({
     isFromReviewDuplicates = false,
     mergeTransactionID,
 }: MoneyRequestViewProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase', 'NewWindow']);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -1032,22 +1033,41 @@ function MoneyRequestView({
                     shouldAllowTextSelection={!!distanceCopyValue}
                     onPress={
                         canEditDistance
-                            ? callFunctionIfActionIsAllowed(() => {
-                                  if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
-                                      return;
-                                  }
+                            ? callFunctionIfActionIsAllowed(
+                                  () => {
+                                      if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
+                                          return;
+                                      }
 
-                                  if (isOdometerDistanceRequest) {
-                                      Navigation.navigate(
-                                          ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID),
-                                      );
-                                      return;
-                                  }
+                                      if (isOdometerDistanceRequest) {
+                                          Navigation.navigate(
+                                              ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(
+                                                  CONST.IOU.ACTION.EDIT,
+                                                  iouType,
+                                                  transaction.transactionID,
+                                                  transactionThreadReport.reportID,
+                                              ),
+                                          );
+                                          return;
+                                      }
 
-                                  if (isManualDistanceRequest) {
+                                      if (isManualDistanceRequest) {
+                                          Navigation.navigate(
+                                              createDynamicRoute(
+                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(
+                                                      CONST.IOU.ACTION.EDIT,
+                                                      iouType,
+                                                      transaction.transactionID,
+                                                      transactionThreadReport.reportID,
+                                                  ),
+                                              ),
+                                          );
+                                          return;
+                                      }
+
                                       Navigation.navigate(
                                           createDynamicRoute(
-                                              DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(
+                                              DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
                                                   CONST.IOU.ACTION.EDIT,
                                                   iouType,
                                                   transaction.transactionID,
@@ -1055,15 +1075,10 @@ function MoneyRequestView({
                                               ),
                                           ),
                                       );
-                                      return;
-                                  }
-
-                                  Navigation.navigate(
-                                      createDynamicRoute(
-                                          DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID),
-                                      ),
-                                  );
-                              })
+                                  },
+                                  false,
+                                  session,
+                              )
                             : undefined
                     }
                 >
@@ -1091,54 +1106,58 @@ function MoneyRequestView({
                     shouldAllowTextSelection={!!distanceRateCopyValue}
                     onPress={
                         canEditDistanceRate
-                            ? callFunctionIfActionIsAllowed(() => {
-                                  if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
-                                      return;
-                                  }
-
-                                  if (isTrackExpense) {
-                                      if (shouldNavigateToUpgradePath && transactionThreadReport) {
-                                          Navigation.navigate(
-                                              createDynamicRoute(
-                                                  DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                                      action: CONST.IOU.ACTION.EDIT,
-                                                      iouType,
-                                                      transactionID: transaction.transactionID,
-                                                      reportID: transactionThreadReport?.reportID,
-                                                      upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                                                  }),
-                                              ),
-                                          );
+                            ? callFunctionIfActionIsAllowed(
+                                  () => {
+                                      if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
                                           return;
                                       }
-                                      if (!policy && shouldSelectPolicy) {
-                                          Navigation.navigate(
-                                              ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+
+                                      if (isTrackExpense) {
+                                          if (shouldNavigateToUpgradePath && transactionThreadReport) {
+                                              Navigation.navigate(
                                                   createDynamicRoute(
-                                                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
-                                                          CONST.IOU.ACTION.EDIT,
+                                                      DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                          action: CONST.IOU.ACTION.EDIT,
                                                           iouType,
-                                                          transaction.transactionID,
-                                                          transactionThreadReport?.reportID,
+                                                          transactionID: transaction.transactionID,
+                                                          reportID: transactionThreadReport?.reportID,
+                                                          upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                                      }),
+                                                  ),
+                                              );
+                                              return;
+                                          }
+                                          if (!policy && shouldSelectPolicy) {
+                                              Navigation.navigate(
+                                                  ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                                                      createDynamicRoute(
+                                                          DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
+                                                              CONST.IOU.ACTION.EDIT,
+                                                              iouType,
+                                                              transaction.transactionID,
+                                                              transactionThreadReport?.reportID,
+                                                          ),
                                                       ),
                                                   ),
-                                              ),
-                                          );
-                                          return;
+                                              );
+                                              return;
+                                          }
                                       }
-                                  }
 
-                                  Navigation.navigate(
-                                      createDynamicRoute(
-                                          DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
-                                              CONST.IOU.ACTION.EDIT,
-                                              iouType,
-                                              transaction.transactionID,
-                                              transactionThreadReport.reportID,
+                                      Navigation.navigate(
+                                          createDynamicRoute(
+                                              DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
+                                                  CONST.IOU.ACTION.EDIT,
+                                                  iouType,
+                                                  transaction.transactionID,
+                                                  transactionThreadReport.reportID,
+                                              ),
                                           ),
-                                      ),
-                                  );
-                              })
+                                      );
+                                  },
+                                  false,
+                                  session,
+                              )
                             : undefined
                     }
                 >
@@ -1412,13 +1431,22 @@ function MoneyRequestView({
                         shouldAllowTextSelection={!!dateCopyValue}
                         onPress={
                             canEditDate
-                                ? callFunctionIfActionIsAllowed(() => {
-                                      Navigation.navigate(
-                                          createDynamicRoute(
-                                              DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
-                                          ),
-                                      );
-                                  })
+                                ? callFunctionIfActionIsAllowed(
+                                      () => {
+                                          Navigation.navigate(
+                                              createDynamicRoute(
+                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(
+                                                      CONST.IOU.ACTION.EDIT,
+                                                      iouType,
+                                                      transaction.transactionID,
+                                                      transactionThreadReport?.reportID,
+                                                  ),
+                                              ),
+                                          );
+                                      },
+                                      false,
+                                      session,
+                                  )
                                 : undefined
                         }
                     >
@@ -1446,22 +1474,37 @@ function MoneyRequestView({
                             shouldAllowTextSelection={!!categoryCopyValue}
                             onPress={
                                 canEdit
-                                    ? callFunctionIfActionIsAllowed(() => {
-                                          if (shouldShowCategoryDisabledAlert) {
-                                              showCategoryDisabledAlert();
-                                              return;
-                                          }
+                                    ? callFunctionIfActionIsAllowed(
+                                          () => {
+                                              if (shouldShowCategoryDisabledAlert) {
+                                                  showCategoryDisabledAlert();
+                                                  return;
+                                              }
 
-                                          if (shouldNavigateToUpgradePath && transactionThreadReport) {
-                                              Navigation.navigate(
-                                                  createDynamicRoute(
-                                                      DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                                          action: CONST.IOU.ACTION.EDIT,
-                                                          iouType,
-                                                          transactionID: transaction.transactionID,
-                                                          reportID: transactionThreadReport?.reportID,
-                                                          upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                                                          upgradeBackTo: createDynamicRoute(
+                                              if (shouldNavigateToUpgradePath && transactionThreadReport) {
+                                                  Navigation.navigate(
+                                                      createDynamicRoute(
+                                                          DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                              action: CONST.IOU.ACTION.EDIT,
+                                                              iouType,
+                                                              transactionID: transaction.transactionID,
+                                                              reportID: transactionThreadReport?.reportID,
+                                                              upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                                                              upgradeBackTo: createDynamicRoute(
+                                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                                                      action: CONST.IOU.ACTION.EDIT,
+                                                                      iouType,
+                                                                      transactionID: transaction.transactionID,
+                                                                      reportID: transactionThreadReport?.reportID,
+                                                                  }),
+                                                              ),
+                                                          }),
+                                                      ),
+                                                  );
+                                              } else if (!policy && shouldSelectPolicy) {
+                                                  Navigation.navigate(
+                                                      ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                                                          createDynamicRoute(
                                                               DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
                                                                   action: CONST.IOU.ACTION.EDIT,
                                                                   iouType,
@@ -1469,12 +1512,10 @@ function MoneyRequestView({
                                                                   reportID: transactionThreadReport?.reportID,
                                                               }),
                                                           ),
-                                                      }),
-                                                  ),
-                                              );
-                                          } else if (!policy && shouldSelectPolicy) {
-                                              Navigation.navigate(
-                                                  ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                                                      ),
+                                                  );
+                                              } else {
+                                                  Navigation.navigate(
                                                       createDynamicRoute(
                                                           DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
                                                               action: CONST.IOU.ACTION.EDIT,
@@ -1483,21 +1524,12 @@ function MoneyRequestView({
                                                               reportID: transactionThreadReport?.reportID,
                                                           }),
                                                       ),
-                                                  ),
-                                              );
-                                          } else {
-                                              Navigation.navigate(
-                                                  createDynamicRoute(
-                                                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
-                                                          action: CONST.IOU.ACTION.EDIT,
-                                                          iouType,
-                                                          transactionID: transaction.transactionID,
-                                                          reportID: transactionThreadReport?.reportID,
-                                                      }),
-                                                  ),
-                                              );
-                                          }
-                                      })
+                                                  );
+                                              }
+                                          },
+                                          false,
+                                          session,
+                                      )
                                     : undefined
                             }
                         >
@@ -1526,20 +1558,24 @@ function MoneyRequestView({
                             shouldAllowTextSelection={!!vendorCopyValue}
                             onPress={
                                 canEdit
-                                    ? callFunctionIfActionIsAllowed(() => {
-                                          if (!transactionThreadReport?.reportID) {
-                                              return;
-                                          }
-                                          Navigation.navigate(
-                                              ROUTES.MONEY_REQUEST_STEP_VENDOR.getRoute(
-                                                  CONST.IOU.ACTION.EDIT,
-                                                  iouType,
-                                                  transaction.transactionID,
-                                                  transactionThreadReport.reportID,
-                                                  getReportRHPActiveRoute(),
-                                              ),
-                                          );
-                                      })
+                                    ? callFunctionIfActionIsAllowed(
+                                          () => {
+                                              if (!transactionThreadReport?.reportID) {
+                                                  return;
+                                              }
+                                              Navigation.navigate(
+                                                  ROUTES.MONEY_REQUEST_STEP_VENDOR.getRoute(
+                                                      CONST.IOU.ACTION.EDIT,
+                                                      iouType,
+                                                      transaction.transactionID,
+                                                      transactionThreadReport.reportID,
+                                                      getReportRHPActiveRoute(),
+                                                  ),
+                                              );
+                                          },
+                                          false,
+                                          session,
+                                      )
                                     : undefined
                             }
                         >
@@ -1583,23 +1619,27 @@ function MoneyRequestView({
                             shouldAllowTextSelection={!!taxRateCopyValue}
                             onPress={
                                 canEditTaxFields
-                                    ? callFunctionIfActionIsAllowed(() => {
-                                          if (shouldShowTaxDisabledAlert) {
-                                              showTaxDisabledAlert();
-                                              return;
-                                          }
+                                    ? callFunctionIfActionIsAllowed(
+                                          () => {
+                                              if (shouldShowTaxDisabledAlert) {
+                                                  showTaxDisabledAlert();
+                                                  return;
+                                              }
 
-                                          Navigation.navigate(
-                                              createDynamicRoute(
-                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
-                                                      CONST.IOU.ACTION.EDIT,
-                                                      iouType,
-                                                      transaction.transactionID,
-                                                      transactionThreadReport?.reportID,
+                                              Navigation.navigate(
+                                                  createDynamicRoute(
+                                                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
+                                                          CONST.IOU.ACTION.EDIT,
+                                                          iouType,
+                                                          transaction.transactionID,
+                                                          transactionThreadReport?.reportID,
+                                                      ),
                                                   ),
-                                              ),
-                                          );
-                                      })
+                                              );
+                                          },
+                                          false,
+                                          session,
+                                      )
                                     : undefined
                             }
                         >
@@ -1628,23 +1668,27 @@ function MoneyRequestView({
                             shouldAllowTextSelection={!!taxAmountCopyValue}
                             onPress={
                                 canEditTaxFields
-                                    ? callFunctionIfActionIsAllowed(() => {
-                                          if (shouldShowTaxDisabledAlert) {
-                                              showTaxDisabledAlert();
-                                              return;
-                                          }
+                                    ? callFunctionIfActionIsAllowed(
+                                          () => {
+                                              if (shouldShowTaxDisabledAlert) {
+                                                  showTaxDisabledAlert();
+                                                  return;
+                                              }
 
-                                          Navigation.navigate(
-                                              createDynamicRoute(
-                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
-                                                      CONST.IOU.ACTION.EDIT,
-                                                      iouType,
-                                                      transaction.transactionID,
-                                                      transactionThreadReport?.reportID,
+                                              Navigation.navigate(
+                                                  createDynamicRoute(
+                                                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
+                                                          CONST.IOU.ACTION.EDIT,
+                                                          iouType,
+                                                          transaction.transactionID,
+                                                          transactionThreadReport?.reportID,
+                                                      ),
                                                   ),
-                                              ),
-                                          );
-                                      })
+                                              );
+                                          },
+                                          false,
+                                          session,
+                                      )
                                     : undefined
                             }
                         >

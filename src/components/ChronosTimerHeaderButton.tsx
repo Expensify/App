@@ -29,6 +29,7 @@ type ChronosTimerHeaderButtonProps = {
 type ChronosAction = 'timer' | 'scheduleOOO';
 
 function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -57,7 +58,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             value: 'timer' as const,
             text: timerStartTime ? translate('chronos.stopTimer', formatElapsedTime(timerStartTime)) : translate('chronos.startTimer'),
             onSelected: () => {
-                callFunctionIfActionIsAllowed(toggleChronosTimer)();
+                callFunctionIfActionIsAllowed(toggleChronosTimer, false, session)();
             },
         },
         {
@@ -79,7 +80,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             <ButtonWithDropdownMenu<ChronosAction>
                 variant={!timerStartTime ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                 onPress={() => {
-                    callFunctionIfActionIsAllowed(toggleChronosTimer)();
+                    callFunctionIfActionIsAllowed(toggleChronosTimer, false, session)();
                 }}
                 options={options}
                 wrapperStyle={styles.flex1}

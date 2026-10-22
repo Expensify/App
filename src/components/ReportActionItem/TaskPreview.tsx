@@ -63,6 +63,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
 };
 
 function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovered = false, style}: TaskPreviewProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -177,14 +178,25 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             isChecked={isTaskCompleted}
                             disabled={!isTaskActionable}
                             shouldSelectOnPressEnter
-                            onPress={callFunctionIfActionIsAllowed(() => {
-                                updateTaskCheckboxStateForAccessibility(isTaskCompleted);
-                                if (isTaskCompleted) {
-                                    reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
-                                } else {
-                                    completeTask(taskContextReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskReportID);
-                                }
-                            })}
+                            onPress={callFunctionIfActionIsAllowed(
+                                () => {
+                                    updateTaskCheckboxStateForAccessibility(isTaskCompleted);
+                                    if (isTaskCompleted) {
+                                        reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
+                                    } else {
+                                        completeTask(
+                                            taskContextReport,
+                                            parentReport?.hasOutstandingChildTask ?? false,
+                                            hasOutstandingChildTask,
+                                            parentReportAction,
+                                            delegateEmail,
+                                            taskReportID,
+                                        );
+                                    }
+                                },
+                                false,
+                                session,
+                            )}
                             accessibilityLabel={taskCheckboxAccessibilityLabel}
                             accessibilityHint={taskCheckboxAccessibilityHint}
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}

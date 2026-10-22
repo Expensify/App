@@ -89,6 +89,7 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, chatReportSelector);
 
 function ProfilePage({route}: ProfilePageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const [personalDetails] = useAllPersonalDetails();
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
@@ -207,7 +208,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const promotedActions: PromotedAction[] = [];
     if (report) {
-        promotedActions.push(PromotedActions.pin(report));
+        promotedActions.push(PromotedActions.pin(report, session));
     }
 
     // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
@@ -372,7 +373,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
-                            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID, true))}>
+                            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID, true), false, session)}>
                                 <MenuItem.Row>
                                     <MenuItem.Leading>
                                         <MenuItem.Icon src={expensifyIcons.Pencil} />

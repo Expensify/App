@@ -7,6 +7,7 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -21,6 +22,7 @@ import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
 import type {ComponentRef} from 'react';
@@ -56,6 +58,7 @@ type AddReactionBubbleProps = {
 };
 
 function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWillShowPicker = () => {}, isContextMenu = false, setIsEmojiPickerActive}: AddReactionBubbleProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -99,7 +102,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
             <PressableWithFeedback
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, isContextMenu)]}
-                onPress={callFunctionIfActionIsAllowed(onPress)}
+                onPress={callFunctionIfActionIsAllowed(onPress, false, session)}
                 onMouseDown={(event) => {
                     // Allow text input blur when Add reaction is right clicked
                     if (!event || event.button === 2) {

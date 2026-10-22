@@ -5,9 +5,13 @@ import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
 import MenuItemFieldValueHTML from '@components/MenuItem/leaves/content/MenuItemFieldValueHTML';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItemChevron';
 
+import useOnyx from '@hooks/useOnyx';
+
 import hasRenderableChildren from '@libs/hasRenderableChildren';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {PropsWithChildren} from 'react';
 
@@ -32,9 +36,10 @@ type MenuItemFieldHTMLProps = Omit<MenuItemRootProps, 'accessibilityLabel'> &
  * `children` land in the trailing cell, next to the chevron.
  */
 function MenuItemFieldHTML({name, value, characterLimit, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldHTMLProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     return (
         <MenuItemRoot
-            onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}
+            onPress={onPress ? callFunctionIfActionIsAllowed(onPress, false, session) : undefined}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}

@@ -70,6 +70,7 @@ function TaskFieldAvatar({reportID}: {reportID?: string}) {
 }
 
 function DynamicNewTaskPage() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [task] = useOnyx(ONYXKEYS.TASK);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.shareDestination}`);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${task?.shareDestination}`, {selector: pendingDeleteMemberAccountIDsSelector});
@@ -226,7 +227,7 @@ function DynamicNewTaskPage() {
                             {assignee?.displayName ? (
                                 <MenuItem.Root
                                     accessibilityLabel={`${translate('task.assignee')}, ${assignee.displayName}`}
-                                    onPress={callFunctionIfActionIsAllowed(navigateToAssignee)}
+                                    onPress={callFunctionIfActionIsAllowed(navigateToAssignee, false, session)}
                                 >
                                     <MenuItem.Row>
                                         <MenuItem.Content>

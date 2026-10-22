@@ -39,6 +39,7 @@ import {View} from 'react-native';
 type WorkspaceCardSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS>;
 
 function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const policyID = route.params?.policyID;
@@ -107,7 +108,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                 onPress={
                                     isSettlementFrequencyBlocked
                                         ? undefined
-                                        : callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)))
+                                        : callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)), false, session)
                                 }
                             >
                                 <MenuItemField.Row

@@ -111,6 +111,7 @@ type HeaderViewProps = {
 };
 
 function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
     const parentReportAction = useParentReportAction(report, {shouldIgnoreThreadReplies: true});
 
@@ -301,7 +302,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         />
     );
 
-    const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID));
+    const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID), false, session);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 

@@ -51,6 +51,7 @@ type TaxFieldsProps = {
 };
 
 function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyTaxFields, didConfirm, transactionID, action, iouType, reportID, formError, clearFormErrors}: TaxFieldsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
@@ -195,7 +196,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 <MenuItem.Root
                     key={`${taxRates?.name}_rate`}
                     testID={`${taxRates?.name}_rate`}
-                    onPress={canModifyTaxFields ? callFunctionIfActionIsAllowed(openTaxRatePage) : undefined}
+                    onPress={canModifyTaxFields ? callFunctionIfActionIsAllowed(openTaxRatePage, false, session) : undefined}
                     isDisabled={didConfirm}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
                 >

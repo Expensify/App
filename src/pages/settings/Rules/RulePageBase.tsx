@@ -85,6 +85,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: ExpenseRuleForm) 
 };
 
 function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const [expenseRules = getEmptyArray<ExpenseRule>()] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
     const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM);
@@ -162,7 +163,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                 <HeaderWithBackButton title={translate(titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate('expenseRulesPage.addRule.expenseContains')}</Text>
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash))}>
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash), false, session)}>
                         <MenuItemField.Row
                             name={translate('common.merchant')}
                             value={form?.merchantToMatch}

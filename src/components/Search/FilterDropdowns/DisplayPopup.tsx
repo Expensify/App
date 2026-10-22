@@ -44,6 +44,7 @@ type DisplayPopupProps = {
 };
 
 function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayPopupProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useResponsiveLayout(); // eslint-disable-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -125,10 +126,14 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 {shouldShowColumnsButton && (
                     <CompactMenuContext.Provider value>
                         <MenuItem.Root
-                            onPress={callFunctionIfActionIsAllowed(() => {
-                                closeOverlay();
-                                openSearchColumns();
-                            })}
+                            onPress={callFunctionIfActionIsAllowed(
+                                () => {
+                                    closeOverlay();
+                                    openSearchColumns();
+                                },
+                                false,
+                                session,
+                            )}
                             accessibilityLabel={translate('search.editColumns')}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
                         >

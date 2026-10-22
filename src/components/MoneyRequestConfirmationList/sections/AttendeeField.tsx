@@ -41,6 +41,7 @@ type AttendeeFieldProps = {
 };
 
 function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError}: AttendeeFieldProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const personalDetailsList = usePersonalDetails();
@@ -96,7 +97,7 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
 
     return (
         <MenuItem.Root
-            onPress={isReadOnly ? undefined : callFunctionIfActionIsAllowed(openAttendeePage)}
+            onPress={isReadOnly ? undefined : callFunctionIfActionIsAllowed(openAttendeePage, false, session)}
             accessibilityLabel={attendeesAccessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
         >
