@@ -1,7 +1,4 @@
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
+import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
 
 import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import {setNameValuePair} from '@libs/actions/User';
@@ -15,38 +12,20 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import type {Ref} from 'react';
-import type {ValueOf} from 'type-fest';
-
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useImperativeHandle, useState} from 'react';
 
-import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
-import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
-import {useMoneyReportTransactionThread} from './MoneyReportTransactionThreadContext';
+import type {RejectModalAction} from './useHoldRejectEducationalModal';
 
-type RejectModalAction = ValueOf<
-    | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD
-    | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
-    | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK
-    | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_REPORT
->;
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
+import useHoldRejectEducationalModal from './useHoldRejectEducationalModal';
+import useHoldSubmitterEducationalModal from './useHoldSubmitterEducationalModal';
+import useNetwork from './useNetwork';
+import useOnyx from './useOnyx';
 
-type MoneyReportHeaderEducationalModalsHandle = {
-    openHoldEducational: () => void;
-    openRejectModal: (action: RejectModalAction) => void;
-};
-
-type MoneyReportHeaderEducationalModalsProps = {
-    reportID: string | undefined;
-    ref: Ref<MoneyReportHeaderEducationalModalsHandle>;
-};
-
-function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEducationalModalsProps) {
-    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
-    const [rejectModalAction, setRejectModalAction] = useState<RejectModalAction | null>(null);
-
+/** Opens the hold/reject educational modals for the money report header and runs the follow-up action once the user dismisses them */
+function useMoneyReportHeaderEducationalModals(reportID: string | undefined) {
     const {isOffline} = useNetwork();
     const [shouldFailAllRequests] = useOnyx(ONYXKEYS.NETWORK, {selector: shouldFailAllRequestsSelector});
 
@@ -62,13 +41,7 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    useImperativeHandle(ref, () => ({
-        openHoldEducational: () => setIsHoldEducationalModalVisible(true),
-        openRejectModal: (action: RejectModalAction) => setRejectModalAction(action),
-    }));
-
     const dismissModalAndUpdateUseHold = () => {
-        setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (requestParentReportAction) {
             changeMoneyRequestHoldStatus(
@@ -86,7 +59,7 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
         }
     };
 
-    const dismissRejectModalBasedOnAction = () => {
+    const dismissRejectModalBasedOnAction = (rejectModalAction: RejectModalAction) => {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (requestParentReportAction) {
@@ -123,27 +96,15 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
                 rejectMoneyRequestReason(requestParentReportAction);
             }
         }
-        setRejectModalAction(null);
     };
 
-    return (
-        <>
-            {!!rejectModalAction && (
-                <HoldOrRejectEducationalModal
-                    onClose={dismissRejectModalBasedOnAction}
-                    onConfirm={dismissRejectModalBasedOnAction}
-                />
-            )}
-            {!!isHoldEducationalModalVisible && (
-                <HoldSubmitterEducationalModal
-                    onClose={dismissModalAndUpdateUseHold}
-                    onConfirm={dismissModalAndUpdateUseHold}
-                    isDM={isDM(chatReport)}
-                />
-            )}
-        </>
-    );
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal();
+    const {showHoldSubmitterEducationalModal} = useHoldSubmitterEducationalModal();
+
+    return {
+        openHoldEducational: () => showHoldSubmitterEducationalModal({isDM: isDM(chatReport)}).finally(dismissModalAndUpdateUseHold),
+        openRejectModal: (action: RejectModalAction) => showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(action)),
+    };
 }
 
-export type {RejectModalAction, MoneyReportHeaderEducationalModalsHandle};
-export default MoneyReportHeaderEducationalModals;
+export default useMoneyReportHeaderEducationalModals;

@@ -1,4 +1,4 @@
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
@@ -7103,6 +7103,35 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: '50%',
             width: 12,
             height: 12,
+        },
+        pieChartResponsiveRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            columnGap: VictoryTheme.pie.legendGap,
+        },
+        pieChartResponsiveColumn: {
+            flexDirection: 'column',
+            alignItems: 'center',
+        },
+        pieChartLegendSide: {
+            width: VictoryTheme.pie.legendMinWidth,
+            justifyContent: 'center',
+            rowGap: 12,
+        },
+        pieChartLegendBelow: {
+            alignSelf: 'stretch',
+            marginTop: VictoryTheme.pie.legendStackGap,
+            rowGap: 12,
+        },
+        pieChartLegendRow: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            columnGap: 8,
+        },
+        pieChartLegendDotColumn: {
+            height: variables.lineHeightXLarge,
+            justifyContent: 'center',
         },
         chartInlineTable: {
             marginTop: 32,

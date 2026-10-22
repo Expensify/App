@@ -126,7 +126,9 @@ type UnofferedOnboardingAccountingConnection =
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
     | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
     // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
-    | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
+    | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
+    // Still behind the ZOHO_BOOKS beta.
+    | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
 
 type UnhandledAccountingConnection = Exclude<TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>, OnboardingAccountingOption | UnofferedOnboardingAccountingConnection>;
 
@@ -1407,7 +1409,9 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
+        INDIRECT_TAG_UPLOADS: 'indirectTagUploads',
         BUSINESS_CENTRAL: 'businessCentral',
+        ZOHO_BOOKS: 'zohoBooks',
         EXACT_ONLINE: 'exactOnline2026',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
@@ -1423,6 +1427,7 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
+        NL_FILTERS: 'nlFilters',
         PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
@@ -5051,6 +5056,7 @@ const CONST = {
         ID_FAKE: '_FAKE_',
         SECONDARY_ACTIONS: {
             IMPORT_SPREADSHEET: 'importSpreadsheet',
+            APPEND_CUSTOM_TAG_LIST: 'appendCustomTagList',
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
             EXPORT: 'export',
@@ -5324,6 +5330,7 @@ const CONST = {
                     this.NAME.RILLET,
                     this.NAME.DUALENTRY,
                     this.NAME.CAMPFIRE,
+                    this.NAME.ZOHO_BOOKS,
                     this.NAME.BUSINESS_CENTRAL,
                 ] as const;
             },
@@ -5340,6 +5347,7 @@ const CONST = {
                     [this.NAME.RILLET]: 'rillet',
                     [this.NAME.DUALENTRY]: 'dualentry',
                     [this.NAME.CAMPFIRE]: 'campfire',
+                    [this.NAME.ZOHO_BOOKS]: 'zohoBooks',
                     [this.NAME.BUSINESS_CENTRAL]: 'businessCentral',
                 } as const;
             },
@@ -7409,8 +7417,11 @@ const CONST = {
         SINGLE_MARKER_ZOOM: 15,
         DEFAULT_COORDINATE: [-122.4021, 37.7911] as [number, number],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
-        ANIMATION_DURATION_ON_CENTER_ME: 1000,
+        ANIMATION_DURATION_DEFAULT: 1000,
+        ANIMATION_DURATION_LONG: 1500,
         GPS_ROUTE_ANIMATION_DURATION_MS: 1000,
+        CAMERA_ANIMATION_MODE: 'flyTo',
+        FLY_TO_SPEED: 4,
     },
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',

@@ -2414,7 +2414,6 @@ function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
     }
     if (legacyAction?.message.length !== 0) {
         // Sometime html can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return legacyAction?.message?.map((element) => getTextFromHtml(element?.html || element?.text)).join('') ?? '';
     }
     return '';
@@ -2874,7 +2873,6 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): stri
         return getReportActionText(reportAction);
     }
     // Sometime html can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text)}`, '') ?? '';
 }
 
@@ -4063,7 +4061,7 @@ type ForwardsToOriginalMessage = {
 };
 
 function formatMemberListWithAnd(members: Array<{email: string; name: string}>): string {
-    const emails = members.map((m) => Str.removeSMSDomain(m.email));
+    const emails = members.map((m) => formatPhoneNumber(m.email));
 
     if (emails.length === 1) {
         return emails.at(0) ?? '';

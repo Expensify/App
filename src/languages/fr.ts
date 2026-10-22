@@ -7083,6 +7083,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             emptySubtitle: 'Les fournisseurs apparaîtront ici une fois la synchronisation comptable terminée.',
             findVendor: 'Trouver un fournisseur',
             managedInAccountingSoftware: 'Les fournisseurs sont gérés dans votre',
+            enableVendor: 'Activer le fournisseur',
+            enableVendors: 'Activer les fournisseurs',
+            disableVendor: 'Désactiver le fournisseur',
+            disableVendors: 'Désactiver les fournisseurs',
+            updateFailureMessage: 'Une erreur s’est produite lors de la mise à jour du fournisseur, veuillez réessayer',
         },
         tags: {
             tagName: 'Nom du tag',
@@ -7126,6 +7131,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             tagRules: 'Règles de tags',
             approverDescription: 'Approbateur',
             importTags: 'Importer des tags',
+            appendCustomTagList: 'Ajouter une liste de tags personnalisée',
             importTagsSupportingText: 'Codez vos dépenses avec un seul type de tag ou plusieurs.',
             configureMultiLevelTags: 'Configurez votre liste de tags pour le multi-niveau.',
             importMultiLevelTagsSupportingText: `Voici un aperçu de vos tags. Si tout semble correct, cliquez ci-dessous pour les importer.`,
@@ -9302,6 +9308,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Organisation Zoho Books',
+        },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
             prerequisitesTitle: 'Avant de vous connecter...',
@@ -10334,6 +10343,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernier relevé',
                 },
                 customDay: 'Jour personnalisé',
+            },
+            describeSearch: {
+                title: 'Décrivez votre recherche',
+                description: 'Décrivez en anglais simple les dépenses que vous souhaitez voir et nous appliquerons automatiquement les bons filtres.',
+                inputLabel: 'Décrivez votre recherche',
+                buttonText: 'Appliquer',
             },
             status: 'Statut',
             keyword: 'Mot-clé',
