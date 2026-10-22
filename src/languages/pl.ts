@@ -6737,9 +6737,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     turnOffTravel: 'Wyłącz podróże',
                     turnOffTravelDescription: 'Członkowie nie mogą otworzyć Expensify Travel',
                     makeTravelAdmins: 'Ustaw jako administratorów podróży',
-                    makeTravelAdminsDescription: 'Członkowie mogą zarządzać ustawieniami i podróżami firmy',
+                    makeTravelAdminsDescription: 'Włącza podróże, a członkowie mogą zarządzać ustawieniami i podróżami firmy',
                     makeTravelers: 'Ustaw jako podróżnych',
-                    makeTravelersDescription: 'Członkowie mogą rezerwować i zarządzać własnymi podróżami',
+                    makeTravelersDescription: 'Włącza podróże, a członkowie mogą rezerwować i zarządzać własnymi podróżami',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

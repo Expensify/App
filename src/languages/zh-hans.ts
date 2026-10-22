@@ -6483,9 +6483,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     turnOffTravel: '关闭差旅',
                     turnOffTravelDescription: '成员无法打开 Expensify Travel',
                     makeTravelAdmins: '设为差旅管理员',
-                    makeTravelAdminsDescription: '成员可以管理公司的差旅设置和行程',
+                    makeTravelAdminsDescription: '开启差旅，成员可以管理公司的差旅设置和行程',
                     makeTravelers: '设为出差人',
-                    makeTravelersDescription: '成员可以预订和管理自己的行程',
+                    makeTravelersDescription: '开启差旅，成员可以预订和管理自己的行程',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

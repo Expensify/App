@@ -6778,9 +6778,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     turnOffTravel: 'Désactiver les voyages',
                     turnOffTravelDescription: 'Les membres ne peuvent pas ouvrir Expensify Travel',
                     makeTravelAdmins: 'Nommer administrateurs voyage',
-                    makeTravelAdminsDescription: "Les membres peuvent gérer les paramètres et les voyages de l'entreprise",
+                    makeTravelAdminsDescription: "Active les voyages, et les membres peuvent gérer les paramètres et les voyages de l'entreprise",
                     makeTravelers: 'Nommer voyageurs',
-                    makeTravelersDescription: 'Les membres peuvent réserver et gérer leurs propres voyages',
+                    makeTravelersDescription: 'Active les voyages, et les membres peuvent réserver et gérer leurs propres voyages',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

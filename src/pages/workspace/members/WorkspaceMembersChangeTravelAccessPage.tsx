@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearWorkspaceMembersSelectedForBulkEdit} from '@libs/actions/Policy/Member';
-import {setPolicyTravelMemberAccess, setPolicyTravelMemberRole} from '@libs/actions/Policy/Travel';
+import {setPolicyTravelMemberAccess, setPolicyTravelMemberAccessValue} from '@libs/actions/Policy/Travel';
 import type {TravelMemberAccessTarget} from '@libs/actions/Policy/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -88,7 +88,7 @@ function WorkspaceMembersChangeTravelAccessPage({policy, personalDetails, route}
         if (value === TRAVEL_BULK_ACTIONS.TURN_ON || value === TRAVEL_BULK_ACTIONS.TURN_OFF) {
             setPolicyTravelMemberAccess(policy, selectedMembers, value === TRAVEL_BULK_ACTIONS.TURN_ON);
         } else {
-            setPolicyTravelMemberRole(policy, selectedMembers, value === TRAVEL_BULK_ACTIONS.MAKE_ADMINS ? CONST.TRAVEL.MEMBER_ROLE.ADMIN : CONST.TRAVEL.MEMBER_ROLE.TRAVELER);
+            setPolicyTravelMemberAccessValue(policy, selectedMembers, value === TRAVEL_BULK_ACTIONS.MAKE_ADMINS ? CONST.TRAVEL.MEMBER_ROLE.ADMIN : CONST.TRAVEL.MEMBER_ROLE.TRAVELER);
         }
         Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
     };

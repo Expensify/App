@@ -6762,9 +6762,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     turnOffTravel: 'Reisen deaktivieren',
                     turnOffTravelDescription: 'Mitglieder können Expensify Travel nicht öffnen',
                     makeTravelAdmins: 'Zu Reiseadministratoren machen',
-                    makeTravelAdminsDescription: 'Mitglieder können Reiseeinstellungen und Reisen des Unternehmens verwalten',
+                    makeTravelAdminsDescription: 'Schaltet Reisen ein, und Mitglieder können Reiseeinstellungen und Reisen des Unternehmens verwalten',
                     makeTravelers: 'Zu Reisenden machen',
-                    makeTravelersDescription: 'Mitglieder können ihre eigenen Reisen buchen und verwalten',
+                    makeTravelersDescription: 'Schaltet Reisen ein, und Mitglieder können ihre eigenen Reisen buchen und verwalten',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

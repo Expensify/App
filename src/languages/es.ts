@@ -6623,9 +6623,9 @@ ${amount} para ${merchant} - ${date}`,
                     turnOffTravel: 'Desactivar viajes',
                     turnOffTravelDescription: 'Los miembros no pueden abrir Expensify Travel',
                     makeTravelAdmins: 'Convertir en administradores de viajes',
-                    makeTravelAdminsDescription: 'Los miembros pueden gestionar la configuración y los viajes de la empresa',
+                    makeTravelAdminsDescription: 'Activa los viajes y los miembros pueden gestionar la configuración y los viajes de la empresa',
                     makeTravelers: 'Convertir en viajeros',
-                    makeTravelersDescription: 'Los miembros pueden reservar y gestionar sus propios viajes',
+                    makeTravelersDescription: 'Activa los viajes y los miembros pueden reservar y gestionar sus propios viajes',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

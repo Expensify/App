@@ -6638,9 +6638,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     turnOffTravel: '出張をオフにする',
                     turnOffTravelDescription: 'メンバーは Expensify Travel を開けません',
                     makeTravelAdmins: '出張管理者にする',
-                    makeTravelAdminsDescription: 'メンバーは会社の出張設定と出張を管理できます',
+                    makeTravelAdminsDescription: '出張をオンにし、メンバーは会社の出張設定と出張を管理できます',
                     makeTravelers: '出張者にする',
-                    makeTravelersDescription: 'メンバーは自分の出張を予約・管理できます',
+                    makeTravelersDescription: '出張をオンにし、メンバーは自分の出張を予約・管理できます',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

@@ -6713,9 +6713,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     turnOffTravel: 'Reizen uitschakelen',
                     turnOffTravelDescription: 'Leden kunnen Expensify Travel niet openen',
                     makeTravelAdmins: 'Reisbeheerders maken',
-                    makeTravelAdminsDescription: 'Leden kunnen de reisinstellingen en reizen van het bedrijf beheren',
+                    makeTravelAdminsDescription: 'Zet reizen aan, en leden kunnen de reisinstellingen en reizen van het bedrijf beheren',
                     makeTravelers: 'Reizigers maken',
-                    makeTravelersDescription: 'Leden kunnen hun eigen reizen boeken en beheren',
+                    makeTravelersDescription: 'Zet reizen aan, en leden kunnen hun eigen reizen boeken en beheren',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

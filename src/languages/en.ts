@@ -7158,9 +7158,9 @@ const translations = {
                     turnOffTravel: 'Turn off travel',
                     turnOffTravelDescription: "Members can't open Expensify Travel",
                     makeTravelAdmins: 'Make travel admins',
-                    makeTravelAdminsDescription: 'Members can manage travel settings and trips for the company',
+                    makeTravelAdminsDescription: 'Turns travel on, and members can manage travel settings and trips for the company',
                     makeTravelers: 'Make travelers',
-                    makeTravelersDescription: 'Members can book and manage their own trips',
+                    makeTravelersDescription: 'Turns travel on, and members can book and manage their own trips',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

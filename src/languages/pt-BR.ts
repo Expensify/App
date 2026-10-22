@@ -6711,9 +6711,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     turnOffTravel: 'Desativar viagens',
                     turnOffTravelDescription: 'Os membros não podem abrir o Expensify Travel',
                     makeTravelAdmins: 'Tornar administradores de viagens',
-                    makeTravelAdminsDescription: 'Os membros podem gerenciar as configurações e as viagens da empresa',
+                    makeTravelAdminsDescription: 'Ativa as viagens, e os membros podem gerenciar as configurações e as viagens da empresa',
                     makeTravelers: 'Tornar viajantes',
-                    makeTravelersDescription: 'Os membros podem reservar e gerenciar as próprias viagens',
+                    makeTravelersDescription: 'Ativa as viagens, e os membros podem reservar e gerenciar as próprias viagens',
                 },
                 travelInvoicing: {
                     travelBookingSection: {
