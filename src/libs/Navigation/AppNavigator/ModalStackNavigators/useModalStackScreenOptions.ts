@@ -51,7 +51,7 @@ function useWideModalStackScreenOptions() {
                 : (props) => modalCardStyleInterpolator({props, enter: {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB}});
 
             let cardStyleInterpolator: StackCardStyleInterpolator = baseInterpolator;
-            let nativeWidth: number = variables.sideBarWidth;
+            let nativeWidth: number = variables.rhpWidth;
 
             if (!isSmallScreenWidth) {
                 // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's

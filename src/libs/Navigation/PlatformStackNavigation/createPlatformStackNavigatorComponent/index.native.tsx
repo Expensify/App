@@ -1,6 +1,8 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getSplitNavigatorSidebarWidth from '@libs/Navigation/AppNavigator/getSplitNavigatorSidebarWidth';
 import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToNativeNavigationOptions';
 import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {
@@ -54,6 +56,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
 }: PlatformNavigatorImplProps<RouterOptions>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {
         navigation,
         state: originalState,
@@ -117,7 +120,11 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
             {/* Keep the central stack under the same parents across breakpoints so its screens retain local state. */}
             {sidebarScreen ? (
                 <View style={[styles.flex1, styles.flexRow]}>
-                    {!!split && <View style={[styles.nativeSplitSidebar, styles.borderRight, styles.overflowHidden]}>{wrappedDescriptors[split.sidebarRoute.key]?.render()}</View>}
+                    {!!split && (
+                        <View style={[StyleUtils.getWidthStyle(getSplitNavigatorSidebarWidth(sidebarScreen)), styles.borderRight, styles.overflowHidden]}>
+                            {wrappedDescriptors[split.sidebarRoute.key]?.render()}
+                        </View>
+                    )}
                     <View style={[styles.flex1, styles.mnw0, styles.overflowHidden]}>{stack}</View>
                 </View>
             ) : (

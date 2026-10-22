@@ -769,10 +769,6 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'visible',
         },
 
-        nativeSplitSidebar: {
-            width: variables.sideBarWithLHBWidth,
-        },
-
         // Only the mobile web bar uses this; iOS and Android draw native tab bars.
         navigationTabBarContainer: {
             // Grows every tab by the same amount until its label fits, then shares what is left between them, so a long

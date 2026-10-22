@@ -32,7 +32,6 @@ import SearchAdvancedFiltersProvider from '@pages/Search/SearchAdvancedFiltersPr
 import {MergeATSApprovalDraftProvider} from '@pages/workspace/recruiting/approver/MergeATSApprovalDraftContext';
 import {MergeATSFiltersDraftProvider} from '@pages/workspace/recruiting/merge/filters/MergeATSFiltersDraftContext';
 
-import type {OverlayPositionValue} from '@styles/index';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -209,16 +208,19 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const dismissalPositionRight = getRHPLayoutValue(rhpWidth, Animated.add<number>(animatedWidth, sidePanelOffset.current));
 
     // Width of the focused card. The super wide animated width already gives up the Side Panel offset.
-    let focusedRHPWidth: OverlayPositionValue = singleRHPWidth;
+    let focusedRHPWidth: number = singleRHPWidth;
     if (isSuperWideRHPFocused) {
-        focusedRHPWidth = getRHPLayoutValue(rhpWidth, animatedWidth);
+        focusedRHPWidth = rhpWidth;
     } else if (isWideRHPFocused) {
         focusedRHPWidth = calculateWideRHPWidth(windowWidth);
     }
 
     // Where the focused card starts, measured from the right window edge and from the left.
-    const tertiaryOverlayColumn = Animated.add(sidePanelOffset.current, Animated.add(focusedRHPWidth, 2 * variables.rhpFloatingCardBorderWidth + variables.rhpFloatingCardMargin));
-    const tertiaryOverlayCardBandLeft = getRHPLayoutValue(windowWidth - singleRHPWidth, Animated.subtract(windowWidth, tertiaryOverlayColumn));
+    const tertiaryOverlayColumn = Animated.add(
+        sidePanelOffset.current,
+        Animated.add(isSuperWideRHPFocused ? getRHPLayoutValue(focusedRHPWidth, animatedWidth) : focusedRHPWidth, 2 * variables.rhpFloatingCardBorderWidth + variables.rhpFloatingCardMargin),
+    );
+    const tertiaryOverlayCardBandLeft = getRHPLayoutValue(windowWidth - focusedRHPWidth, Animated.subtract(windowWidth, tertiaryOverlayColumn));
     const tertiaryOverlayVerticalGapInset = windowHeight - getRHPLayoutValue(0, variables.rhpFloatingCardMargin);
 
     // With a report or expense stacked in the RHP every card draws its own modal, so the frame is invisible.
@@ -575,7 +577,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
                     <RHPOverlay
                         progress={thirdOverlayProgress}
-                        positionRightValue={getRHPLayoutValue(singleRHPWidth, tertiaryOverlayColumn)}
+                        positionRightValue={getRHPLayoutValue(focusedRHPWidth, tertiaryOverlayColumn)}
                         onPress={Navigation.dismissToPreviousRHP}
                         transparent
                     />
