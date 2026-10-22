@@ -31,22 +31,34 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type AddCategoryToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH>;
+import useMerchantRuleRoute from './useMerchantRuleRoute';
+
+type AddCategoryToMatchPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_CATEGORY_TO_MATCH
+>;
 
 type CategoryListItem = ListItem & {
     value: string;
 };
 
 function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
-    const {policyID, categoryName: editingCategoryName} = route.params;
+    const {policyID, ruleID, categoryName: editingCategoryName} = route.params;
     // Editing a category tax default edits one rule, so its category is swapped, not added to.
     const isEditingCategoryTaxRule = !!editingCategoryName;
+    // A category tax default is addressed by category rather than ruleID, so it returns to its own editor.
+    const {backToRoute} = useMerchantRuleRoute(
+        DYNAMIC_ROUTES.RULES_CATEGORY_TO_MATCH_FROM_EXPENSE.path,
+        policyID,
+        ruleID,
+        editingCategoryName ? ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, editingCategoryName) : undefined,
+    );
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -119,9 +131,6 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         setSelectedCategories((prev) => Array.from(new Set([...prev, ...visibleValues])));
     };
 
-    // Passed explicitly like every sibling picker, so a deep link has somewhere to pop to. A category tax default is
-    // addressed by category rather than ruleID.
-    const backToRoute = editingCategoryName ? ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, editingCategoryName) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
     const goBackToRule = () => Navigation.goBack(backToRoute);
     const goBackAfterSave = () => Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
 
