@@ -51,6 +51,9 @@ type CurrencyPickerProps = {
 
     /** Should show the full page offline view (whenever the user is offline) */
     shouldShowFullPageOfflineView?: boolean;
+
+    /** Whether the picker includes an option to clear the selected currency. */
+    shouldAllowEmptySelection?: boolean;
 };
 
 function CurrencyPicker({
@@ -64,6 +67,7 @@ function CurrencyPicker({
     excludeCurrencies,
     disabled = false,
     shouldShowFullPageOfflineView = false,
+    shouldAllowEmptySelection = false,
     onInputChange = () => {},
 }: CurrencyPickerProps) {
     const {translate} = useLocalize();
@@ -128,6 +132,20 @@ function CurrencyPicker({
                     />
                     <BlockingComponent>
                         {!!headerContent && headerContent}
+                        {shouldAllowEmptySelection && (
+                            <MenuItem.Root
+                                onPress={() => {
+                                    onInputChange('');
+                                    hidePickerModal();
+                                }}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{translate('common.none')}</MenuItem.Title>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        )}
                         <CurrencySelectionList
                             initiallySelectedCurrencyCode={value}
                             onSelect={updateInput}

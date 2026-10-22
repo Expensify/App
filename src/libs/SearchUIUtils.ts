@@ -204,6 +204,7 @@ import {
     isSettled,
     shouldReportShowSubscript,
 } from './ReportUtils';
+import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
 import {
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -5949,7 +5950,7 @@ function getAmountDisplayValue(
     const greaterThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
     const equalTo = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
 
-    const formatAmount = (val: string) => convertToDisplayStringWithoutCurrency(Number(val));
+    const formatAmount = (val: string) => getAmountFilterDisplayValue(val, convertToDisplayStringWithoutCurrency);
 
     if (equalTo) {
         return translate('search.filters.amount.equalTo', formatAmount(equalTo));

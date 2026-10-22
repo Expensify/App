@@ -1,11 +1,13 @@
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
+import CurrencyPicker from '@components/CurrencyPicker';
 import MenuItem from '@components/MenuItem';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {formatAmountFilterValue, getAmountFilterDisplayValue, getAmountFilterInputValue, supportsAmountFilterCurrency} from '@libs/SearchAmountFilterUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -28,25 +30,29 @@ type AmountInputProps = {
     title: string;
     value: string;
     name: string;
+    shouldShowCurrencyPicker: boolean;
     onSave: (value: string) => void;
     onBackButtonPress: () => void;
 };
 
-function AmountInput({title, value, name, onSave, onBackButtonPress}: AmountInputProps) {
+function AmountInput({title, value, name, shouldShowCurrencyPicker, onSave, onBackButtonPress}: AmountInputProps) {
     const styles = useThemeStyles();
-    const [amount, setAmount] = useState(value);
+    const {translate} = useLocalize();
+    const initialValue = getAmountFilterInputValue(value);
+    const [amount, setAmount] = useState(initialValue.amount);
+    const [currency, setCurrency] = useState(initialValue.currency);
 
     return (
         <BasePopup
             label={title}
-            onApply={() => onSave(amount)}
+            onApply={() => onSave(formatAmountFilterValue(amount, currency))}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
             onBackButtonPress={onBackButtonPress}
             shouldSubmitOnEnter
         >
             <AmountWithoutCurrencyInput
                 containerStyles={[styles.ph4, styles.mb2]}
-                defaultValue={value}
+                defaultValue={initialValue.amount}
                 onInputChange={setAmount}
                 label={title}
                 accessibilityLabel={title}
@@ -56,6 +62,15 @@ function AmountInput({title, value, name, onSave, onBackButtonPress}: AmountInpu
                 shouldAllowNegative
                 autoFocus
             />
+            {shouldShowCurrencyPicker && (
+                <CurrencyPicker
+                    label={translate('common.currency')}
+                    accessibilityLabel={`${title}, ${translate('common.currency')}`}
+                    value={currency}
+                    onInputChange={setCurrency}
+                    shouldAllowEmptySelection
+                />
+            )}
         </BasePopup>
     );
 }
@@ -74,7 +89,7 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
     const modifierConfig = [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO, CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN, CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
 
     const formatAmount = (amount: string | undefined) => {
-        return amount ? convertToFrontendAmountAsString(Number(amount), CONST.DEFAULT_CURRENCY_DECIMALS) : '';
+        return getAmountFilterDisplayValue(amount, (backendAmount) => convertToFrontendAmountAsString(backendAmount, CONST.DEFAULT_CURRENCY_DECIMALS));
     };
 
     if (selectedModifier) {
@@ -82,14 +97,12 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
             setSelectedModifier(null);
         };
 
-        const save = (rawAmount: string) => {
-            if (rawAmount.trim() === '') {
+        const save = (newAmount: string) => {
+            if (newAmount === '') {
                 setAmountValues((prevAmountValues) => ({...prevAmountValues, [selectedModifier]: undefined}));
                 goBack();
                 return;
             }
-
-            const newAmount = convertToBackendAmount(Number(rawAmount)).toString();
 
             // When setting an Equal To value, clear Greater Than and Less Than to avoid conflicting filters.
             if (selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO) {
@@ -106,8 +119,9 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
         return (
             <AmountInput
                 title={title[selectedModifier]}
-                value={formatAmount(amountValues[selectedModifier])}
+                value={amountValues[selectedModifier] ?? ''}
                 name={`${baseFilterKey}${selectedModifier}`}
+                shouldShowCurrencyPicker={supportsAmountFilterCurrency(baseFilterKey)}
                 onBackButtonPress={goBack}
                 onSave={save}
             />
