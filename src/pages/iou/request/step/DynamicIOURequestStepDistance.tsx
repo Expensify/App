@@ -30,7 +30,7 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useWaypointItems from '@hooks/useWaypointItems';
 
-import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequestDistance, setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {init, stop} from '@libs/actions/MapboxToken';
@@ -46,7 +46,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
+import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil, isSelfDM} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, hasManualDistanceOverride, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 
@@ -75,6 +75,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 import getSkipConfirmationPreMountDestinationRoute from './confirmation/getSkipConfirmationPreMountDestinationRoute';
+import hasManualMapDistanceOverride from './confirmation/submission/utils/hasManualMapDistanceOverride';
 import DistanceManualTabContent from './DistanceManualTabContent';
 import DistanceMapTabContent from './DistanceMapTabContent';
 import useDistanceNavigation from './IOURequestStepDistance/hooks/useDistanceNavigation';
@@ -182,7 +183,7 @@ function DynamicIOURequestStepDistance({
     const isCreatingNewRequest = !backTo && !isEditing;
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = getRequestType(currentTransaction);
-    const shouldShowMapManualTabs = isEditing || (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP && !isCommuterExclusionEnabled(policy));
+    const shouldShowMapManualTabs = isEditing || (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP && !isMapOrGPSRequired(policy));
     const customUnitRateID = getRateID(currentTransaction);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -477,8 +478,6 @@ function DynamicIOURequestStepDistance({
         policyForMovingExpenses,
         recentWaypoints,
         introSelected,
-        unit: distanceUnit,
-        personalOutputCurrency: personalPolicy?.outputCurrency,
     });
 
     const getError = useCallback(() => {
@@ -631,6 +630,10 @@ function DynamicIOURequestStepDistance({
             return;
         }
 
+        // Saving from the Map tab means the route distance wins over a value typed earlier on the Manual tab.
+        if (shouldShowMapManualTabs && hasManualMapDistanceOverride(currentTransaction)) {
+            clearMoneyRequestDistance(transactionID, shouldUseTransactionDraft(action, iouType));
+        }
         suppressDiscardPrompt();
         navigateToNextStep();
     }, [
@@ -672,6 +675,10 @@ function DynamicIOURequestStepDistance({
         getCurrencyDecimals,
         getCurrencySymbol,
         rules,
+        shouldShowMapManualTabs,
+        transactionID,
+        action,
+        iouType,
     ]);
 
     const submitManualDistance = useCallback(() => {
@@ -708,7 +715,7 @@ function DynamicIOURequestStepDistance({
             transactionWasSaved.current = true;
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
             suppressDiscardPrompt();
-            navigateToNextStep(distanceAsFloat);
+            navigateToNextStep();
             return;
         }
 

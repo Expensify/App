@@ -83,6 +83,7 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     getMoneyRequestParticipantsFromReport: jest.fn(() => []),
     getMoneyRequestParticipantOptions: jest.fn(() => []),
     setMoneyRequestDistance: jest.fn(),
+    clearMoneyRequestDistance: jest.fn(),
 }));
 
 jest.mock('@libs/actions/MapboxToken', () => ({
@@ -450,6 +451,123 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
         // cannot honor the commute deduction, so the server would flag the amount as differing from the calculated one
         expect(screen.getByAccessibilityHint(/123 Main St/)).toBeTruthy();
         expect(screen.queryAllByLabelText(/common\.distance/).some((element) => 'value' in element.props)).toBe(false);
+    });
+
+    it('should not render the Manual tab when the destination workspace requires GPS or map entry', async () => {
+        // Given a map draft headed for a workspace that only accepts distances from the map or GPS
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, requireMapOrGPS: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {...createTestReport(), policyID: POLICY_ID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, createDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP}));
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        // When the distance step opens
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <DynamicIOURequestStepDistance
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Manual tab is gone, because the start page already hides it for this setting and a typed distance
+        // here would get around the rule
+        expect(screen.getByAccessibilityHint(/123 Main St/)).toBeTruthy();
+        expect(screen.queryAllByLabelText(/common\.distance/).some((element) => 'value' in element.props)).toBe(false);
+    });
+
+    it('should drop a manually entered distance when saving from the Map tab', async () => {
+        // Given a map draft with a route of 100 mi and 29 mi typed earlier on the Manual tab
+        const {clearMoneyRequestDistance} = jest.requireMock<{clearMoneyRequestDistance: jest.Mock}>('@libs/actions/IOU/MoneyRequest');
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, createDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                comment: {customUnit: {quantity: 29}},
+                routes: {
+                    route0: {
+                        distance: DistanceRequestUtils.convertToDistanceInMeters(100, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                        geometry: {
+                            coordinates: [
+                                [0, 0],
+                                [1, 1],
+                            ],
+                        },
+                    },
+                },
+            });
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <DynamicIOURequestStepDistance
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the Map tab is saved
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        // Then the typed distance is cleared, because saving the Map tab means the expense should use the route
+        expect(clearMoneyRequestDistance).toHaveBeenCalledWith(TRANSACTION_ID, true);
+    });
+
+    it('should keep the route distance when saving from the Map tab without a manual distance', async () => {
+        // Given a map draft whose quantity is the route distance, as it is after picking a route on the map
+        const {clearMoneyRequestDistance} = jest.requireMock<{clearMoneyRequestDistance: jest.Mock}>('@libs/actions/IOU/MoneyRequest');
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, createDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                routes: {
+                    route0: {
+                        distance: DistanceRequestUtils.convertToDistanceInMeters(100, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                        geometry: {
+                            coordinates: [
+                                [0, 0],
+                                [1, 1],
+                            ],
+                        },
+                    },
+                },
+            });
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <DynamicIOURequestStepDistance
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the Map tab is saved
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        // Then nothing is cleared, because the quantity already is the route distance
+        expect(clearMoneyRequestDistance).not.toHaveBeenCalled();
     });
 
     it('should keep a manually entered distance when returning to confirmation', async () => {

@@ -1,5 +1,6 @@
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {isMapDistanceRequest} from '@libs/TransactionUtils';
+import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getSelectedRouteKey, isMapDistanceRequest} from '@libs/TransactionUtils';
 
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -16,14 +17,17 @@ function hasManualMapDistanceOverride(transaction: OnyxEntry<Transaction>): bool
         return false;
     }
 
+    const selectedRouteDistanceMeters = transaction?.routes?.[getSelectedRouteKey(transaction)]?.distance;
+    const savedRouteDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+
     // Offline the route is still pending, so a quantity can only have come from the Manual tab.
-    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters ?? transaction?.routes?.route0?.distance;
-    if (typeof routeDistanceMeters !== 'number' || routeDistanceMeters <= 0) {
+    if (!selectedRouteDistanceMeters && !savedRouteDistanceMeters) {
         return true;
     }
 
-    const routeQuantity = DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, unit);
-    return Math.abs(quantity - routeQuantity) > 0.01;
+    // Route quantities are stored rounded, so compare against the rounded route and not with a tolerance.
+    const matchesRoute = (distanceMeters: number | undefined) => !!distanceMeters && quantity === roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceMeters, unit));
+    return !matchesRoute(selectedRouteDistanceMeters) && !matchesRoute(savedRouteDistanceMeters);
 }
 
 export default hasManualMapDistanceOverride;

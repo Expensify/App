@@ -842,6 +842,10 @@ function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number,
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: distanceAsFloat, distanceUnit}}});
 }
 
+function clearMoneyRequestDistance(transactionID: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: null}}});
+}
+
 function setMoneyRequestCommuterExclusionFields({
     transactionID,
     transaction,
@@ -1160,6 +1164,7 @@ export {
     resetDraftTransactionsCustomUnit,
     setCustomUnitID,
     setMoneyRequestDistance,
+    clearMoneyRequestDistance,
     setMoneyRequestCommuterExclusionFields,
     setMoneyRequestDistanceRate,
     setMoneyRequestAmount,

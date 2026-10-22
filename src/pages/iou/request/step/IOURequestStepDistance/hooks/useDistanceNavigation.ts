@@ -22,7 +22,6 @@ import type {Route} from '@src/ROUTES';
 import type {IntroSelected, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {Unit} from '@src/types/onyx/Policy';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -108,12 +107,6 @@ type UseDistanceNavigationParams = {
 
     /** Onboarding selection — passed through to downstream API calls. */
     introSelected: OnyxEntry<IntroSelected>;
-
-    /** Unit used when submitting a manually entered distance. */
-    unit?: Unit;
-
-    /** Personal policy currency used to calculate a manual distance amount. */
-    personalOutputCurrency?: string;
 };
 
 function useDistanceNavigation({
@@ -143,9 +136,7 @@ function useDistanceNavigation({
     policyForMovingExpenses,
     recentWaypoints,
     introSelected,
-    unit,
-    personalOutputCurrency,
-}: UseDistanceNavigationParams): (manualDistance?: number) => void {
+}: UseDistanceNavigationParams): () => void {
     const {isOffline} = useNetwork();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
@@ -185,7 +176,7 @@ function useDistanceNavigation({
         translate,
     });
 
-    return (manualDistance?: number) => {
+    return () => {
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
@@ -203,7 +194,6 @@ function useDistanceNavigation({
             transactionID,
             personalDetails,
             waypoints,
-            manualDistance,
             currentUserLogin,
             currentUserAccountID,
             currentUserLocalCurrency,
@@ -225,8 +215,6 @@ function useDistanceNavigation({
             selfDMReport,
             policyForMovingExpenses,
             recentWaypoints,
-            unit,
-            personalOutputCurrency,
             draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
