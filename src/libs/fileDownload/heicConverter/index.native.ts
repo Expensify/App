@@ -57,7 +57,6 @@ const convertImageWithManipulator = (
  * @param callbacks - Object containing callback functions for different stages of conversion
  */
 const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, onError = () => {}, onStart = () => {}, onFinish = () => {}} = {}) => {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const needsConversion = file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif');
 
     if (!needsConversion || !file.uri || !file.type?.startsWith('image')) {

@@ -56,7 +56,6 @@ function ValuePicker({
                     <MenuItemWithTopDescription
                         ref={ref}
                         shouldShowRightIcon
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         title={selectedItem?.label || placeholder || ''}
                         description={label}
                         onPress={showPickerModal}

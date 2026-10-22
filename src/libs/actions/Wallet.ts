@@ -1,7 +1,10 @@
 import * as API from '@libs/API';
-import type {AcceptWalletTermsParams, AnswerQuestionsForWalletParams, UpdatePersonalDetailsForWalletParams, VerifyIdentityParams} from '@libs/API/parameters';
+import type {AcceptWalletTermsParams, AnswerQuestionsForWalletParams, CreateDigitalWalletParams, UpdatePersonalDetailsForWalletParams, VerifyIdentityParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import {isHttpSuccess, parseHttpResponse} from '@libs/MultifactorAuthentication/shared/helpers';
+import type {WalletAuthentication} from '@libs/Wallet/types';
+import WalletProvisioningError from '@libs/Wallet/WalletProvisioningError';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -303,18 +306,31 @@ function clearWalletAdditionalDetailsErrors(currentErrorCode?: string | null) {
     });
 }
 
-function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[], cardID: number): Promise<IOSEncryptPayload> {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
+function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[], cardID: number, authentication?: WalletAuthentication): Promise<IOSEncryptPayload> {
+    const params: CreateDigitalWalletParams = {
         platform: 'ios',
         appVersion: pkg.version,
         certificates: JSON.stringify({certificates}),
         nonce,
         nonceSignature,
         cardID,
-    })
+    };
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET,
+        authentication ? {...params, signedChallenge: JSON.stringify(authentication.signedChallenge), authenticationMethod: authentication.authenticationMethod} : params,
+    )
         .then((response) => {
             const data = response as unknown as IOSEncryptPayload;
+            if (authentication) {
+                const parsed = parseHttpResponse(response?.jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.CREATE_DIGITAL_WALLET, response?.message);
+                if (!isHttpSuccess(parsed.httpStatusCode)) {
+                    throw new WalletProvisioningError(parsed);
+                }
+                if (![data?.encryptedPassData, data?.activationData, data?.ephemeralPublicKey].every((value) => typeof value === 'string' && value.length > 0)) {
+                    throw new WalletProvisioningError({httpStatusCode: undefined, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNRECOGNIZED, message: undefined});
+                }
+            }
             return {
                 encryptedPassData: data.encryptedPassData,
                 activationData: data.activationData,
@@ -322,6 +338,11 @@ function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, cer
             } as IOSEncryptPayload;
         })
         .catch((error) => {
+            if (authentication) {
+                throw error instanceof WalletProvisioningError
+                    ? error
+                    : new WalletProvisioningError(parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.CREATE_DIGITAL_WALLET, undefined));
+            }
             Log.warn(`issuerEncryptPayloadCallback error: ${error}`);
             return {} as IOSEncryptPayload;
         });
@@ -333,27 +354,60 @@ function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, cer
  * @param walletAccountID ID of the wallet on user's phone
  * @param deviceID ID of user's phone
  */
-function createDigitalGoogleWallet({
-    walletAccountID,
-    deviceID,
-    cardID,
-    cardHolderName,
-}: {
-    deviceID: string;
-    walletAccountID: string;
-    cardID: number;
-    cardHolderName: string;
-}): Promise<AndroidCardData> {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
+function createDigitalGoogleWallet(
+    {
+        walletAccountID,
+        deviceID,
+        cardID,
+        cardHolderName,
+    }: {
+        deviceID: string;
+        walletAccountID: string;
+        cardID: number;
+        cardHolderName: string;
+    },
+    authentication?: WalletAuthentication,
+): Promise<AndroidCardData> {
+    const params: CreateDigitalWalletParams = {
         platform: 'android',
         appVersion: pkg.version,
         walletAccountID,
         deviceID,
         cardID,
-    })
+    };
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET,
+        authentication ? {...params, signedChallenge: JSON.stringify(authentication.signedChallenge), authenticationMethod: authentication.authenticationMethod} : params,
+    )
         .then((response) => {
             const data = response as unknown as ProvisioningCardData;
+            if (authentication) {
+                const parsed = parseHttpResponse(response?.jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.CREATE_DIGITAL_WALLET, response?.message);
+                if (!isHttpSuccess(parsed.httpStatusCode)) {
+                    throw new WalletProvisioningError(parsed);
+                }
+                const address = data?.userAddress;
+                const requiredFields = [
+                    data?.network,
+                    data?.opaquePaymentCard,
+                    data?.lastDigits,
+                    address?.name,
+                    address?.address1,
+                    address?.city,
+                    address?.country,
+                    address?.postal_code,
+                    address?.phone,
+                ];
+                // UK addresses can have an empty province, but the native bridge still requires a string.
+                if (
+                    !requiredFields.every((value) => typeof value === 'string' && value.length > 0) ||
+                    typeof address?.state !== 'string' ||
+                    (address?.address2 !== undefined && typeof address.address2 !== 'string')
+                ) {
+                    throw new WalletProvisioningError({httpStatusCode: undefined, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNRECOGNIZED, message: undefined});
+                }
+            }
             return {
                 network: data.network,
                 opaquePaymentCard: data.opaquePaymentCard,
@@ -372,6 +426,11 @@ function createDigitalGoogleWallet({
             } as AndroidCardData;
         })
         .catch((error) => {
+            if (authentication) {
+                throw error instanceof WalletProvisioningError
+                    ? error
+                    : new WalletProvisioningError(parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.CREATE_DIGITAL_WALLET, undefined));
+            }
             Log.warn(`createDigitalGoogleWallet error: ${error}`);
             return {} as AndroidCardData;
         });
