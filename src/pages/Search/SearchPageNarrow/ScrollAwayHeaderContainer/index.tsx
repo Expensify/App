@@ -38,6 +38,9 @@ function isHeaderScrolledAway(offset: number, headerHeight: number): boolean {
 // Scroll events further apart than this belong to separate gestures.
 const MAX_SCROLL_SAMPLE_GAP_MS = 100;
 
+// Weight of the newest sample in the running velocity estimate (0..1); the remainder keeps the previous value.
+const VELOCITY_SMOOTHING = 0.7;
+
 /** Folds a scroll event into a running velocity estimate. */
 function sampleScroll(previous: ScrollSample | undefined, offset: number): ScrollSample {
     const time = performance.now();
@@ -45,7 +48,7 @@ function sampleScroll(previous: ScrollSample | undefined, offset: number): Scrol
         return {offset, time, velocity: 0};
     }
     const instantVelocity = (offset - previous.offset) / (time - previous.time);
-    return {offset, time, velocity: 0.7 * instantVelocity + 0.3 * previous.velocity};
+    return {offset, time, velocity: VELOCITY_SMOOTHING * instantVelocity + (1 - VELOCITY_SMOOTHING) * previous.velocity};
 }
 
 // Carrying a fling that hides the header on into the rows.
@@ -75,8 +78,8 @@ function continueMomentum(scroller: SearchListScroller, velocity: number): () =>
 /**
  * The narrow Search page's list area, which on mobile web in landscape also carries the page header so it scrolls away.
  *
- * The header and the list area share one outer scroller, so a drag starting anywhere on the header — title, type menu,
- * input, filter bars — scrolls the screen natively. The list area is exactly one viewport tall, so the outer scroller can
+ * The header and the list area share one outer scroller, so a drag starting anywhere on the header (title, type menu,
+ * input, filter bars) scrolls the screen natively. The list area is exactly one viewport tall, so the outer scroller can
  * only travel the header's height. While any of the header is on screen the inner scrollers are locked (see
  * SearchListScrollLockContext), so a drag on the rows moves the outer scroller too and the header leaves first; once it
  * is gone they scroll on their own.
@@ -227,7 +230,7 @@ function ScrollAwayHeaderContainer({isEnabled, header, children, ref}: ScrollAwa
         const listScroller = listScrollerRef.current;
 
         // Pulling down at the top of the list while the header is hidden. The list doesn't bounce (see
-        // useSearchListScrollLockStyle), so it no longer hands this pull to the outer scroller — bring the header back here.
+        // useSearchListScrollLockStyle), so it no longer hands this pull to the outer scroller. Bring the header back here.
         if (distance < 0 && !isForwardingTouchRef.current && isHeaderHiddenRef.current && listScroller && listScroller.getOffset() <= 0) {
             outerScrollerRef.current?.scrollTo({y: 0, animated: true});
             return;

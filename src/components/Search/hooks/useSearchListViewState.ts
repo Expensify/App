@@ -112,7 +112,7 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
 
     useScrollRestoration(listRef);
 
-    // Lets a fling that hides the scroll-away header carry on into the rows — see SearchListScrollLockContext.
+    // Lets a fling that hides the scroll-away header carry on into the rows (see SearchListScrollLockContext).
     useRegisterSearchListScroller({
         getOffset: () => listRef.current?.getAbsoluteLastScrollOffset() ?? 0,
         scrollTo: (offset) => listRef.current?.scrollToOffset({offset, animated: false}),

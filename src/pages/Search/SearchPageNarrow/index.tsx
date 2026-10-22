@@ -151,7 +151,7 @@ function SearchPageNarrow({
         top: topBarOffset.get(),
     }));
 
-    // Lets the scroll-away header come back when the list reaches its top — see ScrollAwayHeaderContainer.
+    // Lets the scroll-away header come back when the list reaches its top (see ScrollAwayHeaderContainer).
     const onListScrollForScrollAwayHeader = (offset: number) => scrollAwayHeaderRef.current?.onListScroll(offset);
 
     const scrollHandler = useAnimatedScrollHandler(

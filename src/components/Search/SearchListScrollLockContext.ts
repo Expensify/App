@@ -1,4 +1,5 @@
 import type {ComponentRef} from 'react';
+// Importing the ScrollView type directly from react-native is required to type getScrollableNode's return, the shared wrapper does not expose it.
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ViewStyle} from 'react-native';
 
@@ -40,7 +41,7 @@ const lockedScrollStyle: ViewStyle = {overflowY: 'hidden'};
 const noBounceStyle: ViewStyle = {overscrollBehavior: 'none'};
 
 /**
- * The style that locks an inner scroller while the outer one has to move first — see SearchListScrollLockContext.
+ * The style that locks an inner scroller while the outer one has to move first, see SearchListScrollLockContext.
  * `shouldPreventBounce` is for the results list only, whose arrival at its top the page handles itself. It applies only
  * while unlocked: `overscroll-behavior` also stops the browser handing a drag on to the outer scroller, which Chrome
  * applies even to an `overflow: hidden` scroller, so a locked list with it would swallow the drag. A locked list can't

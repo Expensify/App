@@ -104,7 +104,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
     );
 
     // The skeleton covers its whole container, so where the header is rendered above the empty state it has to cover
-    // only the area below the header — otherwise the screen loses its header while loading.
+    // only the area below the header. Otherwise the screen loses its header while loading.
     const shouldShowSkeletonBelowHeader = shouldShowEmptyLHN && !!listHeaderComponent;
 
     return (

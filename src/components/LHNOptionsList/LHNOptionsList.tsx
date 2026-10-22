@@ -151,7 +151,7 @@ function LHNOptionsList({
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
             if (isWeb) {
                 // The list header is part of the content, so discount its height before converting the offset to a
-                // row index — otherwise the restored index overshoots by however many rows the header covers. The header
+                // row index. Otherwise the restored index overshoots by however many rows the header covers. The header
                 // can be removed without a remount (e.g. on rotation), which leaves its last height in the ref, so only
                 // discount it while a header is rendered.
                 const listHeaderHeight = hasListHeader ? listHeaderHeightRef.current : 0;
