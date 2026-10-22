@@ -63,10 +63,6 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
             Log.alert('[usePressLoading] Press handler failed', {error: String(error)});
             return;
         }
-        if (isLoading !== undefined) {
-            release(press, false);
-            return;
-        }
         requestAnimationFrame(() => release(press, navigationContext?.isFocused() ?? true));
     };
 

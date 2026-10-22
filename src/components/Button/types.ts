@@ -44,8 +44,6 @@ type ButtonBehaviorProps = {
     /**
      * Shows the loading spinner the moment the button is pressed, before `onPress` runs. Defaults to false. It wraps the whole handler.
      * To spin on only some branches, leave this off and wrap those branches in the `startWithLoading` argument passed to `onPress`.
-     *
-     * Pass a stable boolean that does turn true, or none at all.
      */
     shouldShowLoadingImmediatelyOnPress?: boolean;
 
