@@ -54,7 +54,7 @@ function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
         const visibleTransactionsIDs = getAllNonDeletedTransactions(allReportTransactions, Object.values(reportActions ?? {}))
             .filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map((transaction) => transaction.transactionID);
-        uniqueTransactionThreadReportID = getOneTransactionThreadReportID({type: report?.type}, chatReport, reportActions ?? ([] as ReportAction[]), isOffline, visibleTransactionsIDs);
+        uniqueTransactionThreadReportID = getOneTransactionThreadReportID({type: report?.type}, chatReport, reportActions, isOffline, visibleTransactionsIDs);
     }
 
     const [uniqueTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${uniqueTransactionThreadReportID}`);
