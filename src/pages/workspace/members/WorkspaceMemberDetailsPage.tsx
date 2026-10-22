@@ -47,16 +47,20 @@ import {
     arePaymentsEnabled,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
+    canMemberUseTravel,
     canMemberWrite,
+    getTravelMemberRole,
     hasActiveExpensifyCard,
     isControlPolicy,
     isPolicyAdmin,
     isPolicyApprover,
+    isWorkspaceProvisionedForTravel,
     PAYER_ROLES,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+import {getTravelMemberRoleName} from '@libs/TravelMemberOptionUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -143,6 +147,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const shouldShowOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && hasOfficeLocations(policy);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const canChangeOfficeLocation = shouldShowOfficeLocation && canWriteMembers;
+    const shouldShowTravelSettings = isWorkspaceProvisionedForTravel(policy?.travelSettings);
+
+    // Travel access and roles are changed through commands that only full workspace admins can call
+    const canChangeTravelSettings = shouldShowTravelSettings && isPolicyAdmin(policy);
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
@@ -444,6 +452,38 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     pressableTestID="member-work-arrangement-menu-item"
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, accountID))}
                                 />
+                            )}
+                            {shouldShowTravelSettings && (
+                                <>
+                                    <OfflineWithFeedback pendingAction={member?.pendingFields?.canUseTravel}>
+                                        <MenuItemWithTopDescription
+                                            disabled={!canChangeTravelSettings}
+                                            title={translate(
+                                                canMemberUseTravel(policy, memberLogin) ? 'workspace.moreFeatures.travel.members.on' : 'workspace.moreFeatures.travel.members.off',
+                                            )}
+                                            interactive={canChangeTravelSettings}
+                                            description={translate('workspace.moreFeatures.travel.members.travelAccess')}
+                                            shouldShowRightIcon={canChangeTravelSettings}
+                                            shouldGreyOutWhenDisabled={false}
+                                            shouldUseDefaultCursorWhenDisabled
+                                            pressableTestID="member-travel-access-menu-item"
+                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_TRAVEL_ACCESS.getRoute(policyID, accountID))}
+                                        />
+                                    </OfflineWithFeedback>
+                                    <OfflineWithFeedback pendingAction={member?.pendingFields?.travelRole}>
+                                        <MenuItemWithTopDescription
+                                            disabled={!canChangeTravelSettings}
+                                            title={getTravelMemberRoleName(translate, getTravelMemberRole(policy, memberLogin))}
+                                            interactive={canChangeTravelSettings}
+                                            description={translate('workspace.moreFeatures.travel.members.travelRole')}
+                                            shouldShowRightIcon={canChangeTravelSettings}
+                                            shouldGreyOutWhenDisabled={false}
+                                            shouldUseDefaultCursorWhenDisabled
+                                            pressableTestID="member-travel-role-menu-item"
+                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_TRAVEL_ROLE.getRoute(policyID, accountID))}
+                                        />
+                                    </OfflineWithFeedback>
+                                </>
                             )}
                             {isControlPolicy(policy) && (
                                 <>
