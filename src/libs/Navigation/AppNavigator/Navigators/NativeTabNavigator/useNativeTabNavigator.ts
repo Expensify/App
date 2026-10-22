@@ -28,6 +28,7 @@ import {useEffect} from 'react';
 import getActiveTabRoute from './getActiveTabRoute';
 import getTabWithoutBarItem from './getTabWithoutBarItem';
 import {isInboxTabAtChatList, isNativeTabSelectionEnabled} from './tabScreenListeners';
+import useIsTabBarHeldDuringPush from './useIsTabBarHeldDuringPush';
 import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
 
 /**
@@ -64,7 +65,9 @@ function useNativeTabNavigator() {
     const activeTabRoute = getActiveTabRoute(tabState);
     // A tab with no item in the bar is drawn over the other tabs as a full screen, so the bar hides while it is focused.
     const isActiveTabWithoutBarItem = activeTabRoute?.name === tabWithoutBarItem;
-    const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
+    const isAtTabRoot = isTabRouteAtRoot(activeTabRoute);
+    const isTabBarHeldDuringPush = useIsTabBarHeldDuringPush(isAtTabRoot, activeTabRoute?.key);
+    const shouldShowNativeTabBar = shouldUseNarrowLayout && (isAtTabRoot || isTabBarHeldDuringPush) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
     const getTabRoute = (tabName: string) => (isRealizedNavigationState(tabState) ? tabState.routes.find((tabRoute) => tabRoute.name === tabName) : undefined);
     const isInboxAtChatList = isInboxTabAtChatList(getTabRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
     const isWorkspacesTabRestored = useIsWorkspacesTabRestored(getTabRoute(NAVIGATORS.WORKSPACE_NAVIGATOR));
