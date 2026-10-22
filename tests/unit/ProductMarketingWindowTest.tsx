@@ -497,6 +497,24 @@ describe('ProductMarketingWindowManager', () => {
         expect(mockDismissMarketingWindow).toHaveBeenCalledWith(announcement.updateKey);
     });
 
+    it('renders the admin variant even when the current user personal details are not hydrated yet', async () => {
+        // Given an admin of an active workspace whose personal details have not loaded, so only the session knows their login
+        await act(async () => {
+            await setupOnyxBaseline();
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildAdminPolicy());
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the marketing window is rendered
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the admin variant is chosen from the session login, so the admin is never shown the member variant
+        expect(screen.getByText(adminWindowHeading)).toBeTruthy();
+        expect(screen.queryByText(windowHeading)).toBeNull();
+    });
+
     it('shows a loading spinner until the promotional image finishes loading', async () => {
         await act(async () => {
             await setupOnyxBaseline();
