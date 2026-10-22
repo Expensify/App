@@ -375,12 +375,35 @@ describe('parseOxlintStdout', () => {
         expect(parsed.stderr).toContain('Failed to parse Oxlint JSON output');
     });
 
-    it('treats a diagnostic with no rule code as a crashing JS plugin, not a finding', () => {
-        const parsed = parseOxlintStdout(oxlintStdout([oxlintDiagnostic({code: undefined, message: 'plugin blew up'})]), '', 1, '/repo', ['src/a.ts']);
+    it('treats a crashing JS plugin as fatal, not a finding', () => {
+        // Given the codeless, label-less diagnostic oxlint 1.89.0 emits when a JS plugin rule throws
+        const crash = oxlintDiagnostic({code: undefined, labels: [], message: 'Error running JS plugin.\nFile path: /repo/src/a.ts\nError: plugin blew up'});
+
+        // When the report is parsed
+        const parsed = parseOxlintStdout(oxlintStdout([crash]), '', 1, '/repo', ['src/a.ts']);
+
+        // Then the run is fatal, because the crashed rule checked nothing in that file
         expect(parsed.exitCode).toBe(2);
         expect(parsed.files).toEqual([]);
-        expect(parsed.stderr).toContain('no rule code');
+        expect(parsed.stderr).toContain('JS plugin crash');
         expect(parsed.stderr).toContain('plugin blew up');
+    });
+
+    it('reports a parse error like ESLint does and keeps the other findings', () => {
+        // Given oxlint's codeless parse error in one file and a normal finding in another
+        const parseError = oxlintDiagnostic({code: undefined, message: 'Unexpected token', filename: 'src/bad.ts', labels: [{span: {offset: 6, length: 1, line: 1, column: 7}}]});
+        const finding = oxlintDiagnostic({filename: 'src/good.ts'});
+
+        // When the report is parsed
+        const parsed = parseOxlintStdout(oxlintStdout([parseError, finding], 2), '', 1, '/repo', ['src/bad.ts', 'src/good.ts']);
+
+        // Then, as with ESLint's fatal `ruleId: null` message, the parse error is an error and the run goes on
+        expect(parsed.exitCode).toBe(1);
+        const byFile = Object.fromEntries(parsed.files.map((file) => [file.filePath, file.messages]));
+        expect(byFile['/repo/src/bad.ts']).toEqual([
+            {filePath: '/repo/src/bad.ts', ruleID: null, severity: LINT_SEVERITY.ERROR, message: 'Parsing error: Unexpected token', line: 1, column: 7},
+        ]);
+        expect(byFile['/repo/src/good.ts']?.map((message) => message.ruleID)).toEqual(['no-console']);
     });
 
     it('rejects a JSON object that is not an oxlint report', () => {
@@ -522,7 +545,7 @@ describe('oxlint sharding', () => {
         expect(isTransientFailure('Error running tsgolint: "exit status: exit status: 1"\n', 1)).toBe(true);
         expect(isTransientFailure(oxlintStdout([]), 137)).toBe(true);
         expect(isTransientFailure(oxlintStdout([]), 134)).toBe(true);
-        expect(isTransientFailure(oxlintStdout([oxlintDiagnostic({code: undefined, message: 'plugin blew up'})]), 1)).toBe(false);
+        expect(isTransientFailure(oxlintStdout([oxlintDiagnostic({code: undefined, labels: [], message: 'Error running JS plugin.\nError: plugin blew up'})]), 1)).toBe(false);
         expect(isTransientFailure(oxlintStdout([oxlintDiagnostic()], 1), 1)).toBe(false);
         expect(isTransientFailure(oxlintStdout([]), 0)).toBe(false);
     });
@@ -535,7 +558,9 @@ describe('oxlint sharding', () => {
 
     it('a crashed JS plugin in one shard is fatal and dominates clean shards', () => {
         const clean = parseOxlintStdout(oxlintStdout([oxlintDiagnostic()], 1), '', 1, '/repo', ['src/a.ts']);
-        const crash = parseOxlintStdout(oxlintStdout([oxlintDiagnostic({code: undefined, message: 'plugin blew up'})]), '', 1, '/repo', ['src/b.ts']);
+        const crash = parseOxlintStdout(oxlintStdout([oxlintDiagnostic({code: undefined, labels: [], message: 'Error running JS plugin.\nError: plugin blew up'})]), '', 1, '/repo', [
+            'src/b.ts',
+        ]);
         const merged = mergeShardResults([clean, crash]);
         expect(merged.exitCode).toBe(2);
         expect(merged.stderr).toContain('plugin blew up');
@@ -547,7 +572,7 @@ describe('oxlint sharding', () => {
         expect(producedNoJSON('Failed to parse oxlint configuration file.\n  x Rule not found\n')).toBe(true);
 
         // Deterministic failures are not retried: both of these carry a JSON body.
-        expect(producedNoJSON(oxlintStdout([oxlintDiagnostic({code: undefined, message: 'plugin blew up'})]))).toBe(false);
+        expect(producedNoJSON(oxlintStdout([oxlintDiagnostic({code: undefined, labels: [], message: 'Error running JS plugin.\nError: plugin blew up'})]))).toBe(false);
         expect(producedNoJSON(oxlintStdout([oxlintDiagnostic()], 1))).toBe(false);
         expect(producedNoJSON(oxlintStdout([]))).toBe(false);
 

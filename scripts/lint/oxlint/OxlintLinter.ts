@@ -76,6 +76,7 @@ type OxlintLeg = {
 
 const FATAL_EXIT_CODE = 2;
 const SIGNAL_EXIT_CODE = 128;
+const JS_PLUGIN_CRASH_MESSAGE = 'Error running JS plugin';
 const OXLINT_WARNING_SEVERITIES = new Set(['warning', 'advice']);
 const GIB = 1073741824;
 
@@ -217,7 +218,7 @@ function toAbsolute(projectRoot: string, filename: string): string {
     return path.isAbsolute(filename) ? filename : path.resolve(projectRoot, filename);
 }
 
-function toLintMessage(projectRoot: string, diagnostic: OxlintDiagnostic, ruleID: string): LintMessage {
+function toLintMessage(projectRoot: string, diagnostic: OxlintDiagnostic, ruleID: string | null): LintMessage {
     const span = diagnostic.labels?.at(0)?.span;
     return {
         filePath: toAbsolute(projectRoot, diagnostic.filename),
@@ -227,6 +228,12 @@ function toLintMessage(projectRoot: string, diagnostic: OxlintDiagnostic, ruleID
         line: span?.line ?? 0,
         column: span?.column ?? 0,
     };
+}
+
+/** A codeless diagnostic that is not a plugin crash is a parse error; ESLint reports those with `ruleId: null`. */
+function toParseErrorMessage(projectRoot: string, diagnostic: OxlintDiagnostic): LintMessage {
+    const message = toLintMessage(projectRoot, diagnostic, null);
+    return {...message, message: `Parsing error: ${message.message}`};
 }
 
 /**
@@ -242,7 +249,7 @@ function normalizeOxlintDiagnostics(diagnostics: OxlintDiagnostic[], projectRoot
     for (const diagnostic of diagnostics) {
         const filePath = toAbsolute(projectRoot, diagnostic.filename);
         const messages = byFile.get(filePath) ?? [];
-        messages.push(toLintMessage(projectRoot, diagnostic, oxlintCodeToESLintRuleID(diagnostic.code ?? '')));
+        messages.push(diagnostic.code ? toLintMessage(projectRoot, diagnostic, oxlintCodeToESLintRuleID(diagnostic.code)) : toParseErrorMessage(projectRoot, diagnostic));
         byFile.set(filePath, messages);
     }
 
@@ -316,14 +323,14 @@ function parseOxlintStdout(stdout: string, stderr: string, exitCode: number, pro
         return fatal('Oxlint JSON output has no `diagnostics` array.', stdout, stderr, exitCode);
     }
 
-    // A diagnostic with no `code` is a crashing JS plugin, not a finding.
-    const codeless = parsed.diagnostics.filter((diagnostic) => !diagnostic.code);
-    if (codeless.length > 0) {
-        const sample = codeless
+    // Parse errors and JS plugin crashes both come without a `code`; only a crash says so in its message.
+    const crashes = parsed.diagnostics.filter((diagnostic) => !diagnostic.code && diagnostic.message.startsWith(JS_PLUGIN_CRASH_MESSAGE));
+    if (crashes.length > 0) {
+        const sample = crashes
             .slice(0, 5)
-            .map((diagnostic) => `  ${diagnostic.filename}: ${diagnostic.message}`)
+            .map((diagnostic) => `  ${diagnostic.filename}: ${diagnostic.message.split('\n').slice(0, 3).join(' ')}`)
             .join('\n');
-        return fatal(`Oxlint reported ${codeless.length} diagnostic(s) with no rule code, which means a JS plugin threw:\n${sample}`, '', stderr, exitCode);
+        return fatal(`Oxlint reported ${crashes.length} JS plugin crash(es):\n${sample}`, '', stderr, exitCode);
     }
 
     return {
