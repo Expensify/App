@@ -19,7 +19,7 @@ import {useAllPersonalDetails} from './usePersonalDetails';
 /**
  * Hook that returns a workspace's members joined with personal details, filling in fallback identities when details haven't loaded and filtering out Expensify team members on Expensify-owned policies.
  */
-function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
+function useWorkspaceMembers(policy: OnyxEntry<Policy>, shouldOpenWorkspaceMembersPage: boolean) {
     const policyID = policy?.id;
     const policyOwner = policy?.owner;
 
@@ -33,6 +33,9 @@ function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
 
     const getWorkspaceMembers = () => {
         if (!policyID) {
+            return;
+        }
+        if (!shouldOpenWorkspaceMembersPage) {
             return;
         }
         if (!canMemberRead(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS)) {
