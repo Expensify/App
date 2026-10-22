@@ -8,13 +8,9 @@ import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx'
 
 import createMock from '../utils/createMock';
 
-jest.mock(
-    'expo-web-browser',
-    () => ({
-        openAuthSessionAsync: jest.fn(),
-    }),
-    {virtual: true},
-);
+jest.mock('expo-web-browser', () => ({
+    openAuthSessionAsync: jest.fn(),
+}));
 jest.mock('@components/Reactions/MiniQuickEmojiReactions', () => 'MiniQuickEmojiReactions');
 jest.mock('@components/Reactions/QuickEmojiReactions', () => 'QuickEmojiReactions');
 const {default: ContextMenuActions} = jest.requireActual<typeof ContextMenuActionsModule>('@pages/inbox/report/ContextMenu/ContextMenuActions');
