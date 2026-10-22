@@ -64,7 +64,6 @@ type OxlintConfig = {
 type OxlintLinterOptions = {
     projectRoot: string;
     fix: boolean;
-    threads?: string;
     shards?: string;
 };
 
@@ -111,12 +110,17 @@ function defaultShardCount(cpus = os.availableParallelism(), availableBytes = av
     return Math.max(1, Math.min(byCpu, byMem));
 }
 
-function resolveShardCount(override: string | undefined): number {
-    if (override === undefined || override.trim() === '') {
+// Unset means auto, as does `auto`; anything else must be a positive integer.
+function resolveShardCount(shards: string | undefined): number {
+    const value = shards?.trim() ?? 'auto';
+    if (value === 'auto') {
         return defaultShardCount();
     }
-    const parsed = Number.parseInt(override, 10);
-    return Number.isFinite(parsed) && parsed >= 1 ? parsed : 1;
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed < 1) {
+        throw new Error(`--shards must be a positive integer or "auto"; got "${shards}".`);
+    }
+    return parsed;
 }
 
 function shardFiles(files: readonly string[], count: number): string[][] {
@@ -394,15 +398,7 @@ class OxlintLinter extends Linter {
     }
 
     private async runLegs(legs: OxlintLeg[], notes: string[]): Promise<LinterResult> {
-        const outputs = [];
-        // One process at a time under --fix: the type-aware process lints every file the shards do, so parallel runs would write the same files.
-        if (this.options.fix) {
-            for (const leg of legs) {
-                outputs.push(await this.runOxlint(leg.args));
-            }
-        } else {
-            outputs.push(...(await Promise.all(legs.map((leg) => this.runOxlint(leg.args)))));
-        }
+        const outputs = await Promise.all(legs.map((leg) => this.runOxlint(leg.args)));
 
         const parsed: LinterResult[] = [];
         for (const [index, leg] of legs.entries()) {
@@ -438,15 +434,15 @@ class OxlintLinter extends Linter {
             baseArgs.push('--fix');
         }
 
-        const shardCount = resolveShardCount(this.options.shards ?? process.env.OXLINT_SHARDS);
         let plan: string;
         let merged: LinterResult;
         try {
+            // --fix runs one process: a shard's fixes would shift the lines the type-aware leg then
+            // reports, so the merge would keep one finding twice under two columns.
+            const shardCount = this.options.fix ? 1 : resolveShardCount(this.options.shards);
             if (shardCount <= 1) {
-                const threads = this.options.threads ?? process.env.OXLINT_THREADS;
-                const args = threads ? [`--threads=${threads}`, ...baseArgs] : baseArgs;
                 plan = 'Oxlint plan: 1 process, stock config.';
-                merged = await this.runLegs([{label: 'process', args: [...args, ...lintedFiles], lintedFiles}], notes);
+                merged = await this.runLegs([{label: 'process', args: [...baseArgs, ...lintedFiles], lintedFiles}], notes);
             } else {
                 const buckets = shardFiles(lintedFiles, shardCount);
                 plan = `Oxlint plan: ${buckets.length} JS-plugin shards plus 1 type-aware process (cores ${os.availableParallelism()}, available memory ${(availableMemoryBytes() / GIB).toFixed(1)} GB).`;

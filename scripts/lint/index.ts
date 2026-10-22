@@ -85,9 +85,9 @@ const cli = new CLI({
             parse: parseFormatName,
         },
         shards: {
-            description: 'Oxlint only: processes to fan the JS plugins across (0 = auto by cores and free memory; 1 = single process)',
-            default: 0,
-            parse: (value: string) => Number.parseInt(value, 10),
+            description: 'Oxlint only: processes to fan the JS plugins across, a positive integer or `auto` (by cores and free memory)',
+            default: 'auto',
+            parse: (value: string) => value,
         },
     },
     positionalArgs: [
@@ -107,7 +107,7 @@ const bench = new Bench();
 
 function makeLinter(name: LinterName): Linter {
     if (name === 'oxlint') {
-        return new OxlintLinter({projectRoot, fix: cli.flags.fix, shards: cli.namedArgs.shards > 0 ? String(cli.namedArgs.shards) : undefined});
+        return new OxlintLinter({projectRoot, fix: cli.flags.fix, shards: cli.namedArgs.shards});
     }
     return new ESLintLinter({
         projectRoot,

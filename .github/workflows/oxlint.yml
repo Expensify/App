@@ -29,9 +29,7 @@ jobs:
         id: oxlint
         continue-on-error: true
         # oxlint runs JS plugins on one thread (oxc#26621), so OxlintLinter splits them into 4 shards on this 8 vCPU runner.
-        env:
-          OXLINT_SHARDS: 4
-        run: npm run lint -- --linter=oxlint
+        run: npm run lint -- --linter=oxlint --shards=4
 
       - name: Report the Oxlint result without failing the job
         run: |
