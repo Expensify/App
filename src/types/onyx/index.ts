@@ -255,6 +255,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type WiseBusinessOnboardingSubmit from './WiseBusinessOnboardingSubmit';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
@@ -480,6 +481,7 @@ export type {
     ShareTempFile,
     CorpayFields,
     WiseKYCReviewEmbeddedLink,
+    WiseBusinessOnboardingSubmit,
     CorpayFormField,
     DynamicFormAddressField,
     DynamicFormChoiceField,

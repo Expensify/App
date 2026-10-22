@@ -5,9 +5,9 @@ import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import isSupportedField from '@components/DynamicForm/utils/isSupportedField';
 
-import {write} from '@libs/API';
-import type {UpdateWiseOnboardingAdditionalDataParams} from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {makeRequestWithSideEffects, waitForWrites, write} from '@libs/API';
+import type {SubmitWiseBusinessOnboardingParams, UpdateWiseOnboardingAdditionalDataParams} from '@libs/API/parameters';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import isFileUploadable from '@libs/isFileUploadable';
 
@@ -15,6 +15,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicFormPage} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -84,5 +86,63 @@ function updateWiseOnboardingAdditionalData(bankAccountID: number, page: Dynamic
     write(WRITE_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, parameters, onyxData);
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {updateWiseOnboardingAdditionalData};
+/** Sends what the page saves did not: the accepted terms and the SSN held in memory */
+function submitWiseBusinessOnboarding(parameters: SubmitWiseBusinessOnboardingParams) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ONBOARDING_SUBMIT | typeof ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ONBOARDING_SUBMIT,
+            value: {isLoading: true, errors: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM,
+            value: {errors: null, errorFields: null},
+        },
+    ];
+    const onyxData: OnyxData<
+        | typeof ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ONBOARDING_SUBMIT
+        | typeof ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM
+        | typeof ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT
+        | typeof ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS
+    > = {
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ONBOARDING_SUBMIT,
+                value: {isLoading: false},
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS,
+                value: {[ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM]: null},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ONBOARDING_SUBMIT,
+                value: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        ],
+    };
+
+    Onyx.update(optimisticData);
+    // Auth reads the answers the page saves stored, so Submit goes after any save still in the queue
+    waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.SUBMIT_WISE_BUSINESS_ONBOARDING).then(() => {
+        // A write would store its parameters, the SSN here, in the request queue on the device until it finishes
+        makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SUBMIT_WISE_BUSINESS_ONBOARDING, parameters, onyxData);
+    });
+}
+
+export {submitWiseBusinessOnboarding, updateWiseOnboardingAdditionalData};

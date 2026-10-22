@@ -650,6 +650,7 @@ export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuide
 export type {default as RetractReportParams} from './RetractReportParams';
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
 export type {default as UpdateWiseOnboardingAdditionalDataParams} from './UpdateWiseOnboardingAdditionalDataParams';
+export type {default as SubmitWiseBusinessOnboardingParams} from './SubmitWiseBusinessOnboardingParams';
 export type {default as RejectMoneyRequestParams} from './RejectMoneyRequestParams';
 export type {default as RejectExpenseReportParams} from './RejectExpenseReportParams';
 export type {default as MarkTransactionViolationAsResolvedParams} from './MarkTransactionViolationAsResolvedParams';

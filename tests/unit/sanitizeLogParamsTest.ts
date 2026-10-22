@@ -24,6 +24,17 @@ describe('sanitizeLogParams', () => {
         expect(params.data.signedChallenge).toBe('{"signature":"secret"}');
     });
 
+    it('redacts an SSN so it never reaches the logs', () => {
+        // Given a request that carries an SSN, such as the Wise business onboarding's Submit
+        const params = {command: 'SubmitWiseBusinessOnboarding', bankAccountID: 1, ssn: '123456789'};
+
+        // When the API logger sanitizes its parameters
+        const result = sanitizeLogParams(params);
+
+        // Then the SSN is redacted and the rest is kept for debugging
+        expect(result).toEqual({command: 'SubmitWiseBusinessOnboarding', bankAccountID: 1, ssn: '<redacted>'});
+    });
+
     it('redacts known sensitive keys', () => {
         const result = sanitizeLogParams({authToken: 'secret', password: 'hunter2', token: 'abc'});
         expect(result).toEqual({authToken: '<redacted>', password: '<redacted>', token: '<redacted>'});

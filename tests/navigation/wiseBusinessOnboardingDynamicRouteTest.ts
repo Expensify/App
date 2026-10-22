@@ -74,6 +74,19 @@ describe('Wise business onboarding dynamic routes', () => {
         expect(stripDynamicRouteSuffixFromPath(route, DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path)).toBe(confirmationPath);
     });
 
+    it('gives the terms page the workspace the onboarding started from, which Submit sends', () => {
+        // Given the terms page reached from Workspace Workflows > Payments
+        const confirmationPath = createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY), getIntroPath(ENTRY_POINTS[1][1]));
+        const route = createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path, confirmationPath);
+
+        // When the URL is parsed into navigation state
+        const focusedRoute = getFocusedRoute(getStateFromPath(route));
+
+        // Then the workspace's policyID reaches the terms page through the layers beneath it
+        expect(focusedRoute.name).toBe(SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS);
+        expect(focusedRoute.params).toMatchObject({bankAccountID: String(BANK_ACCOUNT_ID), policyID: POLICY_ID});
+    });
+
     it.each(ENTRY_POINTS)('goes back from the onboarding to the intro from %s', (_label, basePath) => {
         // Given a page of the onboarding opened on top of the intro
         const introPath = getIntroPath(basePath);

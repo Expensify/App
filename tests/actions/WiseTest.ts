@@ -1,8 +1,8 @@
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 
-import {updateWiseOnboardingAdditionalData} from '@src/libs/actions/Wise';
+import {submitWiseBusinessOnboarding, updateWiseOnboardingAdditionalData} from '@src/libs/actions/Wise';
 import * as API from '@src/libs/API';
-import {WRITE_COMMANDS} from '@src/libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@src/libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicFormPage} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -190,6 +190,93 @@ describe('actions/Wise', () => {
             const form = await getOnyxValue(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
             expect(form?.errorFields?.[ADDRESS_KEYS.zipCode]).toEqual({[ERROR_KEY]: 'Invalid ZIP'});
             expect(Object.values(form?.errors ?? {})).toHaveLength(1);
+        });
+    });
+
+    describe('submitWiseBusinessOnboarding', () => {
+        const SSN = '123456789';
+        const SUBMIT_PARAMETERS = {bankAccountID: BANK_ACCOUNT_ID, policyID: 'ABCDEF1234567890', termsAccepted: true, ssn: SSN};
+
+        /** The commands sent to the server so far, in order */
+        const getSentCommands = () => mockFetch.mock.calls.map(([input]) => (typeof input === 'string' ? /api\/(\w+)\?/.exec(input)?.[1] : undefined));
+
+        beforeEach(async () => {
+            mockFetch.mockClear();
+            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {companyRole: 'OWNER'});
+            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {errorFields: {companyRole: {[ERROR_KEY]: 'Invalid role'}}});
+            await Onyx.set(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {
+                [ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM]: {ssn: SSN},
+                [ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM]: {ssn: '987654321'},
+            });
+        });
+
+        it("sends the terms, the SSN and the workspace, shows loading while the request runs, and clears an earlier attempt's field errors", async () => {
+            // Given a request that has not answered yet
+            mockFetch.pause();
+
+            // When the business is submitted
+            submitWiseBusinessOnboarding(SUBMIT_PARAMETERS);
+            await waitForBatchedUpdates();
+
+            // Then the terms page can show its button loading, a field error from an earlier attempt cannot send this one back to the onboarding, and the request carries what the page saves did not
+            expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ONBOARDING_SUBMIT))?.isLoading).toBe(true);
+            expect((await getOnyxValue(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM))?.errorFields).toBeUndefined();
+            await mockFetch.resume();
+            TestHelper.expectAPICommandToHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.SUBMIT_WISE_BUSINESS_ONBOARDING, -1, SUBMIT_PARAMETERS);
+        });
+
+        it('never stores the SSN in the request queue on the device, and sends Submit after the page saves', async () => {
+            // Given a page save still waiting for the server
+            mockFetch.pause();
+            updateWiseOnboardingAdditionalData(BANK_ACCOUNT_ID, businessPage, {companyRole: 'OWNER'});
+            await waitForBatchedUpdates();
+
+            // When the business is submitted, and the page save then finishes
+            submitWiseBusinessOnboarding(SUBMIT_PARAMETERS);
+            await waitForBatchedUpdates();
+            const storedQueueWhileWaiting = JSON.stringify([await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS), await getOnyxValue(ONYXKEYS.PERSISTED_ONGOING_REQUESTS)]);
+            const commandsWhileWaiting = getSentCommands();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the stored queue holds the page save but never the SSN, and Submit goes only after the save, since Auth reads the answers the save stores
+            expect(storedQueueWhileWaiting).toContain(WRITE_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA);
+            expect(storedQueueWhileWaiting).not.toContain(SSN);
+            expect(commandsWhileWaiting).toEqual([WRITE_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA]);
+            expect(getSentCommands()).toEqual([WRITE_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, SIDE_EFFECT_REQUEST_COMMANDS.SUBMIT_WISE_BUSINESS_ONBOARDING]);
+        });
+
+        it("drops the draft, the form's errors and the SSN once the submission succeeds", async () => {
+            // Given a server that accepts the submission
+            // When the business is submitted
+            submitWiseBusinessOnboarding(SUBMIT_PARAMETERS);
+            await waitForBatchedUpdates();
+
+            // Then nothing of the finished onboarding stays on the device, and other forms keep their answers in memory
+            expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ONBOARDING_SUBMIT))?.isLoading).toBe(false);
+            expect(await getOnyxValue(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT)).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM)).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS)).toEqual({[ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM]: {ssn: '987654321'}});
+        });
+
+        it.each([
+            ['the server rejects it', () => mockFetch.fail()],
+            ['the connection drops before an answer', () => mockFetch.mockImplementationOnce(() => Promise.reject(new TypeError('Failed to fetch')))],
+        ])('keeps the answers and shows an error when %s, so the user can try again', async (_label, failRequest) => {
+            // Given a submission that fails
+            failRequest();
+
+            // When the business is submitted
+            submitWiseBusinessOnboarding(SUBMIT_PARAMETERS);
+            await waitForBatchedUpdates();
+
+            // Then the loading stops with an error kept off the shared reimbursement account, and the draft and the SSN are still there for the next Confirm
+            const submitState = await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ONBOARDING_SUBMIT);
+            expect(submitState?.isLoading).toBe(false);
+            expect(Object.values(submitState?.errors ?? {})).toHaveLength(1);
+            expect((await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT))?.errors).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT)).toEqual({companyRole: 'OWNER'});
+            expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS))?.[ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM]).toEqual({ssn: SSN});
         });
     });
 });
