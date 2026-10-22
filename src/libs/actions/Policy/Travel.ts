@@ -290,14 +290,5 @@ function setPolicyTravelMemberAccessValue(policy: OnyxEntry<OnyxTypes.Policy>, m
     setPolicyTravelMemberRole(policy, members, value);
 }
 
-/** Dismiss the error left on a member after their travel access or travel role failed to update. */
-function clearPolicyTravelMemberAccessError(policyID: string, login: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        employeeList: {
-            [login]: {errors: null},
-        },
-    });
-}
-
-export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelMemberAccess, setPolicyTravelMemberRole, setPolicyTravelMemberAccessValue, clearPolicyTravelMemberAccessError};
+export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelMemberAccess, setPolicyTravelMemberRole, setPolicyTravelMemberAccessValue};
 export type {TravelMemberAccessTarget};

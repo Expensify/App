@@ -6745,11 +6745,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     },
                 },
                 members: {
-                    subtitle: 'Wählen Sie aus, welche Mitglieder in diesem Workspace Reisen buchen und verwalten können.',
-                    allMembers: 'Alle Mitglieder können Reisen buchen',
-                    canBookTravel: 'Kann Reisen buchen',
                     travelRole: 'Reiserolle',
-                    access: 'Zugriff',
                     traveler: 'Reisender',
                     travelAdmin: 'Reiseadministrator',
                     travelerDescription: 'Kann eigene Reisen buchen und verwalten',

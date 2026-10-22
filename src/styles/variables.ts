@@ -207,7 +207,6 @@ export default {
     tableTypeColumnWidth: 84,
     tableRequireFieldsTypeColumnWidth: 112,
     tableSwitchColumnWidth: 58,
-    tableTravelRoleColumnWidth: 140,
     tableCaretColumnWidth: 20,
     tableMemberCellAvatarWidth: avatarSizes.avatarSizeSmall + 12,
     workspaceTagsTableCountColumnWidth: 100,

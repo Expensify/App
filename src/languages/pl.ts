@@ -6720,11 +6720,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     },
                 },
                 members: {
-                    subtitle: 'Wybierz, którzy członkowie mogą rezerwować podróże i nimi zarządzać w tym obszarze roboczym.',
-                    allMembers: 'Wszyscy członkowie mogą rezerwować podróże',
-                    canBookTravel: 'Może rezerwować podróże',
                     travelRole: 'Rola w podróżach',
-                    access: 'Dostęp',
                     traveler: 'Podróżny',
                     travelAdmin: 'Administrator podróży',
                     travelerDescription: 'Może rezerwować swoje podróże i nimi zarządzać',

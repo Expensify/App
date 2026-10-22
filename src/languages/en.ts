@@ -7141,11 +7141,7 @@ const translations = {
                     },
                 },
                 members: {
-                    subtitle: 'Choose which members can book and manage travel on this workspace.',
-                    allMembers: 'All members can book travel',
-                    canBookTravel: 'Can book travel',
                     travelRole: 'Travel role',
-                    access: 'Access',
                     traveler: 'Traveler',
                     travelAdmin: 'Travel admin',
                     travelerDescription: 'Can book and manage their own trips',

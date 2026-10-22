@@ -6708,11 +6708,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     },
                 },
                 members: {
-                    subtitle: 'Scegli quali membri possono prenotare e gestire i viaggi in questo spazio di lavoro.',
-                    allMembers: 'Tutti i membri possono prenotare viaggi',
-                    canBookTravel: 'Può prenotare viaggi',
                     travelRole: 'Ruolo viaggi',
-                    access: 'Accesso',
                     traveler: 'Viaggiatore',
                     travelAdmin: 'Amministratore viaggi',
                     travelerDescription: 'Può prenotare e gestire i propri viaggi',

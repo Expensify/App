@@ -6466,11 +6466,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     codingSync: {title: '将编码同步到 Expensify Travel', subtitle: '将此工作区的类别、标签和报表字段推送到 Expensify Travel，以便出行人能在预订时填写。'},
                 },
                 members: {
-                    subtitle: '选择哪些成员可以在此工作区预订和管理差旅。',
-                    allMembers: '所有成员都可以预订差旅',
-                    canBookTravel: '可以预订差旅',
                     travelRole: '差旅角色',
-                    access: '访问权限',
                     traveler: '出差人',
                     travelAdmin: '差旅管理员',
                     travelerDescription: '可以预订和管理自己的行程',
