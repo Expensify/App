@@ -1,5 +1,5 @@
 import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
-import {easing, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
+import {cssEasing, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
 
 import useLocalize from '@hooks/useLocalize';
@@ -9,9 +9,12 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React, {useLayoutEffect, useMemo, useRef} from 'react';
+import type {ViewStyle} from 'react-native';
+import type {CSSStyle} from 'react-native-reanimated';
+
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Animated, {Keyframe, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Keyframe, ReduceMotion} from 'react-native-reanimated';
 
 function Backdrop({
     style,
@@ -25,22 +28,6 @@ function Backdrop({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const progress = useSharedValue(0);
-    const wasBackdropVisible = useRef(false);
-
-    // This must be a layout effect: a reinserted Animated.View renders with the old progress value, and a passive effect can run
-    // after paint, which shows one frame at the old opacity. A layout effect resets progress before the first frame.
-    useLayoutEffect(() => {
-        // Only fade in when the backdrop goes from hidden to visible, so a timing change (for example, crossing the small-screen breakpoint) doesn't restart it
-        const isOpening = isBackdropVisible && !wasBackdropVisible.current;
-        wasBackdropVisible.current = isBackdropVisible;
-        if (!isOpening) {
-            return;
-        }
-        progress.set(0);
-        progress.set(withTiming(1, {duration: animationInTiming, easing, reduceMotion: ReduceMotion.Never}));
-    }, [animationInTiming, isBackdropVisible, progress]);
-
     const Exiting = useMemo(() => {
         if (!backdropOpacity) {
             return;
@@ -49,9 +36,15 @@ function Backdrop({
         return FadeOut.duration(animationOutTiming).reduceMotion(ReduceMotion.Never);
     }, [animationOutTiming, backdropOpacity]);
 
-    // Instead of an entering keyframe: on web, Reanimated hides the element until the keyframe starts and can delete the keyframe
-    // before the next animation frame (for example in a background tab), which leaves the backdrop hidden for good
-    const backdropStyle = useAnimatedStyle(() => ({opacity: progress.get() * backdropOpacity}));
+    // A CSS animation instead of an entering keyframe: on web, Reanimated hides an entering element until its keyframe starts and can
+    // delete the keyframe before the next animation frame (for example in a background tab), which leaves the backdrop hidden for good.
+    // A CSS animation keeps its keyframes until the view unmounts and never hides the view.
+    const backdropStyle: CSSStyle<ViewStyle> = {
+        opacity: backdropOpacity,
+        animationName: {from: {opacity: 0}, to: {opacity: backdropOpacity}},
+        animationDuration: animationInTiming,
+        animationTimingFunction: cssEasing,
+    };
 
     if (!customBackdrop) {
         return (
