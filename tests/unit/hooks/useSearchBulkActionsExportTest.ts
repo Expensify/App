@@ -1635,6 +1635,7 @@ describe('useSearchBulkActions - export options', () => {
             await waitFor(() => {
                 expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual([
                     'export.currentView',
+                    'export.currentViewGroupsOnly',
                     'Custom template',
                     'export.expenseLevelExport',
                     'export.reconciliationAllExpenses',
@@ -1656,6 +1657,7 @@ describe('useSearchBulkActions - export options', () => {
             await waitFor(() => {
                 expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual([
                     'export.currentView',
+                    'export.currentViewGroupsOnly',
                     'Custom template',
                     'export.expenseLevelExport',
                     'export.reconciliationAllExpenses',
@@ -1674,7 +1676,13 @@ describe('useSearchBulkActions - export options', () => {
 
             // Then Reconciliation is not offered, because a card group selection only shows the templates the user was already entitled to and must never hand out one they were not
             await waitFor(() => {
-                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'Custom template', 'export.expenseLevelExport', 'export.reportLevelExport']);
+                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual([
+                    'export.currentView',
+                    'export.currentViewGroupsOnly',
+                    'Custom template',
+                    'export.expenseLevelExport',
+                    'export.reportLevelExport',
+                ]);
             });
             expect(getExportOptionTexts(result.current.headerButtonsOptions)).not.toContain('export.reconciliationAllExpenses');
         });
