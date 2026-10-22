@@ -37,6 +37,8 @@ function handleErrorClose(pendingAction: PendingAction | null | undefined, accou
     }
 }
 
+type AgentForDisplay = AgentRowData;
+
 /**
  * Hook that derives the current user's manageable agent rows from Onyx and exposes selection and bulk-delete helpers for the Agents table.
  */
@@ -60,7 +62,7 @@ function useAgents(shouldOpenAgentsPage: boolean) {
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
     const policiesByAccountID = groupByPolicyAccountIDPoliciesSelector(allPolicies);
 
-    const agents: AgentRowData[] = Object.entries(allAgents ?? {}).flatMap(([key, agent]) => {
+    const agents: AgentForDisplay[] = Object.entries(allAgents ?? {}).flatMap(([key, agent]) => {
         if (!agent) {
             return [];
         }
@@ -188,4 +190,5 @@ function useAgents(shouldOpenAgentsPage: boolean) {
     return {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef};
 }
 
+export type {AgentForDisplay};
 export default useAgents;

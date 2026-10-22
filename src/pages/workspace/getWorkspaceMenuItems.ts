@@ -1,6 +1,7 @@
 /**
  * Builds the ordered Workspace menu items with their visibility and indicator states.
  */
+import type {AgentForDisplay} from '@hooks/useAgents';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
@@ -112,6 +113,8 @@ type GetWorkspaceMenuItemsParams = {
     isConnectionInProgress?: boolean;
     /** Categories used to determine category-related errors. */
     policyCategories?: OnyxTypes.PolicyCategories;
+    /** Policy agents (owned agend and member agents) used for RBR. */
+    policyAgents?: AgentForDisplay[];
     /** Whether any of the policy's merchant rules failed to save, used to surface a red dot on the Rules row. */
     hasMerchantRuleErrors?: boolean;
     /** Previous pending fields used to identify the most recently enabled feature. */
@@ -142,6 +145,7 @@ function getWorkspaceMenuItems({
     icons,
     isConnectionInProgress = false,
     policyCategories,
+    policyAgents,
     hasMerchantRuleErrors,
     previousPendingFields,
     shouldShowEnterCredentialsError = false,
@@ -192,6 +196,7 @@ function getWorkspaceMenuItems({
     };
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
+    const hasAgentsError = policyAgents?.some((agent) => agent.errors);
     const hasGeneralSettingsError =
         !isEmptyObject(policy?.errorFields?.name ?? {}) ||
         !isEmptyObject(policy?.errorFields?.avatarURL ?? {}) ||
@@ -267,6 +272,7 @@ function getWorkspaceMenuItems({
             screenName: SCREENS.WORKSPACE.AGENTS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.AGENTS,
             badgeTranslationKey: 'common.beta',
+            brickRoadIndicator: hasAgentsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 
