@@ -36,8 +36,7 @@ describe('Enable global reimbursements dynamic routes', () => {
     });
 
     it('strips business suffix when backTo query param is present', () => {
-        const pathWithBackTo =
-            'search/view/6546028296902751/enable-global-reimbursements/business/9053192/registration-number?backTo=%2Fsearch%3Fq%3Dtype%253Aexpense&bankCountry=US&bankCurrency=USD';
+        const pathWithBackTo = 'search/view/6546028296902751/enable-global-reimbursements/business/9053192/registration-number?backTo=%2Fr%2F123&bankCountry=US&bankCurrency=USD';
         const matches = findAllMatchingDynamicSuffixes(pathWithBackTo);
         const businessMatch = matches.find((m) => m.pattern === BUSINESS_PATTERN);
         expect(businessMatch).toBeDefined();
@@ -46,7 +45,7 @@ describe('Enable global reimbursements dynamic routes', () => {
         }
 
         const backPath = getPathWithoutDynamicSuffix(businessMatch.pathUsedForMatching, businessMatch.actualSuffix, businessMatch.pattern);
-        expect(backPath).toBe('search/view/6546028296902751?backTo=%2Fsearch%3Fq%3Dtype%253Aexpense');
+        expect(backPath).toBe('search/view/6546028296902751?backTo=%2Fr%2F123');
     });
 
     it('accepts type subpage suffix', () => {
@@ -55,10 +54,10 @@ describe('Enable global reimbursements dynamic routes', () => {
     });
 
     it('builds next step route from stripped base without duplicating suffix', () => {
-        const basePath = 'search/view/6546028296902751?backTo=%2Fsearch%3Fq%3Dtype%253Aexpense';
+        const basePath = 'search/view/6546028296902751?backTo=%2Fr%2F123';
         const typeRoute = createDynamicRoute(DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute('9053192', 'type', undefined, {bankCountry: 'US', bankCurrency: 'USD'}), basePath);
 
-        expect(typeRoute).toBe('search/view/6546028296902751/enable-global-reimbursements/business/9053192/type?backTo=%2Fsearch%3Fq%3Dtype%253Aexpense&bankCountry=US&bankCurrency=USD');
+        expect(typeRoute).toBe('search/view/6546028296902751/enable-global-reimbursements/business/9053192/type?backTo=%2Fr%2F123&bankCountry=US&bankCurrency=USD');
         expect(typeRoute.match(/enable-global-reimbursements/g)?.length).toBe(1);
     });
 
@@ -70,12 +69,10 @@ describe('Enable global reimbursements dynamic routes', () => {
     });
 
     it('uses search base path captured at signal time for pay modal navigation', () => {
-        const signalPath = 'search/view/6546028296902751?backTo=%2Fsearch%3Fq%3Dtype%253Aexpense';
+        const signalPath = 'search/view/6546028296902751?backTo=%2Fr%2F123';
         const route = getEnableGlobalReimbursementsBusinessNavigationRoute(9053192, 'registration-number', {bankCountry: 'US', bankCurrency: 'USD'}, signalPath);
 
-        expect(route).toBe(
-            'search/view/6546028296902751/enable-global-reimbursements/business/9053192/registration-number?backTo=%2Fsearch%3Fq%3Dtype%253Aexpense&bankCountry=US&bankCurrency=USD',
-        );
+        expect(route).toBe('search/view/6546028296902751/enable-global-reimbursements/business/9053192/registration-number?backTo=%2Fr%2F123&bankCountry=US&bankCurrency=USD');
     });
 
     it('accepts expense report and search root entry screens', () => {
