@@ -5,7 +5,6 @@ import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 
-import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -39,7 +38,10 @@ type FilterListProps = FilterItemCallbacks & {
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Text in the search input above the list. Only the filters whose label contains it are listed. */
+    /** The filters to list, in sections. */
+    filters: Array<Array<SearchFilter['key']>>;
+
+    /** Text in the search input above the list. */
     searchValue: string;
 
     onSearchValueChange: (searchValue: string) => void;
@@ -123,6 +125,7 @@ function FilterList({
     selectedFilter,
     style,
     contentContainerStyle,
+    filters,
     searchValue,
     onSearchValueChange,
     autoFocus,
@@ -134,9 +137,8 @@ function FilterList({
 }: FilterListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const typeFiltersKeys = useAdvancedSearchFilters(type, searchValue);
     const noResultsFoundText = translate('common.noResultsFound');
-    const shouldShowNoResultsFound = typeFiltersKeys.length === 0;
+    const shouldShowNoResultsFound = filters.length === 0;
 
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldShowNoResultsFound, searchValue);
 
@@ -165,7 +167,7 @@ function FilterList({
                 onMouseMove={onPointerMove}
                 onMouseLeave={onPointerLeave}
             >
-                {typeFiltersKeys.map((section, index) => (
+                {filters.map((section, index) => (
                     <View key={`${section.at(0)}`}>
                         {index !== 0 && (
                             <SpacerView

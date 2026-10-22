@@ -15655,3 +15655,34 @@ describe('isFilterMatchingSearchValue', () => {
         expect(isMatchingForExpense).toBe(false);
     });
 });
+
+describe('getMatchingFilters', () => {
+    const {TYPE, STATUS, PAID, PAID_BY, SUBMITTED} = CONST.SEARCH.SYNTAX_FILTER_KEYS;
+
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('keeps only the filters whose label contains the search value and drops the sections left empty', () => {
+        // Given two sections, only the second of which holds filters labelled with "paid"
+        const filters = [
+            [TYPE, STATUS],
+            [SUBMITTED, PAID, PAID_BY],
+        ];
+
+        // When they are matched against "PAID"
+        const matchingFilters = SearchUIUtils.getMatchingFilters(filters, CONST.SEARCH.DATA_TYPES.EXPENSE, 'PAID', translateLocal);
+
+        // Then the paid filters are left in their order and the first section is gone, so no divider shows above them
+        expect(matchingFilters).toEqual([[PAID, PAID_BY]]);
+    });
+
+    it('returns no section when no filter label contains the search value', () => {
+        // Given a search value no filter label contains
+        // When the filters are matched against it
+        const matchingFilters = SearchUIUtils.getMatchingFilters([[TYPE, STATUS]], CONST.SEARCH.DATA_TYPES.EXPENSE, 'unicorn', translateLocal);
+
+        // Then nothing is left, so the list shows its no results message
+        expect(matchingFilters).toEqual([]);
+    });
+});

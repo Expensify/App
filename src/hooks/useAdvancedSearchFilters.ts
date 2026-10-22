@@ -1,6 +1,5 @@
 import {isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
-import {isFilterMatchingSearchValue} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -310,8 +309,7 @@ function shouldDisplayCardFilterSelector(cardList: OnyxEntry<CardList>) {
     return shouldDisplayFilter(Object.keys(filterCardsHiddenFromSearch(cardList)).length, true);
 }
 
-function useAdvancedSearchFilters(type: SearchDataTypes | undefined, searchValue = '') {
-    const {translate} = useLocalize();
+function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const [shouldDisplayCardFilter] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: shouldDisplayCardFilterSelector});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [policyDerived] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDerivedSelector});
@@ -361,9 +359,6 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, searchValue
                         return;
                     }
                     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD && !(policyDerived?.hasReportFields ?? false)) {
-                        return;
-                    }
-                    if (!isFilterMatchingSearchValue(key, type, searchValue, translate)) {
                         return;
                     }
                     return key;

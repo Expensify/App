@@ -6238,6 +6238,16 @@ function isFilterMatchingSearchValue(filterKey: keyof typeof FILTER_VIEW_MAP, ty
     return translate(getFilterViewLabelKey(filterKey, type)).toLowerCase().includes(searchValue.trim().toLowerCase());
 }
 
+/** Keeps the filters whose label contains the search value, dropping the sections left empty. */
+function getMatchingFilters(
+    filters: Array<Array<SearchFilter['key']>>,
+    type: SearchDataTypes | undefined,
+    searchValue: string,
+    translate: LocalizedTranslate,
+): Array<Array<SearchFilter['key']>> {
+    return filters.map((section) => section.filter((filterKey) => isFilterMatchingSearchValue(filterKey, type, searchValue, translate))).filter((section) => section.length > 0);
+}
+
 function mapFiltersFormToLabelValueList(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     defaultSearchQueryFilterKeys: Set<SearchFilterKey>,
@@ -7556,6 +7566,7 @@ export {
     FILTER_VIEW_MAP,
     getFilterViewLabelKey,
     isFilterMatchingSearchValue,
+    getMatchingFilters,
     isCreatedDateType,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
