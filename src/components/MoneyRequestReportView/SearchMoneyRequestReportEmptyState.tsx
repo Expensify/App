@@ -48,7 +48,8 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
-    const canAddTransactionToReport = canCreateExpensesOnPolicy(policy) && canAddTransaction(report, rules, isReportArchived);
+    // Non-workspace reports have no policy, so the create-expenses gate only applies to policy-bound reports.
+    const canAddTransactionToReport = (!report?.policyID || canCreateExpensesOnPolicy(policy)) && canAddTransaction(report, rules, isReportArchived);
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: policy?.id,
         isDistanceRequest: true,

@@ -86,7 +86,8 @@ function MoneyRequestReportListFooter({report, policy, transactions, hasPendingA
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
     const shouldShowExpenseReportBreakDown = hasNonReimbursableTransactions(transactions);
     const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || (!!taxTotal && isTaxEnabled);
-    const shouldShowAddExpenseButton = canCreateExpensesOnPolicy(policy) && canAddTransaction(report, rules, isReportArchived) && isCurrentUserSubmitter(report);
+    // Non-workspace reports have no policy, so the create-expenses gate only applies to policy-bound reports.
+    const shouldShowAddExpenseButton = (!report?.policyID || canCreateExpensesOnPolicy(policy)) && canAddTransaction(report, rules, isReportArchived) && isCurrentUserSubmitter(report);
 
     const breakdownRows: Array<{text: TranslationPaths; value: string; shouldShow: boolean}> = [
         {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, shouldShow: !!nonReimbursableSpend},

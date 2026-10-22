@@ -1089,7 +1089,8 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
-    if (isAddExpenseAction(report, reportTransactions, rules, isChatReportArchived || isArchivedReport(reportNameValuePairs)) && canCreateExpensesOnPolicy(policy)) {
+    // Non-workspace reports have no policy, so the create-expenses gate only applies to policy-bound reports.
+    if (isAddExpenseAction(report, reportTransactions, rules, isChatReportArchived || isArchivedReport(reportNameValuePairs)) && (!report?.policyID || canCreateExpensesOnPolicy(policy))) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
