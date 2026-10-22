@@ -216,7 +216,10 @@ describe('DynamicWorkspaceSettlementAccountPage', () => {
         {connection: undefined, enabled: true, active: true, visible: false},
         {connection: CONST.POLICY.CONNECTIONS.NAME.QBO, enabled: false, active: true, visible: false},
         {connection: CONST.POLICY.CONNECTIONS.NAME.QBO, enabled: true, active: false, visible: false},
-        ...Object.values(CONST.POLICY.CONNECTIONS.NAME).map((connection) => ({connection, enabled: true, active: true, visible: !!getRouteParamForConnection(connection)})),
+        // Exact Online is only listed for its waitlist, so it is not a connection a policy can reconcile against.
+        ...Object.values(CONST.POLICY.CONNECTIONS.NAME)
+            .filter((connection): connection is PolicyConnectionName => connection !== CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE)
+            .map((connection) => ({connection, enabled: true, active: true, visible: !!getRouteParamForConnection(connection)})),
     ] satisfies Array<{connection: PolicyConnectionName | undefined; enabled: boolean; active: boolean; visible: boolean}>)(
         'preserves reconciliation link visibility for $connection, enabled=$enabled, active=$active',
         async ({connection, enabled, active, visible}) => {
