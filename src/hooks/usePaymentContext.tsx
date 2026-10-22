@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {delegateEmailSelector} from '@src/selectors/Account';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {BankAccountList, BillingGraceEndPeriod, IntroSelected, Policy, Report} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, IntroSelected, Policy, Report} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -36,7 +36,6 @@ type PaymentContextValue = {
     defaultWorkspaceName: string;
     delegateEmail: string | undefined;
     delegateAccountID: number | undefined;
-    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 type ReportPaymentContextValue = PaymentContextValue & {
@@ -69,7 +68,6 @@ function usePaymentContextValues(): PaymentContextValue {
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const delegateAccountID = useDelegateAccountID();
     const activePolicy = usePolicy(activePolicyID);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const defaultWorkspaceName = generateDefaultWorkspaceName(email ?? '', displayName, lastWorkspaceNumber, translate);
 
@@ -91,7 +89,6 @@ function usePaymentContextValues(): PaymentContextValue {
         defaultWorkspaceName,
         delegateEmail,
         delegateAccountID,
-        bankAccountList,
     };
 }
 

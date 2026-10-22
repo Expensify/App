@@ -1,8 +1,8 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, To-dos, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, Time sensitive, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, unpaid invoice, invoice past due, service interruption, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the Time sensitive, To-dos, Recently added, Spend over time and other insights, Discover, Announcements, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
+keywords: [New Expensify, Expensify Home, Home, Home tab, To-dos, For you, Recently added, recently added expenses, view all expenses, Announcements, Time sensitive, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, unpaid invoice, invoice past due, service interruption, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the Time sensitive, To-dos, Recently added, Spend over time and other insights, Announcements, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
 
@@ -36,7 +36,6 @@ Home includes:
 - **Upcoming travel** (when applicable)
 - **Spend over time** and other insights (when applicable)
 - **Getting started** (when applicable)
-- **Discover**
 - **Announcements**
 - **Your spend** (when applicable)
 
@@ -140,16 +139,6 @@ The checklist items vary based on the intent selected when setting up your Expen
 
 ---
 
-## How the Discover section works on Home
-
-The **Discover** section helps you get familiar with things you can do in Expensify.
-
-This section includes a short demo that introduces key areas of the app and shows how different parts fit together. This can be helpful when you’re getting started or returning after some time away.
-
-Once you’ve watched the demo, the **Discover** section is automatically hidden from Home.
-
----
-
 ## How the Announcements section works on Home
 
 The **Announcements** section shows recent Expensify product updates.
@@ -211,10 +200,6 @@ The **Time sensitive** section only appears when there is an urgent issue or lim
 ## Why don’t I see the Spend over time section?
 
 The Home chart section only appears if you are a Workspace Admin, Auditor, or approver on a paid workspace. If you don't hold one of these roles on any workspace, this section won't be visible. If you do hold one of these roles but an insight doesn't have enough data yet, the section still appears and shows a **Chart unavailable** message rather than disappearing. You can switch which insight the chart shows using the insight title dropdown.
-
-## Why don’t I see the Discover section?
-
-The **Discover** section only appears until you’ve watched the demo. Once you’ve completed it, the section is automatically hidden from Home.
 
 ## Why don’t I see the Getting started section?
 
