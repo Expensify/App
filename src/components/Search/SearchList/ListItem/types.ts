@@ -20,7 +20,6 @@ import type {
     TransactionViolation,
     TransactionViolations,
 } from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchCardGroup,
@@ -172,9 +171,6 @@ type TransactionListItemType = ListItem &
 
         /** The name of the file used for a receipt */
         filename?: string;
-
-        /** Attendees in the transaction */
-        attendees?: Attendee[];
 
         /** Precomputed violations */
         violations?: TransactionViolation[];

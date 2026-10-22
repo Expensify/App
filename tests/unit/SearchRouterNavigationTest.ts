@@ -711,6 +711,7 @@ describe('Workspace Search Router navigation source', () => {
             policies: Object.fromEntries(policies.map((policy) => [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy])),
             policyCategories: undefined,
             currentUserLogin: workspaceCurrentUserLogin,
+            currentUserPersonalDetails: {accountID: 1},
             icons: workspaceIcons,
             isOffline,
             isVendorMatchingBetaEnabled: false,

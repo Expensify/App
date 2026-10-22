@@ -75,7 +75,6 @@ function SubscriptCardFeedAvatar({
                 <View
                     style={[
                         // Nullish coalescing thinks that empty strings are truthy, thus I'm using OR operator
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         StyleUtils.getBorderColorStyle(backdropColor || theme.sidebar),
                         StyleUtils.getAvatarSubscriptIconContainerStyle(cardFeedIconSize.width, cardFeedIconSize.height),
                         styles.dFlex,

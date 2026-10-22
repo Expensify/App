@@ -12,7 +12,7 @@ import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getMatchingVendors, getVendorRuleDisplayValue, hasVendorFeature, isXeroActiveMatchingSource, sortVendors} from '@libs/PolicyUtils';
+import {getMatchingVendors, getVendorRuleDisplayValue, hasVendorFeature, sortVendors} from '@libs/PolicyUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -63,8 +63,7 @@ function AddVendorPage({route}: AddVendorPageProps) {
     const {isFetchNeeded, isLoadingFetchedFlag} = usePolicyConnectionsPrefetch(policy, true);
 
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const isOnXero = isXeroActiveMatchingSource(policy);
-    const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+    const unavailableLabel = translate('workspace.rules.merchantRules.vendorUnavailable');
     const selectedVendorItem = getSelectedVendorItem(policy, form?.vendorID, unavailableLabel);
 
     const vendorItems = getVendorSelectionItems(policy, localeCompare);
@@ -88,7 +87,7 @@ function AddVendorPage({route}: AddVendorPageProps) {
 
     return (
         <RuleSelectionBase
-            titleKey={isOnXero ? 'common.supplier' : 'common.vendor'}
+            titleKey="common.vendor"
             testID="AddVendorPage"
             onBack={() => Navigation.goBack(backToRoute)}
         >
