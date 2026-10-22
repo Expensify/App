@@ -874,7 +874,7 @@ function buildAddMembersToWorkspaceOnyxData(
         doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
     }
 
-    // Approve-only members get no workspace chat from the backend, so building an optimistic one would leave a phantom report in Onyx.
+    // Roles that cannot create expenses don't get a workspace chat, so don't build an optimistic one.
     const membersChats = canRoleCreateExpenses(effectiveRole)
         ? createPolicyExpenseChats({
               policyID,
