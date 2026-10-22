@@ -10115,6 +10115,90 @@ describe('SearchUIUtils', () => {
             expect(reconciliationItem?.searchQuery).toContain('withdrawalType:reimbursement');
         });
 
+        it('should show Cash accruals and Bank reconciliation, but no Card searches, to a Payments Admin', () => {
+            // Given a Payments Admin on a workspace with approvals, ACH reimbursement, Expensify Cards, and a card feed
+            const paymentsAdminEmail = 'paymentsadmin@policy.com';
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Payments Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            // When the suggested searches are computed for that Payments Admin
+            const {visibility, shouldShowExpensifyCard} = SearchUIUtils.getSuggestedSearchesVisibility(paymentsAdminEmail, mockCardFeedsByPolicy, mockPolicies, undefined);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: paymentsAdminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+            const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+
+            // Then the role gets the reimbursement searches, while Card accruals and Card reconciliation stay limited to Admins and Auditors
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]).toBe(false);
+            expect(shouldShowExpensifyCard).toBe(false);
+            expect(reconciliationItem?.searchQuery).toContain('withdrawalType:reimbursement');
+        });
+
+        it('should hide Bank reconciliation from a Payments Admin when the workspace has no active business bank account', () => {
+            // Given a Payments Admin on a workspace that pays without a verified business bank account
+            const paymentsAdminEmail = 'paymentsadmin@policy.com';
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Payments Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                },
+            };
+
+            // When the suggested searches are computed for that Payments Admin
+            const {visibility} = SearchUIUtils.getSuggestedSearchesVisibility(paymentsAdminEmail, {}, mockPolicies, undefined);
+
+            // Then Cash accruals still shows, but Bank reconciliation needs a bank account to reconcile against
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(false);
+        });
+
         it('should place todo items (submit, approve, pay) inside the Expense reports section', () => {
             const mockPolicies = {
                 policy1: {
