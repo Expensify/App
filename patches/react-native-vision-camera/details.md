@@ -52,3 +52,18 @@
 - Upstream PR/issue: https://github.com/margelo/react-native-vision-camera/pull/4230. Drop this patch once a release with it is installed.
 - E/App issue: https://github.com/Expensify/App/issues/102514
 - PR introducing patch: https://github.com/Expensify/App/pull/102898
+
+### [react-native-vision-camera+5.2.3+004+restore-v4-ios-keep-screen-awake.patch](react-native-vision-camera+5.2.3+004+restore-v4-ios-keep-screen-awake.patch)
+
+- Reason:
+
+    ```
+    V4 kept the iPhone screen awake while a camera was active (`UIApplication.shared.isIdleTimerDisabled = isActive`
+    in `CameraView.swift`). V5 never sets the idle timer, so the screen dims and locks on Scan, the odometer camera and
+    Take photo, which matters most during multi-scan. The patch sets it in `start()` and clears it in `stop()` and on
+    deinit. Android is unaffected: V4 never kept the screen on there either.
+    ```
+
+- Upstream PR/issue: https://github.com/margelo/react-native-vision-camera/pull/4233. Drop this patch once a release with it is installed.
+- E/App issue: https://github.com/Expensify/App/issues/102514
+- PR introducing patch: https://github.com/Expensify/App/pull/102898
