@@ -445,10 +445,13 @@ describe('oxlint sharding', () => {
 
     it('auto-shards by machine size and honours explicit overrides', () => {
         expect(resolveShardCount(undefined)).toBeGreaterThanOrEqual(1);
-        expect(resolveShardCount('')).toBeGreaterThanOrEqual(1);
+        expect(() => resolveShardCount('')).toThrow('--shards');
         expect(resolveShardCount('6')).toBe(6);
-        expect(resolveShardCount('0')).toBe(1);
-        expect(resolveShardCount('not-a-number')).toBe(1);
+        expect(resolveShardCount('auto')).toBe(resolveShardCount(undefined));
+        expect(() => resolveShardCount('0')).toThrow('--shards');
+        expect(() => resolveShardCount('not-a-number')).toThrow('--shards');
+        expect(() => resolveShardCount('-2')).toThrow('--shards');
+        expect(() => resolveShardCount('1.5')).toThrow('--shards');
     });
 
     it('sizes the JS-plugin shards by half the cores, minus the memory one type-aware process needs', () => {

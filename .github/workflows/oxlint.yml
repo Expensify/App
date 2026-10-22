@@ -30,9 +30,7 @@ jobs:
         continue-on-error: true
         # oxlint runs JS plugins on one thread (oxc#26621), so OxlintLinter fans them across 4
         # single-threaded shards and runs the type-aware rules in one multi-threaded process: 8 vCPU.
-        env:
-          OXLINT_SHARDS: 4
-        run: npm run lint -- --linter=oxlint
+        run: npm run lint -- --linter=oxlint --shards=4
 
       - name: Report the Oxlint result without failing the job
         run: |
