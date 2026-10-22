@@ -288,7 +288,7 @@ describe('RequireTwoFactorAuthenticationOverlay stacking', () => {
         expect(overlay.props.onStartShouldSetResponderCapture(fourTouches)).toBe(true);
         expect(overlay.props.onStartShouldSetResponderCapture(oneTouch)).toBe(false);
         overlay.props.onResponderRelease({touchHistory: {numberActiveTouches: 0}});
-        expect(jest.requireMock<jest.Mock>('@userActions/TestTool').default).toHaveBeenCalledTimes(1);
+        expect(jest.requireMock<{default: jest.Mock}>('@userActions/TestTool').default).toHaveBeenCalledTimes(1);
         expect(screen.getByTestId('focus-trap-active')).toBeOnTheScreen();
         expect(screen.getByTestId('enable-2fa-enter-shortcut')).toBeOnTheScreen();
     });
