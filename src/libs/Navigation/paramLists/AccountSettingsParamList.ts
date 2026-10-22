@@ -184,7 +184,7 @@ type AccountSettingsParamList = {
     [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
     };
-    [SCREENS.SETTINGS.WALLET.WISE_GLOBAL_REIMBURSEMENTS_INTRO]: {
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO]: {
         bankAccountID: string;
     };
     [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
@@ -205,7 +205,7 @@ type AccountSettingsParamList = {
         subPage?: string;
         action?: 'edit';
     };
-    [SCREENS.SETTINGS.COLLECT_DEPOSIT_ACCOUNT]: {
+    [SCREENS.SETTINGS.DYNAMIC_COLLECT_DEPOSIT_ACCOUNT]: {
         subPage?: string;
         action?: 'edit';
     };

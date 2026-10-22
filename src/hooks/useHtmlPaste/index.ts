@@ -1,4 +1,6 @@
+import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import {buildReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
@@ -122,6 +124,7 @@ function replaceEmojiImagesInHTML(html: string, images: HTMLImageElement[], repl
 }
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
+    const [personalDetailsList] = useAllPersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     /**
@@ -183,9 +186,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
     const handlePastedHTML = useCallback(
         (html: string) => {
             // Built here rather than in render so it costs nothing until a paste actually happens.
-            paste(Parser.htmlToMarkdown(html, {reportIDToName: buildReportIDToNameMap(reports)}));
+            paste(Parser.htmlToMarkdown(html, {reportIDToName: buildReportIDToNameMap(reports), accountIDToName: buildAccountIDToNameMap(personalDetailsList)}));
         },
-        [paste, reports],
+        [paste, reports, personalDetailsList],
     );
 
     /**
@@ -194,7 +197,6 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
      */
     const handlePastePlainText = useCallback(
         (event: ClipboardEvent) => {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const clipboardText = event.clipboardData?.getData('text/plain') || event.clipboardData?.getData('text/uri-list');
             if (!clipboardText) {
                 return;

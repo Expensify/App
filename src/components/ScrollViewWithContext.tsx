@@ -59,7 +59,6 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ref, ..
             ref={scrollViewRef}
             onScroll={setContextScrollPosition}
             // It's possible for scrollEventThrottle to be 0, so we must use "||" to fallback to MIN_SMOOTH_SCROLL_EVENT_THROTTLE.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             scrollEventThrottle={scrollEventThrottle || CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
         >
             <ScrollContext.Provider value={contextValue}>{children}</ScrollContext.Provider>
