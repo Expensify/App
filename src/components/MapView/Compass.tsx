@@ -25,7 +25,7 @@ function Compass({interactive, shouldDisplayCompass, cameraRef, mapHeading}: Com
     const resetMapToNorth = () => {
         cameraRef.current?.setCamera({
             heading: 0,
-            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
+            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
         });
     };
 

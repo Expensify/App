@@ -1111,6 +1111,55 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('shows the vendor-field error when assigned vendor is disabled in policyVendors', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        const disabledVendorID = 'disabled-vendor-id';
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, {
+                [disabledVendorID]: {
+                    externalID: disabledVendorID,
+                    name: 'Disabled Vendor',
+                    enabled: false,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: disabledVendorID, wasManuallySet: false}},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {
+                    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: [{id: disabledVendorID, name: 'Disabled Vendor', currency: 'USD', email: 'vendor@example.com'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByRole('alert')).toHaveTextContent('violations.inactiveVendor.');
+            expect(screen.getByTestId('menu-item-brick-road-indicator')).toBeOnTheScreen();
+        });
+    });
+
     describe('commuter exclusion in the Distance field', () => {
         const selfDMReportID = 'self_dm_mrv_123';
         // `translate` is mocked to return the key, so the commuter description is the plain distance label plus the "Original" key
@@ -1232,6 +1281,56 @@ describe('MoneyRequestView edit fields', () => {
                 expect(screen.getByTestId(/^menu-item-title-iou\.amount/)).toHaveTextContent('USD-268');
             });
             expect(screen.queryByLabelText(fieldLabel(commuterDistanceDescription))).not.toBeOnTheScreen();
+        });
+    });
+
+    describe('reservation nights hint under the Category field', () => {
+        // `translate` is mocked to return the key, so the hint renders as its translation key
+        const reservationNightsHint = 'common.reservationNightsWithNightlyRate';
+
+        const renderWithReservationDates = async (hotelReservationStartDate: string, hotelReservationEndDate: string) => {
+            const threadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                parentReportID: expenseReportID,
+                parentReportActionID,
+            };
+
+            await setupTestData();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
+                    Travel: {name: 'Travel', enabled: true},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                    category: 'Travel',
+                    receipt: {hotelReservationStartDate, hotelReservationEndDate},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderMoneyRequestView(threadReport, {areCategoriesEnabled: true});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByLabelText(fieldLabel('common.category'))).toBeOnTheScreen();
+            });
+        };
+
+        it('shows the nights and nightly rate for a multi-night reservation', async () => {
+            // Given an expense whose SmartScanned reservation spans three nights
+            // When the expense is rendered
+            await renderWithReservationDates('2026-10-01', '2026-10-04');
+
+            // Then the hint explains the per-night evaluation used by the category limit check
+            expect(screen.getByText(reservationNightsHint)).toBeOnTheScreen();
+        });
+
+        it('does not show the hint for a single-night reservation', async () => {
+            // Given an expense whose reservation is a single night, which the design says should show nothing
+            // When the expense is rendered
+            await renderWithReservationDates('2026-10-01', '2026-10-02');
+
+            // Then no nightly hint is shown
+            expect(screen.queryByText(reservationNightsHint)).not.toBeOnTheScreen();
         });
     });
 });

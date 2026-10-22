@@ -4069,7 +4069,7 @@ describe('actions/Report', () => {
             };
 
             // When the user saves the same description, with the reportID-to-name map used to seed the input
-            Report.updateDescription(report, '# test #room', currentUserAccountID, {'123': '#room'});
+            Report.updateDescription(report, '# test #room', currentUserAccountID, {'123': '#room'}, {});
 
             await waitForBatchedUpdates();
 
@@ -4088,7 +4088,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             mockFetch?.fail?.();
-            Report.updateDescription(report, '# test1', currentUserAccountID, {});
+            Report.updateDescription(report, '# test1', currentUserAccountID, {}, {});
 
             await waitForBatchedUpdates();
             let updateReport: OnyxEntry<OnyxTypes.Report>;
