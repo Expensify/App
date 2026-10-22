@@ -52,7 +52,11 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const formRef = useRef<FormRef>(null);
     const promptTopOffsetRef = useRef(0);
-    const scrollToInput = () => scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+    const isPromptFocusedRef = useRef(false);
+    const scrollToInput = () => {
+        isPromptFocusedRef.current = true;
+        scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+    };
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.path);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> => {
@@ -125,6 +129,10 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
                         ]}
                         onLayout={(event) => {
                             promptTopOffsetRef.current = event.nativeEvent.layout.y;
+                            // Rotation preserves focus, so reveal the prompt again after its new layout is measured.
+                            if (isPromptFocusedRef.current) {
+                                scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+                            }
                         }}
                     >
                         <InputWrapper
@@ -144,6 +152,9 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
                             touchableInputWrapperStyle={shouldAutoGrowPromptInput ? undefined : [styles.flex1]}
                             inputStyle={[!shouldAutoGrowPromptInput && styles.flex1, styles.textAlignVerticalTop]}
                             onFocus={scrollToInput}
+                            onBlur={() => {
+                                isPromptFocusedRef.current = false;
+                            }}
                         />
                     </View>
                     <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>

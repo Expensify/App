@@ -238,7 +238,11 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     };
 
     const promptTopOffsetRef = useRef(0);
-    const handleInputFocus = () => scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+    const isPromptFocusedRef = useRef(false);
+    const handleInputFocus = () => {
+        isPromptFocusedRef.current = true;
+        scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+    };
 
     const agentAvatar = avatarSource ? (
         <UserAvatar
@@ -318,6 +322,10 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                             ]}
                             onLayout={(event) => {
                                 promptTopOffsetRef.current = event.nativeEvent.layout.y;
+                                // Rotation preserves focus, so reveal the prompt again after its new layout is measured.
+                                if (isPromptFocusedRef.current) {
+                                    scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+                                }
                             }}
                         >
                             <InputWrapper
@@ -338,6 +346,9 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                                 touchableInputWrapperStyle={shouldAutoGrowPromptInput ? undefined : [styles.flex1]}
                                 inputStyle={[!shouldAutoGrowPromptInput && styles.flex1, styles.textAlignVerticalTop]}
                                 onFocus={handleInputFocus}
+                                onBlur={() => {
+                                    isPromptFocusedRef.current = false;
+                                }}
                             />
                         </View>
                         <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>
