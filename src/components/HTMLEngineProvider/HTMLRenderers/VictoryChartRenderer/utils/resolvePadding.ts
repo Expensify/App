@@ -4,14 +4,39 @@ import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRendere
 import lodashIsObject from 'lodash/isObject';
 
 /**
- * Shrinks `padding.left` down to the left axis's measured label width (plus a small edge buffer)
- * whenever the configured padding is wider than the label content actually needs.
+ * Shrinks the padding to take into account the size consumed by the axis.
  */
-function resolvePadding(padding: ProcessNodeResult['padding'], leftAxisLabelPadding: ProcessNodeResult['leftAxisLabelPadding']): ProcessNodeResult['padding'] {
-    if (leftAxisLabelPadding === undefined || !lodashIsObject(padding) || typeof padding.left !== 'number') {
-        return padding;
+function resolvePadding(
+    padding: ProcessNodeResult['padding'],
+    leftAxisSize: ProcessNodeResult['leftAxisSize'],
+    rightAxisSize: ProcessNodeResult['rightAxisSize'],
+    bottomAxisSize: ProcessNodeResult['bottomAxisSize'],
+    topAxisSize: ProcessNodeResult['topAxisSize'],
+): ProcessNodeResult['padding'] {
+    let resolvedPadding = padding;
+    if (!resolvedPadding || typeof resolvedPadding === 'number') {
+        resolvedPadding = {
+            left: resolvedPadding,
+            right: resolvedPadding,
+            top: resolvedPadding,
+            bottom: resolvedPadding,
+        };
     }
-    return {...padding, left: Math.min(padding.left, Math.ceil(leftAxisLabelPadding) + LEFT_AXIS_LABEL_PADDING)};
+
+    if (leftAxisSize && resolvedPadding.left) {
+        resolvedPadding.left = Math.min(resolvedPadding.left, leftAxisSize + LEFT_AXIS_LABEL_PADDING) - leftAxisSize;
+    }
+    if (rightAxisSize && resolvedPadding.right) {
+        resolvedPadding.right -= rightAxisSize;
+    }
+    if (bottomAxisSize && resolvedPadding.bottom) {
+        resolvedPadding.bottom -= bottomAxisSize;
+    }
+    if (topAxisSize && resolvedPadding.top) {
+        resolvedPadding.top -= topAxisSize;
+    }
+
+    return resolvedPadding;
 }
 
 export default resolvePadding;
