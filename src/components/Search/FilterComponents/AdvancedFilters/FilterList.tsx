@@ -4,6 +4,7 @@ import ScrollView from '@components/ScrollView';
 import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -20,6 +21,7 @@ import variables from '@styles/variables';
 
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
+import type {Ref} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -46,8 +48,8 @@ type FilterListProps = FilterItemCallbacks & {
 
     onSearchValueChange: (searchValue: string) => void;
 
-    /** Whether the search input is focused when the list mounts. */
-    autoFocus?: boolean;
+    /** Ref to the search input above the list. */
+    searchInputRef?: Ref<BaseTextInputRef>;
 
     /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
     onPointerMove?: (event: {clientX: number; clientY: number}) => void;
@@ -128,7 +130,7 @@ function FilterList({
     filters,
     searchValue,
     onSearchValueChange,
-    autoFocus,
+    searchInputRef,
     onHoverIn,
     onFocus,
     onPress,
@@ -149,7 +151,7 @@ function FilterList({
                 inputValue={searchValue}
                 onChangeText={onSearchValueChange}
                 style={styles.mb3}
-                autoFocus={autoFocus}
+                ref={searchInputRef}
             />
             {shouldShowNoResultsFound && (
                 <View style={[styles.ph5, styles.pb5]}>

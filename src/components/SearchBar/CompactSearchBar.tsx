@@ -13,7 +13,7 @@ type CompactSearchBarProps = SharedSearchBarProps;
 /**
  * The compact list-style search input (placeholder instead of a floating label), matching the one used above selection lists.
  */
-function CompactSearchBar({ref, label, style, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle, autoFocus}: CompactSearchBarProps) {
+function CompactSearchBar({ref, label, style, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle}: CompactSearchBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     // The compact search input is sized by the physical device width (`isSmallScreenWidth`), not `shouldUseNarrowLayout`, so
@@ -31,7 +31,6 @@ function CompactSearchBar({ref, label, style, inputValue, onChangeText, onSubmit
             onSubmitEditing={onSubmitEditing}
             shouldShowEmptyState={shouldShowEmptyState}
             emptyStateContainerStyle={emptyStateContainerStyle}
-            autoFocus={autoFocus}
             textInputProps={{
                 placeholder: label,
                 placeholderTextColor: theme.textSupporting,

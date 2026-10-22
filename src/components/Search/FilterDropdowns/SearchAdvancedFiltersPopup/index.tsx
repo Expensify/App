@@ -9,6 +9,7 @@ import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery'
 import type {SearchQueryJSON} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import {useDebounceWithControls} from '@hooks/useDebounce';
@@ -35,7 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
-import type {ComponentRef} from 'react';
+import type {ComponentRef, Ref} from 'react';
 
 import React, {Activity, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -52,6 +53,9 @@ type SearchAdvancedFiltersPopupProps = {
 
     /** Closes the filters popover overlay */
     closeOverlay: () => void;
+
+    /** Ref to the filter search input, so the popover can focus it once it has opened */
+    filterSearchInputRef?: Ref<BaseTextInputRef>;
 };
 
 /** Which filter contents are mounted and what each was given. */
@@ -128,7 +132,7 @@ function MountedFilterContent({filterKey, values, ready, onChange}: MountedFilte
     );
 }
 
-function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFiltersPopupProps) {
+function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputRef}: SearchAdvancedFiltersPopupProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -316,7 +320,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                         filters={filters}
                         searchValue={filterSearchValue}
                         onSearchValueChange={changeFilterSearchValue}
-                        autoFocus
+                        searchInputRef={filterSearchInputRef}
                         onHoverIn={hoverFilter}
                         onPointerMove={trackPointerMovement}
                         onPointerLeave={stopTrackingPointer}
