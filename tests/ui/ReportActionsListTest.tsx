@@ -391,6 +391,7 @@ describe('ReportActionsList (body)', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockUseIsFocused.mockReturnValue(false);
         mockHasOnceLoadedReportActions = true;
         mockIsLoadingInitialReportActions = false;
         mockIsLoadingOlderReportActions = false;
@@ -862,6 +863,7 @@ describe('ReportActionsList (body)', () => {
 
     it('keeps the initial viewport covered until the hydrated LegendList finishes rendering it', async () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseIsFocused.mockReturnValue(true);
         mockHasOnceLoadedReportActions = false;
         mockIsLoadingInitialReportActions = true;
         mockShouldCallLegendListOnLoad = false;
@@ -873,6 +875,7 @@ describe('ReportActionsList (body)', () => {
             getCapturedListProps()?.onReady?.();
         });
         expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+        expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: true});
 
         mockHasOnceLoadedReportActions = true;
         view.rerender(
@@ -890,6 +893,7 @@ describe('ReportActionsList (body)', () => {
             getCapturedListProps()?.onReady?.();
         });
         expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+        expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: true});
     });
 
     it('resumes initial scroll tracking after layout and scrolling are ready', () => {
@@ -1837,6 +1841,66 @@ describe('ReportActionsList (body)', () => {
     });
 
     describe('Open-report telemetry', () => {
+        beforeEach(() => mockUseIsFocused.mockReturnValue(true));
+
+        it('ends the warm span when the positioned content replaces its cover', () => {
+            // Given cached messages whose initial list layout is still covered.
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockShouldCallLegendListOnLoad = false;
+            renderReportActionsList();
+            act(() => getCapturedListProps()?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 500}}})));
+            expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+            expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: true});
+
+            // When LegendList finishes positioning and the cover is removed.
+            act(() => getCapturedListProps()?.onReady?.());
+
+            // Then telemetry records visible content once, rather than the earlier hidden layout.
+            expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+            expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: true});
+            act(() => getCapturedListProps()?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 400}}})));
+            expect(mockMarkOpenReportEnd).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not wait for a background OpenReport request when reopening a hydrated report', () => {
+            // Given a report loaded earlier in this app session with a refresh still in flight.
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockHasOnceLoadedReportActions = true;
+            mockIsLoadingInitialReportActions = true;
+            mockUseIsReportLoadPending.mockReturnValue(true);
+            mockShouldCallLegendListOnLoad = false;
+            renderReportActionsList();
+
+            // When the cached list finishes positioning, before that request completes.
+            act(() => getCapturedListProps()?.onReady?.());
+
+            // Then the cover clears and visible-content telemetry ends immediately.
+            expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+            expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: true});
+        });
+
+        it('ends a new warm span when an already-positioned report regains focus', () => {
+            // Given a positioned report that remains mounted while another screen has focus.
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseIsFocused.mockReturnValue(false);
+            const view = renderReportActionsList();
+            expect(mockMarkOpenReportEnd).not.toHaveBeenCalled();
+
+            // When navigation returns without another list layout or OpenReport response.
+            mockUseIsFocused.mockReturnValue(true);
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    conciergeChat={undefined}
+                    onLayout={jest.fn()}
+                />,
+            );
+
+            // Then the visible cached content completes the new navigation span.
+            expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+            expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: true});
+        });
+
         it('fires markOpenReportEnd with warm:false while the initial skeleton shows', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
 

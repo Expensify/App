@@ -70,7 +70,7 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'r
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {LegendList} from '@legendapp/list/react-native';
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import {getCustomAgentAccountIDs} from '@selectors/AgentZeroChat';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
@@ -166,6 +166,7 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
  * mounts it only once content is ready, so those hooks never run while a skeleton shows.
  */
 function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportActionsListContentProps) {
+    const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
@@ -200,7 +201,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const sessionStartTime = useConciergeSessionStartTime();
 
-    const didLayout = useRef(false);
     const lastRequestedOldestActionIDRef = useRef<string | undefined>(undefined);
     const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true});
 
@@ -504,6 +504,16 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
     // Cover every initial LegendList layout, including cached chats, until the rows are positioned.
     const shouldShowInitialViewportSkeleton = !isOffline && (isInitialReportLoadPending || loadedInitialViewportListID !== listID);
+
+    useEffect(() => {
+        if (!isFocused || shouldShowInitialViewportSkeleton || loadedInitialViewportListID !== listID) {
+            return;
+        }
+        // onReady positions the list, but only this committed render has removed its cover.
+        // Refocus also completes new spans when the positioned list stays mounted.
+        markOpenReportEnd(reportID, report, {warm: true});
+    }, [isFocused, listID, loadedInitialViewportListID, report, reportID, shouldShowInitialViewportSkeleton]);
+
     const readyEndListIDRef = useRef<string | undefined>(undefined);
     const lastScrollMetricsRef = useRef<{offset: number; contentHeight: number; viewportHeight: number} | undefined>(undefined);
     const endCorrectionFrameRef = useRef<number | undefined>(undefined);
@@ -773,13 +783,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
             distanceFromBottomRef.current = distanceFromBottom;
         }
         scheduleEndCorrection();
-        if (didLayout.current) {
-            return;
-        }
-
-        didLayout.current = true;
-
-        markOpenReportEnd(reportID, report, {warm: true});
     };
 
     // The guard only mounts this content when the report is loaded, so this is effectively unreachable.
