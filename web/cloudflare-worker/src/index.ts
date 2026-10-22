@@ -1,4 +1,5 @@
-import {getCSP, NONCE_PLACEHOLDER} from './csp';
+import {NONCE_PLACEHOLDER} from './csp';
+import {generateNonce, setSecurityHeaders} from './security';
 
 /** Content-hashed build output (`main-<16 hex>.bundle.js`, `main.<10 hex>.css`, ...), emitted at the root of `dist/`. */
 const HASHED_ASSET_PATH = /^\/[^/]+(?:-[0-9a-f]{16}\.bundle\.js|\.[0-9a-f]{10}\.[a-z0-9]+)$/;
@@ -8,12 +9,6 @@ const STATIC_FILE_PATH = /\.(?:js|mjs|css|map|json|wasm|png|jpe?g|gif|webp|avif|
 
 const AASA_PATH = '/.well-known/apple-app-site-association';
 const LEGACY_AASA_PATH = '/apple-app-site-association';
-
-function generateNonce(): string {
-    const bytes = new Uint8Array(16);
-    crypto.getRandomValues(bytes);
-    return btoa(String.fromCharCode(...bytes));
-}
 
 function isHTMLResponse(response: Response): boolean {
     return response.headers.get('Content-Type')?.startsWith('text/html') ?? false;
@@ -40,16 +35,6 @@ function buildAssetRequest(request: Request, url: URL): Request {
         return request;
     }
     return new Request(assetURL, request);
-}
-
-function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'], nonce: string) {
-    headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    headers.set('Content-Security-Policy', getCSP(environment, nonce));
-    headers.set('X-Frame-Options', 'SAMEORIGIN');
-    headers.set('X-Content-Type-Options', 'nosniff');
-    headers.set('Referrer-Policy', 'origin-when-cross-origin');
-    // Used by react-native-release-profiler
-    headers.set('Document-Policy', 'js-profiling');
 }
 
 function getPreviousBuildFileHeaders(object: R2Object): Headers {
