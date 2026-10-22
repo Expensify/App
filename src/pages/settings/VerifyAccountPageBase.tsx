@@ -42,7 +42,6 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     // sometimes primaryLogin can be empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const contactMethod = (account?.primaryLogin || currentUserPersonalDetails.email) ?? '';
     const {translate} = useLocalize();
     const loginData = loginList?.[contactMethod];

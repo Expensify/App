@@ -232,7 +232,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so an empty fileName falls back to the default label
+        // Using || intentionally so an empty fileName falls back to the default label
         return focusPDFScrollerWhenReady(container, fileName || translate('attachmentView.unknownFilename'));
     }, [fileName, isFocused, isUsedAsChatAttachment, isUsedInAttachmentModal, shouldUsePDFGestureZoom, translate]);
 
@@ -310,7 +310,6 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
             onPress={() => onPress()}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
             accessibilityRole={CONST.ROLE.BUTTON}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
             sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.DOCUMENT}
         >
