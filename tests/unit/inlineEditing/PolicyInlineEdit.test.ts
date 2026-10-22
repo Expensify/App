@@ -231,6 +231,7 @@ describe('PolicyInlineEdit', () => {
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE,
                 expect.objectContaining({
+                    cardID: 10,
                     cardTitle: 'Travel card',
                 }),
                 expect.anything(),
