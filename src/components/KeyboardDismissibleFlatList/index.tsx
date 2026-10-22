@@ -11,7 +11,7 @@ import {useKeyboardDismissibleFlatListActions} from './KeyboardDismissibleFlatLi
 function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ref, ...restProps}: AnimatedFlatListWithCellRendererProps<T>) {
     const {onScroll: onScrollHandleKeyboard} = useKeyboardDismissibleFlatListActions();
 
-    const emitComposerScrollEvents = useEmitComposerScrollEvents();
+    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: !!restProps.inverted});
 
     const additionalOnScroll = useAnimatedScrollHandler({
         onScroll: emitComposerScrollEvents,

@@ -55,7 +55,7 @@ function HoverTarget({ref, ...props}: ViewProps & {ref?: React.Ref<HTMLElement>}
     return <View {...props} />;
 }
 
-describe('Composer scroll events on chronological lists', () => {
+describe('Composer scroll events on shared lists', () => {
     beforeEach(() => jest.useFakeTimers());
     afterEach(() => {
         jest.clearAllTimers();
@@ -68,7 +68,7 @@ describe('Composer scroll events on chronological lists', () => {
         ['MVCP FlatList', MVCPFlatList],
         ['keyboard dismissible FlatList', KeyboardDismissibleFlatList],
     ] as const)('%s suppresses hover throughout scrolling and forwards the scroll event', (_name, List) => {
-        // Given a chronological list, as used by expense chats after the migration.
+        // Given an inverted list that already emits composer scroll events.
         const emit = jest.spyOn(DeviceEventEmitter, 'emit');
         const onScroll = jest.fn();
         render(
@@ -77,7 +77,7 @@ describe('Composer scroll events on chronological lists', () => {
                     testID="chronological-list"
                     data={['message']}
                     renderItem={() => <View />}
-                    inverted={false}
+                    inverted
                     onScroll={onScroll}
                 />
                 <ActiveHoverable shouldHandleScroll>
@@ -112,6 +112,45 @@ describe('Composer scroll events on chronological lists', () => {
             [CONST.EVENTS.SCROLLING, false],
         ]);
         fireEvent(screen.getByTestId('hoverable-message'), 'mouseEnter');
+        expect(screen.getByTestId('hoverable-message').props.accessibilityLabel).toBe('hovered');
+    });
+
+    it.each([
+        ['FlashList', FlashList],
+        ['MVCP FlatList', MVCPFlatList],
+        ['keyboard dismissible FlatList', KeyboardDismissibleFlatList],
+    ] as const)('%s forwards non-inverted scrolling without changing global hover state', (_name, List) => {
+        // Given a non-inverted shared list and an unrelated hovered message.
+        const emit = jest.spyOn(DeviceEventEmitter, 'emit');
+        const onScroll = jest.fn();
+        render(
+            <>
+                <List
+                    testID="chronological-list"
+                    data={['message']}
+                    renderItem={() => <View />}
+                    inverted={false}
+                    onScroll={onScroll}
+                />
+                <ActiveHoverable shouldHandleScroll>
+                    {(isHovered) => (
+                        <HoverTarget
+                            testID="hoverable-message"
+                            accessibilityLabel={isHovered ? 'hovered' : 'idle'}
+                        />
+                    )}
+                </ActiveHoverable>
+            </>,
+        );
+        fireEvent(screen.getByTestId('hoverable-message'), 'mouseEnter');
+
+        // When that list scrolls and its scroll-end timer would have settled.
+        fireEvent.scroll(screen.getByTestId('chronological-list'), scrollEvent);
+        act(() => jest.advanceTimersByTime(250));
+
+        // Then its callback still runs without broadcasting a report scroll or clearing hover.
+        expect(onScroll).toHaveBeenCalledWith(scrollEvent);
+        expect(emit).not.toHaveBeenCalledWith(CONST.EVENTS.SCROLLING, expect.anything());
         expect(screen.getByTestId('hoverable-message').props.accessibilityLabel).toBe('hovered');
     });
 });
