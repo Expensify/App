@@ -3,27 +3,16 @@ import {getOneTransactionThreadReportID, withDEWRoutedActionsObject} from '@libs
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxInputOrEntry, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {OnyxInputOrEntry, ReportAction, ReportActions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {reportTypeAndParentIDsSelector} from '@selectors/Report';
 import {useMemo} from 'react';
 
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useReportTransactionsCollection from './useReportTransactionsCollection';
-
-function reportTypeSelector(report: OnyxEntry<Report>) {
-    return report?.type;
-}
-
-function chatReportIDSelector(report: OnyxEntry<Report>) {
-    return report?.chatReportID;
-}
-
-function parentReportIDSelector(report: OnyxEntry<Report>) {
-    return report?.parentReportID;
-}
 
 /**
  * This hook is for finding the "original reportID" for a given reportActionID. The reportID usually is the report we are looking at,
@@ -49,15 +38,13 @@ function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
         return Object.keys(withDEWRoutedActionsObject(actions)?.[reportActionID] ?? {}).length > 0;
     };
     const [reportActionBelongsCurrentReport = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: reportActionBelongsCurrentReportSelector});
-    const [reportType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportTypeSelector});
-    const [chatReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: chatReportIDSelector});
-    const [parentReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: parentReportIDSelector});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportTypeAndParentIDsSelector});
     const isThreadReportParentAction = reportAction?.childReportID?.toString() === reportID;
 
     // The full actions, chat report and transactions are only needed to find a merged transaction thread, so rows whose action is in the current report don't subscribe to them
     const lookupReportID = reportID && !reportActionBelongsCurrentReport && !isThreadReportParentAction && reportActionID ? reportID : undefined;
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lookupReportID}`, {selector: withDEWRoutedActionsObject});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lookupReportID ? chatReportID : undefined}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lookupReportID ? report?.chatReportID : undefined}`);
     const {isOffline} = useNetwork();
     const allReportTransactions = useReportTransactionsCollection(lookupReportID);
 
@@ -70,8 +57,8 @@ function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
         const visibleTransactionsIDs = getAllNonDeletedTransactions(allReportTransactions, Object.values(reportActions ?? {}))
             .filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map((transaction) => transaction.transactionID);
-        return getOneTransactionThreadReportID({type: reportType}, chatReport, reportActions ?? ([] as ReportAction[]), isOffline, visibleTransactionsIDs);
-    }, [lookupReportID, allReportTransactions, reportActions, reportType, chatReport, isOffline]);
+        return getOneTransactionThreadReportID({type: report?.type}, chatReport, reportActions ?? ([] as ReportAction[]), isOffline, visibleTransactionsIDs);
+    }, [lookupReportID, allReportTransactions, reportActions, report?.type, chatReport, isOffline]);
 
     const [uniqueTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${uniqueTransactionThreadReportID}`);
 
@@ -85,7 +72,7 @@ function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
 
     if (isThreadReportParentAction) {
         // This reportAction is the parent action of a thread report, so the original reportID is the parentReportID
-        return parentReportID;
+        return report?.parentReportID;
     }
 
     // If we have a uniqueTransactionThreadReportID, then we are viewing an expense report with a single transaction and merging reportActions
