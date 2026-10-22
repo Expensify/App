@@ -8,7 +8,7 @@ import {View} from 'react-native';
 
 import type TabBarBottomContentProps from './types';
 
-import {NavigatorTabBarVisibleContext} from './NavigatorTabBarVisibilityContext';
+import {NavigatorTabBarVisibleContext} from './NavigatorTabBarVisibilityProvider';
 
 /**
  * A copy of the floating tab bar in a tab root screen's own layout, so the screen's content ends above the bar the
@@ -27,6 +27,7 @@ function TabBarBottomContent({selectedTab}: TabBarBottomContentProps) {
         <View
             style={[styles.floatingTabBarBottomInset, isNavigatorTabBarVisible && styles.opacity0]}
             pointerEvents={isNavigatorTabBarVisible ? 'none' : 'auto'}
+            aria-hidden={isNavigatorTabBarVisible}
         >
             <NavigationTabBar
                 selectedTab={selectedTab}

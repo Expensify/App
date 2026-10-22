@@ -2,7 +2,7 @@ import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingView
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
-import {SetNavigatorTabBarVisibleContext} from '@components/Navigation/TabBarBottomContent/NavigatorTabBarVisibilityContext';
+import {SetNavigatorTabBarVisibleContext} from '@components/Navigation/TabBarBottomContent/NavigatorTabBarVisibilityProvider';
 
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';

@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import NavigatorTabBarVisibilityProvider from '@components/Navigation/TabBarBottomContent/NavigatorTabBarVisibilityContext';
+import NavigatorTabBarVisibilityProvider from '@components/Navigation/TabBarBottomContent/NavigatorTabBarVisibilityProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
