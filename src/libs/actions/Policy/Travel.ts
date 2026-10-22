@@ -1,18 +1,19 @@
 import * as API from '@libs/API';
-import type {EnablePolicyTravelParams, SetPolicyTravelSettingsParams} from '@libs/API/parameters';
+import type {EnablePolicyTravelParams, SetPolicyTravelMemberAccessParams, SetPolicyTravelSettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getObjectKeys} from '@libs/ObjectUtils';
-import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {canMemberUseTravel, goBackWhenEnableFeature} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ErrorFields, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -135,4 +136,99 @@ function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: 
     API.write(WRITE_COMMANDS.SET_POLICY_TRAVEL_SETTINGS, parameters, onyxData);
 }
 
-export {enablePolicyTravel, setPolicyTravelSettings};
+type TravelMemberAccessTarget = {
+    /** The member's login, used as the employeeList key. */
+    email: string;
+
+    /** The member's accountID, which the server matches the member by. */
+    accountID: number;
+};
+
+/**
+ * Turn travel booking on or off for one or more workspace members. The single command covers both a member's own
+ * toggle and the toggle for every member. A workspace where every member can book starts limiting travel to enabled
+ * members the first time an admin turns someone off, and the server marks every other member as enabled so their
+ * access doesn't change. That switch is applied optimistically too, so the list doesn't flicker while the request runs.
+ */
+function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, members: TravelMemberAccessTarget[], enabled: boolean) {
+    const policyID = policy?.id;
+    if (!policyID) {
+        return;
+    }
+    const isRestricted = !!policy?.travelSettings?.restrictToEnabledMembers;
+    const employeeList = policy?.employeeList ?? {};
+
+    const targets = members.filter((member) => !!employeeList[member.email] && canMemberUseTravel(policy, member.email) !== enabled);
+    if (targets.length === 0) {
+        return;
+    }
+
+    const employeeListOptimisticUpdate: Record<string, NullishDeep<OnyxTypes.PolicyEmployee>> = {};
+    const employeeListSuccessUpdate: Record<string, NullishDeep<OnyxTypes.PolicyEmployee>> = {};
+    const employeeListFailureUpdate: Record<string, NullishDeep<OnyxTypes.PolicyEmployee>> = {};
+    for (const target of targets) {
+        employeeListOptimisticUpdate[target.email] = {
+            canUseTravel: enabled,
+            pendingFields: {canUseTravel: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        };
+        employeeListSuccessUpdate[target.email] = {pendingFields: {canUseTravel: null}};
+        employeeListFailureUpdate[target.email] = {
+            canUseTravel: employeeList[target.email]?.canUseTravel ?? null,
+            pendingFields: {canUseTravel: null},
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+        };
+    }
+
+    if (!isRestricted) {
+        const targetEmails = new Set(targets.map((target) => target.email));
+        for (const [email, employee] of Object.entries(employeeList)) {
+            if (targetEmails.has(email) || isEmptyValueObject(employee)) {
+                continue;
+            }
+            employeeListOptimisticUpdate[email] = {canUseTravel: true};
+            employeeListFailureUpdate[email] = {canUseTravel: employee.canUseTravel ?? null};
+        }
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    employeeList: employeeListOptimisticUpdate,
+                    ...(!isRestricted && {travelSettings: {restrictToEnabledMembers: true}}),
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {employeeList: employeeListSuccessUpdate},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    employeeList: employeeListFailureUpdate,
+                    ...(!isRestricted && {travelSettings: {restrictToEnabledMembers: null}}),
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyTravelMemberAccessParams = {
+        policyID,
+        employeeAccountIDList: targets.map((target) => target.accountID).join(','),
+        enabled,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS, parameters, onyxData);
+}
+
+export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelMemberAccess};
+export type {TravelMemberAccessTarget};
