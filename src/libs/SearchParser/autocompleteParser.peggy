@@ -113,6 +113,7 @@ autocompleteKey "key"
       / reimbursable
       / billable
       / declined
+      / held
       / policyID
       / action
       / date

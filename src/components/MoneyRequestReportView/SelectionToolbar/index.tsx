@@ -1,16 +1,16 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useShouldShowReportBulkActionBar from '@components/MoneyRequestReportView/useShouldShowReportBulkActionBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
-import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
+import {ReportSubmitToPopoverMeasurableAnchor, ReportSubmitToPopoverRoot} from '@components/ReportSubmitToPopoverAnchor';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDecisionModal from '@hooks/useDecisionModal';
 import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
+import useHoldRejectEducationalModal from '@hooks/useHoldRejectEducationalModal';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -38,10 +38,8 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {ValueOf} from 'type-fest';
-
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import SelectAllCheckbox from './SelectAllCheckbox';
@@ -108,8 +106,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             secondOptionText: translate('common.buttonConfirm'),
         });
     };
-
-    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK> | null>(null);
 
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
     // Select All skips rejected expenses as well as ones being deleted, since their checkboxes are disabled. The list header and group headers use the same filter.
@@ -217,6 +213,19 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         selectedTransactionIDs,
     });
 
+    const dismissRejectModalAndOpenBulkReject = () => {
+        dismissRejectUseExplanation();
+        if (report?.reportID) {
+            Navigation.navigate(
+                ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({
+                    reportID: report.reportID,
+                }),
+            );
+        }
+    };
+
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal();
+
     const selectedTransactionsOptions = (() => {
         const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
             if (option.value === CONST.REPORT.SECONDARY_ACTIONS.REJECT) {
@@ -231,7 +240,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                         if (dismissedRejectUseExplanation) {
                             option.onSelected?.();
                         } else {
-                            setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK);
+                            showHoldOrRejectEducationalModal().finally(dismissRejectModalAndOpenBulkReject);
                         }
                     },
                 };
@@ -246,20 +255,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     })();
 
     const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
-
-    const dismissRejectModalBasedOnAction = () => {
-        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
-            dismissRejectUseExplanation();
-            if (report?.reportID) {
-                Navigation.navigate(
-                    ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({
-                        reportID: report.reportID,
-                    }),
-                );
-            }
-        }
-        setRejectModalAction(null);
-    };
 
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
     // Same check that decides whether Submit, Approve and Pay are offered, so the checkbox reads fully checked exactly when they are.
@@ -282,7 +277,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     <View
                         style={[isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn]}
                     >
-                        <ReportSubmitToPopoverAnchor reportID={reportID}>
+                        <ReportSubmitToPopoverMeasurableAnchor>
                             <SelectionDropdown
                                 hasPayInSelectionMode={hasPayInSelectionMode}
                                 chatReport={chatReport}
@@ -296,7 +291,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                                 kycWallRef={kycWallRef}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
                             />
-                        </ReportSubmitToPopoverAnchor>
+                        </ReportSubmitToPopoverMeasurableAnchor>
 
                         <SelectAllCheckbox
                             isSelectAllChecked={isSelectAllChecked}
@@ -319,12 +314,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     onWorkspacePolicySelect={handleWorkspaceSelected}
                     kycWallRef={kycWallRef}
                     onClearSelection={() => clearSelectedTransactions(true)}
-                />
-            )}
-            {!!rejectModalAction && (
-                <HoldOrRejectEducationalModal
-                    onClose={dismissRejectModalBasedOnAction}
-                    onConfirm={dismissRejectModalBasedOnAction}
                 />
             )}
             {isHoldMenuVisible && requestType !== undefined && (
@@ -363,12 +352,16 @@ function SelectionToolbarGate({reportID, transactions, reportActions}: Selection
         return null;
     }
 
+    // The toolbar's own hooks open the submit-to popover for bulk Submit, so its provider has to sit above the toolbar.
+    // The bulk action bar and the selection dropdown mark themselves as its anchor.
     return (
-        <SelectionToolbar
-            reportID={reportID}
-            transactions={transactions}
-            reportActions={reportActions}
-        />
+        <ReportSubmitToPopoverRoot reportID={reportID}>
+            <SelectionToolbar
+                reportID={reportID}
+                transactions={transactions}
+                reportActions={reportActions}
+            />
+        </ReportSubmitToPopoverRoot>
     );
 }
 

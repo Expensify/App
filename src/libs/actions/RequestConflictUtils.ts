@@ -115,9 +115,7 @@ function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persis
             // ReportFetchHandler when the screen mounts has no participants. Replacing would drop the
             // accountIDList, leaving the server with no way to resolve the optimistic reportID — Auth
             // returns NIL reportSummary and PHP throws "Report not found" (da7984df).
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const queuedHasParticipants = !!(request.data?.emailList || request.data?.accountIDList);
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const newHasParticipants = !!(parameters.emailList || parameters.accountIDList);
             if (queuedHasParticipants && !newHasParticipants) {
                 return {

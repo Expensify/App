@@ -75,6 +75,7 @@ function DynamicIOURequestStepDescription({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
@@ -167,6 +168,7 @@ function DynamicIOURequestStepDescription({
                 policy,
                 policyTagList: policyTags,
                 policyCategories,
+                policyVendors,
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,

@@ -324,6 +324,7 @@ key "key"
       / reimbursable
       / billable
       / declined
+      / held
       / action
       / has
       / is
