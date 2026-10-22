@@ -121,7 +121,7 @@ If you are creating expenses on a Workspace:
 - When creating a Distance expense, the available reimbursement rates will show for selection.
 - When a Workspace has multiple rates with effective dates, Expensify automatically applies the rate whose date range matches the expense date, so you don't need to pick the right one manually.
 
-[Learn how to manage distance rates as a Workspace Admin](/articles/new-expensify/reports-and-expenses/Managing-Distance-Rates)
+[Learn how to manage distance rates as a Workspace Admin](/articles/new-expensify/workspaces/Set-distance-rates)
 
 ### Distance expenses created outside of a Workspace
 
