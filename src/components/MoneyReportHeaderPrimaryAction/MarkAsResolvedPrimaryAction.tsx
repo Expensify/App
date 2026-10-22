@@ -17,7 +17,7 @@ import type {SimpleActionProps} from './types';
 
 import useTransactionThreadData from './useTransactionThreadData';
 
-function MarkAsResolvedPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
+function MarkAsResolvedPrimaryAction({reportID, chatReportID, isDisabled}: SimpleActionProps) {
     const {translate} = useLocalize();
     const {transaction, transactionThreadReport} = useTransactionThreadData(reportID, chatReportID);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
@@ -27,6 +27,7 @@ function MarkAsResolvedPrimaryAction({reportID, chatReportID}: SimpleActionProps
     return (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
+            isDisabled={isDisabled}
             onPress={() => {
                 if (!transaction?.transactionID) {
                     return;

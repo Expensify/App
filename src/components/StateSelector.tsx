@@ -8,7 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -36,7 +36,7 @@ type StateSelectorProps = {
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, ref}: StateSelectorProps) {
@@ -83,7 +83,6 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
             shouldShowRightIcon
             title={title}
             // Label can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             description={label || translate('common.state')}
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}

@@ -1,4 +1,4 @@
-import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import moveInitialSelectionToTop, {shouldMoveInitialSelectionToTop} from '@libs/SelectionListOrderUtils';
 
 import CONST from '@src/CONST';
 
@@ -84,6 +84,17 @@ describe('SelectionListOrderUtils', () => {
             const items = buildItems(CONST.STANDARD_LIST_ITEM_LIMIT);
 
             expect(valuesOf(moveInitialSelectionToTop(items, valuesOf(items)))).toEqual(valuesOf(items));
+        });
+    });
+
+    describe('shouldMoveInitialSelectionToTop', () => {
+        it('applies the pin only once the list reaches the global threshold (boundary is inclusive)', () => {
+            // Given item counts just below, at, and above the threshold
+            // When checking whether the pin applies to each
+            // Then only the counts at or above the threshold pin, matching moveInitialSelectionToTop's early return
+            expect(shouldMoveInitialSelectionToTop(CONST.STANDARD_LIST_ITEM_LIMIT - 1)).toBe(false);
+            expect(shouldMoveInitialSelectionToTop(CONST.STANDARD_LIST_ITEM_LIMIT)).toBe(true);
+            expect(shouldMoveInitialSelectionToTop(CONST.STANDARD_LIST_ITEM_LIMIT + 1)).toBe(true);
         });
     });
 });

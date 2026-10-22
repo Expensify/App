@@ -19,6 +19,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
@@ -53,7 +54,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
     };
 
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
 
     const handleOnContentSizeChange = useCallback(() => {
         if (!shouldScrollToBottom) {

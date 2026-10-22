@@ -33,6 +33,7 @@ type ConciergeDraft = {
 
 type BuildConciergeDraftReportActionParams = {
     actorAccountID?: number;
+    accountIDToName?: Record<string, string>;
     bodyMarkdown?: string;
     created: string;
     finalRenderedHTML?: string;
@@ -585,6 +586,7 @@ function stripIncompleteMarkdown(markdown: string): string {
 
 function buildConciergeDraftReportAction({
     actorAccountID,
+    accountIDToName,
     bodyMarkdown,
     created,
     finalRenderedHTML,
@@ -592,7 +594,11 @@ function buildConciergeDraftReportAction({
     reportID,
     isGroupPolicyReport,
 }: BuildConciergeDraftReportActionParams): ReportAction | null {
-    const html = finalRenderedHTML ?? (bodyMarkdown ? getParsedComment(stripIncompleteMarkdown(bodyMarkdown), {reportID}, undefined, undefined, isGroupPolicyReport) : '');
+    // ExpensiMark escapes entities that the server renders as literal text. Keep the
+    // canonical Markdown for pacing, but wait for final HTML from the first ampersand.
+    const ampersandIndex = bodyMarkdown?.indexOf('&') ?? -1;
+    const visibleBodyMarkdown = ampersandIndex === -1 ? bodyMarkdown : bodyMarkdown?.slice(0, ampersandIndex);
+    const html = finalRenderedHTML ?? (visibleBodyMarkdown ? getParsedComment(stripIncompleteMarkdown(visibleBodyMarkdown), {reportID}, undefined, undefined, isGroupPolicyReport) : '');
 
     if (!html) {
         return null;
@@ -608,7 +614,7 @@ function buildConciergeDraftReportAction({
         actorAccountID: resolvedActorAccountID,
         person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
         created,
-        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html, text: Parser.htmlToText(html)}],
+        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html, text: Parser.htmlToText(html, {accountIDToName})}],
         originalMessage: {html, whisperedTo: []},
         shouldShow: true,
     } as ReportAction;
@@ -683,7 +689,13 @@ function setCachedDraft(reportID: string, draft: ConciergeDraft | null): void {
     }
 }
 
-function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: ConciergeDraftEvent, reportID: string, isGroupPolicyReport: boolean): ConciergeDraft | null {
+function applyConciergeDraftEvent(
+    currentDraft: ConciergeDraft | null,
+    event: ConciergeDraftEvent,
+    reportID: string,
+    isGroupPolicyReport: boolean,
+    accountIDToName?: Record<string, string>,
+): ConciergeDraft | null {
     if (event.reportID !== reportID) {
         return currentDraft;
     }
@@ -705,6 +717,7 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     const nextReportAction =
         buildConciergeDraftReportAction({
             actorAccountID: event.actorAccountID,
+            accountIDToName,
             bodyMarkdown: event.bodyMarkdown,
             created: event.created,
             finalRenderedHTML: event.finalRenderedHTML,

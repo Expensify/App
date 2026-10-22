@@ -5,6 +5,7 @@ import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyReportHeaderActions from '@components/MoneyReportHeaderActions';
 
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useMoneyReportHeaderMoreContentVisibility from '@hooks/useMoneyReportHeaderMoreContentVisibility';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -34,6 +35,9 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNavigation,
         __esModule: true,
+        // The header only turns the shared selection mode off while it is the focused screen, and these tests render
+        // it on its own rather than inside a navigator.
+        useIsFocused: () => true,
         useRoute: () => {
             const SCREENS_MOCK = jest.requireActual<{default: typeof SCREENS}>('@src/SCREENS').default;
             return {key: 'rhp-route-key', name: SCREENS_MOCK.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, params: {reportID: REPORT_ID}};
@@ -53,6 +57,12 @@ jest.mock('@components/HeaderWithBackButton', () => {
 jest.mock('@components/MoneyReportHeaderActions', () => jest.fn(() => null));
 jest.mock('@components/MoneyReportHeaderMoreContent', () => jest.fn(() => null));
 jest.mock('@components/HeaderLoadingBar', () => jest.fn(() => null));
+
+// The route mocked above is a search route, so the wide branch of the header renders the report carousel beside the
+// title. These tests are about which header branch renders, not about the arrows, and the real carousels read the
+// search contexts and Onyx directly, which the mocks below deliberately do not provide.
+jest.mock('@components/MoneyRequestReportView/MoneyRequestReportNavigation', () => jest.fn(() => null));
+jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation', () => jest.fn(() => null));
 
 // The modal host and the payment animation provider only wrap the content, so render each as a plain
 // wrapper that yields its children instead of wiring up their full Onyx/context dependency chains.
@@ -76,6 +86,10 @@ jest.mock('@components/Search/SearchContext', () => ({__esModule: true, useSearc
 jest.mock('@libs/actions/MobileSelectionMode', () => ({__esModule: true, turnOffMobileSelectionMode: jest.fn(), turnOnMobileSelectionMode: jest.fn()}));
 
 jest.mock('@hooks/useMobileSelectionMode', () => jest.fn());
+// The more-content row decides whether the actions sit in the header row or under it. These tests are about the
+// selection-mode branch rather than that placement, and the row's real visibility is derived from the filler
+// transactions below, so it is pinned to "nothing to show" and the actions stay in the header row.
+jest.mock('@hooks/useMoneyReportHeaderMoreContentVisibility', () => jest.fn());
 jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
@@ -88,6 +102,7 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: s
 const mockHeaderWithBackButton = jest.mocked(HeaderWithBackButton);
 const mockMoneyReportHeaderActions = jest.mocked(MoneyReportHeaderActions);
 const mockUseMobileSelectionMode = jest.mocked(useMobileSelectionMode);
+const mockUseMoneyReportHeaderMoreContentVisibility = jest.mocked(useMoneyReportHeaderMoreContentVisibility);
 const mockUseNetwork = jest.mocked(useNetwork);
 const mockUseOnyx = jest.mocked(useOnyx);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
@@ -185,6 +200,7 @@ describe('MoneyReportHeader selection mode header', () => {
 
         mockUseNetwork.mockReturnValue({isOffline: false});
         mockUseMobileSelectionMode.mockReturnValue(true);
+        mockUseMoneyReportHeaderMoreContentVisibility.mockReturnValue({statusBarType: undefined, shouldShowNextStep: false, hasStatusOrNextStep: false});
         mockUseOnyx.mockImplementation((key) => {
             if (key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`) {
                 return createOnyxResult<Report>(report);
@@ -333,6 +349,43 @@ describe('MoneyReportHeader selection mode header', () => {
 
             expect(mockTurnOffMobileSelectionMode).toHaveBeenCalled();
             expect(lastHeaderTitle()).toBeUndefined();
+        });
+
+        describe('when the user chose the table view for single-expense reports', () => {
+            beforeEach(() => {
+                mockUseOnyx.mockImplementation((key) => {
+                    if (key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`) {
+                        return createOnyxResult<Report>(report);
+                    }
+                    if (key === ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW) {
+                        return createOnyxResult(CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
+                    }
+                    return createOnyxResult(undefined);
+                });
+            });
+
+            it('keeps selection mode on in a narrow window when a single transaction is left', () => {
+                // Given a single-expense report that shows its expense in the table, where a row can be selected
+                mockTransactions([null]);
+
+                // When the header renders with selection mode on
+                renderHeader();
+
+                // Then selection mode stays on, so the user can select the only row
+                expect(mockTurnOffMobileSelectionMode).not.toHaveBeenCalled();
+                expect(lastHeaderTitle()).toBe('common.selectMultiple');
+            });
+
+            it('turns selection mode off in a narrow window when no transactions are left', () => {
+                // Given the report's only expense was deleted, so there is no row left to select
+                mockTransactions([CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE]);
+
+                // When the header renders with selection mode on
+                renderHeader();
+
+                // Then selection mode is turned off
+                expect(mockTurnOffMobileSelectionMode).toHaveBeenCalled();
+            });
         });
     });
 });

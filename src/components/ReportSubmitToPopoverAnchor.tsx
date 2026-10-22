@@ -4,7 +4,7 @@ import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPop
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
@@ -22,11 +22,11 @@ const ReportSubmitToPopoverContext = createContext<OpenReportSubmitToPopover>(()
     // Default: no provider (tests / edge UI). Opening is a no-op.
 });
 
-const ReportSubmitToPopoverAnchorRefContext = createContext<RefObject<View | null> | null>(null);
+const ReportSubmitToPopoverAnchorRefContext = createContext<RefObject<ComponentRef<typeof View> | null> | null>(null);
 
 type ReportSubmitToPopoverHostContextValue = {
-    registerAnchor: (reportID: string | undefined, anchorRef: RefObject<View | null>) => () => void;
-    openReportSubmitToPopover: (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions, anchorRef?: RefObject<View | null>) => void;
+    registerAnchor: (reportID: string | undefined, anchorRef: RefObject<ComponentRef<typeof View> | null>) => () => void;
+    openReportSubmitToPopover: (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions, anchorRef?: RefObject<ComponentRef<typeof View> | null>) => void;
 };
 
 const ReportSubmitToPopoverHostContext = createContext<ReportSubmitToPopoverHostContextValue | null>(null);
@@ -57,6 +57,11 @@ function SearchSubmitPopoverGuardProvider({guard, children}: {guard: SearchSubmi
 
 function useOpenReportSubmitToPopover(): OpenReportSubmitToPopover {
     return useContext(ReportSubmitToPopoverContext);
+}
+
+/** The ref the submit-to popover measures, for anchors that can't be wrapped in {@link ReportSubmitToPopoverMeasurableAnchor}. */
+function useReportSubmitToPopoverAnchorRef() {
+    return useContext(ReportSubmitToPopoverAnchorRefContext);
 }
 
 /** Opens the shared Search submit-to popover for a report (e.g. bulk actions outside a list row). */
@@ -92,12 +97,12 @@ type ReportSubmitToPopoverHostProps = {
  * a Modal inside each FlashList cell (iOS only showed the backdrop when the modal lived in a recycled row).
  */
 function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPopoverHostProps) {
-    const anchorRegistryRef = useRef<Map<string, Set<RefObject<View | null>>>>(new Map());
-    const activeAnchorRefRef = useRef<RefObject<View | null> | null>(null);
+    const anchorRegistryRef = useRef<Map<string, Set<RefObject<ComponentRef<typeof View> | null>>>>(new Map());
+    const activeAnchorRefRef = useRef<RefObject<ComponentRef<typeof View> | null> | null>(null);
     const [activeReportID, setActiveReportID] = useState<string | undefined>();
-    const pendingOpenRef = useRef<{reportID: string; options?: ReportSubmitToPopoverOpenOptions; anchorRef?: RefObject<View | null>} | null>(null);
+    const pendingOpenRef = useRef<{reportID: string; options?: ReportSubmitToPopoverOpenOptions; anchorRef?: RefObject<ComponentRef<typeof View> | null>} | null>(null);
 
-    const registerAnchor = useCallback((reportID: string | undefined, anchorRef: RefObject<View | null>) => {
+    const registerAnchor = useCallback((reportID: string | undefined, anchorRef: RefObject<ComponentRef<typeof View> | null>) => {
         if (!reportID) {
             return () => {};
         }
@@ -162,7 +167,7 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
     );
 
     const openReportSubmitToPopoverForHost = useCallback(
-        (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions, anchorRef?: RefObject<View | null>) => {
+        (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions, anchorRef?: RefObject<ComponentRef<typeof View> | null>) => {
             if (!reportID) {
                 return;
             }
@@ -236,7 +241,7 @@ function ReportSubmitToPopoverRoot({reportID, onSubmitSuccess, anchorAlignment, 
 }
 
 function ReportSubmitToPopoverRootWithHost({reportID, host, children}: {reportID: string | undefined; host: ReportSubmitToPopoverHostContextValue; children: React.ReactNode}) {
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     useEffect(() => host.registerAnchor(reportID, anchorRef), [host, reportID]);
 
@@ -322,5 +327,6 @@ export {
     SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
     useOpenReportSubmitToPopover,
     useOpenSearchReportSubmitToPopover,
+    useReportSubmitToPopoverAnchorRef,
     useSearchSubmitPopoverGuard,
 };

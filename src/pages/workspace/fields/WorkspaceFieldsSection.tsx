@@ -1,17 +1,18 @@
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
@@ -106,7 +107,7 @@ function WorkspaceFieldsSection({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPadding, cardPaddingHorizontal, cardEdgeToEdge} = useLayoutSpacing();
     const {showConfirmModal} = useConfirmModal();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
@@ -165,7 +166,7 @@ function WorkspaceFieldsSection({
         ({item}: ListRenderItemInfo<FieldListItem>) => (
             <OfflineWithFeedback pendingAction={item.pendingAction}>
                 <MenuItem
-                    style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                    style={cardPaddingHorizontal}
                     onPress={() => navigateToFieldSettings(item)}
                     description={item.text}
                     disabled={item.isDisabled}
@@ -176,7 +177,7 @@ function WorkspaceFieldsSection({
                 />
             </OfflineWithFeedback>
         ),
-        [canWrite, navigateToFieldSettings, shouldUseNarrowLayout, styles.ph5, styles.ph8, styles.popoverMenuText, styles.textStrong],
+        [canWrite, navigateToFieldSettings, cardPaddingHorizontal, styles.popoverMenuText, styles.textStrong],
     );
 
     const headerText =
@@ -216,7 +217,7 @@ function WorkspaceFieldsSection({
     return (
         <Section
             isCentralPane
-            containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+            containerStyles={cardPadding}
         >
             <ToggleSettingOptionRow
                 pendingAction={pendingAction}
@@ -257,7 +258,7 @@ function WorkspaceFieldsSection({
                 subMenuItems={
                     isEnabled && (
                         <>
-                            <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6]}>
+                            <View style={[cardEdgeToEdge, styles.mt6]}>
                                 {!isLoading && (
                                     <FlashList
                                         data={fields}
@@ -268,15 +269,21 @@ function WorkspaceFieldsSection({
                                 )}
                             </View>
                             {canWrite && (
-                                <MenuItem
+                                <MenuItemSectionRoot
                                     onPress={() => {
                                         setInitialCreateReportFieldsForm();
                                         Navigation.navigate(createRoute);
                                     }}
-                                    title={translate(addFieldKey)}
-                                    icon={icons.Plus}
-                                    style={[styles.sectionMenuItemTopDescription]}
-                                />
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItem.Leading>
+                                            <MenuItem.Icon src={icons.Plus} />
+                                        </MenuItem.Leading>
+                                        <MenuItem.Content>
+                                            <MenuItem.Title>{translate(addFieldKey)}</MenuItem.Title>
+                                        </MenuItem.Content>
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             )}
                         </>
                     )

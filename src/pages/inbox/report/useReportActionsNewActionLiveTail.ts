@@ -3,7 +3,8 @@ import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import type useReportScrollManager from '@hooks/useReportScrollManager';
 
 import type {OpenReportActionParams} from '@libs/actions/Report';
-import {openReport, pruneReportActionPagesToNewestWindow, subscribeToNewActionEvent} from '@libs/actions/Report';
+import {openReport, pruneReportActionPagesToNewestWindow} from '@libs/actions/Report';
+import {subscribeToNewActionEvent} from '@libs/actions/Report/reportActionSubscribers';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -12,7 +13,6 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -36,7 +36,6 @@ type RAMOnlyReportLoadingState = OnyxEntry<{
 type UseReportActionsNewActionLiveTailParams = {
     reportID: string;
     introSelected: OpenReportActionParams['introSelected'];
-    betas: OpenReportActionParams['betas'];
     conciergeChat: OpenReportActionParams['conciergeChat'];
     isSelfTourViewed: OpenReportActionParams['isSelfTourViewed'];
     hasCompletedGuidedSetupFlow: OpenReportActionParams['hasCompletedGuidedSetupFlow'];
@@ -69,7 +68,6 @@ function useReportActionsNewActionLiveTail({
     conciergeChat,
     reportID,
     introSelected,
-    betas,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
     isOffline,
@@ -102,18 +100,13 @@ function useReportActionsNewActionLiveTail({
                 if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
                     return;
                 }
-                if (!hasNewestReportAction && !isFromCurrentUser) {
-                    if (Navigation.getReportRHPActiveRoute()) {
-                        return;
-                    }
-                    Navigation.setNavigationActionToMicrotaskQueue(() => {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-                    });
-                    return;
-                }
 
+                // An unread marker only needs openReport when the newest actions are not loaded yet. When they are, they are
+                // just off-screen, so scroll to them directly instead of waiting on a network round trip.
                 const shouldJumpToLiveTail =
-                    !isOffline && action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (hasNewerActions || !!linkedReportActionID || unreadMarkerReportActionID);
+                    !isOffline &&
+                    action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+                    (hasNewerActions || !!linkedReportActionID || (!!unreadMarkerReportActionID && !hasNewestReportAction));
 
                 if (shouldJumpToLiveTail) {
                     if (liveTailJumpRef.current.stage === 'idle') {
@@ -122,7 +115,6 @@ function useReportActionsNewActionLiveTail({
                             reportID,
                             introSelected,
                             conciergeChat,
-                            betas,
                             hasReportActions: true,
                             currentUserAccountID,
                             isSelfTourViewed,

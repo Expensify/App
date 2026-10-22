@@ -83,7 +83,7 @@ describe('OnboardingEmployees Page', () => {
         jest.clearAllMocks();
     });
 
-    it('should display 1-4 and 5-10 options and hide legacy 1-10 when the signupQualifier is not smb', async () => {
+    it('should display 1-4 and 5-9 options and hide legacy 1-10 when the signupQualifier is not smb', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -99,7 +99,7 @@ describe('OnboardingEmployees Page', () => {
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL}`))).toBeOnTheScreen();
             expect(screen.getByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM}`))).toBeOnTheScreen();
-            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO}`))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO}`))).not.toBeOnTheScreen();
         });
 
         unmount();
@@ -107,7 +107,7 @@ describe('OnboardingEmployees Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should display only 1-4 and 5-10 options when the signupQualifier is vsb', async () => {
+    it('should display only 1-4 and 5-9 options when the signupQualifier is vsb', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -124,7 +124,7 @@ describe('OnboardingEmployees Page', () => {
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL}`))).toBeOnTheScreen();
             expect(screen.getByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM}`))).toBeOnTheScreen();
-            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO}`))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO}`))).not.toBeOnTheScreen();
             expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.SMALL}`))).not.toBeOnTheScreen();
             expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL}`))).not.toBeOnTheScreen();
             expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MEDIUM}`))).not.toBeOnTheScreen();
@@ -212,7 +212,7 @@ describe('OnboardingEmployees Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should hide 1-4, 5-10, and legacy 1-10 options when the signupQualifier is smb', async () => {
+    it('should hide 1-4, 5-9, and legacy 1-10 options when the signupQualifier is smb', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -229,7 +229,7 @@ describe('OnboardingEmployees Page', () => {
         await waitFor(() => {
             expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL}`))).not.toBeOnTheScreen();
             expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM}`))).not.toBeOnTheScreen();
-            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO}`))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO}`))).not.toBeOnTheScreen();
         });
 
         unmount();

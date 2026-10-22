@@ -5,6 +5,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PopoverMenu from '@components/PopoverMenu';
@@ -28,11 +29,11 @@ import useSearchResults from '@hooks/useSearchResults';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearDelegateErrorsByField, openSecuritySettingsPage, removeDelegate, removeDelegator} from '@libs/actions/Delegate';
+import {clearDelegateErrorsByField, openSecuritySettingsPage, removeDelegate, removeDelegator, removeSelfAsDelegate} from '@libs/actions/Delegate';
 import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
-import {sortAlphabetically} from '@libs/OptionsListUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
@@ -48,7 +49,7 @@ import type Account from '@src/types/onyx/Account';
 import type {Delegate, DelegateRole} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
 import debounce from 'lodash/debounce';
@@ -91,6 +92,8 @@ function CopilotPage() {
     const isAgentAccount = useIsAgentAccount();
     const actingDelegateEmail = account?.delegatedAccess?.delegate?.toLowerCase();
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
+    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const isUserValidated = account?.validated;
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
     const switchToDelegator = useSwitchToDelegator();
@@ -258,8 +261,9 @@ function CopilotPage() {
     const delegateMenuItems: MenuItemProps[] = useMemo(() => {
         return filteredDelegates.map(({email, role, pendingAction, pendingFields}) => {
             const personalDetail = personalDetailsByLogin[email.toLowerCase()];
-            const addDelegateErrors = errorFields?.addDelegate?.[email];
-            const error = getLatestError(addDelegateErrors);
+            const addDelegateError = getLatestError(errorFields?.addDelegate?.[email]);
+            const removeDelegateError = getLatestError(errorFields?.removeDelegate?.[email]);
+            const error = getLatestError({...addDelegateError, ...removeDelegateError});
             const isOwnerRow = isAgentAccount === true && !!actingDelegateEmail && email.toLowerCase() === actingDelegateEmail;
             const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -292,7 +296,10 @@ function CopilotPage() {
                 shouldShowRightIcon: !isOwnerRow && !isPendingDelete,
                 pendingAction,
                 shouldForceOpacity: !!pendingAction,
-                onPendingActionDismiss: () => clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess}),
+                onPendingActionDismiss: () => {
+                    clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess});
+                    clearDelegateErrorsByField({email, fieldName: 'removeDelegate', delegatedAccess: account?.delegatedAccess});
+                },
                 error,
                 disabled: isPendingDelete,
                 onPress: isOwnerRow ? undefined : onPress,
@@ -394,7 +401,16 @@ function CopilotPage() {
                                 showDelegateNoAccessModal();
                                 return;
                             }
-                            removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
+                            if (selectedDelegate?.email === account?.delegatedAccess?.delegate && isActingAsDelegate) {
+                                removeSelfAsDelegate({
+                                    delegatorEmail: session?.email ?? '',
+                                    delegateEmail: selectedDelegate?.email ?? '',
+                                    stashedCredentials,
+                                    stashedSession,
+                                });
+                            } else {
+                                removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
+                            }
                             setSelectedDelegate(undefined);
                         }
                     });
@@ -440,7 +456,7 @@ function CopilotPage() {
         openSecuritySettingsPage();
     }, []);
 
-    const delegateAnchorRef = delegateButtonRef as RefObject<View | null>;
+    const delegateAnchorRef = delegateButtonRef as RefObject<ComponentRef<typeof View> | null>;
 
     return (
         <ScreenWrapper
@@ -507,9 +523,7 @@ function CopilotPage() {
                                     </>
                                 )}
                                 {isAgentAccount === false ? (
-                                    <MenuItem
-                                        title={translate('delegate.addCopilot')}
-                                        icon={icons.UserPlus}
+                                    <MenuItemSectionRoot
                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.ADD_COPILOT}
                                         onPress={() => {
                                             if (isActingAsDelegate) {
@@ -526,9 +540,17 @@ function CopilotPage() {
                                             }
                                             Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
                                         }}
-                                        shouldShowRightIcon
-                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                    />
+                                    >
+                                        <MenuItem.Row>
+                                            <MenuItem.Icon src={icons.UserPlus} />
+                                            <MenuItem.Content>
+                                                <MenuItem.Title>{translate('delegate.addCopilot')}</MenuItem.Title>
+                                            </MenuItem.Content>
+                                            <MenuItem.Trailing>
+                                                <MenuItem.Chevron />
+                                            </MenuItem.Trailing>
+                                        </MenuItem.Row>
+                                    </MenuItemSectionRoot>
                                 ) : null}
                             </Section>
                             <PopoverMenu
