@@ -23,12 +23,12 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
         return false
     }
 
-    private fun saveSharedText(intent: Intent, context: Context, shouldLaunchActivity: Boolean): Boolean {
+    private fun saveSharedText(intent: Intent, context: Context, shouldLaunchActivity: Boolean) {
         when {
             intent.type == "text/plain" -> {
                 val extras = intent.extras
                 if (extras != null) {
-                    return when {
+                    when {
                         extras.containsKey(Intent.EXTRA_STREAM) -> {
                             saveSharedTextFile(intent, context, shouldLaunchActivity)
                         }
@@ -40,36 +40,36 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
                         }
                     }
                 }
-                return false
+                return
             }
-            Regex("text/.*").matches(intent.type ?: "") -> return saveSharedTextFile(intent, context, shouldLaunchActivity)
+            Regex("text/.*").matches(intent.type ?: "") -> saveSharedTextFile(intent, context, shouldLaunchActivity)
             else -> throw UnsupportedOperationException("Unsupported MIME type: ${intent.type}")
         }
     }
     
-    private fun saveToSharedPreferences(key: String, value: String, shouldLaunchActivity: Boolean): Boolean {
+    private fun saveToSharedPreferences(key: String, value: String, shouldLaunchActivity: Boolean) {
         val sharedPreferences = context.getSharedPreferences(IntentHandlerConstants.preferencesFile, Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putString(key, value)
         if (shouldLaunchActivity) {
             editor.apply()
-            return true
+            return
         }
 
-        return editor.commit()
+        editor.commit()
     }
 
-    private fun saveSharedTextFile(intent: Intent, context: Context, shouldLaunchActivity: Boolean): Boolean {
-        val fileUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM) ?: return false
-        val resultingPath = FileUtils.copyUriToStorage(fileUri, context) ?: return false
+    private fun saveSharedTextFile(intent: Intent, context: Context, shouldLaunchActivity: Boolean) {
+        val fileUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM) ?: return
+        val resultingPath = FileUtils.copyUriToStorage(fileUri, context) ?: return
         val shareFileObject = ShareFileObject(resultingPath, intent.type)
-        return saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString(), shouldLaunchActivity)
+        saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString(), shouldLaunchActivity)
     }
 
-    private fun saveSharedTextContent(intent: Intent, context: Context, shouldLaunchActivity: Boolean): Boolean {
-        val intentTextContent = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return false
+    private fun saveSharedTextContent(intent: Intent, context: Context, shouldLaunchActivity: Boolean) {
+        val intentTextContent = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return
         val shareFileObject = ShareFileObject(intentTextContent, intent.type)
-        return saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString(), shouldLaunchActivity)
+        saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString(), shouldLaunchActivity)
     }
 
     override fun onCompleted() {
