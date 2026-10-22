@@ -92,6 +92,7 @@ function openBookTravel(policyID: string | undefined, isTravelEnabled: boolean) 
 }
 
 function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceItem[] {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'Suitcase', 'NewWorkspace']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -188,7 +189,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
                 replaceTopmostModalWithAction(() => {
                     interceptAnonymousUser(() => {
                         startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
-                    });
+                    }, session);
                 }),
             keyForList: 'create_expense',
         },
@@ -209,7 +210,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
                 replaceTopmostModalWithAction(() => {
                     interceptAnonymousUser(() => {
                         startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, lastDistanceExpenseType, undefined, undefined, true);
-                    });
+                    }, session);
                 }),
             keyForList: 'create_trackDistance',
         },
@@ -225,7 +226,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
                         showSupportalPermissionDenied({command: WRITE_COMMANDS.OPEN_REPORT});
                         return;
                     }
-                    interceptAnonymousUser(startNewChat);
+                    interceptAnonymousUser(startNewChat, session);
                 }),
             keyForList: 'create_chat',
         },
@@ -238,7 +239,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
                 replaceTopmostModalWithAction(() => {
                     interceptAnonymousUser(() => {
                         startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
-                    });
+                    }, session);
                 }),
             keyForList: 'create_invoice',
         },
@@ -249,7 +250,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
             matchTerms: travelMatchTerms,
             action: () =>
                 replaceTopmostModalWithAction(() => {
-                    interceptAnonymousUser(() => openBookTravel(activePolicy?.id, isTravelEnabled));
+                    interceptAnonymousUser(() => openBookTravel(activePolicy?.id, isTravelEnabled), session);
                 }),
             keyForList: 'create_travel',
         },
@@ -260,7 +261,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
             matchTerms: workspaceMatchTerms,
             action: () =>
                 replaceTopmostModalWithAction(() => {
-                    interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path)));
+                    interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path)), session);
                 }),
             keyForList: 'create_workspace',
         },

@@ -119,7 +119,7 @@ describe('Session', () => {
 
             // When the check is made against a signed-in session passed by the caller
             // Then the passed session decides the result, not the stored one
-            expect(SessionUtil.isAnonymousUser({email: 'user@example.com', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT})).toBe(false);
+            expect(SessionUtil.isAnonymousUser({email: 'user@example.com'})).toBe(false);
         });
     });
 

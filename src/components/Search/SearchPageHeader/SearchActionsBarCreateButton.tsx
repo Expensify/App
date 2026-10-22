@@ -109,7 +109,7 @@ function SearchActionsBarCreateButton() {
                 onSelected: () =>
                     interceptAnonymousUser(() => {
                         startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
-                    }),
+                    }, session),
             },
             {
                 icon: expensifyIcons.Location,
@@ -117,7 +117,7 @@ function SearchActionsBarCreateButton() {
                 onSelected: () =>
                     interceptAnonymousUser(() => {
                         startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
-                    }),
+                    }, session),
             },
             ...(isCreateReportVisible
                 ? [
@@ -129,7 +129,7 @@ function SearchActionsBarCreateButton() {
                   ]
                 : []),
         ],
-        [translate, expensifyIcons, draftTransactionIDs, createReport, isCreateReportVisible],
+        [translate, expensifyIcons, draftTransactionIDs, createReport, isCreateReportVisible, session],
     );
 
     return (

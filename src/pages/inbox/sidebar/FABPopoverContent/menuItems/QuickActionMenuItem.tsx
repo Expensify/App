@@ -45,6 +45,7 @@ type QuickActionMenuItemProps = {
 };
 
 function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -210,7 +211,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                             draftTransactionIDs,
                             isFromFloatingActionButton: true,
                         });
-                    })
+                    }, session)
                 }
                 shouldCallAfterModalHide={shouldUseNarrowLayout}
             />
@@ -254,7 +255,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
                     const quickActionReportID = getNonEmptyStringOnyxID(policyChatForActivePolicy?.reportID) ?? reportID;
                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, true);
-                })
+                }, session)
             }
             shouldCallAfterModalHide={shouldUseNarrowLayout}
         />
