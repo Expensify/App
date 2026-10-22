@@ -141,7 +141,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                 onSave={item.onRenameName}
                                 displayTextStyle={[styles.textLabelSupporting, styles.lh16]}
                             >
-                                <View style={[styles.flex1, styles.mnw0, shouldUseNarrowTableLayout && styles.gap1]}>
+                                <View style={[styles.mnw0, shouldUseNarrowTableLayout && styles.gap1]}>
                                     <TextWithTooltip
                                         shouldShowTooltip
                                         numberOfLines={1}
