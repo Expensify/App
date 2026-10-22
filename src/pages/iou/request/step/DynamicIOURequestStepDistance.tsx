@@ -630,8 +630,11 @@ function DynamicIOURequestStepDistance({
             return;
         }
 
-        // Saving from the Map tab means the route distance wins over a value typed earlier on the Manual tab.
-        if (shouldShowMapManualTabs && hasManualMapDistanceOverride(currentTransaction)) {
+        // Saving from the Map tab means the route distance wins over a value typed earlier on the Manual tab. A reused
+        // route offline has no route to fall back to, so clearing its quantity would leave the expense without a distance.
+        const hasRouteDistance = !!currentTransaction?.routes?.[getSelectedRouteKey(currentTransaction)]?.distance || !!currentTransaction?.comment?.customUnit?.routeDistanceMeters;
+        const canFallBackToRoute = hasRouteDistance || !currentTransaction?.isReusedRoute;
+        if (shouldShowMapManualTabs && canFallBackToRoute && hasManualMapDistanceOverride(currentTransaction)) {
             clearMoneyRequestDistance(transactionID, shouldUseTransactionDraft(action, iouType));
         }
         suppressDiscardPrompt();

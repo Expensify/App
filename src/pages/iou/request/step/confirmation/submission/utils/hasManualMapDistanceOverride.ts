@@ -26,9 +26,10 @@ function hasManualMapDistanceOverride(transaction: OnyxEntry<Transaction>): bool
         return true;
     }
 
-    // Route quantities are stored rounded, so compare against the rounded route and not with a tolerance.
+    // Compare at two decimals: a typed value never has more, but a rate unit change converts the quantity unrounded.
+    const roundedQuantity = roundToTwoDecimalPlaces(quantity);
     const matchesRoute = (distanceMeters: number | null | undefined) =>
-        !!distanceMeters && quantity === roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceMeters, unit));
+        !!distanceMeters && roundedQuantity === roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceMeters, unit));
     return !matchesRoute(selectedRouteDistanceMeters) && !matchesRoute(savedRouteDistanceMeters);
 }
 

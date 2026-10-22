@@ -570,6 +570,40 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
         expect(clearMoneyRequestDistance).not.toHaveBeenCalled();
     });
 
+    it('should keep a reused route distance when saving from the Map tab with no route to fall back to', async () => {
+        // Given a route reused offline, so the draft has its saved distance but no fetched route and no route distance
+        const {clearMoneyRequestDistance} = jest.requireMock<{clearMoneyRequestDistance: jest.Mock}>('@libs/actions/IOU/MoneyRequest');
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`,
+                createDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, isReusedRoute: true}),
+            );
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {comment: {customUnit: {quantity: 41}}});
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <DynamicIOURequestStepDistance
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the Map tab is saved
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        // Then the distance is kept, because clearing it would leave the expense with no distance and a zero amount
+        expect(clearMoneyRequestDistance).not.toHaveBeenCalled();
+    });
+
     it('should keep a manually entered distance when returning to confirmation', async () => {
         // Given a map draft opened from the confirmation step, where a backup of the original transaction is held
         const {restoreOriginalTransactionFromBackup, removeBackupTransaction} = jest.requireMock<{
