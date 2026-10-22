@@ -137,6 +137,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.billable',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.HELD,
+        translationKey: 'search.filters.held',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MCC,
         translationKey: 'common.mcc',
     },

@@ -971,13 +971,10 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
 
     switch (field.toLowerCase()) {
         case 'firstname':
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return personalDetails.firstName || personalDetails.login || '';
         case 'lastname':
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return personalDetails.lastName || personalDetails.login || '';
         case 'fullname':
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return personalDetails.displayName || personalDetails.login || '';
         case 'email':
             return personalDetails.login ?? '';

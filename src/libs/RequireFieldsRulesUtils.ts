@@ -10,6 +10,7 @@ import type {Route} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
@@ -27,6 +28,8 @@ import {
 import {setDraftRequireFieldsRule} from './actions/User';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {isPendingDeleteOrUpdate} from './PolicyRulesUtils';
+
+const REQUIRE_FIELDS_SETTING_FIELD_KEYS = [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const;
 
 type RequireFieldsRuleType = DeepValueOf<typeof CONST.REQUIRE_FIELDS_RULE_TYPES>;
 type FieldRequirementsDirection = DeepValueOf<typeof CONST.FIELD_REQUIREMENTS_DIRECTION>;
@@ -797,6 +800,24 @@ function getRequireFieldsFieldSettingUpdate(
     };
 }
 
+/** Returns the require fields draft for generated values, and the setting fields that the generated settings change */
+function getRequireFieldsDraftFromGeneratedValues(values: GeneratedRuleValues): {draft: GeneratedRuleValues; touchedFieldKeys: Set<RequireFieldsRuleSettingFieldKey>} {
+    let draft = values;
+    const touchedFieldKeys = new Set<RequireFieldsRuleSettingFieldKey>();
+    for (const fieldKey of REQUIRE_FIELDS_SETTING_FIELD_KEYS) {
+        const setting = values[fieldKey];
+        if (setting === undefined) {
+            continue;
+        }
+        const update = getRequireFieldsFieldSettingUpdate(fieldKey, setting);
+        draft = {...draft, ...update.formUpdate};
+        for (const touchedFieldKey of update.touchedFieldKeys) {
+            touchedFieldKeys.add(touchedFieldKey);
+        }
+    }
+    return {draft, touchedFieldKeys};
+}
+
 /**
  * Direction currently applied on the category for this field, or undefined when there is no override.
  * Unlike getRequireFieldsFormFromCategory, unset fields stay undefined instead of defaulting to Don't require.
@@ -973,6 +994,7 @@ function getRequireFieldsFieldCouplingTooltipKey(
 }
 
 export {
+    REQUIRE_FIELDS_SETTING_FIELD_KEYS,
     canClearRequireFieldsField,
     categoryHasAnyRequireFieldsRule,
     deleteRequireFieldsRule,
@@ -983,6 +1005,7 @@ export {
     getRequireFieldsDisplayedSetting,
     getRequireFieldsFieldClearKeys,
     getRequireFieldsFieldCouplingTooltipKey,
+    getRequireFieldsDraftFromGeneratedValues,
     getRequireFieldsFieldSettingUpdate,
     getRequireFieldsFormFromCategory,
     getRequireFieldsPendingActionForCategory,
