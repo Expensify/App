@@ -18,6 +18,9 @@ type LHNTooltipContextProviderProps = {
 };
 
 function LHNTooltipContextProvider({data, children}: LHNTooltipContextProviderProps) {
+    const isScreenFocused = useIsFocused();
+    const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY);
@@ -30,9 +33,6 @@ function LHNTooltipContextProvider({data, children}: LHNTooltipContextProviderPr
         }
         return attrs?.requiresAttention;
     });
-
-    const isScreenFocused = useIsFocused();
-    const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
     const value = {
         onboardingPurpose: introSelected?.choice,

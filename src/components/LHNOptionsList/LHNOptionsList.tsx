@@ -34,15 +34,25 @@ const isWeb = platform === CONST.PLATFORM.WEB;
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
-    const flashListRef = useRef<FlashListRef<string>>(null);
     const route = useRoute();
     const styles = useThemeStyles();
     const tabRootScrollProps = useTabRootScrollProps(contentContainerStyles, {hasBottomSafeAreaPadding: true});
+    const previousOptionMode = usePrevious(optionMode);
+
+    // Controls the visibility of the educational tooltip based on user scrolling.
+    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
+    const triggerScrollEvent = useScrollEventEmitter();
+
+    const flashListRef = useRef<FlashListRef<string>>(null);
+    const hasCalledOnLayout = useRef(false);
+
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+    const extraData = [data.length, optionMode, isOffline];
+    const savedScrollIndex = getScrollIndex(route);
+    const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
-    const hasCalledOnLayout = useRef(false);
     const onLayoutItem = () => {
         if (hasCalledOnLayout.current) {
             return;
@@ -50,10 +60,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         hasCalledOnLayout.current = true;
         onFirstItemRendered();
     };
-
-    // Controls the visibility of the educational tooltip based on user scrolling.
-    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
-    const triggerScrollEvent = useScrollEventEmitter();
 
     /**
      * Function which renders a row in the list
@@ -73,19 +79,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             />
         );
     };
-
-    const extraData = [data.length, optionMode, isOffline];
-
-    const previousOptionMode = usePrevious(optionMode);
-
-    useEffect(() => {
-        if (previousOptionMode === null || previousOptionMode === optionMode || !flashListRef.current) {
-            return;
-        }
-
-        // If the option mode changes want to scroll to the top of the list because rendered items will have different height.
-        flashListRef.current.scrollToOffset({offset: 0});
-    }, [previousOptionMode, optionMode]);
 
     const onScroll: NonNullable<FlashListProps<string>['onScroll']> = (e) => {
         // If the layout measurement is 0, it means the FlashList is not displayed but the onScroll may be triggered with offset value 0.
@@ -116,8 +109,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         });
     };
 
-    const savedScrollIndex = getScrollIndex(route);
-    const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
+    useEffect(() => {
+        if (previousOptionMode === null || previousOptionMode === optionMode || !flashListRef.current) {
+            return;
+        }
+
+        // If the option mode changes want to scroll to the top of the list because rendered items will have different height.
+        flashListRef.current.scrollToOffset({offset: 0});
+    }, [previousOptionMode, optionMode]);
 
     return (
         <View style={style ?? styles.flex1}>

@@ -87,30 +87,23 @@ function getActionReportIDs(action: OnyxEntry<ReportAction>): Array<string | und
 
 function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', reportID, ...propsToForward}: OptionRowLHNDataProps) {
     const styles = useThemeStyles();
-    const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
-    const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const {translate, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
+    const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [fullReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const reportAttributes = useReportAttributesByID(reportID);
-    const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
-
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(fullReport?.policyID)}`);
-    const [parentReportInvoiceReceiverPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(fullReport?.parentReportID)}`, {
-        selector: invoiceReceiverPolicyIDSelector,
-    });
-    const invoiceReceiverPolicyID = parentReportInvoiceReceiverPolicyID ?? invoiceReceiverPolicyIDSelector(fullReport);
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-
-    // Per-item report actions subscriptions (scoped by specific report ID)
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(fullReport?.parentReportID)}`);
-    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
-    // Scoped VISIBLE_REPORT_ACTIONS selector
+    const isInvoice = fullReport?.type === CONST.REPORT.TYPE.INVOICE;
+    const isIOUReport = fullReport?.type === CONST.REPORT.TYPE.IOU;
     const visibleActionsSelector = (data: VisibleReportActionsDerivedValue | undefined) => {
         if (!data) {
             return undefined;
@@ -128,15 +121,27 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
         }
         return result;
     };
+
+    const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: visibleActionsSelector});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(fullReport?.policyID)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
+    const reimburserAccountID = usePersonalDetailByLogin(policy?.reimburser ?? policy?.achAccount?.reimburser, accountIDSelector);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(fullReport?.parentReportID)}`);
+    const [parentReportInvoiceReceiverPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(fullReport?.parentReportID)}`, {
+        selector: invoiceReceiverPolicyIDSelector,
+    });
+    const [invoiceChatReceiverAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isInvoice ? fullReport?.chatReportID : undefined)}`, {
+        selector: invoiceReceiverAccountIDSelector,
+    });
+    const [chatReportForIOU] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isIOUReport ? fullReport?.chatReportID : undefined)}`);
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
-
+    const invoiceReceiverPolicyID = parentReportInvoiceReceiverPolicyID ?? invoiceReceiverPolicyIDSelector(fullReport);
     const parentReportAction = fullReport?.parentReportActionID ? parentReportActions?.[fullReport.parentReportActionID] : undefined;
-
+    const parentReportActionActorAccountID = getReportActionActorAccountID(parentReportAction, fullReport, fullReport);
     const isReportArchived = !!reportNameValuePairs?.private_isArchived;
     const canUserPerformWrite = canUserPerformWriteActionUtil(fullReport, isReportArchived);
-
     const actionsCollection: OnyxCollection<ReportActionsType> = {
         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions ?? undefined,
     };
@@ -150,39 +155,23 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
         visibleReportActionsData,
         reportAttributes?.oneTransactionThreadReportID,
     );
-
-    const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
-    const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
-
-    const lastMessageTextFromReport = whisperTransactionID && !whisperTransaction ? '' : undefined;
-
-    const lastActionReportID = isInviteOrRemovedAction(lastAction) && lastAction?.actionName ? getOriginalMessage(lastAction)?.reportID : undefined;
-    const [lastActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lastActionReportID ? String(lastActionReportID) : undefined)}`);
-
-    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
-    const hasDraftComment = !!draftComment && !draftComment.match(CONST.REGEX.EMPTY_COMMENT);
-
-    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
-    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
-
     // getLastMessageTextForReport swaps an IOU CREATE/TRACK last action of a one-transaction report for the report's own last action
     const ownLastAction =
         reportAttributes?.oneTransactionThreadReportID && isMoneyRequestAction(lastAction)
             ? getLastVisibleAction(reportID, canUserPerformWrite, {}, {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions ?? undefined}, visibleReportActionsData)
             : undefined;
+    const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
+    const lastActionReportID = isInviteOrRemovedAction(lastAction) && lastAction?.actionName ? getOriginalMessage(lastAction)?.reportID : undefined;
     const reportNameIDs = [reportID, lastActionReportID ? String(lastActionReportID) : undefined, ...getActionReportIDs(lastAction), ...getActionReportIDs(ownLastAction)];
+
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
+    const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
+    const [lastActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lastActionReportID ? String(lastActionReportID) : undefined)}`);
+    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
+    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
     const [reportNames] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
         selector: (attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNamesByIDsSelector(attributes, reportNameIDs),
     });
-
-    const isInvoice = fullReport?.type === CONST.REPORT.TYPE.INVOICE;
-    const [invoiceChatReceiverAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isInvoice ? fullReport?.chatReportID : undefined)}`, {
-        selector: invoiceReceiverAccountIDSelector,
-    });
-    const parentReportActionActorAccountID = getReportActionActorAccountID(parentReportAction, fullReport, fullReport);
-
-    const reimburserAccountID = usePersonalDetailByLogin(policy?.reimburser ?? policy?.achAccount?.reimburser, accountIDSelector);
-
     const [personalDetails] = usePersonalDetailsByIDs([
         ...Object.keys(fullReport?.participants ?? {}).map(Number),
         fullReport?.ownerAccountID,
@@ -199,20 +188,16 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
         CONST.ACCOUNT_ID.NOTIFICATIONS,
         currentUserAccountID,
     ]);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
-
-    const isIOUReport = fullReport?.type === CONST.REPORT.TYPE.IOU;
-    const [chatReportForIOU] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isIOUReport ? fullReport?.chatReportID : undefined)}`);
     const reportPreviewSenderID = useReportPreviewSenderID({
         iouReport: isIOUReport ? fullReport : undefined,
         action: parentReportAction,
         chatReport: chatReportForIOU,
     });
+
+    const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
+    const hasDraftComment = !!draftComment && !draftComment.match(CONST.REGEX.EMPTY_COMMENT);
+    const lastMessageTextFromReport = whisperTransactionID && !whisperTransaction ? '' : undefined;
 
     // React Compiler auto-memoizes each expression in OptionRowLHN independently,
     // so there is no need to stabilize the optionItem reference with deepEqual.
