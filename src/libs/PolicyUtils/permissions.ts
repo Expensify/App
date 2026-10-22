@@ -279,7 +279,7 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
 /**
  * Workspace roles from highest to lowest privilege, matching the role hierarchy in Auth.
  */
-const POLICY_ROLE_RANKING = [
+export const POLICY_ROLE_RANKING = [
     CONST.POLICY.ROLE.ADMIN,
     CONST.POLICY.ROLE.PAYMENTS_ADMIN,
     CONST.POLICY.ROLE.CARD_ADMIN,

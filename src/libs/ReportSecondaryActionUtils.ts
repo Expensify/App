@@ -33,7 +33,6 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
-    canCreateExpensesOnPolicy,
     isGroupPolicy,
     isInstantSubmitEnabled,
     isPolicyAdmin,
@@ -1089,7 +1088,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
-    if (isAddExpenseAction(report, reportTransactions, rules, isChatReportArchived || isArchivedReport(reportNameValuePairs)) && (!report?.policyID || canCreateExpensesOnPolicy(policy))) {
+    if (isAddExpenseAction(report, reportTransactions, rules, isChatReportArchived || isArchivedReport(reportNameValuePairs))) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 

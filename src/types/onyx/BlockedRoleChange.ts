@@ -8,9 +8,6 @@ type BlockedRoleChange = {
 
     /** Reason keys from the API explaining why the role was refused */
     blockedReasons: string[];
-
-    /** Server error message */
-    message?: string;
 };
 
 export default BlockedRoleChange;

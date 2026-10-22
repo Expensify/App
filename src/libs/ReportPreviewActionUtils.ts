@@ -7,7 +7,6 @@ import type {ValueOf} from 'type-fest';
 import {
     arePaymentsEnabled,
     canAdminPayReport,
-    canCreateExpensesOnPolicy,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -272,7 +271,7 @@ function getReportPreviewAction({
     if (isSubmittingAnimationRunning) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
-    if (isAddExpenseAction(report, transactions ?? [], isReportArchived, rules) && canCreateExpensesOnPolicy(policy)) {
+    if (isAddExpenseAction(report, transactions ?? [], isReportArchived, rules)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 

@@ -8,7 +8,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {canCreateExpensesOnPolicy} from '@libs/PolicyUtils';
 import {canAddTransaction, isArchivedReport, isTeachersUniteReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
@@ -48,7 +47,7 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
-    const canAddTransactionToReport = (!report?.policyID || canCreateExpensesOnPolicy(policy)) && canAddTransaction(report, rules, isReportArchived);
+    const canAddTransactionToReport = canAddTransaction(report, rules, isReportArchived);
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: policy?.id,
         isDistanceRequest: true,
