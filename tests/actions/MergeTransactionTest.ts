@@ -2004,6 +2004,7 @@ describe('getTransactionsForMerging', () => {
             report: undefined,
             currentUserLogin: undefined,
             rules: undefined,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2094,6 +2095,7 @@ describe('getTransactionsForMerging', () => {
             rules: undefined,
             allPolicies,
             allReports,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2178,6 +2180,7 @@ describe('getTransactionsForMerging', () => {
             rules: undefined,
             allPolicies,
             allReports,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2268,6 +2271,7 @@ describe('getTransactionsForMerging', () => {
             rules: undefined,
             allPolicies,
             allReports,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2351,6 +2355,7 @@ describe('getTransactionsForMerging', () => {
             rules: undefined,
             allPolicies,
             allReports,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2453,6 +2458,7 @@ describe('getTransactionsForMerging', () => {
             rules: undefined,
             allPolicies,
             allReports,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2545,6 +2551,7 @@ describe('getTransactionsForMerging', () => {
             rules: undefined,
             allPolicies,
             allReports,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2579,6 +2586,7 @@ describe('getTransactionsForMerging', () => {
             report,
             currentUserLogin: 'approver@example.com',
             rules: undefined,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
