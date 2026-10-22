@@ -7193,12 +7193,12 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
         // against it without taking part in the tab screen's layout.
-        nativeTabBarFloatingButtons: (bottom: number) =>
+        nativeTabBarFloatingButtons: (bottom: number, left: number, right: number) =>
             ({
                 position: 'absolute',
-                right: 0,
+                right,
                 bottom,
-                left: 0,
+                left,
                 height: 0,
             }) satisfies ViewStyle,
 

@@ -29,7 +29,7 @@ import {getFloatingButtonsBottom} from './useNativeTabBarOptions';
 function NativeTabBarOverlay({state, descriptors}: Pick<NativeTabLayoutProps, 'state' | 'descriptors'>) {
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const styles = useThemeStyles();
-    const {bottom: bottomInset} = useSafeAreaInsets();
+    const {bottom: bottomInset, left: leftInset, right: rightInset} = useSafeAreaInsets();
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
 
@@ -56,7 +56,8 @@ function NativeTabBarOverlay({state, descriptors}: Pick<NativeTabLayoutProps, 's
                 >
                     <NativeTabBarShadow />
                     <View
-                        style={styles.nativeTabBarFloatingButtons(getFloatingButtonsBottom(bottomInset))}
+                        // The tab host spans the whole window, so the buttons keep out of the horizontal safe area themselves.
+                        style={styles.nativeTabBarFloatingButtons(getFloatingButtonsBottom(bottomInset), leftInset, rightInset)}
                         pointerEvents="box-none"
                     >
                         <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>

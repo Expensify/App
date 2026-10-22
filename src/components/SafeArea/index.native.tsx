@@ -7,8 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 import React from 'react';
-import {Keyboard} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {Keyboard, View} from 'react-native';
 
 import type SafeAreaProps from './types';
 
@@ -18,10 +17,8 @@ function SafeArea({children}: SafeAreaProps) {
     const {left, right} = useSafeAreaInsets();
 
     return (
-        <SafeAreaView
-            style={[styles.iPhoneXSafeArea]}
-            edges={['left', 'right']}
-        >
+        // Root screens pad the horizontal safe area themselves, so the native tab bar can sit in it.
+        <View style={styles.iPhoneXSafeArea}>
             {children}
             {isInLandscapeMode && left > 0 && (
                 <PressableWithoutFeedback
@@ -41,7 +38,7 @@ function SafeArea({children}: SafeAreaProps) {
                     sentryLabel={CONST.SENTRY_LABEL.SAFE_AREA.DISMISS_KEYBOARD_LANDSCAPE_MODE}
                 />
             )}
-        </SafeAreaView>
+        </View>
     );
 }
 
