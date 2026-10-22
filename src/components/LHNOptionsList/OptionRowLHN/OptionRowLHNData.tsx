@@ -95,7 +95,6 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
 
     const reportAttributes = useReportAttributesByID(reportID);
     const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
-    const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID;
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(fullReport?.policyID)}`);
     const [parentReportInvoiceReceiverPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(fullReport?.parentReportID)}`, {
@@ -108,7 +107,7 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
     // Per-item report actions subscriptions (scoped by specific report ID)
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(fullReport?.parentReportID)}`);
-    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionThreadReportID)}`);
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
 
     // Scoped VISIBLE_REPORT_ACTIONS selector
     const visibleActionsSelector = (data: VisibleReportActionsDerivedValue | undefined) => {
@@ -120,10 +119,10 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
         if (reportEntry) {
             result[reportID] = reportEntry;
         }
-        if (oneTransactionThreadReportID) {
-            const txThreadEntry = data[oneTransactionThreadReportID];
+        if (reportAttributes?.oneTransactionThreadReportID) {
+            const txThreadEntry = data[reportAttributes.oneTransactionThreadReportID];
             if (txThreadEntry) {
-                result[oneTransactionThreadReportID] = txThreadEntry;
+                result[reportAttributes.oneTransactionThreadReportID] = txThreadEntry;
             }
         }
         return result;
@@ -140,10 +139,16 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
     const actionsCollection: OnyxCollection<ReportActionsType> = {
         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions ?? undefined,
     };
-    if (oneTransactionThreadReportID) {
-        actionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionThreadReportID}`] = transactionThreadReportActions ?? undefined;
+    if (reportAttributes?.oneTransactionThreadReportID) {
+        actionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAttributes.oneTransactionThreadReportID}`] = transactionThreadReportActions ?? undefined;
     }
-    const lastAction = getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, actionsCollection, visibleReportActionsData, oneTransactionThreadReportID);
+    const lastAction = getLastVisibleActionIncludingTransactionThread(
+        reportID,
+        canUserPerformWrite,
+        actionsCollection,
+        visibleReportActionsData,
+        reportAttributes?.oneTransactionThreadReportID,
+    );
 
     const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
     const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
@@ -161,7 +166,7 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
 
     // getLastMessageTextForReport swaps an IOU CREATE/TRACK last action of a one-transaction report for the report's own last action
     const ownLastAction =
-        oneTransactionThreadReportID && isMoneyRequestAction(lastAction)
+        reportAttributes?.oneTransactionThreadReportID && isMoneyRequestAction(lastAction)
             ? getLastVisibleAction(reportID, canUserPerformWrite, {}, {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions ?? undefined}, visibleReportActionsData)
             : undefined;
     const reportNameIDs = [reportID, lastActionReportID ? String(lastActionReportID) : undefined, ...getActionReportIDs(lastAction), ...getActionReportIDs(ownLastAction)];
