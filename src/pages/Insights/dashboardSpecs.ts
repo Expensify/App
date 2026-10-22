@@ -48,7 +48,7 @@ type InsightsDashboardSpec = {
     supportingCharts: InsightsChartSpec[];
 };
 
-const INSIGHTS_DASHBOARD_SPECS = {
+const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpec> = {
     [CONST.INSIGHTS.DASHBOARD.SPEND]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
         labelKey: 'common.spend',
@@ -102,7 +102,7 @@ const INSIGHTS_DASHBOARD_SPECS = {
         },
         supportingCharts: [],
     },
-} satisfies Record<InsightsDashboardID, InsightsDashboardSpec>;
+};
 
 /** Returns the workspaces the dashboard is scoped to. No selected workspaces means every workspace is in scope. */
 function getPoliciesInScope(policies: OnyxCollection<Policy>, policyIDs: string[]): Policy[] {
@@ -115,14 +115,11 @@ function getVisibleCharts(charts: InsightsChartSpec[], policies: OnyxCollection<
     return charts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => isPolicyEligible(policy, login)));
 }
 
-/**
- * Returns the dashboards whose beta is enabled and that at least one of the user's workspaces is eligible for, in the order their tabs are shown.
- * The workspace filter only scopes a dashboard's data, so it doesn't decide which dashboards the user can open.
- */
+/** Returns the dashboards the user can open, ignoring the workspace filter. */
 function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string | undefined, isBetaEnabled: (beta: Beta) => boolean): InsightsDashboardID[] {
     const allPolicies = Object.values(policies ?? {});
     return Object.values(CONST.INSIGHTS.DASHBOARD).filter((dashboardID) => {
-        const {beta, isPolicyEligible}: InsightsDashboardSpec = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+        const {beta, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
         return (!beta || isBetaEnabled(beta)) && (!isPolicyEligible || allPolicies.some((policy) => !!policy && isPolicyEligible(policy, login)));
     });
 }
