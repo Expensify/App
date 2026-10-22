@@ -1272,10 +1272,9 @@ function Search({
         [searchResults?.data],
     );
 
-    // The same flags the column header is built from, so a row and its heading can't disagree about how wide a column
-    // is. Decided across the whole search, not from the rows currently loaded. Memoized above the early returns because
-    // this file doesn't compile with React Compiler, and a new object on every render (e.g. on blur) would change the
-    // column widths context and re-render every row of the table.
+    // The same flags the column header below is built from, so a row and its heading can't disagree about how wide a
+    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
+    // Memoized above the early returns: this file doesn't compile with React Compiler, and a new object re-renders every row.
     const isActionColumnWide = isTask || hasDeletedTransaction;
     const columnSizeOptions: GetReportTableColumnStylesParams = useMemo(
         () => ({
