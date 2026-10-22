@@ -27,16 +27,13 @@ import TripStatusCell from './TripStatusCell';
 import UserInfoCell from './UserInfoCell';
 
 type TripListItemRowProps = {
-    /** The trip to show */
     item: TripListItemType;
 
     /** Columns to show on wide screens */
     columns: SearchColumnType[];
 
-    /** Whether to show tooltips */
     showTooltip: boolean;
 
-    /** Opens the trip */
     onViewPress: () => void;
 };
 

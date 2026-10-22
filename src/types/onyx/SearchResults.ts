@@ -308,7 +308,8 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
     Partial<Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined>> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
     Partial<PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_METADATA, ReportMetadata>> &
-    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
+    // Trip rooms returned by a trip search carry the trip's fields on top of the report
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchTrip> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &

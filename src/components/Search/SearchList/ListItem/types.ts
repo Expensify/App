@@ -407,7 +407,7 @@ type TripListItemType = ListItem &
         keyForList: string;
     };
 
-type TripListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+type TripListItemProps = ListItemProps<TripListItemType> & {
     /** Columns to show */
     columns?: SearchColumnType[];
 };

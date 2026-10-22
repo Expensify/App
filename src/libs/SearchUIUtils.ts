@@ -89,7 +89,6 @@ import type {
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
-    SearchTrip,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
     SearchYearGroup,
@@ -359,11 +358,9 @@ const taskColumnNamesToSortingProperty: TaskSorting = {
 
 const tripColumnNamesToSortingProperty: TripSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'startDate' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.START_DATE]: 'startDate' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.END_DATE]: 'endDate' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'tripName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedTraveler' as const,
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'status' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME]: 'tripName' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.TRAVELER]: 'formattedTraveler' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
 };
 
@@ -480,11 +477,8 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.IN,
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
     CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
-    // The trip search doesn't sort by these yet
-    CONST.SEARCH.TABLE_COLUMNS.START_DATE,
+    // The trip search sorts by start date, trip name and traveler, but not by end date
     CONST.SEARCH.TABLE_COLUMNS.END_DATE,
-    CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME,
-    CONST.SEARCH.TABLE_COLUMNS.TRAVELER,
 ]);
 
 function isValidTaskStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.TASK> {
@@ -2395,19 +2389,14 @@ function getRowCapabilities(allActions: SearchTransactionAction[]): RowCapabilit
 }
 
 /**
- * @private
- * Organizes data into List Sections for display, for the TaskListItemType of Search Results.
+ * Organizes trip rooms from a trip search into one row per trip.
  *
  * Do not use directly, use only via `getSections()` facade.
- */
-/**
- * @private
- * Organizes trip rooms from a trip search into one row per trip
  */
 function getTripSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], translate: LocalizedTranslate): [TripListItemType[], number] {
     const trips = Object.keys(data)
         .filter(isReportEntry)
-        .map((key) => data[key] as SearchTrip)
+        .map((key) => data[key])
         .filter((trip) => trip?.chatType === CONST.REPORT.CHAT_TYPE.TRIP_ROOM)
         .map((trip) => {
             // Trip rooms have no owner, so the traveler comes from travelerAccountID
@@ -2425,6 +2414,12 @@ function getTripSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumbe
     return [trips, trips.length];
 }
 
+/**
+ * @private
+ * Organizes data into List Sections for display, for the TaskListItemType of Search Results.
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
 function getTaskSections(
     data: OnyxTypes.SearchResults['data'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
@@ -4263,12 +4258,16 @@ function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContex
 }
 
 /**
- * @private
  * Sorts trip rows based on a specified column and sort order.
  */
 function getSortedTripData(data: TripListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchSortBy, sortOrder?: SortOrder) {
-    const sortingProperty = sortBy ? tripColumnNamesToSortingProperty[sortBy as SearchColumnType] : undefined;
-    if (!sortingProperty || !sortOrder) {
+    if (!sortBy || !sortOrder) {
+        return data;
+    }
+
+    const sortingProperty =
+        sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE || sortBy === CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE ? undefined : tripColumnNamesToSortingProperty[sortBy];
+    if (!sortingProperty) {
         return data;
     }
 
@@ -4551,7 +4550,19 @@ function isCreatedDateType(type?: SearchDataTypes): boolean {
     return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.TASK;
 }
 
-function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTypes): TranslationPaths {
+function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTypes, shouldReturnTripRooms = false): TranslationPaths {
+    // Trip rows sort by date, title and from, which show as their start date, trip name and traveler
+    if (type === CONST.SEARCH.DATA_TYPES.TRIP && shouldReturnTripRooms) {
+        if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
+            return 'iou.startDate';
+        }
+        if (column === CONST.SEARCH.TABLE_COLUMNS.TITLE) {
+            return 'search.trip.tripName';
+        }
+        if (column === CONST.SEARCH.TABLE_COLUMNS.FROM) {
+            return 'search.trip.traveler';
+        }
+    }
     switch (column) {
         case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
             return 'common.avatar';
@@ -4721,6 +4732,16 @@ function isColumnSortable(column: SearchColumnType) {
 }
 
 function getSortByForColumn(column: SearchColumnType): SearchSortBy {
+    // The trip columns sort by the trip search's own sort keys
+    if (column === CONST.SEARCH.TABLE_COLUMNS.START_DATE) {
+        return CONST.SEARCH.TABLE_COLUMNS.DATE;
+    }
+    if (column === CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME) {
+        return CONST.SEARCH.TABLE_COLUMNS.TITLE;
+    }
+    if (column === CONST.SEARCH.TABLE_COLUMNS.TRAVELER) {
+        return CONST.SEARCH.TABLE_COLUMNS.FROM;
+    }
     if (column === CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE) {
         return CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE;
     }

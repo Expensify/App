@@ -154,16 +154,13 @@ function SearchPage({route}: SearchPageProps) {
 
     const {isBetaEnabled} = usePermissions();
     const isTravelApprovalEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
-    const handleSearchAction = useCallback(
-        (value: SearchParams | string) => {
-            if (typeof value === 'string') {
-                searchInServer(value);
-            } else {
-                search({...value, shouldReturnTripRooms: isTravelApprovalEnabled});
-            }
-        },
-        [isTravelApprovalEnabled],
-    );
+    const handleSearchAction = (value: SearchParams | string) => {
+        if (typeof value === 'string') {
+            searchInServer(value);
+        } else {
+            search({...value, shouldReturnTripRooms: isTravelApprovalEnabled});
+        }
+    };
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);

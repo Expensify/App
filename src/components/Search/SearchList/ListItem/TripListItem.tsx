@@ -1,5 +1,4 @@
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
-import type {ListItem} from '@components/SelectionList/types';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -11,15 +10,14 @@ import variables from '@styles/variables';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {TripListItemProps, TripListItemType} from './types';
+import type {TripListItemProps} from './types';
 
 import TripListItemRow from './TripListItemRow';
 
 /**
  * A trip row in search results. Tapping the row or its View action opens the trip room.
  */
-function TripListItem<TItem extends ListItem>({item, columns = [], isFocused, showTooltip, isDisabled, onSelectRow, onFocus, shouldSyncFocus, isLastItem}: TripListItemProps<TItem>) {
-    const tripItem = item as unknown as TripListItemType;
+function TripListItem({item, columns = [], isFocused, showTooltip, isDisabled, onSelectRow, onFocus, shouldSyncFocus, isLastItem}: TripListItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {pageGutterMargin} = useLayoutSpacing();
@@ -57,7 +55,7 @@ function TripListItem<TItem extends ListItem>({item, columns = [], isFocused, sh
         >
             <View style={[styles.flex1, styles.userSelectNone]}>
                 <TripListItemRow
-                    item={tripItem}
+                    item={item}
                     columns={columns}
                     showTooltip={!!showTooltip}
                     onViewPress={() => onSelectRow(item)}

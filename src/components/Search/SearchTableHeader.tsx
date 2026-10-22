@@ -255,7 +255,7 @@ const tripHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.START_DATE,
         translationKey: 'iou.startDate',
-        isColumnSortable: false,
+        sortColumnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
         canEdit: true,
     },
     {
@@ -271,12 +271,12 @@ const tripHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME,
         translationKey: 'search.trip.tripName',
-        isColumnSortable: false,
+        sortColumnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TRAVELER,
         translationKey: 'search.trip.traveler',
-        isColumnSortable: false,
+        sortColumnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
@@ -646,10 +646,7 @@ function SearchTableHeader({
         [columns],
     );
 
-    const columnConfig = useMemo(
-        () => getSearchColumns(type, icons, groupBy, isExpenseReportView, shouldReturnTripRooms),
-        [type, groupBy, icons, isExpenseReportView, shouldReturnTripRooms],
-    );
+    const columnConfig = getSearchColumns(type, icons, groupBy, isExpenseReportView, shouldReturnTripRooms);
 
     const orderedColumnConfig = useMemo(() => {
         if (!columnConfig) {

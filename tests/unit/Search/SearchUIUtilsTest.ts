@@ -15629,9 +15629,9 @@ describe('getDatePresets', () => {
 });
 
 describe('Trip search', () => {
-    const buildTrip = (reportID: string, overrides: Partial<SearchTrip> = {}): SearchTrip => ({
-        reportID,
-        reportName: `Trip ${reportID}`,
+    const buildTrip = (tripReportID: string, overrides: Partial<SearchTrip> = {}): SearchTrip => ({
+        reportID: tripReportID,
+        reportName: `Trip ${tripReportID}`,
         chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
         type: CONST.REPORT.TYPE.CHAT,
         policyID: 'DD949BDE0E77A392',
@@ -15646,7 +15646,7 @@ describe('Trip search', () => {
     });
 
     // Shaped like the trip search response: trip rooms only, with the traveler in personalDetailsList
-    const tripData = {
+    const tripData: OnyxTypes.SearchResults['data'] = {
         personalDetailsList: {
             628: {accountID: 628, displayName: 'Travel Admin', login: 'travel-admin@cplustest.com'},
             629: {accountID: 629, displayName: 'Travel Employee', login: 'travel-employee@cplustest.com'},
@@ -15654,7 +15654,7 @@ describe('Trip search', () => {
         report_1: buildTrip('1', {reportName: 'Tokyo Sales Conference', startDate: '2026-10-28T00:00:00'}),
         report_2: buildTrip('2', {reportName: 'Sales Conf Vegas', startDate: '2026-08-12T00:00:00', status: CONST.SEARCH.TRIP_STATUS.DONE, travelerAccountID: 628}),
         report_3: buildTrip('3', {reportName: 'Oslo React Meetup', startDate: '2026-11-04T00:00:00'}),
-    } as unknown as OnyxTypes.SearchResults['data'];
+    };
 
     const getTripSections = (shouldReturnTripRooms: boolean) =>
         SearchUIUtils.getSections({
@@ -15714,6 +15714,47 @@ describe('Trip search', () => {
 
         // Then they follow the trip's start date, since trips have no created date to sort by
         expect(getSortedSectionsByType(sorted, SearchUIUtils.isTripListItemType).map((row) => row.reportID)).toEqual(['3', '1', '2']);
+    });
+
+    it('sorts trips by trip name and traveler through the title and from sort keys', () => {
+        // Given trip rows, since the trip search sorts trip names by title and travelers by from
+        const [rows] = getSectionsByType(getTripSections(true), SearchUIUtils.isTripListItemType);
+        const sortBy = (column: typeof CONST.SEARCH.TABLE_COLUMNS.TITLE | typeof CONST.SEARCH.TABLE_COLUMNS.FROM) =>
+            getSortedSectionsByType(
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, [...rows], localeCompare, translateLocal, column, CONST.SEARCH.SORT_ORDER.ASC, undefined, {
+                    shouldReturnTripRooms: true,
+                }),
+                SearchUIUtils.isTripListItemType,
+            ).map((row) => row.reportID);
+
+        // When the rows are sorted by those keys
+        // Then title follows the trip name and from follows the traveler's name
+        expect(sortBy(CONST.SEARCH.TABLE_COLUMNS.TITLE)).toEqual(['3', '2', '1']);
+        expect(sortBy(CONST.SEARCH.TABLE_COLUMNS.FROM)[0]).toBe('2');
+    });
+
+    it('offers the trip columns in Sort by with the trip search sort keys', () => {
+        // Given the trip columns, which the backend sorts by date, title and from
+        // When the Sort by options are built for a trip search
+        const options = SearchUIUtils.getSortByOptions([...CONST.SEARCH.TYPE_DEFAULT_COLUMNS.TRIP], translateLocal, CONST.SEARCH.DATA_TYPES.TRIP);
+
+        // Then start date, trip name and traveler sort by those keys, so the default date sort shows as Start date, and end date isn't offered
+        expect(options).toEqual(
+            expect.arrayContaining([
+                {text: translateLocal('iou.startDate'), value: CONST.SEARCH.TABLE_COLUMNS.DATE},
+                {text: translateLocal('search.trip.tripName'), value: CONST.SEARCH.TABLE_COLUMNS.TITLE},
+                {text: translateLocal('search.trip.traveler'), value: CONST.SEARCH.TABLE_COLUMNS.FROM},
+            ]),
+        );
+        expect(options.map((option) => option.text)).not.toContain(translateLocal('iou.endDate'));
+    });
+
+    it('labels the date sort as Start date only for trip rooms', () => {
+        // Given the canned trip search's date sort
+        // When its label is read with and without the TravelApproval beta
+        // Then trip rooms show Start date, matching the Sort by option, and the expense search keeps Date
+        expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.DATA_TYPES.TRIP, true)).toBe('iou.startDate');
+        expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.DATA_TYPES.TRIP, false)).toBe('common.date');
     });
 
     it('shows the trip columns only for trip rooms', () => {

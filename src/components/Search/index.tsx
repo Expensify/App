@@ -1501,6 +1501,7 @@ function Search({
                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                 shouldShowSorting
                 groupBy={validGroupBy}
+                // Trip rows keep a fixed-width total like expense report rows, so the header drops the total column's flex for them too
                 isExpenseReportView={isExpenseReportType || shouldReturnTripRooms}
                 isActionColumnWide={isTask || hasDeletedTransaction}
             />

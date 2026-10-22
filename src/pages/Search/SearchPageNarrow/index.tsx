@@ -176,16 +176,13 @@ function SearchPageNarrow({
 
     const {isBetaEnabled} = usePermissions();
     const isTravelApprovalEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
-    const handleSearchAction = useCallback(
-        (value: SearchParams | string) => {
-            if (typeof value === 'string') {
-                searchInServer(value);
-            } else {
-                search({...value, shouldReturnTripRooms: isTravelApprovalEnabled});
-            }
-        },
-        [isTravelApprovalEnabled],
-    );
+    const handleSearchAction = (value: SearchParams | string) => {
+        if (typeof value === 'string') {
+            searchInServer(value);
+        } else {
+            search({...value, shouldReturnTripRooms: isTravelApprovalEnabled});
+        }
+    };
 
     const navigation = useNavigation();
     // When pre-inserted behind the RHP (not focused), always start in static rendering

@@ -11,7 +11,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type TripStatusCellProps = {
-    /** The trip's status */
     status: SearchTrip['status'];
 };
 

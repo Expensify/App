@@ -1,5 +1,7 @@
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
+import {isTripListItemType} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 
 import type {NativeSyntheticEvent} from 'react-native';
@@ -67,16 +69,18 @@ function TripSearchView({
             shouldApplyAnimation={false}
             hasItemsBeingRemoved={false}
         >
-            <TripListItem
-                showTooltip
-                isFocused={isItemFocused}
-                onSelectRow={handleSelectRow}
-                item={item}
-                columns={columns}
-                isDisabled={isRowDeleted(item)}
-                onFocus={onFocus}
-                isLastItem={index === lastVisibleIndex && !ListFooterComponent}
-            />
+            {isTripListItemType(item) && (
+                <TripListItem
+                    showTooltip
+                    isFocused={isItemFocused}
+                    onSelectRow={handleSelectRow}
+                    item={item}
+                    columns={columns}
+                    isDisabled={isRowDeleted(item)}
+                    onFocus={onFocus}
+                    isLastItem={index === lastVisibleIndex && !ListFooterComponent}
+                />
+            )}
         </AnimatedExitRow>
     );
 

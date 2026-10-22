@@ -220,7 +220,7 @@ describe('getSelectableRows: the rows selection can act on', () => {
 
     it('has no rows for a trip list', () => {
         // Given a trip list, whose rows can't be selected
-        const trip = {
+        const trip: TripListItemType = {
             reportID: '1',
             keyForList: '1',
             chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
@@ -228,7 +228,7 @@ describe('getSelectableRows: the rows selection can act on', () => {
             tripName: 'Trip',
             traveler: {accountID: 1},
             formattedTraveler: 'Traveler',
-        } as TripListItemType;
+        };
 
         // When the selectable rows are read
         // Then there are none, so trip rows never join a shift-click range
