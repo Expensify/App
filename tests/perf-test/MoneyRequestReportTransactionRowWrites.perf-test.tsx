@@ -217,7 +217,10 @@ test('[MoneyRequestReportTransactionRows] should re-render when one transaction 
     // Given an expense report with 10 transactions, when the violations of one of them change repeatedly
     // Then reassure measures what a violation on one transaction costs the rows
     await measureWrites((run, index) =>
-        Onyx.set(FIRST_TRANSACTION_VIOLATIONS_KEY, (run + index) % 2 === 0 ? [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}] : []),
+        Onyx.set(
+            FIRST_TRANSACTION_VIOLATIONS_KEY,
+            (run * WRITES_PER_SCENARIO + index) % 2 === 0 ? [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}] : [],
+        ),
     );
 });
 
