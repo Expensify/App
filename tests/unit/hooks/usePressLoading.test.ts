@@ -2,6 +2,8 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import usePressLoading from '@hooks/usePressLoading';
 
+import Log from '@libs/Log';
+
 import type {NavigationProp, ParamListBase} from '@react-navigation/native';
 import type {ReactNode} from 'react';
 
@@ -65,6 +67,7 @@ describe('usePressLoading', () => {
 
     afterEach(() => {
         jest.useRealTimers();
+        jest.restoreAllMocks();
     });
 
     it('shows the loading state immediately on press, before the work runs', async () => {
@@ -180,45 +183,59 @@ describe('usePressLoading', () => {
         expect(result.current.isLoading).toBe(true);
     });
 
-    it('clears the loading state and rethrows when the work fails', async () => {
-        // Given a handler that rejects
+    it('clears the loading state and logs instead of rejecting when the work fails', async () => {
+        // Given a handler that rejects, where press callers drop the promise so a rejection would go unhandled
+        const alertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
         const {result} = renderHook(() => usePressLoading({isLoading: false}));
-        const error = new Error('boom');
-        let caught: unknown;
+        let pressPromise: Promise<void> | undefined;
 
         // When it is pressed
         await act(async () => {
-            result.current
-                .startWithLoading(() => Promise.reject(error))
-                .catch((caughtError: unknown) => {
-                    caught = caughtError;
-                });
+            pressPromise = result.current.startWithLoading(() => Promise.reject(new Error('boom')));
             jest.advanceTimersByTime(1);
         });
 
-        // Then the error reaches the caller and the consumer is usable again
-        expect(caught).toBe(error);
+        // Then the promise resolves, the failure is logged and the consumer is usable again
+        await expect(pressPromise).resolves.toBeUndefined();
+        expect(alertSpy).toHaveBeenCalledWith('[usePressLoading] Press handler failed', {error: 'Error: boom'});
         expect(result.current.isLoading).toBe(false);
     });
 
-    it('clears the loading state and rethrows when the work fails with no external isLoading', async () => {
+    it('clears the loading state and logs instead of rejecting when the work fails with no external isLoading', async () => {
         // Given a handler that rejects on the branch most consumers are on, with no flag to hand over to
+        const alertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
         const {result} = renderHook(() => usePressLoading());
-        const error = new Error('boom');
-        let caught: unknown;
+        let pressPromise: Promise<void> | undefined;
 
         // When it is pressed
         await act(async () => {
-            result.current
-                .startWithLoading(() => Promise.reject(error))
-                .catch((caughtError: unknown) => {
-                    caught = caughtError;
-                });
+            pressPromise = result.current.startWithLoading(() => Promise.reject(new Error('boom')));
             jest.advanceTimersByTime(1);
         });
 
-        // Then the catch clears the pressed state before rethrowing, so the button does not stay stuck
-        expect(caught).toBe(error);
+        // Then the catch clears the pressed state right away, so the button does not stay stuck, and nothing rejects
+        await expect(pressPromise).resolves.toBeUndefined();
+        expect(alertSpy).toHaveBeenCalledTimes(1);
+        expect(result.current.isLoading).toBe(false);
+    });
+
+    it('clears the loading state and logs instead of rejecting when the work throws synchronously', async () => {
+        // Given a handler that throws synchronously, which the deferral turns into a rejection inside the hook
+        const alertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
+        const {result} = renderHook(() => usePressLoading());
+        let pressPromise: Promise<void> | undefined;
+
+        // When it is pressed
+        await act(async () => {
+            pressPromise = result.current.startWithLoading(() => {
+                throw new Error('boom');
+            });
+            jest.advanceTimersByTime(1);
+        });
+
+        // Then the throw is logged rather than escaping as an unhandled rejection, and the spinner is gone
+        await expect(pressPromise).resolves.toBeUndefined();
+        expect(alertSpy).toHaveBeenCalledWith('[usePressLoading] Press handler failed', {error: 'Error: boom'});
         expect(result.current.isLoading).toBe(false);
     });
 

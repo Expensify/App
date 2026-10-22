@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import type {StartWithLoading} from '@hooks/usePressLoading';
 
 import HapticFeedback from '@libs/HapticFeedback';
+import Log from '@libs/Log';
 
 import colors from '@styles/theme/colors';
 import type {ButtonVariant} from '@styles/utils/types';
@@ -237,6 +238,32 @@ describe('Button', () => {
             // Then onPress ran once, and with no external isLoading to hand over to the spinner is gone again
             expect(onPress).toHaveBeenCalledTimes(1);
             expect(renderResult.UNSAFE_queryByType(RNActivityIndicator)).toBeNull();
+        });
+
+        it('clears the spinner and logs when onPress throws with shouldShowLoadingImmediatelyOnPress set', async () => {
+            // Given a Button with the immediate spinner on and a handler that throws, whose promise the pressable drops
+            const alertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
+            const throwingOnPress = jest.fn(() => {
+                throw new Error('boom');
+            });
+            const renderResult = renderButton({onPress: throwingOnPress, shouldShowLoadingImmediatelyOnPress: true});
+
+            // When the button is pressed and the deferred handler runs
+            fireEvent.press(getButton());
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the failure is logged instead of escaping as an unhandled rejection, and the spinner is gone
+            expect(throwingOnPress).toHaveBeenCalledTimes(1);
+            expect(alertSpy).toHaveBeenCalledWith('[usePressLoading] Press handler failed', {error: 'Error: boom'});
+            expect(renderResult.UNSAFE_queryByType(RNActivityIndicator)).toBeNull();
+
+            // When the button is pressed again
+            fireEvent.press(getButton());
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the press is accepted, so the failure did not leave the button stuck
+            expect(throwingOnPress).toHaveBeenCalledTimes(2);
+            alertSpy.mockRestore();
         });
 
         it('does not show the spinner on press by default', () => {

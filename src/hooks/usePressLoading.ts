@@ -1,3 +1,5 @@
+import Log from '@libs/Log';
+
 import {NavigationContext} from '@react-navigation/core';
 import {useContext, useEffect, useRef, useState} from 'react';
 
@@ -10,7 +12,7 @@ type UsePressLoadingOptions = {
 
 /**
  * Paints the loading state, then runs `runAfterPaint` one macrotask later, so a JS-blocking handler still gives
- * immediate feedback. Return the promise it gives back, so a throwing handler rejects up the chain.
+ * immediate feedback. The promise it gives back resolves once the work settles.
  */
 type StartWithLoading = (runAfterPaint: () => void | Promise<void>) => Promise<void>;
 
@@ -58,7 +60,8 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
             await runAfterPaint();
         } catch (error) {
             release(press, true);
-            throw error;
+            Log.alert('[usePressLoading] Press handler failed', {error: String(error)});
+            return;
         }
         if (isLoading !== undefined) {
             release(press, false);
