@@ -14,9 +14,11 @@ import {
     useChartLabelMeasurements,
     useDynamicYDomain,
     useLabelHitTesting,
+    useSyncPointPositions,
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
-import {getAxisLabelStep, getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {getAxisLabelStep, getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getLineRuns, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import type {LineRun} from '@components/Charts/utils/getLineRuns';
 import VictoryTheme, {
     CARTESIAN_Y_AXIS,
     CHART_CONTENT_MIN_HEIGHT,
@@ -34,9 +36,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import type {TupleToUnion} from 'type-fest';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
 import {DashPathEffect} from '@shopify/react-native-skia';
+import React from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
@@ -64,14 +68,15 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
     const StyleUtils = useStyleUtils();
 
     const yAxisDomain = useDynamicYDomain(data);
-    const isLastPointInProgress = !!data.at(-1)?.isInProgress;
+    const seriesKeys = series.map((seriesItem) => seriesItem.key);
+    const [{key: primarySeriesKey, color: primarySeriesColor = VictoryTheme.colors.default}] = series;
+    const openPointFlags = data.map((point) => !!point.isInProgress);
 
-    // A lone point has no line leading into it, so it keeps the regular line's dot instead of a dashed segment.
-    const shouldDashLastSegment = isLastPointInProgress && data.length > 1;
-    const [{key: primarySeriesKey}] = series;
-    const chartData = data.map((point, index) => ({
+    // Periods that haven't ended, the current one and any later ones, are drawn dashed on the primary series, along with the segments leading into them.
+    const primaryLineRuns = getLineRuns(openPointFlags);
+    const chartData: Array<{x: number} & Record<string, number | undefined>> = data.map((point, index) => ({
         x: index,
-        y: getPrimaryValue(point, primarySeriesKey),
+        ...Object.fromEntries(seriesKeys.map((key) => [key, point.values[key]])),
     }));
 
     const handlePointPress = (index: number) => {
@@ -220,53 +225,67 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
         chartBottom,
     });
 
-    const isActivePointHollow = useDerivedValue(() => isLastPointInProgress && matchedIndex.get() === data.length - 1);
+    const activePointX = useDerivedValue(() => activePointPosition.get().x);
+    const isActivePointHollow = useDerivedValue(() => {
+        const index = matchedIndex.get();
+        return index >= 0 && !!openPointFlags.at(index);
+    });
+
+    const syncPointPositions = useSyncPointPositions(data, series, setPointPositions);
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         updateTickPositions(xScale, data.length);
         const [rangeStart, rangeEnd] = xScale.range();
         bandHalfWidth.set(data.length > 1 ? Math.abs(xScale(1) - xScale(0)) / 2 : Math.abs(rangeEnd - rangeStart));
-        setPointPositions(
-            chartData.map((point) => xScale(point.x)),
-            chartData.map((point) => yScale(point.y)),
-        );
+        syncPointPositions(xScale, yScale);
     };
 
     const cursorStyle = useAnimatedStyle(() => ({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
 
-    const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+    const renderOutside = (args: CartesianChartRenderArg<TupleToUnion<typeof chartData>, string>) => {
         const chartBoundsBottom = args.chartBounds.bottom;
         chartBottom.set(chartBoundsBottom);
-        const completePoints = shouldDashLastSegment ? args.points.y.slice(0, -1) : args.points.y;
+        const primaryPoints = args.points[primarySeriesKey] ?? [];
 
         return (
             <>
-                <AreaGradient
-                    points={completePoints}
-                    baselineY={chartBoundsBottom}
-                    color={VictoryTheme.colors.default}
-                />
-                <Line
-                    points={completePoints}
-                    color={VictoryTheme.colors.default}
-                    strokeWidth={VictoryTheme.line.strokeWidth}
-                    strokeCap="round"
-                    strokeJoin="round"
-                    curveType="linear"
-                />
-                {shouldDashLastSegment && (
-                    <Line
-                        points={args.points.y.slice(-2)}
-                        color={VictoryTheme.colors.default}
-                        strokeWidth={VictoryTheme.line.strokeWidth}
-                        strokeCap="round"
-                        curveType="linear"
-                    >
-                        <DashPathEffect intervals={DASH_INTERVALS} />
-                    </Line>
-                )}
+                {primaryLineRuns
+                    .filter((run) => !run.isDashed && run.end > run.start)
+                    .map((run) => (
+                        <AreaGradient
+                            key={`area-${run.start}`}
+                            points={primaryPoints.slice(run.start, run.end + 1)}
+                            baselineY={chartBoundsBottom}
+                            color={primarySeriesColor}
+                        />
+                    ))}
+                {/* Drawn last, the primary line sits on top of the compared one */}
+                {[...series].reverse().map((seriesItem) => {
+                    const color = seriesItem.color ?? VictoryTheme.colors.default;
+                    const seriesPoints = args.points[seriesItem.key] ?? [];
+
+                    // Only the primary series is dashed
+                    const lineRuns: LineRun[] = seriesItem.key === primarySeriesKey ? primaryLineRuns : [{start: 0, end: seriesPoints.length - 1, isDashed: false}];
+                    return (
+                        <React.Fragment key={seriesItem.key}>
+                            {lineRuns.map((run) => (
+                                <Line
+                                    key={`line-${run.start}`}
+                                    points={seriesPoints.slice(run.start, run.end + 1)}
+                                    color={color}
+                                    strokeWidth={VictoryTheme.line.strokeWidth}
+                                    strokeCap="round"
+                                    strokeJoin="round"
+                                    curveType="linear"
+                                >
+                                    {run.isDashed && <DashPathEffect intervals={DASH_INTERVALS} />}
+                                </Line>
+                            ))}
+                        </React.Fragment>
+                    );
+                })}
                 {xAxisLabelHeight !== undefined && (
                     <ChartXAxisLabels
                         labels={originalLabels}
@@ -294,13 +313,17 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                     formatValue={formatCompactValue}
                 />
                 <ActivePointIndicator
-                    position={activePointPosition}
+                    x={activePointX}
+                    activeIndex={matchedIndex}
+                    dots={series.map((seriesItem) => ({
+                        color: seriesItem.color ?? VictoryTheme.colors.default,
+                        yPositions: (args.points[seriesItem.key] ?? []).map((point) => point.y),
+                    }))}
                     isActive={isTooltipActive}
                     top={args.chartBounds.top}
                     bottom={chartBoundsBottom}
                     dotRadius={VictoryTheme.line.activeDotRadius}
-                    dotColor={VictoryTheme.colors.default}
-                    guidelineColor={VictoryTheme.colors.default}
+                    guidelineColor={primarySeriesColor}
                     guidelineOpacity={VictoryTheme.line.guidelineOpacity}
                     isHollow={isActivePointHollow}
                     hollowColor={theme.cardBG}
@@ -329,7 +352,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                     explicitSize={{width: chartWidth, height: chartHeight}}
                     xKey="x"
                     padding={chartPadding}
-                    yKeys={['y']}
+                    yKeys={seriesKeys}
                     domainPadding={domainPadding}
                     onChartBoundsChange={handleChartBoundsChange}
                     onScaleChange={handleScaleChange}

@@ -232,7 +232,6 @@ function PDFView({
             fullDisabled={successToLoadPDF}
             style={[themeStyles.flex1, themeStyles.alignSelfStretch, !failedToLoadPDF && themeStyles.flexRow]}
             accessibilityRole={CONST.ROLE.BUTTON}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
             sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.DOCUMENT}
         >
