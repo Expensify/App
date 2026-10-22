@@ -1,6 +1,7 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
 
@@ -11,12 +12,14 @@ import {formatVacationDelegateClearDateTime, getActiveVacationDelegate, getVacat
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import type CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import MenuItem from './MenuItem';
@@ -104,6 +107,7 @@ type VacationDelegateSectionProps = {
 };
 
 function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, errors, pendingAction, onCloseError, onPress}: VacationDelegateSectionProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {timezone: currentUserTimezone} = useCurrentUserPersonalDetails();
@@ -129,7 +133,7 @@ function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, erro
         >
             {hasVacationDelegate ? (
                 <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(onPress)}
+                    onPress={callFunctionIfActionIsAllowed(onPress, false, session)}
                     accessibilityLabel={[rowLabel, delegateDisplayName, untilText].filter(Boolean).join(', ')}
                 >
                     <VacationDelegateMenuItemRow

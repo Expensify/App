@@ -50,6 +50,7 @@ import ROUTES from '@src/ROUTES';
 import type {TupleToUnion} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
@@ -62,6 +63,7 @@ type WorkflowsPaymentsTabProps = {
 };
 
 function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -377,7 +379,11 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                         >
                             <View style={[styles.mt3, styles.mbn3]}>
                                 <MenuItemSectionRoot
-                                    onPress={canChangePayer ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(policyID))) : undefined}
+                                    onPress={
+                                        canChangePayer
+                                            ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(policyID)), false, session)
+                                            : undefined
+                                    }
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
                                 >
                                     <MenuItemField.Row
@@ -402,7 +408,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                         >
                             <View style={[styles.mt3, styles.mbn3]}>
                                 <MenuItemSectionRoot
-                                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID)))}
+                                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID)), false, session)}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
                                 >
                                     <MenuItemField.Row
