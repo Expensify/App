@@ -342,6 +342,7 @@ function BaseSelectionListWithSectionsImpl({
     const footer = (
         <Footer<ListItem>
             footerContent={footerContent}
+            confirmButtonOptions={confirmButtonOptions}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />
     );
