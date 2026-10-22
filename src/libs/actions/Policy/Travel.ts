@@ -5,6 +5,8 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getObjectKeys} from '@libs/ObjectUtils';
 import {canMemberUseTravel, getTravelMemberRole, goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {isTravelMemberRole} from '@libs/TravelMemberOptionUtils';
+import type {TravelMemberAccessValue} from '@libs/TravelMemberOptionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -275,6 +277,19 @@ function setPolicyTravelMemberRole(policy: OnyxEntry<OnyxTypes.Policy>, members:
     API.write(WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ROLE, parameters, onyxData);
 }
 
+/**
+ * Apply a member's travel setting as one value. Off only turns travel off, so the member's travel role is kept for
+ * when travel is turned back on. A role turns travel on and stores that role.
+ */
+function setPolicyTravelMemberAccessValue(policy: OnyxEntry<OnyxTypes.Policy>, members: TravelMemberAccessTarget[], value: TravelMemberAccessValue) {
+    if (!isTravelMemberRole(value)) {
+        setPolicyTravelMemberAccess(policy, members, false);
+        return;
+    }
+    setPolicyTravelMemberAccess(policy, members, true);
+    setPolicyTravelMemberRole(policy, members, value);
+}
+
 /** Dismiss the error left on a member after their travel access or travel role failed to update. */
 function clearPolicyTravelMemberAccessError(policyID: string, login: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -284,5 +299,5 @@ function clearPolicyTravelMemberAccessError(policyID: string, login: string) {
     });
 }
 
-export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelMemberAccess, setPolicyTravelMemberRole, clearPolicyTravelMemberAccessError};
+export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelMemberAccess, setPolicyTravelMemberRole, setPolicyTravelMemberAccessValue, clearPolicyTravelMemberAccessError};
 export type {TravelMemberAccessTarget};
