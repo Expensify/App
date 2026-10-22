@@ -1,4 +1,3 @@
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,7 +12,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import FeatureTraining from './FeatureTraining';
-import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
 import Text from './Text';
 
@@ -24,20 +22,11 @@ type SectionMenuItem = {
     titleTranslationKey: TranslationPaths;
 };
 
-type HoldOrRejectEducationalModalProps = {
-    /** Method to trigger when pressing outside of the popover menu to close it */
-    onClose: () => void;
-
-    /** Method to trigger when pressing confirm button */
-    onConfirm: () => void;
-};
-
-function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducationalModalProps) {
+/** The content of the "Should you hold or reject?" educational modal, rendered inside a FeatureTrainingModal */
+function HoldOrRejectEducationalModalContent() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Stopwatch', 'Rules', 'RealtimeReport', 'ThumbsDown', 'ModalHoldOrReject']);
-
-    useBeforeRemove(onClose);
 
     const menuSections: SectionMenuItem[] = [
         {
@@ -59,14 +48,7 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
     ];
 
     return (
-        <FeatureTrainingModal
-            width={variables.holdEducationModalWidth}
-            modalInnerContainerStyle={styles.pt0}
-            shouldCloseOnConfirm={false}
-            onClose={onClose}
-            onConfirm={onConfirm}
-            shouldUseScrollView
-        >
+        <>
             <FeatureTraining.Illustration
                 image={illustrations.ModalHoldOrReject}
                 contentFitImage="cover"
@@ -96,8 +78,8 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
                 </FeatureTraining.BodyText>
                 <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
             </FeatureTraining.Body>
-        </FeatureTrainingModal>
+        </>
     );
 }
 
-export default HoldOrRejectEducationalModal;
+export default HoldOrRejectEducationalModalContent;
