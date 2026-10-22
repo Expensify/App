@@ -25,6 +25,17 @@ function hasAcceptedTravelTerms(policy: OnyxEntry<Policy>, accountTravelSettings
     return !!(policy?.travelSettings?.hasAcceptedTerms ?? (accountTravelSettings?.hasAcceptedTerms && isWorkspaceProvisionedForTravel(policy?.travelSettings)));
 }
 
+/**
+ * Whether a member can book travel on a workspace. Workspaces provisioned before travel access was managed per member
+ * let every member book, so a member only needs to be turned on once the workspace limits travel to enabled members.
+ */
+function canMemberUseTravel(policy: OnyxEntry<Policy>, login: string | undefined): boolean {
+    if (!policy?.travelSettings?.restrictToEnabledMembers) {
+        return true;
+    }
+    return !!login && policy.employeeList?.[login]?.canUseTravel === true;
+}
+
 function isNonUSDPolicy(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.outputCurrency && policy.outputCurrency !== CONST.CURRENCY.USD;
 }
@@ -55,4 +66,4 @@ function getTravelStep(
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
 }
 
-export {isWorkspaceProvisionedForTravel, hasAcceptedTravelTerms, isNonUSDPolicy, getTravelStep};
+export {isWorkspaceProvisionedForTravel, hasAcceptedTravelTerms, canMemberUseTravel, isNonUSDPolicy, getTravelStep};
