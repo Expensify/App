@@ -27,6 +27,7 @@ import {
     getAddedOfficeLocationMessage,
     getUpdatedOfficeLocationMessage,
     getDeletedOfficeLocationMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getUnassignedCompanyCardMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
@@ -43,7 +44,7 @@ import {
     getWelcomeMessage,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
-import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewReportActionMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
+import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
 import {isScanning} from '@libs/TransactionUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -61,7 +62,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -561,17 +562,14 @@ describe('ReportAlternateTextUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
-                    {
-                        reportOrID: iouReport,
-                        iouReportAction: iouAction,
-                        shouldConsiderScanningReceiptOrPendingRoute: true,
-                        policy: null,
-                        isForListPreview: true,
-                        originalReportAction: reportPreviewAction,
-                    },
-                    getCurrencyDecimalsLocal,
-                );
+                const reportPreviewMessage = getReportPreviewMessage(translateLocal, convertToDisplayString, {
+                    reportOrID: iouReport,
+                    iouReportAction: iouAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                    policy: null,
+                    isForListPreview: true,
+                    originalReportAction: reportPreviewAction,
+                });
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');
             });
@@ -1639,6 +1637,11 @@ describe('ReportAlternateTextUtils', () => {
                 getUpdatedOfficeLocationMessage,
             ],
             [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION, {officeID: 'OFFICE1', name: 'Headquarters'}, getDeletedOfficeLocationMessage],
+            [
+                CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+                {accountID: 1, email: 'member@test.com', name: 'Member One', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+                getUpdatedEmployeeOfficeLocationMessage,
+            ],
         ] as const)('%s action', async (actionName, originalMessage, getMessage) => {
             // Given an office location change log, whose stored text is Auth's English message
             const report: Report = createRandomReport(0, undefined);
@@ -1701,6 +1704,40 @@ describe('ReportAlternateTextUtils', () => {
                 formatPhoneNumber,
             });
             expect(lastMessage).toBe(getUpdatedAutoHarvestingMessage(translateLocal, action));
+        });
+        it('UPDATE_MEMBER_WORK_ARRANGEMENT action', () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {name: 'Member One', oldValue: false, newValue: true},
+            };
+
+            const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                lastAction: action,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
+            });
+
+            expect(lastMessage).toBe(
+                translateLocal('workspaceActions.updatedMemberWorkArrangement', {
+                    displayName: 'Member One',
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
         });
         it('UPDATE_CUSTOM_UNIT_RATE action', async () => {
             const report: Report = createRandomReport(0, undefined);
