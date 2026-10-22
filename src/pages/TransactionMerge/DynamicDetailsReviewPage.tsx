@@ -49,7 +49,7 @@ import MergeFieldReview from './MergeFieldReview';
 type DynamicDetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE>;
 
 function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {transactionID, isOnSearch} = route.params;
@@ -184,6 +184,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
                 translate,
                 convertToDisplayString,
                 localeCompare,
+                formatPhoneNumber,
                 reports: [targetTransactionReport, sourceTransactionReport],
             }),
         [
@@ -200,6 +201,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
             translate,
             convertToDisplayString,
             localeCompare,
+            formatPhoneNumber,
         ],
     );
 

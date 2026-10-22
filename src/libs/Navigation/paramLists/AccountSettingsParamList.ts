@@ -205,7 +205,7 @@ type AccountSettingsParamList = {
         subPage?: string;
         action?: 'edit';
     };
-    [SCREENS.SETTINGS.COLLECT_DEPOSIT_ACCOUNT]: {
+    [SCREENS.SETTINGS.DYNAMIC_COLLECT_DEPOSIT_ACCOUNT]: {
         subPage?: string;
         action?: 'edit';
     };

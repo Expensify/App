@@ -91,6 +91,7 @@ function WalletPage() {
         selector: fundListSelector,
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policyMemberBankAccounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS);
     const [isCollectingDepositAccounts = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isCollectingDepositAccountsSelector});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -311,7 +312,7 @@ function WalletPage() {
             return;
         }
         if (isCollectingDepositAccounts) {
-            Navigation.navigate(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute());
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.COLLECT_DEPOSIT_ACCOUNT.getRoute()));
             return;
         }
         openPersonalBankAccountSetupView({});
@@ -325,7 +326,15 @@ function WalletPage() {
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            makeDefaultPaymentMethodPaymentMethods(paymentMethod.selectedPaymentMethod.bankAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, previousPaymentMethod, currentPaymentMethod);
+            makeDefaultPaymentMethodPaymentMethods(
+                paymentMethod.selectedPaymentMethod.bankAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                0,
+                previousPaymentMethod,
+                currentPaymentMethod,
+                allPolicies,
+                policyMemberBankAccounts,
+                currentUserAccountID,
+            );
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             makeDefaultPaymentMethodPaymentMethods(0, paymentMethod.selectedPaymentMethod.fundID ?? CONST.DEFAULT_NUMBER_ID, previousPaymentMethod, currentPaymentMethod);
         }
@@ -340,6 +349,9 @@ function WalletPage() {
         paymentMethod.selectedPaymentMethod.bankAccountID,
         paymentMethod.selectedPaymentMethod.fundID,
         resetSelectedPaymentMethodData,
+        allPolicies,
+        policyMemberBankAccounts,
+        currentUserAccountID,
     ]);
 
     const deletePaymentMethod = useCallback(() => {

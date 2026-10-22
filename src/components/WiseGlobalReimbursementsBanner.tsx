@@ -43,6 +43,7 @@ function WiseGlobalReimbursementsBanner({onGetStartedPress, onDismissPress, sent
             rightIcon={expensifyIcons.Close}
             onRightIconPress={onDismissPress}
             rightIconAccessibilityLabel={translate('common.dismiss')}
+            rightIconTooltipText={translate('common.close')}
             rightIconSentryLabel={sentryLabels.DISMISS}
             rightComponent={
                 <View style={shouldDisplayButtonInSeparateLine ? [styles.flex0, styles.flexBasis100, styles.maxWidth100Percentage, styles.justifyContentCenter] : undefined}>
