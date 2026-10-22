@@ -1,5 +1,4 @@
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
-import type {ActionSheetAwareScrollViewProps} from '@components/ActionSheetAwareScrollView/types';
 import allowLegendListItemOverflow from '@components/LegendList/allowLegendListItemOverflow';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
@@ -821,7 +820,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     drawDistance={REPORT_ACTIONS_DRAW_DISTANCE}
                     recycleItems
                     experimental_hideItemsUntilMeasured
-                    renderScrollComponent={Platform.OS === 'web' ? undefined : renderReportActionsScrollView}
+                    renderScrollComponent={Platform.OS === 'web' ? undefined : renderActionSheetAwareScrollView}
                     scrollEventThrottle={16}
                     contentContainerStyle={[styles.chatContentScrollView, styles.pb0]}
                     onEndReached={loadNewerChatsAfterTransitions}
@@ -888,7 +887,3 @@ function ReportActionsList({reportID, conciergeChat, onLayout}: ReportActionsLis
 }
 
 export default ReportActionsList;
-
-function renderReportActionsScrollView(props: ActionSheetAwareScrollViewProps) {
-    return renderActionSheetAwareScrollView({...props, scrollEventThrottle: 16});
-}

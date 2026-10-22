@@ -1,5 +1,6 @@
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 
+import type {RenderActionSheetAwareScrollViewComponent} from '@components/ActionSheetAwareScrollView/types';
 import allowLegendListItemOverflow from '@components/LegendList/allowLegendListItemOverflow';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -37,12 +38,13 @@ import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockUseIsFocused = jest.fn().mockReturnValue(false);
+jest.unmock('@components/ActionSheetAwareScrollView');
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
     return {
@@ -222,6 +224,8 @@ type MockLegendListProps = {
     onViewableItemsChanged?: (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => void;
     recycleItems?: boolean;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
+    renderScrollComponent?: RenderActionSheetAwareScrollViewComponent;
+    scrollEventThrottle?: number;
     onStartReached?: () => void;
     onScroll?: (event: {
         nativeEvent: {
@@ -484,6 +488,25 @@ describe('ReportActionsList (body)', () => {
         // When the last row is taller than the estimate, its feedback controls must not remain below the viewport.
         // Then the list makes one final end scroll after the layout is ready.
         await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+    });
+
+    it('keeps the native scroll-view throttle supplied by LegendList', () => {
+        // Given a report list using the action-sheet-aware native scroller.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const platform = jest.replaceProperty(Platform, 'OS', 'android');
+        try {
+            renderReportActionsList();
+            const listProps = getCapturedListProps();
+
+            // When LegendList requests native scroll events on every frame.
+            const scrollView = listProps?.renderScrollComponent?.({scrollEventThrottle: 0});
+
+            // Then the wrapper preserves them while LegendList separately throttles the app callback.
+            expect(scrollView?.props.scrollEventThrottle).toBe(0);
+            expect(listProps?.scrollEventThrottle).toBe(16);
+        } finally {
+            platform.restore();
+        }
     });
 
     it('keeps the latest message visible when its measured height grows after opening', async () => {
