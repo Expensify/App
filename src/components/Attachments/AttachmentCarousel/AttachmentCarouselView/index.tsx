@@ -105,7 +105,7 @@ function AttachmentCarouselView({
                 return;
             }
 
-            const item = entry.item as Attachment;
+            const item = entry.item;
             if (entry.index != null) {
                 setPage(entry.index);
                 setActiveAttachmentID(item.attachmentID ?? item.source);
