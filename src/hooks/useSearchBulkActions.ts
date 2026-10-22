@@ -1932,6 +1932,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         methodID,
                         bankAccountList,
                         isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
+                        iouReport,
                     })
                 ) {
                     continue;
