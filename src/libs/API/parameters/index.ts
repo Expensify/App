@@ -121,9 +121,9 @@ export type {default as UpdateZohoBooksSyncReimbursedReportsParams} from './Upda
 export type {default as UpdateZohoBooksBillPaymentAccountParams} from './UpdateZohoBooksBillPaymentAccountParams';
 export type {default as UpdateZohoBooksSyncExpensifyCardSettlementsParams} from './UpdateZohoBooksSyncExpensifyCardSettlementsParams';
 export type {default as UpdateZohoBooksSettlementsAccountParams} from './UpdateZohoBooksSettlementsAccountParams';
-export type {default as UpdateZohoBooksSyncTravelInvoicingSettlementsParams} from './UpdateZohoBooksSyncTravelInvoicingSettlementsParams';
-export type {default as UpdateZohoBooksTravelInvoicingSettlementsAccountParams} from './UpdateZohoBooksTravelInvoicingSettlementsAccountParams';
-export type {default as UpdateZohoBooksTravelInvoicingPayableAccountParams} from './UpdateZohoBooksTravelInvoicingPayableAccountParams';
+export type {default as UpdateZohoBooksSyncTravelBillingSettlementsParams} from './UpdateZohoBooksSyncTravelBillingSettlementsParams';
+export type {default as UpdateZohoBooksTravelBillingSettlementsAccountParams} from './UpdateZohoBooksTravelBillingSettlementsAccountParams';
+export type {default as UpdateZohoBooksTravelBillingPayableAccountParams} from './UpdateZohoBooksTravelBillingPayableAccountParams';
 export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
 export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
 export type {default as UpdateBusinessCentralCustomerMappingParams} from './UpdateBusinessCentralCustomerMappingParams';
