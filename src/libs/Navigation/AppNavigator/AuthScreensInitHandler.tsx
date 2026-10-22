@@ -51,7 +51,9 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import {CommonActions} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {accountIDSelector, displayNameSelector} from '@selectors/PersonalDetails';
-import {useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
+
+import SearchTabPreload from './SearchTabPreload';
 
 function initializePusher(
     currentUserAccountID: number | undefined,
@@ -277,7 +279,13 @@ function AuthScreensInitHandler() {
         return () => task.cancel();
     }, [isLoadingApp, tabNavigatorStateKey]);
 
-    return null;
+    // Rendered here only to reuse the two values this handler already reads.
+    return (
+        <SearchTabPreload
+            isLoadingApp={isLoadingApp}
+            tabNavigatorStateKey={tabNavigatorStateKey}
+        />
+    );
 }
 
 export default AuthScreensInitHandler;
