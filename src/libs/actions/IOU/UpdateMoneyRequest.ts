@@ -865,7 +865,7 @@ function updateMoneyRequestVendor({
     }
 
     // Optimistically clear any existing inactive-vendor violation. This is the user-driven write
-    // path: the vendor selector RHP only offers vendors from `getMatchingVendors(policy)`, so a user
+    // path: the vendor selector RHP only offers vendors that are enabled on the policy, so a user
     // pick is always a valid vendor (resolving the violation); clearing the vendor likewise
     // resolves it (no vendor → no inactive-vendor). Without this, the stale violation persists
     // in Onyx until some unrelated recalculation fires, keeping the expense incorrectly flagged.
@@ -1462,6 +1462,7 @@ function updateMoneyRequestDescription({
     getCurrencySymbol,
     rules,
     isVendorMatchingBetaEnabled,
+    policyVendors,
 }: {
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
@@ -1475,6 +1476,7 @@ function updateMoneyRequestDescription({
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    policyVendors?: OnyxEntry<OnyxTypes.PolicyVendors>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
@@ -1517,6 +1519,7 @@ function updateMoneyRequestDescription({
             policyTagList,
             reportPolicyTags,
             policyCategories,
+            policyVendors,
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
@@ -1836,6 +1839,7 @@ type GetUpdateMoneyRequestParamsType = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    policyVendors?: OnyxEntry<OnyxTypes.PolicyVendors>;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -1889,6 +1893,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         getCurrencySymbol,
         rules,
         isVendorMatchingBetaEnabled,
+        policyVendors: policyVendorsParam,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -2412,6 +2417,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             isFromExpenseReport,
             distanceOriginalPolicy,
             isVendorMatchingBetaEnabled,
+            policyVendors: policyVendorsParam,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({
