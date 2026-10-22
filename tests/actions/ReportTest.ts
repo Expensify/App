@@ -10929,6 +10929,60 @@ describe('actions/Report', () => {
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
         });
 
+        it("should create a transaction thread under the owner's self DM for another user's unreported expense", async () => {
+            // Given an unreported expense action that lives in another user's self DM, which the current user does not have in Onyx
+            const ownerSelfDMReportID = '602';
+            const transaction = {...createRandomTransaction(602), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(602),
+                reportActionID: 'owner-action-602',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: TEST_USER_ACCOUNT_ID + 1,
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: transaction.transactionID,
+                },
+            };
+
+            // When an admin opens it with the owner's self DM
+            const result = Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                iouReportAction: reportAction,
+                transaction,
+                selfDMReportID: ownerSelfDMReportID,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the thread hangs off the owner's self DM, the IOU action is available to render it, and no self DM is faked for the admin
+            expect(result?.parentReportID).toBe(ownerSelfDMReportID);
+            expect(result?.parentReportActionID).toBe(reportAction.reportActionID);
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            const ownerSelfDMActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ownerSelfDMReportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            expect(ownerSelfDMActions?.[reportAction.reportActionID]?.actorAccountID).toBe(TEST_USER_ACCOUNT_ID + 1);
+            const ownerSelfDM = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${ownerSelfDMReportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            expect(ownerSelfDM?.chatType).toBeUndefined();
+        });
+
         it('should return an optimistic transaction thread report when given a valid report and action', async () => {
             const parentReport: OnyxTypes.Report = {
                 ...createRandomReport(100, undefined),

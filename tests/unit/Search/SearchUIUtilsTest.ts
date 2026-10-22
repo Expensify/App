@@ -13390,12 +13390,12 @@ describe('SearchUIUtils', () => {
         });
 
         test("Should not create a transaction thread in the current user's self DM for another user's unreported expense", () => {
-            // Given an unreported expense owned by another user
+            // Given an unreported expense owned by another user whose self DM is unknown
             const unreportedTransaction = {
                 ...transactionListItem,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 report: undefined,
-                reportAction: {...reportAction1, actorAccountID: currentUserAccountID + 1},
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID + 1, reportID: undefined},
             };
 
             // When the current user opens the expense from Search
@@ -13406,6 +13406,30 @@ describe('SearchUIUtils', () => {
             expect(setOptimisticDataForTransactionThreadPreview).not.toHaveBeenCalled();
             expect(createTransactionThreadReport).not.toHaveBeenCalled();
             expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        test("Should create a transaction thread in the owner's self DM for another user's unreported expense", () => {
+            // Given an unreported expense whose IOU action lives in another user's self DM, as Search returns it to an admin
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            const ownerSelfDMReportID = 'owner-self-dm';
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID + 1, reportID: ownerSelfDMReportID},
+            };
+
+            // When the admin opens the expense from Search
+            const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
+
+            // Then the transaction thread is created under the owner's self DM instead of the admin's
+            expect(targetReportID).toBe(threadReportID);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    iouReportAction: unreportedTransaction.reportAction,
+                    selfDMReportID: ownerSelfDMReportID,
+                }),
+            );
         });
 
         test("Should create a transaction thread in the current user's self DM for their own unreported expense", () => {

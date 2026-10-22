@@ -2473,6 +2473,9 @@ type CreateTransactionThreadReportParams = {
     /** The accountID of the copilot acting on behalf of the current user, if any */
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
     delegateAccountID?: number;
+
+    /** The self DM holding the expense, when it belongs to another member */
+    selfDMReportID?: string;
 };
 
 function createTransactionThreadReport(params: CreateTransactionThreadReportParams): OptimisticChatReport | undefined {
@@ -2494,17 +2497,26 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
     const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldUseSelfDM = isTrackExpense || isUnreportedTransaction;
-    if (shouldUseSelfDM && iouReportAction?.actorAccountID !== currentUserAccountID) {
+    const isOwnedByCurrentUser = iouReportAction?.actorAccountID === currentUserAccountID;
+    if (shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID) {
         Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user');
         return;
     }
 
-    const selfDMReportID = shouldUseSelfDM ? findSelfDMReportID() : undefined;
+    const selfDMReportID = shouldUseSelfDM ? (params.selfDMReportID ?? findSelfDMReportID()) : undefined;
 
     let optimisticSelfDMReport: Report | undefined;
     let reportToUse = iouReport;
     if (selfDMReportID) {
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+
+        // Another member's self DM is never in the viewer's Onyx, and the thread only needs its ID as the parent
+        if (!reportToUse && !isOwnedByCurrentUser) {
+            reportToUse = {reportID: selfDMReportID};
+            if (iouReportAction?.reportActionID) {
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {[iouReportAction.reportActionID]: iouReportAction});
+            }
+        }
 
         // selfDMReportID may be set but the report is filtered out.
         // Create an optimistic report if needed to proceed with the transaction thread.
