@@ -76,6 +76,8 @@ const meta = {
         noOnyxReadInEffect:
             'Do not read Onyx inside an effect, or in a function an effect calls. When the value was in the effect dependency array, the useOnyx subscription is what re-runs the effect, and a one-shot read stops that.\n\n' +
             'Keep the useOnyx subscription. Reads inside effects stay banned until a check can confirm the value was not in the dependency array.',
+        noOnyxReadByReference:
+            'Call Onyx.get() and Onyx.multiGet() directly. A reference that is not a direct call (Onyx.get.call, Onyx.get.bind, keys.map(Onyx.get), const read = Onyx.get, const {get} = Onyx) hides the key from no-onyx-get-snapshot-key and the call site from this rule.',
     },
 };
 
@@ -148,6 +150,17 @@ function getRenderTimeArgumentIndices(callee) {
     return calleeName ? (RENDER_TIME_HOOK_ARGUMENTS.get(calleeName) ?? null) : null;
 }
 
+// The outermost of `node` and the TS casts around it, so `{...} as const` or `options as X` is the argument itself
+function getOutermostTypeOnlyWrapper(node) {
+    let current = node;
+
+    while (current?.parent && TYPE_ONLY_EXPRESSIONS.has(current.parent.type)) {
+        current = current.parent;
+    }
+
+    return current;
+}
+
 function isHookArgument(node, call) {
     if (call?.type !== 'CallExpression' || !call.arguments.includes(node)) {
         return false;
@@ -158,19 +171,12 @@ function isHookArgument(node, call) {
     return !!calleeName && isHookName(calleeName);
 }
 
-// `useOnyx(key, {selector})` inline, or `const options = {selector}; useOnyx(key, options)`
+// `useOnyx(key, {selector})` inline, or `const options = {selector}; useOnyx(key, options)`, with TS casts on either side
 function isHookOption(property, sourceCode) {
-    const options = property.parent;
+    const holder = getOutermostTypeOnlyWrapper(property.parent);
 
-    if (isHookArgument(options, options?.parent)) {
+    if (isHookArgument(holder, holder?.parent)) {
         return true;
-    }
-
-    // `const options = {selector} as const` wraps the object before the declarator
-    let holder = options;
-
-    while (holder?.parent && TYPE_ONLY_EXPRESSIONS.has(holder.parent.type)) {
-        holder = holder.parent;
     }
 
     const declarator = holder?.parent;
@@ -181,7 +187,14 @@ function isHookOption(property, sourceCode) {
 
     const variable = getDeclaredVariable(declarator, declarator.id.name, sourceCode);
 
-    return !!variable && variable.references.some((reference) => isHookArgument(reference.identifier, reference.identifier.parent));
+    return (
+        !!variable &&
+        variable.references.some((reference) => {
+            const argument = getOutermostTypeOnlyWrapper(reference.identifier);
+
+            return isHookArgument(argument, argument.parent);
+        })
+    );
 }
 
 function isRenderTimeUsage(identifier, sourceCode) {
@@ -282,6 +295,29 @@ function getBindingUses(binding, sourceCode, seen) {
     return getReadIdentifiers(binding.declaration, binding.name, sourceCode);
 }
 
+// `const run = useCallback(load, [])` or `useEffectEvent(load)` makes `run` another name for `load`
+function getCallbackHookAlias(node) {
+    const call = node.parent;
+    const declarator = call?.parent;
+
+    if (call?.type !== 'CallExpression' || call.arguments.at(0) !== node || !matchesCalleeName(call.callee, CALLBACK_HOOK_NAMES)) {
+        return null;
+    }
+
+    return declarator?.type === 'VariableDeclarator' && declarator.init === call && declarator.id.type === 'Identifier' ? {declaration: declarator, name: declarator.id.name} : null;
+}
+
+// `const run = load` or a callback hook wrapping `load` binds another name to the same function
+function getAliasBinding(use) {
+    const parent = use.parent;
+
+    if (parent?.type === 'VariableDeclarator' && parent.init === use && parent.id.type === 'Identifier') {
+        return {declaration: parent, name: parent.id.name};
+    }
+
+    return getCallbackHookAlias(use);
+}
+
 /**
  * RENDER or MODULE_SCOPE when some reference to the bound function runs it there (a render slot, a call written in a
  * render body or at module scope, or an alias used that way), otherwise null. `classifyCall` is injected from
@@ -306,12 +342,11 @@ function getEscalatedPosition(binding, sourceCode, seen, classifyCall) {
             continue;
         }
 
-        if (parent?.type === 'VariableDeclarator' && parent.init === use && parent.id.type === 'Identifier') {
-            const position = getEscalatedPosition({declaration: parent, name: parent.id.name}, sourceCode, seen, classifyCall);
+        const alias = getAliasBinding(use);
+        const position = alias ? getEscalatedPosition(alias, sourceCode, seen, classifyCall) : null;
 
-            if (position) {
-                return position;
-            }
+        if (position) {
+            return position;
         }
     }
 
@@ -346,25 +381,32 @@ function isReturnedFunction(functionNode, parent) {
     return parent?.type === 'ReturnStatement' || (isFunctionNode(parent) && parent.body === functionNode);
 }
 
-function getHandlerBinding(functionNode, parent, grandparent) {
+// `const read = useMemo(() => () => Onyx.get(key), [])` binds `read` to the function the factory returns
+function getMemoizedFunctionBinding(functionNode, parent) {
+    if (!isReturnedFunction(functionNode, parent)) {
+        return null;
+    }
+
+    let factory = parent;
+
+    while (factory && !isFunctionNode(factory)) {
+        factory = factory.parent;
+    }
+
+    const call = factory?.parent;
+    const declarator = call?.parent;
+
+    if (call?.type !== 'CallExpression' || call.arguments.at(0) !== factory || getCalleeName(call.callee) !== 'useMemo') {
+        return null;
+    }
+
+    return declarator?.type === 'VariableDeclarator' && declarator.init === call && declarator.id.type === 'Identifier' ? {declaration: declarator, name: declarator.id.name} : null;
+}
+
+function getHandlerBinding(functionNode, parent) {
     const binding = getFunctionBinding(functionNode, parent);
 
-    if (binding) {
-        return binding;
-    }
-
-    if (
-        parent?.type === 'CallExpression' &&
-        parent.arguments.at(0) === functionNode &&
-        matchesCalleeName(parent.callee, CALLBACK_HOOK_NAMES) &&
-        grandparent?.type === 'VariableDeclarator' &&
-        grandparent.init === parent &&
-        grandparent.id.type === 'Identifier'
-    ) {
-        return {declaration: grandparent, name: grandparent.id.name};
-    }
-
-    return null;
+    return binding ?? getCallbackHookAlias(functionNode);
 }
 
 function runsWithEnclosingCode(functionNode, parent) {
@@ -395,8 +437,10 @@ function isReachedFromEffect(ancestors, fromIndex, sourceCode, seen) {
                 return true;
             }
 
-            if (parent?.type === 'VariableDeclarator' && parent.init === use && parent.id.type === 'Identifier') {
-                return isHandlerInvokedFromEffect({declaration: parent, name: parent.id.name});
+            const alias = getAliasBinding(use);
+
+            if (alias) {
+                return isHandlerInvokedFromEffect(alias);
             }
 
             const isCalled = parent?.type === 'CallExpression' && parent.callee === use;
@@ -425,7 +469,7 @@ function isReachedFromEffect(ancestors, fromIndex, sourceCode, seen) {
             return true;
         }
 
-        const binding = getHandlerBinding(ancestor, parent, grandparent);
+        const binding = getHandlerBinding(ancestor, parent);
 
         if (binding) {
             return isHandlerInvokedFromEffect(binding);
@@ -434,6 +478,12 @@ function isReachedFromEffect(ancestors, fromIndex, sourceCode, seen) {
         // A function returned from an effect callback is its cleanup, which React runs from the effect too; a function
         // returned from anything else is a value whose call site decides
         if (isReturnedFunction(ancestor, parent)) {
+            const memoized = getMemoizedFunctionBinding(ancestor, parent);
+
+            if (memoized) {
+                return isHandlerInvokedFromEffect(memoized);
+            }
+
             const enclosingIndex = ancestors.findLastIndex((candidate, candidateIndex) => candidateIndex < index && isFunctionNode(candidate));
 
             return enclosingIndex !== -1 && isEffectCallback(ancestors[enclosingIndex], ancestors[enclosingIndex - 1] ?? null, ancestors[enclosingIndex - 2] ?? null);
@@ -458,7 +508,7 @@ function isReadAllowedInFile(filename) {
 }
 
 // `classifyCall` comes from classifyPosition, which this function and getEscalatedPosition recurse into for a helper's call sites
-function classifyFunctionBoundary(functionNode, parent, grandparent, sourceCode, seen, classifyCall) {
+function classifyFunctionBoundary(functionNode, parent, sourceCode, seen, classifyCall) {
     if (parent?.type === 'Property' && parent.value === functionNode && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed)) && isHookOption(parent, sourceCode)) {
         return RENDER;
     }
@@ -486,13 +536,13 @@ function classifyFunctionBoundary(functionNode, parent, grandparent, sourceCode,
             }
 
             // `const read = useCallback(() => Onyx.get(key), []); read();` in a render body
-            const handler = getHandlerBinding(functionNode, parent, grandparent);
+            const handler = getHandlerBinding(functionNode, parent);
 
-            return (handler && getEscalatedPosition(handler, sourceCode, seen, classifyCall)) ?? DEFERRED;
+            return (handler && getEscalatedPosition(handler, sourceCode, seen, classifyCall)) ?? (returnsJSX(functionNode) ? RENDER : DEFERRED);
         }
     }
 
-    const binding = getFunctionBinding(functionNode, parent);
+    const binding = getFunctionBinding(functionNode, parent) ?? getMemoizedFunctionBinding(functionNode, parent);
     const escalated = binding ? getEscalatedPosition(binding, sourceCode, seen, classifyCall) : null;
 
     if (escalated) {
@@ -533,7 +583,7 @@ function classifyPosition(ancestors, sourceCode, seen = new Set(), skipEffectChe
             return RENDER;
         }
 
-        const disposition = classifyFunctionBoundary(ancestor, ancestors[index - 1] ?? null, ancestors[index - 2] ?? null, sourceCode, seen, classifyCall);
+        const disposition = classifyFunctionBoundary(ancestor, ancestors[index - 1] ?? null, sourceCode, seen, classifyCall);
 
         if (disposition === DEFERRED) {
             return !skipEffectCheck && isReachedFromEffect(ancestors, index, sourceCode, new Set()) ? EFFECT : EVENT;
@@ -550,9 +600,28 @@ function classifyPosition(ancestors, sourceCode, seen = new Set(), skipEffectChe
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
     const filename = context.filename ?? context.getFilename();
-    const {getCalledReadMethod} = createOnyxReadTracker(sourceCode);
+    const {getCalledReadMethod, getReferencedReadMethod} = createOnyxReadTracker(sourceCode);
+
+    // Reported in every file, since the path check below only sees direct calls
+    function reportReference(node) {
+        if (!getReferencedReadMethod(node)) {
+            return;
+        }
+
+        context.report({node, messageId: 'noOnyxReadByReference'});
+    }
 
     return {
+        MemberExpression(node) {
+            const callee = getOutermostTypeOnlyWrapper(node);
+
+            if (callee.parent?.type === 'CallExpression' && callee.parent.callee === callee) {
+                return;
+            }
+
+            reportReference(node);
+        },
+        'ObjectPattern > Property': reportReference,
         CallExpression(node) {
             if (!getCalledReadMethod(node.callee)) {
                 return;

@@ -360,6 +360,19 @@ function createOnyxReadTracker(sourceCode) {
         return getMemberReadMethod(current, constOnly);
     }
 
+    /** The read method a member access (`Onyx.get`) or a destructured property (`const {get} = Onyx`) names, or null */
+    function getReferencedReadMethod(node) {
+        if (node.type !== 'Property' || node.parent?.type !== 'ObjectPattern') {
+            return getMemberReadMethod(node, false);
+        }
+
+        const declarator = node.parent.parent;
+        const source = declarator?.type === 'VariableDeclarator' && declarator.id === node.parent ? unwrapTypeOnlyExpressions(declarator.init) : null;
+        const keyName = getStaticName(node.key, node.computed);
+
+        return READ_METHODS.has(keyName) && source?.type === 'Identifier' && isOnyxObject(source, false) ? keyName : null;
+    }
+
     /** The import specifier node `identifier` is bound to when it comes from a module `isSource` accepts, or null. */
     function getImportSpecifier(identifier, isSource) {
         const variable = resolveVariable(identifier, sourceCode);
@@ -367,7 +380,7 @@ function createOnyxReadTracker(sourceCode) {
         return !!variable && variable.defs.length === 1 && isImportFrom(variable.defs.at(0), isSource) ? variable.defs.at(0).node : null;
     }
 
-    return {getCalledReadMethod, getImportSpecifier};
+    return {getCalledReadMethod, getReferencedReadMethod, getImportSpecifier};
 }
 
 export {

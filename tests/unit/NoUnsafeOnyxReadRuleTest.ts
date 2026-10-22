@@ -57,6 +57,8 @@ const RENDER_ERRORS = [{messageId: 'noOnyxReadInRender'}];
 const MODULE_SCOPE_ERRORS = [{messageId: 'noOnyxReadAtModuleScope'}];
 const EFFECT_ERRORS = [{messageId: 'noOnyxReadInEffect'}];
 const OUTSIDE_ALLOWED_PATH_ERRORS = [{messageId: 'noOnyxReadOutsideAllowedPath'}];
+const BY_REFERENCE_ERROR = {messageId: 'noOnyxReadByReference'};
+const BY_REFERENCE_ERRORS = [BY_REFERENCE_ERROR];
 
 // The rule resolves the repo root from its own location, so the allowed-path cases use the same root it will compare against
 function readRepoRoot(): string {
@@ -135,7 +137,6 @@ describe('no-unsafe-onyx-read', () => {
             // A helper that reads is fine when only handlers call it
             `${ONYX_IMPORT} function Row() { const read = () => Onyx.get(ONYXKEYS.SESSION); const onPress = () => read(); return <View onPress={onPress} />; }`,
             `${ONYX_IMPORT} function load() { return Onyx.get(ONYXKEYS.SESSION); } function Row() { return <View onPress={() => load()} />; }`,
-            `${ONYX_IMPORT} let read = Onyx.get; function Row() { const onPress = () => read(ONYXKEYS.SESSION); return <View onPress={onPress} />; }`,
             `${ONYX_IMPORT} const handlers = {load: () => Onyx.get(ONYXKEYS.SESSION)}; function Row() { return <View onPress={() => handlers.load()} />; }`,
             // Only the named property and only `this` of the same class count as the handler
             `${ONYX_IMPORT} const api = {load: () => Onyx.get(ONYXKEYS.SESSION), other: () => 1}; function Row() { return <View value={api.other()} />; }`,
@@ -151,6 +152,18 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} function Row() { const makeHandler = () => () => Onyx.get(ONYXKEYS.SESSION); useEffect(() => { emitter.on('change', makeHandler()); }, []); return <View />; }`,
             // Calling the Onyx object itself is not a read
             `${ONYX_IMPORT} const api = Onyx; function Row() { const value = api(ONYXKEYS.SESSION); return <View value={value} />; }`,
+            // Given a useCallback callback that reads Onyx and returns a plain value, not JSX
+            // When it is only passed as onPress
+            // Then it is an event handler, so the read is allowed
+            `${ONYX_IMPORT} function Row() { const onPress = useCallback(() => { Onyx.get(ONYXKEYS.SESSION); return 1; }, []); return <View onPress={onPress} />; }`,
+            // Given a reading function passed by reference to useCallback
+            // When the wrapped callback is only passed as onPress
+            // Then the alias is followed to an event handler, so the read is allowed
+            `${ONYX_IMPORT} function load() { return Onyx.get(ONYXKEYS.SESSION); } function Row() { const run = useCallback(load, []); return <View onPress={run} />; }`,
+            // Given a useMemo factory that returns a reading function
+            // When the memoized function is only passed as onPress
+            // Then it is an event handler, so the read is allowed
+            `${ONYX_IMPORT} function Row() { const read = useMemo(() => () => Onyx.get(ONYXKEYS.SESSION), []); return <View onPress={read} />; }`,
         ],
         invalid: [
             {code: `${ONYX_IMPORT} new Promise((resolve) => { resolve(Onyx.get(ONYXKEYS.SESSION)); });`, errors: MODULE_SCOPE_ERRORS},
@@ -231,6 +244,34 @@ describe('no-unsafe-onyx-read', () => {
                 code: `${ONYX_IMPORT} function Row() { const read = useCallback(() => Onyx.get(ONYXKEYS.SESSION), []); const value = read(); return <View value={value} />; }`,
                 errors: RENDER_ERRORS,
             },
+            {
+                // Given a useCallback callback that reads Onyx and returns JSX
+                // When FlatList calls it as renderItem while rendering
+                // Then the read is a render read, even though nothing in the file calls the callback directly
+                code: `${ONYX_IMPORT} function List() { const renderItem = useCallback(({item}) => { const value = use(Onyx.get(ONYXKEYS.SESSION)); return <Row value={value} />; }, []); return <FlatList renderItem={renderItem} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                // Given a reading function passed by reference to useCallback
+                // When the wrapped callback is called in the render body
+                // Then the alias is followed and the read is a render read
+                code: `${ONYX_IMPORT} function load() { return Onyx.get(ONYXKEYS.SESSION); } function Row() { const run = useCallback(load, []); const value = run(); return <View value={value} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                // Given a useMemo factory whose expression body is a reading function
+                // When the memoized function is called in the render body
+                // Then the memoized binding is followed and the read is a render read
+                code: `${ONYX_IMPORT} function Row() { const read = useMemo(() => () => Onyx.get(ONYXKEYS.SESSION), []); const value = read(); return <View value={value} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                // Given a useMemo factory that returns a reading function from a block body
+                // When the memoized function is called in the render body
+                // Then the memoized binding is followed and the read is a render read
+                code: `${ONYX_IMPORT} function Row() { const read = useMemo(() => { return () => Onyx.get(ONYXKEYS.SESSION); }, []); const value = read(); return <View value={value} />; }`,
+                errors: RENDER_ERRORS,
+            },
             {code: `${ONYX_IMPORT} function load() { return Onyx.get(ONYXKEYS.SESSION); } function Row() { const value = load(); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {
                 code: `${ONYX_IMPORT} function load() { return Onyx.get(ONYXKEYS.SESSION); } function wrap() { return load(); } function Row() { const value = wrap(); return <View value={value} />; }`,
@@ -263,20 +304,29 @@ describe('no-unsafe-onyx-read', () => {
                 errors: RENDER_ERRORS,
             },
             // Aliases resolve by binding, not by source order, and a let alias still counts as a possible read
-            {code: `${ONYX_IMPORT} function Row() { const value = read(ONYXKEYS.SESSION); return <View value={value} />; } const read = Onyx.get;`, errors: RENDER_ERRORS},
+            {
+                code: `${ONYX_IMPORT} function Row() { const value = read(ONYXKEYS.SESSION); return <View value={value} />; } const read = Onyx.get;`,
+                errors: [{messageId: 'noOnyxReadInRender'}, BY_REFERENCE_ERROR],
+            },
             {code: `${ONYX_IMPORT} function Row() { const value = api.get(ONYXKEYS.SESSION); return <View value={value} />; } const api = Onyx;`, errors: RENDER_ERRORS},
-            {code: `${ONYX_IMPORT} let read = Onyx.get; function Row() { const value = read(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
-            {code: `${ONYX_IMPORT} function Row() { const value = read(ONYXKEYS.SESSION); return <View value={value} />; } const {get: read} = Onyx;`, errors: RENDER_ERRORS},
+            {
+                code: `${ONYX_IMPORT} let read = Onyx.get; function Row() { const value = read(ONYXKEYS.SESSION); return <View value={value} />; }`,
+                errors: [BY_REFERENCE_ERROR, {messageId: 'noOnyxReadInRender'}],
+            },
+            {
+                code: `${ONYX_IMPORT} function Row() { const value = read(ONYXKEYS.SESSION); return <View value={value} />; } const {get: read} = Onyx;`,
+                errors: [{messageId: 'noOnyxReadInRender'}, BY_REFERENCE_ERROR],
+            },
             {code: `import * as Onyx from 'react-native-onyx'; const initialValue = Onyx.get(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
             // An alias of an alias is still a read
             {
                 code: `${ONYX_IMPORT} const read = Onyx.get; const read2 = read; function Row() { const value = read2(ONYXKEYS.SESSION); return <View value={value} />; }`,
-                errors: RENDER_ERRORS,
+                errors: [BY_REFERENCE_ERROR, {messageId: 'noOnyxReadInRender'}],
             },
             // The object and read-method questions are cached separately
             {
                 code: `${ONYX_IMPORT} const {get: read} = Onyx; function Row() { read.get(ONYXKEYS.SESSION); const value = read(ONYXKEYS.SESSION); return <View value={value} />; }`,
-                errors: RENDER_ERRORS,
+                errors: [BY_REFERENCE_ERROR, {messageId: 'noOnyxReadInRender'}],
             },
             // A same-file helper called at module scope runs the read at import time
             {code: `${ONYX_IMPORT} function load() { return Onyx.get(ONYXKEYS.SESSION); } export const initialValue = load();`, errors: MODULE_SCOPE_ERRORS},
@@ -292,12 +342,18 @@ describe('no-unsafe-onyx-read', () => {
 
             {code: `${ONYX_IMPORT} function Row() { const value = Onyx['get'](ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
 
-            {code: `${ONYX_IMPORT} const {get} = Onyx; function Row() { const value = get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {
+                code: `${ONYX_IMPORT} const {get} = Onyx; function Row() { const value = get(ONYXKEYS.SESSION); return <View value={value} />; }`,
+                errors: [BY_REFERENCE_ERROR, {messageId: 'noOnyxReadInRender'}],
+            },
             {
                 code: `${ONYX_IMPORT} const {get: readOnyx} = Onyx; function Row() { const value = readOnyx(ONYXKEYS.SESSION); return <View value={value} />; }`,
-                errors: RENDER_ERRORS,
+                errors: [BY_REFERENCE_ERROR, {messageId: 'noOnyxReadInRender'}],
             },
-            {code: `${ONYX_IMPORT} const readOnyx = Onyx.get; function Row() { const value = readOnyx(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {
+                code: `${ONYX_IMPORT} const readOnyx = Onyx.get; function Row() { const value = readOnyx(ONYXKEYS.SESSION); return <View value={value} />; }`,
+                errors: [BY_REFERENCE_ERROR, {messageId: 'noOnyxReadInRender'}],
+            },
 
             {
                 code: `${ONYX_IMPORT} function Row() { const a = Onyx.get(ONYXKEYS.SESSION); const b = Onyx.get(ONYXKEYS.ACCOUNT); return <View a={a} b={b} />; }`,
@@ -317,9 +373,9 @@ describe('no-unsafe-onyx-read', () => {
 
             {code: `${ONYX_IMPORT} const initialValue = Onyx['get'](ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
 
-            {code: `${ONYX_IMPORT} const {get} = Onyx; const initialValue = get(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
-            {code: `${ONYX_IMPORT} const {get: readOnyx} = Onyx; const initialValue = readOnyx(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
-            {code: `${ONYX_IMPORT} const readOnyx = Onyx.get; const initialValue = readOnyx(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
+            {code: `${ONYX_IMPORT} const {get} = Onyx; const initialValue = get(ONYXKEYS.SESSION);`, errors: [BY_REFERENCE_ERROR, {messageId: 'noOnyxReadAtModuleScope'}]},
+            {code: `${ONYX_IMPORT} const {get: readOnyx} = Onyx; const initialValue = readOnyx(ONYXKEYS.SESSION);`, errors: [BY_REFERENCE_ERROR, {messageId: 'noOnyxReadAtModuleScope'}]},
+            {code: `${ONYX_IMPORT} const readOnyx = Onyx.get; const initialValue = readOnyx(ONYXKEYS.SESSION);`, errors: [BY_REFERENCE_ERROR, {messageId: 'noOnyxReadAtModuleScope'}]},
 
             {
                 code: `${ONYX_IMPORT} const a = Onyx.get(ONYXKEYS.SESSION); const b = Onyx.get(ONYXKEYS.ACCOUNT);`,
@@ -361,6 +417,27 @@ describe('no-unsafe-onyx-read under the TypeScript parser', () => {
                 errors: RENDER_ERRORS,
             },
             {code: `${ONYX_IMPORT} const initialValue = Onyx.get(ONYXKEYS.SESSION as OnyxKey);`, errors: MODULE_SCOPE_ERRORS},
+            {
+                // Given a selector in an inline options object cast with `as const`
+                // When useOnyx runs the selector during render
+                // Then the cast does not hide the hook call and the read is a render read
+                code: `${ONYX_IMPORT} function Row() { const [value] = useOnyx(key, {selector: () => Onyx.get(ONYXKEYS.SESSION)} as const); return <View value={value} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                // Given a selector in an inline options object checked with `satisfies`
+                // When useOnyx runs the selector during render
+                // Then the check does not hide the hook call and the read is a render read
+                code: `${ONYX_IMPORT} function Row() { const [value] = useOnyx(key, {selector: () => Onyx.get(ONYXKEYS.SESSION)} satisfies Record<string, unknown>); return <View value={value} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                // Given a selector in a const options object that is cast where it is passed to useOnyx
+                // When useOnyx runs the selector during render
+                // Then the cast at the use site does not hide the hook call and the read is a render read
+                code: `${ONYX_IMPORT} function Row() { const options = {selector: () => Onyx.get(ONYXKEYS.SESSION)}; const [value] = useOnyx(key, options as typeof options); return <View value={value} />; }`,
+                errors: RENDER_ERRORS,
+            },
         ],
     });
 });
@@ -422,6 +499,27 @@ describe('no-unsafe-onyx-read effects', () => {
                 code: `${ONYX_IMPORT} function Row() { const load = () => Onyx.get(ONYXKEYS.SESSION); useEffect(() => { InteractionManager.runAfterInteractions(load); }, []); return <View />; }`,
                 errors: EFFECT_ERRORS,
             },
+            {
+                // Given a reading function passed by reference to useCallback
+                // When an effect calls the wrapped callback
+                // Then the alias is followed and the read is an effect read
+                code: `${ONYX_IMPORT} function load() { return Onyx.get(ONYXKEYS.SESSION); } function Row() { const run = useCallback(load, []); useEffect(() => { run(); }, [run]); return <View />; }`,
+                errors: EFFECT_ERRORS,
+            },
+            {
+                // Given a reading function passed by reference to useEffectEvent
+                // When an effect calls the effect event
+                // Then the alias is followed and the read is an effect read
+                code: `${ONYX_IMPORT} function load() { return Onyx.get(ONYXKEYS.SESSION); } function Row() { const onLoad = useEffectEvent(load); useEffect(() => { onLoad(); }, []); return <View />; }`,
+                errors: EFFECT_ERRORS,
+            },
+            {
+                // Given a useMemo factory that returns a reading function
+                // When an effect calls the memoized function
+                // Then the memoized binding is followed and the read is an effect read
+                code: `${ONYX_IMPORT} function Row() { const read = useMemo(() => () => Onyx.get(ONYXKEYS.SESSION), []); useEffect(() => { read(); }, [read]); return <View />; }`,
+                errors: EFFECT_ERRORS,
+            },
             // An alias of the handler is followed
             {
                 code: `${ONYX_IMPORT} function Row() { const load = () => Onyx.get(ONYXKEYS.SESSION); const run = load; useEffect(() => { run(); }, []); return <View />; }`,
@@ -463,7 +561,7 @@ describe('no-unsafe-onyx-read allowed paths', () => {
             {
                 code: `${ONYX_IMPORT} const {get} = Onyx; export async function submit() { return get(ONYXKEYS.SESSION); }`,
                 filename: inRepo('src/libs/Foo.ts'),
-                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+                errors: [BY_REFERENCE_ERROR, {messageId: 'noOnyxReadOutsideAllowedPath'}],
             },
             {
                 code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.COLLECTION.REPORT); }`,
@@ -487,8 +585,141 @@ describe('no-unsafe-onyx-read multiGet', () => {
         invalid: [
             {code: `${ONYX_IMPORT} function Row() { const values = use(Onyx.multiGet([ONYXKEYS.SESSION])); return <View values={values} />; }`, errors: RENDER_ERRORS},
 
-            {code: `${ONYX_IMPORT} const {multiGet} = Onyx; const initialValues = multiGet([ONYXKEYS.SESSION]);`, errors: MODULE_SCOPE_ERRORS},
-            {code: `${ONYX_IMPORT} const readMany = Onyx.multiGet; function Row() { const values = readMany([ONYXKEYS.SESSION]); return <View values={values} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} const {multiGet} = Onyx; const initialValues = multiGet([ONYXKEYS.SESSION]);`, errors: [BY_REFERENCE_ERROR, {messageId: 'noOnyxReadAtModuleScope'}]},
+            {
+                code: `${ONYX_IMPORT} const readMany = Onyx.multiGet; function Row() { const values = readMany([ONYXKEYS.SESSION]); return <View values={values} />; }`,
+                errors: [BY_REFERENCE_ERROR, {messageId: 'noOnyxReadInRender'}],
+            },
+        ],
+    });
+});
+
+describe('no-unsafe-onyx-read references that are not direct calls', () => {
+    ruleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            // Given a direct Onyx.get call in a handler
+            // When the rule checks the member access
+            // Then it is the callee of the call, so it is not a reference
+            `${ONYX_IMPORT} export function submit(key) { return Onyx.get(key); }`,
+            // Given a direct Onyx.multiGet call in a handler
+            // When the rule checks the member access
+            // Then it is the callee of the call, so it is not a reference
+            `${ONYX_IMPORT} export function submit() { return Onyx.multiGet([ONYXKEYS.SESSION, ONYXKEYS.ACCOUNT]); }`,
+            // Given a direct call written with parentheses around the callee
+            // When the parser drops the parentheses
+            // Then the member is still the callee, so it is not a reference
+            `${ONYX_IMPORT} export function submit(key) { return (Onyx.get)(key); }`,
+            // Given Onyx write methods passed around and destructured
+            // When the rule checks those references
+            // Then only get and multiGet are reads, so nothing is reported
+            `${ONYX_IMPORT} const write = Onyx.set; const {merge} = Onyx; export function submit(key, value) { Onyx.set(key, value); return [write, merge]; }`,
+            // Given a get method on an object that is not the Onyx import
+            // When it is passed by reference
+            // Then it is not tracked, so nothing is reported
+            'const cache = {get: () => undefined}; export const read = cache.get; export const {get} = cache;',
+        ],
+        invalid: [
+            {
+                // Given Onyx.get invoked through Function.prototype.call
+                // When the rule checks the member access
+                // Then the call site and key are hidden, so the reference is reported
+                code: `${ONYX_IMPORT} export function submit(key) { return Onyx.get.call(Onyx, key); }`,
+                errors: BY_REFERENCE_ERRORS,
+            },
+            {
+                // Given Onyx.multiGet invoked through Function.prototype.call
+                // When the rule checks the member access
+                // Then the call site and keys are hidden, so the reference is reported
+                code: `${ONYX_IMPORT} export function submit(keys) { return Onyx.multiGet.call(Onyx, keys); }`,
+                errors: BY_REFERENCE_ERRORS,
+            },
+            {
+                // Given Onyx.get bound and then called
+                // When the rule checks the member access
+                // Then the bound function hides the call, so the reference is reported
+                code: `${ONYX_IMPORT} export function submit(key) { return Onyx.get.bind(Onyx)(key); }`,
+                errors: BY_REFERENCE_ERRORS,
+            },
+            {
+                // Given Onyx.get passed as a map callback
+                // When the rule checks the member access
+                // Then map calls it out of sight, so the reference is reported
+                code: `${ONYX_IMPORT} export function submit(keys) { return Promise.all(keys.map(Onyx.get)); }`,
+                errors: BY_REFERENCE_ERRORS,
+            },
+            {
+                // Given Onyx.get called through a sequence expression
+                // When the rule checks the member access
+                // Then the callee is the sequence, not the member, so the reference is reported
+                code: `${ONYX_IMPORT} export function submit(key) { return (0, Onyx.get)(key); }`,
+                errors: BY_REFERENCE_ERRORS,
+            },
+            {
+                // Given Onyx.get exported under another name
+                // When another file imports and calls that name
+                // Then this file is the only place the alias is visible, so the reference is reported here
+                code: `${ONYX_IMPORT} export const readOnyx = Onyx.get;`,
+                errors: BY_REFERENCE_ERRORS,
+            },
+            {
+                // Given get destructured from Onyx and never called in this file
+                // When the rule checks the destructured property
+                // Then the property is a reference to the read method and is reported
+                code: `${ONYX_IMPORT} const {get} = Onyx; export default get;`,
+                errors: BY_REFERENCE_ERRORS,
+            },
+            {
+                // Given Onyx imported under another default name
+                // When get is invoked through Function.prototype.call on that name
+                // Then the alias is resolved and the reference is reported
+                code: "import O from 'react-native-onyx'; export function submit(key) { return O.get.call(O, key); }",
+                errors: BY_REFERENCE_ERRORS,
+            },
+            {
+                // Given a let alias of Onyx.get that only an event handler calls
+                // When the rule checks the alias and the call
+                // Then the call is an allowed event read, but the alias declaration is reported
+                code: `${ONYX_IMPORT} let read = Onyx.get; function Row() { const onPress = () => read(ONYXKEYS.SESSION); return <View onPress={onPress} />; }`,
+                errors: BY_REFERENCE_ERRORS,
+            },
+            {
+                // Given Onyx.get passed by reference in an allowed directory
+                // When the rule checks the member access
+                // Then the reference is reported, since it hides the key in every file
+                code: `${ONYX_IMPORT} export function submit(keys) { return Promise.all(keys.map(Onyx.get)); }`,
+                filename: inRepo('src/components/Foo.tsx'),
+                errors: BY_REFERENCE_ERRORS,
+            },
+            {
+                // Given Onyx.get passed by reference outside the allowed directories
+                // When the rule checks the member access
+                // Then the reference is reported before the path check, which only sees direct calls
+                code: `${ONYX_IMPORT} export function submit(key) { return Onyx.get.call(Onyx, key); }`,
+                filename: inRepo('src/libs/Foo.ts'),
+                errors: BY_REFERENCE_ERRORS,
+            },
+        ],
+    });
+
+    tsRuleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            // Given a direct Onyx.get call with explicit type arguments
+            // When the rule checks the member access
+            // Then the member is still the callee, so it is not a reference
+            `${ONYX_IMPORT} export function submit(key: string) { return Onyx.get<Session>(key); }`,
+            // Given a direct Onyx.get call whose callee is cast
+            // When the rule unwraps the cast
+            // Then the member is still the callee, so it is not a reference
+            `${ONYX_IMPORT} export function submit(key: string) { return (Onyx.get as typeof Onyx.get)(key); }`,
+        ],
+        invalid: [
+            {
+                // Given Onyx.get cast and stored in a const
+                // When the rule unwraps the cast
+                // Then the member is not a callee, so the reference is reported
+                code: `${ONYX_IMPORT} export const read = Onyx.get as typeof Onyx.get;`,
+                errors: BY_REFERENCE_ERRORS,
+            },
         ],
     });
 });
