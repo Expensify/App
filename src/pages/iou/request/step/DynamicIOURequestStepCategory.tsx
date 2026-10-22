@@ -6,7 +6,6 @@ import FixedFooter from '@components/FixedFooter';
 import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
-import useCloseInPortrait from '@hooks/useCloseInPortrait';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -30,7 +29,7 @@ import {getSelectedWorkspacePolicyID, pickReportForPolicy} from '@libs/IOUUtils'
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {canEditWorkspaceSettings, hasAccountingConnections, isGroupPolicy} from '@libs/PolicyUtils';
+import {canCreateCategoryInSitu, canEditWorkspaceSettings, isGroupPolicy} from '@libs/PolicyUtils';
 import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 
@@ -57,7 +56,7 @@ function DynamicIOURequestStepCategory({
     report: reportReal,
     reportDraft,
     route: {
-        params: {transactionID, action, iouType, reportActionID, reportID: routeReportID, shouldCloseInPortrait},
+        params: {transactionID, action, iouType, reportActionID, reportID: routeReportID},
     },
     transaction,
 }: DynamicIOURequestStepCategoryProps) {
@@ -101,9 +100,7 @@ function DynamicIOURequestStepCategory({
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
-    const canCreateCategoryInSitu = canEditWorkspaceSettings(policy, currentUserEmailParam) && !hasAccountingConnections(policy) && !!policy?.areCategoriesEnabled;
-
-    const createCategoryMenuItems = canCreateCategoryInSitu
+    const createCategoryMenuItems = canCreateCategoryInSitu(policy, currentUserEmailParam)
         ? [
               {
                   icon: expensifyIcons.Plus,
@@ -157,8 +154,6 @@ function DynamicIOURequestStepCategory({
     const navigateBack = () => {
         Navigation.goBack(backPath);
     };
-
-    useCloseInPortrait(shouldCloseInPortrait, backPath);
 
     const saveAndNavigateBack = () => {
         Navigation.goBack(backPath, {shouldSkipFocusRestore: true});

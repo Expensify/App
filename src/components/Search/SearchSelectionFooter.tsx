@@ -15,10 +15,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import type {SearchFooterCount, SearchFooterTotal, SelectedTransactionInfo, SelectedTransactions} from './types';
 
@@ -28,6 +30,9 @@ import SearchPageFooter from './SearchPageFooter';
 type SearchSelectionFooterProps = {
     /** The (sorting-aware) results the page is displaying; source of the footer's totals metadata. */
     searchResults: OnyxEntry<SearchResults>;
+
+    /** Styles for the footer's container */
+    style?: StyleProp<ViewStyle>;
 };
 
 type FooterCurrencyState = {
@@ -42,6 +47,9 @@ type FooterCurrencyState = {
 
     /** The query's currency when the pick was made. Once the query moves off it, the query's own currency wins */
     queryCurrency: string | undefined;
+
+    /** The currency the pick wrote into the query. The default is left out, so a Reset writes none */
+    writtenQueryCurrency: string | undefined;
 };
 
 const EMPTY_FOOTER_SELECTION = {footerCount: undefined, footerTotal: undefined, footerCurrency: undefined};
@@ -151,7 +159,7 @@ function areAllSelectedReportsConverted(selectedReportIDs: string[], isReportFre
 
 // Self-subscribing footer leaf. Owns the `selectedTransactions` read so a checkbox press re-renders only this
 // footer — not SearchPage and the <Search> list it contains.
-function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
+function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProps) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
     const {currentSearchResults, currentSearchTransactionsByReportID, shouldUseLiveData} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
@@ -166,6 +174,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         selectedCurrency: undefined,
         defaultCurrency: undefined,
         queryCurrency: undefined,
+        writtenQueryCurrency: undefined,
     });
     // Whether the backend is still answering the breakdown the footer asked for. The request keys no hash of its own —
     // it refreshes the figures of the search already on screen — so the wait is held here and ends with the response.
@@ -178,9 +187,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const pendingReportConversionSources = useRef<Record<string, Record<string, number>>>({});
     const isCurrentFooterState = footerCurrencyState.searchHash === currentSearchHash;
     // The query carries the currency across a reload and into a saved search, so it is what an untouched footer starts
-    // from. This session's own pick bridges the moment until the query catches up with it. Once the query's currency
-    // moves (the pick landing, an edit, or a saved search on the same hash), the query wins.
-    const isPickAheadOfQuery = isCurrentFooterState && footerCurrencyState.queryCurrency === footerSelection.footerCurrency;
+    // from. This session's own pick holds while the query is on the currency it was made on or the one it wrote. Once
+    // the query moves anywhere else (an edit, or a saved search on the same hash), the query wins.
+    const isPickAheadOfQuery =
+        isCurrentFooterState && (footerCurrencyState.queryCurrency === footerSelection.footerCurrency || footerCurrencyState.writtenQueryCurrency === footerSelection.footerCurrency);
     const selectedCurrency = (isPickAheadOfQuery ? footerCurrencyState.selectedCurrency : undefined) ?? footerSelection.footerCurrency;
     const defaultFooterCurrency = isCurrentFooterState ? footerCurrencyState.defaultCurrency : undefined;
 
@@ -662,13 +672,15 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     };
 
     const handleFooterCurrencyChange = (currency: string) => {
+        const writtenQueryCurrency = currency === searchTargetCurrency ? undefined : currency;
         setFooterCurrencyState({
             searchHash: currentSearchHash,
             selectedCurrency: currency,
             defaultCurrency: effectiveDefaultCurrency,
             queryCurrency: footerSelection.footerCurrency,
+            writtenQueryCurrency,
         });
-        applyFooterSelection({footerCurrency: currency});
+        applyFooterSelection({footerCurrency: writtenQueryCurrency});
     };
 
     const handleFooterTotalChange = (nextTotalType: SearchFooterTotal) => {
@@ -846,10 +858,16 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     // The reports a selection covers. The server's report count describes the whole search, so a selection needs its own:
     // on a Reports search that is the selected reports, elsewhere the distinct reports the selected expenses sit on.
-    // An unreported expense sits on no report — it carries the unreported placeholder ID — so it adds none.
+    // An unreported expense sits on no report — it carries the unreported placeholder ID — so it adds none. Neither does
+    // an IOU report, which the server's count leaves out, so the count holds once the server's figures take over.
+    const isIOUReportID = (reportID: string) => currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.type === CONST.REPORT.TYPE.IOU;
     const selectedReportCount = isReportsSearch
-        ? selectedReports.length
-        : new Set(selectedTransactionsKeys.map((key) => selectedTransactions[key]?.reportID).filter((reportID) => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID)).size;
+        ? selectedReports.filter((report) => report.type !== CONST.REPORT.TYPE.IOU).length
+        : new Set(
+              selectedTransactionsKeys
+                  .map((key) => selectedTransactions[key]?.reportID)
+                  .filter((reportID): reportID is string => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && !isIOUReportID(reportID)),
+          ).size;
 
     // The count follows whatever the footer is describing: the selection's own reports when rows were hand-picked, the
     // server's report count otherwise. footerData.count already carries the expense side of both cases.
@@ -857,20 +875,22 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const footerReportCount = hasPartialSelection ? selectedReportCount : allMatchingReportCount;
     const footerCount = footerCountType === CONST.SEARCH.FOOTER_COUNT.REPORTS ? footerReportCount : footerData.count;
     return (
-        <SearchPageFooter
-            count={footerCount}
-            countType={footerCountType}
-            defaultCountType={defaultFooterCountType}
-            total={footerData.total}
-            totalType={footerTotalType}
-            currency={footerData.currency}
-            defaultCurrency={searchTargetCurrency}
-            isTotalLoading={isFooterTotalLoading}
-            shouldShowTotalSelector={shouldShowTotalSelector}
-            onCurrencyChange={handleFooterCurrencyChange}
-            onCountChange={handleFooterCountChange}
-            onTotalChange={handleFooterTotalChange}
-        />
+        <View style={style}>
+            <SearchPageFooter
+                count={footerCount}
+                countType={footerCountType}
+                defaultCountType={defaultFooterCountType}
+                total={footerData.total}
+                totalType={footerTotalType}
+                currency={footerData.currency}
+                defaultCurrency={searchTargetCurrency}
+                isTotalLoading={isFooterTotalLoading}
+                shouldShowTotalSelector={shouldShowTotalSelector}
+                onCurrencyChange={handleFooterCurrencyChange}
+                onCountChange={handleFooterCountChange}
+                onTotalChange={handleFooterTotalChange}
+            />
+        </View>
     );
 }
 

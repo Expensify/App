@@ -1,6 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import useReopenAfterReturn from '@hooks/useReopenAfterReturn';
+import type {UseReopenAfterReturnParams} from '@hooks/useReopenAfterReturn';
 
 import type TransitionTracker from '@libs/Navigation/TransitionTracker';
 
@@ -28,7 +29,7 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
     },
 }));
 
-type Props = {shouldCancel?: boolean; canReopen?: boolean};
+type Props = Omit<UseReopenAfterReturnParams, 'onReturn'>;
 
 describe('useReopenAfterReturn', () => {
     let onReturn: jest.Mock;
@@ -51,7 +52,7 @@ describe('useReopenAfterReturn', () => {
     it('runs once the user comes back from the screen they were sent to', () => {
         // Given a screen that is about to send the user elsewhere
         const {result, rerender} = renderReopen();
-        act(() => result.current.markDeparting());
+        act(() => result.current.setIsDeparting(true));
 
         // When the user leaves and comes back
         leaveAndReturn(rerender);
@@ -76,7 +77,7 @@ describe('useReopenAfterReturn', () => {
     it('drops the return when the user comes back without what it needs', () => {
         // Given a screen that sent the user away
         const {result, rerender} = renderReopen();
-        act(() => result.current.markDeparting());
+        act(() => result.current.setIsDeparting(true));
 
         // When they come back in a state the return can't use, and later return again once it could
         leaveAndReturn(rerender, {shouldCancel: true});
@@ -89,7 +90,7 @@ describe('useReopenAfterReturn', () => {
     it('waits on the screen until it can reopen, but not past leaving it again', () => {
         // Given a screen that sent the user away, and comes back before it can reopen
         const {result, rerender} = renderReopen();
-        act(() => result.current.markDeparting());
+        act(() => result.current.setIsDeparting(true));
         leaveAndReturn(rerender, {canReopen: false});
         expect(onReturn).not.toHaveBeenCalled();
 
@@ -103,7 +104,7 @@ describe('useReopenAfterReturn', () => {
     it('reopens as soon as it can while the user is still back on the screen', () => {
         // Given a screen the user came back to before it could reopen
         const {result, rerender} = renderReopen();
-        act(() => result.current.markDeparting());
+        act(() => result.current.setIsDeparting(true));
         leaveAndReturn(rerender, {canReopen: false});
 
         // When it becomes able to while still focused
@@ -111,5 +112,18 @@ describe('useReopenAfterReturn', () => {
 
         // Then the return runs
         expect(onReturn).toHaveBeenCalledTimes(1);
+    });
+
+    it('does nothing once a departure that never left the screen is disarmed', () => {
+        // Given a screen that armed a return, but whose navigation never took the user away
+        const {result, rerender} = renderReopen();
+        act(() => result.current.setIsDeparting(true));
+
+        // When the next press stays on the screen and disarms it, and the user later leaves and comes back for something else
+        act(() => result.current.setIsDeparting(false));
+        leaveAndReturn(rerender);
+
+        // Then nothing reopens on that unrelated trip
+        expect(onReturn).not.toHaveBeenCalled();
     });
 });

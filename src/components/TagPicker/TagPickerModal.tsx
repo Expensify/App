@@ -12,9 +12,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentRef} from 'react';
+import type {View} from 'react-native';
 
 import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import TagPicker from '.';
 
@@ -46,6 +47,9 @@ type TagPickerModalProps = {
     /** Index of the tag list to show. Defaults to the first list */
     tagListIndex?: number;
 
+    /** Number of enabled tags at which the search input appears. The content height estimate uses the same value. */
+    searchInputThreshold?: number;
+
     /** Width of the pop-over. Defaults to the standard dropdown width, a field row passes its own width instead */
     popoverWidth?: number;
 
@@ -55,7 +59,7 @@ type TagPickerModalProps = {
     /** Whether the pop-over shrinks to the height its list needs, treating `popoverHeight` as a ceiling. */
     shouldFitContentHeight?: boolean;
 
-    /** Shows a header with the tag list's name and a back button that closes the list */
+    /** Shows a header with the tag list's name and, on a narrow layout, a back button that closes the list */
     shouldShowHeader?: boolean;
 
     /** Whether the pop-over may flip to the other side of the anchor when it overflows. It shifts by a whole pop-over height, so a caller that already picked the side turns this off. */
@@ -65,7 +69,6 @@ type TagPickerModalProps = {
 function TagPickerModal({
     isVisible,
     onClose,
-    onModalHide,
     anchorPosition,
     policyID,
     selectedTag = '',
@@ -74,6 +77,7 @@ function TagPickerModal({
     shouldShowGLCode,
     onSelected,
     tagListIndex = 0,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
     popoverWidth = CONST.POPOVER_DROPDOWN_WIDTH,
@@ -91,7 +95,7 @@ function TagPickerModal({
 
     const {popoverDimensions, innerContainerStyle, outerStyle, avoidKeyboard, contentStyle} = useSelectionListPopoverLayout({
         optionCount: renderedRowCount ?? tagsCount,
-        isSearchable: tagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT,
+        isSearchable: tagsCount >= searchInputThreshold,
         popoverWidth,
         popoverHeight,
         shouldFitContentHeight,
@@ -113,7 +117,6 @@ function TagPickerModal({
             anchorRef={anchorRef}
             isVisible={isVisible}
             onClose={onClose}
-            onModalHide={onModalHide}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
@@ -127,12 +130,16 @@ function TagPickerModal({
             enableEdgeToEdgeBottomSafeAreaPadding
             avoidKeyboard={avoidKeyboard}
             outerStyle={outerStyle}
+            // The sheet sizes itself to the window and its list scrolls on its own, so the modal must not cap or wrap it in landscape.
+            shouldLimitHeightIfBottomDockedInLandscapeMode={false}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
-            <View style={contentStyle}>
+            <Animated.View style={contentStyle}>
                 {shouldShowHeader && (
                     <SelectionListPopoverHeader
                         title={policyTagList.name}
                         onBackButtonPress={onClose}
+                        backButtonSentryLabel={CONST.SENTRY_LABEL.TAG_PICKER_MODAL.BACK_BUTTON}
                     />
                 )}
                 <TagPicker
@@ -146,8 +153,9 @@ function TagPickerModal({
                     shouldShowGLCode={shouldShowGLCode}
                     onSubmit={handleTagSelected}
                     shouldAutoFocusSearchInput
+                    searchInputThreshold={searchInputThreshold}
                 />
-            </View>
+            </Animated.View>
         </PopoverWithMeasuredContent>
     );
 }

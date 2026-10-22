@@ -1,7 +1,9 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -12,6 +14,7 @@ import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {canCreateCategoryInSitu} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -66,6 +69,7 @@ function CategoryField({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
+    const currentUserLogin = useCurrentUserPersonalDetails().login;
     const dropdownRef = useRef<ExpenseFieldDropdownHandle>(null);
 
     const categoryState = useTransactionSelector(transactionID, categoryStateSelector);
@@ -107,27 +111,26 @@ function CategoryField({
     // The one condition both the row and the effect below open on, so the effect never asks the row to open a
     // list it would refuse and fall back to the full page for.
     const canOpenListInPlace = shouldOpenInDropdown && !isReadOnly && !didConfirm;
+    const canAddCategory = canCreateCategoryInSitu(policy, currentUserLogin);
     const canOpenInDropdownAfterWorkspaceStep = canUseAnchoredFieldDropdowns && shouldUseDropdownRows && isCreatingExpense;
 
     // The row sent the user to create or pick a workspace, and the upgrade step was told to only go back (`shouldReturnToConfirmation`).
     // Once the form is focused again with a workspace, open the list in place. Backing out without one leaves nothing to list.
-    const {markDeparting} = useReopenAfterReturn({
+    const {setIsDeparting} = useReopenAfterReturn({
         onReturn: () => dropdownRef.current?.open(),
         shouldCancel: shouldNavigateToUpgradePath || shouldSelectPolicy,
         canReopen: canOpenListInPlace,
     });
 
-    const getCategoryStepRoute = (currentTransactionID: string, shouldCloseInPortrait?: boolean) =>
-        createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID: currentTransactionID, reportID, reportActionID, shouldCloseInPortrait}));
+    const getCategoryStepRoute = (currentTransactionID: string) =>
+        createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID: currentTransactionID, reportID, reportActionID}));
 
     const openCategoryPage = () => {
         if (!transactionID) {
             return;
         }
 
-        if ((shouldNavigateToUpgradePath || (!policy && shouldSelectPolicy)) && canOpenInDropdownAfterWorkspaceStep) {
-            markDeparting();
-        }
+        setIsDeparting((shouldNavigateToUpgradePath || (!policy && shouldSelectPolicy)) && canOpenInDropdownAfterWorkspaceStep);
         if (shouldNavigateToUpgradePath) {
             Navigation.navigate(
                 createDynamicRoute(
@@ -151,13 +154,6 @@ function CategoryField({
         }
     };
 
-    const openCategoryPageInLandscape = () => {
-        if (!transactionID) {
-            return;
-        }
-        Navigation.navigate(getCategoryStepRoute(transactionID, true));
-    };
-
     if (shouldUseDropdownRows) {
         return (
             <ExpenseFieldDropdown
@@ -173,8 +169,8 @@ function CategoryField({
                 shouldKeepRightLabelWhenFilled={shouldPromiseAutomaticCategory && isAutoFillFromReceipt}
                 errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
                 onPress={openCategoryPage}
-                onLandscapePress={openCategoryPageInLandscape}
                 shouldOpenInDropdown={canOpenListInPlace}
+                listHeaderHeight={canAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0}
                 renderDropdown={(dropdownProps) =>
                     !!transactionID && (
                         <CategoryFieldDropdown
@@ -182,6 +178,7 @@ function CategoryField({
                             transactionID={transactionID}
                             policy={policy}
                             selectedCategory={selectedCategory}
+                            canAddCategory={canAddCategory}
                         />
                     )
                 }

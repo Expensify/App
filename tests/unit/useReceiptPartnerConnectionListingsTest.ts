@@ -58,7 +58,7 @@ describe('useReceiptPartnerConnectionListings', () => {
         const {result} = renderHook(() => useReceiptPartnerConnectionListings(policy));
 
         // When the admin presses "+" on Uber
-        act(() => result.current.at(0)?.onConnect());
+        act(() => result.current.at(0)?.onConnect?.());
 
         // Then the feature is turned on and the Uber connect page opens, since Connections has no toggle for the feature
         expect(enablePolicyFeatureForConnection).toHaveBeenCalledWith(policy, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
@@ -77,7 +77,7 @@ describe('useReceiptPartnerConnectionListings', () => {
         // When the admin then connects Uber from the page and the connection shows up
         mockUberState = {...mockUberState, isUberConnected: false};
         rerender({});
-        act(() => result.current.at(0)?.onConnect());
+        act(() => result.current.at(0)?.onConnect?.());
         mockUberState = {...mockUberState, isUberConnected: true};
         rerender({});
 

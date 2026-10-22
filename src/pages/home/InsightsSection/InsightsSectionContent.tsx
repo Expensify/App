@@ -15,6 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setNameValuePair} from '@libs/actions/User';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 import type {SearchKey} from '@libs/SearchKeyUtils';
@@ -100,7 +101,7 @@ function InsightsSectionContent() {
                         data={data}
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
                         shouldShowSinglePointAsBar={isInsightsPageEnabled}
-                        shouldShowGroupLabels={!isInsightsPageEnabled}
+                        shouldUseResponsiveLabels
                         shouldDrillDownOnPress={!isInsightsPageEnabled}
                     />
                 </View>
@@ -108,7 +109,7 @@ function InsightsSectionContent() {
         </WidgetContainer>
     );
 
-    if (!isInsightsPageEnabled) {
+    if (!isInsightsPageEnabled || canUseTouchScreen()) {
         return widget;
     }
 

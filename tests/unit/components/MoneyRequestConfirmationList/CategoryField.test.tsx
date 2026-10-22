@@ -64,25 +64,11 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 
 const mockOpenDropdown = jest.fn();
 let mockShouldOpenInDropdown: boolean | undefined;
-let mockOnLandscapePress: (() => void) | undefined;
 jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
     const {useImperativeHandle} = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; role?: string}>>>('react-native');
-    return ({
-        name,
-        onPress,
-        onLandscapePress,
-        shouldOpenInDropdown,
-        ref,
-    }: {
-        name: string;
-        onPress: () => void;
-        onLandscapePress: () => void;
-        shouldOpenInDropdown: boolean;
-        ref?: React.Ref<ExpenseFieldDropdownHandle>;
-    }) => {
+    return ({name, onPress, shouldOpenInDropdown, ref}: {name: string; onPress: () => void; shouldOpenInDropdown: boolean; ref?: React.Ref<ExpenseFieldDropdownHandle>}) => {
         mockShouldOpenInDropdown = shouldOpenInDropdown;
-        mockOnLandscapePress = onLandscapePress;
         useImperativeHandle(ref, () => ({open: mockOpenDropdown}));
         return (
             <Pressable
@@ -136,7 +122,6 @@ describe('CategoryField', () => {
     beforeEach(async () => {
         // `jest.clearAllMocks()` does not touch this, so a value left by an earlier render could satisfy a later assertion.
         mockShouldOpenInDropdown = undefined;
-        mockOnLandscapePress = undefined;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -343,6 +328,25 @@ describe('CategoryField', () => {
             // later one the user never pressed Category for
             expect(mockOpenDropdown).not.toHaveBeenCalled();
         });
+
+        it('forgets an upgrade the user never left the form for once the row is pressed again', async () => {
+            // Given an expense with no workspace, whose category row armed a return to the list, but whose upgrade screen never opened
+            await givenManualExpense();
+            const {rerender} = render(renderDropdownCategoryField({shouldNavigateToUpgradePath: true}));
+            fireEvent.press(screen.getByText('common.category'));
+
+            // When the workspace arrives, the user presses the row again for the full-page Category step, and comes back
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false}));
+            fireEvent.press(screen.getByText('common.category'));
+            mockIsFocused = false;
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false}));
+            mockIsFocused = true;
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false}));
+            await waitForBatchedUpdates();
+
+            // Then the list stays closed: the second press cleared the stale upgrade return, so it can't fire on this trip
+            expect(mockOpenDropdown).not.toHaveBeenCalled();
+        });
     });
 
     it('opens the list in place for a draft workspace, whose categories only exist as drafts', async () => {
@@ -447,24 +451,6 @@ describe('CategoryField', () => {
             await waitFor(() => {
                 expect(mockOpenDropdown).toHaveBeenCalledTimes(1);
             });
-        });
-
-        it('opens the category page marked to close itself in portrait when the phone is in landscape', async () => {
-            // Given a category row whose list would open in place, on a phone held in landscape
-            await givenManualExpense();
-            render(renderCreateCategoryField({policy: enabledPolicy, shouldSelectPolicy: false}));
-            await waitFor(() => {
-                expect(mockOnLandscapePress).toBeDefined();
-            });
-
-            // When the row hands over to the full page because there is no room for the sheet
-            mockOnLandscapePress?.();
-
-            // Then the Category step opens for this expense, flagged so it goes back to the form, and its list, in portrait
-            const route = jest.mocked(Navigation.navigate).mock.calls.at(0)?.at(0);
-            expect(route).toContain('category');
-            expect(route).toContain(`transactionID=${TRANSACTION_ID}`);
-            expect(route).toContain('shouldCloseInPortrait=true');
         });
     });
 

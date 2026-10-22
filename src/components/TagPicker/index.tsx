@@ -67,6 +67,9 @@ type TagPickerProps = {
 
     /** Reports how many rows the unfiltered list renders, section headings included, so a container can size itself to them */
     onRenderedRowCountChange?: (rowCount: number) => void;
+
+    /** Number of available tags at which the search input appears. Defaults to `CONST.STANDARD_LIST_ITEM_LIMIT`. */
+    searchInputThreshold?: number;
 };
 
 const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
@@ -97,6 +100,7 @@ function TagPicker({
     shouldShowGLCode: shouldShowGLCodeProp,
     shouldAutoFocusSearchInput = false,
     onRenderedRowCountChange,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
 }: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [shouldShowGLCodeFromPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -163,6 +167,7 @@ function TagPicker({
         localeCompare,
         translate,
         shouldShowGLCode,
+        searchInputThreshold,
     });
     const sections = tagSections.map((section) => ({
         ...section,
@@ -201,7 +206,7 @@ function TagPicker({
             ListItem={SingleSelectListItem}
             style={{sectionTitleStyles: styles.mt5}}
             textInputOptions={textInputOptions}
-            shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            shouldShowTextInput={availableTagsCount >= searchInputThreshold}
             shouldShowLoadingPlaceholder={isLoadingNewOptions}
             isLoadingNewOptions={isLoadingNewOptions}
             initiallyFocusedItemKey={selectedOptionKey}

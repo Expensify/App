@@ -466,6 +466,7 @@ function useSelectedTransactionsActions({
                               clearSelectedTransactions(true);
                           }
                         : () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.name, template.policyID),
+                    shouldCallAfterModalHide: true,
                     addSeparatorBefore,
                 };
             };
@@ -511,7 +512,8 @@ function useSelectedTransactionsActions({
             return canMoveExpense;
         });
 
-        const canMergeTransaction = selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy], rules);
+        const canMergeTransaction =
+            selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy], rules, personalDetails);
         if (canMergeTransaction) {
             const transactionID = selectedTransactionsList.at(0)?.transactionID;
             if (transactionID) {
@@ -529,8 +531,6 @@ function useSelectedTransactionsActions({
                             false,
                             isOnSearch,
                             selectedTransactionsList.length > 1 ? [policy, policy] : undefined,
-                            currentUserAccountID,
-                            personalDetails,
                         ),
                 });
             }
@@ -621,7 +621,11 @@ function useSelectedTransactionsActions({
             // Some reported expenses have no IOU action, and the API still deletes them by transactionID, so the report-level delete rules decide.
             // Passing no report actions is safe: they only decide ownership on unreported and IOU reports, which then fail closed, while expense reports check the submitter.
             if (!action) {
-                return !!report && typeof session?.accountID === 'number' && canDeleteMoneyRequestReport(report, [transaction], [], session.accountID, rules, policy, cardList);
+                return (
+                    !!report &&
+                    typeof session?.accountID === 'number' &&
+                    canDeleteMoneyRequestReport(report, [transaction], [], session.accountID, rules, getLoginByAccountID(report?.ownerAccountID, personalDetails), policy, cardList)
+                );
             }
 
             if (isDeletedAction(action)) {

@@ -1,12 +1,14 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 import type {TagPickerProps} from '@components/TagPicker';
 import TagPickerModal from '@components/TagPicker/TagPickerModal';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type * as Browser from '@libs/Browser';
-import getBottomSheetHeight from '@libs/getBottomSheetHeight';
+import getBottomSheetHeight, {BOTTOM_SHEET_TOP_PADDING} from '@libs/getBottomSheetHeight';
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 
 import CONST from '@src/CONST';
@@ -24,7 +26,10 @@ jest.mock('@libs/Browser', () => ({
 }));
 
 let mockIsSmallScreenWidth = true;
-jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: mockIsSmallScreenWidth, shouldUseNarrowLayout: mockIsSmallScreenWidth})));
+let mockIsInLandscapeMode = false;
+jest.mock('@hooks/useResponsiveLayout', () =>
+    jest.fn(() => ({isSmallScreenWidth: mockIsSmallScreenWidth, shouldUseNarrowLayout: mockIsSmallScreenWidth, isInLandscapeMode: mockIsInLandscapeMode})),
+);
 
 const mockWindowHeight = 500;
 const mockViewportOffsetTop = 40;
@@ -70,6 +75,7 @@ describe('TagPickerModal', () => {
         mockPopoverProps = undefined;
         mockTagPickerProps = undefined;
         mockIsSmallScreenWidth = true;
+        mockIsInLandscapeMode = false;
         mockKeyboardHeight = 0;
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, policyTags);
         await waitForBatchedUpdates();
@@ -102,26 +108,61 @@ describe('TagPickerModal', () => {
         expect(mockPopoverProps?.outerStyle).toEqual({width: '100%', maxHeight: mockWindowHeight, marginTop: mockViewportOffsetTop});
     });
 
-    it('shows the tag list it is given and hands its close callback to the pop-over', () => {
-        // Given a row for the second tag list, which needs to know when its container has finished closing
-        const onModalHide = jest.fn();
-
+    it('shows the tag list it is given', () => {
+        // Given a row for the second tag list
         // When that row's list opens
         render(
             <TagPickerModal
                 isVisible
                 onClose={jest.fn()}
-                onModalHide={onModalHide}
                 policyID={POLICY_ID}
                 tagListIndex={1}
                 anchorPosition={{horizontal: 0, vertical: 0}}
             />,
         );
 
-        // Then the list shows the second list's tags under its own name, and the pop-over reports back when it hides
+        // Then the list shows the second list's tags under its own name
         expect(mockTagPickerProps?.tagListIndex).toBe(1);
         expect(mockTagPickerProps?.tagListName).toBe('Project');
-        expect(mockPopoverProps?.onModalHide).toBe(onModalHide);
+    });
+
+    it('hands the list the search threshold it is given', () => {
+        // Given a caller with its own threshold for the search input, like the Search table's tag cell
+        // When the tag list opens
+        render(
+            <TagPickerModal
+                isVisible
+                onClose={jest.fn()}
+                policyID={POLICY_ID}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+                searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
+            />,
+        );
+
+        // Then the list shows its search input at that threshold rather than the standard one
+        expect(mockTagPickerProps?.searchInputThreshold).toBe(CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD);
+    });
+
+    it('fills the screen on a phone in landscape, however short the list', () => {
+        // Given a phone in landscape and a tag list with a single tag, whose sheet would otherwise fit that one row
+        mockIsInLandscapeMode = true;
+
+        // When the expense form's tag list opens
+        render(
+            <TagPickerModal
+                isVisible
+                onClose={jest.fn()}
+                policyID={POLICY_ID}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+                shouldFitContentHeight
+            />,
+        );
+
+        // Then the sheet fills the window up to the status bar, which the test harness reports as zero, less its own top
+        // padding, the same as the category sheet, and the modal neither caps nor wraps it, so the list scrolls on its own
+        expect(mockPopoverProps?.popoverDimensions?.height).toBe(mockWindowHeight - BOTTOM_SHEET_TOP_PADDING);
+        expect(mockPopoverProps?.shouldLimitHeightIfBottomDockedInLandscapeMode).toBe(false);
+        expect(mockPopoverProps?.shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode).toBe(false);
     });
 
     it("keeps the Search table cell's pop-over unchanged by default", () => {
@@ -206,11 +247,34 @@ describe('TagPickerModal', () => {
         expect(screen.getByText('Project')).toBeOnTheScreen();
         fireEvent.press(screen.getByLabelText('common.back'));
 
-        // Then the list closes, and the sheet had grown by the header so it still fits the list's one row
+        // Then the list closes, and the sheet had grown by the header, less the list's top padding the sheet's own padding
+        // replaces under a header, so it still fits the list's one row
         expect(onClose).toHaveBeenCalledTimes(1);
+        const {result: styles} = renderHook(() => useThemeStyles());
         expect(mockPopoverProps?.popoverDimensions?.height).toBe(
-            getSelectionListPopoverContentHeight({optionCount: 1, isSearchable: false}) + SELECTION_LIST_POPOVER_HEADER_HEIGHT + SAFE_AREA_PADDING_BOTTOM,
+            getSelectionListPopoverContentHeight({optionCount: 1, isSearchable: false}) + SELECTION_LIST_POPOVER_HEADER_HEIGHT - styles.current.pt4.paddingTop + SAFE_AREA_PADDING_BOTTOM,
         );
+    });
+
+    it('shows the header without a back button on a wide layout', () => {
+        // Given a wide layout, where the list opens as a pop-over the user dismisses by clicking outside it
+        mockIsSmallScreenWidth = false;
+
+        // When the expense form's tag list opens with its header
+        render(
+            <TagPickerModal
+                isVisible
+                onClose={jest.fn()}
+                policyID={POLICY_ID}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+                tagListIndex={1}
+                shouldShowHeader
+            />,
+        );
+
+        // Then the header names the list but has no back button, as the category pop-over does
+        expect(screen.getByText('Project')).toBeOnTheScreen();
+        expect(screen.queryByLabelText('common.back')).not.toBeOnTheScreen();
     });
 
     it('leaves out the header by default', () => {
