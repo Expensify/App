@@ -90,3 +90,17 @@
 - Upstream PR/issue: not reported, because dropping the tint for every icon fits only a bar whose icons all arrive pre-colored, as the App's do. The disabled and focused icon colors go with it, which the App does not use.
 - E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
 - PR introducing patch: [#101339](https://github.com/Expensify/App/pull/101339)
+
+### [react-native-screens+4.28.0+005+hidden-android-tab-bar-touches.patch](react-native-screens+4.28.0+005+hidden-android-tab-bar-touches.patch)
+
+- Reason: On Android, a hidden native tab bar is set to `View.GONE`. `TabsContainer` is a `FrameLayout`, which skips `GONE` children during layout, so the bar keeps the bounds it had while visible. React Native's `TouchTargetHelper` walks native children without checking visibility, so a touch inside those stale bounds targets the hidden bar instead of the React views drawn there. On a chat, that swallowed taps on the composer's emoji and + buttons while the keyboard was closed. The touch target search skips a child whose transform is non-invertible, so the patch scales the hidden bar to zero on the Y axis and back to one when it is shown. Its layout is left alone, so the bar's height and the insets derived from it do not change.
+- Upstream PR/issue: TBD
+- E/App issue: [#104226](https://github.com/Expensify/App/issues/104226)
+- PR introducing patch: [#104238](https://github.com/Expensify/App/pull/104238)
+
+### [react-native-screens+4.28.0+006+stack-scroll-to-top-uses-scroll-view-marker.patch](react-native-screens+4.28.0+006+stack-scroll-to-top-uses-scroll-view-marker.patch)
+
+- Reason: On iOS, a second tap on a native tab scrolls the tab's content to the top. When the tab's root is a native stack, as with the Inbox tab's split navigator, `RNSScreenStack` handles that tap and picks the scroll view by following each view's first native subview. On the Inbox the first one it reaches is the horizontal tab selector above the list. That selector is already at the top, so nothing scrolls. A `ScrollViewMarker` around the list registers the list's scroll view with the tabs screen, but the stack never reads it. The patch makes the stack scroll the marked scroll view while it shows a single screen, and fall back to the first-subview search otherwise, since the marker can sit on any screen of the stack. The marker only exists on iOS when `RNS_GAMMA_ENABLED=1` is set at `pod install`, which both Podfiles do.
+- Upstream PR/issue: [#4985](https://github.com/software-mansion/react-native-screens/pull/4985)
+- E/App issue: https://github.com/Expensify/App/issues/104284
+- PR introducing patch: [#104368](https://github.com/Expensify/App/pull/104368)

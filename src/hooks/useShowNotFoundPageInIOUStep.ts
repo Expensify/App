@@ -42,7 +42,6 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
 
     const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`, {
         selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return reportActions?.[`${report?.parentReportActionID || reportActionID}`];
         },
     });

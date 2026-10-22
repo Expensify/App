@@ -307,7 +307,6 @@ const translations: TranslationDeepObject<typeof en> = {
         change: 'Wijzigen',
         category: 'Categorie',
         vendor: 'Leverancier',
-        supplier: 'Leverancier',
         report: 'Rapport',
         billable: 'Factureerbaar',
         nonBillable: 'Niet-factureerbaar',
@@ -982,6 +981,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.', cta: 'Toevoegen'},
             addPaymentCard: {title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken', subtitle: 'Account > Abonnement', cta: 'Toevoegen'},
             addBankAccount: {title: 'Voeg een bankrekening toe om je terugbetaling te ontvangen'},
+            addDepositAccount: {title: 'Voeg een bankrekening toe om betalingen te ontvangen'},
             activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
             confirmDigitalWalletAddition: {
                 subtitle: 'Expensify Kaart',
@@ -1028,6 +1028,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Beheren',
             },
             emailDeliveryFailure: {title: 'We kunnen je geen e-mailmeldingen sturen', subtitle: 'Account'},
+            upgradeNetSuiteConnection: {title: 'Upgrade je NetSuite-verbinding'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1175,7 +1176,18 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Bekijken in Uitgaven',
         emptyState: {title: 'Niets om weer te geven', subtitle: 'Probeer je criteria hierboven aan te passen'},
         noExpensesState: {title: 'Zie waar je geld naartoe gaat', subtitle: 'Zodra je uitgaven hebt, zie je bestedingspatronen, topverkopers en meer.'},
-        compare: {label: 'Vergelijken', previousPeriod: 'Vorige periode', average: 'Gemiddeld'},
+        compare: {
+            label: 'Vergelijken',
+            previousPeriod: 'Vorige periode',
+            average: 'Gemiddeld',
+            dayLabel: (day?: number) => (day === undefined ? 'Dag' : `Dag ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Maand' : `Maand ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Kwartaal' : `Kwartaal ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Jaar' : `Jaar ${year}`),
+            increase: (percentage: string) => `Gestegen met ${percentage}`,
+            decrease: (percentage: string) => `Gedaald met ${percentage}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2177,6 +2189,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Wachten tot de betaling is voltooid${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` vóór ${eta}` : ` ${eta}`;
+                }
+                return `Wachten tot de geannuleerde betaling is verwerkt${formattedETA}.`;
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2821,6 +2845,13 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Deze account vereist aandacht',
             unlock: 'Ontgrendelen',
         },
+        wiseGlobalReimbursementsIntro: {
+            title: 'Wereldwijde terugbetalingen instellen?',
+            subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
+            getStarted: 'Aan de slag',
+            headerTitle: 'Wereldwijde terugbetalingen',
+        },
+        wiseGlobalReimbursementsBanner: {title: 'Betaal mensen wereldwijd', subtitle: 'Schakel wereldwijde terugbetalingen in op je USD-rekening.'},
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Kaart toevoegen aan ${walletName}`,
@@ -4096,6 +4127,7 @@ ${amount} voor ${merchant} - ${date}`,
             formLabel: 'PDF bekijken',
         },
         attachmentNotFound: 'Bijlage niet gevonden',
+        loadTimedOut: 'Het laden van deze afbeelding duurt te lang.',
         retry: 'Opnieuw proberen',
     },
     messages: {
@@ -5099,6 +5131,7 @@ ${amount} voor ${merchant} - ${date}`,
             editPerDiemRates: 'Dagvergoedingen bewerken',
             editDestinationSubtitle: (destination: string) => `Als je deze bestemming bijwerkt, wordt deze gewijzigd voor alle per diem-deeltarieven van ${destination}.`,
             editCurrencySubtitle: (destination: string) => `Als u deze valuta bijwerkt, wordt deze gewijzigd voor alle ${destination} daggeldsubtarieven.`,
+            missingPerDiemUnit: 'Per diem is niet goed ingesteld in deze workspace. Neem contact op met Concierge voor hulp.',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Stel in hoe contante uitgaven worden geëxporteerd naar QuickBooks Desktop.',
@@ -5426,8 +5459,8 @@ ${amount} voor ${merchant} - ${date}`,
             },
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg het account toe in Xero en synchroniseer de verbinding opnieuw',
-            noSuppliersFound: 'Geen leveranciers gevonden',
-            noSuppliersFoundDescription: 'Voeg de leverancier toe in Xero en synchroniseer de koppeling opnieuw.',
+            noVendorsFound: 'Geen leveranciers gevonden',
+            noVendorsFoundDescription: 'Voeg leveranciers toe in Xero en synchroniseer de verbinding opnieuw',
             accountingMethods: {
                 label: 'Wanneer exporteren',
                 description: 'Kies wanneer de onkosten moeten worden geëxporteerd:',
@@ -6974,6 +7007,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             emptySubtitle: 'Leveranciers verschijnen hier zodra je boekhoudkundige synchronisatie is voltooid.',
             findVendor: 'Leverancier zoeken',
             managedInAccountingSoftware: 'Leveranciers worden beheerd in je',
+            enableVendor: 'Leverancier inschakelen',
+            enableVendors: 'Leveranciers inschakelen',
+            disableVendor: 'Leverancier uitschakelen',
+            disableVendors: 'Leveranciers uitschakelen',
+            updateFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de leverancier, probeer het alsjeblieft opnieuw',
         },
         tags: {
             tagName: 'Tagnaam',
@@ -7281,6 +7319,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 optionNoRegularWorkspaceHelp: 'Lid werkt thuis of reist tussen locaties zonder vaste kantoorlocatie, waardoor woon-werkregels niet van toepassing zijn.',
                 futureOnlyNote: 'Wijzigingen zijn alleen van toepassing op toekomstige kilometerberekeningen. Bestaande kilometerdeclaraties worden niet opnieuw berekend.',
             },
+            changeRole: 'Rol wijzigen',
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -7393,6 +7432,12 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Er is een fout opgetreden met een verbinding die is ingesteld in Expensify Classic. [Ga naar Expensify Classic om dit probleem op te lossen.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Ga naar Expensify Classic om je instellingen te beheren.',
+            exactOnline: {
+                comingSoon: 'Binnenkort beschikbaar',
+                joinWaitlist: 'Aanmelden voor wachtlijst',
+                onWaitlist: 'Je staat op de wachtlijst',
+                waitlistDescription: 'Concierge stuurt je een bericht om je te laten weten wanneer deze integratie klaar is en hoe je verbinding kunt maken.',
+            },
             setup: 'Verbinden',
             connectToSandbox: 'Verbinden met sandbox',
             lastSync: (relativeDate: string) => `Laatst gesynchroniseerd ${relativeDate}`,
@@ -7675,6 +7720,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Je QuickBooks Online-verbinding verloopt op ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Je QuickBooks Online-verbinding is op ${date} verlopen.`,
+            netSuiteOAuthMigrationRequired: 'Upgrade je NetSuite-verbinding naar OAuth 2.0 vóór februari 2027.',
+            netSuiteOAuthMigrationRequiredUrgent: 'Je NetSuite-verbinding moet onmiddellijk worden bijgewerkt naar OAuth 2.0.',
+            netSuiteOAuthUpgradeNow: 'Nu upgraden',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
@@ -8395,6 +8443,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Voeg ${featureName} toe om deze functie te ontgrendelen.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,
+                preventPayoutNonReimbursableReportsTitle: 'Voorkom dat niet-declarabele rapporten als betaald worden gemarkeerd',
+                preventPayoutNonReimbursableReportsSubtitle: 'Sta beheerders niet toe om niet-vergoedbare rapporten als betaald te markeren.',
             },
             agentsPromoBanner: {
                 title: 'Zie je de regel die je nodig hebt niet? Voeg een agent toe',
@@ -8448,7 +8498,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 ifAnyExpenseMatches: 'Als een uitgave overeenkomt:',
                 thenApplyFollowingDefaults: 'Pas vervolgens de volgende standaardinstellingen toe:',
                 vendorUnavailable: 'Leverancier niet beschikbaar',
-                supplierUnavailable: 'Leverancier niet beschikbaar',
                 confirmErrorCategory: 'Selecteer een categorie',
                 confirmErrorCategoryTax: 'Selecteer een belastingtarief',
                 confirmErrorCondition: 'Voer een leverancier in',
@@ -8685,6 +8734,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',
                 gotIt: 'Begrepen',
                 createRule: 'Regel maken',
+                fallbackBanner:
+                    'Dit is geen standaardregel, dus hebben we hem opgesteld als een agentregel. Agentregels treden in werking nadat een uitgave of rapport verandert, bijvoorbeeld door de uitgave vast te houden of het rapport af te wijzen.',
+                fallbackBannerWithExplanation: (explanation: string) => `Dit is geen standaardregel, dus hebben we het opgesteld als een agentregel. ${explanation}`,
             },
             tabs: {
                 general: 'Algemeen',
@@ -8747,16 +8799,21 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             newRule: {
                 title: 'Nieuwe regel',
                 subtitle: 'Wat wil je doen?',
+                startWithTemplate: 'Begin met een sjabloon',
                 restrictCardSpend: 'Kaartuitgaven beperken',
                 restrictCardSpendDescription: 'Blokkeer of beperk uitgaven bij het verkooppunt',
                 applyExpenseDefaults: 'Standaardinstellingen voor uitgaven toepassen',
-                applyExpenseDefaultsDescription: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
+                applyExpenseDefaultsDescription: 'Velden automatisch bijwerken',
                 flagForReview: 'Markeren voor controle',
-                flagForReviewDescription: 'Goedkeurders informeren wanneer onkosten de categorielimieten overschrijden',
+                flagForReviewDescription: 'Melding wanneer aan je voorwaarden is voldaan',
                 requireFields: 'Veldvereisten instellen',
-                requireFieldsDescription: 'Specifieke onkostenvakken verplicht stellen of afzien van het verplicht stellen ervan.',
+                requireFieldsShort: 'Velden verplichten',
+                requireFieldsDescription: 'Bonnen, categorieën, enz.',
                 createAgentRule: 'Agentregel beschrijven',
                 createAgentRuleDescription: 'Maak flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
+                describeItBelow: 'Of beschrijf hem hieronder',
+                describeRulePlaceholder: 'Blokkeer alle uitgaven boven $2.000',
+                selectTemplateOrDescribe: 'Selecteer een sjabloon of beschrijf een regel om door te gaan',
                 describe: 'Beschrijven',
                 describeRule: 'Beschrijf je regel in gewone taal en Concierge maakt de regel voor je',
                 describeRuleInputLabel: 'Beschrijf de regel',
@@ -8764,6 +8821,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     unsupported: 'Die regel wordt nog niet ondersteund — we werken eraan. Probeer voorlopig een andere regel.',
                     unintelligible: 'Formuleer je regel bijvoorbeeld zo: als uitgaven hoger zijn dan $100, vraag dan een bon.',
                     multipleRules: 'Eén regel per keer graag — beschrijf één enkele regel, bijvoorbeeld: retailaankopen op alle kaarten blokkeren.',
+                    categoryHasRule: 'Deze categorie heeft al een regel. Bewerk de bestaande regel of beschrijf een regel voor een andere categorie.',
+                },
+                impossible: {
+                    noTrigger: 'Regels kunnen niet vanaf die gebeurtenis beginnen.',
+                    noCapability: 'Regels kunnen dat niet.',
+                    missingData: 'Expensify heeft die informatie niet.',
+                    retroactive: 'Regels zijn alleen van toepassing op nieuwe activiteit.',
+                    historyLimit: 'Regels kunnen niet zo ver terugkijken.',
+                    tryThisInstead: 'Probeer dit in plaats daarvan',
                 },
             },
             expenseDefaultsTable: {
@@ -8956,7 +9022,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             dontSeeYourATS: `<muted-text-label>Zie je je ATS hier niet? <a href="#">Vraag het aan Concierge</a> en we kunnen het toevoegen.</muted-text-label>`,
             importSettings: 'Importinstellingen',
             defaultApprover: 'Standaardgoedkeurder',
-            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving'},
+            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving', hiringManager: 'Wervingsmanager'},
             filters: {
                 description: (providerName: string) => `Selecteer welke leden worden geïmporteerd uit ${providerName}. Je kunt kiezen op basis van functieniveaus, tags en kantoren.`,
                 stages: {
@@ -8990,7 +9056,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             finalApprover: `Laatste goedkeurder`,
             finalApproverOptional: 'Laatste fiatteur (optioneel)',
             approvalModeDescription: (providerName: string) => `Stel de fiatteur in voor nieuwe leden die vanuit ${providerName} in Expensify worden geïmporteerd.`,
-            approverFieldDescription: (providerName: string) => `Kies de eerste fiatteur voor je kandidaten: ofwel hun recruiter of hun coördinator die is toegewezen in ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `hun ${fieldNames.slice(0, -1).join(', ')}, of ${lastFieldName}` : `hun ${fieldNames.join('of hun')}`;
+                return `Kies de eerste fiatteur voor je kandidaten: ${fieldList} toegewezen in ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Kies één fiatteur',
                 advanced: `Recruiter of coördinator van de kandidaat wordt zijn/haar onkostengoedkeurder`,
@@ -9128,6 +9199,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
             },
         },
+        zohoBooks: {
+            organization: 'Zoho Books-organisatie',
+        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-configuratie',
             prerequisitesTitle: 'Voordat je verbinding maakt...',
@@ -9188,6 +9262,51 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             noBankAccountsFoundDescription: 'Voeg bankrekeningen toe in Dynamics 365 Business Central en synchroniseer de verbinding opnieuw',
             noPaymentMethodsFound: 'Geen betalingswijzen gevonden',
             noPaymentMethodsFoundDescription: 'Voeg betalingswijzen toe in Dynamics 365 Business Central en synchroniseer de verbinding opnieuw',
+            advanced: {
+                autoSyncDescription: 'Synchroniseer Dynamics 365 Business Central en Expensify elke dag automatisch. Rapporten worden in realtime gesynchroniseerd.',
+                accountingMethods: {
+                    label: 'Exportmethode',
+                    description: 'Kies wanneer je onkosten exporteert.',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Transitorisch',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contant',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Uit eigen zak betaalde uitgaven worden geëxporteerd zodra ze definitief zijn goedgekeurd',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uitgaven uit eigen zak worden geëxporteerd zodra ze zijn betaald',
+                    },
+                },
+                postingMode: {
+                    label: 'Boekingsmodus',
+                    description: 'Kies of boekingen automatisch worden geboekt of eerst handmatig moeten worden gecontroleerd.',
+                    note: 'Let op: Expensify boekt elk open dagboek in de batch van het algemeen dagboek die je hebt gekozen op de pagina Expensify Setup in Business Central, niet alleen de dagboeken die het zelf heeft gemaakt. Gebruik een batch alleen voor Expensify.',
+                    values: {
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_AND_POST]: {
+                            label: 'Maken en boeken',
+                            description: 'Boekingen bij export automatisch in het grootboek boeken',
+                        },
+                        [CONST.BUSINESS_CENTRAL_POSTING_MODE.CREATE_ONLY]: {
+                            label: 'Alleen maken',
+                            description: 'Boekingen na export handmatig boeken in Dynamics 365 Business Central',
+                        },
+                    },
+                },
+                autoCreateEntities: 'Medewerkers/leveranciers automatisch aanmaken',
+                exportToNextOpenPeriod: 'Exporteren naar volgende open periode',
+                exportToNextOpenPeriodDescription:
+                    'Als een rapport is gedateerd in een afgesloten periode in Dynamics 365 Business Central, wordt het geëxporteerd naar de volgende open periode.',
+                syncReimbursedReports: 'Vergoede rapporten synchroniseren',
+                syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er in deze rekening een journaalpostregel aangemaakt.',
+                reimbursementBankAccount: {
+                    label: 'Betaalbankrekening',
+                    description: 'Kies van waar je rekeningen wilt betalen en we maken de betaling aan in Dynamics 365 Business Central.',
+                },
+                syncExpensifyCardSettlements: 'Expensify Kaartafrekeningen synchroniseren',
+                settlementsBankAccount: {
+                    label: 'Expensify Kaart-verrekeningsrekening',
+                    description: 'Kies je afrekenrekening en we maken de betaling aan in Dynamics 365 Business Central.',
+                },
+            },
             accountsDescription: 'Je Dynamics 365 Business Central-accounts worden geïmporteerd als categorieën.',
             dimensionsImportAsTags: 'Alle Dynamics 365 Business Central-dimensies worden als tags geïmporteerd',
             customers: 'Klanten',
@@ -9816,6 +9935,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         addCustomUnitRateWithAmountAndEndDate: (rateName: string, rateValue: string, endDate: string) => `heeft tarief „${rateName}” van ${rateValue} toegevoegd, geldig tot ${endDate}`,
         addCustomUnitRateWithAmountAndDates: (rateName: string, rateValue: string, startDate: string, endDate: string) =>
             `heeft tarief "${rateName}" van ${rateValue} toegevoegd, geldig van ${startDate} - ${endDate}`,
+        addCustomUnitRateTaxReclaimableSuffix: (taxReclaimableAmount: string, taxRateName: string) => `, met ${taxReclaimableAmount} terugvorderbare belasting onder "${taxRateName}"`,
         updatedCustomUnitRateDateRange: (rateName: string, newDateRange: string, oldDateRange: string) =>
             `heeft het kilometertarief "${rateName}" bijgewerkt zodat het geldt van ${newDateRange} (voorheen ${oldDateRange})`,
         customUnitRateDateRangeStartToEnd: (startDate: string, endDate: string) => `${startDate} - ${endDate}`,
@@ -9906,6 +10026,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `heeft de werkregeling van ${displayName} gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `heeft de standaardwerkregeling gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `heeft "Voorkom dat niet-vergoedbare rapporten als betaald worden gemarkeerd" bijgewerkt naar "${newValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}" (voorheen "${oldValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -10106,6 +10228,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
                 customDay: 'Aangepaste dag',
             },
+            describeSearch: {
+                title: 'Beschrijf je zoekopdracht',
+                description: 'Beschrijf in gewone taal welke uitgaven je wilt zien, dan passen wij automatisch de juiste filters toe.',
+                inputLabel: 'Beschrijf je zoekopdracht',
+                buttonText: 'Toepassen',
+            },
             status: 'Status',
             keyword: 'Trefwoord',
             keywords: 'Trefwoorden',
@@ -10141,6 +10269,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             past: 'Verleden',
             submitted: 'Ingediend',
             approved: 'Goedgekeurd',
+            anyApproval: 'Elke goedkeuring',
             firstApprover: 'Eerste gemachtigde',
             firstApproved: 'Eerst goedgekeurd',
             paidBy: 'Betaald door',
@@ -10149,6 +10278,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             posted: 'Gepost',
             withdrawn: 'Ingetrokken',
             billable: 'Factureerbaar',
+            rejected: 'Afgekeurd',
+            held: 'In de wacht',
             reimbursable: 'Vergoedbaar',
             purchaseCurrency: 'Aankoopvaluta',
             sortOrder: {
@@ -10345,6 +10476,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             category: 'Categorie',
             tag: 'Label',
         },
+        switchToTableView: 'Overschakelen naar tabelweergave',
+        switchToExpenseView: 'Overschakelen naar uitgavenweergave',
     },
     report: {
         newReport: {
@@ -10367,6 +10500,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             type: {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `heeft ${fieldName} gewijzigd in „${newValue}” (voorheen „${oldValue}”)`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `stel ${fieldName} in op "${newValue}"`,
+                changeFieldRemoved: (oldValue: string, fieldName: string) => `heeft ${fieldName} verwijderd (voorheen „${oldValue}”)`,
+                changeFieldCleared: (fieldName: string) => `heeft ${fieldName} verwijderd`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `heeft de werkruimte${fromPolicyName ? `(voorheen ${fromPolicyName})` : ''} gewijzigd`;
@@ -10850,7 +10985,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         duplicatedTransaction: 'Mogelijke duplicaat',
         fieldRequired: 'Rapportvelden zijn verplicht',
         futureDate: 'Toekomstige datum niet toegestaan',
-        inactiveVendor: (isSupplier = false) => (isSupplier ? 'Leverancier niet meer geldig' : 'Leverancier niet meer geldig'),
+        inactiveVendor: 'Leverancier niet meer geldig',
         invoiceMarkup: (invoiceMarkup: number) => `Met ${invoiceMarkup}% verhoogd`,
         maxAge: (maxAge: number) => `Datum ouder dan ${maxAge} dagen`,
         missingCategory: 'Ontbrekende categorie',
@@ -11403,6 +11538,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 refundedOn: ({date}: {date: string}) => `Terugbetaald op ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} terugbetaald op ${date}`,
             },
+            billedTo: 'Gefactureerd aan',
+            viewReceipt: 'Bon bekijken',
+            viewInvoice: 'Factuur bekijken',
         },
         subscriptionSettings: {
             title: 'Abonnementsinstellingen',
@@ -11963,22 +12101,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         addPaymentCardButton: 'Betaalkaart toevoegen',
     },
     monthPickerPage: {month: 'Maand', selectMonth: 'Selecteer een maand'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Nieuw bij Concierge AI',
-        confirmText: 'Laten we gaan!',
-        spendAnalysis: {
-            title: 'Interactieve uitgavenanalyse',
-            description: `<muted-text>Concierge toont maandelijkse uitgaveninzichten en laat je inzoomen op de details achter elk getal. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Meer informatie</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Maak kennis met je nieuwe declaratie-assistent',
-            description: `<muted-text>Chat met Concierge om uitgaven aan te maken en bij te werken, rechtstreeks in de app of via e-mail of sms. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Meer informatie</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Bouw je eigen agents',
-            description: `<muted-text>Maak aangepaste agents om uitgaven te beoordelen, goed te keuren en door te sturen op basis van regels die jij instelt. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Meer informatie</a>.</muted-text>`,
-        },
-    },
     emailIssuePage: {
         title: 'E-mailprobleem',
         intro: (login: string) => `Onze e-mailprovider is gestopt met verzenden naar <strong>${login}</strong> vanwege afleveringsproblemen. Om dit op te lossen:`,
@@ -12019,5 +12141,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         mobileRenewPrompt: 'Bezoek Expensify in je webbrowser om vroegtijdig te verlengen.',
         mobileClaimPrompt: 'Bezoek Expensify in je webbrowser om je verlengingskorting te claimen.',
     },
+    bulkActionBar: {label: 'Bulkacties', clearSelection: 'Selectie wissen', loadingSelection: 'Selectie laden'},
 };
 export default translations;
