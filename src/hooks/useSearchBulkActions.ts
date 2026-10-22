@@ -3418,7 +3418,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isTrackIntentUser,
         getCurrencyDecimals,
         getCurrencySymbol,
-        formatPhoneNumber,
         amountOwed,
         allTransactions,
         transactions,
