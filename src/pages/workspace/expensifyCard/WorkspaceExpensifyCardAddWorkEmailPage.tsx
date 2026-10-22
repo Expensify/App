@@ -66,7 +66,7 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
                 </View>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         // After the user adds their work email, the back button should take them to the feed selector to pick a feed again, not back to this now-stale prompt page.
                         onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, feedSelectorRoute))}
