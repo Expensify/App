@@ -19,7 +19,6 @@
                 ".github/actions/javascript/**/*.ts",
                 "tests/globals.d.ts",
                 ".storybook/**/*.{js,ts,tsx}",
-                "metro.config.js",
                 "config/babel/oxcJestTransformer.js",
                 "eslint.changed.config.mjs",
                 "react-native.config.js",
