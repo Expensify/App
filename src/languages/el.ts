@@ -7507,6 +7507,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 optionNoRegularWorkspaceHelp: 'Το μέλος εργάζεται από το σπίτι ή ταξιδεύει μεταξύ τοποθεσιών χωρίς τακτικό γραφείο, επομένως οι κανόνες μετακίνησης δεν ισχύουν.',
                 futureOnlyNote: 'Οι αλλαγές ισχύουν μόνο για μελλοντικούς υπολογισμούς χιλιομέτρων. Οι υπάρχουσες δαπάνες χιλιομέτρων δεν επανυπολογίζονται.',
             },
+            officeLocation: 'Τοποθεσία γραφείου',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Αλλαγή τοποθεσίας γραφείου',
+            changeWorkArrangement: 'Αλλαγή ρύθμισης εργασίας',
             changeRole: 'Αλλαγή ρόλου',
         },
         card: {
@@ -10006,6 +10010,11 @@ ${reportName}`,
             setAsPrimary: ({name}: {name: string}) => `ορίστε την τοποθεσία γραφείου «${name}» ως κύρια`,
             setCompanyAddressAsPrimary: 'ορίστε τη διεύθυνση της εταιρείας ως κύρια',
             removed: ({name}: {name: string}) => `αφαίρεσε την τοποθεσία γραφείου «${name}»`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `άλλαξε την τοποθεσία γραφείου του/της ${displayName} σε ${officeLocation} (προηγουμένως ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `«${name}»`,
+            companyAddress: 'η διεύθυνση της εταιρείας',
+            primaryOffice: 'το κύριο γραφείο',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `ορίστε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement}`,
@@ -10757,8 +10766,6 @@ ${reportName}`,
             category: 'Κατηγορία',
             tag: 'Ετικέτα',
         },
-        switchToTableView: 'Εναλλαγή σε προβολή πίνακα',
-        switchToExpenseView: 'Εναλλαγή σε προβολή δαπάνης',
     },
     report: {
         newReport: {
