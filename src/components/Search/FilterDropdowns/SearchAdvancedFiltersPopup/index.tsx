@@ -12,6 +12,7 @@ import Text from '@components/Text';
 
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import {useDebounceWithControls} from '@hooks/useDebounce';
+import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -136,7 +137,6 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
     const {isBetaEnabled} = usePermissions();
     const canUseNLFilters = isBetaEnabled(CONST.BETAS.NL_FILTERS);
     const [isDescribeMode, setIsDescribeMode] = useState(false);
-    const [filterSearchValue, setFilterSearchValue] = useState('');
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const filterContentRef = useRef<ComponentRef<typeof View>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
@@ -152,8 +152,6 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
     const {activeFilter, mountedFilters, formWhileHidden, contentVersions, readyFilters} = mountedFilterState;
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const allFilters = useAdvancedSearchFilters(searchAdvancedFiltersForm?.type);
-    const filters = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, filterSearchValue, translate);
-    const isActiveFilterListed = filters.some((section) => section.includes(activeFilter));
 
     // Shows a filter's content. A visited one stays mounted, so a return reveals it rather than building it again.
     const showFilter = (filterKey: SearchFilter['key']) => {
@@ -224,20 +222,25 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
         markShownFilterReady();
     };
 
-    // A filter the search hides gives way to the first one still listed, so the content keeps matching the list.
-    const changeFilterSearchValue = (searchValue: string) => {
-        setFilterSearchValue(searchValue);
-
-        const matchingFilters = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, searchValue, translate).flat();
-        const firstMatchingFilter = matchingFilters.at(0);
-        if (isDescribeMode || !firstMatchingFilter || matchingFilters.includes(activeFilter)) {
+    // Like a selection list, a search shows its first match, and clearing it keeps the shown filter. Typing has
+    // settled by now, so nothing is withheld, the same as for a focused row.
+    const showFirstMatchingFilter = (searchValue: string) => {
+        const firstMatchingFilter = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, searchValue, translate).at(0)?.at(0);
+        if (isDescribeMode || !searchValue.trim() || !firstMatchingFilter) {
             return;
         }
 
+        cancelReadyWait();
         showFilter(firstMatchingFilter);
-        // Typing runs through filters as fast as a cursor does, so a deferred one waits for the typing to pause.
-        debouncedMarkShownFilterReady();
+        markShownFilterReady();
     };
+
+    const [filterSearchValue, debouncedFilterSearchValue, setFilterSearchValue] = useDebouncedState<string>('', CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME, {
+        onDebouncedValueChange: showFirstMatchingFilter,
+    });
+    // A cleared input lists every filter at once rather than after the debounce, as in useSearchResults.
+    const filters = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, filterSearchValue.trim() ? debouncedFilterSearchValue : '', translate);
+    const isActiveFilterListed = filters.some((section) => section.includes(activeFilter));
 
     const mayDeriveContent = (filterKey: SearchFilter['key']) => !DEFERRED_CONTENT_FILTERS.has(filterKey) || readyFilters.includes(filterKey);
 
@@ -302,7 +305,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                         selectedFilter={isDescribeMode ? undefined : activeFilter}
                         filters={filters}
                         searchValue={filterSearchValue}
-                        onSearchValueChange={changeFilterSearchValue}
+                        onSearchValueChange={setFilterSearchValue}
                         autoFocus
                         onHoverIn={hoverFilter}
                         onPointerMove={trackPointerMovement}

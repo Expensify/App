@@ -8,6 +8,7 @@ import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -27,7 +28,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useContext, useState} from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 
 function SearchAdvancedFiltersBase() {
@@ -41,9 +42,10 @@ function SearchAdvancedFiltersBase() {
     const {isBetaEnabled} = usePermissions();
     const canUseNLFilters = isBetaEnabled(CONST.BETAS.NL_FILTERS);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
-    const [filterSearchValue, setFilterSearchValue] = useState('');
+    const [filterSearchValue, debouncedFilterSearchValue, setFilterSearchValue] = useDebouncedState('', CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     const allFilters = useAdvancedSearchFilters(currentDraftFilters.type);
-    const filters = getMatchingFilters(allFilters, currentDraftFilters.type, filterSearchValue, translate);
+    // A cleared input lists every filter at once rather than after the debounce, as in useSearchResults.
+    const filters = getMatchingFilters(allFilters, currentDraftFilters.type, filterSearchValue.trim() ? debouncedFilterSearchValue : '', translate);
 
     return (
         <ScreenWrapper

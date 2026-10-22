@@ -137,10 +137,13 @@ function leaveList(clientX = Number.MAX_SAFE_INTEGER) {
     });
 }
 
-/** Types into the filter search input. */
+/** Types into the filter search input and pauses long enough for the list to follow. */
 function search(searchValue: string) {
     act(() => {
         mockOnSearchValueChange?.(searchValue);
+    });
+    act(() => {
+        jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     });
 }
 
@@ -298,41 +301,55 @@ describe('SearchAdvancedFiltersPopup', () => {
         expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(true);
     });
 
-    it('shows the first filter still listed when the search hides the shown one', () => {
+    it('shows the first match once the typing pauses', () => {
         // Given the popover open on Type
-        // When a search that Type does not match is typed
-        search('status');
+        // When a search that Type does not match is typed, before the typing pauses
+        act(() => {
+            mockOnSearchValueChange?.('status');
+        });
 
-        // Then Status, the first filter still listed, takes over the content
+        // Then the content stays put while the typing may go on
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.TYPE);
+
+        // When the typing pauses
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+        });
+
+        // Then Status, the first match, takes over the content
         expect(mockSelectedFilter).toBe(FILTER_KEYS.STATUS);
     });
 
-    it('keeps the shown filter while the search still lists it', () => {
+    it('shows the first match even when the shown filter still matches', () => {
         // Given Withdrawal status shown, which sits below Status in the list
         hoverAndRest(FILTER_KEYS.WITHDRAWAL_STATUS);
 
         // When a search that both filters match is typed
         search('status');
 
-        // Then the content stays put rather than jumping to the first match
+        // Then Status takes over, as a selection list moves to its first match on every search
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.STATUS);
+    });
+
+    it('keeps the shown filter when the search is cleared', () => {
+        // Given a search, then another of its matches picked
+        search('status');
+        hoverAndRest(FILTER_KEYS.WITHDRAWAL_STATUS);
+
+        // When the search is cleared
+        search('');
+
+        // Then the picked filter stays rather than giving way to the first row
         expect(mockSelectedFilter).toBe(FILTER_KEYS.WITHDRAWAL_STATUS);
     });
 
-    it('withholds the contact list from a filter the search lands on until the typing pauses', () => {
+    it('lets a contact list filter the search lands on derive at once', () => {
         // Given the popover open on Type
-        // When a search whose first match is From is typed
+        // When a search whose first match is From is typed and the typing pauses
         search('from');
 
-        // Then From is shown but does not derive its contact list while the typing may go on
+        // Then From derives its contact list straight away, because the typing has already settled
         expect(mockSelectedFilter).toBe(FILTER_KEYS.FROM);
-        expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(false);
-
-        // When the typing pauses
-        act(() => {
-            jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
-        });
-
-        // Then From derives it
         expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(true);
     });
 
