@@ -44,6 +44,7 @@ import {
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDeletedOfficeLocationMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getHumanAgentAccountIDFromReportAction,
     getHumanAgentFirstName,
@@ -5228,6 +5229,41 @@ describe('ReportActionsUtils', () => {
             // When the change log is rendered
             // Then it reads the same as the message Auth stores for it
             expect(getDeletedOfficeLocationMessage(translateLocal, action)).toBe('removed the office location "New Jersey Office"');
+        });
+
+        it.each([
+            [
+                'an office assigned to a member who followed the primary office',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+                `changed Bob Smith's office location to "New Jersey Office" (previously the primary office)`,
+            ],
+            [
+                'a member moved from the company address to an office',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: 'OFFICE1', officeName: 'Headquarters', oldOfficeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, oldOfficeName: ''},
+                `changed Bob Smith's office location to "Headquarters" (previously the company address)`,
+            ],
+            [
+                'a cleared assignment',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: '', officeName: '', oldOfficeID: 'OFFICE1', oldOfficeName: 'Headquarters'},
+                `changed Bob Smith's office location to the primary office (previously "Headquarters")`,
+            ],
+            [
+                'a member without a name moved off an office that was removed since',
+                {email: 'bob@smith.com', officeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, officeName: '', oldOfficeID: 'OFFICE9', oldOfficeName: ''},
+                `changed bob@smith.com's office location to the company address (previously the primary office)`,
+            ],
+        ])('describes %s', (_description, originalMessage, expected) => {
+            // Given a member whose office assignment changed
+            const action: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {accountID: 1, ...originalMessage},
+            };
+
+            // When the change log is rendered
+            // Then it reads the same as the message Auth stores for it
+            expect(getUpdatedEmployeeOfficeLocationMessage(translateLocal, action)).toBe(expected);
         });
     });
 

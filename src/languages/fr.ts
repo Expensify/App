@@ -7398,6 +7398,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                     'Le membre travaille à domicile ou se déplace entre plusieurs sites sans bureau fixe, donc les règles relatives aux trajets domicile-travail ne s’appliquent pas.',
                 futureOnlyNote: 'Les modifications s’appliquent uniquement aux calculs de kilométrage futurs. Les dépenses de kilométrage existantes ne sont pas recalculées.',
             },
+            officeLocation: 'Lieu de bureau',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Modifier le lieu de travail',
+            changeWorkArrangement: 'Modifier l’organisation du travail',
             changeRole: 'Modifier le rôle',
         },
         card: {
@@ -9904,6 +9908,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             setAsPrimary: ({name}: {name: string}) => `définir le lieu de travail « ${name} » comme principal`,
             setCompanyAddressAsPrimary: 'définir l’adresse de l’entreprise comme principale',
             removed: ({name}: {name: string}) => `a supprimé le lieu de bureau « ${name} »`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `a modifié le lieu de travail de ${displayName} en ${officeLocation} (précédemment ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `« ${name} »`,
+            companyAddress: 'l’adresse de l’entreprise',
+            primaryOffice: 'le bureau principal',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `définir l’organisation de travail par défaut sur ${arrangement}`,
@@ -10583,8 +10592,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             category: 'Catégorie',
             tag: 'Tag',
         },
-        switchToTableView: 'Passer à la vue tableau',
-        switchToExpenseView: 'Passer à la vue dépense',
     },
     report: {
         newReport: {
