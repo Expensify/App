@@ -456,31 +456,21 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             {shouldShowTravelSettings && (
                                 <>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.canUseTravel}>
-                                        <MenuItemWithTopDescription
-                                            disabled={!canChangeTravelSettings}
-                                            title={translate(
+                                        <MenuItemField
+                                            name={translate('workspace.moreFeatures.travel.members.travelAccess')}
+                                            onPress={canChangeTravelSettings ? () => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_TRAVEL_ACCESS.getRoute(policyID, accountID)) : undefined}
+                                            testID="member-travel-access-menu-item"
+                                            value={translate(
                                                 canMemberUseTravel(policy, memberLogin) ? 'workspace.moreFeatures.travel.members.on' : 'workspace.moreFeatures.travel.members.off',
                                             )}
-                                            interactive={canChangeTravelSettings}
-                                            description={translate('workspace.moreFeatures.travel.members.travelAccess')}
-                                            shouldShowRightIcon={canChangeTravelSettings}
-                                            shouldGreyOutWhenDisabled={false}
-                                            shouldUseDefaultCursorWhenDisabled
-                                            pressableTestID="member-travel-access-menu-item"
-                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_TRAVEL_ACCESS.getRoute(policyID, accountID))}
                                         />
                                     </OfflineWithFeedback>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.travelRole}>
-                                        <MenuItemWithTopDescription
-                                            disabled={!canChangeTravelSettings}
-                                            title={getTravelMemberRoleName(translate, getTravelMemberRole(policy, memberLogin))}
-                                            interactive={canChangeTravelSettings}
-                                            description={translate('workspace.moreFeatures.travel.members.travelRole')}
-                                            shouldShowRightIcon={canChangeTravelSettings}
-                                            shouldGreyOutWhenDisabled={false}
-                                            shouldUseDefaultCursorWhenDisabled
-                                            pressableTestID="member-travel-role-menu-item"
-                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_TRAVEL_ROLE.getRoute(policyID, accountID))}
+                                        <MenuItemField
+                                            name={translate('workspace.moreFeatures.travel.members.travelRole')}
+                                            onPress={canChangeTravelSettings ? () => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_TRAVEL_ROLE.getRoute(policyID, accountID)) : undefined}
+                                            testID="member-travel-role-menu-item"
+                                            value={getTravelMemberRoleName(translate, getTravelMemberRole(policy, memberLogin))}
                                         />
                                     </OfflineWithFeedback>
                                 </>
