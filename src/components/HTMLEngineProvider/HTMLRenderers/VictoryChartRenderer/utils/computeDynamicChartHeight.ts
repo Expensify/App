@@ -34,27 +34,29 @@ type ComputeDynamicChartHeightParams = {
     isHorizontal: boolean | undefined;
     itemCount: number;
     padding: Padding;
+    bottomAxisSize: number | undefined;
+    topAxisSize: number | undefined;
 };
 
 /**
  * Derives a shorter canvas height for horizontal bar charts that have fewer rows than the
  * backend's fixed five-row reference height, keeping row spacing consistent.
  */
-function computeDynamicChartHeight({designHeight, isHorizontal, itemCount, padding}: ComputeDynamicChartHeightParams): number | undefined {
+function computeDynamicChartHeight({designHeight, isHorizontal, itemCount, padding, bottomAxisSize, topAxisSize}: ComputeDynamicChartHeightParams): number | undefined {
     if (!isHorizontal || designHeight === undefined || itemCount <= 0 || itemCount >= HORIZONTAL_BAR_REFERENCE_ROW_COUNT) {
         return designHeight;
     }
 
     const paddingTop = getPaddingValue(padding, 'top', DEFAULT_HORIZONTAL_BAR_PADDING.top);
     const paddingBottom = getPaddingValue(padding, 'bottom', DEFAULT_HORIZONTAL_BAR_PADDING.bottom);
-    const referencePlotHeight = HORIZONTAL_BAR_REFERENCE_HEIGHT - paddingTop - paddingBottom;
+    const referencePlotHeight = HORIZONTAL_BAR_REFERENCE_HEIGHT - paddingTop - paddingBottom - (bottomAxisSize ?? 0) - (topAxisSize ?? 0);
 
     if (referencePlotHeight <= 0) {
         return designHeight;
     }
 
     const rowHeight = referencePlotHeight / HORIZONTAL_BAR_REFERENCE_ROW_COUNT;
-    const dynamicHeight = paddingTop + paddingBottom + rowHeight * itemCount;
+    const dynamicHeight = paddingTop + paddingBottom + (bottomAxisSize ?? 0) + (topAxisSize ?? 0) + rowHeight * itemCount;
 
     return Math.min(Math.round(dynamicHeight), designHeight);
 }
