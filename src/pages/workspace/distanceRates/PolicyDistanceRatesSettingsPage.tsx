@@ -346,7 +346,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                     )}
                     <OfflineWithFeedback
                         errors={shouldShowUKFuelRateTaxErrorOnPolicy ? {ukFuelRateTax: UK_FUEL_RATE_TAX_ERROR_MESSAGE} : getLatestErrorField(customUnit ?? {}, 'taxEnabled')}
-                        errorRowStyles={styles.mh5}
+                        errorRowStyles={[styles.mh5, styles.mt2, styles.gap3]}
                         pendingAction={customUnit?.pendingFields?.taxEnabled}
                         onClose={() => {
                             if (!shouldShowUKFuelRateTaxErrorOnPolicy || !customUnit?.customUnitID) {

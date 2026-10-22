@@ -309,7 +309,13 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     sentryLabel={sentryLabel}
                 >
                     {pressOnEnter && <Button.KeyboardShortcut enterKeyEventListenerPriority={enterKeyEventListenerPriority} />}
-                    {!!singleOptionButtonIcon && <Button.Icon src={singleOptionButtonIcon} />}
+                    {!!singleOptionButtonIcon && (
+                        <Button.Icon
+                            src={hasError ? icons.DotIndicator : singleOptionButtonIcon}
+                            fill={hasError ? theme.danger : undefined}
+                            hoverFill={hasError ? theme.danger : undefined}
+                        />
+                    )}
                     {secondLineText ? (
                         <DoubleLineButtonText
                             primaryText={selectedItem?.text ?? ''}

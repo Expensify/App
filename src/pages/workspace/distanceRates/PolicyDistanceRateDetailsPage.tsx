@@ -1,5 +1,4 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -56,7 +55,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const rateID = route.params.rateID;
     const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
     const rate = customUnit?.rates[rateID];
-    const shouldShowUKFuelRateTaxErrorOnPolicy = shouldShowUKFuelRateTaxError(policy);
+    const shouldShowUKFuelRateTaxErrorOnRate = shouldShowUKFuelRateTaxError(policy) && !!rate?.name?.startsWith('Cars & Vans');
 
     const policyReportsSelector = useCallback(
         (reports: OnyxCollection<Report>) => {
@@ -264,11 +263,11 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     </OfflineWithFeedback>
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
                         <OfflineWithFeedback
-                            errors={shouldShowUKFuelRateTaxErrorOnPolicy ? {ukFuelRateTax: UK_FUEL_RATE_TAX_ERROR_MESSAGE} : getLatestErrorField(rate, 'taxRateExternalID')}
+                            errors={shouldShowUKFuelRateTaxErrorOnRate ? {ukFuelRateTax: UK_FUEL_RATE_TAX_ERROR_MESSAGE} : getLatestErrorField(rate, 'taxRateExternalID')}
                             pendingAction={rate?.pendingFields?.taxRateExternalID}
-                            errorRowStyles={styles.mh5}
+                            errorRowStyles={[styles.mh5, styles.mb3, styles.gap3]}
                             onClose={() => {
-                                if (shouldShowUKFuelRateTaxErrorOnPolicy && customUnit?.customUnitID) {
+                                if (shouldShowUKFuelRateTaxErrorOnRate && customUnit?.customUnitID) {
                                     dismissUKFuelRateTaxError(policyID, customUnit.customUnitID);
                                     return;
                                 }
@@ -276,23 +275,11 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             }}
                         >
                             <View style={styles.w100}>
-                                {shouldShowUKFuelRateTaxErrorOnPolicy ? (
-                                    <MenuItem.Root onPress={canWriteDistanceRates ? editTaxRateValue : undefined}>
-                                        <MenuItemField.Row
-                                            name={translate('workspace.taxes.taxRate')}
-                                            value={taxRate}
-                                        >
-                                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
-                                            {canWriteDistanceRates && <MenuItem.Chevron />}
-                                        </MenuItemField.Row>
-                                    </MenuItem.Root>
-                                ) : (
-                                    <MenuItemField
-                                        name={translate('workspace.taxes.taxRate')}
-                                        onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
-                                        value={taxRate}
-                                    />
-                                )}
+                                <MenuItemField
+                                    name={translate('workspace.taxes.taxRate')}
+                                    onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
+                                    value={taxRate}
+                                />
                             </View>
                         </OfflineWithFeedback>
                     )}
