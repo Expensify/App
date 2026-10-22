@@ -43,6 +43,11 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 
 const translations = {
+    bulkActionBar: {
+        label: 'Bulk actions',
+        clearSelection: 'Clear selection',
+        loadingSelection: 'Loading selection',
+    },
     earlyRenewal: {
         title: 'Renew your Expensify subscription',
         subtitle: 'One less thing to do before the new year.',
@@ -380,7 +385,6 @@ const translations = {
         change: 'Change',
         category: 'Category',
         vendor: 'Vendor',
-        supplier: 'Supplier',
         report: 'Report',
         billable: 'Billable',
         nonBillable: 'Non-billable',
@@ -5678,8 +5682,8 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again',
-            noSuppliersFound: 'No suppliers found',
-            noSuppliersFoundDescription: 'Please add the supplier in Xero and sync the connection again.',
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Xero and sync the connection again',
             accountingMethods: {
                 label: 'When to Export',
                 description: 'Choose when to export the expenses:',
@@ -6628,6 +6632,9 @@ const translations = {
                 label: 'Travel Invoicing payable account',
             },
         },
+        zohoBooks: {
+            organization: 'Zoho Books organization',
+        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',
             prerequisitesTitle: 'Before you connect...',
@@ -7458,6 +7465,11 @@ const translations = {
             emptySubtitle: 'Vendors will appear here after your accounting sync completes.',
             findVendor: 'Find vendor',
             managedInAccountingSoftware: 'Vendors are managed in your',
+            enableVendor: 'Enable vendor',
+            enableVendors: 'Enable vendors',
+            disableVendor: 'Disable vendor',
+            disableVendors: 'Disable vendors',
+            updateFailureMessage: 'An error occurred while updating the vendor, please try again',
         },
         tags: {
             tagName: 'Tag name',
@@ -7505,6 +7517,7 @@ const translations = {
             tagRules: 'Tag rules',
             approverDescription: 'Approver',
             importTags: 'Import tags',
+            appendCustomTagList: 'Append custom tag list',
             importTagsSupportingText: 'Code your expenses with one type of tag or many.',
             configureMultiLevelTags: 'Configure your list of tags for multi-level tagging.',
             importMultiLevelTagsSupportingText: `Here's a preview of your tags. If everything looks good, click below to import them.`,
@@ -7700,6 +7713,7 @@ const translations = {
             removeMemberPrompt: (memberName: string) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
+            changeRole: 'Change role',
             makeMember: () => ({
                 one: 'Make member',
                 other: 'Make members',
@@ -8268,7 +8282,12 @@ const translations = {
             finalApprover: `Final approver`,
             finalApproverOptional: 'Final approver (optional)',
             approvalModeDescription: (providerName: string) => `Set the approver for new members being imported from ${providerName} to Expensify.`,
-            approverFieldDescription: (providerName: string) => `Choose the first approver for your candidates: either their Recruiter or their Coordinator assigned in ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `their ${fieldNames.slice(0, -1).join(', ')}, or ${lastFieldName}` : `either their ${fieldNames.join(' or their ')}`;
+                return `Choose the first approver for your candidates: ${fieldList} assigned in ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Choose a single approver',
                 advanced: `Candidate's recruiter or coordinator becomes their expense approver`,
@@ -8276,6 +8295,7 @@ const translations = {
             },
             approverFields: {
                 recruiter: 'Recruiter',
+                hiringManager: 'Hiring manager',
                 recruitingCoordinator: 'Recruiting coordinator',
             },
             filters: {
@@ -9158,7 +9178,6 @@ const translations = {
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Mark as  "${reimbursable ? 'reimbursable' : 'non-reimbursable'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Mark as "${billable ? 'billable' : 'non-billable'}"`,
                 vendorUnavailable: 'Vendor unavailable',
-                supplierUnavailable: 'Supplier unavailable',
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
@@ -9216,6 +9235,14 @@ const translations = {
                     unintelligible: 'Try phrasing your rule like: if expenses have a value over $100, then require a receipt.',
                     multipleRules: 'One rule at a time, please — try describing a single rule, like: block retail purchases on all cards.',
                     categoryHasRule: 'That category already has a rule. Edit the existing rule or describe a rule for another category.',
+                },
+                impossible: {
+                    noTrigger: "Rules can't start from that event.",
+                    noCapability: "Rules can't do that.",
+                    missingData: "Expensify doesn't have that information.",
+                    retroactive: 'Rules only apply to new activity.',
+                    historyLimit: "Rules can't look back that far.",
+                    tryThisInstead: 'Try this instead',
                 },
             },
             expenseDefaultsTable: {
@@ -9516,6 +9543,7 @@ const translations = {
                 createRule: 'Create rule',
                 fallbackBanner:
                     "This isn't a standard rule, so we drafted it as an agent rule. Agent rules act after an expense or report changes, for example by holding the expense or rejecting the report.",
+                fallbackBannerWithExplanation: (explanation: string) => `This isn't a standard rule, so we drafted it as an agent rule. ${explanation}`,
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
@@ -10526,6 +10554,12 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },
+            describeSearch: {
+                title: 'Describe your search',
+                description: "Describe what expenses you want to see in plain English, and we'll apply the right filters automatically.",
+                inputLabel: 'Describe your search',
+                buttonText: 'Apply',
+            },
             status: 'Status',
             keyword: 'Keyword',
             keywords: 'Keywords',
@@ -10585,6 +10619,7 @@ const translations = {
             withdrawn: 'Withdrawn',
             billable: 'Billable',
             rejected: 'Rejected',
+            held: 'Held',
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
             sortOrder: {
@@ -10767,6 +10802,8 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
+        switchToTableView: 'Switch to table view',
+        switchToExpenseView: 'Switch to expense view',
     },
     report: {
         newReport: {
@@ -10790,6 +10827,7 @@ const translations = {
                 changeField: (oldValue: string | undefined, newValue: string, fieldName: string) => `changed ${fieldName} to "${newValue}" (previously "${oldValue}")`,
                 changeFieldEmpty: (newValue: string, fieldName: string) => `set ${fieldName} to "${newValue}"`,
                 changeFieldRemoved: (oldValue: string, fieldName: string) => `removed ${fieldName} (previously "${oldValue}")`,
+                changeFieldCleared: (fieldName: string) => `removed ${fieldName}`,
                 changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `changed the workspace${fromPolicyName ? ` (previously ${fromPolicyName})` : ''}`;
@@ -11279,7 +11317,7 @@ const translations = {
         duplicatedTransaction: 'Potential duplicate',
         fieldRequired: 'Report fields are required',
         futureDate: 'Future date not allowed',
-        inactiveVendor: (isSupplier = false) => (isSupplier ? 'Supplier no longer valid' : 'Vendor no longer valid'),
+        inactiveVendor: 'Vendor no longer valid',
         invoiceMarkup: (invoiceMarkup: number) => `Marked up by ${invoiceMarkup}%`,
         maxAge: (maxAge: number) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',

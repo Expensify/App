@@ -64,8 +64,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, a
             formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
             onSubmit={submit}
             submitButtonText={translate('common.save')}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            validate={validateEdit || validate}
+            validate={validateEdit ?? validate}
             style={[styles.mh5, styles.flex1]}
             enabledWhenOffline
             shouldHideFixErrorsAlert

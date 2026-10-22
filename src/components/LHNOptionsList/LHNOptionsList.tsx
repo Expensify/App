@@ -1,3 +1,4 @@
+import {renderTabRootScrollComponent} from '@components/Navigation/TabBarBottomContent/TabRootScrollViewMarker';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 
@@ -180,6 +181,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     maintainVisibleContentPosition={{disabled: true}}
                     drawDistance={250}
                     removeClippedSubviews
+                    renderScrollComponent={renderTabRootScrollComponent}
                 />
             </LHNTooltipContextProvider>
         </View>
