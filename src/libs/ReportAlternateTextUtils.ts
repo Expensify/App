@@ -600,6 +600,8 @@ function getLastMessageTextForReport({
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
+        // `linkedTransaction` belongs to the caller's last action, which can differ from `lastReportAction` after the one-transaction fallback above.
+        const isLinkedTransactionForLastReportAction = !!linkedTransaction && linkedTransaction.transactionID === getOriginalMessage(lastReportAction)?.IOUTransactionID;
         const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayString, {
             personalDetails,
             reportOrID: report,
@@ -607,7 +609,7 @@ function getLastMessageTextForReport({
             shouldConsiderScanningReceiptOrPendingRoute: true,
             policy,
             isForListPreview: true,
-            linkedTransaction,
+            linkedTransaction: isLinkedTransactionForLastReportAction ? linkedTransaction : undefined,
             bankAccountList,
         });
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));

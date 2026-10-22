@@ -6540,7 +6540,7 @@ type GetReportPreviewMessageBaseParams = {
     isForListPreview?: boolean;
     /** This can be either a report preview action or the IOU action. This will be the original report preview action in cases where `iouReportAction` was unwrapped from a report preview action. Otherwise, it will be the same as `iouReportAction`. */
     originalReportAction?: OnyxInputOrEntry<ReportAction>;
-    /** The transaction linked to `iouReportAction`. Needed for split and track actions, whose transaction isn't part of `reportOrID`. */
+    /** The transaction linked to `iouReportAction`; it must match the action's `IOUTransactionID`. Needed for split and track actions, whose transaction isn't part of `reportOrID`. */
     linkedTransaction?: OnyxEntry<Transaction>;
     /** The current user's bank accounts, used to name the account a report was paid with. */
     bankAccountList?: OnyxEntry<BankAccountList>;
@@ -6610,7 +6610,7 @@ function getReportPreviewMessage(
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
         // This covers group chats where the last action is a split expense action
         // The split transaction belongs to SPLIT_REPORT_ID, not to `report`, so it isn't in `allReportTransactions` and the caller has to pass it.
-        const linkedTransaction = getLinkedTransaction(iouReportAction, linkedTransactionParam ? [linkedTransactionParam] : undefined);
+        const linkedTransaction = linkedTransactionParam ?? getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
             return reportActionMessage;
         }
@@ -6633,7 +6633,7 @@ function getReportPreviewMessage(
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && !isExpenseReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
         // This covers group chats where the last action is a track expense action
         // The tracked transaction is unreported, not part of `report`, so it isn't in `allReportTransactions` and the caller has to pass it.
-        const linkedTransaction = getLinkedTransaction(iouReportAction, linkedTransactionParam ? [linkedTransactionParam] : undefined);
+        const linkedTransaction = linkedTransactionParam ?? getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
             const originalMessage = getOriginalMessage(iouReportAction);
             const amount = originalMessage?.amount;
