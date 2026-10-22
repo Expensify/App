@@ -34,8 +34,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {BankName} from '@src/types/onyx/Bank';
-import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import {useNavigationState} from '@react-navigation/native';
 import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
@@ -104,7 +102,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     }, [cardSettings, hasActiveAccountingConnection, continuousReconciliation, reconciliationConnection, fetchPolicyAccountingData]);
 
     const eligibleBankAccountsOptions: BankAccountListItem[] = eligibleBankAccounts.map((bankAccount) => {
-        const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
+        const bankName = bankAccount.accountData?.addressName ?? '';
         const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
         const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
 
@@ -121,7 +119,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     const fallbackBankAccountOption: BankAccountListItem = {
         value: paymentBankAccountID,
         text: paymentBankAccountAddressName ?? '',
-        leftElement: <BankAccountListItemLeftElement bankName={(paymentBankAccountAddressName ?? '') as BankName} />,
+        leftElement: <BankAccountListItemLeftElement bankName={paymentBankAccountAddressName ?? ''} />,
         alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(paymentBankAccountNumberFromCardSettings ?? '')}`,
         keyForList: paymentBankAccountID?.toString() ?? '',
         isSelected: true,
@@ -141,8 +139,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     };
 
     const getCustomListHeaderContent = () => {
-        const connectionName = reconciliationConnection ?? '';
-        const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
+        const connectionParam = reconciliationConnection ? getRouteParamForConnection(reconciliationConnection) : undefined;
 
         return (
             <>
@@ -194,3 +191,4 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
 }
 
 export default DynamicWorkspaceSettlementAccountPage;
+export type {WorkspaceSettlementAccountPageProps};

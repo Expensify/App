@@ -203,6 +203,11 @@ function getActiveUserCount(purchase: Purchase): number | undefined {
     return emails.size > 0 ? emails.size : undefined;
 }
 
+/** Returns the account IDs of the users billed for a purchase, deduped since the same person can be billed under more than one workspace. */
+function getActiveUserAccountIDs(purchase: Purchase | undefined): number[] {
+    return [...new Set(purchase?.activeUsers?.filter((accountID) => !!accountID))];
+}
+
 function compareNewestFirst(left: PaymentHistoryRow, right: PaymentHistoryRow): number {
     if (left.created === right.created) {
         return right.purchaseID - left.purchaseID;
@@ -362,7 +367,6 @@ function isInvoiceBilling(purchases: Purchases | null | undefined, purchaseID: n
 function getReceiptFileName(source: string, purchaseID: number): string {
     try {
         const pathname = new URL(source).pathname;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return pathname.split('/').pop() || `receipt-${purchaseID}`;
     } catch {
         return `receipt-${purchaseID}`;
@@ -371,6 +375,7 @@ function getReceiptFileName(source: string, purchaseID: number): string {
 
 export {
     formatDate,
+    getActiveUserAccountIDs,
     getBadgeAppearance,
     getBadgeText,
     getPaymentDetailsBadge,
