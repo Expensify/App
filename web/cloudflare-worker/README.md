@@ -32,6 +32,22 @@ Only the explicit `development` environment can forward to `DEV_UPSTREAM`, which
 
 `USE_CLOUDFLARE_WORKER=false npm run web` bypasses the Worker but leaves the API proxy enabled. `USE_WEB_PROXY=false` disables only the API proxy. `WEB_PORT`, `WEB_INTERNAL_PORT`, and `WEB_OPEN=false` control isolated sessions and browser automation. Shell values take precedence over `.env`; occupied ports fail clearly. See the web setup guide for local backend settings and troubleshooting.
 
+### Startup and logs
+
+Wrangler starts only after Rsbuild returns its first successful HTTP response, so normal compilation does not produce Worker `503` request logs. The browser opens after the public HTTPS Worker is ready.
+
+Worker `console.log`, `console.warn`, and `console.error` output appears in the terminal running `npm run web`, prefixed with `[worker]`. This is separate from the application's browser console.
+
+Wrangler also exposes a local observability API on the same listener. For the default public port, query recent captured request and console logs with:
+
+```bash
+curl https://127.0.0.1:8082/cdn-cgi/local/explorer/api/local/observability/query \
+  -H 'Content-Type: application/json' \
+  --data '{"sql":"SELECT ts_ms, level, message FROM logs ORDER BY ts_ms DESC LIMIT 20"}'
+```
+
+Use your chosen `WEB_PORT` if different. This is a local API, not a separate hosted Miniflare service; no Cloudflare credentials are required.
+
 ## Running a web build locally
 
 `wrangler dev` runs the Worker in workerd, the same runtime Cloudflare uses, and serves `dist/` exactly as a deploy would. No Cloudflare account or credentials are needed.

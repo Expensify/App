@@ -39,6 +39,7 @@ async function startWeb() {
                       name: 'worker',
                       cwd: workerDir,
                       command: [
+                          `bun ../../scripts/waitForWebServer.ts http://127.0.0.1:${internalPort}/ &&`,
                           'node node_modules/wrangler/bin/wrangler.js dev --local --config wrangler.dev.jsonc',
                           `--ip 127.0.0.1 --port ${publicPort} --inspector-port 0 --local-protocol https`,
                           `--https-key-path ${$.escape(`${root}/config/rsbuild/key.pem`)}`,
