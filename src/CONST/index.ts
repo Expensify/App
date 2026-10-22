@@ -9662,6 +9662,10 @@ const CONST = {
             BOOK_OR_MANAGE_YOUR_TRIP: 'BookOrManageYourTrip',
             REVIEWING_REQUEST: 'ReviewingRequest',
         },
+        MEMBER_ROLE: {
+            TRAVELER: 'traveler',
+            ADMIN: 'admin',
+        },
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
             ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',
