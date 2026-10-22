@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import {useReportAttributesByID} from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +39,7 @@ import type {ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {accountIDSelector} from '@selectors/PersonalDetails';
 import {reportNamesByIDsSelector} from '@selectors/ReportAttributes';
 import React, {useCallback, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -190,6 +192,8 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
     });
     const parentReportActionActorAccountID = getReportActionActorAccountID(parentReportAction, fullReport, fullReport);
 
+    const reimburserAccountID = usePersonalDetailByLogin(policy?.reimburser ?? policy?.achAccount?.reimburser, accountIDSelector);
+
     const [personalDetails] = usePersonalDetailsByIDs([
         ...Object.keys(fullReport?.participants ?? {}).map(Number),
         fullReport?.ownerAccountID,
@@ -201,6 +205,7 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
         invoiceChatReceiverAccountID,
         ...getActionAccountIDs(lastAction),
         ...getActionAccountIDs(ownLastAction),
+        reimburserAccountID,
         CONST.ACCOUNT_ID.CONCIERGE,
         CONST.ACCOUNT_ID.NOTIFICATIONS,
         currentUserAccountID,
