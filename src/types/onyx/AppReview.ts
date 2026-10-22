@@ -19,5 +19,14 @@ type AppReview = {
     conciergeReportActionID?: string;
 };
 
+/** Device-local record of when this client last prompted for an app review */
+type AppReviewLastPrompt = {
+    /** The account this record belongs to, so it is ignored after a different user signs in on this device */
+    accountID: number;
+
+    /** When this client last prompted (UTC timestamp) */
+    lastPrompt: string;
+};
+
 export default AppReview;
-export type {AppReviewResponse};
+export type {AppReviewResponse, AppReviewLastPrompt};
