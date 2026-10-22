@@ -39,8 +39,6 @@ jest.mock('@components/ButtonWithDropdownMenu', () => ({
     __esModule: true,
     default: (props: MockButtonProps) => mockButtonWithDropdownMenu(props),
 }));
-jest.mock('@components/HoldOrRejectEducationalModal', () => () => null);
-jest.mock('@components/HoldSubmitterEducationalModal', () => () => null);
 jest.mock('@components/Modal/FileDownloadModal', () => () => null);
 jest.mock('@components/KYCWall', () => ({
     __esModule: true,

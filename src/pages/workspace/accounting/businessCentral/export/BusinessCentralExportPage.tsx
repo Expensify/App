@@ -38,7 +38,6 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
     const exportConfig = businessCentralConfig?.export;
 
     // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string on a fresh connection
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const exporter = exportConfig?.exporter || policy?.owner;
     const exportDate = exportConfig?.exportDate ?? CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE;
     const reimbursable = exportConfig?.reimbursable ?? CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY;
