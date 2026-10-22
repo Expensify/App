@@ -6561,7 +6561,7 @@ function getColumnsToShow({
     };
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        // Expense searches show each expense's own withdrawal, so only report searches hide this column by the report's withdrawals.
+        // Keep WITHDRAWAL_ID out of reportCustomColumns, because expense rows show each expense's own withdrawal ID, not the report's.
         const expenseReportCustomColumns = new Set<SearchColumnType>([...reportCustomColumns, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]);
 
         const defaultReportColumns: SearchColumnType[] = [
