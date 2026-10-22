@@ -1,10 +1,10 @@
 import * as API from '@libs/API';
-import type {EnablePolicyTravelParams, SetPolicyTravelMemberAccessParams, SetPolicyTravelSettingsParams} from '@libs/API/parameters';
+import type {EnablePolicyTravelParams, SetPolicyTravelMemberAccessParams, SetPolicyTravelMemberRoleParams, SetPolicyTravelSettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getObjectKeys} from '@libs/ObjectUtils';
-import {canMemberUseTravel, goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {canMemberUseTravel, getTravelMemberRole, goBackWhenEnableFeature} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,6 +14,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -230,7 +231,67 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
     API.write(WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS, parameters, onyxData);
 }
 
-/** Dismiss the error left on a member after their travel access failed to update. */
+/**
+ * Change a member's role in Expensify Travel. It is stored on the member even when it matches the role their workspace
+ * role gives them, so a later workspace role change does not change their travel role.
+ */
+function setPolicyTravelMemberRole(policy: OnyxEntry<OnyxTypes.Policy>, member: TravelMemberAccessTarget, travelRole: ValueOf<typeof CONST.TRAVEL.MEMBER_ROLE>) {
+    const policyID = policy?.id;
+    const employee = policy?.employeeList?.[member.email];
+    if (!policyID || !employee || getTravelMemberRole(policy, member.email) === travelRole) {
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    employeeList: {
+                        [member.email]: {
+                            travelRole,
+                            pendingFields: {travelRole: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {employeeList: {[member.email]: {pendingFields: {travelRole: null}}}},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    employeeList: {
+                        [member.email]: {
+                            travelRole: employee.travelRole ?? null,
+                            pendingFields: {travelRole: null},
+                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyTravelMemberRoleParams = {
+        policyID,
+        employeeAccountIDList: String(member.accountID),
+        travelRole,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ROLE, parameters, onyxData);
+}
+
+/** Dismiss the error left on a member after their travel access or travel role failed to update. */
 function clearPolicyTravelMemberAccessError(policyID: string, login: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         employeeList: {
@@ -239,5 +300,5 @@ function clearPolicyTravelMemberAccessError(policyID: string, login: string) {
     });
 }
 
-export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelMemberAccess, clearPolicyTravelMemberAccessError};
+export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelMemberAccess, setPolicyTravelMemberRole, clearPolicyTravelMemberAccessError};
 export type {TravelMemberAccessTarget};
