@@ -37,6 +37,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -58,7 +59,6 @@ type AmountFieldProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
-    isParticipantPickerVisible?: boolean;
 };
 
 function AmountField({
@@ -73,8 +73,8 @@ function AmountField({
     policy,
     clearFormErrors,
     setFormError,
-    isParticipantPickerVisible = false,
 }: AmountFieldProps) {
+    const isScreenFocused = useIsFocused();
     const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
@@ -146,11 +146,11 @@ function AmountField({
         shouldEnableNegative(report, policy, iouType, transactionSlice?.participants) && !isP2PRecipient(transactionSlice?.participants?.at(0), currentUserPersonalDetails.accountID);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
-    // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
-    // (visible → hidden) so the amount input gains focus once the user selects a participant. The setTimeout defers
-    // focus past the RHP entry / picker close animation so the input reliably receives focus.
+    // instance, so autofocus does not run again. We re-focus whenever the screen regains focus, e.g. once the user
+    // comes back from picking a participant. The setTimeout defers focus past the RHP entry / back animation so the
+    // input reliably receives focus.
     useEffect(() => {
-        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || isParticipantPickerVisible) {
+        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || !isScreenFocused) {
             return;
         }
 
@@ -162,7 +162,7 @@ function AmountField({
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isParticipantPickerVisible]);
+    }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isScreenFocused]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);

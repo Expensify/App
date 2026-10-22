@@ -49,6 +49,10 @@ let mockTransactionSlice: {transactionID: string; amount: number; currency: stri
     isAmountMissing: false,
 };
 jest.mock('@components/MoneyRequestConfirmationList/sections/useTransactionSelector', () => () => mockTransactionSlice);
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    useIsFocused: () => true,
+}));
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: 1}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));

@@ -7,11 +7,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import ParticipantPicker from '@components/ParticipantPicker';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFetchRoute from '@hooks/useFetchRoute';
@@ -34,7 +32,6 @@ import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
-    getIsWorkspacesOnlyForTransaction,
     getSelectedWorkspacePolicyID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isSelfDMSoleDestination,
@@ -208,12 +205,6 @@ function IOURequestStepConfirmationContent({
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
-    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        policyID: policy?.id,
-        isDistanceRequest,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-    });
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const {isLookingAroundUser} = useSubmissionOnboardingIntent();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
@@ -313,24 +304,14 @@ function IOURequestStepConfirmationContent({
         ],
     );
 
-    const {
-        defaultParticipants,
-        isParticipantPickerVisible,
-        participantPickerIOUType,
-        openParticipantPicker,
-        closeParticipantPicker,
-        closeParticipantPickerForReferralNavigation,
-        handleParticipantsAdded,
-    } = useParticipantPickerState({
+    const {defaultParticipants, openParticipantPicker} = useParticipantPickerState({
         transaction,
         iouType,
+        action,
         reportID,
         reportDrafts,
         navigation,
-        policyID,
-        isDistanceRequest,
         isManualRequest,
-        blockDistanceRequestIfNeeded,
     });
 
     const isPolicyExpenseChat = useMemo(() => {
@@ -773,7 +754,6 @@ function IOURequestStepConfirmationContent({
                                 <MoneyRequestConfirmationList
                                     transaction={transaction}
                                     selectedParticipants={participants}
-                                    isParticipantPickerVisible={isParticipantPickerVisible}
                                     onOpenParticipantPicker={openParticipantPicker}
                                     onToggleBillable={setBillable}
                                     onConfirm={onConfirm}
@@ -810,24 +790,6 @@ function IOURequestStepConfirmationContent({
                                 />
                             )}
                         </SubmitExpenseOrchestrator>
-                        <ParticipantPicker
-                            participants={participants}
-                            iouType={participantPickerIOUType}
-                            action={action}
-                            isPerDiemRequest={isPerDiemRequest}
-                            isTimeRequest={isTimeRequest}
-                            isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
-                            shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
-                            onParticipantsAdded={handleParticipantsAdded}
-                            onFinish={closeParticipantPicker}
-                            isVisible={isParticipantPickerVisible}
-                            onClose={closeParticipantPicker}
-                            onCloseForReferralNavigation={closeParticipantPickerForReferralNavigation}
-                            // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
-                            // matching standard RHP behavior, not just close the stacked participant picker.
-                            onBackdropPress={() => Navigation.dismissModal()}
-                            shouldBlockParticipantSelection={blockDistanceRequestIfNeeded}
-                        />
                     </View>
                 </View>
             </DragAndDropProvider>

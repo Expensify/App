@@ -58,7 +58,6 @@ function useConfirmationListDataWithPolicy({
     isEditingSplitBill,
     expensesNumber = 0,
     receiptOptions,
-    isParticipantPickerVisible = false,
     onToggleBillable,
     onToggleReimbursable,
     isConfirmed,
@@ -292,7 +291,6 @@ function useConfirmationListDataWithPolicy({
         shouldShowCategories,
         shouldShowTax,
         hasParticipantSection: sections.length > 0,
-        isParticipantPickerVisible,
     };
     const errorState = {shouldDisplayFieldError, formError, clearFormErrors, setFormError};
 

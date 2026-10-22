@@ -36,7 +36,6 @@ function InvoiceFooter({policy, policyTags, selectedParticipants, amountDisplay,
                     amountDisplay={amountDisplay}
                     requiredFlags={requiredFlags}
                     errorState={errorState}
-                    isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
                 />
             </ConfirmationFieldList>
         </View>

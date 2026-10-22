@@ -1,14 +1,16 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
+import useConfirmationParticipantSelection from '@hooks/useConfirmationParticipantSelection';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
+import {getIsWorkspacesOnlyForTransaction, getSelectedWorkspacePolicyID, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {
     getRequestType,
@@ -26,12 +28,17 @@ import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestPar
 import {navigateToStartStepIfScanFileCannotBeRead} from '@userActions/IOU/Receipt';
 
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/core';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -43,12 +50,19 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 type DynamicIOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS>;
 
-function DynamicIOURequestStepParticipants({
-    route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, isWorkspacesOnly: isWorkspacesOnlyParam, shouldExcludeWorkspaces: shouldExcludeWorkspacesParam},
-    },
-    transaction: initialTransaction,
-}: DynamicIOURequestStepParticipantsProps) {
+function DynamicIOURequestStepParticipants({route, navigation, transaction: initialTransaction}: DynamicIOURequestStepParticipantsProps) {
+    const {
+        iouType,
+        reportID,
+        transactionID: initialTransactionID,
+        action,
+        isWorkspacesOnly: isWorkspacesOnlyParam,
+        shouldExcludeWorkspaces: shouldExcludeWorkspacesParam,
+        isFromConfirmation: isFromConfirmationParam,
+    } = route.params;
+    // Opened from the confirmation's "To" row: a selection is written straight to the expense the confirmation shows,
+    // and the page returns to it instead of moving on to the next step.
+    const isFromConfirmation = isFromConfirmationParam === 'true';
     // "Submit to my employer" with multiple submit-enabled workspaces passes isWorkspacesOnly=true to limit the picker to workspaces.
     const isWorkspacesOnlyFromRoute = isWorkspacesOnlyParam === 'true';
     // Submitting to a person offers recipients only, so the owned workspace chats are left out of the picker.
@@ -68,7 +82,9 @@ function DynamicIOURequestStepParticipants({
     const isTransactionFromCreditCardImport = isFromCreditCardImport(initialTransaction);
 
     let headerTitle = translate('iou.chooseRecipient');
-    if (action === CONST.IOU.ACTION.CATEGORIZE) {
+    if (isFromConfirmation) {
+        headerTitle = translate('iou.chooseRecipient');
+    } else if (action === CONST.IOU.ACTION.CATEGORIZE) {
         headerTitle = translate('iou.categorize');
     } else if (action === CONST.IOU.ACTION.SHARE) {
         headerTitle = translate('iou.share');
@@ -85,7 +101,10 @@ function DynamicIOURequestStepParticipants({
     // set (confirmation's back navigation returns here), but negatives are handled by `shouldExcludeP2P` below - only the
     // zero-quantity distance case of `getIsWorkspacesOnlyForTransaction` is knowingly dropped here.
     // Submit-only implies workspaces-only (we still hide individuals/recents in the Submit-to-employer picker).
-    const isWorkspacesOnly = isWorkspacesOnlyFromRoute || (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction));
+    // From the confirmation the amount is already known, so the zero-quantity distance case is covered there.
+    const isWorkspacesOnly = isFromConfirmation
+        ? getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType)
+        : isWorkspacesOnlyFromRoute || (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction));
 
     const {addParticipant, goToNextStep} = useParticipantSubmission({
         reportID,
@@ -96,7 +115,8 @@ function DynamicIOURequestStepParticipants({
         action,
         isSplitRequest,
         isMovingTransactionFromTrackExpense,
-        isFocused,
+        // The step's on-focus resets belong to the multi-step flow, not to an expense the confirmation already shows.
+        isFocused: isFocused && !isFromConfirmation,
         isWorkspacesOnly,
         shouldExcludeWorkspaces,
     });
@@ -120,7 +140,8 @@ function DynamicIOURequestStepParticipants({
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the expense process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
-        if (isMovingTransactionFromTrackExpense) {
+        // The confirmation underneath checks its own receipt, so there is no step to restart from here.
+        if (isMovingTransactionFromTrackExpense || isFromConfirmation) {
             return;
         }
         const firstReceiptFilename = initialTransaction?.receipt?.filename ?? '';
@@ -136,6 +157,7 @@ function DynamicIOURequestStepParticipants({
         initialTransactionID,
         reportID,
         isMovingTransactionFromTrackExpense,
+        isFromConfirmation,
     ]);
 
     // Params are not compared because the picker may have changed the transaction's report and participants.
@@ -143,7 +165,55 @@ function DynamicIOURequestStepParticipants({
         Navigation.goBack(backPath, {compareParams: false});
     };
 
-    const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
+    const confirmationIOUTypeRef = useRef<IOUType | undefined>(undefined);
+    const hasReturnedToConfirmationRef = useRef(false);
+    const {handleParticipantsAdded: addParticipantToConfirmation} = useConfirmationParticipantSelection({
+        transaction: initialTransaction,
+        iouType,
+        reportID,
+        policyID: getSelectedWorkspacePolicyID(initialTransaction, action) ?? getReportOrDraftReport(reportID)?.policyID,
+        isDistanceRequest: isDistanceRequest(initialTransaction),
+        blockDistanceRequestIfNeeded,
+        onIOUTypeChange: (nextIOUType) => {
+            confirmationIOUTypeRef.current = nextIOUType;
+        },
+    });
+
+    // The selector reports a pick through both `onParticipantsAdded` and `onFinish`, so this runs once for whichever comes first.
+    const returnToConfirmation = () => {
+        if (hasReturnedToConfirmationRef.current) {
+            return;
+        }
+        hasReturnedToConfirmationRef.current = true;
+        const state = navigation.getState();
+        const index = state.routes.findIndex((stackRoute) => stackRoute.key === route.key);
+        const confirmationRoute = index > 0 ? state.routes.at(index - 1) : undefined;
+        navigateBack();
+
+        // Going back restores the confirmation's params from its path, so the iouType the selection moved the expense to
+        // is set on it afterwards.
+        const nextIOUType = confirmationIOUTypeRef.current;
+        if (!nextIOUType || !confirmationRoute) {
+            return;
+        }
+        Navigation.setParams({iouType: nextIOUType}, confirmationRoute.key, state.key);
+    };
+
+    const addParticipantFromConfirmation = (participantsList: Participant[], selectedPolicy?: OnyxEntry<Policy>) => {
+        if (!addParticipantToConfirmation(participantsList, selectedPolicy)) {
+            return;
+        }
+        returnToConfirmation();
+    };
+
+    // The confirmation offers the selector as one to pick anyone from, so a SUBMIT or TRACK expense picks as CREATE.
+    const selectorIOUType = isFromConfirmation && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) ? CONST.IOU.TYPE.CREATE : iouType;
+
+    // From the confirmation a pick closes the page, so the list keeps the recipients it opened with. Showing the pick
+    // instead would reshape the list while the screen animates out, and FlashList crashes when its data shrinks then.
+    const [participantsWhenOpened] = useState(participants);
+    const shownParticipants = isFromConfirmation ? participantsWhenOpened : participants;
+    const selectedParticipant = isSplitRequest ? undefined : shownParticipants?.find((participant) => participant.selected && !participant.isSender);
     // Participants with a reportID are found in the list and highlighted via initiallySelectedReportID.
     // Those without one (e.g. users to invite who don't have an account yet) must be passed explicitly
     // so formatSectionsFromSearchTerm can render them in the selected section.
@@ -165,10 +235,10 @@ function DynamicIOURequestStepParticipants({
                 />
             )}
             <MoneyRequestParticipantsSelector
-                participants={isSplitRequest ? participants : selectedParticipantsWithoutReport}
-                onParticipantsAdded={addParticipant}
-                onFinish={goToNextStep}
-                iouType={iouType}
+                participants={isSplitRequest ? shownParticipants : selectedParticipantsWithoutReport}
+                onParticipantsAdded={isFromConfirmation ? addParticipantFromConfirmation : addParticipant}
+                onFinish={isFromConfirmation ? returnToConfirmation : goToNextStep}
+                iouType={selectorIOUType}
                 action={action}
                 isPerDiemRequest={isPerDiem}
                 isTimeRequest={isTime}

@@ -54,7 +54,6 @@ function ScanFooter({
                         amountDisplay={amountDisplay}
                         requiredFlags={requiredFlags}
                         errorState={errorState}
-                        isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
                     />
                 </ConfirmationFieldList>
             </View>
