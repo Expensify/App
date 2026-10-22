@@ -25,15 +25,17 @@ function hasAcceptedTravelTerms(policy: OnyxEntry<Policy>, accountTravelSettings
     return !!(policy?.travelSettings?.hasAcceptedTerms ?? (accountTravelSettings?.hasAcceptedTerms && isWorkspaceProvisionedForTravel(policy?.travelSettings)));
 }
 
-/**
- * Whether a member can book travel on a workspace. Workspaces provisioned before travel access was managed per member
- * let every member book, so a member only needs to be turned on once the workspace limits travel to enabled members.
- */
+/** Whether a member has travel turned on for a workspace, meaning they can book trips with it. */
 function canMemberUseTravel(policy: OnyxEntry<Policy>, login: string | undefined): boolean {
-    if (!policy?.travelSettings?.restrictToEnabledMembers) {
-        return true;
-    }
-    return !!login && policy.employeeList?.[login]?.canUseTravel === true;
+    return !!login && policy?.employeeList?.[login]?.canUseTravel === true;
+}
+
+/**
+ * Whether an admin turned travel off for a member of a workspace. A member whose access isn't known yet isn't blocked
+ * here, since the server decides when they try to book.
+ */
+function isMemberTravelAccessTurnedOff(policy: OnyxEntry<Policy>, login: string | undefined): boolean {
+    return !!login && policy?.employeeList?.[login]?.canUseTravel === false;
 }
 
 /**
@@ -86,4 +88,13 @@ function getTravelStep(
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
 }
 
-export {isWorkspaceProvisionedForTravel, hasAcceptedTravelTerms, canMemberUseTravel, getTravelMemberRole, getTravelMemberAccessValue, isNonUSDPolicy, getTravelStep};
+export {
+    isWorkspaceProvisionedForTravel,
+    hasAcceptedTravelTerms,
+    canMemberUseTravel,
+    isMemberTravelAccessTurnedOff,
+    getTravelMemberRole,
+    getTravelMemberAccessValue,
+    isNonUSDPolicy,
+    getTravelStep,
+};

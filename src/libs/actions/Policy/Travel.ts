@@ -13,7 +13,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ErrorFields, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -147,18 +146,12 @@ type TravelMemberAccessTarget = {
     accountID: number;
 };
 
-/**
- * Turn travel booking on or off for one or more workspace members. The single command covers both a member's own
- * toggle and the toggle for every member. A workspace where every member can book starts limiting travel to enabled
- * members the first time an admin turns someone off, and the server marks every other member as enabled so their
- * access doesn't change. That switch is applied optimistically too, so the list doesn't flicker while the request runs.
- */
+/** Turn travel booking on or off for one or more workspace members. */
 function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, members: TravelMemberAccessTarget[], enabled: boolean) {
     const policyID = policy?.id;
     if (!policyID) {
         return;
     }
-    const isRestricted = !!policy?.travelSettings?.restrictToEnabledMembers;
     const employeeList = policy?.employeeList ?? {};
 
     const targets = members.filter((member) => !!employeeList[member.email] && canMemberUseTravel(policy, member.email) !== enabled);
@@ -182,27 +175,13 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
         };
     }
 
-    if (!isRestricted) {
-        const targetEmails = new Set(targets.map((target) => target.email));
-        for (const [email, employee] of Object.entries(employeeList)) {
-            if (targetEmails.has(email) || isEmptyValueObject(employee)) {
-                continue;
-            }
-            employeeListOptimisticUpdate[email] = {canUseTravel: true};
-            employeeListFailureUpdate[email] = {canUseTravel: employee.canUseTravel ?? null};
-        }
-    }
-
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
-                value: {
-                    employeeList: employeeListOptimisticUpdate,
-                    ...(!isRestricted && {travelSettings: {restrictToEnabledMembers: true}}),
-                },
+                value: {employeeList: employeeListOptimisticUpdate},
             },
         ],
         successData: [
@@ -216,10 +195,7 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
-                value: {
-                    employeeList: employeeListFailureUpdate,
-                    ...(!isRestricted && {travelSettings: {restrictToEnabledMembers: null}}),
-                },
+                value: {employeeList: employeeListFailureUpdate},
             },
         ],
     };

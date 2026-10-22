@@ -17,7 +17,7 @@ import {cleanupTravelProvisioningSession, requestTravelAccess} from '@libs/actio
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import {canMemberUseTravel, getActivePolicies, getAdminsPrivateEmailDomains, hasAcceptedTravelTerms, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {getActivePolicies, getAdminsPrivateEmailDomains, hasAcceptedTravelTerms, isMemberTravelAccessTurnedOff, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 
 import colors from '@styles/theme/colors';
@@ -172,7 +172,7 @@ function BookTravelButton({
                 return;
             }
 
-            if (!canMemberUseTravel(policy, currentUserLogin)) {
+            if (isMemberTravelAccessTurnedOff(policy, currentUserLogin)) {
                 showTravelUnavailableModal(translate('travel.memberAccessDisabledModal.title'), translate('travel.memberAccessDisabledModal.message'));
                 return;
             }
