@@ -19,7 +19,7 @@ import type {ReactElement} from 'react';
 
 import {useRoute} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {LHNOptionsListProps, RenderItemProps} from './types';
@@ -43,14 +43,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
-    const hasCalledOnLayout = React.useRef(false);
-    const onLayoutItem = useCallback(() => {
+    const hasCalledOnLayout = useRef(false);
+    const onLayoutItem = () => {
         if (hasCalledOnLayout.current) {
             return;
         }
         hasCalledOnLayout.current = true;
         onFirstItemRendered();
-    }, [onFirstItemRendered]);
+    };
 
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
@@ -59,27 +59,24 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     /**
      * Function which renders a row in the list
      */
-    const renderItem = useCallback(
-        ({item, index}: RenderItemProps): ReactElement | null => {
-            if (!item) {
-                return null;
-            }
-            return (
-                <OptionRowLHNData
-                    reportID={item.reportID}
-                    fullReport={item}
-                    viewMode={optionMode}
-                    isOptionFocused={!shouldDisableFocusOptions}
-                    onSelectRow={onSelectRow}
-                    onLayout={onLayoutItem}
-                    testID={index}
-                />
-            );
-        },
-        [optionMode, shouldDisableFocusOptions, onSelectRow, onLayoutItem],
-    );
+    const renderItem = ({item, index}: RenderItemProps): ReactElement | null => {
+        if (!item) {
+            return null;
+        }
+        return (
+            <OptionRowLHNData
+                reportID={item.reportID}
+                fullReport={item}
+                viewMode={optionMode}
+                isOptionFocused={!shouldDisableFocusOptions}
+                onSelectRow={onSelectRow}
+                onLayout={onLayoutItem}
+                testID={index}
+            />
+        );
+    };
 
-    const extraData = useMemo(() => [data.length, optionMode, isOffline], [data.length, optionMode, isOffline]);
+    const extraData = [data.length, optionMode, isOffline];
 
     const previousOptionMode = usePrevious(optionMode);
 
@@ -92,23 +89,20 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         flashListRef.current.scrollToOffset({offset: 0});
     }, [previousOptionMode, optionMode]);
 
-    const onScroll = useCallback<NonNullable<FlashListProps<string>['onScroll']>>(
-        (e) => {
-            // If the layout measurement is 0, it means the FlashList is not displayed but the onScroll may be triggered with offset value 0.
-            // We should ignore this case.
-            if (e.nativeEvent.layoutMeasurement.height === 0) {
-                return;
-            }
-            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-            if (isWeb) {
-                saveScrollIndex(route, Math.floor(e.nativeEvent.contentOffset.y / estimatedItemSize));
-            }
-            triggerScrollEvent();
-        },
-        [estimatedItemSize, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
-    );
+    const onScroll: NonNullable<FlashListProps<string>['onScroll']> = (e) => {
+        // If the layout measurement is 0, it means the FlashList is not displayed but the onScroll may be triggered with offset value 0.
+        // We should ignore this case.
+        if (e.nativeEvent.layoutMeasurement.height === 0) {
+            return;
+        }
+        saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        if (isWeb) {
+            saveScrollIndex(route, Math.floor(e.nativeEvent.contentOffset.y / estimatedItemSize));
+        }
+        triggerScrollEvent();
+    };
 
-    const onLayout = useCallback(() => {
+    const onLayout = () => {
         const offset = getScrollOffset(route);
 
         if (!(offset && flashListRef.current) || isWeb) {
@@ -122,7 +116,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             flashListRef.current.scrollToOffset({offset});
         });
-    }, [getScrollOffset, route]);
+    };
 
     const savedScrollIndex = getScrollIndex(route);
     const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
@@ -155,4 +149,4 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 }
 
-export default memo(LHNOptionsList);
+export default LHNOptionsList;

@@ -41,7 +41,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/PersonalDetails';
 import {reportNamesByIDsSelector} from '@selectors/ReportAttributes';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import OptionRowLHN from './OptionRowLHN';
@@ -111,29 +111,25 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionThreadReportID)}`);
 
     // Scoped VISIBLE_REPORT_ACTIONS selector
-    const visibleActionsSelector = useCallback(
-        (data: VisibleReportActionsDerivedValue | undefined) => {
-            if (!data) {
-                return undefined;
+    const visibleActionsSelector = (data: VisibleReportActionsDerivedValue | undefined) => {
+        if (!data) {
+            return undefined;
+        }
+        const result: VisibleReportActionsDerivedValue = {};
+        const reportEntry = data[reportID];
+        if (reportEntry) {
+            result[reportID] = reportEntry;
+        }
+        if (oneTransactionThreadReportID) {
+            const txThreadEntry = data[oneTransactionThreadReportID];
+            if (txThreadEntry) {
+                result[oneTransactionThreadReportID] = txThreadEntry;
             }
-            const result: VisibleReportActionsDerivedValue = {};
-            const reportEntry = data[reportID];
-            if (reportEntry) {
-                result[reportID] = reportEntry;
-            }
-            if (oneTransactionThreadReportID) {
-                const txThreadEntry = data[oneTransactionThreadReportID];
-                if (txThreadEntry) {
-                    result[oneTransactionThreadReportID] = txThreadEntry;
-                }
-            }
-            return result;
-        },
-        [reportID, oneTransactionThreadReportID],
-    );
+        }
+        return result;
+    };
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: visibleActionsSelector});
 
-    // Per-item NVP subscription instead of collection-level subscription in parent
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
 
     const parentReportAction = fullReport?.parentReportActionID ? parentReportActions?.[fullReport.parentReportActionID] : undefined;
@@ -141,33 +137,20 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
     const isReportArchived = !!reportNameValuePairs?.private_isArchived;
     const canUserPerformWrite = canUserPerformWriteActionUtil(fullReport, isReportArchived);
 
-    const lastAction = useMemo(() => {
-        const actionsCollection: OnyxCollection<ReportActionsType> = {
-            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions ?? undefined,
-        };
-        if (oneTransactionThreadReportID) {
-            actionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionThreadReportID}`] = transactionThreadReportActions ?? undefined;
-        }
-        return getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, actionsCollection, visibleReportActionsData, oneTransactionThreadReportID);
-    }, [reportID, canUserPerformWrite, reportActions, transactionThreadReportActions, visibleReportActionsData, oneTransactionThreadReportID]);
+    const actionsCollection: OnyxCollection<ReportActionsType> = {
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions ?? undefined,
+    };
+    if (oneTransactionThreadReportID) {
+        actionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionThreadReportID}`] = transactionThreadReportActions ?? undefined;
+    }
+    const lastAction = getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, actionsCollection, visibleReportActionsData, oneTransactionThreadReportID);
 
     const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
     const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
 
-    const lastMessageTextFromReport = useMemo(() => {
-        if (whisperTransactionID && !whisperTransaction) {
-            return '';
-        }
-        return undefined;
-    }, [whisperTransactionID, whisperTransaction]);
+    const lastMessageTextFromReport = whisperTransactionID && !whisperTransaction ? '' : undefined;
 
-    const lastActionReportID = useMemo(() => {
-        if (isInviteOrRemovedAction(lastAction)) {
-            const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
-            return lastActionOriginalMessage?.reportID;
-        }
-        return undefined;
-    }, [lastAction]);
+    const lastActionReportID = isInviteOrRemovedAction(lastAction) && lastAction?.actionName ? getOriginalMessage(lastAction)?.reportID : undefined;
     const [lastActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lastActionReportID ? String(lastActionReportID) : undefined)}`);
 
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
@@ -265,14 +248,11 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
     // For single-sender IOUs, trim to the sender's avatar to match the header.
     // The header uses reportPreviewSenderID as accountID for its primary avatar,
     // so we pick the matching icon from getIconsForIOUReport to stay consistent.
-    const finalOptionItem = useMemo(() => {
-        if (!optionItem || !isIOUReport || reportPreviewSenderID === undefined || !optionItem.icons || optionItem.icons.length <= 1) {
-            return optionItem;
-        }
-
+    let finalOptionItem = optionItem;
+    if (optionItem && isIOUReport && reportPreviewSenderID !== undefined && optionItem.icons && optionItem.icons.length > 1) {
         const senderIcon = optionItem.icons.find((icon) => Number(icon.id) === reportPreviewSenderID);
-        return {...optionItem, icons: [senderIcon ?? optionItem.icons.at(0)].filter((icon): icon is Icon => !!icon)};
-    }, [optionItem, isIOUReport, reportPreviewSenderID]);
+        finalOptionItem = {...optionItem, icons: [senderIcon ?? optionItem.icons.at(0)].filter((icon): icon is Icon => !!icon)};
+    }
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const placeholderRowStyle = StyleSheet.flatten<ViewStyle>(
@@ -313,11 +293,4 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
 
 OptionRowLHNData.displayName = 'OptionRowLHNData';
 
-/**
- * This component is rendered in a list.
- * On scroll we want to avoid that a item re-renders
- * just because the list has to re-render when adding more items.
- * Thats also why the React.memo is used on the outer component here, as we just
- * use it to prevent re-renders from parent re-renders.
- */
-export default React.memo(OptionRowLHNData);
+export default OptionRowLHNData;
