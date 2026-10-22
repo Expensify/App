@@ -260,6 +260,18 @@ describe('staging worker with files from previous builds', () => {
         assert.equal(await response.text(), '');
     });
 
+    test('returns 404 when the previous builds bucket fails', async () => {
+        // Given a chunk path whose bucket lookup fails (R2 rejects keys over 1,024 bytes)
+        for (const method of ['GET', 'HEAD']) {
+            // When it is requested
+            const response = await server.fetch(`/${'a'.repeat(1100)}.bundle.js`, {method});
+
+            // Then the Worker answers as it does for a chunk no build has, instead of throwing
+            assert.equal(response.status, 404, method);
+            assertSecurityHeaders(response);
+        }
+    });
+
     test('serves the current build when a previous build has the same file', async () => {
         // Given a file that is in both the current build and the bucket
         // When it is requested
