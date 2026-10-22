@@ -5130,7 +5130,7 @@ const translations = {
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             deleteOpenExpensifyCardsError: 'Your company still has Expensify Cards. Please <concierge-link>reach out to Concierge</concierge-link> to remove them.',
-            deleteTravelInvoicingError: 'Your company still has Consolidated Travel Billing enabled.',
+            deleteTravelBillingError: 'Your company still has Consolidated Travel Billing enabled.',
             outstandingBalanceWarning:
                 'You have an outstanding balance that must be settled before deleting your last workspace. Please go to your subscription settings to resolve the payment.',
             settleBalance: 'Go to subscription',
@@ -5248,9 +5248,9 @@ const translations = {
             viewTransactions: 'View transactions',
             policyExpenseChatName: (displayName: string) => `${displayName}'s expenses`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
-            travelInvoicing: 'Export Consolidated Travel Billing expenses as',
-            travelInvoicingVendor: 'Travel vendor',
-            travelInvoicingPayableAccount: 'Travel payable account',
+            travelBilling: 'Export Consolidated Travel Billing expenses as',
+            travelBillingVendor: 'Travel vendor',
+            travelBillingPayableAccount: 'Travel payable account',
         },
         createdForClient: {
             title: "You've created a workspace for your client!",
@@ -5539,7 +5539,7 @@ const translations = {
             notConfigured: 'Not configured',
             bankAccountDescription: 'Choose where to send checks from.',
             creditCardAccount: 'Credit card account',
-            travelInvoicingDescription: (integrationName = 'QuickBooks Online') => `Travel expenses will export as credit card charges to the ${integrationName} account specified below.`,
+            travelBillingDescription: (integrationName = 'QuickBooks Online') => `Travel expenses will export as credit card charges to the ${integrationName} account specified below.`,
             companyCardsLocationEnabledDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} doesn't support locations on vendor bill exports when locations are imported as tags. As you have locations imported as tags on your workspace, this export option is unavailable.`,
             outOfPocketTaxEnabledDescription: (integrationName = 'QuickBooks Online') =>
@@ -5640,7 +5640,7 @@ const translations = {
             purchaseBill: 'Purchase bill',
             exportDeepDiveCompanyCard: 'Exported expenses will post as bank transactions to the Xero bank account below, and transaction dates will match the dates on your bank statement.',
             bankTransactions: 'Bank transactions',
-            travelInvoicingDescription: 'Travel expenses will export as bank transactions to the Xero account specified below.',
+            travelBillingDescription: 'Travel expenses will export as bank transactions to the Xero account specified below.',
             xeroBankAccount: 'Xero bank account',
             bankAccount: 'Bank account',
             xeroBankAccountDescription: 'Choose where expenses will post as bank transactions.',
@@ -5741,7 +5741,7 @@ const translations = {
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Vendor bills',
                 },
             },
-            travelInvoicingDescription: 'Travel expenses will export as credit card charges to the Sage Intacct account specified below.',
+            travelBillingDescription: 'Travel expenses will export as credit card charges to the Sage Intacct account specified below.',
             creditCardAccount: 'Credit card account',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -6384,8 +6384,8 @@ const translations = {
                 label: 'Expensify Card settlement account',
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
-            syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
-            travelInvoicingSettlementAccount: {
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
                 label: 'Consolidated Travel Billing settlement account',
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
@@ -6508,12 +6508,12 @@ const translations = {
                 label: 'Expensify Card settlement account',
                 description: "Choose your settlement account and we'll create the payment in DualEntry.",
             },
-            syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
-            travelInvoicingSettlementAccount: {
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
                 label: 'Consolidated Travel Billing settlement account',
                 description: "Choose your settlement account and we'll create the payment in DualEntry.",
             },
-            travelInvoicingPayableAccount: {
+            travelBillingPayableAccount: {
                 label: 'Consolidated Travel Billing payable account',
             },
         },
@@ -6631,12 +6631,12 @@ const translations = {
                 label: 'Expensify Card settlement account',
                 description: "Choose your settlement account and we'll create the payment in Campfire.",
             },
-            syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
-            travelInvoicingSettlementAccount: {
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
                 label: 'Consolidated Travel Billing settlement account',
                 description: "Choose your settlement account and we'll create the payment in Campfire.",
             },
-            travelInvoicingPayableAccount: {
+            travelBillingPayableAccount: {
                 label: 'Consolidated Travel Billing payable account',
             },
         },
@@ -7141,13 +7141,13 @@ const translations = {
                         subtitle: "Push this workspace's categories, tags, and report fields to Expensify Travel so travelers answer them at booking time.",
                     },
                 },
-                travelInvoicing: {
+                travelBilling: {
                     travelBookingSection: {
                         title: 'Travel booking',
                         subtitle: "Congrats! You're all set to book and manage travel on this workspace.",
                         manageTravelLabel: 'Manage travel',
                     },
-                    travelInvoicingSection: {
+                    travelBillingSection: {
                         title: 'Consolidated Travel Billing',
                         subtitle: 'Centralize all travel spend in a monthly bill instead of paying at time of purchase.',
                         learnHow: 'Learn how.',
@@ -8188,9 +8188,9 @@ const translations = {
             cardReconciliation: 'Card reconciliation',
             reconciliationAccount: 'Reconciliation account',
             continuousReconciliation: 'Continuous Reconciliation',
-            syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
-            syncTravelInvoicingSettlementsNoAccountTooltip: 'To unlock, set an account for your exports.',
-            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'To unlock, enable auto-sync.',
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            syncTravelBillingSettlementsNoAccountTooltip: 'To unlock, set an account for your exports.',
+            syncTravelBillingSettlementsNoAutoSyncTooltip: 'To unlock, enable auto-sync.',
             saveHoursOnReconciliation:
                 'Save hours on reconciliation each accounting period by having Expensify continuously reconcile Expensify Card statements and settlements on your behalf.',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
@@ -8199,10 +8199,10 @@ const translations = {
                 "<muted-text-label>Continuous Reconciliation is configured per card feed. Select a feed to change which one you're configuring.</muted-text-label>",
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
-                chooseTravelInvoicingBankAccount: 'Choose the bank account that your Consolidated Travel Billing payments will be reconciled against.',
+                chooseTravelBillingBankAccount: 'Choose the bank account that your Consolidated Travel Billing payments will be reconciled against.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Make sure this account matches your <a href="${settlementAccountUrl}">Expensify Card settlement account</a> (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
-                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                travelBillingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Make sure this account matches your Consolidated Travel Billing settlement account (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
             },
         },
@@ -10604,7 +10604,7 @@ const translations = {
             },
             card: {
                 expensify: 'Expensify',
-                travelInvoicing: 'Consolidated Travel Billing',
+                travelBilling: 'Consolidated Travel Billing',
                 individualCards: 'Individual cards',
                 closedCards: 'Closed cards',
                 cardFeeds: 'Card feeds',
@@ -11129,7 +11129,7 @@ const translations = {
         personalCard: 'Personal card',
         companyCard: 'Company card',
         expensifyCard: 'Expensify Card',
-        travelInvoicing: 'Consolidated Travel Billing',
+        travelBilling: 'Consolidated Travel Billing',
         travelCard: 'Travel Card',
     },
     distance: {
