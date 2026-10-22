@@ -3994,6 +3994,7 @@ ${amount} für ${merchant} – ${date}`,
             removeDelegate: 'Urlaubsvertretung entfernen',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, abgeschlossen`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Schritt ${step}`;
         if (total) {
@@ -4101,11 +4102,14 @@ ${amount} für ${merchant} – ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Gib einen Wert zwischen ${min} und ${max} ein`,
             tooFewItems: ({min}: {min: number}) => `Füge mindestens ${min} hinzu`,
             tooManyItems: ({max}: {max: number}) => `Füge höchstens ${max} hinzu`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `${item} hinzufügen`,
         removeItemTitle: ({item}: {item: string}) => `${item} entfernen?`,
         removeItemPrompt: ({name}: {name: string}) => `Möchtest du ${name} wirklich entfernen?`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} mit der Endung ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'Die Fragen auf dieser Seite haben sich geändert',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
