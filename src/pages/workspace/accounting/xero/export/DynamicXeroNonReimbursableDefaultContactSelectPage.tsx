@@ -83,7 +83,7 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     const shouldShowTextInput = supplierOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     // Only include the clear row when there's a default to clear or there are suppliers to choose between. Without this
-    // guard, an unsynced workspace with no defaultVendor set would render `[None]` and never show the noSuppliersFound
+    // guard, an unsynced workspace with no defaultVendor set would render `[None]` and never show the noVendorsFound
     // BlockingView (SelectionScreen only renders listEmptyContent when data is empty).
     const shouldShowClearOption = !!currentContactID || supplierOptions.length > 0;
 
@@ -148,8 +148,8 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
                 icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.xero.noSuppliersFound')}
-                subtitle={translate('workspace.xero.noSuppliersFoundDescription')}
+                title={translate('workspace.xero.noVendorsFound')}
+                subtitle={translate('workspace.xero.noVendorsFoundDescription')}
                 containerStyle={styles.pb10}
             />
         ),
