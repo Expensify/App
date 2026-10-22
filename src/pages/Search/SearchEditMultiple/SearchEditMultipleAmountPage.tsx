@@ -169,6 +169,7 @@ function SearchEditMultipleAmountPage() {
                 onCurrencyButtonPress={showCurrencyPicker}
                 onSubmitButtonPress={saveAmount}
                 allowFlippingAmount={allowNegative}
+                shouldAllowFocusInLandscapeMode
             />
         </ScreenWrapper>
     );
