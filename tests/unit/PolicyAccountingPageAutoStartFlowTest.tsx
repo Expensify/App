@@ -22,6 +22,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const POLICY_ID = 'policy-1';
@@ -126,7 +127,10 @@ jest.mock('@components/MenuItem', () => {
     };
 });
 jest.mock('@components/Section', () => ({__esModule: true, default: ({children}: {children: React.ReactNode}) => children}));
-jest.mock('@components/CollapsibleSection', () => ({__esModule: true, default: () => null}));
+jest.mock('@components/CollapsibleSection/Collapsible', () => ({
+    __esModule: true,
+    default: ({isOpened, children}: {isOpened: boolean; children: React.ReactNode}) => (isOpened ? children : null),
+}));
 jest.mock('@components/ThreeDotsMenu', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/ActivityIndicator', () => ({__esModule: true, default: () => null}));
 
@@ -260,6 +264,39 @@ describe('PolicyAccountingPage auto-started connect flow', () => {
         // Then the enrolled integration and Campfire are both available
         expect(screen.getByTestId(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.businessCentral)).toBeOnTheScreen();
         expect(screen.getByTestId('Campfire')).toBeOnTheScreen();
+    });
+
+    it('keeps Exact Online inside Other integrations when an accounting connection exists', async () => {
+        // Given a workspace connected to Sage Intacct
+        mockRouteParams = {};
+        const policy = buildPolicy({
+            connections: createMock<Policy['connections']>({
+                intacct: {
+                    data: {},
+                    lastSync: {isConnected: true, isSuccessful: true, source: 'NEWEXPENSIFY'},
+                },
+            }),
+        });
+
+        // When the Accounting page opens with Other integrations collapsed
+        render(<PolicyAccountingPageUnderTest policy={policy} />, {wrapper: AccountingTestWrapper});
+        await waitForBatchedUpdates();
+
+        // Then Exact Online is hidden along with the other available integrations
+        expect(screen.queryByText('Exact Online')).toBeNull();
+
+        // When Other integrations is expanded
+        fireEvent.press(screen.getByRole('button', {name: 'Other'}));
+
+        // Then the waitlist is available once within the expanded section
+        expect(screen.getAllByText('Exact Online')).toHaveLength(1);
+        expect(screen.getByRole('button', {name: 'Join waitlist'})).toBeOnTheScreen();
+
+        // When Other integrations is collapsed again
+        fireEvent.press(screen.getByRole('button', {name: 'Other'}));
+
+        // Then Exact Online is hidden again
+        expect(screen.queryByText('Exact Online')).toBeNull();
     });
 
     it.each([{enabledBetas: []}, {enabledBetas: [CONST.BETAS.EXACT_ONLINE]}])('offers the Exact Online waitlist with beta enrollment $enabledBetas', async ({enabledBetas}) => {
