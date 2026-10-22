@@ -27,7 +27,7 @@ import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import type {ComponentRef, ForwardedRef, RefObject} from 'react';
+import type {ForwardedRef} from 'react';
 
 import React, {Activity, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions, View} from 'react-native';
@@ -58,6 +58,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     const [isWithoutOverlay, setIsWithoutOverlay] = useState(true);
     const [activeID, setActiveID] = useState<string | null>();
     const emojiPopoverAnchorRef = useRef<EmojiPopoverAnchor | null>(null);
+    const emptyEmojiPopoverAnchor = useRef<EmojiPopoverAnchor['current']>(null);
     const emojiAnchorDimension = useRef({
         width: 0,
         height: 0,
@@ -78,7 +79,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
      *
      * Don't directly get the ref from emojiPopoverAnchorRef, instead use getEmojiPopoverAnchor()
      */
-    const getEmojiPopoverAnchor = useCallback(() => emojiPopoverAnchorRef.current ?? (emojiPopoverAnchorRef as EmojiPopoverAnchor), []);
+    const getEmojiPopoverAnchor = useCallback(() => emojiPopoverAnchorRef.current ?? emptyEmojiPopoverAnchor, []);
 
     /**
      * Show the emoji picker menu.
@@ -266,7 +267,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
                 vertical: emojiPopoverAnchorPosition.vertical,
                 horizontal: emojiPopoverAnchorPosition.horizontal,
             }}
-            anchorRef={getEmojiPopoverAnchor() as RefObject<ComponentRef<typeof View> | HTMLDivElement>}
+            anchorRef={getEmojiPopoverAnchor()}
             withoutOverlay={isWithoutOverlay}
             popoverDimensions={{
                 width: CONST.EMOJI_PICKER_SIZE.WIDTH,
