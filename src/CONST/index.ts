@@ -1213,6 +1213,7 @@ const CONST = {
         COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         DESCRIBE_RULE: 'describeRule',
+        COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
