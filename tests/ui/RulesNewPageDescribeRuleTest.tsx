@@ -10,6 +10,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import RulesNewPage from '@pages/workspace/rules/RulesNewPage';
 
@@ -366,7 +367,7 @@ describe('New rule describe section', () => {
         const existingRule: Rule = {
             scope: CONST.RULES.SCOPE.POLICY,
             scopeID: POLICY_ID,
-            triggers: {'1': CONST.RULES.TRIGGERS.CREATE_TRANSACTION},
+            triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
             filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Meals'},
             // eslint-disable-next-line @typescript-eslint/naming-convention -- the rule stores the tax under the field name that the backend uses
             actions: {'1': {name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX, value: {field_id_TAX: {externalID: 'GST'}}}},

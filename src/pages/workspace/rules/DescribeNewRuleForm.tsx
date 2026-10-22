@@ -33,11 +33,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import AGENT_RULE_INPUT_IDS from '@src/types/form/AddAgentRuleForm';
-import type {Policy, PolicyCategory} from '@src/types/onyx';
+import type {PolicyCategory} from '@src/types/onyx';
 import type {GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import type {ReactNode} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React from 'react';
