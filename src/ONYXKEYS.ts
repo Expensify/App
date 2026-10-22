@@ -965,6 +965,12 @@ const ONYXKEYS = {
     /** List of transaction authorization challenges we have attempted to respond to */
     LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS: 'locallyProcessed3DSTransactionReviews',
 
+    /** Declined transactions that the cardholder has to review as possible fraud */
+    TRANSACTIONS_PENDING_FRAUD_REVIEW: 'transactionsPendingFraudReview',
+
+    /** Fraud reviews answered on this device, so the device doesn't prompt for them again */
+    LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS: 'locallyProcessedFraudTransactionReviews',
+
     /** Whether the user has denied the contact import permission prompt */
     HAS_DENIED_CONTACT_IMPORT_PROMPT: 'hasDeniedContactImportPrompt',
 
@@ -1825,6 +1831,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.QUEUE_FLUSHED_DATA]: AnyOnyxUpdate[];
     [ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW]: OnyxTypes.TransactionsPending3DSReview;
     [ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS]: OnyxTypes.LocallyProcessed3DSChallengeReviews;
+    [ONYXKEYS.TRANSACTIONS_PENDING_FRAUD_REVIEW]: OnyxTypes.TransactionsPendingFraudReview;
+    [ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS]: OnyxTypes.LocallyProcessedFraudTransactionReviews;
 
     // The value of this nvp is a string representation of the date when the block expires, or an empty string if the user is not blocked
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;

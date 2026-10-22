@@ -3,6 +3,7 @@ import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAu
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
+import type TransactionsPendingFraudReview from './TransactionsPendingFraudReview';
 import type {VacationDelegatePolicyDiff} from './VacationDelegate';
 
 /** Model of commands data */
@@ -129,6 +130,9 @@ type Response<TKey extends OnyxKey> = {
 
     /** Transactions pending 3DS review returned from GetTransactionsPending3DSReview */
     transactionsPending3DSReview?: TransactionsPending3DSReview;
+
+    /** Transactions pending fraud review returned from GetTransactionsPendingFraudReview */
+    transactionsPendingFraudReview?: TransactionsPendingFraudReview;
 
     /** Cache key returned from GetExpensifyCardStatementPDF */
     statementKey?: string;

@@ -94,6 +94,7 @@ export type {
     ChallengeType,
     AuthTypeName,
     AuthTypeInfo,
+    MarqetaAuthTypeName,
     MultifactorAuthenticationCallbackResponse,
     MultifactorAuthenticationCallbackInput,
     MultifactorAuthenticationScenarioCallback,
