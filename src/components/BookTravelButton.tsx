@@ -17,7 +17,7 @@ import {cleanupTravelProvisioningSession, requestTravelAccess} from '@libs/actio
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import {getActivePolicies, getAdminsPrivateEmailDomains, hasAcceptedTravelTerms, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {canMemberUseTravel, getActivePolicies, getAdminsPrivateEmailDomains, hasAcceptedTravelTerms, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 
 import colors from '@styles/theme/colors';
@@ -113,21 +113,25 @@ function BookTravelButton({
         setShouldScrollToBottom?.(true);
     }, [errorMessage, setShouldScrollToBottom]);
 
+    const showTravelUnavailableModal = (title: string, prompt: string) => {
+        showConfirmModal({
+            title,
+            titleStyles: styles.textHeadlineH1,
+            titleContainerStyles: styles.mb2,
+            prompt,
+            promptStyles: styles.mb2,
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            image: illustrations.RocketDude,
+            imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+        });
+    };
+
     const bookATrip = () => {
         setErrorMessage('');
 
         if (isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)) {
-            showConfirmModal({
-                title: translate('travel.blockedFeatureModal.title'),
-                titleStyles: styles.textHeadlineH1,
-                titleContainerStyles: styles.mb2,
-                prompt: translate('travel.blockedFeatureModal.message'),
-                promptStyles: styles.mb2,
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-                image: illustrations.RocketDude,
-                imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
-            });
+            showTravelUnavailableModal(translate('travel.blockedFeatureModal.title'), translate('travel.blockedFeatureModal.message'));
             return;
         }
 
@@ -165,6 +169,11 @@ function BookTravelButton({
 
         if (hasPolicyAcceptedTravelTerms) {
             if (blockIfDefaultWorkspaceLacksTravel()) {
+                return;
+            }
+
+            if (!canMemberUseTravel(policy, currentUserLogin)) {
+                showTravelUnavailableModal(translate('travel.memberAccessDisabledModal.title'), translate('travel.memberAccessDisabledModal.message'));
                 return;
             }
 
