@@ -331,16 +331,18 @@ describe('SearchAdvancedFiltersPopup', () => {
         expect(mockSelectedFilter).toBe(FILTER_KEYS.STATUS);
     });
 
-    it('keeps the shown filter when the search is cleared', () => {
+    it('goes back to the first filter as soon as the search is cleared', () => {
         // Given a search, then another of its matches picked
         search('status');
         hoverAndRest(FILTER_KEYS.WITHDRAWAL_STATUS);
 
-        // When the search is cleared
-        search('');
+        // When the search is cleared, before any debounce elapses
+        act(() => {
+            mockOnSearchValueChange?.('');
+        });
 
-        // Then the picked filter stays rather than giving way to the first row
-        expect(mockSelectedFilter).toBe(FILTER_KEYS.WITHDRAWAL_STATUS);
+        // Then Type, the first row of the full list, takes over at once, the same moment the full list comes back
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.TYPE);
     });
 
     it('lets a contact list filter the search lands on derive at once', () => {

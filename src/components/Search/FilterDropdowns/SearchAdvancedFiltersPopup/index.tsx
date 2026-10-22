@@ -222,11 +222,11 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
         markShownFilterReady();
     };
 
-    // Like a selection list, a search shows its first match, and clearing it keeps the shown filter. Typing has
-    // settled by now, so nothing is withheld, the same as for a focused row.
+    // Like a selection list, a search shows its first match. Typing has settled by now, so nothing is withheld, the
+    // same as for a focused row.
     const showFirstMatchingFilter = (searchValue: string) => {
         const firstMatchingFilter = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, searchValue, translate).at(0)?.at(0);
-        if (isDescribeMode || !searchValue.trim() || !firstMatchingFilter) {
+        if (isDescribeMode || !firstMatchingFilter) {
             return;
         }
 
@@ -241,6 +241,16 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
     // A cleared input lists every filter at once rather than after the debounce, as in useSearchResults.
     const filters = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, filterSearchValue.trim() ? debouncedFilterSearchValue : '', translate);
     const isActiveFilterListed = filters.some((section) => section.includes(activeFilter));
+
+    // A cleared input lists every filter without waiting, so the content goes back to the first one with it.
+    const changeFilterSearchValue = (searchValue: string) => {
+        setFilterSearchValue(searchValue);
+        if (searchValue.trim()) {
+            return;
+        }
+
+        showFirstMatchingFilter(searchValue);
+    };
 
     const mayDeriveContent = (filterKey: SearchFilter['key']) => !DEFERRED_CONTENT_FILTERS.has(filterKey) || readyFilters.includes(filterKey);
 
@@ -305,7 +315,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                         selectedFilter={isDescribeMode ? undefined : activeFilter}
                         filters={filters}
                         searchValue={filterSearchValue}
-                        onSearchValueChange={setFilterSearchValue}
+                        onSearchValueChange={changeFilterSearchValue}
                         autoFocus
                         onHoverIn={hoverFilter}
                         onPointerMove={trackPointerMovement}
