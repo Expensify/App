@@ -25,12 +25,13 @@ import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
 
 import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
 
-type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'endDate' | 'enabled' | 'actions';
+type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'taxReclaimableOn' | 'startDate' | 'endDate' | 'enabled' | 'actions';
 
 type WorkspaceDistanceRatesTableProps = {
     ratesData: DistanceRateTableItemData[];
     policyID: string;
     unit?: Unit;
+    shouldShowTaxReclaimableColumn?: boolean;
     selectionEnabled: boolean;
     selectedKeys: string[];
     canWriteDistanceRates: boolean;
@@ -49,6 +50,7 @@ function WorkspaceDistanceRatesTable({
     ratesData,
     policyID,
     unit,
+    shouldShowTaxReclaimableColumn = false,
     selectionEnabled,
     selectedKeys,
     canWriteDistanceRates,
@@ -89,6 +91,7 @@ function WorkspaceDistanceRatesTable({
                 containerStyles: [styles.editableCellHeader],
             },
         },
+        ...(shouldShowTaxReclaimableColumn ? ([{key: 'taxReclaimableOn', label: translate('workspace.taxes.taxReclaimableOn'), sortable: true}] as const) : []),
         ...(hasAnyDateBound
             ? ([
                   {key: 'startDate', label: translate('workspace.distanceRates.startDate'), sortable: true},
@@ -118,6 +121,12 @@ function WorkspaceDistanceRatesTable({
 
         if (activeSorting.columnKey === 'rate') {
             return ((a.rate.rate ?? 0) - (b.rate.rate ?? 0)) * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'taxReclaimableOn') {
+            const aTaxReclaimable = (a.rate.attributes?.taxClaimablePercentage ?? 0) * (a.rate.rate ?? 0);
+            const bTaxReclaimable = (b.rate.attributes?.taxClaimablePercentage ?? 0) * (b.rate.rate ?? 0);
+            return (aTaxReclaimable - bTaxReclaimable) * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'startDate') {
@@ -171,6 +180,7 @@ function WorkspaceDistanceRatesTable({
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             shouldShowDateColumns={hasAnyDateBound}
+            shouldShowTaxReclaimableColumn={shouldShowTaxReclaimableColumn}
             statusLabels={statusLabels}
             unit={unit}
         />

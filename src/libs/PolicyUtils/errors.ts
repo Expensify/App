@@ -80,8 +80,13 @@ function shouldShowCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
     return isPolicyAdmin(policy) && Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
 }
 
+/** Prototype for screenshots only. Set to '' to see the copy for a workspace without an accounting integration. */
+const UK_FUEL_RATE_TAX_ERROR_INTEGRATION_NAME = 'Xero' as string;
+
 /** Prototype for screenshots only, so the copy isn't translated */
-const UK_FUEL_RATE_TAX_ERROR_MESSAGE = 'Please add a VAT (20%) tax rate in Xero for UK Advisory Fuel Rates.';
+const UK_FUEL_RATE_TAX_ERROR_MESSAGE = UK_FUEL_RATE_TAX_ERROR_INTEGRATION_NAME
+    ? `Please add a 20% tax rate in ${UK_FUEL_RATE_TAX_ERROR_INTEGRATION_NAME} to track tax on the UK Advisory Fuel Rates.`
+    : 'Please add a 20% tax rate to track tax on the UK Advisory Fuel Rates.';
 
 /**
  * Prototype for screenshots only. Shows the UK fuel-rate missing VAT tax rate error on every GBP workspace with distance tax on, until an admin dismisses it.

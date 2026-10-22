@@ -519,6 +519,7 @@ function PolicyDistanceRatesPage({
                         policyID={policyID}
                         ratesData={ratesData}
                         unit={currentUnit}
+                        shouldShowTaxReclaimableColumn={!!policy?.tax?.trackingEnabled && !!customUnit?.attributes?.taxEnabled}
                         selectedKeys={selectedDistanceRates}
                         selectionEnabled={canWriteDistanceRates}
                         onRowSelectionChange={setSelectedDistanceRates}
