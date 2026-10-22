@@ -11913,6 +11913,8 @@ const translations = {
                 refundedAmountOn: ({amount, date}: PaymentDetailsPartialRefundParams) => `Refunded ${amount} on ${date}`,
             },
             billedTo: 'Billed to',
+            activity: 'Activity',
+            findActiveUser: 'Find an active user',
             viewReceipt: 'View receipt',
             viewInvoice: 'View invoice',
         },

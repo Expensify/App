@@ -11669,6 +11669,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} remboursé le ${date}`,
             },
             billedTo: 'Facturé à',
+            activity: 'Activité',
+            findActiveUser: 'Rechercher un utilisateur actif',
             viewReceipt: 'Voir le reçu',
             viewInvoice: 'Voir la facture',
         },

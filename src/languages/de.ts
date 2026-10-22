@@ -11643,6 +11643,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} erstattet am ${date}`,
             },
             billedTo: 'Abgerechnet an',
+            activity: 'Aktivität',
+            findActiveUser: 'Aktiven Benutzer suchen',
             viewReceipt: 'Beleg anzeigen',
             viewInvoice: 'Rechnung anzeigen',
         },
