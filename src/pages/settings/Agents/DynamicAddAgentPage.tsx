@@ -75,9 +75,9 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const {windowWidth, windowHeight} = useWindowDimensions();
     const {isKeyboardActive} = useKeyboardState();
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
-    // On native portrait the prompt grows with its content up to a max height instead of filling the screen, so the open
+    // On native the prompt grows with its content up to a max height instead of filling the screen, so the open
     // keyboard can't squeeze it or hide the line being edited, and the form scrolls to fit it above the keyboard.
-    const shouldAutoGrowPromptInput = Platform.OS !== 'web' && !isInLandscapeMode;
+    const shouldAutoGrowPromptInput = Platform.OS !== 'web';
     const shouldUseScrollableLayout = shouldAutoGrowPromptInput || isInLandscapeMode;
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const landscapePromptHeight = shouldShrinkPromptInput ? PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE : styles.h42.height;
@@ -310,11 +310,12 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                             </View>
                         )}
                         <View
-                            style={
-                                shouldShrinkPromptInput
-                                    ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
-                                    : [isInLandscapeMode && styles.h42, !isInLandscapeMode && !shouldAutoGrowPromptInput && styles.flex1]
-                            }
+                            style={[
+                                !shouldAutoGrowPromptInput &&
+                                    (shouldShrinkPromptInput
+                                        ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
+                                        : [isInLandscapeMode && styles.h42, !isInLandscapeMode && styles.flex1]),
+                            ]}
                             onLayout={(event) => {
                                 promptTopOffsetRef.current = event.nativeEvent.layout.y;
                             }}
