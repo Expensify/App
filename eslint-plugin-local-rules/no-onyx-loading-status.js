@@ -17,6 +17,7 @@ const meta = {
 };
 
 const USE_ONYX_IDENTIFIER = 'useOnyx';
+const USE_ONYX_HOOK_PATH_SUFFIX = 'hooks/useOnyx';
 const STATUS_PROPERTY = 'status';
 const IS_LOADING_ONYX_VALUE_PATH_SUFFIX = 'types/utils/isLoadingOnyxValue';
 
@@ -54,6 +55,9 @@ function findStatusProperty(pattern) {
  * @returns {import('eslint').Rule.RuleListener}
  */
 function create(context) {
+    // Local names `useOnyx` is called by in this file, so aliased imports like `{useOnyx as useOnyxWithoutSnapshots}` are checked too
+    const useOnyxNames = new Set([USE_ONYX_IDENTIFIER]);
+
     /**
      * Reports `metadata.status`, `metadata?.status` and `const {status} = metadata` for a variable holding `useOnyx` result metadata.
      *
@@ -78,10 +82,20 @@ function create(context) {
 
     return {
         ImportDeclaration(node) {
-            if (node.importKind === 'type' || typeof node.source.value !== 'string' || !node.source.value.endsWith(IS_LOADING_ONYX_VALUE_PATH_SUFFIX)) {
+            if (node.importKind === 'type' || typeof node.source.value !== 'string') {
                 return;
             }
-            context.report({node, messageId: 'isLoadingOnyxValueImport'});
+            const source = node.source.value;
+            for (const specifier of node.specifiers) {
+                const isNamedUseOnyx = specifier.type === 'ImportSpecifier' && specifier.imported.type === 'Identifier' && specifier.imported.name === USE_ONYX_IDENTIFIER;
+                const isDefaultUseOnyxHook = specifier.type === 'ImportDefaultSpecifier' && source.endsWith(USE_ONYX_HOOK_PATH_SUFFIX);
+                if (isNamedUseOnyx || isDefaultUseOnyxHook) {
+                    useOnyxNames.add(specifier.local.name);
+                }
+            }
+            if (source.endsWith(IS_LOADING_ONYX_VALUE_PATH_SUFFIX)) {
+                context.report({node, messageId: 'isLoadingOnyxValueImport'});
+            }
         },
 
         VariableDeclarator(node) {
@@ -89,7 +103,7 @@ function create(context) {
                 return;
             }
             const callee = node.init.callee;
-            if (callee.type !== 'Identifier' || callee.name !== USE_ONYX_IDENTIFIER) {
+            if (callee.type !== 'Identifier' || !useOnyxNames.has(callee.name)) {
                 return;
             }
             const metadataPattern = node.id.elements.at(1);

@@ -44,11 +44,9 @@ describe('no-onyx-loading-status', () => {
             'const [session] = useOnyx(ONYXKEYS.SESSION);',
             'const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION); doSomething(sessionMetadata);',
             'const [session, {sourceValue}] = useOnyx(ONYXKEYS.SESSION);',
-            // Not a useOnyx result, e.g. Promise.allSettled results or API responses.
             "const results = await Promise.allSettled(promises); const isFulfilled = results[0].status === 'fulfilled';",
             "const [first, second] = useSomethingElse(); const isLoaded = second.status === 'loaded';",
             'const response = await fetch(url); const isOk = response.status === 200;',
-            // A type-only import does not read the status.
             "import type isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';",
             "import useOnyx from '@hooks/useOnyx';",
         ],
@@ -60,6 +58,14 @@ describe('no-onyx-loading-status', () => {
             {
                 code: "import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';",
                 errors: [{messageId: 'isLoadingOnyxValueImport'}],
+            },
+            {
+                code: "import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx'; const [policies, policiesMetadata] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.POLICY); const isLoading = policiesMetadata.status === 'loading';",
+                errors: [{messageId: 'statusRead'}],
+            },
+            {
+                code: "import useOnyxValue from '@hooks/useOnyx'; const [session, {status}] = useOnyxValue(ONYXKEYS.SESSION);",
+                errors: [{messageId: 'statusRead'}],
             },
             {
                 code: "const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION); const isLoading = sessionMetadata.status === 'loading';",
