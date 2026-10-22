@@ -142,11 +142,17 @@ function MoneyRequestReportTransactionItemBody({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
-    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
-
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
+
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
+    // Keep this ref local so React Compiler can prove the after-render event mutations are safe.
+    const wasEditingOnMouseDownRef = useRef(false);
+    const wasEditingOnPressInRef = useRef(false);
+    const wasTouchStartOnCopyableTextRef = useRef(false);
+
     const shouldUseMediumNarrowLayout = isMediumScreenWidth && !shouldScrollHorizontally;
     const shouldUseNarrowTransactionRow = shouldUseNarrowLayout || shouldUseMediumNarrowLayout;
     let transactionRowStyle: StyleProp<ViewStyle> = [styles.ph3, styles.noBorderRadius];
@@ -175,22 +181,13 @@ function MoneyRequestReportTransactionItemBody({
     const transactionErrors: Errors | TranslationKeyErrors = rejectErrorKey ? rejectError : getLatestErrorMessageField({errors: messageErrors});
     const hasTransactionErrors = Object.keys(transactionErrors).length > 0;
 
+    // The last row keeps its bottom border but hides it, so the row height stays the same when a row is added below it.
+    // FlashList ignores size changes of 1px or less, so a border that appears later would be covered by the next row.
+    const lastRowBorderStyle = isLastItem && styles.borderTransparent;
+
     const dismissTransactionError = () => {
         clearError(transaction.transactionID);
     };
-
-    // Keep this ref local so React Compiler can prove the after-render event mutations are safe.
-    const wasEditingOnMouseDownRef = useRef(false);
-    const wasEditingOnPressInRef = useRef(false);
-    const wasTouchStartOnCopyableTextRef = useRef(false);
-    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
-
-    useEffect(() => {
-        if (!wasRecentlyEditingCell) {
-            return;
-        }
-        queueMicrotask(() => setShouldDisableHoverStyle(true));
-    }, [wasRecentlyEditingCell]);
 
     const handleMouseDown = (e?: React.MouseEvent) => {
         wasEditingOnMouseDownRef.current = isEditingCell;
@@ -257,9 +254,12 @@ function MoneyRequestReportTransactionItemBody({
         ControlSelection.unblock();
     };
 
-    // The last row keeps its bottom border but hides it, so the row height stays the same when a row is added below it.
-    // FlashList ignores size changes of 1px or less, so a border that appears later would be covered by the next row.
-    const lastRowBorderStyle = isLastItem && styles.borderTransparent;
+    useEffect(() => {
+        if (!wasRecentlyEditingCell) {
+            return;
+        }
+        queueMicrotask(() => setShouldDisableHoverStyle(true));
+    }, [wasRecentlyEditingCell]);
 
     return (
         <OfflineWithFeedback
@@ -391,13 +391,12 @@ function MoneyRequestReportTransactionItem({
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const {email, accountID} = useCurrentUserPersonalDetails();
-    const [rawTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const cardList = useCardList();
-    const [rawViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    // Mirrors the layout check inside TransactionItemRow so the narrow body never pays for useTransactionInlineEdit.
-    const isNarrowLayout = shouldUseNarrowLayout || (isMediumScreenWidth && !shouldScrollHorizontally);
+
+    const [rawTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [rawViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
 
     // Hoisted out of the body so the highlight animation timeline survives the narrow↔wide
     // component-type swap caused by browser resize.
@@ -410,6 +409,9 @@ function MoneyRequestReportTransactionItem({
     if (!rawTransaction) {
         return null;
     }
+
+    // Mirrors the layout check inside TransactionItemRow so the narrow body never pays for useTransactionInlineEdit.
+    const isNarrowLayout = shouldUseNarrowLayout || (isMediumScreenWidth && !shouldScrollHorizontally);
 
     // The search API pre-resolves the card name, local Onyx transactions carry the raw one
     const card = rawTransaction.cardID ? cardList?.[rawTransaction.cardID] : undefined;

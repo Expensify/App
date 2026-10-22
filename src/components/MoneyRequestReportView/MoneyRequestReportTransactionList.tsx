@@ -199,7 +199,6 @@ function MoneyRequestReportTransactionList({
     isLoadingInitialActions,
     listFooterComponent,
 }: MoneyRequestReportTransactionListProps) {
-    useCopySelectionEvent();
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Columns']);
@@ -207,10 +206,9 @@ function MoneyRequestReportTransactionList({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    const {pageGutter} = resolveLayoutSpacing(shouldUseNarrowLayout);
-    const navigateToTransactionThread = useNavigateToTransactionThread();
-    const longPressModalRef = useRef<MoneyRequestReportTransactionLongPressModalHandle>(null);
     const {isOffline} = useNetwork();
+    const navigateToTransactionThread = useNavigateToTransactionThread();
+
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
@@ -240,7 +238,6 @@ function MoneyRequestReportTransactionList({
         shouldGroupTransactions,
         isOffline,
     });
-    useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs, report?.reportID);
 
     const {isMobileSelectionModeEnabled, toggleTransaction, isTransactionSelected, groupSelectionState, toggleGroupSelection, selectableTransactionIDs, toggleAll} =
         useMoneyRequestReportTransactionSelection({
@@ -252,6 +249,11 @@ function MoneyRequestReportTransactionList({
     const {columnsToShow, dateColumnSize, postedColumnSize, amountColumnSize, taxAmountColumnSize, minTableWidth, shouldScrollHorizontally, isExpenseReportViewFromIOUReport} =
         useMoneyRequestReportColumns({report, policy, transactions, reportActions});
 
+    const longPressModalRef = useRef<MoneyRequestReportTransactionLongPressModalHandle>(null);
+    // The toggle is rebuilt whenever the ordered transactions change, so rows read the latest one through a ref instead of re-rendering every time
+    const toggleTransactionRef = useRef(toggleTransaction);
+
+    const {pageGutter} = resolveLayoutSpacing(shouldUseNarrowLayout);
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
     const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(report);
     const hasPendingAction = hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
@@ -277,15 +279,7 @@ function MoneyRequestReportTransactionList({
 
     // Rows only call this on press, so they read the latest version through a ref instead of re-rendering whenever the data it closes over changes
     const navigateToTransactionRef = useRef(navigateToTransaction);
-    useEffect(() => {
-        navigateToTransactionRef.current = navigateToTransaction;
-    });
 
-    // Same for selection: the toggle is rebuilt whenever the ordered transactions change, which would otherwise re-render every row
-    const toggleTransactionRef = useRef(toggleTransaction);
-    useEffect(() => {
-        toggleTransactionRef.current = toggleTransaction;
-    });
     const toggleRowTransaction = (transactionID: string, shiftKey?: boolean) => toggleTransactionRef.current(transactionID, shiftKey);
 
     const handleLongPress = (transactionID: string) => {
@@ -315,6 +309,17 @@ function MoneyRequestReportTransactionList({
     const openColumnsPage = () => {
         Navigation.navigate(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(report.reportID));
     };
+
+    useCopySelectionEvent();
+    useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs, report?.reportID);
+
+    useEffect(() => {
+        navigateToTransactionRef.current = navigateToTransaction;
+    });
+
+    useEffect(() => {
+        toggleTransactionRef.current = toggleTransaction;
+    });
 
     const renderTransactionListItem = (item: TransactionListItemData, position: {isFirst: boolean; isLast: boolean}) => {
         const narrowSectionWrapperStyle = shouldUseNarrowLayout
