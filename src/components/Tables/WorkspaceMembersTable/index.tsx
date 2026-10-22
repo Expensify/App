@@ -10,6 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import {getTravelMemberAccessName} from '@libs/TravelMemberOptionUtils';
+import type {TravelMemberAccessValue} from '@libs/TravelMemberOptionUtils';
 
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
@@ -26,7 +28,7 @@ import React from 'react';
 
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
-type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'officeLocation' | 'customField1' | 'customField2' | 'bankAccount';
+type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'travel' | 'actions' | 'officeLocation' | 'customField1' | 'customField2' | 'bankAccount';
 
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
@@ -48,6 +50,11 @@ type WorkspaceMemberRowData = TableData & {
     dismissError: () => void;
     canEditRole?: boolean;
     onChangeRole?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
+
+    /** Whether the member can book travel and their travel role, set on workspaces provisioned for travel */
+    travelAccessValue?: TravelMemberAccessValue;
+    canEditTravelAccess?: boolean;
+    onChangeTravelAccess?: (value: TravelMemberAccessValue) => void;
 };
 
 type WorkspaceMembersTableProps = {
@@ -60,6 +67,7 @@ type WorkspaceMembersTableProps = {
     shouldShowCustomField2Column: boolean;
     shouldShowOfficeLocationColumn: boolean;
     shouldShowBankAccountColumn: boolean;
+    shouldShowTravelColumn: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
 
@@ -88,6 +96,7 @@ export default function WorkspaceMembersTable({
     shouldShowCustomField2Column,
     shouldShowOfficeLocationColumn,
     shouldShowBankAccountColumn,
+    shouldShowTravelColumn,
     members,
     onRowSelectionChange,
     headerComponent,
@@ -180,6 +189,24 @@ export default function WorkspaceMembersTable({
                 extraWidth: variables.editableCellChromeWidth,
             },
         },
+        ...(shouldShowTravelColumn
+            ? [
+                  {
+                      key: 'travel' as const,
+                      label: translate('workspace.moreFeatures.travel.members.travel'),
+                      sortable: true,
+                      styling: {
+                          containerStyles: [styles.editableCellHeader],
+                      },
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) =>
+                              item.travelAccessValue ? [{text: getTravelMemberAccessName(translate, item.travelAccessValue), fontSize: fontScale.text}] : [],
+                          shouldFitContent: true,
+                          extraWidth: variables.editableCellChromeWidth,
+                      },
+                  },
+              ]
+            : []),
         {
             label: '',
             key: 'actions',
@@ -199,6 +226,11 @@ export default function WorkspaceMembersTable({
         if (activeSorting.columnKey === 'role') {
             const compareRoleNames = (role1: string, role2: string) => localeCompare(translate('workspace.common.roleName', role1), translate('workspace.common.roleName', role2));
             return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, memberNameComparison);
+        }
+
+        if (activeSorting.columnKey === 'travel') {
+            const getTravelName = (item: WorkspaceMemberRowData) => (item.travelAccessValue ? getTravelMemberAccessName(translate, item.travelAccessValue) : undefined);
+            return compareOptionalValues(getTravelName(item1), getTravelName(item2), localeCompare, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'officeLocation') {
@@ -345,6 +377,7 @@ export default function WorkspaceMembersTable({
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
                 shouldShowOfficeLocationColumn={shouldShowOfficeLocationColumn}
                 shouldShowBankAccountColumn={shouldShowBankAccountColumn}
+                shouldShowTravelColumn={shouldShowTravelColumn}
                 policy={policy}
             />
         );

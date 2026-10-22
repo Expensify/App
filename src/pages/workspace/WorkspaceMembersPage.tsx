@@ -47,6 +47,7 @@ import {
     setMembersSelectedForRoleChange,
     setWorkspaceMembersSelectedForBulkEdit,
 } from '@libs/actions/Policy/Member';
+import {setPolicyTravelMemberAccessValue} from '@libs/actions/Policy/Travel';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
@@ -71,6 +72,7 @@ import {
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
     getSelectableRoles,
+    getTravelMemberAccessValue,
     hasActiveExpensifyCard,
     isControlPolicy,
     isGroupPolicy,
@@ -78,6 +80,7 @@ import {
     isPolicyAdmin,
     isPolicyApprover,
     isSubmitPolicy,
+    isWorkspaceProvisionedForTravel,
     PAYER_ROLES,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant, isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
@@ -384,6 +387,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldShowOfficeLocationColumn = !shouldUseNarrowLayout && shouldShowOfficeLocations;
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
     const shouldShowBankAccountColumn = !shouldUseNarrowLayout && !isMediumScreenWidth && isPolicyAdmin(policy) && arePaymentsEnabled(policy);
+    const isProvisionedForTravel = isWorkspaceProvisionedForTravel(policy?.travelSettings);
+    const shouldShowTravelColumn = !shouldUseNarrowLayout && isProvisionedForTravel;
+
+    // Travel access and roles are changed through commands that only full workspace admins can call
+    const canChangeTravelAccess = isPolicyAdmin(policy);
 
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);
@@ -442,6 +450,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 disabled: isPendingDeleteOrError,
                 canEditRole,
                 onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
+                travelAccessValue: shouldShowTravelColumn ? getTravelMemberAccessValue(policy, login) : undefined,
+                canEditTravelAccess: canChangeTravelAccess && !isSelectionModeActive && !isPendingDeleteOrError,
+                onChangeTravelAccess: (value) => setPolicyTravelMemberAccessValue(policy, [{email: login, accountID}], value),
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
                 action: () => openMemberDetails(accountID, login),
@@ -463,6 +474,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         shouldShowCustomField1Column,
         shouldShowCustomField2Column,
         shouldShowOfficeLocationColumn,
+        shouldShowTravelColumn,
+        canChangeTravelAccess,
         officeLocations,
         memberBankAccounts,
         invitedPrimaryToSecondaryLogins,
@@ -837,6 +850,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
                         shouldShowOfficeLocationColumn={shouldShowOfficeLocationColumn}
                         shouldShowBankAccountColumn={shouldShowBankAccountColumn}
+                        shouldShowTravelColumn={shouldShowTravelColumn}
                         onRowSelectionChange={setSelectedEmployees}
                         headerComponent={tableHeaderComponent}
                         bulkActionOptions={canWriteMembers ? getBulkActionsButtonOptions() : undefined}
