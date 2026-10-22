@@ -67,7 +67,7 @@ function getLang(ext) {
     if (ext === 'tsx') {
         return 'tsx';
     }
-    if (ext === 'ts') {
+    if (ext === 'ts' || ext === 'mts' || ext === 'cts') {
         return 'ts';
     }
     return 'jsx';
