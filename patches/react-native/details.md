@@ -144,9 +144,9 @@
 
 ### [react-native+0.86.0+019+fix-modal-transparent-navigation-bar.patch](react-native+0.86.0+019+fix-modal-transparent-navigation-bar.patch)
 
-- Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android. It also keeps the modal's system bar icon colors in sync with the activity, including a deferred re-sync after the dialog is shown that is skipped when the dialog was dismissed or replaced before it runs.
+- Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android
 - Upstream PR/issue: 🛑
-- E/App issue: [#69005](https://github.com/Expensify/App/issues/69005), [#103778](https://github.com/Expensify/App/issues/103778)
+- E/App issue: [#69005](https://github.com/Expensify/App/issues/69005)
 - PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004)
 
 ### [react-native+0.86.0+021+perf-increase-initial-heap-size.patch](react-native+0.86.0+021+perf-increase-initial-heap-size.patch)
