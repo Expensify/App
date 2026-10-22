@@ -159,6 +159,7 @@ function useAgents() {
         }
         clearSelectedAgents();
     };
+
     const askForConfirmationToDelete = async () => {
         const ruleBotEnforcedPolicy = selectedAgentKeys.map((accountIDString) => getRuleBotEnforcedPolicy(Number(accountIDString), allPolicies)).find(Boolean);
         if (ruleBotEnforcedPolicy) {
