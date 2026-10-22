@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
-index 10cd91b..ee22ef8 100644
+index 10cd91b..c927812 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 @@ -3,6 +3,7 @@ package com.swmansion.rnscreens.gamma.tabs.appearance
@@ -17,7 +17,7 @@ index 10cd91b..ee22ef8 100644
 -                The Text tag in RN uses SP or DP based on `allowFontScaling` prop. For now we're going
 -                with SP, if there will be a need for skipping scale, the we should introduce similar
 -                `allowFontScaling` prop.
-+                The App scales its font sizes by the system font scale itself, so they are read as DP, not SP.
++                The App pre-scales its font sizes, so they are read as DP.
               */
              val smallFontSize =
 -                tabBarAppearance?.tabBarItemTitleSmallLabelFontSize?.takeIf { it > 0 }?.let { PixelUtil.toPixelFromSP(it) }
