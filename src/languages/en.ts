@@ -12127,7 +12127,7 @@ const translations = {
     productMarketingWindow: {
         member: {
             heading: 'Mileage on cruise control',
-            body: 'Jump straight to your frequent trips and fix a trip’s stop location without starting over.',
+            body: "Jump straight to your frequent trips and fix a trip's stop location without starting over.",
         },
         admin: {
             heading: 'Mileage handled automatically',
