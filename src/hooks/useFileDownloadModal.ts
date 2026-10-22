@@ -67,8 +67,11 @@ const useFileDownloadModal = ({id, onDownload, title, status, message, shouldClo
 
         isOpenRef.current = true;
         const modalPromise = context.showModal({component: FileDownloadModalWrapper, id, props: getModalProps()}).then((result) => {
-            isOpenRef.current = false;
-            modalPromiseRef.current = undefined;
+            // A modal closed by id resolves after a newer one may have been shown, so only clear the state it still owns.
+            if (modalPromiseRef.current === modalPromise) {
+                isOpenRef.current = false;
+                modalPromiseRef.current = undefined;
+            }
             return result;
         });
         modalPromiseRef.current = modalPromise;
@@ -77,6 +80,8 @@ const useFileDownloadModal = ({id, onDownload, title, status, message, shouldClo
 
     const closeFileDownloadModal = () => {
         isOpenRef.current = false;
+        // Cleared here too so a show call right after closing opens a new modal instead of returning the closed one's promise.
+        modalPromiseRef.current = undefined;
         context.closeModalByID(id);
     };
 

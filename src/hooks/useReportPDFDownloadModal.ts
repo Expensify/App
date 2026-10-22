@@ -1,4 +1,5 @@
 import {downloadReportPDF} from '@libs/actions/Report';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,8 +22,8 @@ const REPORT_PDF_DOWNLOAD_MODAL_ID = 'reportPDFDownloadModal';
 const useReportPDFDownloadModal = () => {
     const [activeReportID, setActiveReportID] = useState<string>();
 
-    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${activeReportID}`);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${activeReportID}`);
+    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${getNonEmptyStringOnyxID(activeReportID)}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(activeReportID)}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const {translate} = useLocalize();

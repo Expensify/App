@@ -54,7 +54,8 @@ const useExpensifyCardStatementPDFDownloadModal = () => {
     const showExpensifyCardStatementPDFDownloadModal = (options: ExpensifyCardStatementPDFDownloadModalOptions) => {
         setStatementParams(options.statementParams);
         return showFileDownloadModal().then((result) => {
-            setStatementParams(undefined);
+            // A modal closed by id can resolve after a newer show call, so leave that call's params in place.
+            setStatementParams((currentParams) => (currentParams === options.statementParams ? undefined : currentParams));
             return result;
         });
     };

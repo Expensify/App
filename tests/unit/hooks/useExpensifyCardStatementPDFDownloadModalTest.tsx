@@ -219,4 +219,35 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
         // Then the modal is not shown again
         expect(mockedFileDownloadModal.mock.calls.length).toBe(renderCountAfterClose);
     });
+
+    it('opens a new modal when shown right after closing by id', async () => {
+        // Given an open modal
+        const {result, rerender} = renderStatementPDFDownloadModal();
+        let firstPromise: Promise<unknown> | undefined;
+        await act(async () => {
+            firstPromise = result.current.showExpensifyCardStatementPDFDownloadModal({statementParams: STATEMENT_PARAMS});
+            await waitForBatchedUpdates();
+        });
+
+        // When the caller closes it by id and shows it again in the same tick
+        let hasSecondResolved = false;
+        await act(async () => {
+            result.current.closeExpensifyCardStatementPDFDownloadModal();
+            result.current.showExpensifyCardStatementPDFDownloadModal({statementParams: {...STATEMENT_PARAMS, statementKey: STATEMENT_KEY}}).then(() => {
+                hasSecondResolved = true;
+            });
+            await waitForBatchedUpdates();
+        });
+
+        // Then the closed modal's promise resolves and a new modal is shown instead of reusing the closed one's promise
+        await expect(firstPromise).resolves.toEqual({action: ModalActions.CLOSE});
+        expect(hasSecondResolved).toBe(false);
+        expect(getLatestModalProps()?.isVisible).toBe(true);
+
+        // When the file arrives
+        await setStatementInOnyx({isGenerating: false, [STATEMENT_KEY]: 'statement.pdf'}, rerender);
+
+        // Then the new modal still receives updates
+        expect(getLatestModalProps()).toEqual(expect.objectContaining({isVisible: true, status: CONST.FILE_DOWNLOAD_STATUS.READY}));
+    });
 });
