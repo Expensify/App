@@ -109,11 +109,7 @@ function MoneyReportHeaderModalsContent({reportID, children}: MoneyReportHeaderM
         showDownloadErrorModal,
     };
 
-    return (
-        <MoneyReportHeaderModalsContext.Provider value={contextValue}>
-            {children}
-        </MoneyReportHeaderModalsContext.Provider>
-    );
+    return <MoneyReportHeaderModalsContext.Provider value={contextValue}>{children}</MoneyReportHeaderModalsContext.Provider>;
 }
 
 export default MoneyReportHeaderModals;
