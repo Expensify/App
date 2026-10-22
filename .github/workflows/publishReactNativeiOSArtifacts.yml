@@ -234,6 +234,31 @@ jobs:
           path: /tmp/ios-artifacts
           merge-multiple: true
 
+      - name: Get Java version
+        id: get-java-version
+        uses: ./.github/actions/composite/getJavaVersion
+
+      - name: Setup Java
+        # v5.2.0
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
+        with:
+          distribution: oracle
+          java-version: ${{ steps.get-java-version.outputs.version }}
+
+      - name: Block compromised Java certificates
+        uses: Expensify/GitHub-Actions/block-compromised-java-certificates@d8dfc3ddd4d8626206653c6168ca8d094547749a
+
+      - name: Restrict Gradle to the protected JDK
+        run: |
+          # Prevent cached or downloaded toolchains from bypassing the certificate blocklist.
+          mkdir -p "$HOME/.gradle"
+          cat >> "$HOME/.gradle/gradle.properties" <<EOF
+          org.gradle.java.installations.auto-detect=false
+          org.gradle.java.installations.auto-download=false
+          org.gradle.java.installations.fromEnv=JAVA_HOME
+          org.gradle.java.installations.paths=$JAVA_HOME
+          EOF
+
       - name: Publish to GitHub Packages Maven
         run: ./android/gradlew -p scripts/artifacts-utils/ios/publish publish -PartifactsDir="/tmp/ios-artifacts" -PpatchedVersion="${PATCHED_VERSION}" -PpatchesHash="${PATCHES_HASH}" -PpackageName="${PACKAGE_NAME}"
         env:

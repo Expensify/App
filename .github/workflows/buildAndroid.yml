@@ -122,6 +122,20 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e
 
+      - name: Block compromised Java certificates
+        uses: Expensify/GitHub-Actions/block-compromised-java-certificates@d8dfc3ddd4d8626206653c6168ca8d094547749a
+
+      - name: Restrict Gradle to the protected JDK
+        run: |
+          # Prevent cached or downloaded toolchains from bypassing the certificate blocklist.
+          mkdir -p "$HOME/.gradle"
+          cat >> "$HOME/.gradle/gradle.properties" <<EOF
+          org.gradle.java.installations.auto-detect=false
+          org.gradle.java.installations.auto-download=false
+          org.gradle.java.installations.fromEnv=JAVA_HOME
+          org.gradle.java.installations.paths=$JAVA_HOME
+          EOF
+
       - name: Setup 1Password CLI and certificates
         uses: Expensify/GitHub-Actions/setup-certificate-1p@main
         with:
