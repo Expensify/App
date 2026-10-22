@@ -5,6 +5,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import TotalCell from '@components/TransactionItemRow/DataCells/TotalCell';
 
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
@@ -405,6 +407,53 @@ describe('TotalCell', () => {
             // Then the new amount is saved and the cell exits edit mode
             expect(onSave).toHaveBeenCalledWith(1500);
             expect(screen.queryByLabelText(/-?Amount \(USD\)/)).not.toBeOnTheScreen();
+        });
+
+        it('saves the maximum allowed amount exactly', async () => {
+            // Given a tracked expense of $10.00 being edited
+            const onSave = jest.fn();
+            const input = await renderEditingTotalCell(createTrackedTransaction(1000), onSave);
+
+            // When the user types an amount with the maximum 10 integer digits and 2 decimals, which fills the cell, and leaves it
+            fireEvent.changeText(input, '9999999999.99');
+            fireEvent(input, 'blur');
+
+            // Then the full amount is saved without losing any digit
+            expect(onSave).toHaveBeenCalledWith(convertToBackendAmount(9999999999.99));
+        });
+
+        it('rejects an 11th integer digit', async () => {
+            // Given a tracked expense of $10.00 being edited
+            const onSave = jest.fn();
+            const input = await renderEditingTotalCell(createTrackedTransaction(1000), onSave);
+            fireEvent.changeText(input, '9999999999');
+
+            // When the user types one more integer digit
+            fireEvent.changeText(input, '99999999999');
+
+            // Then the extra digit is ignored, so the amount stays within the limit the long-amount layout is built for
+            expect(input.props.value).toBe('9999999999');
+
+            // And leaving the cell saves the amount without it
+            fireEvent(input, 'blur');
+            expect(onSave).toHaveBeenCalledWith(convertToBackendAmount(9999999999));
+        });
+
+        it('saves a long negative amount with its sign', async () => {
+            // Given a tracked expense of $10.00 being edited, which allows negative amounts
+            const onSave = jest.fn();
+            const input = await renderEditingTotalCell(createTrackedTransaction(1000), onSave);
+
+            // When the user types the longest negative amount
+            fireEvent.changeText(input, '-9999999999.99');
+
+            // Then the sign is rendered beside the input, not in it
+            expect(input.props.value).toBe('9999999999.99');
+            expect(screen.getByText('-', {includeHiddenElements: true})).toBeOnTheScreen();
+
+            // And leaving the cell saves the signed amount in the backend format
+            fireEvent(input, 'blur');
+            expect(onSave).toHaveBeenCalledWith(convertToBackendAmount(-9999999999.99));
         });
 
         it('does not save when the cell is opened and submitted with Enter without changes', async () => {

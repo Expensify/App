@@ -51,6 +51,7 @@ type EditableTotalAmountInputProps = {
  * Inline amount editor of the transaction table's total cell. It renders the sign, the currency symbol and the right-aligned
  * auto-growing input as separate texts, so a negative amount reads `-$12.34`, which an input prefix cannot produce.
  * Pressing the cell's empty area keeps the input focused, since the cell saves on blur.
+ * The input is the only shrinkable part of the row, so a long amount scrolls inside the input while the sign and currency symbol stay visible.
  */
 function EditableTotalAmountInput({initialValue, onChange, allowNegative, decimals, currency, accessibilityLabel, onBlur, onSubmitEditing, ref}: EditableTotalAmountInputProps) {
     const styles = useThemeStyles();
@@ -105,14 +106,14 @@ function EditableTotalAmountInput({initialValue, onChange, allowNegative, decima
             {isNegative && (
                 <Text
                     aria-hidden
-                    style={styles.editableCellSymbolStyle}
+                    style={[styles.editableCellSymbolStyle, styles.flexShrink0]}
                 >
                     -
                 </Text>
             )}
             <Text
                 aria-hidden
-                style={[styles.editableCellSymbolStyle, hasSymbolSpaceInPreview && styles.pr1]}
+                style={[styles.editableCellSymbolStyle, styles.flexShrink0, hasSymbolSpaceInPreview && styles.pr1]}
             >
                 {currencySymbol}
             </Text>
@@ -126,6 +127,7 @@ function EditableTotalAmountInput({initialValue, onChange, allowNegative, decima
                 // Setting both autoCorrect and spellCheck to false will hide the suggestion.
                 autoCorrect={false}
                 autoGrow
+                containerStyles={[styles.flexShrink1, styles.mnw0]}
                 disableKeyboardShortcuts
                 hideFocusedState
                 inputMode={CONST.INPUT_MODE.DECIMAL}
@@ -148,7 +150,7 @@ function EditableTotalAmountInput({initialValue, onChange, allowNegative, decima
                 shouldUseFullInputHeight
                 spellCheck={false}
                 submitBehavior="blurAndSubmit"
-                textInputContainerStyles={styles.editableCellInputStyle}
+                textInputContainerStyles={[styles.editableCellInputStyle, styles.mw100]}
                 touchableInputWrapperStyle={styles.editableCellInputStyle}
                 value={controller.formattedNumber}
             />
