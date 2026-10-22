@@ -288,7 +288,7 @@ function DynamicIOURequestStepDistanceRate({
                   }
                   selectDistanceRate(draftRateID);
               },
-              isDisabled: !draftRateID,
+              isDisabled: !draftRateID || draftRateID === currentRateID,
           }
         : undefined;
 
