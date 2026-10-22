@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
+import TravelMembersSection from './TravelMembersSection';
 import WorkspaceTravelBillingSection from './WorkspaceTravelBillingSection';
 
 type BookOrManageYourTripProps = {
@@ -142,6 +143,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                     />
                 )}
             </Section>
+            <TravelMembersSection policyID={policyID} />
             <WorkspaceTravelBillingSection policyID={policyID} />
         </>
     );
