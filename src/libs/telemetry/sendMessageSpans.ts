@@ -11,7 +11,8 @@ type SendMessagePhase = ValueOf<typeof CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE>;
 
 const SEND_MESSAGE_VISIBLE_PREFIX = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_`;
 
-// Report each in-flight send renders in, keyed by parent span id. A Concierge respond-in-thread send renders in the new thread, not in the chat it was typed in.
+// For each message that was sent but is not on screen yet, the reportID where it will show up, keyed by parent span id.
+// This is usually the chat the user typed in, but a Concierge respond-in-thread reply shows up in the new thread instead.
 const visibleReportIDBySpanID = new Map<string, string>();
 
 function getSendMessageVisibleSpanID(reportActionID: string) {
