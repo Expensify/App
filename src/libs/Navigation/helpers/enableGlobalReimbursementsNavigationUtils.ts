@@ -57,8 +57,9 @@ const ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTE
 
 const WISE_GLOBAL_REIMBURSEMENTS_INTRO_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.entryScreens);
 
-// The wallet is excluded because it is both the banner entry point and the fallback when a pay signal arrives elsewhere
-const PAY_REPORT_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.entryScreens.filter((screen) => screen !== SCREENS.SETTINGS.WALLET.ROOT));
+// The wallet and workspace workflows are excluded because they are banner entry points, and the wallet is also the fallback when a pay signal arrives elsewhere
+const BANNER_ONLY_ENTRY_SCREENS = new Set<string>([SCREENS.SETTINGS.WALLET.ROOT, SCREENS.WORKSPACE.WORKFLOWS]);
+const PAY_REPORT_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.entryScreens.filter((screen) => !BANNER_ONLY_ENTRY_SCREENS.has(screen)));
 
 function shouldUseDynamicEnableGlobalReimbursementsBase(basePath: string, entryScreens: Set<string> = ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS): boolean {
     const pathWithoutQuery = basePath.split('?').at(0) ?? '';
