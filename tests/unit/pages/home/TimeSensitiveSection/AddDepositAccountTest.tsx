@@ -1,13 +1,14 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
+import createDynamicRoute from '@src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useTimeSensitiveAddBankAccount from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddBankAccount';
 import useTimeSensitiveAddDepositAccount from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddDepositAccount';
 import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -122,7 +123,7 @@ describe('TimeSensitiveSection - AddDepositAccount', () => {
 
         expect(screen.getByText('homePage.timeSensitiveSection.addDepositAccount.title')).toBeTruthy();
         // Opens the collect deposit account flow, the same one the Wallet page opens for a collecting member
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute());
+        expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.COLLECT_DEPOSIT_ACCOUNT.getRoute()));
     });
 
     it('yields to the queued-payment task so the same flow is not offered twice', async () => {

@@ -2,13 +2,13 @@
 title: Connect to DualEntry
 description: Learn how to connect DualEntry to Expensify with an API key to sync your accounting data.
 keywords: [New Expensify, DualEntry integration, connect DualEntry, DualEntry API key, accounting sync, DualEntry setup]
-internalScope: Audience is Workspace Admins connecting DualEntry as an accounting integration. Covers adding the DualEntry connection, entering the API key, and selecting a subsidiary. Does not cover configuring import, export, or advanced sync settings.
+internalScope: Audience is Workspace Admins connecting DualEntry as an accounting integration. Covers adding the DualEntry connection, entering the API key, and selecting a company. Does not cover configuring import, export, or advanced sync settings.
 order: 1
 ---
 
 # Connect to DualEntry
 
-Connect DualEntry to your Expensify workspace to sync your accounting data. This article walks you through connecting DualEntry, selecting a subsidiary, and completing the initial setup.
+Connect DualEntry to your Expensify workspace to sync your accounting data. This article walks you through connecting DualEntry, selecting a company, and completing the initial setup.
 
 Once connected, the integration imports:
 
@@ -35,7 +35,7 @@ To connect DualEntry, you must:
 4. In the **DualEntry setup** pages, follow the on-screen instructions to generate an API key in DualEntry.
 5. Paste the key into the **API key** field and select **Confirm**.
 
-Expensify validates the API key, connects to your DualEntry organization, and retrieves your available subsidiaries.
+Expensify validates the API key, connects to your DualEntry organization, and retrieves your available companies.
 
 **Note:** Your API key is encrypted and stored securely on Expensify's servers. It is never exposed in the app or stored on your device.
 
@@ -48,10 +48,10 @@ Expensify validates the API key, connects to your DualEntry organization, and re
 After the connection is established, the **Connections** section updates to show your connected DualEntry integration, including:
 
 - The connection status and last sync timestamp.
-- The selected subsidiary.
+- The selected company.
 - The **Import**, **Export**, and **Advanced** configuration settings.
 
-If your DualEntry organization has multiple subsidiaries, you can choose which one to connect. If only one eligible subsidiary is available, Expensify selects it automatically. The selected subsidiary determines which accounting data is available in Expensify.
+If your DualEntry organization has multiple companies, you can choose which one to connect. If only one eligible company is available, Expensify selects it automatically. The selected company determines which accounting data is available in Expensify.
 
 After the initial sync completes, you can configure your import, export, and advanced accounting settings. Learn how to [configure your DualEntry import, export, and advanced settings](/articles/new-expensify/connections/dualentry/Configure-DualEntry).
 
@@ -87,9 +87,9 @@ If your DualEntry API key is rejected or later becomes invalid, the connection s
 
 Tax rates are only available when DualEntry returns active VAT or GST rates for your organization. When available, tax rate import is off by default and can be enabled from the DualEntry **Import** settings.
 
-## Can I change which subsidiary is used?
+## Can I change which company is used?
 
-Yes. If your DualEntry organization has multiple subsidiaries, you can select a different subsidiary at any time from the **Connections** section. Expensify will sync data from the newly selected subsidiary, including its accounts, dimensions, and tax rates.
+Yes. If your DualEntry organization has multiple companies, you can select a different company at any time from the **Connections** section. Expensify will sync data from the newly selected company, including its accounts, dimensions, and tax rates.
 
 ## How can I disconnect DualEntry from a workspace?
 
