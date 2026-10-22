@@ -4,7 +4,7 @@ import SearchSelectionFooter, {resetAnsweredFooterTotalsForTesting} from '@compo
 import type {SearchFooterCount, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, isSearchQuerySavable} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,6 +13,7 @@ import type {SearchResults} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import {makeSettlementGroup} from '../../utils/ExpensifyCardStatementTestUtils';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -1046,6 +1047,67 @@ describe('SearchSelectionFooter', () => {
             expect(mockSetParams.mock.calls.at(0)?.at(0)?.q).toContain('footerCurrency:EUR');
         });
 
+        it('leaves the default currency out of the query, so a Reset no longer offers to save the search', async () => {
+            // Given a search whose footer was switched to EUR
+            setSearchQuery(`type:expense footerCurrency:${CONST.CURRENCY.EUR}`);
+            mockSelectedTransactions.current = {};
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
+            await waitForBatchedUpdates();
+            const defaultCurrency = mockCapturedFooterProps.current?.defaultCurrency ?? '';
+
+            // When the currency is reset, which picks the default currency explicitly
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCurrencyChange?.(defaultCurrency);
+                await waitForBatchedUpdates();
+            });
+
+            // Then the query carries no currency, so it matches the default search and the Save button goes away
+            const nextQuery = mockSetParams.mock.calls.at(-1)?.at(0)?.q ?? '';
+            expect(nextQuery).not.toContain('footerCurrency');
+            expect(isSearchQuerySavable(buildSearchQueryJSON(nextQuery), buildSearchQueryJSON('type:expense'))).toBe(false);
+        });
+
+        it('keeps converting to the reset currency once the query lands without one', async () => {
+            // Given a search on EUR whose snapshot is still in another currency than the default it resets to
+            setSearchQuery(`type:expense footerCurrency:${CONST.CURRENCY.EUR}`);
+            mockSelectedTransactions.current = {};
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
+            await waitForBatchedUpdates();
+            const defaultCurrency = mockCapturedFooterProps.current?.defaultCurrency ?? '';
+            expect(defaultCurrency).not.toBe(CONST.CURRENCY.USD);
+
+            // When the currency is reset and the query, now carrying no currency, lands
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCurrencyChange?.(defaultCurrency);
+                await waitForBatchedUpdates();
+            });
+            jest.mocked(getFooterConvertedAmounts).mockClear();
+            setSearchQuery(mockSetParams.mock.calls.at(-1)?.at(0)?.q ?? '');
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
+            await waitForBatchedUpdates();
+
+            // Then the footer still converts to the reset currency instead of falling back to the snapshot's
+            expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: defaultCurrency}));
+        });
+
+        it('still writes a currency other than the default into the query', async () => {
+            // Given a search with no footer currency
+            setSearchQuery('type:expense');
+            mockSelectedTransactions.current = {};
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
+            await waitForBatchedUpdates();
+
+            // When a currency other than the default is picked
+            const otherCurrency = mockCapturedFooterProps.current?.defaultCurrency === CONST.CURRENCY.EUR ? CONST.CURRENCY.GBP : CONST.CURRENCY.EUR;
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCurrencyChange?.(otherCurrency);
+                await waitForBatchedUpdates();
+            });
+
+            // Then it is kept in the query, so it survives a reload and a saved search
+            expect(mockSetParams.mock.calls.at(-1)?.at(0)?.q).toContain(`footerCurrency:${otherCurrency}`);
+        });
+
         it('lets the query currency take over once it moves off the one the pick was made on', async () => {
             // Given EUR picked on a query that carried no currency
             setSearchQuery('type:expense');
@@ -1139,6 +1201,50 @@ describe('SearchSelectionFooter', () => {
 
             // The server's 87 describes the whole search, so the selection reports its own two.
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 2}));
+        });
+
+        it('counts no report for a selected expense on an IOU report, which the server count leaves out too', async () => {
+            // Given one expense on an expense report and one on an IOU report, both in the loaded data
+            setSearchQuery('type:expense footerCount:reports');
+            mockSelectedTransactions.current = {
+                transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'expenseReport'},
+                transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'iouReport'},
+            };
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87);
+            mockCurrentSearchResults.current = createMock<SearchResults>({
+                ...searchResults,
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}expenseReport` as const]: {reportID: 'expenseReport', type: CONST.REPORT.TYPE.EXPENSE},
+                    [`${ONYXKEYS.COLLECTION.REPORT}iouReport` as const]: {reportID: 'iouReport', type: CONST.REPORT.TYPE.IOU},
+                },
+            });
+
+            // When the footer counts the reports the selection covers
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then only the expense report counts, so the figure holds once the server's count takes over
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 1}));
+        });
+
+        it('counts no selected IOU report on a Reports search either', async () => {
+            // Given a selected expense report and a selected IOU report on a Reports search
+            setSearchQuery('type:expense-report footerCount:reports');
+            mockSelectedTransactions.current = {
+                transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'expenseReport'},
+                transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'iouReport'},
+            };
+            mockSelectedReports.current = [
+                {...buildSelectedReport('expenseReport', -100), type: CONST.REPORT.TYPE.EXPENSE},
+                {...buildSelectedReport('iouReport', -100), type: CONST.REPORT.TYPE.IOU},
+            ];
+
+            // When the footer counts the selected reports
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)} />);
+            await waitForBatchedUpdates();
+
+            // Then the IOU report is left out
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 1}));
         });
 
         it('counts no report for a selected unreported expense, which sits on none', async () => {

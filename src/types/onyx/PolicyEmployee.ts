@@ -37,6 +37,12 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
     hasOfficeWorkArrangement?: boolean;
 
     /**
+     * The office the member is assigned to, keyed in the workspace's officeLocations, or CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID
+     * for the company address. When absent, or when its office was deleted, the workspace's primary office applies.
+     */
+    officeID?: string;
+
+    /**
      * Errors from api calls on the specific user
      * {<timestamp>: 'error message', <timestamp2>: 'error message 2'}
      */

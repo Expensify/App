@@ -21,7 +21,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {RefObject} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import type {LegacyComposedGesture, GestureType} from 'react-native-gesture-handler';
 
@@ -78,8 +77,8 @@ function AttachmentCarouselView({
 
     const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | null>(attachmentID ?? source);
 
-    const pagerRef = useRef<GestureType>(null);
-    const scrollRef = useAnimatedRef<Animated.FlatList<ListRenderItemInfo<Attachment>>>();
+    const pagerRef = useRef<GestureType | undefined>(undefined);
+    const scrollRef = useAnimatedRef<Animated.FlatList<Attachment>>();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
@@ -107,7 +106,7 @@ function AttachmentCarouselView({
                 return;
             }
 
-            const item = entry.item as Attachment;
+            const item = entry.item;
             if (entry.index != null) {
                 setPage(entry.index);
                 setActiveAttachmentID(item.attachmentID ?? item.source);
@@ -120,21 +119,22 @@ function AttachmentCarouselView({
         [isFullScreenRef, onNavigate, setPage, setActiveAttachmentID],
     );
 
-    /** Increments or decrements the index to get another selected item */
+    /** Increments or decrements the index to get another selected item, returning whether the carousel moved */
     const cycleThroughAttachments = useCallback(
         (deltaSlide: number) => {
             if (isFullScreen) {
-                return;
+                return false;
             }
 
             const nextIndex = page + deltaSlide;
             const nextItem = attachments.at(nextIndex);
 
             if (!nextItem || nextIndex < 0 || !scrollRef.current) {
-                return;
+                return false;
             }
 
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
+            return true;
         },
         [attachments, canUseTouchScreen, isFullScreen, page, scrollRef],
     );
@@ -230,7 +230,7 @@ function AttachmentCarouselView({
                     isPagerScrolling.set(false);
                     scrollTo(scrollRef, newIndex * cellWidth, 0, true);
                 })
-                .withRef(pagerRef as RefObject<GestureType | undefined>),
+                .withRef(pagerRef),
         [attachments.length, canUseTouchScreen, cellWidth, page, isScrollEnabled, scrollRef, isPagerScrolling],
     );
 

@@ -223,7 +223,6 @@ function AddressSearch({
 
         const countryFallback = Object.keys(CONST.ALL_COUNTRIES).find((country) => country === countryFallbackLongName);
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const country = countryPrimary || countryFallback || '';
 
         const values = {
