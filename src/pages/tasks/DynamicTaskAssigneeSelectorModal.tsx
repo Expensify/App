@@ -88,9 +88,6 @@ function DynamicTaskAssigneeSelectorModal() {
 
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
-    // Editing an existing task writes the assignee to the server on select. Staging the tap and writing only on Save
-    // stops the modal from closing on input (WCAG 3.2.2 On Input). The new-task flow already stages via
-    // `setAssigneeValue` and is confirmed on the create step, so it keeps selecting in place.
     const isEditingTask = !isNewTaskFlow && !!report;
     const [draftAssignee, setDraftAssignee] = useState<ListItem>();
 
@@ -244,7 +241,7 @@ function DynamicTaskAssigneeSelectorModal() {
                   }
                   selectReport(draftAssignee);
               },
-              isDisabled: !draftAssignee,
+              isDisabled: !draftAssignee || draftAssignee.accountID === report?.managerID,
           }
         : undefined;
 
