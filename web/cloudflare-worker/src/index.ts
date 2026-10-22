@@ -15,6 +15,7 @@ const PRECOMPRESSED_CONTENT_TYPES: Record<string, string> = {
     ttf: 'font/ttf',
 };
 const PRECOMPRESSED_PATH = /\.(?:js|css|svg|wasm|ttf)$/;
+const TWIN_PATH = /\.(?:js|css|svg|wasm|ttf)\.br$/i;
 
 const REVALIDATE_CACHE_CONTROL = 'public, max-age=0, must-revalidate';
 
@@ -48,6 +49,15 @@ function matchesIfNoneMatch(request: Request, etag: string | null): boolean {
     }
     const opaqueTag = getOpaqueTag(etag);
     return ifNoneMatch.split(',').some((candidate) => candidate.trim() === '*' || getOpaqueTag(candidate) === opaqueTag);
+}
+
+/** Decoded, because the asset router also maps `/foo.js.%62r` to the twin. */
+function isTwinPath(pathname: string): boolean {
+    try {
+        return TWIN_PATH.test(decodeURIComponent(pathname));
+    } catch {
+        return TWIN_PATH.test(pathname);
+    }
 }
 
 /** The asset router 307-redirects any other encoding (`@` -> `%40`), which would change the deep link the user opened. */
@@ -167,7 +177,7 @@ export default {
         const nonce = generateNonce();
 
         // Twins are only served as an encoding of the original.
-        if (url.pathname.endsWith('.br')) {
+        if (isTwinPath(url.pathname)) {
             return createNotFoundResponse(env.ENVIRONMENT, nonce);
         }
 

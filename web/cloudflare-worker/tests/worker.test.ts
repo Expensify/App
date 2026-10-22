@@ -173,6 +173,16 @@ describe('staging worker', () => {
         assert.equal(fileRequest.status, 404);
     });
 
+    test('serves the app shell when navigating to a route ending in .br', async () => {
+        // Given a deep link whose last segment is a Brazilian domain, as in an email address
+        // When the browser navigates to it
+        const response = await server.fetch('/settings/profile/contact-methods/user@example.com.br', {headers: NAVIGATION_HEADERS});
+
+        // Then the app shell is served, because only twins of build files are hidden
+        assert.equal(response.status, 200);
+        assert.match(await response.text(), /New Expensify fixture/);
+    });
+
     test('serves the apple-app-site-association file as JSON at both paths', async () => {
         // Given the AASA file has no extension, so it gets no Content-Type from the asset store
         for (const path of ['/.well-known/apple-app-site-association', '/apple-app-site-association']) {
@@ -188,7 +198,7 @@ describe('staging worker', () => {
 
     test('does not serve source maps or Brotli twins at their own URLs', async () => {
         // Given the build contains a merged source map, which .assetsignore keeps out of the upload, and Brotli twins
-        for (const path of ['/merged-source-map.js.map', `${HASHED_BUNDLE_PATH}.br`]) {
+        for (const path of ['/merged-source-map.js.map', `${HASHED_BUNDLE_PATH}.br`, `${HASHED_BUNDLE_PATH}.%62r`, `${HASHED_BUNDLE_PATH}.BR`]) {
             // When they are requested directly
             const response = await server.fetch(path);
 
