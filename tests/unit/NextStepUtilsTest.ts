@@ -1246,38 +1246,23 @@ describe('libs/NextStepUtils', () => {
             expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
         });
 
-        it.each([
-            {
-                autoExport: {messageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL, connectionName: CONST.POLICY.CONNECTIONS.NAME.QBO},
-                expectedAutoExportMessage: 'exportsAfterFinalApproval to QuickBooks Online',
-            },
-            {
-                autoExport: {messageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.OUT_OF_POCKET_EXPORTS_WHEN_PAID, connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO},
-                expectedAutoExportMessage: 'outOfPocketExportsWhenPaid to Xero',
-            },
-        ])('appends the $autoExport.messageKey timing after the next step message', ({autoExport, expectedAutoExportMessage}) => {
-            // Given a next step from a workspace that auto-exports
-            const nextStep: ReportNextStep = {
-                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
-                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-                autoExport,
-            };
-            const translateAutoExport: LocalizedTranslate = (path, ...parameters) => {
-                if (path === 'nextStep.message.noFurtherAction') {
-                    return 'No further action required!';
-                }
-                if (path === `nextStep.autoExport.${autoExport.messageKey}`) {
-                    return `${autoExport.messageKey} to ${String(parameters.at(0))}`;
-                }
-                return translateLocal(path, ...parameters);
-            };
+        it.each([CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL, CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.OUT_OF_POCKET_EXPORTS_WHEN_PAID])(
+            'appends the %s timing after the next step message',
+            (autoExportMessageKey) => {
+                // Given a next step from a workspace that auto-exports
+                const nextStep: ReportNextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                    icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                    autoExport: {messageKey: autoExportMessageKey},
+                };
 
-            // When the message is built
-            const message = buildNextStepMessage(nextStep, translateAutoExport, undefined, 999999, formatPhoneNumber);
+                // When the message is built
+                const message = buildNextStepMessage(nextStep, translateLocal, undefined, 999999, formatPhoneNumber);
 
-            // Then the export timing is appended to the main message and names the integration
-            expect(message).toBe(`<next-step>No further action required! ${expectedAutoExportMessage}</next-step>`);
-        });
+                // Then the export timing follows the main message
+                expect(message).toBe(`<next-step>nextStep.message.noFurtherAction nextStep.autoExport.${autoExportMessageKey}</next-step>`);
+            },
+        );
 
         it.each([undefined, null])('leaves the message unchanged when the auto-export timing is %s', (autoExport) => {
             // Given a next step without an export timing, which the backend sends as null to clear an earlier one

@@ -5,7 +5,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {ValueOf} from 'type-fest';
 
 import type * as OnyxCommon from './OnyxCommon';
-import type {ConnectionName, PolicyReportField} from './Policy';
+import type {PolicyReportField} from './Policy';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -76,7 +76,6 @@ type ReportNextStep = {
     /** Only set while the report waits for final approval or payment on a workspace that auto-exports */
     autoExport?: {
         messageKey: ValueOf<typeof CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY>;
-        connectionName: ConnectionName;
     } | null;
 };
 
