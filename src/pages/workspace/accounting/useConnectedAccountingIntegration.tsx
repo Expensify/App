@@ -222,7 +222,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                   {
                       icon: icons.Sync,
                       text: translate('workspace.accounting.syncNow'),
-                      onSelected: () => syncConnection(policy, connectedIntegration),
+                      onSelected: () => syncConnection(policy, connectedIntegration, connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD),
                       disabled: isOffline,
                   },
               ]
