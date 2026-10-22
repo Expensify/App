@@ -251,6 +251,29 @@ describe('ReportActionItem', () => {
             expect(screen.getByLabelText('photo')).toBeOnTheScreen();
         });
 
+        it('shows a link to another host as a link even when it carries an attachment ID', async () => {
+            // Given a stored comment whose link points off our attachment host but kept an attachment ID
+            const foreignURL = 'https://example.com/chat-attachments/1/invoice.csv';
+
+            // When the comment is rendered
+            renderComment(`See <a href="${foreignURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">invoice.csv</a>`, 'See invoice.csv');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it is a plain link rather than a file card, which would download it with the viewer's auth token
+            expect(screen.getByLabelText(foreignURL)).toBeOnTheScreen();
+            expect(screen.queryByLabelText('invoice.csv')).toBeNull();
+        });
+
+        it('shows a link on our attachment host with an attachment ID as a file card', async () => {
+            // Given the same shape on our own attachment host
+            // When the comment is rendered
+            renderComment(`See <a href="${attachmentURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">invoice.csv</a>`, 'See invoice.csv');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it is drawn as the file card it is
+            expect(screen.getByLabelText('invoice.csv')).toBeOnTheScreen();
+        });
+
         it('shows a linked image whose anchor kept the attachment ID of the file it used to name', async () => {
             // Given a comment edited into an image linked to another message's file, which the server returns with the
             // attachment ID of the original file still on the anchor

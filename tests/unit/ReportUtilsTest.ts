@@ -8079,6 +8079,17 @@ describe('ReportUtils', () => {
     });
 
     describe('restoreAttachmentAnchorAttributes', () => {
+        it('does not carry an attachment ID over to a link on another host', () => {
+            // Given a stored link off our attachment host that kept an attachment ID, and an edit that keeps the link
+            const foreignURL = 'https://example.com/chat-attachments/1/invoice.csv';
+            const original = `See <a href="${foreignURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">invoice.csv</a>`;
+            const edited = `Seen <a href="${foreignURL}" target="_blank" rel="noreferrer noopener">invoice.csv</a>`;
+
+            // When the attributes are restored
+            // Then the edit goes out as a plain link, so the next render has no ID to draw a card from
+            expect(restoreAttachmentAnchorAttributes(edited, original)).toBe(edited);
+        });
+
         const docUrl = 'https://www.expensify.com/chat-attachments/123/file.doc';
         const originalDocHtml = `Hello<br /><br /><a href="${docUrl}" data-expensify-source="${docUrl}" data-name="file.doc">file.doc</a>`;
         const roundTrippedHtml = `Hello edited<br /><br /><a href="${docUrl}" target="_blank" rel="noreferrer noopener">file.doc</a>`;

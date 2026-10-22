@@ -82,6 +82,25 @@ describe('wrapAttachmentAnchorsInBlocks', () => {
         expect(wrapped).toBe(html);
     });
 
+    it('leaves a link to another host inline even when it carries an attachment ID', () => {
+        // Given a link off our attachment host that kept an attachment ID, which the server allows while it strips the source
+        const html = 'See <a href="https://example.com/chat-attachments/1/invoice.csv" data-attachment-id="1">invoice.csv</a>';
+
+        // When the anchors are wrapped
+        // Then it stays an inline link, since a file card would download it with the viewer's auth token
+        expect(wrapAttachmentAnchorsInBlocks(html, reportActionID)).toBe(html);
+    });
+
+    it('still blocks a file still uploading, whose source is a local URL', () => {
+        // Given an optimistic file anchor that only has its local source so far
+        const local = 'blob:https://dev.new.expensify.com:8082/uuid-1';
+        const html = `<a href="${local}" data-expensify-source="${local}">file.csv</a>`;
+
+        // When the anchors are wrapped
+        // Then it gets its block, because the source attribute alone still marks it as a file
+        expect(wrapAttachmentAnchorsInBlocks(html, reportActionID)).toBe(`<attachment-block>${html}</attachment-block>`);
+    });
+
     it('leaves ordinary links inline', () => {
         // Given a comment with a plain link, including one that only mentions the attribute name in its query string
         const html = 'See <a href="https://google.com/?data-expensify-source=1" target="_blank">google</a> now';

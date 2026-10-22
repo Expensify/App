@@ -15,8 +15,19 @@ function holdsMedia(label: string): boolean {
     return /<(?:img|video)\b/i.test(label);
 }
 
-function hasAttachmentAttributes(attributes: string): boolean {
-    return attributes.includes(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="`) || attributes.includes(` ${CONST.ATTACHMENT_ID_ATTRIBUTE}="`);
+const SOURCE_ATTRIBUTE_REGEX = new RegExp(`(?:^|\\s)${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="([^"]*)"`, 'i');
+const ATTACHMENT_ID_ATTRIBUTE_REGEX = new RegExp(`(?:^|\\s)${CONST.ATTACHMENT_ID_ATTRIBUTE}="([^"]*)"`, 'i');
+
+/**
+ * A file card downloads with the viewer's auth token. The server strips the source attribute from a link to another
+ * host but keeps the attachment ID, so the ID only makes a file of a link on our own attachment host.
+ */
+function isAttachmentAnchor(href: string | undefined, source: string | undefined, attachmentID: string | undefined): boolean {
+    return !!source || (!!attachmentID && attachmentAnchorURLRegex.test(href ?? ''));
+}
+
+function isAttachmentAnchorTag(attributes: string): boolean {
+    return isAttachmentAnchor(getAnchorHref(attributes), attributes.match(SOURCE_ATTRIBUTE_REGEX)?.at(1), attributes.match(ATTACHMENT_ID_ATTRIBUTE_REGEX)?.at(1));
 }
 
 /**
@@ -42,7 +53,7 @@ function wrapAttachmentAnchorsInBlocks(html: string, reportActionID: string | un
         if (holdsMedia(label)) {
             return match;
         }
-        if (hasAttachmentAttributes(attributes)) {
+        if (isAttachmentAnchorTag(attributes)) {
             return `<attachment-block><a ${attributes}>${label}</a></attachment-block>`;
         }
         if (!isOwnAttachmentURL(getAnchorHref(attributes) ?? '', reportActionID)) {
@@ -52,4 +63,4 @@ function wrapAttachmentAnchorsInBlocks(html: string, reportActionID: string | un
     });
 }
 
-export {getAnchorHref, isOwnAttachmentURL, wrapAttachmentAnchorsInBlocks};
+export {getAnchorHref, isAttachmentAnchor, isAttachmentAnchorTag, isOwnAttachmentURL, wrapAttachmentAnchorsInBlocks};

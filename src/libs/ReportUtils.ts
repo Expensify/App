@@ -108,7 +108,7 @@ import type {AvatarSource} from './UserAvatarUtils';
 import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
-import {getAnchorHref, isOwnAttachmentURL} from './AttachmentAnchorUtils';
+import {getAnchorHref, isAttachmentAnchorTag, isOwnAttachmentURL} from './AttachmentAnchorUtils';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
 import {buildOnboardingMessagesWithoutManageTeam} from './buildOnboardingMessages';
 import {isCardWithPotentialFraud} from './CardUtils';
@@ -7704,7 +7704,7 @@ function restoreAttachmentAnchorAttributes(newCommentHtml: string, originalComme
     const anchorTagRegex = /<a\s([^>]*)>/gi;
     const attachmentAttributesByHref = new Map<string, string>();
     for (const [, attributes] of originalCommentHtml.matchAll(anchorTagRegex)) {
-        if (!hasAttachmentAnchorAttributes(attributes)) {
+        if (!isAttachmentAnchorTag(attributes)) {
             continue;
         }
         const href = getAnchorHref(attributes);
@@ -7755,7 +7755,7 @@ function restoreAttachmentAnchorLabels(newCommentHtml: string, draftMarkdown: st
 
         // Only a file card draws its name from the anchor's own text, so only there does markdown in the label have
         // to be read literally. A link to another message's attachment stays a link, and `[*Download*](url)` means bold.
-        const rendersAsFileCard = hasAttachmentAnchorAttributes(openTag) || isOwnAttachmentURL(href ?? '', reportActionID);
+        const rendersAsFileCard = isAttachmentAnchorTag(openTag) || isOwnAttachmentURL(href ?? '', reportActionID);
         const hasOnlyEmphasisMarkup = /<[a-z]/i.test(inner) && /^(?:[^<]|<\/?(?:em|strong)>)*$/i.test(inner);
         return label && rendersAsFileCard && hasOnlyEmphasisMarkup ? `${openTag}${Str.htmlEncode(label)}${closeTag}` : match;
     });
