@@ -163,6 +163,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         noResultsStateElement,
         tableListMetadata,
         isEmptyResult,
+        isBulkActionBarVisible,
         isDefaultViewEmpty,
         scrollWidth,
         tableWidth,
@@ -473,7 +474,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     measureScrollbarRef(instance);
                 }}
                 data={listData}
-                style={[styles.flex1, styles.mnh0]}
+                style={[styles.flex1, styles.mnh0, isBulkActionBarVisible && styles.bulkActionBarScrollPadding]}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListHeaderComponent={listHeaderContent}
                 ListHeaderComponentStyle={[
@@ -492,6 +493,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
                     contentContainerStyle,
+                    isBulkActionBarVisible && styles.bulkActionBarListSpacing,
                     // Absolutely positioned rows don't widen the scroller's content, so hold the scroll extent open.
                     isColumnScrollEnabled && StyleUtils.getMinimumWidth(scrollWidth),
                     shouldRenderEmptyStateInList && styles.flexGrow1,

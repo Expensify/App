@@ -1,7 +1,6 @@
 import {render} from '@testing-library/react-native';
 
 import ConfirmationPage from '@components/ConfirmationPage';
-import type {ConfirmationPageProps} from '@components/ConfirmationPage';
 import Lottie from '@components/Lottie';
 
 import React from 'react';
@@ -14,17 +13,12 @@ jest.mock('@components/Lottie', () => ({
     default: jest.fn(() => null),
 }));
 
-function renderConfirmationAndGetWebStyle(illustrationStyle?: ConfirmationPageProps['illustrationStyle']) {
-    render(
-        <ConfirmationPage
-            heading="Done"
-            illustrationStyle={illustrationStyle}
-        />,
-    );
+function renderConfirmationAndGetWebStyle(illustrationStyle?: React.ComponentProps<typeof ConfirmationPage.Illustration>['illustrationStyle']) {
+    render(<ConfirmationPage.Illustration illustrationStyle={illustrationStyle} />);
     const lottieProps = jest.mocked(Lottie).mock.calls.at(-1)?.at(0);
     expect(lottieProps).toBeDefined();
     if (!lottieProps) {
-        throw new Error('ConfirmationPage did not render Lottie');
+        throw new Error('ConfirmationPage.Illustration did not render Lottie');
     }
     return lottieProps.webStyle;
 }
@@ -64,12 +58,7 @@ describe('ConfirmationPage Lottie web dimensions', () => {
         const animatedWidth = new Animated.Value(40);
 
         // When the shared component receives both animated and supported dimensions.
-        render(
-            <ConfirmationPage
-                heading="Done"
-                illustrationStyle={{width: animatedWidth, height: '75%'}}
-            />,
-        );
+        render(<ConfirmationPage.Illustration illustrationStyle={{width: animatedWidth, height: '75%'}} />);
         const lottieProps = jest.mocked(Lottie).mock.calls.at(-1)?.at(0);
         expect(lottieProps).toBeDefined();
         // Then only the web width falls back while the native animation keeps its style.

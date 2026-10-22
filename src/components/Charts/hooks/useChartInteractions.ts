@@ -1,7 +1,7 @@
 import type {SharedValue} from 'react-native-reanimated';
 
 import {useCallback} from 'react';
-import {Gesture, PointerType} from 'react-native-gesture-handler';
+import {PointerType, useCompetingGestures, useHoverGesture, useTapGesture} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 
@@ -10,6 +10,14 @@ import useTouchPinnedTooltip from './useTouchPinnedTooltip';
 
 /** Gap between bar top and tooltip bottom */
 const TOOLTIP_BAR_GAP = 8;
+
+/**
+ * On web, Gesture Handler 3.3 resets a gesture's touch-action every time its hook config changes, which drops the
+ * GestureDetector's touchAction="pan-y" and blocks page scrolling from the chart, so the chart gestures set it themselves.
+ * Fixed upstream in 3.4.0 (https://github.com/software-mansion/react-native-gesture-handler/pull/4522), remove this
+ * together with the touchAction entries in the chart gesture configs after upgrading.
+ */
+const CHART_GESTURE_TOUCH_ACTION = 'pan-y';
 
 /**
  * Arguments passed to the checkIsOver callback for hit-testing
@@ -371,38 +379,40 @@ function useChartInteractions({
      * customGestures prop, because Victory's internal GestureHandler view only covers
      * the plot area and would drop events from the label area.
      */
-    const hoverGesture = () =>
-        Gesture.Hover()
-            .onBegin((e) => {
-                'worklet';
+    const hoverGesture = useHoverGesture({
+        // @ts-expect-error -- touchAction is internal in Gesture Handler 3 config types, see CHART_GESTURE_TOUCH_ACTION
+        touchAction: CHART_GESTURE_TOUCH_ACTION,
+        onBegin: (e) => {
+            'worklet';
 
-                if (e.pointerType === PointerType.TOUCH) {
-                    return;
-                }
-                scheduleOnRN(setIsTouchPinned, false);
-                const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
-                const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
-                chartInteractionState.isActive.set(true);
-                chartInteractionState.cursor.x.set(cursorX);
-                chartInteractionState.cursor.y.set(cursorY);
-                matchTargetAt(cursorX, cursorY);
-            })
-            .onUpdate((e) => {
-                'worklet';
+            if (e.pointerType === PointerType.TOUCH) {
+                return;
+            }
+            scheduleOnRN(setIsTouchPinned, false);
+            const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
+            const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
+            chartInteractionState.isActive.set(true);
+            chartInteractionState.cursor.x.set(cursorX);
+            chartInteractionState.cursor.y.set(cursorY);
+            matchTargetAt(cursorX, cursorY);
+        },
+        onUpdate: (e) => {
+            'worklet';
 
-                if (e.pointerType === PointerType.TOUCH) {
-                    return;
-                }
-                updateHoverAt(normalizeChartCoordinate(e.x, coordinateScale), normalizeChartCoordinate(e.y, coordinateScale));
-            })
-            .onEnd((e) => {
-                'worklet';
+            if (e.pointerType === PointerType.TOUCH) {
+                return;
+            }
+            updateHoverAt(normalizeChartCoordinate(e.x, coordinateScale), normalizeChartCoordinate(e.y, coordinateScale));
+        },
+        onDeactivate: (e) => {
+            'worklet';
 
-                if (e.pointerType === PointerType.TOUCH) {
-                    return;
-                }
-                hideTooltip();
-            });
+            if (e.pointerType === PointerType.TOUCH) {
+                return;
+            }
+            hideTooltip();
+        },
+    });
 
     const handleTouchTap = (cursorX: number, cursorY: number) => {
         'worklet';
@@ -418,42 +428,46 @@ function useChartInteractions({
 
     /**
      * Tap gesture. Resolves the nearest data point entirely on the UI thread.
-     * Touch taps show the tooltip; other pointers schedule onPress on the JS thread if the cursor is over the target.
+     * Touch taps show the tooltip; other pointers schedule handlePress on the JS thread if the cursor is over the target.
+     * Disabled when there is neither handlePress nor touch pinning, so the chart only reacts to hover.
      */
-    const tapGesture = (onPress?: (index: number) => void) =>
-        Gesture.Tap()
-            .onFinalize(onTapFinalize)
-            .onEnd((e) => {
-                'worklet';
+    const tapGesture = useTapGesture({
+        // @ts-expect-error -- touchAction is internal in Gesture Handler 3 config types, see CHART_GESTURE_TOUCH_ACTION
+        touchAction: CHART_GESTURE_TOUCH_ACTION,
+        enabled: !!handlePress || shouldPinTooltipOnTouch,
+        onFinalize: onTapFinalize,
+        onDeactivate: (e) => {
+            'worklet';
 
-                const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
-                const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
-                chartInteractionState.cursor.x.set(cursorX);
-                chartInteractionState.cursor.y.set(cursorY);
-                if (e.pointerType === PointerType.TOUCH && shouldPinTooltipOnTouch) {
-                    handleTouchTap(cursorX, cursorY);
-                    return;
-                }
-                if (!onPress) {
-                    return;
-                }
-                const ox = pointOX.get();
-                const oy = pointOY.get();
-                const idx = getResolvedTargetIndex(cursorX, cursorY, cursorX);
-                applyTargetIndex(idx);
-                if (idx < 0) {
-                    return;
-                }
-                const targetX = ox.at(idx) ?? 0;
-                const targetY = oy.at(idx) ?? 0;
-                const currentChartBottom = chartBottom?.get() ?? 0;
-                const hitTestArgs = getHitTestArgs(idx, cursorX, cursorY, targetX, targetY, currentChartBottom);
-                const isClickable = (checkIsClickable ?? checkIsOver)(hitTestArgs);
-                updateInteractionFlags(idx, cursorX, cursorY, currentChartBottom);
-                if (isClickable) {
-                    scheduleOnRN(onPress, idx);
-                }
-            });
+            const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
+            const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
+            chartInteractionState.cursor.x.set(cursorX);
+            chartInteractionState.cursor.y.set(cursorY);
+            if (e.pointerType === PointerType.TOUCH && shouldPinTooltipOnTouch) {
+                handleTouchTap(cursorX, cursorY);
+                return;
+            }
+            if (!handlePress) {
+                return;
+            }
+            const ox = pointOX.get();
+            const oy = pointOY.get();
+            const idx = getResolvedTargetIndex(cursorX, cursorY, cursorX);
+            applyTargetIndex(idx);
+            if (idx < 0) {
+                return;
+            }
+            const targetX = ox.at(idx) ?? 0;
+            const targetY = oy.at(idx) ?? 0;
+            const currentChartBottom = chartBottom?.get() ?? 0;
+            const hitTestArgs = getHitTestArgs(idx, cursorX, cursorY, targetX, targetY, currentChartBottom);
+            const isClickable = (checkIsClickable ?? checkIsOver)(hitTestArgs);
+            updateInteractionFlags(idx, cursorX, cursorY, currentChartBottom);
+            if (isClickable) {
+                scheduleOnRN(handlePress, idx);
+            }
+        },
+    });
 
     /**
      * Raw tooltip positioning data.
@@ -480,7 +494,7 @@ function useChartInteractions({
         y: chartInteractionState.y.y.position.get(),
     }));
 
-    const customGestures = handlePress || shouldPinTooltipOnTouch ? Gesture.Race(hoverGesture(), tapGesture(handlePress)) : hoverGesture();
+    const customGestures = useCompetingGestures(hoverGesture, tapGesture);
 
     return {
         /** Custom gestures to be passed to CartesianChart */
@@ -509,5 +523,5 @@ function useChartInteractions({
     };
 }
 
-export {useChartInteractions, findClosestPoint, normalizeChartCoordinate, TOOLTIP_BAR_GAP};
+export {useChartInteractions, findClosestPoint, normalizeChartCoordinate, TOOLTIP_BAR_GAP, CHART_GESTURE_TOUCH_ACTION};
 export type {HitTestArgs, ResolveTargetIndexArgs};
