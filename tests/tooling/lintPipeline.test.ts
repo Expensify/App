@@ -389,6 +389,19 @@ describe('parseOxlintStdout', () => {
         expect(parsed.stderr).toContain('plugin blew up');
     });
 
+    it('treats a codeless diagnostic with no location as a crash even if oxlint rewords the message', () => {
+        // Given a crash whose message no longer starts with today's wording; every oxc parse error carries a label
+        const crash = oxlintDiagnostic({code: undefined, labels: [], message: 'JS plugin failed: plugin blew up'});
+
+        // When the report is parsed
+        const parsed = parseOxlintStdout(oxlintStdout([crash]), '', 1, '/repo', ['src/a.ts']);
+
+        // Then it is still fatal rather than a "Parsing error" at 0:0
+        expect(parsed.exitCode).toBe(2);
+        expect(parsed.files).toEqual([]);
+        expect(parsed.stderr).toContain('plugin blew up');
+    });
+
     it('reports a parse error like ESLint does and keeps the other findings', () => {
         // Given oxlint's codeless parse error in one file and a normal finding in another
         const parseError = oxlintDiagnostic({code: undefined, message: 'Unexpected token', filename: 'src/bad.ts', labels: [{span: {offset: 6, length: 1, line: 1, column: 7}}]});

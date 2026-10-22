@@ -233,6 +233,10 @@ function toLintMessage(projectRoot: string, diagnostic: OxlintDiagnostic, ruleID
     };
 }
 
+function isJSPluginCrash(diagnostic: OxlintDiagnostic): boolean {
+    return !diagnostic.code && (diagnostic.message.startsWith(JS_PLUGIN_CRASH_MESSAGE) || !diagnostic.labels?.length);
+}
+
 /** A codeless diagnostic that is not a plugin crash is a parse error; ESLint reports those with `ruleId: null`. */
 function toParseErrorMessage(projectRoot: string, diagnostic: OxlintDiagnostic): LintMessage {
     const message = toLintMessage(projectRoot, diagnostic, null);
@@ -322,8 +326,9 @@ function parseOxlintStdout(stdout: string, stderr: string, exitCode: number, pro
         return fatal('Oxlint JSON output has no `diagnostics` array.', stdout, stderr, exitCode);
     }
 
-    // Parse errors and JS plugin crashes both come without a `code`; only a crash says so in its message.
-    const crashes = parsed.diagnostics.filter((diagnostic) => !diagnostic.code && diagnostic.message.startsWith(JS_PLUGIN_CRASH_MESSAGE));
+    // Parse errors and JS plugin crashes both come without a `code`. A crash has no location and says so in its
+    // message; checking both keeps a reworded crash message from passing as a parse error.
+    const crashes = parsed.diagnostics.filter(isJSPluginCrash);
     if (crashes.length > 0) {
         const sample = crashes
             .slice(0, 5)
