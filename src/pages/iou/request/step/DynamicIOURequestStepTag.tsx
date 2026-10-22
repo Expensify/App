@@ -3,7 +3,6 @@ import FixedFooter from '@components/FixedFooter';
 import TagPicker from '@components/TagPicker';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
-import useCloseInPortrait from '@hooks/useCloseInPortrait';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
@@ -48,7 +47,7 @@ type DynamicIOURequestStepTagProps = WithWritableReportOrNotFoundProps<typeof SC
 function DynamicIOURequestStepTag({
     report,
     route: {
-        params: {action, orderWeight: rawTagIndex, transactionID, iouType, reportActionID, reportID: reportIDFromRoute, shouldCloseInPortrait},
+        params: {action, orderWeight: rawTagIndex, transactionID, iouType, reportActionID, reportID: reportIDFromRoute},
     },
     transaction,
 }: DynamicIOURequestStepTagProps) {
@@ -129,8 +128,6 @@ function DynamicIOURequestStepTag({
     const navigateBack = () => {
         Navigation.goBack(backPath);
     };
-
-    useCloseInPortrait(shouldCloseInPortrait, backPath);
 
     const saveAndNavigateBack = () => {
         Navigation.goBack(backPath, {shouldSkipFocusRestore: true});

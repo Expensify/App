@@ -84,7 +84,6 @@ function TagFields({
     const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
     const isCreatingExpense = action === CONST.IOU.ACTION.CREATE;
     const canShowTags = isCreatingExpense || getCountOfEnabledTagsOfList(policyTagList.tags) > 0;
-    // Dependent tags keep the full page: each level's options depend on the level above, which that page walks through.
     const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && !!policy && canSaveFromThisForm && !hasDependentTags && canShowTags;
 
     const openTagPage = () => {

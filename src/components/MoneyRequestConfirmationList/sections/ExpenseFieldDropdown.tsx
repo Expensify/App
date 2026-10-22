@@ -199,7 +199,6 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, li
                     shouldMeasureAnchorPositionFromTop: !layout.shouldOpenAbove,
                     shouldSwitchPositionIfOverflow: false,
                     popoverWidth: isSmallScreenWidth ? CONST.POPOVER_DROPDOWN_WIDTH : layout.width,
-                    // The header is added on top of the sheet's height too, so it never takes the place of an option there either.
                     popoverHeight: isSmallScreenWidth ? CONST.POPOVER_DROPDOWN_MAX_HEIGHT + listHeaderHeight : layout.height,
                 })}
         </>

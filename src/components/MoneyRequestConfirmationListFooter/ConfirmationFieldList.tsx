@@ -79,7 +79,6 @@ function ConfirmationFieldList({
     const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat, isDistanceRequest, isPerDiemRequest, isTimeRequest, isTypeInvoice} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const policyTagLists = getTagLists(policyTags);
-    // Scans every tag, so it runs once here rather than once per tag row.
     const hasDependentTagLists = hasDependentTags(policy, policyTags);
 
     const flags = useFooterDerivedFlags({
