@@ -382,6 +382,7 @@ export type {default as TogglePolicyReceiptPartnersParams} from './TogglePolicyR
 export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';
 export type {default as EnablePolicyTravelParams} from './EnablePolicyTravelParams';
 export type {default as SetPolicyTravelSettingsParams} from './SetPolicyTravelSettingsParams';
+export type {default as SetPolicyTravelMemberAccessParams} from './SetPolicyTravelMemberAccessParams';
 export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
 export type {default as SetPolicyTagsEnabled} from './SetPolicyTagsEnabled';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';

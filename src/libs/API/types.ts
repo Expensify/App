@@ -284,6 +284,7 @@ const WRITE_COMMANDS = {
     ENABLE_POLICY_DISTANCE_RATES: 'EnablePolicyDistanceRates',
     ENABLE_POLICY_TRAVEL: 'EnablePolicyTravel',
     SET_POLICY_TRAVEL_SETTINGS: 'SetPolicyTravelSettings',
+    SET_POLICY_TRAVEL_MEMBER_ACCESS: 'SetPolicyTravelMemberAccess',
     ENABLE_POLICY_TAGS: 'EnablePolicyTags',
     ENABLE_POLICY_TAXES: 'EnablePolicyTaxes',
     ENABLE_POLICY_WORKFLOWS: 'EnablePolicyWorkflows',
@@ -1088,6 +1089,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES]: Parameters.EnablePolicyDistanceRatesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_TRAVEL]: Parameters.EnablePolicyTravelParams;
     [WRITE_COMMANDS.SET_POLICY_TRAVEL_SETTINGS]: Parameters.SetPolicyTravelSettingsParams;
+    [WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS]: Parameters.SetPolicyTravelMemberAccessParams;
     [WRITE_COMMANDS.ENABLE_POLICY_TAGS]: Parameters.EnablePolicyTagsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_TAXES]: Parameters.EnablePolicyTaxesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS]: Parameters.EnablePolicyWorkflowsParams;
