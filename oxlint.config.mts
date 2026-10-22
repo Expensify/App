@@ -120,6 +120,10 @@ export default defineConfig({
     settings: {
         react: {version: '19.2.3'},
         propWrapperFunctions: ['forbidExtraProps', 'exact', 'Object.freeze'],
+        // Read by the hosted eslint-plugin-import rules; without them `no-useless-path-segments` and
+        // `no-relative-packages` cannot resolve .ts/.tsx targets and stay silent. Same values as ESLint's.
+        'import/resolver': {node: {extensions: ['.mjs', '.js', '.jsx', '.json', '.ts', '.tsx', '.d.ts', '.cts', '.mts']}},
+        'import/extensions': ['.js', '.mjs', '.jsx', '.ts', '.tsx', '.d.ts', '.cts', '.mts'],
     },
     ignorePatterns: [
         'oxlint.config.mts',
