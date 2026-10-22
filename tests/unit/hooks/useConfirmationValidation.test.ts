@@ -102,6 +102,7 @@ const baseParams = {
     isTimeRequest: false,
     routeError: undefined,
     canEnterScanFieldsManually: false,
+    isPolicyExpenseChat: false,
     isReadOnly: false,
     shouldShowDate: true,
     isTaxAmountEmpty: false,
@@ -907,6 +908,8 @@ describe('useConfirmationValidation', () => {
             return {
                 ...baseParams,
                 canEnterScanFieldsManually: true,
+                // A workspace chat, where the merchant is one of the all-or-nothing fields
+                isPolicyExpenseChat: true,
                 iouAmount: 0,
                 iouMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 isMerchantEmpty: true,
@@ -941,6 +944,28 @@ describe('useConfirmationValidation', () => {
             ['date', {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks'}, {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false}],
         ])('still blocks confirmation while only the %s is left blank', (_field, transactionOverrides, overrides) => {
             const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams(transactionOverrides, overrides)));
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('does not require the merchant when the expense goes to a chat that does not require one', () => {
+            // Given a P2P scan with the amount and date entered but no merchant (#101147)
+            const params = createScanValidationParams({isAmountSet: true, amount: 1000, isCreatedSet: true, created: '2025-01-15'}, {iouAmount: 1000, isPolicyExpenseChat: false});
+
+            // When the user confirms it
+            const {result} = renderHook(() => useConfirmationValidation(params));
+
+            // Then it goes through, the same as a P2P manual expense without a merchant
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('still requires the amount and date of a P2P scan once one of them is entered', () => {
+            // Given a P2P scan with only the amount entered
+            const params = createScanValidationParams({isAmountSet: true, amount: 1000}, {iouAmount: 1000, isPolicyExpenseChat: false});
+
+            // When the user confirms it
+            const {result} = renderHook(() => useConfirmationValidation(params));
+
+            // Then the blank date still blocks confirmation
             expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
         });
 

@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
+import useAccountIDToNameMap, {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
@@ -34,16 +34,16 @@ const renderAccountIDToNameMap = async () => {
     return hook;
 };
 
+beforeAll(() => {
+    Onyx.init({keys: ONYXKEYS});
+});
+
+beforeEach(async () => {
+    await Onyx.clear();
+    await waitForBatchedUpdates();
+});
+
 describe('useAccountIDToNameMap', () => {
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-    });
-
-    beforeEach(async () => {
-        await Onyx.clear();
-        await waitForBatchedUpdates();
-    });
-
     it('returns an empty object when personalDetailsList is not set', async () => {
         const {result} = await renderAccountIDToNameMap();
         expect(result.current).toEqual({});
@@ -109,5 +109,46 @@ describe('useAccountIDToNameMap', () => {
         });
 
         expect(result.current).toBe(firstResult);
+    });
+});
+
+describe('useMentionedAccountIDToNameMap', () => {
+    it('returns only mentioned account IDs when html is provided', async () => {
+        await Onyx.set(
+            ONYXKEYS.PERSONAL_DETAILS_LIST,
+            buildList([
+                [1001, createPersonalDetails(1001, {login: 'alice@expensify.com', displayName: 'Alice'})],
+                [1002, createPersonalDetails(1002, {login: 'bob@expensify.com', displayName: 'Bob'})],
+                [1003, createPersonalDetails(1003, {login: undefined, displayName: 'Carol'})],
+            ]),
+        );
+
+        const html = 'Review PR with <mention-user accountID="1001"></mention-user> and <mention-user accountID=1003/>';
+        const hook = renderHook(() => useMentionedAccountIDToNameMap(html));
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        // Given only account IDs 1001 and 1003 are mentioned in the HTML
+        // Then the map should only contain those two accounts
+        expect(hook.result.current['1001']).toBe('alice@expensify.com');
+        expect(hook.result.current['1003']).toBe('Carol');
+        expect(Object.keys(hook.result.current)).toHaveLength(2);
+        // When account 1002 is not mentioned
+        // Then it should not appear in the map
+        expect(hook.result.current['1002']).toBeUndefined();
+    });
+
+    it('returns an empty map when html has no mentions', async () => {
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, buildList([[1, createPersonalDetails(1, {login: 'alice@example.com'})]]));
+
+        const hook = renderHook(() => useMentionedAccountIDToNameMap('Buy milk'));
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        // Given the HTML contains no mention-user tags
+        // Then the map should be empty
+        expect(hook.result.current).toEqual({});
     });
 });

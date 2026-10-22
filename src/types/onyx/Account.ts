@@ -136,6 +136,9 @@ type Account = {
     /** Errors related to specific account fields */
     errorFields?: OnyxCommon.ErrorFields;
 
+    /** Pending account changes while requests are queued. */
+    pendingFields?: OnyxCommon.PendingFields<'exactOnlineWaitlist'>;
+
     /** Authentication success message */
     success?: string;
 

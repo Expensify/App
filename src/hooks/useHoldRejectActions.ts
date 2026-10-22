@@ -1,6 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
-import type {RejectModalAction} from '@components/MoneyReportHeaderEducationalModals';
 import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
 
 import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
@@ -15,6 +14,8 @@ import ROUTES from '@src/ROUTES';
 import type {ValueOf} from 'type-fest';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+
+import type {RejectModalAction} from './useHoldRejectEducationalModal';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';

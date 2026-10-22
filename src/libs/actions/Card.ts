@@ -32,6 +32,7 @@ import {getDisplayedExpensifyCardLimitType, getTranslationKeyForLimitType} from 
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import escapeCsvField from '@libs/escapeCsvField';
 import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
 import deferNavigate from '@libs/Navigation/deferNavigate';
@@ -2086,13 +2087,6 @@ function resolveFraudAlert(
     };
 
     API.write(WRITE_COMMANDS.RESOLVE_FRAUD_ALERT, parameters, {optimisticData, successData, failureData});
-}
-
-function escapeCsvField(value: string): string {
-    if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
-        return `"${value.replaceAll('"', '""')}"`;
-    }
-    return value;
 }
 
 function getOwnerEmailForCard(card: Card, personalDetailsList: PersonalDetailsList | undefined): string {
