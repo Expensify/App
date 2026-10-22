@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -125,14 +125,13 @@ function TransferBalancePage() {
                     title={translate('common.transferBalance')}
                     onBackButtonPress={dismissSuccessfulTransferBalancePage}
                 />
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     heading={translate('transferAmountPage.transferSuccess')}
                     description={
                         walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
                             ? translate('transferAmountPage.transferDetailBankAccount')
                             : translate('transferAmountPage.transferDetailDebitCard')
                     }
-                    shouldShowButton
                     buttonText={translate('common.done')}
                     onButtonPress={dismissSuccessfulTransferBalancePage}
                     containerStyle={styles.flex1}

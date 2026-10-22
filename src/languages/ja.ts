@@ -6933,6 +6933,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             emptySubtitle: '会計システムとの同期が完了すると、ここに取引先が表示されます。',
             findVendor: '取引先を検索',
             managedInAccountingSoftware: '取引先は次の場所で管理されます：',
+            enableVendor: 'ベンダーを有効にする',
+            enableVendors: 'ベンダーを有効にする',
+            disableVendor: '取引先を無効にする',
+            disableVendors: '取引先を無効化',
+            updateFailureMessage: '仕入先の更新中にエラーが発生しました。もう一度お試しください。',
         },
         tags: {
             tagName: 'タグ名',
@@ -6976,6 +6981,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             tagRules: 'タグルール',
             approverDescription: '承認者',
             importTags: 'タグをインポート',
+            appendCustomTagList: 'カスタムタグリストを追加',
             importTagsSupportingText: '経費に 1 種類または複数のタグを付けて分類しましょう。',
             configureMultiLevelTags: '複数レベルのタグ付けのために、タグの一覧を設定します。',
             importMultiLevelTagsSupportingText: `こちらがタグのプレビューです。問題なければ、下をクリックしてインポートしてください。`,
@@ -7239,6 +7245,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 optionNoRegularWorkspaceHelp: 'メンバーは在宅勤務、または決まったオフィスがなく拠点間を移動しているため、通勤規程は適用されません。',
                 futureOnlyNote: '変更は今後の走行距離計算にのみ適用されます。既存の走行距離経費は再計算されません。',
             },
+            officeLocation: 'オフィス所在地',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
+            changeOfficeLocation: 'オフィスの所在地を変更',
+            changeWorkArrangement: '勤務形態を変更',
+            changeRole: 'ロールを変更',
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -8644,6 +8655,7 @@ ${reportName}`,
                 createRule: 'ルールを作成',
                 fallbackBanner:
                     'これは標準ルールではないため、エージェントルールとして作成しました。エージェントルールは、経費やレポートに変更があった後に動作し、例えば経費を保留にしたり、レポートを却下したりします。',
+                fallbackBannerWithExplanation: (explanation: string) => `これは標準ルールではないため、エージェントルールとして作成しました。${explanation}`,
             },
             tabs: {
                 general: '一般',
@@ -8729,6 +8741,14 @@ ${reportName}`,
                     unintelligible: '「経費が100ドルを超える場合は領収書を必須にする」のように書いてみてください。',
                     multipleRules: '一度に1つのルールのみです。「すべてのカードで小売店での購入をブロックする」のように、1つのルールを説明してください。',
                     categoryHasRule: 'このカテゴリにはすでにルールがあります。既存のルールを編集するか、別のカテゴリのルールを説明してください。',
+                },
+                impossible: {
+                    noTrigger: 'そのイベントからルールを開始することはできません。',
+                    noCapability: 'ルールではその操作はできません。',
+                    missingData: 'Expensify はその情報を持っていません。',
+                    retroactive: 'ルールは新しいアクティビティにのみ適用されます。',
+                    historyLimit: 'ルールはそれほど前までさかのぼることができません。',
+                    tryThisInstead: '代わりにこちらをお試しください',
                 },
             },
             expenseDefaultsTable: {
@@ -8914,7 +8934,7 @@ ${reportName}`,
             dontSeeYourATS: `<muted-text-label>ご利用のATSが見つかりませんか？<a href="#">Concierge にお問い合わせ</a>いただければ、追加できます。</muted-text-label>`,
             importSettings: 'インポート設定',
             defaultApprover: 'デフォルト承認者',
-            approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター'},
+            approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター', hiringManager: '採用マネージャー'},
             filters: {
                 description: (providerName: string) => `${providerName} からインポートするメンバーを選択してください。採用ステージ、タグ、オフィスから選択できます。`,
                 stages: {
@@ -8943,8 +8963,12 @@ ${reportName}`,
             finalApprover: `最終承認者`,
             finalApproverOptional: '最終承認者（任意）',
             approvalModeDescription: (providerName: string) => `${providerName} から Expensify にインポートされる新しいメンバーの承認者を設定します。`,
-            approverFieldDescription: (providerName: string) =>
-                `候補者の最初の承認者を選択します。${providerName} で割り当てられているリクルーターまたはコーディネーターのいずれかを指定してください。`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `${fieldNames.slice(0, -1).join(', ')} または ${lastFieldName}` : `または ${fieldNames.join('またはその')} のいずれか`;
+                return `候補者の最初の承認者を選択してください：${providerName} で割り当てられている ${fieldList}`;
+            },
             approvalModeDescriptions: {
                 basic: '承認者を 1 名選択してください',
                 advanced: `候補者のリクルーターまたはコーディネーターが、その候補者の経費承認者になります`,
@@ -9078,6 +9102,9 @@ ${reportName}`,
                     return `カスタム口座のあるカードが ${customAccountsCount} 枚`;
                 },
             },
+        },
+        zohoBooks: {
+            organization: 'Zoho Books 組織',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
@@ -9665,6 +9692,11 @@ ${reportName}`,
             setAsPrimary: ({name}: {name: string}) => `オフィス所在地「${name}」を主勤務地に設定します`,
             setCompanyAddressAsPrimary: '会社の住所を主要に設定',
             removed: ({name}: {name: string}) => `オフィス所在地「${name}」を削除しました`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `${displayName}さんのオフィス所在地を${officeLocation}（以前は${previousOfficeLocation}）に変更しました`,
+            quotedName: ({name}: {name: string}) => `「${name}」`,
+            companyAddress: '会社の住所',
+            primaryOffice: '主なオフィス',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `デフォルトの勤務形態を${arrangement}に設定します`,
@@ -10090,6 +10122,12 @@ ${reportName}`,
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新明細書',
                 },
                 customDay: 'カスタム日',
+            },
+            describeSearch: {
+                title: '検索内容を入力してください',
+                description: '表示したい経費をわかりやすい英語で入力してください。適切なフィルターを自動的に適用します。',
+                inputLabel: '検索内容を入力してください',
+                buttonText: '適用',
             },
             status: 'ステータス',
             keyword: 'キーワード',
@@ -11971,5 +12009,6 @@ ${reportName}`,
         mobileRenewPrompt: '早期に更新するには、ウェブブラウザで Expensify にアクセスしてください。',
         mobileClaimPrompt: '更新割引を受け取るには、Web ブラウザで Expensify にアクセスしてください。',
     },
+    bulkActionBar: {label: '一括操作', clearSelection: '選択をクリア', loadingSelection: '選択内容を読み込み中'},
 };
 export default translations;

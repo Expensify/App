@@ -198,15 +198,15 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
     const {isBetaEnabled} = usePermissions();
 
-    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE)) : undefined;
-    const jsonQuery = query?.jsonQuery;
+    const isCompareEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE);
+    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, isCompareEnabled) : undefined;
     const hash = query?.hash;
 
     const requestDashboard = () => {
-        if (!query || !jsonQuery || hash === undefined || isOffline) {
+        if (!query || hash === undefined || isOffline) {
             return;
         }
-        getInsights(dashboardID, hash, jsonQuery, query.snapshotHashes);
+        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes);
     };
 
     const onRequestConditionsChanged = useEffectEvent(() => {
@@ -218,7 +218,8 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             return;
         }
         onRequestConditionsChanged();
-    }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
+        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. Group by is listed because the hash leaves it out
+    }, [dashboardID, hash, filters.groupBy, isCompareEnabled, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];

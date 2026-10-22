@@ -7,6 +7,7 @@ import type AccountData from './AccountData';
 import type Agent from './Agent';
 import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
 import type AppReview from './AppReview';
+import type {AppReviewLastPrompt} from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
 import type Attachment from './Attachment';
@@ -172,6 +173,7 @@ import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchTagFilterItem} from './PolicyTag';
 import type PolicyVendors from './PolicyVendor';
+import type {PolicyVendor} from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
@@ -254,6 +256,8 @@ import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
+import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
 export type {
     FileObject,
@@ -356,6 +360,7 @@ export type {
     PolicyCategories,
     PolicyCategory,
     PolicyDataLoadingState,
+    PolicyVendor,
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
@@ -416,6 +421,7 @@ export type {
     TransactionViolations,
     TravelSettings,
     WorkspaceTravelSettings,
+    WorkspaceMembersSelectedForBulkEdit,
     UserLocation,
     UserMetadata,
     UserWallet,
@@ -428,6 +434,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    WorkspaceMembersSelectedForRoleChange,
     SupportalPermissionDenied,
     PurchaseList,
     Purchases,
@@ -522,6 +529,7 @@ export type {
     ExportTemplate,
     HybridApp,
     AppReview,
+    AppReviewLastPrompt,
     SamlMetadata,
     DomainErrors,
     DomainHighlightItems,

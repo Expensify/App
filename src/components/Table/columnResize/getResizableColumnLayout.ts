@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 
 import type {ResizableColumn} from './resolveDraggedColumnWidths';
 
-import {getColumnWidthValue, getColumnsWidthExpression, getGrowableColumnTrack} from './columnWidthExpressions';
+import {SCROLL_EXTENT_FLOOR_VARIABLE, getColumnWidthValue, getColumnsWidthExpression, getGrowableColumnTrack} from './columnWidthExpressions';
 import getColumnsWidthSum from './getColumnsWidthSum';
 import resolveDraggedColumnWidths, {isColumnResizable} from './resolveDraggedColumnWidths';
 
@@ -110,7 +110,7 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
     // Scroll at the live column sum, so a drag that exhausts the absorbers starts scrolling mid-drag.
     return {
         gridTemplateColumns,
-        scrollWidth: getColumnsWidthExpression(rowWidthValues, totalGapWidth + rowMarginWidth + rowPaddingWidth, '100%'),
+        scrollWidth: getColumnsWidthExpression(rowWidthValues, totalGapWidth + rowMarginWidth + rowPaddingWidth, `max(100%, var(${SCROLL_EXTENT_FLOOR_VARIABLE}, 0px))`),
         // Without the outer margin. Floored at px because `100%` resolves against the list cell, which includes the margin.
         rowWidth: getColumnsWidthExpression(rowWidthValues, totalGapWidth + rowPaddingWidth, `${tableWidth - rowMarginWidth}px`),
         resizableColumnKeys,

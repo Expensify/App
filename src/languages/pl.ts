@@ -7032,6 +7032,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             emptySubtitle: 'Dostawcy pojawią się tutaj po zakończeniu synchronizacji z księgowością.',
             findVendor: 'Znajdź dostawcę',
             managedInAccountingSoftware: 'Dostawcy są zarządzani w twoim',
+            enableVendor: 'Włącz kontrahenta',
+            enableVendors: 'Włącz dostawców',
+            disableVendor: 'Wyłącz dostawcę',
+            disableVendors: 'Wyłącz dostawców',
+            updateFailureMessage: 'Wystąpił błąd podczas aktualizowania dostawcy, spróbuj ponownie',
         },
         tags: {
             tagName: 'Nazwa tagu',
@@ -7075,6 +7080,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             tagRules: 'Zasady tagów',
             approverDescription: 'Osoba zatwierdzająca',
             importTags: 'Importuj tagi',
+            appendCustomTagList: 'Dołącz niestandardową listę tagów',
             importTagsSupportingText: 'Oznaczaj wydatki jednym typem taga lub wieloma.',
             configureMultiLevelTags: 'Skonfiguruj swoją listę tagów do tagowania wielopoziomowego.',
             importMultiLevelTagsSupportingText: `Oto podgląd Twoich tagów. Jeśli wszystko wygląda dobrze, kliknij poniżej, aby je zaimportować.`,
@@ -7339,6 +7345,11 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 optionNoRegularWorkspaceHelp: 'Członek pracuje z domu lub podróżuje między lokalizacjami bez stałego biura, więc zasady dotyczące dojazdów do pracy nie mają zastosowania.',
                 futureOnlyNote: 'Zmiany mają zastosowanie tylko do przyszłych obliczeń kilometrówki. Istniejące wydatki za przejazdy nie są przeliczane ponownie.',
             },
+            officeLocation: 'Lokalizacja biura',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Zmień lokalizację biura',
+            changeWorkArrangement: 'Zmień tryb pracy',
+            changeRole: 'Zmień rolę',
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
@@ -8754,6 +8765,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 createRule: 'Utwórz regułę',
                 fallbackBanner:
                     'To nie jest standardowa reguła, więc przygotowaliśmy ją jako regułę agenta. Reguły agenta działają po zmianie wydatku lub raportu, na przykład wstrzymując wydatek albo odrzucając raport.',
+                fallbackBannerWithExplanation: (explanation: string) => `To nie jest standardowa reguła, więc przygotowaliśmy ją jako regułę agenta. ${explanation}`,
             },
             tabs: {
                 general: 'Ogólne',
@@ -8839,6 +8851,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     unintelligible: 'Spróbuj sformułować regułę tak: jeśli wydatek przekracza 100 $, wymagaj paragonu.',
                     multipleRules: 'Jedna reguła naraz — opisz pojedynczą regułę, na przykład: zablokuj zakupy detaliczne na wszystkich kartach.',
                     categoryHasRule: 'Ta kategoria ma już regułę. Edytuj istniejącą regułę lub opisz regułę dla innej kategorii.',
+                },
+                impossible: {
+                    noTrigger: 'Reguły nie mogą zaczynać się od tego zdarzenia.',
+                    noCapability: 'Reguły nie mogą tego zrobić.',
+                    missingData: 'Expensify nie ma tych informacji.',
+                    retroactive: 'Zasady mają zastosowanie tylko do nowej aktywności.',
+                    historyLimit: 'Reguły nie mogą sięgać tak daleko wstecz.',
+                    tryThisInstead: 'Spróbuj tego zamiast tego',
                 },
             },
             expenseDefaultsTable: {
@@ -9027,7 +9047,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             dontSeeYourATS: `<muted-text-label>Nie widzisz tutaj swojego ATS? <a href="#">Zapytaj Concierge</a>, a my możemy go dodać.</muted-text-label>`,
             importSettings: 'Ustawienia importu',
             defaultApprover: 'Domyślny zatwierdzający',
-            approverFields: {recruiter: 'Rekruter', recruitingCoordinator: 'Koordynator rekrutacji'},
+            approverFields: {recruiter: 'Rekruter', recruitingCoordinator: 'Koordynator rekrutacji', hiringManager: 'Rekruter'},
             filters: {
                 description: (providerName: string) => `Wybierz, którzy członkowie zostaną zaimportowani z ${providerName}. Możesz wybierać spośród etapów rekrutacji, tagów i biur.`,
                 stages: {
@@ -9056,7 +9076,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             finalApprover: `Ostateczny akceptujący`,
             finalApproverOptional: 'Ostateczny zatwierdzający (opcjonalnie)',
             approvalModeDescription: (providerName: string) => `Ustaw osobę zatwierdzającą dla nowych członków importowanych z ${providerName} do Expensify.`,
-            approverFieldDescription: (providerName: string) => `Wybierz pierwszą osobę akceptującą dla swoich kandydatów: Rekrutera lub Koordynatora przypisanego w ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `ich ${fieldNames.slice(0, -1).join(', ')} lub ${lastFieldName}` : `albo ich ${fieldNames.join('lub ich')}`;
+                return `Wybierz pierwszą osobę zatwierdzającą dla swoich kandydatów: ${fieldList} przypisane w ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Wybierz jedną osobę zatwierdzającą',
                 advanced: `Rekruter lub koordynator kandydata zostaje jego akceptującym wydatki`,
@@ -9193,6 +9218,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     return `${customAccountsCount} karty z niestandardowymi kontami`;
                 },
             },
+        },
+        zohoBooks: {
+            organization: 'Organizacja Zoho Books',
         },
         businessCentral: {
             businessCentralSetup: 'Konfiguracja Dynamics 365 Business Central',
@@ -9787,6 +9815,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             setAsPrimary: ({name}: {name: string}) => `ustaw lokalizację biura „${name}” jako główną`,
             setCompanyAddressAsPrimary: 'ustaw firmowy adres jako główny',
             removed: ({name}: {name: string}) => `usunięto lokalizację biura „${name}”`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `zmienił(-a) lokalizację biura użytkownika ${displayName} na ${officeLocation} (poprzednio ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `„${name}”`,
+            companyAddress: 'adres firmy',
+            primaryOffice: 'główne biuro',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `ustaw domyślny tryb pracy na ${arrangement}`,
@@ -10219,6 +10252,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ostatnie zestawienie',
                 },
                 customDay: 'Niestandardowy dzień',
+            },
+            describeSearch: {
+                title: 'Opisz swoje wyszukiwanie',
+                description: 'Opisz po prostu po angielsku, jakie wydatki chcesz zobaczyć, a my automatycznie zastosujemy odpowiednie filtry.',
+                inputLabel: 'Opisz swoje wyszukiwanie',
+                buttonText: 'Zastosuj',
             },
             status: 'Status',
             keyword: 'Słowo kluczowe',
@@ -12127,5 +12166,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         mobileRenewPrompt: 'Odwiedź Expensify w przeglądarce internetowej, żeby odnowić wcześniej.',
         mobileClaimPrompt: 'Odwiedź Expensify w swojej przeglądarce internetowej, aby odebrać zniżkę na odnowienie.',
     },
+    bulkActionBar: {label: 'Akcje zbiorcze', clearSelection: 'Wyczyść wybór', loadingSelection: 'Wczytywanie zaznaczenia'},
 };
 export default translations;

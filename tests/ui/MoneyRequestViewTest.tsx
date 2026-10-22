@@ -589,13 +589,14 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('should NOT append "Non-reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
+    it('should append "Non-reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
             parentReportActionID,
         };
 
+        // Given a non-reimbursable expense on a report that has another expense
         await setupTestData();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
@@ -612,11 +613,47 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        // When the expense details are rendered
         renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
+        // Then the Amount description flags it as non-reimbursable, the same as in a single-expense report
         await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
+            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
+        });
+    });
+
+    it('should append "Reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        // Given a reimbursable expense on a report that has another expense
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}_sibling`, {
+                transactionID: `${transactionID}_sibling`,
+                reportID: expenseReportID,
+                amount: 2500,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-06-02',
+                merchant: 'Sibling',
+                comment: {},
+                reimbursable: false,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Amount description flags it as reimbursable, the same as in a single-expense report
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.reimbursable/i)).toBeOnTheScreen();
             expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
         });
     });
@@ -650,40 +687,6 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
-        });
-    });
-
-    it('should NOT append "Non-reimbursable" while offline because the pending-deleted expense is still rendered', async () => {
-        const threadReport = {
-            ...LHNTestUtils.getFakeReport(),
-            parentReportID: expenseReportID,
-            parentReportActionID,
-        };
-
-        await setupTestData();
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}_sibling`, {
-                transactionID: `${transactionID}_sibling`,
-                reportID: expenseReportID,
-                amount: 2500,
-                currency: CONST.CURRENCY.USD,
-                created: '2025-06-02',
-                merchant: 'Sibling',
-                comment: {},
-                reimbursable: false,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            });
-            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        renderMoneyRequestView(threadReport);
-        await waitForBatchedUpdatesWithAct();
-
-        await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
-            expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
         });
     });
 
@@ -1105,6 +1108,55 @@ describe('MoneyRequestView edit fields', () => {
             const vendorTitle = screen.getByLabelText(fieldLabel('common.vendor'));
             expect(vendorTitle).toHaveTextContent(/Stale Intacct Vendor/);
             expect(vendorTitle).not.toHaveTextContent(/violations\.inactiveVendor/);
+        });
+    });
+
+    it('shows the vendor-field error when assigned vendor is disabled in policyVendors', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        const disabledVendorID = 'disabled-vendor-id';
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, {
+                [disabledVendorID]: {
+                    externalID: disabledVendorID,
+                    name: 'Disabled Vendor',
+                    enabled: false,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: disabledVendorID, wasManuallySet: false}},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {
+                    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: [{id: disabledVendorID, name: 'Disabled Vendor', currency: 'USD', email: 'vendor@example.com'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByRole('alert')).toHaveTextContent('violations.inactiveVendor.');
+            expect(screen.getByTestId('menu-item-brick-road-indicator')).toBeOnTheScreen();
         });
     });
 
