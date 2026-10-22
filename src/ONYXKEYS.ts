@@ -852,6 +852,9 @@ const ONYXKEYS = {
     /** Stores the user's app review prompt state and response */
     NVP_APP_REVIEW: 'nvp_appReview',
 
+    /** Device-local record of when this client last prompted for an app review. Never written by the server. */
+    APP_REVIEW_LAST_PROMPT: 'appReviewLastPrompt',
+
     /** Stores the onboarding RHP variant for A/B/C testing */
     NVP_ONBOARDING_RHP_VARIANT: 'nvp_onboardingRHPVariant',
 
@@ -2008,6 +2011,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
     [ONYXKEYS.NVP_SEARCH_SIDEBAR]: OnyxTypes.SearchSidebar;
     [ONYXKEYS.NVP_APP_REVIEW]: OnyxTypes.AppReview;
+    [ONYXKEYS.APP_REVIEW_LAST_PROMPT]: OnyxTypes.AppReviewLastPrompt;
     [ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT]: OnyxTypes.OnboardingRHPVariant;
     [ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION]: boolean;
     [ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE]: OnyxTypes.VacationDelegate;

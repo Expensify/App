@@ -2677,16 +2677,9 @@ function findLastAccessedReport(
 }
 
 /**
- * Whether the provided report has expenses
- */
-function hasExpenses(reportID?: string, transactions?: OnyxCollection<Transaction>): boolean {
-    return !!Object.values(transactions ?? deprecatedAllTransactions ?? {}).find((transaction) => transaction?.reportID === reportID);
-}
-
-/**
  * Whether the provided report is a closed expense report with no expenses
  */
-function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: OnyxCollection<Transaction>): boolean {
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, hasLinkedTransactions: boolean): boolean {
     if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
         return false;
     }
@@ -2706,7 +2699,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transact
         return false;
     }
 
-    return !hasExpenses(report.reportID, transactions);
+    return !hasLinkedTransactions;
 }
 
 /**
@@ -9594,7 +9587,7 @@ function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string
 /**
  * Returns the necessary reportAction onyx data to indicate that the room description has been updated
  */
-function buildOptimisticRoomDescriptionUpdatedReportAction(description: string): OptimisticRoomDescriptionUpdatedReportAction {
+function buildOptimisticRoomDescriptionUpdatedReportAction(description: string, accountIDToName?: Record<string, string>): OptimisticRoomDescriptionUpdatedReportAction {
     const now = DateUtils.getDBTime();
     return {
         reportActionID: rand64(),
@@ -9604,7 +9597,7 @@ function buildOptimisticRoomDescriptionUpdatedReportAction(description: string):
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: description ? `set the room description to: ${Parser.htmlToText(description)}` : 'cleared the room description',
+                text: description ? `set the room description to: ${Parser.htmlToText(description, {accountIDToName})}` : 'cleared the room description',
                 html: description ? `<muted-text>set the room description to: ${description}</muted-text>` : '<muted-text>cleared the room description</muted-text>',
             },
         ],
