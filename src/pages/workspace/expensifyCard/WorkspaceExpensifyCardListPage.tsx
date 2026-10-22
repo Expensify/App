@@ -36,7 +36,13 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearIssueNewCardFormData, exportExpensifyCardListToCSV, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {canUpdateExpensifyCardLimitTypeInline, getExpensifyCardLimitInlineUpdate, updateExpensifyCardLimitInline, updateExpensifyCardLimitTypeInline} from '@libs/actions/Policy/InlineEdit';
+import {
+    canUpdateExpensifyCardLimitTypeInline,
+    getExpensifyCardLimitInlineEditError,
+    getExpensifyCardLimitInlineUpdate,
+    updateExpensifyCardLimitInline,
+    updateExpensifyCardLimitTypeInline,
+} from '@libs/actions/Policy/InlineEdit';
 import {
     getCardsByCardholderName,
     getCardSettings,
@@ -52,6 +58,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -200,6 +207,12 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const changeCardLimit = useCallback(
         (card: Card, newLimit: string): InlineEditSaveResult => {
             const latestCard = cardsListRef.current?.[String(card.cardID)] ?? card;
+            const limitError = getExpensifyCardLimitInlineEditError(translate, newLimit);
+            if (limitError) {
+                showInlineEditError(limitError);
+                return true;
+            }
+
             const nextLimit = getExpensifyCardLimitInlineUpdate(latestCard, newLimit);
             if (nextLimit === undefined) {
                 return true;
