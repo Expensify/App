@@ -1867,6 +1867,22 @@ describe('ReportActionsUtils', () => {
             expect(message).toBe('removed Project (previously "Apollo")');
         });
 
+        it('should return the cleared field message when a field without a saved value is cleared', () => {
+            // Given a field change where both values are empty, which is what clearing a field that only showed its default can send
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: '', newValue: ''},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was removed, instead of `set Project to ""`
+            expect(message).toBe('removed Project');
+        });
+
         it('should return the set field message when a field without a value is filled in', () => {
             // Given a field change whose old value is empty
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
