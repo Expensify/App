@@ -62,8 +62,9 @@ function useEditMessage({
 
         clearAllReportActionDrafts();
 
-        // Wait for the editor to close and the restored action row to lay out before scrolling.
-        // Scrolling against the editor's old height can leave the final action below the viewport.
+        // Give the edit-state update a frame before scrolling the newest action.
+        // Inline edits do not start a tracked transition, so TransitionTracker.runAfterTransitions
+        // cannot wait for their layout. This frame delay is not a layout-completion guarantee.
         if (!shouldScrollToLastMessage) {
             return;
         }
