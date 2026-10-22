@@ -7729,6 +7729,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             confirmDetails: '詳細を確認',
             inviteMessagePrompt: '招待をさらに特別なものにするために、下にメッセージを追加しましょう！',
             personalMessagePrompt: 'メッセージ',
+            turnOnTravel: '出張をオンにする',
             genericFailureMessage: 'ワークスペースにメンバーを招待する際にエラーが発生しました。もう一度お試しください。',
             inviteNoMembersError: '招待するメンバーを少なくとも1人選択してください',
             joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `${user} が ${workspaceName} への参加をリクエストしました`,

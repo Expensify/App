@@ -8162,6 +8162,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             confirmDetails: 'Επιβεβαιώστε τα στοιχεία',
             inviteMessagePrompt: 'Κάντε την πρόσκλησή σας ακόμα πιο ξεχωριστή προσθέτοντας ένα μήνυμα παρακάτω!',
             personalMessagePrompt: 'Μήνυμα',
+            turnOnTravel: 'Ενεργοποίηση ταξιδιών',
             genericFailureMessage: 'Προέκυψε σφάλμα κατά την πρόσκληση του μέλους στον χώρο εργασίας. Παρακαλούμε δοκιμάστε ξανά.',
             inviteNoMembersError: 'Παρακαλούμε επιλέξτε τουλάχιστον ένα μέλος για πρόσκληση',
             joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `Ο/Η ${user} ζήτησε να συμμετάσχει στο ${workspaceName}`,

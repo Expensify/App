@@ -844,6 +844,7 @@ function buildAddMembersToWorkspaceOnyxData(
     approverEmail?: string,
     policyExpenseChatNotificationPreference?: NotificationPreference,
     hasOfficeWorkArrangement?: boolean,
+    canUseTravel?: boolean,
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -895,6 +896,7 @@ function buildAddMembersToWorkspaceOnyxData(
             role: effectiveRole,
             submitsTo: approverEmail ?? getDefaultApprover(policy),
             ...(hasOfficeWorkArrangement !== undefined ? {hasOfficeWorkArrangement} : {}),
+            ...(canUseTravel !== undefined ? {canUseTravel} : {}),
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
@@ -994,6 +996,7 @@ function addMembersToWorkspace(
     reportActionsList: OnyxCollection<ReportActions>,
     approverEmail?: string,
     hasOfficeWorkArrangement?: boolean,
+    canUseTravel?: boolean,
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
@@ -1012,6 +1015,7 @@ function addMembersToWorkspace(
         approverEmail,
         undefined,
         hasOfficeWorkArrangement,
+        canUseTravel,
     );
 
     const params: AddMembersToWorkspaceParams = {
@@ -1023,6 +1027,7 @@ function addMembersToWorkspace(
         }),
         policyID: policy.id,
         ...(hasOfficeWorkArrangement !== undefined ? {hasOfficeWorkArrangement} : {}),
+        ...(canUseTravel !== undefined ? {canUseTravel} : {}),
     };
     if (!isEmptyObject(membersChats.reportCreationData)) {
         params.reportCreationData = JSON.stringify(membersChats.reportCreationData);

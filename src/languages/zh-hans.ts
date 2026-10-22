@@ -7542,6 +7542,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             confirmDetails: '确认详情',
             inviteMessagePrompt: '在下方添加一条留言，让你的邀请更加特别！',
             personalMessagePrompt: '消息',
+            turnOnTravel: '开启差旅',
             genericFailureMessage: '邀请该成员加入工作区时发生错误。请重试。',
             inviteNoMembersError: '请至少选择一位成员进行邀请',
             joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `${user} 请求加入 ${workspaceName}`,
