@@ -34,14 +34,12 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
         shouldPositionRef.current = false;
         cancelPositionRef.current?.();
     };
+    const stopPositioningFromEffect = useEffectEvent(stopPositioning);
 
     useEffect(() => {
         shouldPositionRef.current = !!linkedReportActionID;
         wasLastActionRef.current = false;
-        return () => {
-            shouldPositionRef.current = false;
-            cancelPositionRef.current?.();
-        };
+        return stopPositioningFromEffect;
     }, [linkedReportActionID, listID]);
 
     useEffect(() => {
@@ -50,10 +48,7 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
         }
 
         // Returning from a child screen must keep the reader's viewport, not reopen the old link.
-        return () => {
-            shouldPositionRef.current = false;
-            cancelPositionRef.current?.();
-        };
+        return stopPositioningFromEffect;
     }, [isFocused]);
 
     const positionLinkedAction = useEffectEvent(() => {
@@ -107,7 +102,6 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
         return cancel;
     }, [isFocused, linkedReportActionID, listID, readyListID, targetIndex, isLastAction, measurementVersion]);
 
-    const stopPositioningFromWebInput = useEffectEvent(stopPositioning);
     useEffect(() => {
         if (Platform.OS !== 'web' || readyListID !== listID) {
             return;
@@ -120,14 +114,14 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
             if (!['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) {
                 return;
             }
-            stopPositioningFromWebInput();
+            stopPositioningFromEffect();
         };
-        scrollElement.addEventListener('wheel', stopPositioningFromWebInput, {passive: true});
-        scrollElement.addEventListener('pointerdown', stopPositioningFromWebInput, {passive: true});
+        scrollElement.addEventListener('wheel', stopPositioningFromEffect, {passive: true});
+        scrollElement.addEventListener('pointerdown', stopPositioningFromEffect, {passive: true});
         scrollElement.addEventListener('keydown', onScrollKey);
         return () => {
-            scrollElement.removeEventListener('wheel', stopPositioningFromWebInput);
-            scrollElement.removeEventListener('pointerdown', stopPositioningFromWebInput);
+            scrollElement.removeEventListener('wheel', stopPositioningFromEffect);
+            scrollElement.removeEventListener('pointerdown', stopPositioningFromEffect);
             scrollElement.removeEventListener('keydown', onScrollKey);
         };
     }, [getListRef, listID, readyListID]);
