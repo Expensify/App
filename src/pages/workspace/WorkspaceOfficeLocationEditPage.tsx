@@ -39,15 +39,17 @@ function WorkspaceOfficeLocationEditPage({route}: WorkspaceOfficeLocationEditPag
     const officeLocations = policy?.officeLocations;
     const officeLocation = officeLocations?.[officeID];
 
-    // The company address counts as an office, so only a workspace without one keeps at least one office and can't delete
-    // its last office. Offices being deleted and additions that failed aren't on the server, so they don't count.
+    // Excluding commutes by home and office needs an office, and the company address counts as one, so only a workspace
+    // excluding commutes that way without a company address keeps its last office. Offices being deleted and additions
+    // that failed aren't on the server, so they don't count.
     const savedOfficeLocations = Object.entries(officeLocations ?? {}).filter(
         ([, otherOfficeLocation]) =>
             otherOfficeLocation.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
             !(otherOfficeLocation.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(otherOfficeLocation.errors)),
     );
     const isCompanyAddressShown = hasCompanyAddress(policy);
-    const canDelete = savedOfficeLocations.length > 1 || isCompanyAddressShown;
+    const isHomeAndOfficeMethod = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+    const canDelete = savedOfficeLocations.length > 1 || isCompanyAddressShown || !isHomeAndOfficeMethod;
 
     // The company address row is listed with the offices, so its label is taken too
     const takenNames = [
