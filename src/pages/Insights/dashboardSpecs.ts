@@ -128,5 +128,5 @@ function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string
 }
 
 export {getAccessibleDashboards, getVisibleCharts};
-export type {InsightsChartSpec, InsightsDashboardSpec};
+export type {InsightsChartSpec};
 export default INSIGHTS_DASHBOARD_SPECS;
