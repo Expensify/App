@@ -1272,6 +1272,26 @@ function Search({
         [searchResults?.data],
     );
 
+    // The same flags the column header is built from, so a row and its heading can't disagree about how wide a column
+    // is. Decided across the whole search, not from the rows currently loaded. Memoized above the early returns because
+    // this file doesn't compile with React Compiler, and a new object on every render (e.g. on blur) would change the
+    // column widths context and re-render every row of the table.
+    const isActionColumnWide = isTask || hasDeletedTransaction;
+    const columnSizeOptions: GetReportTableColumnStylesParams = useMemo(
+        () => ({
+            isActionColumnWide,
+            isDateColumnWide: yearIndicators.shouldShowYearCreated,
+            isSubmittedColumnWide: yearIndicators.shouldShowYearSubmitted,
+            isApprovedColumnWide: yearIndicators.shouldShowYearApproved,
+            isPostedColumnWide: yearIndicators.shouldShowYearPosted,
+            isExportedColumnWide: yearIndicators.shouldShowYearExported,
+            isWithdrawnColumnWide: yearIndicators.shouldShowYearWithdrawn,
+            isAmountColumnWide: amountIndicators.shouldShowAmountInWideColumn,
+            isTaxAmountColumnWide: amountIndicators.shouldShowTaxAmountInWideColumn,
+        }),
+        [isActionColumnWide, yearIndicators, amountIndicators],
+    );
+
     const onSortPress = useCallback(
         (column: SearchSortBy, order: SortOrder) => {
             clearSelectedTransactions();
@@ -1496,7 +1516,7 @@ function Search({
                 shouldShowSorting
                 groupBy={validGroupBy}
                 isExpenseReportView={isExpenseReportType}
-                isActionColumnWide={isTask || hasDeletedTransaction}
+                isActionColumnWide={isActionColumnWide}
             />
         </View>
     );
@@ -1511,20 +1531,6 @@ function Search({
                 isLoadMore
             />
         ) : undefined;
-
-    // The same flags the column header above is built from, so a row and its heading can't disagree about how wide a
-    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
-    const columnSizeOptions: GetReportTableColumnStylesParams = {
-        isActionColumnWide: isTask || hasDeletedTransaction,
-        isDateColumnWide: shouldShowYearCreated,
-        isSubmittedColumnWide: shouldShowYearSubmitted,
-        isApprovedColumnWide: shouldShowYearApproved,
-        isPostedColumnWide: shouldShowYearPosted,
-        isExportedColumnWide: shouldShowYearExported,
-        isWithdrawnColumnWide: shouldShowYearWithdrawn,
-        isAmountColumnWide: shouldShowAmountInWideColumn,
-        isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
-    };
 
     const commonViewProps: CommonSearchViewProps = {
         queryJSON,
@@ -1544,7 +1550,7 @@ function Search({
         isMobileSelectionModeEnabled,
         newTransactions,
         hasLoadedAllTransactions,
-        isActionColumnWide: isTask || hasDeletedTransaction,
+        isActionColumnWide,
         columnSizeOptions,
     };
 
