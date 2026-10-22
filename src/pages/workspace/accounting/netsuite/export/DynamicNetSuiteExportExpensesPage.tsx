@@ -11,6 +11,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import {
@@ -26,7 +27,6 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -87,11 +87,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
                     {areSettingsInErrorFields([exportDestinationSettingName], config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                 </MenuItemField>
                 {!!exportDestination && (
-                    <MenuItem.HelpText
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- credit card charges are only selectable for non-reimbursable exports, so the credit card charge plus reimbursable combination is impossible
-                        message={translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}` as TranslationPaths)}
-                        shouldRenderMessageAsHTML
-                    />
+                    <MenuItem.HelpTextHTML>{Parser.replace(translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`))}</MenuItem.HelpTextHTML>
                 )}
             </OfflineWithFeedback>
             {!shouldHideReimbursableDefaultVendor(isReimbursable, config) && (
@@ -105,7 +101,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
                             <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
                         )}
                     </MenuItemField>
-                    {isCreditCardChargeExport && <MenuItem.HelpText message={translate('workspace.netsuite.creditCardChargeDefaultVendorHelperText', isDefaultVendorSet)} />}
+                    {isCreditCardChargeExport && <MenuItem.HelpTextHTML>{translate('workspace.netsuite.creditCardChargeDefaultVendorHelperText', isDefaultVendorSet)}</MenuItem.HelpTextHTML>}
                 </OfflineWithFeedback>
             )}
             {!shouldHideNonReimbursableCreditCardAccount(isReimbursable, config) && (
@@ -119,7 +115,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
                             <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
                         )}
                     </MenuItemField>
-                    <MenuItem.HelpText message={translate('workspace.netsuite.creditCardAccountHelperText', !!selectedCreditCardAccount?.name)} />
+                    <MenuItem.HelpTextHTML>{translate('workspace.netsuite.creditCardAccountHelperText', !!selectedCreditCardAccount?.name)}</MenuItem.HelpTextHTML>
                 </OfflineWithFeedback>
             )}
             {!shouldHideNonReimbursableJournalPostingAccount(isReimbursable, config) && (

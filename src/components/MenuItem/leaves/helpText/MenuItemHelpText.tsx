@@ -11,7 +11,7 @@ import type {MenuItemHelpTextProps} from './types';
 import BaseMenuItemHelpText from './BaseMenuItemHelpText';
 
 /** The help line of a `MenuItem.Root`, rendered under `MenuItem.Row` and inside the row's press target */
-function MenuItemHelpText({message, isError = false, shouldRenderMessageAsHTML = false}: MenuItemHelpTextProps) {
+function MenuItemHelpText({message, isError = false}: MenuItemHelpTextProps) {
     const styles = useThemeStyles();
     const {shouldAllowTextSelection} = useMenuItemConfig();
 
@@ -22,7 +22,6 @@ function MenuItemHelpText({message, isError = false, shouldRenderMessageAsHTML =
             style={styles.menuItemError}
             messageStyle={shouldAllowTextSelection ? styles.userSelectNone : undefined}
             dataSet={shouldAllowTextSelection ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : undefined}
-            shouldRenderMessageAsHTML={shouldRenderMessageAsHTML}
         />
     );
 }
