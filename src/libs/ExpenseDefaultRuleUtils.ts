@@ -572,6 +572,12 @@ function getCategoryTaxDefaultRule(rulesCollection: OnyxCollection<Rule> | undef
     }
 
     return getPolicyExpenseDefaultRules(rulesCollection, policyID).find(({rule}) => {
+        // A rule deleted offline sticks around until the request goes through, and category settings would keep
+        // offering it to edit.
+        if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return false;
+        }
+
         const {merchants, categories, tags} = getExpenseDefaultConditionSummary(rule.filters);
         if (merchants.length > 0 || tags.length > 0 || categories.length !== 1 || categories.at(0) !== categoryName) {
             return false;

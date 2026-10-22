@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -33,7 +34,6 @@ import Tab from '@libs/actions/Tab';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getTaxRateDisplayName, hasUsableTaxRates} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
@@ -156,6 +156,7 @@ function ExpenseDefaultRulePageBase({
 }: ExpenseDefaultRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {convertToDisplayString} = useCurrencyListActions();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     // The page is on its way out, so the rule it was editing no longer being there is expected. A category rule is
@@ -304,8 +305,9 @@ function ExpenseDefaultRulePageBase({
     // One rule per category is saved, so the condition row lists every category the admin picked.
     const categoriesToMatchDisplayName = hasCategoryCondition ? categoriesToMatch.map(getDecodedCategoryName).join(', ') : undefined;
     const tagsToMatch = form?.tagsToMatch ?? [];
-    const tagsToMatchDisplayName = tagsToMatch.length > 0 ? tagsToMatch.map(getCleanedTagName).join(', ') : undefined;
-    const amountDisplayName = form?.amount ? convertAmountToDisplayString(Number(form.amount), policy?.outputCurrency) : undefined;
+    const hasTagCondition = tagsToMatch.length > 0;
+    const tagsToMatchDisplayName = hasTagCondition ? tagsToMatch.map(getCleanedTagName).join(', ') : undefined;
+    const amountDisplayName = form?.amount ? convertToDisplayString(Number(form.amount), policy?.outputCurrency) : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     // Blank rather than the raw ID once the rate is gone from the workspace.
     const taxDisplayName = (form?.tax && getTaxByID(policy, form.tax) ? getTaxRateDisplayName(policy, form.tax) : '') || undefined;
@@ -322,6 +324,11 @@ function ExpenseDefaultRulePageBase({
         return getPolicyExpenseDefaultRules(rules, policyID).some(({ruleID: existingRuleID, rule}) => {
             // Skip the rule being edited
             if (isEditing && existingRuleID === ruleID) {
+                return false;
+            }
+
+            // A rule deleted offline no longer applies to anything, so recreating it is not a duplicate.
+            if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return false;
             }
 
@@ -698,7 +705,7 @@ function ExpenseDefaultRulePageBase({
                         {/* Only while a condition is set, and only on an unsaved rule: resetting a saved one would let it
                         switch condition type, which the two storage shapes can't express as one edit. A locked category
                         isn't the admin's to clear. */}
-                        {canWriteRules && !isEditingSavedRule && !isCategoryLocked && (hasMerchantCondition || hasCategoryCondition) && (
+                        {canWriteRules && !isEditingSavedRule && !isCategoryLocked && (hasMerchantCondition || hasCategoryCondition || hasTagCondition) && (
                             <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>
                         )}
                     </Header.Actions>

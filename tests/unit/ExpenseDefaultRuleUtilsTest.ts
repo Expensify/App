@@ -1,6 +1,7 @@
 import {
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
+    getCategoryTaxDefaultRule,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
@@ -527,6 +528,35 @@ describe('ExpenseDefaultRuleUtils', () => {
 
         it('is zero for an empty collection', () => {
             expect(getExpenseDefaultRuleCount({}, POLICY_ID)).toBe(0);
+        });
+    });
+
+    describe('getCategoryTaxDefaultRule', () => {
+        const categoryTaxRuleBody: ExpenseDefaultRule = {
+            triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION]),
+            filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
+            // eslint-disable-next-line @typescript-eslint/naming-convention -- the rule stores the tax under the field name that the backend uses
+            actions: toIndexMap([{name: ACTION.SET, field: FIELD.TAX, value: {field_id_TAX: {externalID: TAX_KEY, name: 'GST', value: '10%'}}} as ExpenseDefaultAction]),
+        };
+
+        it('finds the rule that sets a tax for the category', () => {
+            // Given a rule matching that category alone and setting a tax
+            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(categoryTaxRuleBody)};
+
+            // When the category's tax default is looked up
+            // Then that rule is returned, so category settings can open it
+            expect(getCategoryTaxDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
+        });
+
+        it('ignores a rule being deleted', () => {
+            // Given the same rule, deleted while offline so it is still in the collection
+            const collection = {
+                [`${ONYXKEYS.COLLECTION.RULE}1`]: {...asStoredRule(categoryTaxRuleBody), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+
+            // When the category's tax default is looked up
+            // Then nothing is returned, because a deleted rule no longer applies and must not be offered for editing
+            expect(getCategoryTaxDefaultRule(collection, POLICY_ID, 'Coffee')).toBeUndefined();
         });
     });
 
