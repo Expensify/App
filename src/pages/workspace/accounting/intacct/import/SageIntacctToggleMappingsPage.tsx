@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SageIntacctMappingName, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -58,7 +59,7 @@ function getDisplayTypeTranslationKeys(displayType?: SageIntacctMappingValue): D
 }
 
 function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPageProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

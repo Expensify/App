@@ -35,6 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {SageIntacctDataElement} from '@src/types/onyx/Policy';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useMemo} from 'react';
 
@@ -43,7 +44,7 @@ function getReimbursedAccountName(bankAccounts: SageIntacctDataElement[], reimbu
 }
 
 function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id;

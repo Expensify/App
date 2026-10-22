@@ -28,6 +28,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -51,7 +52,7 @@ type TaxFieldsProps = {
 };
 
 function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyTaxFields, didConfirm, transactionID, action, iouType, reportID, formError, clearFormErrors}: TaxFieldsProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();

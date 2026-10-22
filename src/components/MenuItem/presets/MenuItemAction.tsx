@@ -16,6 +16,7 @@ import type WithTestID from '@src/types/utils/TestID';
 
 import type {GestureResponderEvent} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type MenuItemActionProps = WithSentryLabel &
@@ -38,7 +39,7 @@ type MenuItemActionProps = WithSentryLabel &
  * action in place (delete, select, add, etc.)
  */
 function MenuItemAction({title, icon, onPress, isDisabled = false, sentryLabel, testID}: MenuItemActionProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
             onPress={callFunctionIfActionIsAllowed(onPress, false, session)}

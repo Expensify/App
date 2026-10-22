@@ -9,6 +9,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -22,7 +23,7 @@ type MenuItemWithLabelProps = MenuItemRootProps & {
  * it stays out of the press target and does not pick up the row's hover background.
  */
 function MenuItemWithLabel({label, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, children}: MenuItemWithLabelProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
 
     return (

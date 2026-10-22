@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
@@ -32,7 +33,7 @@ type WorkflowsSubmissionsTabProps = {
 };
 
 function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();

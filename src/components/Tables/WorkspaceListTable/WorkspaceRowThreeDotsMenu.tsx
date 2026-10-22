@@ -28,6 +28,7 @@ import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
 import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/core';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef, useState} from 'react';
 
 import type {WorkspaceRowData} from '.';
@@ -57,7 +58,7 @@ type WorkspaceRowThreeDotsMenuProps = {
  * subscriptions (the full policy entry) exist only while the corresponding action is in progress.
  */
 function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();

@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -35,7 +36,7 @@ type BusinessTypePickerProps = {
 };
 
 function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputChange, label, onBlur}: BusinessTypePickerProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);

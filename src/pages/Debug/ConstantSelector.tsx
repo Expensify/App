@@ -17,6 +17,7 @@ import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 
 type ConstantSelectorProps = {
@@ -46,7 +47,7 @@ type ConstantSelectorProps = {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ConstantSelector({formType, policyID, errorText = '', name, value, onInputChange, ref}: ConstantSelectorProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {

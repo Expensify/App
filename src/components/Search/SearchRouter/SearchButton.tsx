@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import {useSearchRouterActions} from './SearchRouterContext';
@@ -29,7 +30,7 @@ type SearchButtonProps = {
 };
 
 function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();

@@ -25,6 +25,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -45,7 +46,7 @@ type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
  * a message.
  */
 function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected, onPressOpenPicker = () => {}, onEmojiPickerClosed = () => {}}: MiniQuickEmojiReactionsProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

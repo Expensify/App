@@ -27,6 +27,7 @@ import type {ReportAction} from '@src/types/onyx';
 
 import type {ComponentRef} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -58,7 +59,7 @@ type AddReactionBubbleProps = {
 };
 
 function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWillShowPicker = () => {}, isContextMenu = false, setIsEmojiPickerActive}: AddReactionBubbleProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

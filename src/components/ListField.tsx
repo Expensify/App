@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import variables from '@src/styles/variables';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -61,7 +62,7 @@ type ListFieldProps = {
 
 /** A list of named items on a page, each with an avatar, an Edit button and a remove button, followed by an add row */
 function ListField({rows, addTitle, addDescription, canAddMore = true, errorText = '', onAdd, onEdit, onRemove}: ListFieldProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();

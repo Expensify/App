@@ -11,6 +11,7 @@ import {canJoinChat} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type ReportDetailsPromotedActionsProps = {
@@ -20,7 +21,7 @@ type ReportDetailsPromotedActionsProps = {
 function ReportDetailsPromotedActions({reportID}: ReportDetailsPromotedActionsProps) {
     const styles = useThemeStyles();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const parentReportAction = useParentReportAction(report);

@@ -42,13 +42,14 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);

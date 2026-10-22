@@ -50,6 +50,7 @@ import ROUTES from '@src/ROUTES';
 import type {TupleToUnion} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
@@ -62,7 +63,7 @@ type WorkflowsPaymentsTabProps = {
 };
 
 function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);

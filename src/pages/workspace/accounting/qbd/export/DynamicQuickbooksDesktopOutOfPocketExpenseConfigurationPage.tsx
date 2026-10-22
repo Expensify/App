@@ -30,6 +30,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useMemo} from 'react';
 
 type QBDSectionType = {
@@ -47,7 +48,7 @@ const accountOrExportDestination = [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE
 const markChecksToBePrintedOrExportDestination = [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE, CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED];
 
 function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConnectionsProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;

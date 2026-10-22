@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -29,7 +30,7 @@ type ChronosTimerHeaderButtonProps = {
 type ChronosAction = 'timer' | 'scheduleOOO';
 
 function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

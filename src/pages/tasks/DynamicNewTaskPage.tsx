@@ -44,6 +44,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -70,7 +71,7 @@ function TaskFieldAvatar({reportID}: {reportID?: string}) {
 }
 
 function DynamicNewTaskPage() {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [task] = useOnyx(ONYXKEYS.TASK);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.shareDestination}`);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${task?.shareDestination}`, {selector: pendingDeleteMemberAccountIDsSelector});

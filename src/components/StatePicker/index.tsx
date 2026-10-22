@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {CONST as COMMON_CONST} from 'expensify-common';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import StateSelectorModal from './StateSelectorModal';
@@ -30,7 +31,7 @@ type StatePickerProps = {
 };
 
 function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 

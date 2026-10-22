@@ -19,6 +19,7 @@ import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import MenuItem from './MenuItem';
@@ -106,7 +107,7 @@ type VacationDelegateSectionProps = {
 };
 
 function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, errors, pendingAction, onCloseError, onPress}: VacationDelegateSectionProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {timezone: currentUserTimezone} = useCurrentUserPersonalDetails();

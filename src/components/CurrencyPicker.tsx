@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {Fragment, useState} from 'react';
 
 import type {CurrencyListItem} from './CurrencySelectionList/types';
@@ -47,7 +48,7 @@ type CurrencyPickerProps = {
 };
 
 function CurrencyPicker({label, value, errorText, headerContent, excludeCurrencies, disabled = false, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const [isPickerVisible, setIsPickerVisible] = useState(false);

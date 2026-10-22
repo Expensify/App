@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import Icon from './Icon';
@@ -22,7 +23,7 @@ type PinButtonProps = {
 };
 
 function PinButton({report}: PinButtonProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();

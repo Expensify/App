@@ -16,6 +16,7 @@ import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 
 type DateTimeSelectorProps = {
@@ -40,7 +41,7 @@ type DateTimeSelectorProps = {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function DateTimeSelector({errorText = '', name, value, onInputChange, ref}: DateTimeSelectorProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {

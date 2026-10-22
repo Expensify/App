@@ -29,6 +29,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -52,7 +53,7 @@ type SeverityItem = {
 type SeverityItemList = SeverityItem[];
 
 function DynamicFlagCommentPage({parentReportAction, report, parentReport, reportAction}: DynamicFlagCommentPageProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();

@@ -66,6 +66,7 @@ import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -89,7 +90,7 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, chatReportSelector);
 
 function ProfilePage({route}: ProfilePageProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const [personalDetails] = useAllPersonalDetails();
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);

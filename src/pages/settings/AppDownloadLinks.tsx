@@ -19,10 +19,11 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 function AppDownloadLinksPage() {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['Android', 'Apple']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();

@@ -47,6 +47,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -57,7 +58,7 @@ type TaskViewProps = {
 };
 
 function TaskView({report, parentReport, action}: TaskViewProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();

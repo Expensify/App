@@ -27,6 +27,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import CurrencyPopup from './CurrencyPopup';
@@ -44,7 +45,7 @@ type DisplayPopupProps = {
 };
 
 function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayPopupProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useResponsiveLayout(); // eslint-disable-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth

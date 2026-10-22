@@ -34,6 +34,7 @@ import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -52,7 +53,7 @@ function getValidationError(form: MerchantTypeRuleForm | null | undefined, trans
 }
 
 function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRulePageBaseProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Lock']);

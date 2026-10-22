@@ -25,6 +25,7 @@ import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -156,7 +157,7 @@ function ConciergeFeedbackPrompt({
     shouldRenderSelectedReactionBubble = false,
     shouldHideUnselectedThumbAfterRating = false,
 }: ConciergeFeedbackPromptProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();

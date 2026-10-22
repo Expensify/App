@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import CountrySelectorModal from './CountrySelectorModal';
@@ -30,7 +31,7 @@ type CountryPickerProps = {
 };
 
 function CountryPicker({value, errorText, onInputChange = () => {}, label}: CountryPickerProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 

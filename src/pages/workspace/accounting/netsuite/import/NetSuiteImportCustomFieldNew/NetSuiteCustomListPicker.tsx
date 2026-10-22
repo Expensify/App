@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type NetSuiteCustomListPickerProps = {
@@ -28,7 +29,7 @@ type NetSuiteCustomListPickerProps = {
 };
 
 function NetSuiteCustomListPicker({value, policyID, errorText, isEditing}: NetSuiteCustomListPickerProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
 
     return (

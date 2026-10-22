@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {PropsWithChildren, ReactNode} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type MenuItemFieldRowProps = PropsWithChildren<{
@@ -102,7 +103,7 @@ function MenuItemFieldPreset({
     testID,
     shouldAllowTextSelection = isValueSelectable,
 }: MenuItemFieldProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
             onPress={onPress ? callFunctionIfActionIsAllowed(onPress, false, session) : undefined}

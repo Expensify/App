@@ -39,6 +39,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -85,7 +86,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: ExpenseRuleForm) 
 };
 
 function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const [expenseRules = getEmptyArray<ExpenseRule>()] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
     const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM);

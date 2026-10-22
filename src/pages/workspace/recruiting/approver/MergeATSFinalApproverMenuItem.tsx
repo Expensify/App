@@ -12,6 +12,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import {useMergeATSApprovalDraftState} from './MergeATSApprovalDraftContext';
@@ -25,7 +26,7 @@ type MergeATSFinalApproverMenuItemProps = {
 };
 
 function MergeATSFinalApproverMenuItem({policyID, description}: MergeATSFinalApproverMenuItemProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {finalApprover} = useMergeATSApprovalDraftState(policyID);
     const finalApproverDetails = usePersonalDetailByLogin(finalApprover);
 

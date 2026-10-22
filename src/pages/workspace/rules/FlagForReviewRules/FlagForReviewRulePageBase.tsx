@@ -42,6 +42,7 @@ import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -73,7 +74,7 @@ function FlagForReviewRulePageBase({
     isCategoryScopedFlow = false,
     testID,
 }: FlagForReviewRulePageBaseProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);

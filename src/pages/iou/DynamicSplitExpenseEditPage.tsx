@@ -83,6 +83,7 @@ import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {policyTypeSelector} from '@selectors/Policy';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -109,7 +110,7 @@ function SplitToggleRow({label, isOn, onToggle}: SplitToggleRowProps) {
 }
 
 function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();

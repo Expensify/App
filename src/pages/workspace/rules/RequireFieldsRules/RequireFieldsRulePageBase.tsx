@@ -59,6 +59,7 @@ import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -78,7 +79,7 @@ type RequireFieldsRulePageBaseProps = {
 };
 
 function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName, isCategoryLocked: isCategoryLockedProp, testID}: RequireFieldsRulePageBaseProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabledOrUnknown} = usePermissions();

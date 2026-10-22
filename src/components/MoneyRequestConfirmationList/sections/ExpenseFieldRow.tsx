@@ -19,6 +19,7 @@ import type {ComponentRef, ReactNode, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -128,7 +129,7 @@ function ExpenseFieldRow({
     sentryLabel,
     testID,
 }: ExpenseFieldRowProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const theme = useTheme();
 

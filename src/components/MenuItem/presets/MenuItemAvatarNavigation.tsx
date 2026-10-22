@@ -20,6 +20,7 @@ import type WithTestID from '@src/types/utils/TestID';
 
 import type {GestureResponderEvent} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type MenuItemAvatarNavigationProps = WithSentryLabel &
@@ -48,7 +49,7 @@ type MenuItemAvatarNavigationProps = WithSentryLabel &
  * and a secondary identifier below, that navigates.
  */
 function MenuItemAvatarNavigation({title, description, accountID, avatarSource, onPress, isDisabled = false, sentryLabel, testID}: MenuItemAvatarNavigationProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
             onPress={callFunctionIfActionIsAllowed(onPress, false, session)}

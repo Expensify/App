@@ -17,6 +17,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import ExpenseFieldRow from './ExpenseFieldRow';
@@ -30,7 +31,7 @@ type DistanceFieldProps = {
 };
 
 function DistanceField({hasRoute, distance, unit, customUnit}: DistanceFieldProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {translate} = useLocalize();
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest} =

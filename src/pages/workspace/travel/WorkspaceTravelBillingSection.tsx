@@ -63,6 +63,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -78,7 +79,7 @@ type WorkspaceTravelBillingSectionProps = {
  * Shows a setup CTA if Travel Billing is not configured, otherwise shows the settings.
  */
 function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSectionProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();

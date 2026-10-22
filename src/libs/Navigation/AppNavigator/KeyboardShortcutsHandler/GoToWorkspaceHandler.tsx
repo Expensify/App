@@ -11,10 +11,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {useEffect, useRef} from 'react';
 
 function GoToWorkspaceHandler() {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     // The shortcut callback below is registered once, so read the latest session from a ref at fire time.
     const sessionRef = useRef(session);
 

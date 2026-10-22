@@ -10,6 +10,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
+
 import UserAvatar from './Avatar/UserAvatar';
 import Button from './Button';
 import {usePersonalDetails} from './OnyxListItemProvider';
@@ -29,7 +31,7 @@ type BookCallButtonProps = {
 };
 
 function BookCallButton({calendarLink, avatarAccountID, isNested = false, style}: BookCallButtonProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Phone']);
     const personalDetails = usePersonalDetails();

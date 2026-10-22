@@ -67,6 +67,7 @@ import type {AccessibilityState, GestureResponderEvent, ImageStyle, Role, StyleP
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -584,7 +585,7 @@ function MenuItem({
     titleAccessibilityRole,
     shouldIgnoreCompactStyle = false,
 }: MenuItemProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark', 'NewWindow']);
     const {translate} = useLocalize();
     const theme = useTheme();
