@@ -324,8 +324,11 @@ function isCardHiddenFromSearch(card: Card) {
     return !card?.nameValuePairs?.isVirtual && CONST.EXPENSIFY_CARD.HIDDEN_FROM_SEARCH_STATES.includes(card.state ?? 0);
 }
 
+/**
+ * Removing an Expensify Card deactivates it instead of closing it, so both states mean the card can no longer be used.
+ */
 function isCardClosed(card: Card) {
-    return card?.state === CONST.EXPENSIFY_CARD.STATE.CLOSED;
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.CLOSED || card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
 }
 
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldFilterOutPersonalCards = false) {
@@ -1106,7 +1109,6 @@ function getCustomOrFormattedFeedName(
 
     // Custom feed name can be empty. Fallback to default feed name
     // Fallback to feed key name for unknown feeds
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return customFeedName || formattedFeedName || feed;
 }
 

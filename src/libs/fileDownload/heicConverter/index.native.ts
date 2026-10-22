@@ -71,7 +71,6 @@ const convertImageWithManipulator = (
  * @param callbacks - Object containing callback functions for different stages of conversion
  */
 const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, onError = () => {}, onStart = () => {}, onFinish = () => {}} = {}) => {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isHeic = file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif');
     // A DNG can arrive without an `image/*` type (Android's MIME map doesn't know it on every device), so the type check
     // below only applies to HEIC. The backend rejects DNG, so it must be converted rather than passed through.
