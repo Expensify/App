@@ -12008,12 +12008,13 @@ describe('SearchUIUtils', () => {
         test('Should only show the Withdrawal ID column on report searches when a report on the page has a withdrawal', () => {
             // Given a page of reports where only one report has withdrawals
             const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID];
-            const unpaidReport = {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, total: -10000, currency: 'USD'};
-            const paidReport = {...unpaidReport, reportID: '2', withdrawalIDs: '1234,5678'};
+            const unpaidReportID = '1';
+            const paidReportID = '2';
+            const unpaidReport = {reportID: unpaidReportID, type: CONST.REPORT.TYPE.EXPENSE, total: -10000, currency: 'USD'};
+            const paidReport = {...unpaidReport, reportID: paidReportID, withdrawalIDs: '1234,5678'};
 
-            // @ts-expect-error minimal dataset for getColumnsToShow
-            const unpaidData: OnyxTypes.SearchResults['data'] = {[`${ONYXKEYS.COLLECTION.REPORT}${unpaidReport.reportID}`]: unpaidReport};
-            const paidData: OnyxTypes.SearchResults['data'] = {...unpaidData, [`${ONYXKEYS.COLLECTION.REPORT}${paidReport.reportID}`]: paidReport};
+            const unpaidData: OnyxTypes.SearchResults['data'] = {[`report_${unpaidReportID}`]: unpaidReport};
+            const paidData: OnyxTypes.SearchResults['data'] = {...unpaidData, [`report_${paidReportID}`]: paidReport};
 
             // When no report on the page has a withdrawal, then the column is hidden
             const unpaidColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: unpaidData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
