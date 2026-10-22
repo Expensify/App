@@ -9914,6 +9914,7 @@ ${reportName}`,
             `デフォルトの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `「精算不要レポートを支払済みにしない」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
+        addedExpensifyCardFeed: (feedName: string) => `「${feedName}」Expensify カードフィードを追加しました`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
