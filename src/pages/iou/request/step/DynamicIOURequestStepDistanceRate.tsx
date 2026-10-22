@@ -137,8 +137,6 @@ function DynamicIOURequestStepDistanceRate({
     // This keeps the problematic rate shown as selected so the user understands what they need to change.
     const [pendingRateID, setPendingRateID] = useState<string | undefined>();
 
-    // When editing an existing expense, tapping a row only stages the rate: it is validated and persisted when the
-    // user presses Save, so the list no longer closes on input (WCAG 3.2.2 On Input).
     const [draftRateID, setDraftRateID] = useState<string | undefined>();
 
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
@@ -160,7 +158,6 @@ function DynamicIOURequestStepDistanceRate({
             currentTransaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
                 ? DistanceRequestUtils.getDistanceUnit(currentTransaction, rate)
                 : rate.unit;
-        // The staged rate wins so the checkmark follows the row the user just tapped, even when an earlier Save failed validation.
         const effectiveRateID = draftRateID ?? pendingRateID ?? currentRateID;
         const isSelected = effectiveRateID
             ? effectiveRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
@@ -281,8 +278,6 @@ function DynamicIOURequestStepDistanceRate({
         saveAndNavigateBack();
     }
 
-    // Only the edit flow persists on select. The create and split flows write to draft state that the confirmation
-    // step already gates behind its own explicit save, so they keep selecting in place.
     const confirmButtonOptions = isEditing
         ? {
               showButton: true,

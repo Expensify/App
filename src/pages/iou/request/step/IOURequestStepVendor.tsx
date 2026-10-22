@@ -55,8 +55,6 @@ function IOURequestStepVendor({
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const [searchValue, setSearchValue] = useState('');
 
-    // Tapping a row only stages the vendor; it is persisted when the user presses Save, so the list no longer
-    // closes on input (WCAG 3.2.2 On Input). The whole row is kept because the "None" row's value is an empty string.
     const [draftVendor, setDraftVendor] = useState<VendorListItem>();
 
     const {policy} = usePolicyForTransaction({
@@ -104,7 +102,6 @@ function IOURequestStepVendor({
     const sortedEnabledVendors = sortVendors(enabledVendors, localeCompare);
 
     const trimmedSearch = searchValue.trim().toLowerCase();
-    // The staged row drives the checkmark once the user picks something, otherwise the persisted vendor does.
     const selectedVendorID = draftVendor ? draftVendor.value : currentVendorID;
     const enabledRows: VendorListItem[] = sortedEnabledVendors
         .filter((vendor) => !trimmedSearch || vendor.name.toLowerCase().includes(trimmedSearch))
