@@ -323,7 +323,6 @@ function PolicyDistanceRatesPage({
                     formattedRate: `${convertAmountToDisplayString(rate.rate, rate.currency ?? CONST.CURRENCY.USD)} / ${unitTranslation}`,
                     pendingAction: resolvedPendingAction ?? undefined,
                     errors: rate.errors ?? undefined,
-                    brickRoadIndicator: shouldShowUKFuelRateTaxErrorOnPolicy && !!rate.name?.startsWith('Cars & Vans') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                     canEditName: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
                     canEditRate: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
                     action: () => openRateDetailsByID(rate.customUnitRateID),
@@ -357,7 +356,6 @@ function PolicyDistanceRatesPage({
             openRateDetailsByID,
             dismissErrorByID,
             updateDistanceRateEnabled,
-            shouldShowUKFuelRateTaxErrorOnPolicy,
         ],
     );
 

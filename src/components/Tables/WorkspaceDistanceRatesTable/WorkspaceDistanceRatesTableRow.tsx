@@ -24,7 +24,6 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Rate, Unit} from '@src/types/onyx/Policy';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
-import type {ValueOf} from 'type-fest';
 
 import {format, parseISO} from 'date-fns';
 import React from 'react';
@@ -40,7 +39,6 @@ type DistanceRateTableItemData = TableData & {
     isLocked: boolean;
     pendingAction?: OnyxCommon.PendingAction;
     errors?: OnyxCommon.Errors;
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     action: () => void;
     dismissError: () => void;
     onToggleEnabled: (value: boolean) => void;
@@ -87,7 +85,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Bolt', 'DotIndicator']);
+    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Bolt']);
     const {processedData} = useTableContext<DistanceRateTableItemData>();
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
@@ -263,16 +261,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                         />
                     </View>
 
-                    <View
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
-                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
-                    >
-                        {item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                            <Icon
-                                src={Expensicons.DotIndicator}
-                                fill={theme.danger}
-                            />
-                        )}
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
                         <Icon
                             src={Expensicons.ArrowRight}
                             fill={theme.icon}
