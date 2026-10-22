@@ -1,7 +1,6 @@
 import {LEFT_AXIS_LABEL_OFFSET_MAX} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {CartesianChartProps, PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getFontGlyphWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getFontGlyphWidth';
-import getSkiaLineMetrics from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getSkiaLineMetrics';
 import {
     parseAttributeAsNumber,
     parseAttributeAsNumberArray,
@@ -25,7 +24,9 @@ function computeAxisSize(axisSide: XAxisSide | YAxisSide, labels: Array<string |
         return undefined;
     }
     if (axisSide === 'bottom' || axisSide === 'top') {
-        const lineHeight = getSkiaLineMetrics(font).lineHeight;
+        // victory-native uses the font size as the line height
+        // https://github.com/FormidableLabs/victory-native-xl/blob/de84ff1f3098a2072f8c52ac801ce08141fdb46a/lib/src/utils/textLayout.ts#L18-L42
+        const lineHeight = font.getSize();
         return Math.ceil(lineHeight + 2 * (labelOffset ?? 0));
     }
     const maxLabelWidth = Math.max(...labels.map((label) => getFontGlyphWidth(String(label), font)));
