@@ -117,7 +117,7 @@ type IsExportActionOptions = {
     /** Needed to skip archived reports, which the backend never returns as exportable */
     reportNameValuePairs?: ReportNameValuePairs;
 
-    /** Needed for the cash-basis carve-out on card-only reports; Search snapshot rows aren't reliably in Onyx */
+    /** Needed for the cash-basis carve-out on card-only reports. Search snapshot rows aren't reliably in Onyx. */
     reportTransactions?: Transaction[];
 };
 
