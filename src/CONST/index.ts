@@ -1436,6 +1436,7 @@ const CONST = {
         COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         DESCRIBE_RULE: 'describeRule',
+        COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -5192,6 +5193,7 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
+            IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
             GENERAL_SETTINGS: 'generalSettings',
         },
         EXPENSE_REPORT_RULES: {
