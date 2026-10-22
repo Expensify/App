@@ -76,8 +76,7 @@ describe('actions/TransactionEdit', () => {
 
                 const backups = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}`);
 
-                // Onyx resolves a registered collection with no members to the frozen `{}` once init has run.
-                expect(backups).toEqual({});
+                expect(backups).toBeUndefined();
             });
         });
 
@@ -137,8 +136,7 @@ describe('actions/TransactionEdit', () => {
 
                 const transactions = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}`);
 
-                // Onyx resolves a registered collection with no members to the frozen `{}` once init has run.
-                expect(transactions).toEqual({});
+                expect(transactions).toBeUndefined();
             });
         });
 

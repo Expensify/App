@@ -5,7 +5,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {GuideAccountIDsDerivedValue} from '@src/types/onyx';
 
 import {Str} from 'expensify-common';
-import {shallowEqual} from 'fast-equals';
 
 /**
  * Derives the accountIDs of every Expensify Guide (identified by login domain) in the personal details list.
@@ -14,7 +13,7 @@ import {shallowEqual} from 'fast-equals';
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS,
     dependencies: [ONYXKEYS.PERSONAL_DETAILS_LIST],
-    compute: ([personalDetailsList], {currentValue}) => {
+    compute: ([personalDetailsList]) => {
         if (!personalDetailsList) {
             return [];
         }
@@ -26,7 +25,6 @@ export default createOnyxDerivedValueConfig({
             }
             guideAccountIDs.push(personalDetails.accountID);
         }
-        guideAccountIDs.sort((a, b) => a - b);
-        return currentValue && shallowEqual(currentValue, guideAccountIDs) ? currentValue : guideAccountIDs;
+        return guideAccountIDs.sort((a, b) => a - b);
     },
 });

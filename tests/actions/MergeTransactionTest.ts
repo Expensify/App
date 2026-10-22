@@ -1831,10 +1831,9 @@ describe('getTransactionsForMerging', () => {
         });
         await waitForBatchedUpdates();
 
-        // Then no merge transaction entry is written for the empty key. The empty transactionID resolves
-        // to the collection root key, and reading an empty collection returns an empty object.
+        // Then no merge transaction entry is written for the empty key
         const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
-        expect(mergeTransaction).toEqual({});
+        expect(mergeTransaction).toBeUndefined();
     });
 
     it('should allow admin to see cash candidates from another open draft report in the same workspace (offline)', async () => {
