@@ -1,0 +1,12 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "pr-testing-expensify",
+    "main": "src/prTesting.ts",
+    // Keep the existing Worker's runtime settings during the repository migration.
+    "compatibility_date": "2022-12-14",
+    "workers_dev": false,
+    "preview_urls": false,
+    // The existing *.pr-testing.expensify.com/* route stays managed in Cloudflare.
+    // The deploy token must be allowed to edit pr-testing-expensify; no zone access is needed.
+    "upload_source_maps": true,
+}

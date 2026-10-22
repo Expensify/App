@@ -167,9 +167,18 @@ const PRODUCTION_CSP = buildCSP({
     scriptSrcHashes: INLINE_SCRIPT_HASHES,
 });
 
-function getCSP(environment: Env['ENVIRONMENT'], nonce: string): string {
-    const csp = environment === 'staging' ? STAGING_CSP : PRODUCTION_CSP;
+const PR_TESTING_CSP = buildCSP({
+    fontSrcHosts: ['https://*.pr-testing.expensify.com'],
+    frameSrcHosts: ['https://staging.expensify.com'],
+    scriptSrcHashes: INLINE_SCRIPT_HASHES,
+});
+
+type Environment = 'staging' | 'production' | 'pr-testing';
+
+function getCSP(environment: Environment, nonce: string): string {
+    const csp = environment === 'pr-testing' ? PR_TESTING_CSP : environment === 'staging' ? STAGING_CSP : PRODUCTION_CSP;
     return csp.replace(NONCE_PLACEHOLDER, `nonce-${nonce}`);
 }
 
 export {NONCE_PLACEHOLDER, getCSP};
+export type {Environment};

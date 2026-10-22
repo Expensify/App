@@ -10,6 +10,7 @@ on:
       - 'web/index.html'
       - '.nvmrc'
       - '.github/workflows/cloudflareWorkerTests.yml'
+      - '.github/workflows/deployPRTestingWorker.yml'
 
 concurrency:
   group: ${{ github.ref }}-cloudflare-worker-tests
