@@ -26,7 +26,10 @@ import useReportTransactionsCollection from './useReportTransactionsCollection';
  *
  */
 function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInputOrEntry<Pick<ReportAction, 'reportActionID' | 'childReportID'>>): string | undefined {
+    const {isOffline} = useNetwork();
     const reportActionID = reportAction?.reportActionID;
+    const isThreadReportParentAction = reportAction?.childReportID?.toString() === reportID;
+
     const reportActionBelongsCurrentReportSelector = (actions: OnyxEntry<ReportActions>) => {
         if (!reportActionID) {
             return false;
@@ -38,13 +41,11 @@ function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
     };
     const [reportActionBelongsCurrentReport = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: reportActionBelongsCurrentReportSelector});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportTypeAndParentIDsSelector});
-    const isThreadReportParentAction = reportAction?.childReportID?.toString() === reportID;
 
     // The full actions, chat report and transactions are only needed to find a merged transaction thread, so rows whose action is in the current report don't subscribe to them
     const lookupReportID = reportID && !reportActionBelongsCurrentReport && !isThreadReportParentAction && reportActionID ? reportID : undefined;
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lookupReportID}`, {selector: withDEWRoutedActionsObject});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lookupReportID ? report?.chatReportID : undefined}`);
-    const {isOffline} = useNetwork();
     const allReportTransactions = useReportTransactionsCollection(lookupReportID);
 
     // This will only be found if the report with reportID is a report with a single transaction and we are merging reportActions
