@@ -208,6 +208,7 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
 
@@ -253,6 +254,7 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'defa
         isTrackIntentUser,
         formatPhoneNumber,
         rules,
+        bankAccountList,
     });
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.
