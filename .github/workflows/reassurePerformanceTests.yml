@@ -4,7 +4,57 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths-ignore: [docs/**, help/**, .github/**, contributingGuides/**, tests/**, '**.md', '**.sh']
+    # Ordered: the last matching pattern wins.
+    paths:
+      - '**'
+      # Native and OldDot: Jest never loads these.
+      - '!ios/**'
+      - '!android/**'
+      - '!vendor/**'
+      - '!fastlane/**'
+      - '!Mobile-Expensify'
+      - '!Gemfile'
+      - '!Gemfile.lock'
+      - '!.ruby-version'
+      - '!.java-version'
+      - '!.buckconfig'
+      - '!.watchmanconfig'
+      # Web and Storybook builds: nothing under src/, jest/ or tests/ imports these.
+      - '!web/**'
+      - '!.well-known/**'
+      - '!.storybook/**'
+      - '!config/rsbuild/**'
+      - '!config/repack/**'
+      - '!config/certificatePinning/**'
+      # Lint, format and repo tooling config.
+      - '!eslint-plugin-local-rules/**'
+      - '!config/eslint/**'
+      - '!eslint.config.mjs'
+      - '!.oxfmtrc.json'
+      - '!cspell.json'
+      - '!codecov.yml'
+      - '!.imgbotconfig'
+      - '!.mcp.json'
+      # Docs and agent tooling.
+      - '!docs/**'
+      - '!contributingGuides/**'
+      - '!.claude/**'
+      - '!evals/**'
+      - '!prompts/**'
+      # Tests: only the perf harness feeds the measurement.
+      - '!tests/**'
+      - 'tests/perf-test/**'
+      - 'tests/utils/**'
+      - 'tests/unit/currencyList.json'
+      - 'tests/__mocks__/**'
+      # CI: only this check, its baseline seed, and the actions it runs.
+      - '!.github/**'
+      - '.github/workflows/reassurePerformanceTests.yml'
+      - '.github/workflows/seedJestPerfCache.yml'
+      - '.github/actions/javascript/validateReassureOutput/**'
+      - '.github/actions/composite/setupNode/**'
+      - '!**.md'
+      - '!**.sh'
 
 # Cancel a run still measuring an earlier push to the same PR. pull_request-only, so github.ref is
 # refs/pull/<n>/merge and the group is one PR.

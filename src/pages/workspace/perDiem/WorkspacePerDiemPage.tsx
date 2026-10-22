@@ -238,7 +238,8 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
             });
         }
-        if (hasVisibleSubRates) {
+        // Admins can download the CSV before adding rates, to use it as an import template
+        if (hasVisibleSubRates || canWritePerDiem) {
             menuItems.push({
                 icon: expensifyIcons.Download,
                 text: translate('spreadsheet.downloadCSV'),
