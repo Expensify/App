@@ -870,6 +870,7 @@ const SCREENS = {
         MEMBERS_IMPORT: 'Members_Import',
         MEMBERS_CHANGE_OFFICE_LOCATION: 'Members_Change_Office_Location',
         MEMBERS_CHANGE_WORK_ARRANGEMENT: 'Members_Change_Work_Arrangement',
+        MEMBERS_CHANGE_TRAVEL_ACCESS: 'Members_Change_Travel_Access',
         MEMBERS_IMPORTED: 'Members_Imported',
         MEMBERS_IMPORTED_CONFIRMATION: 'Members_Imported_Confirmation',
         DYNAMIC_WORKSPACE_INVITE: 'Dynamic_Workspace_Invite',

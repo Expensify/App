@@ -562,6 +562,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.MEMBERS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportMembersPage').default,
     [SCREENS.WORKSPACE.MEMBERS_CHANGE_OFFICE_LOCATION]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMembersChangeOfficeLocationPage').default,
     [SCREENS.WORKSPACE.MEMBERS_CHANGE_WORK_ARRANGEMENT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMembersChangeWorkArrangementPage').default,
+    [SCREENS.WORKSPACE.MEMBERS_CHANGE_TRAVEL_ACCESS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMembersChangeTravelAccessPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/ImportWorkflowsPage').default,
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportedMembersPage').default,
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportedMembersConfirmationPage').default,

@@ -1099,6 +1099,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBERS_CHANGE_WORK_ARRANGEMENT]: {
                             path: ROUTES.WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBERS_CHANGE_TRAVEL_ACCESS]: {
+                            path: ROUTES.WORKSPACE_MEMBERS_CHANGE_TRAVEL_ACCESS.route,
+                        },
                         [SCREENS.WORKSPACE.WORKFLOWS_IMPORT]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_IMPORT.route,
                         },

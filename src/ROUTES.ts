@@ -3582,6 +3582,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/members/change-work-arrangement',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/change-work-arrangement` as const,
     },
+    WORKSPACE_MEMBERS_CHANGE_TRAVEL_ACCESS: {
+        route: 'workspaces/:policyID/members/change-travel-access',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/change-travel-access` as const,
+    },
     WORKSPACE_MEMBERS_IMPORTED: {
         route: 'workspaces/:policyID/members/imported',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/imported` as const,

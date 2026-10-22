@@ -53,6 +53,9 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.MEMBERS_CHANGE_WORK_ARRANGEMENT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBERS_CHANGE_TRAVEL_ACCESS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.WORKFLOWS_IMPORT]: {
         policyID: string;
     };
