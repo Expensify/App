@@ -4832,6 +4832,10 @@ ${amount} per ${merchant} - ${date}`,
             hotelBlockCard:
                 'Sapevi che puoi prenotare e gestire viaggi di gruppo come questo direttamente in Expensify? Evita lo stress la prossima volta e prova il nostro strumento <a href="https://help.expensify.com/travel/hubs/event-management/">Eventi di viaggio</a>.',
         },
+        memberAccessDisabledModal: {
+            title: 'I viaggi non sono ancora attivi per te',
+            message: 'L’amministratore del tuo spazio di lavoro non ha ancora attivato Expensify Travel per te. Contatta il tuo amministratore per ottenere l’accesso.',
+        },
         defaultWorkspaceTravelDisabled: {
             title: 'Viaggi non abilitato',
             message: 'Per prenotare, abilita i viaggi sul tuo spazio di lavoro predefinito oppure imposta come predefinito uno spazio di lavoro con viaggi abilitati.',
@@ -6702,6 +6706,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         subtitle:
                             'Invia le categorie, i tag e i campi di rendiconto di questo spazio di lavoro a Expensify Travel così che chi viaggia li compili al momento della prenotazione.',
                     },
+                },
+                members: {
+                    subtitle: 'Scegli quali membri possono prenotare e gestire i viaggi in questo spazio di lavoro.',
+                    allMembers: 'Tutti i membri possono prenotare viaggi',
+                    canBookTravel: 'Può prenotare viaggi',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

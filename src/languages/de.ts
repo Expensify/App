@@ -4863,6 +4863,10 @@ ${amount} für ${merchant} – ${date}`,
             hotelBlockCard:
                 'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
         },
+        memberAccessDisabledModal: {
+            title: 'Reisen ist für Sie noch nicht aktiviert',
+            message: 'Ihre Workspace-Administration hat Expensify Travel für Sie noch nicht aktiviert. Bitte wenden Sie sich an Ihre Administration, um Zugriff zu erhalten.',
+        },
         defaultWorkspaceTravelDisabled: {
             title: 'Reisen ist nicht aktiviert',
             message: 'Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standard-Arbeitsbereich oder wechseln Sie Ihren Standard-Arbeitsbereich zu einem, in dem Reisen aktiviert ist.',
@@ -6739,6 +6743,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         title: 'Codierung mit Expensify Travel synchronisieren',
                         subtitle: 'Kategorien, Tags und Berichtsfelder dieses Arbeitsbereichs an Expensify Travel übertragen, damit Reisende sie beim Buchen beantworten.',
                     },
+                },
+                members: {
+                    subtitle: 'Wählen Sie aus, welche Mitglieder in diesem Workspace Reisen buchen und verwalten können.',
+                    allMembers: 'Alle Mitglieder können Reisen buchen',
+                    canBookTravel: 'Kann Reisen buchen',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

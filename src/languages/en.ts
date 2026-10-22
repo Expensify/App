@@ -4969,6 +4969,10 @@ const translations = {
             title: 'Expensify Travel has been disabled',
             message: `Your admin has turned off Expensify Travel. Please follow your company's booking policy for travel arrangements.`,
         },
+        memberAccessDisabledModal: {
+            title: "Travel isn't turned on for you yet",
+            message: "Your workspace admin hasn't turned on Expensify Travel for you. Reach out to your admin to get access.",
+        },
         defaultWorkspaceTravelDisabled: {
             title: 'Travel is not enabled',
             message: 'To book, please enable travel on your default workspace or switch your default workspace to one that is travel-enabled.',
@@ -7135,6 +7139,11 @@ const translations = {
                         title: 'Sync coding to Expensify Travel',
                         subtitle: "Push this workspace's categories, tags, and report fields to Expensify Travel so travelers answer them at booking time.",
                     },
+                },
+                members: {
+                    subtitle: 'Choose which members can book and manage travel on this workspace.',
+                    allMembers: 'All members can book travel',
+                    canBookTravel: 'Can book travel',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

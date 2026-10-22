@@ -4833,6 +4833,10 @@ ${amount} voor ${merchant} - ${date}`,
             hotelBlockCard:
                 'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
         },
+        memberAccessDisabledModal: {
+            title: 'Reizen is nog niet voor je ingeschakeld',
+            message: 'Je workspacebeheerder heeft Expensify Travel nog niet voor je ingeschakeld. Neem contact op met je beheerder voor toegang.',
+        },
         defaultWorkspaceTravelDisabled: {
             title: 'Reizen is niet ingeschakeld',
             message: 'Om te boeken, schakel reizen in op je standaardwerkruimte of stel een standaardwerkruimte in die reizen ondersteunt.',
@@ -6690,6 +6694,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         title: 'Synchroniseer codering met Expensify Travel',
                         subtitle: 'Push de categorieën, tags en rapportvelden van deze workspace naar Expensify Travel zodat reizigers ze bij het boeken invullen.',
                     },
+                },
+                members: {
+                    subtitle: 'Kies welke leden reizen kunnen boeken en beheren in deze workspace.',
+                    allMembers: 'Alle leden kunnen reizen boeken',
+                    canBookTravel: 'Kan reizen boeken',
                 },
                 travelInvoicing: {
                     travelBookingSection: {

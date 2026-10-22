@@ -4797,6 +4797,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             hotelBlockCard:
                 'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
         },
+        memberAccessDisabledModal: {
+            title: 'まだ出張機能が有効になっていません',
+            message: 'ワークスペース管理者があなたのExpensify Travelをまだ有効にしていません。アクセスするには管理者にお問い合わせください。',
+        },
         defaultWorkspaceTravelDisabled: {
             title: '出張機能は有効になっていません',
             message: '予約するには、デフォルトのワークスペースで出張機能を有効にするか、出張機能が有効になっているワークスペースをデフォルトとして設定してください。',
@@ -6615,6 +6619,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         title: 'コーディングを Expensify Travel と同期する',
                         subtitle: 'このワークスペースのカテゴリ、タグ、レポートフィールドを Expensify Travel にプッシュして、出張者が予約時にそれらに回答できるようにします。',
                     },
+                },
+                members: {
+                    subtitle: 'このワークスペースで出張を予約・管理できるメンバーを選択してください。',
+                    allMembers: 'すべてのメンバーが出張を予約できます',
+                    canBookTravel: '出張を予約可能',
                 },
                 travelInvoicing: {
                     travelBookingSection: {
