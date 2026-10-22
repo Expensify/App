@@ -14,7 +14,7 @@ type ShareActionContent = {
 // Type for the ShareActionHandler module
 type ShareActionHandlerModule = {
     // Method to process files, which takes a callback function
-    processFiles(callback: (files: ShareActionContent[] | string | ShareActionContent | null | undefined) => void): void;
+    processFiles(callback: (files: ShareActionContent[] | string | null) => void): void;
 };
 
 export default ShareActionHandler;
