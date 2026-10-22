@@ -34,7 +34,8 @@ function InsightsTabSelector({activeDashboardID, dashboardIDs}: InsightsTabSelec
 
     return (
         <TabSelectorBase
-            contentContainerStyles={[styles.ph0, styles.pb0]}
+            contentContainerStyles={[styles.ph0, styles.pb0, styles.flexGrow0]}
+            tabButtonStyles={styles.ph6}
             tabs={tabs}
             activeTabKey={activeDashboardID}
             onTabPress={(dashboardID) => Navigation.navigate(ROUTES.INSIGHTS.getRoute(dashboardID))}
