@@ -13,7 +13,8 @@ function hasManualMapDistanceOverride(transaction: OnyxEntry<Transaction>): bool
 
     const quantity = transaction?.comment?.customUnit?.quantity;
     const unit = transaction?.comment?.customUnit?.distanceUnit;
-    if (typeof quantity !== 'number' || !unit) {
+    // A route reused offline that was itself saved offline seeds a quantity of 0, which is not a typed distance.
+    if (typeof quantity !== 'number' || quantity <= 0 || !unit) {
         return false;
     }
 

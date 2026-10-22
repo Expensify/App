@@ -64,6 +64,28 @@ describe('hasManualMapDistanceOverride', () => {
         expect(result).toBe(true);
     });
 
+    it('returns false for a reused route that has no route distance yet', () => {
+        // Given a route reused offline that was itself saved offline, so its quantity was seeded as 0 with no route distance
+        const transaction = {...buildMapTransaction({quantity: 0}), isReusedRoute: true};
+
+        // When it is checked for an override
+        const result = hasManualMapDistanceOverride(transaction);
+
+        // Then it is not an override, because the quantity came from the saved route and sending it would store 0 mi
+        expect(result).toBe(false);
+    });
+
+    it('returns true for a distance typed after reusing a route offline', () => {
+        // Given a route reused offline and then a distance typed on the Manual tab, which leaves the reused flag in place
+        const transaction = {...buildMapTransaction({quantity: 5}), isReusedRoute: true};
+
+        // When it is checked for an override
+        const result = hasManualMapDistanceOverride(transaction);
+
+        // Then it is still an override, so the typed distance reaches the server
+        expect(result).toBe(true);
+    });
+
     it('returns false when the quantity matches the selected alternate route', () => {
         // Given an alternate route the user picked on the map, which writes that route's distance into the quantity
         const transaction = buildMapTransaction({quantity: 15, routes: {route0: toMeters(10), route1: toMeters(15)}, selectedRouteKey: 'route1'});
