@@ -5,6 +5,7 @@ import type {ListItemType} from '@components/WorkspaceMemberRoleList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
+import useWorkspaceMemberFromRoute from '@hooks/useWorkspaceMemberFromRoute';
 
 import {updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
@@ -33,19 +34,21 @@ type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingPr
     };
 
 function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: WorkspaceMemberDetailsRolePageProps) {
-    const accountID = Number(route.params.accountID);
+    const routeAccountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const {memberLogin, accountID} = useWorkspaceMemberFromRoute(policy, personalDetails, routeAccountID);
     const member = policy?.employeeList?.[memberLogin];
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     // The Authorized Payer (reimburser) must stay a valid payer, so restrict them to the roles that can pay (for example Admin or Payments Admin).
     const isReimburser = isPolicyReimburser(policy, memberLogin);
     const allowedRoles = getAllowedRolesForMember(policy, memberLogin);
+    // Go back with the route's accountID so it matches the details screen below, which keeps the optimistic accountID it was opened with.
+    const memberDetailsRoute = ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, routeAccountID);
     useRedirectSubmitWorkspaceFeatureUpgrade({
         policy,
-        backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
+        backTo: memberDetailsRoute,
         upgradeFeatureAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
     });
 
@@ -65,7 +68,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
             return;
         }
         updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value);
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        Navigation.goBack(memberDetailsRoute);
     };
 
     return (
@@ -84,7 +87,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
                     policy={policy}
                     onSelectRole={changeRole}
                     allowedRoles={allowedRoles}
-                    navigateBackTo={ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)}
+                    navigateBackTo={memberDetailsRoute}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

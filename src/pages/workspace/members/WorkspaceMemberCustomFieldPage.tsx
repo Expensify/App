@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceMemberFromRoute from '@hooks/useWorkspaceMemberFromRoute';
 
 import {updateMemberCustomField} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,12 +44,13 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
     const params = route.params;
     const customFieldType = params.customFieldType;
     const accountID = Number(params.accountID);
-    const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const {memberLogin} = useWorkspaceMemberFromRoute(policy, personalDetails, accountID);
     const member = policy?.employeeList?.[memberLogin];
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
     const [customField, setCustomField] = useState(member?.[customFieldKey ?? ''] ?? '');
     const customFieldText = translate(`workspace.common.${customFieldType}`);
     const policyID = params.policyID;
+    // Go back with the route's accountID, even if it is a stale optimistic one, so it matches the details screen below that was opened with it.
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     }, [accountID, policyID]);

@@ -287,7 +287,7 @@ describe('WorkArrangementPage', () => {
         expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(syncedPolicy, [syncedAccountID], true, syncedPersonalDetails);
     });
 
-    it('keeps the member profile as the back destination after an offline invite syncs', async () => {
+    it('goes back to the details route that holds the optimistic account ID after an offline invite syncs', async () => {
         // Given the arrangement page was opened while the invite had only an optimistic account ID
         const optimisticAccountID = generateAccountID(memberLogin);
         const optimisticPersonalDetails: PersonalDetailsList = {
@@ -320,7 +320,8 @@ describe('WorkArrangementPage', () => {
             headerProps?.onPress?.();
         });
 
-        // Then navigation targets the member profile with the synced account ID
-        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, syncedAccountID));
+        // Then navigation targets the details route with the optimistic account ID, so it pops to the details screen below that was
+        // opened with it instead of replacing this page with a second details screen for the synced account ID
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, optimisticAccountID));
     });
 });
