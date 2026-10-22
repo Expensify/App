@@ -27,7 +27,7 @@ jest.mock('@components/UserDetailsTooltip', () => ({
 }));
 
 jest.mock('@components/Avatar/AvatarFromIcon', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- require() returns an untyped module object
     const {View} = require('react-native');
     return ({containerStyles, testID}: {containerStyles: StyleProp<ViewStyle>; testID: string}) => (
         <View
