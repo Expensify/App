@@ -55,7 +55,7 @@ async function runPatchPackage(patchDirectory: string): Promise<PatchResult> {
     return {exitCode: result.exitCode, output: result.stdout.toString()};
 }
 
-export function getFailedPatchPackages(output: string): string[] {
+function getFailedPatchPackages(output: string): string[] {
     const packages = new Set<string>();
     for (const match of output.matchAll(/(?:The patches for|Failed to apply patch for package)\s+(\S+)/g)) {
         packages.add(match[1]);
@@ -139,3 +139,5 @@ if (import.meta.main) {
         process.exitCode = 1;
     }
 }
+
+export default getFailedPatchPackages;
