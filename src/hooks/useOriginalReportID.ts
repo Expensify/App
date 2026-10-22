@@ -8,7 +8,6 @@ import type {OnyxInputOrEntry, ReportAction, ReportActions} from '@src/types/ony
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {reportTypeAndParentIDsSelector} from '@selectors/Report';
-import {useMemo} from 'react';
 
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -49,16 +48,13 @@ function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
     const allReportTransactions = useReportTransactionsCollection(lookupReportID);
 
     // This will only be found if the report with reportID is a report with a single transaction and we are merging reportActions
-    const uniqueTransactionThreadReportID = useMemo(() => {
-        if (!lookupReportID) {
-            return undefined;
-        }
-
+    let uniqueTransactionThreadReportID: string | undefined;
+    if (lookupReportID) {
         const visibleTransactionsIDs = getAllNonDeletedTransactions(allReportTransactions, Object.values(reportActions ?? {}))
             .filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map((transaction) => transaction.transactionID);
-        return getOneTransactionThreadReportID({type: report?.type}, chatReport, reportActions ?? ([] as ReportAction[]), isOffline, visibleTransactionsIDs);
-    }, [lookupReportID, allReportTransactions, reportActions, report?.type, chatReport, isOffline]);
+        uniqueTransactionThreadReportID = getOneTransactionThreadReportID({type: report?.type}, chatReport, reportActions ?? ([] as ReportAction[]), isOffline, visibleTransactionsIDs);
+    }
 
     const [uniqueTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${uniqueTransactionThreadReportID}`);
 
