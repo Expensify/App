@@ -20,7 +20,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed, isCSVUploadFeed, isDirectFeed} from '@libs/CardUtils';
+import {
+    getCompanyCardFeed,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    getDomainOrWorkspaceAccountID,
+    getEffectiveFeedReimbursable,
+    getSelectedFeed,
+    isCSVUploadFeed,
+    isDirectFeed,
+} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -84,12 +93,19 @@ function WorkspaceCompanyCardsSettingsPage({
         return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
     }, [translate, selectedFeedData?.statementPeriodEndDay]);
 
+    const effectiveReimbursable = getEffectiveFeedReimbursable(selectedFeedData?.forceReimbursable);
+    const reimbursable = effectiveReimbursable ? translate(`workspace.companyCards.reimbursable.${effectiveReimbursable}`) : '';
+
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));
     };
 
     const navigateToChangeStatementCloseDate = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.getRoute(policyID));
+    };
+
+    const navigateToChangeReimbursable = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_REIMBURSABLE.getRoute(policyID));
     };
 
     const deleteCompanyCardFeed = () => {
@@ -159,6 +175,15 @@ function WorkspaceCompanyCardsSettingsPage({
                                 onPress={navigateToChangeStatementCloseDate}
                             >
                                 {!!selectedFeedData?.errorFields?.statementPeriodEndDay && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            </MenuItemField>
+                        </OfflineWithFeedback>
+                        <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.forceReimbursable}>
+                            <MenuItemField
+                                value={reimbursable}
+                                name={translate('workspace.companyCards.reimbursable.title')}
+                                onPress={navigateToChangeReimbursable}
+                            >
+                                {!!selectedFeedData?.errorFields?.forceReimbursable && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                             </MenuItemField>
                         </OfflineWithFeedback>
                         <View style={[styles.mv3, styles.mh5]}>

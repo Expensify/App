@@ -553,7 +553,12 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Θέλετε να ειδοποιείστε όταν απαντά ο Concierge;',
             cta: 'Ειδοποίηση',
         },
-        feedback: {prompt: 'Ήταν χρήσιμη αυτή η απάντηση;', useful: 'Χρήσιμη απάντηση', notUseful: 'Μη χρήσιμη απάντηση', thanks: 'Ευχαριστούμε για τα σχόλιά σας!'},
+        feedback: {
+            prompt: 'Ήταν χρήσιμη αυτή η απάντηση;',
+            useful: 'Χρήσιμη απάντηση',
+            notUseful: 'Μη χρήσιμη απάντηση',
+            thanks: 'Ευχαριστούμε για τα σχόλιά σας!',
+        },
     },
     supportalNoAccess: {
         title: 'Όχι τόσο γρήγορα',
@@ -1017,7 +1022,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Χώρος εργασίας',
                 subtitle: ({policyName}: {policyName: string}) => policyName,
             },
-            addShippingAddress: {title: 'Χρειαζόμαστε τη διεύθυνση αποστολής σας', subtitle: 'Δώστε μια διεύθυνση για να λάβετε την Κάρτα Expensify.', cta: 'Προσθήκη'},
+            addShippingAddress: {
+                title: 'Χρειαζόμαστε τη διεύθυνση αποστολής σας',
+                subtitle: 'Δώστε μια διεύθυνση για να λάβετε την Κάρτα Expensify.',
+                cta: 'Προσθήκη',
+            },
             addVirtualCardPersonalDetails: {
                 title: 'Προσθέστε τα στοιχεία σας για να δείτε και να αρχίσετε να χρησιμοποιείτε την Κάρτα Expensify.',
                 subtitle: 'Κάρτα Expensify',
@@ -1048,7 +1057,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Κάρτα Expensify',
                 cta: 'Ανασκόπηση',
             },
-            addHomeAddress: {title: 'Προσθέστε τη διεύθυνση κατοικίας σας για παρακολούθηση αποστάσεων', subtitle: 'Λογαριασμός', cta: 'Προσθήκη'},
+            addHomeAddress: {
+                title: 'Προσθέστε τη διεύθυνση κατοικίας σας για παρακολούθηση αποστάσεων',
+                subtitle: 'Λογαριασμός',
+                cta: 'Προσθήκη',
+            },
             fixFailedBilling: {
                 title: 'Δεν μπορέσαμε να χρεώσουμε την αποθηκευμένη κάρτα σας',
                 subtitle: 'Συνδρομή',
@@ -1073,8 +1086,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `Η συνδρομή λήγει στις ${date}`,
                 cta: 'Διαχείριση',
             },
-            emailDeliveryFailure: {title: 'Δεν μπορούμε να σας στέλνουμε ειδοποιήσεις μέσω email', subtitle: 'Λογαρια​σμός'},
-            upgradeNetSuiteConnection: {title: 'Αναβαθμίστε τη σύνδεσή σας με το NetSuite'},
+            emailDeliveryFailure: {
+                title: 'Δεν μπορούμε να σας στέλνουμε ειδοποιήσεις μέσω email',
+                subtitle: 'Λογαρια​σμός',
+            },
+            upgradeNetSuiteConnection: {
+                title: 'Αναβαθμίστε τη σύνδεσή σας με το NetSuite',
+            },
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -1226,8 +1244,14 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         viewOnSpend: 'Προβολή στο Spend',
-        emptyState: {title: 'Τίποτα προς εμφάνιση', subtitle: 'Δοκιμάστε να προσαρμόσετε τα κριτήριά σας παραπάνω'},
-        noExpensesState: {title: 'Δείτε πού πηγαίνουν τα χρήματά σας', subtitle: 'Μόλις έχετε δαπάνες, θα βλέπετε τάσεις δαπανών, κορυφαίους εμπόρους και άλλα.'},
+        emptyState: {
+            title: 'Τίποτα προς εμφάνιση',
+            subtitle: 'Δοκιμάστε να προσαρμόσετε τα κριτήριά σας παραπάνω',
+        },
+        noExpensesState: {
+            title: 'Δείτε πού πηγαίνουν τα χρήματά σας',
+            subtitle: 'Μόλις έχετε δαπάνες, θα βλέπετε τάσεις δαπανών, κορυφαίους εμπόρους και άλλα.',
+        },
         compare: {
             label: 'Σύγκριση',
             previousPeriod: 'Προηγούμενη περίοδος',
@@ -2447,9 +2471,18 @@ const translations: TranslationDeepObject<typeof en> = {
             testingPreferences: 'Προτιμήσεις δοκιμών',
             server: 'Διακομιστής',
             servers: {
-                production: {label: 'Παραγωγή', description: 'Το ζωντανό περιβάλλον που βλέπουν οι πραγματικοί χρήστες'},
-                staging: {label: 'Staging', description: 'Αντίγραφο της παραγωγής. Χρησιμοποιείται για τον τελικό έλεγχο'},
-                qa: {label: 'QA', description: 'Πειραματικό περιβάλλον που χρησιμοποιείται για δοκιμές'},
+                production: {
+                    label: 'Παραγωγή',
+                    description: 'Το ζωντανό περιβάλλον που βλέπουν οι πραγματικοί χρήστες',
+                },
+                staging: {
+                    label: 'Staging',
+                    description: 'Αντίγραφο της παραγωγής. Χρησιμοποιείται για τον τελικό έλεγχο',
+                },
+                qa: {
+                    label: 'QA',
+                    description: 'Πειραματικό περιβάλλον που χρησιμοποιείται για δοκιμές',
+                },
             },
             serverPinnedDescription: 'Αυτή η έκδοση επικοινωνεί πάντα με έναν διακομιστή, οπότε δεν μπορεί να αλλάξει εδώ.',
             forceOffline: 'Εξαναγκασμός εκτός σύνδεσης',
@@ -2917,7 +2950,10 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Ξεκινήστε',
             headerTitle: 'Παγκόσμιες αποζημιώσεις',
         },
-        wiseGlobalReimbursementsBanner: {title: 'Πληρώστε ανθρώπους παγκοσμίως', subtitle: 'Ενεργοποιήστε τις παγκόσμιες αποζημιώσεις στον λογαριασμό USD σας.'},
+        wiseGlobalReimbursementsBanner: {
+            title: 'Πληρώστε ανθρώπους παγκοσμίως',
+            subtitle: 'Ενεργοποιήστε τις παγκόσμιες αποζημιώσεις στον λογαριασμό USD σας.',
+        },
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Προσθήκη κάρτας στο ${walletName}`,
@@ -6431,20 +6467,28 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             syncReimbursedReports: 'Συγχρονισμός εξοφλημένων αναφορών',
             syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργηθεί πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
-            billPaymentAccount: {label: 'Λογαριασμός πληρωμής λογαριασμών', description: 'Επιλέξτε από πού θα πληρώνετε λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
+            billPaymentAccount: {
+                label: 'Λογαριασμός πληρωμής λογαριασμών',
+                description: 'Επιλέξτε από πού θα πληρώνετε λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο DualEntry.',
+            },
             fxExpenseAccount: {
                 label: 'Λογαριασμός προμήθειας μετατροπής νομίσματος DualEntry',
                 description:
                     'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή στο εξωτερικό, θα καταχωρούμε αυτό το κόστος σε αυτόν τον λογαριασμό στο DualEntry ως λογιστική εγγραφή.',
             },
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
-            settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
+            settlementAccount: {
+                label: 'λογαριασμός διακανονισμού κάρτας Expensify',
+                description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.',
+            },
             syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
             travelInvoicingSettlementAccount: {
                 label: 'λογαριασμός εκκαθάρισης συγκεντρωτικής χρέωσης ταξιδιών',
                 description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.',
             },
-            travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων ενοποιημένης χρέωσης ταξιδιών'},
+            travelInvoicingPayableAccount: {
+                label: 'Λογαριασμός πληρωτέων ενοποιημένης χρέωσης ταξιδιών',
+            },
         },
         type: {
             free: 'Δωρεάν',
@@ -6588,6 +6632,18 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Τελευταία ημέρα του μήνα',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Τελευταία εργάσιμη ημέρα του μήνα',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Προσαρμοσμένη ημέρα μήνα',
+            },
+            reimbursable: {
+                title: 'Επιστρεπτέο',
+                description: 'Επιλέξτε πώς θα δημιουργούνται οι συναλλαγές κάρτας. Οι νέες συναλλαγές θα ακολουθούν αυτούς τους κανόνες.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Πάντα επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Επιστρέφεται πάντα στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Πάντα μη επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Δεν επιστρέφεται ποτέ στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Επιστρέφεται συνήθως στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Μη επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Επιστρέφεται περιστασιακά στους υπαλλήλους',
             },
             assign: 'Ανάθεση',
             assignCard: 'Ανάθεση κάρτας',
@@ -8003,7 +8059,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             dontSeeYourATS: `<muted-text-label>Δεν βλέπετε εδώ το ATS σας; <a href="#">Ρωτήστε το Concierge</a> και μπορούμε να το προσθέσουμε.</muted-text-label>`,
             importSettings: 'Ρυθμίσεις εισαγωγής',
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
-            approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων', hiringManager: 'Υπεύθυνος προσλήψεων'},
+            approverFields: {
+                recruiter: 'Στρατολογητής',
+                recruitingCoordinator: 'Συντονιστής προσλήψεων',
+                hiringManager: 'Υπεύθυνος προσλήψεων',
+            },
             filters: {
                 description: (providerName: string) => `Επιλέξτε ποια μέλη θα εισαχθούν από το ${providerName}. Μπορείτε να επιλέξετε από στάδια εργασίας, ετικέτες και γραφεία.`,
                 stages: {
@@ -9382,22 +9442,40 @@ ${reportName}`,
             enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Campfire θα είναι διαθέσιμοι ως κατηγορίες.',
             dimensionsImport: 'Όλες οι διαστάσεις Campfire εισάγονται ως ετικέτες',
             exportDescription: 'Ρυθμίστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο Campfire.',
-            exportReimbursable: {label: 'Εξαγωγή αποζημιώσιμων εξόδων ως', values: {VENDOR_BILL: {label: 'Τιμολόγια προμηθευτών'}}},
+            exportReimbursable: {
+                label: 'Εξαγωγή αποζημιώσιμων εξόδων ως',
+                values: {VENDOR_BILL: {label: 'Τιμολόγια προμηθευτών'}},
+            },
             exportDate: {
                 label: 'Ημερομηνία τιμολογίου προμηθευτή',
                 description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο Campfire.',
                 values: {
-                    LAST_EXPENSE: {label: 'Ημερομηνία τελευταίας δαπάνης', description: 'Ημερομηνία της πιο πρόσφατης δαπάνης στην αναφορά.'},
-                    REPORT_EXPORTED: {label: 'Ημερομηνία εξαγωγής', description: 'Ημερομηνία εξαγωγής της αναφοράς στο Campfire.'},
-                    REPORT_SUBMITTED: {label: 'Ημερομηνία υποβολής', description: 'Ημερομηνία που η αναφορά υποβλήθηκε για έγκριση.'},
+                    LAST_EXPENSE: {
+                        label: 'Ημερομηνία τελευταίας δαπάνης',
+                        description: 'Ημερομηνία της πιο πρόσφατης δαπάνης στην αναφορά.',
+                    },
+                    REPORT_EXPORTED: {
+                        label: 'Ημερομηνία εξαγωγής',
+                        description: 'Ημερομηνία εξαγωγής της αναφοράς στο Campfire.',
+                    },
+                    REPORT_SUBMITTED: {
+                        label: 'Ημερομηνία υποβολής',
+                        description: 'Ημερομηνία που η αναφορά υποβλήθηκε για έγκριση.',
+                    },
                 },
             },
-            exportNonReimbursable: {label: 'Εξαγωγή εταιρικών εξόδων κάρτας ως', values: {JOURNAL_ENTRY: {label: 'Λογιστικές εγγραφές'}}},
+            exportNonReimbursable: {
+                label: 'Εξαγωγή εταιρικών εξόδων κάρτας ως',
+                values: {JOURNAL_ENTRY: {label: 'Λογιστικές εγγραφές'}},
+            },
             defaultCompanyCardVendor: {
                 label: 'Προεπιλεγμένος προμηθευτής για όλες τις εταιρικές κάρτες',
                 description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή Campfire για δαπάνες που δεν αντιστοιχίζονται αυτόματα.',
             },
-            companyCardAccount: {label: 'Λογαριασμός εταιρικής κάρτας', description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.'},
+            companyCardAccount: {
+                label: 'Λογαριασμός εταιρικής κάρτας',
+                description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
+            },
             noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
             noAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς στο Campfire και συγχρονίστε ξανά τη σύνδεση',
             autoSyncDescription: 'Συγχρονίστε αυτόματα το Campfire και το Expensify, κάθε μέρα. Οι αναφορές συγχρονίζονται σε πραγματικό χρόνο.',
@@ -9420,13 +9498,18 @@ ${reportName}`,
                 description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης για τις πιστώσεις Campfire όταν το Expensify σημειώνει έναν λογαριασμό ως πληρωμένο.',
             },
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών Κάρτας Expensify',
-            settlementAccount: {label: 'λογαριασμός εκκαθάρισης Κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Campfire.'},
+            settlementAccount: {
+                label: 'λογαριασμός εκκαθάρισης Κάρτας Expensify',
+                description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Campfire.',
+            },
             syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
             travelInvoicingSettlementAccount: {
                 label: 'λογαριασμός εκκαθάρισης συγκεντρωτικής χρέωσης ταξιδιών',
                 description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Campfire.',
             },
-            travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων ενοποιημένης χρέωσης ταξιδιών'},
+            travelInvoicingPayableAccount: {
+                label: 'Λογαριασμός πληρωτέων ενοποιημένης χρέωσης ταξιδιών',
+            },
             exportToMultipleAccounts: 'Ρύθμιση εξαγωγής σε πολλούς λογαριασμούς',
             cardProgramAccount: {
                 label: 'Λογαριασμός προγράμματος κάρτας',
@@ -9841,6 +9924,8 @@ ${reportName}`,
             `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} κατόχοι κάρτας να διαγράψουν συναλλαγές κάρτας για την τροφοδοσία κάρτας «${feedName}»`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `άλλαξε την ημέρα λήξης της περιόδου εκκαθάρισης της ροής κάρτας «${feedName}»${newValue ? `σε "${newValue}"` : ''}${previousValue ? `(προηγουμένως "${previousValue}")` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `άλλαξε τη ρύθμιση επιστρεπτέου του καναλιού κάρτας "${feedName}"${newValue ? ` σε "${newValue}"` : ''}${previousValue ? ` (προηγουμένως "${previousValue}")` : ''}`,
         agentRule: {
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `προσέθεσε τον κανόνα πράκτορα «${title}»: ${prompt}` : `προσέθεσε έναν κανόνα πράκτορα: ${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) =>
@@ -10065,7 +10150,11 @@ ${reportName}`,
                 `αλλάχθηκε ο αποκλεισμός μετακινήσεων από/προς εργασία σε σταθερή απόσταση ανά αίτημα (προηγουμένως ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) =>
                 `άλλαξε τον αποκλεισμό μετακινήσεων ώστε να υπολογίζεται από το σπίτι και το γραφείο (προηγουμένως ${previousMethod})`,
-            previousMethod: {disabled: 'να μην αποκλείονται οι μετακινήσεις από και προς την εργασία', fixedDistance: 'σταθερή απόσταση ανά αίτημα', homeAndOffice: 'σπίτι και γραφείο'},
+            previousMethod: {
+                disabled: 'να μην αποκλείονται οι μετακινήσεις από και προς την εργασία',
+                fixedDistance: 'σταθερή απόσταση ανά αίτημα',
+                homeAndOffice: 'σπίτι και γραφείο',
+            },
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `ορίστε σταθερό αποκλεισμό απόστασης σε ${formattedDistance} ανά αίτημα`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `άλλαξε τον αποκλεισμό σταθερής απόστασης σε ${formattedNewDistance} ανά αίτημα (προηγουμένως ${formattedOldDistance})`,
@@ -10501,7 +10590,11 @@ ${reportName}`,
             emptyViolationSnapshotResults: {
                 subtitle: (formattedDate) => `Οι παραβάσεις παρακολουθούνται μόνο από ${formattedDate} και μετά. Δοκιμάστε να προσαρμόσετε τα φίλτρα ημερομηνίας σας.`,
             },
-            staleResults: {title: 'Απαιτείται ανανέωση', subtitle: 'Αυτή η σελίδα είναι παρωχημένη, κάντε ανανέωση για να δείτε τα πιο πρόσφατα', buttonText: 'Ανανέωση'},
+            staleResults: {
+                title: 'Απαιτείται ανανέωση',
+                subtitle: 'Αυτή η σελίδα είναι παρωχημένη, κάντε ανανέωση για να δείτε τα πιο πρόσφατα',
+                buttonText: 'Ανανέωση',
+            },
         },
         columns: 'Στήλες',
         editColumns: 'Επεξεργασία στηλών',
@@ -10598,7 +10691,11 @@ ${reportName}`,
                 banks: 'Τραπεζικοί λογαριασμοί',
                 closedBankAccounts: 'Κλειστοί τραπεζικοί λογαριασμοί',
             },
-            workspace: {active: 'Ενεργός', archived: 'Αρχειοθετημένο', selectAll: 'Επιλογή όλων'},
+            workspace: {
+                active: 'Ενεργός',
+                archived: 'Αρχειοθετημένο',
+                selectAll: 'Επιλογή όλων',
+            },
             reportField: (name: string, value: string) => `${name} είναι ${value}`,
             current: 'Τρέχον',
             past: 'Παρελθόν',
@@ -10647,7 +10744,10 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Πληρωμή',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Εξαγωγή',
             },
-            has: {submittedViolation: 'Υποβληθείσα παράβαση', approvedViolation: 'Εγκεκριμένη παράβαση'},
+            has: {
+                submittedViolation: 'Υποβληθείσα παράβαση',
+                approvedViolation: 'Εγκεκριμένη παράβαση',
+            },
             filterType: {
                 label: 'Τύπος φίλτρου',
                 has: {positive: 'έχει', negative: 'δεν έχει'},
@@ -10744,7 +10844,10 @@ ${reportName}`,
         mergeReports: {
             title: 'Συγχώνευση αναφορών',
             description: 'Επιλέξτε την αναφορά που θέλετε να κρατήσετε. Όλες οι δαπάνες θα μετακινηθούν σε αυτήν και οι άλλες αναφορές θα διαγραφούν.',
-            listPage: {noEligibleReportsFound: 'Δεν βρέθηκαν κατάλληλες αναφορές', noEligibleReportsFoundSubtitle: 'Δεν έχετε καμία αναφορά που να μπορεί να συγχωνευθεί.'},
+            listPage: {
+                noEligibleReportsFound: 'Δεν βρέθηκαν κατάλληλες αναφορές',
+                noEligibleReportsFoundSubtitle: 'Δεν έχετε καμία αναφορά που να μπορεί να συγχωνευθεί.',
+            },
         },
         goTo: ({destination}: {destination: string}) => `Μετάβαση στο ${destination}`,
         mySavedSearch: 'Οι δαπάνες μου',
@@ -10787,7 +10890,13 @@ ${reportName}`,
         },
     },
     settlement: {
-        status: {pending: 'Σε εκκρεμότητα', cleared: 'Εκκαθαρισμένο', failed: 'Απέτυχε', never: 'Ποτέ', cashBack: 'Επιστροφή μετρητών'},
+        status: {
+            pending: 'Σε εκκρεμότητα',
+            cleared: 'Εκκαθαρισμένο',
+            failed: 'Απέτυχε',
+            never: 'Ποτέ',
+            cashBack: 'Επιστροφή μετρητών',
+        },
         failedError: ({link}: {link: string}) => `Θα προσπαθήσουμε ξανά για αυτόν τον διακανονισμό όταν <a href="${link}">ξεκλειδώσετε τον λογαριασμό σας</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Αναγνωριστικό ανάληψης: ${withdrawalID}`,
     },
@@ -11880,7 +11989,14 @@ ${reportName}`,
                 one: '1 ενεργός χρήστης',
                 other: `${count} ενεργοί χρήστες`,
             }),
-            state: {paid: 'Πληρωμένο', cleared: 'Εκκαθαρισμένο', failed: 'Απέτυχε', refunded: 'Επιστράφηκε', disputed: 'Αμφισβητούμενη', balanceTransfer: 'Μεταφορά υπολοίπου'},
+            state: {
+                paid: 'Πληρωμένο',
+                cleared: 'Εκκαθαρισμένο',
+                failed: 'Απέτυχε',
+                refunded: 'Επιστράφηκε',
+                disputed: 'Αμφισβητούμενη',
+                balanceTransfer: 'Μεταφορά υπολοίπου',
+            },
             details: 'Στοιχεία πληρωμής',
             badge: {
                 balanceTransferTo: ({email}: {email: string}) => `Μεταφορά υπολοίπου σε ${email}`,
@@ -12517,6 +12633,10 @@ ${reportName}`,
         mobileRenewPrompt: 'Επισκεφθείτε το Expensify στον περιηγητή ιστού σας για να ανανεώσετε νωρίτερα.',
         mobileClaimPrompt: 'Επισκεφθείτε το Expensify στον φυλλομετρητή σας για να διεκδικήσετε την έκπτωση ανανέωσης.',
     },
-    bulkActionBar: {label: 'Μαζικές ενέργειες', clearSelection: 'Καθαρισμός επιλογής', loadingSelection: 'Φόρτωση επιλογής'},
+    bulkActionBar: {
+        label: 'Μαζικές ενέργειες',
+        clearSelection: 'Καθαρισμός επιλογής',
+        loadingSelection: 'Φόρτωση επιλογής',
+    },
 };
 export default translations;

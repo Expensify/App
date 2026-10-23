@@ -6,11 +6,23 @@ type CompanyCardBalanceParams = {
 
 type StepCounterParams = {step: number; total?: number; text?: string};
 
-type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: string};
+type ParentNavigationSummaryParams = {
+    reportName?: string;
+    workspaceName?: string;
+};
 
-type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
+type ChangeFieldParams = {
+    oldValue?: string;
+    newValue: string;
+    fieldName: string;
+};
 
-type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
+type ExportedToIntegrationParams = {
+    label: string;
+    markedManually?: boolean;
+    inProgress?: boolean;
+    lastModified?: string;
+};
 
 type IntegrationsMessageParams = {
     label: string;
@@ -38,7 +50,10 @@ type ExportAgainModalDescriptionParams = {
     connectionNameFriendly?: string;
 };
 
-type ExportIntegrationSelectedParams = {connectionName: ConnectionName; connectionNameFriendly?: string};
+type ExportIntegrationSelectedParams = {
+    connectionName: ConnectionName;
+    connectionNameFriendly?: string;
+};
 
 type PaymentDetailsBadgeEmailParams = {email: string};
 

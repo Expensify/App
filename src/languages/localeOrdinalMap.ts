@@ -21,7 +21,9 @@ type OrdinalRenderer = (count: number) => string;
  * `other` is required because it is the fallback for any category a locale does not declare, which
  * keeps a missing entry from producing an empty string.
  */
-type LocaleOrdinals = Partial<Record<Intl.LDMLPluralRule, OrdinalRenderer>> & {other: OrdinalRenderer};
+type LocaleOrdinals = Partial<Record<Intl.LDMLPluralRule, OrdinalRenderer>> & {
+    other: OrdinalRenderer;
+};
 
 const localeOrdinalMap: Record<Locale, LocaleOrdinals> = {
     /** Categories: one, two, few, other. The only locale here needing all four. */

@@ -51,6 +51,12 @@ type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_C
 /** Statement period end day */
 type StatementPeriodEndDay = number;
 
+/** Reimbursable setting an admin can select for a card feed */
+type SelectableFeedReimbursable = ValueOf<typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE>;
+
+/** Reimbursable setting of a card feed. `none` is a legacy value that behaves like `default_no` */
+type FeedReimbursable = SelectableFeedReimbursable | typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE;
+
 /** Card feed provider */
 type CardFeedProvider =
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD
@@ -82,7 +88,7 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     asrEnabled?: boolean;
 
     /** Specifies if the expenses on this card should be force reimbursable */
-    forceReimbursable?: string;
+    forceReimbursable?: FeedReimbursable;
 
     /** Defines the type of liability for the card */
     liabilityType?: string;
@@ -133,7 +139,7 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     };
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
+    errorFields?: Partial<OnyxCommon.ErrorFields<'statementPeriodEndDay' | 'forceReimbursable'>>;
 
     errors?: OnyxCommon.Errors;
 }>;
@@ -146,6 +152,9 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Defines the type of liability for the card */
     liabilityType?: string;
+
+    /** Whether transactions from this feed are always reimbursable, always non-reimbursable, or use an editable default */
+    forceReimbursable?: FeedReimbursable;
 
     /** The id of the domain the feed relates to */
     domainID?: number;
@@ -161,7 +170,7 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     plaidAccessToken?: string;
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
+    errorFields?: Partial<OnyxCommon.ErrorFields<'statementPeriodEndDay' | 'forceReimbursable'>>;
 
     errors?: OnyxCommon.Errors;
 }>;
@@ -355,6 +364,8 @@ export type {
     FundID,
     StatementPeriodEnd,
     StatementPeriodEndDay,
+    FeedReimbursable,
+    SelectableFeedReimbursable,
     DomainSettings,
     CombinedCardFeed,
     CombinedCardFeeds,
