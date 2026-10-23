@@ -93,7 +93,7 @@ function reportPosition(args) {
     return point ? {line: point.line, column: typeof point.column === 'number' ? point.column : 0} : null;
 }
 
-function withEslintDirectiveIds(rule, eslintRuleId) {
+function withEslintDirectiveIDs(rule, eslintRuleId) {
     return {
         ...rule,
         create(context) {
@@ -118,8 +118,8 @@ function withEslintDirectiveIds(rule, eslintRuleId) {
     };
 }
 
-function withEslintDirectiveIdsFor(rules, toEslintId) {
-    return Object.fromEntries(Object.entries(rules).map(([name, rule]) => [name, withEslintDirectiveIds(rule, toEslintId(name))]));
+function withEslintDirectiveIDsFor(rules, toEslintId) {
+    return Object.fromEntries(Object.entries(rules).map(([name, rule]) => [name, withEslintDirectiveIDs(rule, toEslintId(name))]));
 }
 
-export {withEslintDirectiveIds, withEslintDirectiveIdsFor};
+export {withEslintDirectiveIDs, withEslintDirectiveIDsFor};

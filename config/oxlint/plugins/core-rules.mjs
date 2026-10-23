@@ -16,7 +16,7 @@
  */
 import {builtinRules} from 'eslint/use-at-your-own-risk';
 
-import {withEslintDirectiveIdsFor} from '../eslintDirectives.mjs';
+import {withEslintDirectiveIDsFor} from '../eslintDirectives.mjs';
 
 const NAMES = ['no-restricted-syntax', 'lines-between-class-members', 'no-octal', 'no-octal-escape', 'no-undef-init', 'strict', 'dot-notation', 'no-dupe-args', 'no-return-await'];
 
@@ -25,7 +25,7 @@ const plugin = {
         name: 'core',
         version: '0.0.1',
     },
-    rules: withEslintDirectiveIdsFor(Object.fromEntries(NAMES.map((name) => [name, builtinRules.get(name)])), (name) => name),
+    rules: withEslintDirectiveIDsFor(Object.fromEntries(NAMES.map((name) => [name, builtinRules.get(name)])), (name) => name),
 };
 
 export default plugin;

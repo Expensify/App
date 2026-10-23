@@ -3,7 +3,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN} from '../../reactCompiler/suppressedRules.mjs';
-import {withEslintDirectiveIds, withEslintDirectiveIdsFor} from '../eslintDirectives.mjs';
+import {withEslintDirectiveIDs, withEslintDirectiveIDsFor} from '../eslintDirectives.mjs';
 import {create as noDeprecatedSelfClosingJsxCreate, meta as noDeprecatedSelfClosingJsxMeta} from '../noDeprecatedSelfClosingJsx.mjs';
 import {withFullGating, withMessageGating} from '../reactCompilerGate.mjs';
 import {hostedRuleNames} from '../ruleNames.mjs';
@@ -68,7 +68,7 @@ function withStubbedParserServices(rule) {
 }
 
 function hostRules(rules, eslintPrefix, names) {
-    return withEslintDirectiveIdsFor(Object.fromEntries(names.map((name) => [name, rules[name]])), (name) => `${eslintPrefix}/${name}`);
+    return withEslintDirectiveIDsFor(Object.fromEntries(names.map((name) => [name, rules[name]])), (name) => `${eslintPrefix}/${name}`);
 }
 
 const SEPARATELY_GATED = new Set(['jsx-no-constructed-context-values', 'exhaustive-deps']);
@@ -88,9 +88,9 @@ const plugin = {
         ...hostRules(jsdoc, 'jsdoc', plainlyHosted('jsdoc')),
         ...hostRules(storybook, 'storybook', plainlyHosted('storybook')),
         ...hostRules({'naming-convention': withStubbedParserServices(typescriptEslint['naming-convention'])}, '@typescript-eslint', plainlyHosted('@typescript-eslint')),
-        'jsx-no-constructed-context-values': withFullGating(withEslintDirectiveIds(react['jsx-no-constructed-context-values'], 'react/jsx-no-constructed-context-values')),
-        'no-deprecated-self-closing-jsx': withEslintDirectiveIds({create: noDeprecatedSelfClosingJsxCreate, meta: noDeprecatedSelfClosingJsxMeta}, '@typescript-eslint/no-deprecated'),
-        'exhaustive-deps': withMessageGating(withEslintDirectiveIds(reactHooks['exhaustive-deps'], 'react-hooks/exhaustive-deps'), EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN),
+        'jsx-no-constructed-context-values': withFullGating(withEslintDirectiveIDs(react['jsx-no-constructed-context-values'], 'react/jsx-no-constructed-context-values')),
+        'no-deprecated-self-closing-jsx': withEslintDirectiveIDs({create: noDeprecatedSelfClosingJsxCreate, meta: noDeprecatedSelfClosingJsxMeta}, '@typescript-eslint/no-deprecated'),
+        'exhaustive-deps': withMessageGating(withEslintDirectiveIDs(reactHooks['exhaustive-deps'], 'react-hooks/exhaustive-deps'), EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN),
     },
 };
 

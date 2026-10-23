@@ -1,4 +1,4 @@
-import {withEslintDirectiveIds} from '../eslintDirectives.mjs';
+import {withEslintDirectiveIDs} from '../eslintDirectives.mjs';
 import {RULE_BY_CATEGORY, reactCompilerDiagnostics} from '../reactCompilerRust.mjs';
 
 function buildRule(ruleName) {
@@ -28,7 +28,7 @@ function buildRule(ruleName) {
     };
 }
 
-const rules = Object.fromEntries(Object.values(RULE_BY_CATEGORY).map((ruleName) => [ruleName, withEslintDirectiveIds(buildRule(ruleName), `react-hooks/${ruleName}`)]));
+const rules = Object.fromEntries(Object.values(RULE_BY_CATEGORY).map((ruleName) => [ruleName, withEslintDirectiveIDs(buildRule(ruleName), `react-hooks/${ruleName}`)]));
 
 const plugin = {
     meta: {
