@@ -2514,7 +2514,8 @@ function createAndOpenSearchTransactionThread({
     const isUnreportedTransaction = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
     // An unreported expense lives in its owner's self DM, which is not the viewer's when an admin opens a member's expense
-    const ownerSelfDMReportID = item.reportAction?.reportID ? String(item.reportAction.reportID) : undefined;
+    const actionReportID = item.reportAction?.reportID ? String(item.reportAction.reportID) : undefined;
+    const ownerSelfDMReportID = actionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? actionReportID : undefined;
     const selfDMReportID = isUnreportedTransaction ? (ownerSelfDMReportID ?? findSelfDMReportID()) : undefined;
     const iouReportAction = getIOUActionForReportID(selfDMReportID ?? item.reportID, item.transactionID);
     const expenseOwnerAccountID = (iouReportAction ?? item.reportAction)?.actorAccountID;

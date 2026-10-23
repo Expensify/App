@@ -13563,6 +13563,27 @@ describe('SearchUIUtils', () => {
             expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID: expectedSelfDMReportID}));
         });
 
+        test("Should not treat the unreported report ID on the IOU action as the owner's self DM", async () => {
+            // Given the current user's self DM in Onyx and their own unreported expense whose IOU action carries the unreported sentinel as its reportID
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}fallback-self-dm`, {reportID: 'fallback-self-dm', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM});
+            await waitForBatchedUpdates();
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID, reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+            };
+
+            // When the current user opens the expense from Search
+            SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
+
+            // Then the thread goes to their real self DM, because report 0 is not a chat and parenting a thread there would leave a bogus report in Onyx
+            const expectedSelfDMReportID = findSelfDMReportID();
+            expect(expectedSelfDMReportID).toBeDefined();
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID: expectedSelfDMReportID}));
+        });
+
         test("Should reuse the thread already created under another user's self DM instead of creating a new one", async () => {
             // Given another user's unreported expense whose IOU action in their self DM already points at a thread
             jest.mocked(createTransactionThreadReport).mockReset();
