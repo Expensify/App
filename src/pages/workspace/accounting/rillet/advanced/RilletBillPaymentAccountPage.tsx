@@ -55,7 +55,7 @@ function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.billPaymentAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.achPaymentAccount.description')}</Text>
         </View>
     );
 
@@ -84,7 +84,7 @@ function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={shouldBeBlocked}
             displayName="RilletBillPaymentAccountPage"
-            title="workspace.rillet.billPaymentAccount.label"
+            title="workspace.rillet.achPaymentAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             headerContent={headerContent}
