@@ -65,6 +65,8 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const isHidden = shouldHide || (shouldApplyDelay && animationDoneKey !== stateKey);
 
     const setIsNavigatorTabBarVisible = useContext(SetNavigatorTabBarVisibleContext);
+    // isHidden depends on this bar's own animation state, so the tab root's copy, which renders in a sibling subtree,
+    // can only learn it through context. A layout effect swaps the two bars before paint, so they never show together.
     useLayoutEffect(() => {
         setIsNavigatorTabBarVisible(!isHidden);
     }, [isHidden, setIsNavigatorTabBarVisible]);

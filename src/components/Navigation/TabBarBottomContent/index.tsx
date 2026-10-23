@@ -1,3 +1,4 @@
+import AlwaysPaintedView from '@components/AlwaysPaintedView';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -24,15 +25,13 @@ function TabBarBottomContent({selectedTab}: TabBarBottomContentProps) {
     }
 
     return (
-        <View
-            style={[styles.floatingTabBarBottomInset, isNavigatorTabBarVisible && styles.opacity0]}
-            pointerEvents={isNavigatorTabBarVisible ? 'none' : 'auto'}
-            aria-hidden={isNavigatorTabBarVisible}
-        >
-            <NavigationTabBar
-                selectedTab={selectedTab}
-                shouldShowFloatingButtons={false}
-            />
+        <View style={[styles.floatingTabBarBottomInset, isNavigatorTabBarVisible && styles.opacity0]}>
+            <AlwaysPaintedView inert={isNavigatorTabBarVisible}>
+                <NavigationTabBar
+                    selectedTab={selectedTab}
+                    shouldShowFloatingButtons={false}
+                />
+            </AlwaysPaintedView>
         </View>
     );
 }
