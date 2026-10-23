@@ -1,7 +1,7 @@
-import type {LegacyTapGesture} from 'react-native-gesture-handler';
+import type {PanGesture, TapGesture} from 'react-native-gesture-handler';
 
 import {useCallback, useMemo} from 'react';
-import {Gesture} from 'react-native-gesture-handler';
+import {GestureStateManager, useTapGesture} from 'react-native-gesture-handler';
 import {withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
@@ -10,7 +10,7 @@ import type {MultiGestureCanvasVariables} from './types';
 import {DOUBLE_TAP_SCALE, SPRING_CONFIG} from './constants';
 import * as MultiGestureCanvasUtils from './utils';
 
-type UseTapGesturesProps = Pick<
+type UseCanvasTapGesturesProps = Pick<
     MultiGestureCanvasVariables,
     | 'canvasSize'
     | 'contentSize'
@@ -27,9 +27,12 @@ type UseTapGesturesProps = Pick<
     | 'stopAnimation'
     | 'onScaleChanged'
     | 'onTap'
->;
+> & {
+    /** The pan gesture of the canvas. A single tap waits for it to fail, and both taps can run simultaneously with it */
+    panGesture: PanGesture;
+};
 
-const useTapGestures = ({
+const useCanvasTapGestures = ({
     canvasSize,
     contentSize,
     zoomRange,
@@ -45,7 +48,8 @@ const useTapGestures = ({
     isTransformGestureActive,
     onScaleChanged,
     onTap,
-}: UseTapGesturesProps): {singleTapGesture: LegacyTapGesture; doubleTapGesture: LegacyTapGesture} => {
+    panGesture,
+}: UseCanvasTapGesturesProps): {singleTapGesture: TapGesture; doubleTapGesture: TapGesture} => {
     // The content size after scaling it with minimum scale to fit the content into the canvas
     const scaledContentWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
     const scaledContentHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
@@ -132,23 +136,19 @@ const useTapGestures = ({
         [stopAnimation, isTransformGestureActive, canvasSize.width, canvasSize.height, scaledContentWidth, scaledContentHeight, doubleTapScale, offsetX, offsetY, zoomScale, pinchScale],
     );
 
-    const doubleTapGesture = Gesture.Tap()
-        // The first argument is not used, but must be defined
-        .onTouchesDown((_evt, state) => {
-            'worklet';
-
+    const doubleTapGesture = useTapGesture({
+        numberOfTaps: 2,
+        maxDelay: 150,
+        maxDistance: 20,
+        simultaneousWith: panGesture,
+        onTouchesDown: (evt) => {
             if (!shouldDisableTransformationGestures.get()) {
                 return;
             }
 
-            state.fail();
-        })
-        .numberOfTaps(2)
-        .maxDelay(150)
-        .maxDistance(20)
-        .onEnd((evt) => {
-            'worklet';
-
+            GestureStateManager.fail(evt.handlerTag);
+        },
+        onDeactivate: (evt) => {
             const triggerScaleChangedEvent = () => {
                 'worklet';
 
@@ -168,27 +168,27 @@ const useTapGestures = ({
             } else {
                 zoomToCoordinates(evt.x, evt.y, triggerScaleChangedEvent);
             }
-        });
+        },
+    });
 
-    const singleTapGesture = Gesture.Tap()
-        .numberOfTaps(1)
-        .maxDuration(125)
-        .onBegin(() => {
-            'worklet';
-
+    const singleTapGesture = useTapGesture({
+        numberOfTaps: 1,
+        maxDuration: 125,
+        requireToFail: [doubleTapGesture, panGesture],
+        simultaneousWith: panGesture,
+        onBegin: () => {
             stopAnimation();
-        })
-        .onFinalize((_evt, success) => {
-            'worklet';
-
-            if (!success || onTap === undefined) {
+        },
+        onFinalize: (evt) => {
+            if (evt.canceled || onTap === undefined) {
                 return;
             }
 
             scheduleOnRN(onTap);
-        });
+        },
+    });
 
     return {singleTapGesture, doubleTapGesture};
 };
 
-export default useTapGestures;
+export default useCanvasTapGestures;
