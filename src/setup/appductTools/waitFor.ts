@@ -8,8 +8,13 @@ async function waitFor(check: () => boolean, timeoutMs: number): Promise<boolean
         if (Date.now() >= deadline) {
             return false;
         }
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        // The wait is deliberately sequential: each iteration re-checks after
+        // the timer, which is the polling the function exists for.
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise<void>((resolve) => {
+            setTimeout(resolve, 100);
+        });
     }
 }
 
-export {waitFor};
+export default waitFor;

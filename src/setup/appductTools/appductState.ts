@@ -9,6 +9,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials, IntroSelected, Onboarding, Report, Session as SessionOnyx} from '@src/types/onyx';
 import type {AnyRequest} from '@src/types/onyx/Request';
 
+import type {Connection} from 'react-native-onyx';
+
 import Onyx from 'react-native-onyx';
 
 const state = {
@@ -41,12 +43,15 @@ Onyx.connectWithoutView({key: ONYXKEYS.PERSISTED_REQUESTS, callback: (value) => 
 // The Concierge report lives in a collection keyed once its ID is known. The ID
 // arrives from OpenApp after sign-in, so the member connection opens when it
 // does and re-opens if a different ID ever takes its place.
-let conciergeChatConnection: ReturnType<typeof Onyx.connectWithoutView> | undefined;
+let conciergeChatConnection: Connection | undefined;
 let conciergeChatKey: string | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.CONCIERGE_REPORT_ID,
     callback: (value) => {
         state.conciergeReportID = value ?? undefined;
+        // A stored variable widens the template literal to `string`, which OnyxKey
+        // rejects; this key stays the tracked id and the connect below gets the
+        // literal inline.
         const memberKey = value === undefined ? undefined : `${ONYXKEYS.COLLECTION.REPORT}${value}`;
         if (memberKey === conciergeChatKey) {
             return;
@@ -56,9 +61,9 @@ Onyx.connectWithoutView({
         }
         conciergeChatKey = memberKey;
         state.conciergeChat = undefined;
-        if (memberKey) {
+        if (value !== undefined) {
             conciergeChatConnection = Onyx.connectWithoutView({
-                key: memberKey,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${value}`,
                 callback: (report) => (state.conciergeChat = report ?? undefined),
             });
         }
@@ -67,7 +72,7 @@ Onyx.connectWithoutView({
 
 /** A real (non-anonymous) session token. */
 function isSignedIn(): boolean {
-    return Boolean(state.session?.authToken) && !isAnonymousUser(state.session);
+    return !!state.session?.authToken && !isAnonymousUser(state.session);
 }
 
 /**

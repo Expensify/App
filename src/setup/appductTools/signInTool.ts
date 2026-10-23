@@ -3,7 +3,7 @@ import {beginSignIn, signUpUser} from '@userActions/Session';
 import type {AppductTool} from './types';
 
 import {isSignedIn, state} from './appductState';
-import {waitFor} from './waitFor';
+import waitFor from './waitFor';
 
 /**
  * Sign the app in as an identity through the same actions the sign-in form
@@ -58,14 +58,20 @@ function registerSignInTool(registerTool: (tool: AppductTool) => void) {
             required: ['ok'],
         },
         timeoutMs: 120_000,
-        handler: async ({email, timeoutMs}: {email: string; timeoutMs?: number}) => {
-            const budget = timeoutMs ?? 45_000;
+        handler: async (input) => {
+            // Defensive reads: the raw JSON Schema drives export, the handler is
+            // the last place a malformed call can be turned into a reason.
+            const email = typeof input.email === 'string' ? input.email.trim() : '';
+            if (!email) {
+                return {ok: false, reason: 'email is required and must be a string'};
+            }
+            const budget = typeof input.timeoutMs === 'number' ? input.timeoutMs : 45_000;
             const deadline = Date.now() + budget;
 
             // The app boots anonymous; sign_in cannot decide anything before
             // Onyx carries a session (even the anonymous one).
             if (!state.session) {
-                const booted = await waitFor(() => Boolean(state.session), budget);
+                const booted = await waitFor(() => !!state.session, budget);
                 if (!booted) {
                     return {ok: false, reason: 'session Onyx key never populated (app not booted yet?)'};
                 }

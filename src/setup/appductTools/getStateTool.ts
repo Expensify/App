@@ -38,7 +38,7 @@ function registerGetStateTool(registerTool: (tool: AppductTool) => void) {
         handler: async () => ({
             ok: true,
             state: {
-                booted: Boolean(state.session),
+                booted: !!state.session,
                 signedIn: isSignedIn(),
                 anonymous: isAnonymousUser(state.session),
                 login: currentLogin(),

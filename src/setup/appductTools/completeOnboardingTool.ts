@@ -16,7 +16,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import type {AppductTool} from './types';
 
 import {isCompleteGuidedSetupQueued, isSignedIn, onboardingCompletedFlag, state} from './appductState';
-import {waitFor} from './waitFor';
+import waitFor from './waitFor';
 
 /**
  * Finish first-run onboarding with minimal choices: the LOOKING_AROUND purpose
@@ -59,8 +59,15 @@ function registerCompleteOnboardingTool(registerTool: (tool: AppductTool) => voi
             required: ['ok'],
         },
         timeoutMs: 180_000,
-        handler: async ({firstName, lastName, timeoutMs}: {firstName: string; lastName: string; timeoutMs?: number}) => {
-            const budget = timeoutMs ?? 60_000;
+        handler: async (input) => {
+            // Defensive reads: the raw JSON Schema drives export, the handler is
+            // the last place a malformed call can be turned into a reason.
+            const firstName = typeof input.firstName === 'string' ? input.firstName.trim() : '';
+            const lastName = typeof input.lastName === 'string' ? input.lastName.trim() : '';
+            if (!firstName || !lastName) {
+                return {ok: false, reason: 'firstName and lastName are required strings'};
+            }
+            const budget = typeof input.timeoutMs === 'number' ? input.timeoutMs : 60_000;
 
             // Signed in, app finished loading, and nvp_onboarding loaded. The
             // flag must be read as loaded before `false` can be told apart
@@ -93,7 +100,7 @@ function registerCompleteOnboardingTool(registerTool: (tool: AppductTool) => voi
                 // Without a reportID, prepareOnboardingOnyxData returns nothing
                 // and completeOnboarding does nothing at all, with no error
                 // anywhere. The tool has to fail this check itself.
-                const conciergeLoaded = await waitFor(() => Boolean(state.conciergeReportID) && Boolean(state.conciergeChat?.reportID), budget);
+                const conciergeLoaded = await waitFor(() => !!state.conciergeReportID && !!state.conciergeChat?.reportID, budget);
                 if (!conciergeLoaded) {
                     return {ok: false, reason: `concierge report never loaded (conciergeReportID=${String(state.conciergeReportID)})`};
                 }
@@ -104,14 +111,14 @@ function registerCompleteOnboardingTool(registerTool: (tool: AppductTool) => voi
                 await completeOnboarding({
                     engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                     onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
-                    firstName: firstName.trim(),
-                    lastName: lastName.trim(),
+                    firstName,
+                    lastName,
                     adminsChatReportID: state.onboardingAdminsChatReportID,
                     onboardingPolicyID: state.onboardingPolicyID,
                     introSelected: state.introSelected,
                     isSelfTourViewed: hasSeenTourSelector(state.onboarding),
                     conciergeChat: state.conciergeChat,
-                    currentUserAccountID: accountID ?? 0,
+                    currentUserAccountID: accountID ?? CONST.DEFAULT_NUMBER_ID,
                     delegateAccountID: undefined,
                 });
 
