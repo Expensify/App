@@ -51,7 +51,7 @@ function RecentlyAddedSection() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
 
     const hasExpenses = transactions.length > 0;
     const listBottomPadding = shouldUseNarrowLayout ? styles.pb2 : styles.pb5;

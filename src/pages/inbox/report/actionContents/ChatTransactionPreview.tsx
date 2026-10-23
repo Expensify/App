@@ -25,9 +25,6 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import React from 'react';
 import {View} from 'react-native';
-// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 type ChatTransactionPreviewProps = {
     /** All the data of the action, used for showing context menu and deriving the IOU report */
@@ -58,8 +55,7 @@ function ChatTransactionPreview({action, reportID, chatReport, iouReport, should
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    // Search snapshots never carry the full policy snapshot marker, so it is read from live Onyx even when this preview renders inside Search
-    const [fullPolicySnapshotLastModified] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(iouReport?.policyID)}`, {
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(iouReport?.policyID)}`, {
         selector: fullPolicySnapshotLastModifiedSelector,
     });
 

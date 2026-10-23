@@ -20,6 +20,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {loginSelector} from '@src/selectors/PersonalDetails';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import React from 'react';
 
 import type {SimpleActionProps} from './types';
@@ -33,6 +34,9 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: Sim
 
     const {moneyRequestReport, transactionThreadReportID} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -83,9 +87,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: Sim
                                   currentUserAccountID: accountID,
                                   personalDetails,
                                   fullPolicySnapshotLastModifiedByPolicyID:
-                                      moneyRequestReport?.policyID && policy?.fullPolicySnapshotLastModified
-                                          ? {[moneyRequestReport.policyID]: policy.fullPolicySnapshotLastModified}
-                                          : undefined,
+                                      moneyRequestReport?.policyID && fullPolicySnapshotLastModified ? {[moneyRequestReport.policyID]: fullPolicySnapshotLastModified} : undefined,
                               },
                           )
                         : undefined);

@@ -203,7 +203,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
         jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, {reportID: IOU_REPORT_ID, policyID: 'policy1'});
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {id: 'policy1', fullPolicySnapshotLastModified: 123});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy1`, {lastModified: 123});
         await waitForBatchedUpdates();
 
         render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);

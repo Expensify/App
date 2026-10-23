@@ -112,6 +112,7 @@ import type ExpensifyCardStatement from './ExpensifyCardStatement';
 import type ExportDownload from './ExportDownload';
 import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
+import type FullPolicySnapshot from './FullPolicySnapshot';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type GeneratedRule from './GeneratedRule';
@@ -306,6 +307,7 @@ export type {
     ExpensifyCardBankAccountMetadata,
     ExpensifyCardLoadingState,
     FrequentlyUsedEmoji,
+    FullPolicySnapshot,
     Fund,
     FundID,
     FundList,

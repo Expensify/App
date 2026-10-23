@@ -196,7 +196,7 @@ describe('AddPersonalBankAccountPage', () => {
         // Given the exit report belongs to a workspace whose full policy snapshot is already cached
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123', policyID: 'policy1'});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {id: 'policy1', fullPolicySnapshotLastModified: 456});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy1`, {lastModified: 456});
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID: '123'});
         });
         await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));

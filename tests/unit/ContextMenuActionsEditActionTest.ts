@@ -4,7 +4,7 @@ import {canEditReportAction} from '@libs/ReportUtils';
 import type * as ContextMenuActionsModule from '@pages/inbox/report/ContextMenu/ContextMenuActions';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -93,7 +93,7 @@ describe('ContextMenuActions editAction', () => {
             createMock<ContextMenuActionsModule.ContextMenuActionPayload>({
                 reportAction,
                 report: createMock<Report>({reportID: 'iou1', policyID: 'policy1'}),
-                policy: createMock<Policy>({id: 'policy1', fullPolicySnapshotLastModified: 123}),
+                fullPolicySnapshotLastModified: 123,
             }),
         );
 

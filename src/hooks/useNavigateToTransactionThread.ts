@@ -58,7 +58,7 @@ function useNavigateToTransactionThread() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
 
     return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, carouselSource, backTo}: NavigateToTransactionThreadParams) => {
         // The action that created the expense, not merely one referencing it. In an approved or paid report the

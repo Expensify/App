@@ -77,7 +77,7 @@ function AddPersonalBankAccountPage() {
     const exitReportID = fullPersonalBankAccount?.exitReportID;
     const [hasExitReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(exitReportID)}`, {selector: Boolean});
     const [exitReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(exitReportID)}`, {selector: getReportPolicyID});
-    const [exitReportFullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(exitReportPolicyID)}`, {
+    const [exitReportFullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(exitReportPolicyID)}`, {
         selector: fullPolicySnapshotLastModifiedSelector,
     });
     const openReport = useOpenReport();

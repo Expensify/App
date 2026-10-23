@@ -172,7 +172,7 @@ function useReportActionsScroll({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
-    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`, {
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(report?.policyID)}`, {
         selector: fullPolicySnapshotLastModifiedSelector,
     });
     const fullPolicySnapshot = report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined;

@@ -97,7 +97,7 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
     const iouReport = isMoneyRequestReport(report) || isInvoiceReport(report) ? report : undefined;
     const iouReportID = iouReport?.reportID;
     const reportTransactions = useReportTransactions(iouReportID);
-    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(iouReport?.policyID)}`, {
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(iouReport?.policyID)}`, {
         selector: fullPolicySnapshotLastModifiedSelector,
     });
 

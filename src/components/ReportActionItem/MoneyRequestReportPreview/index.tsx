@@ -47,9 +47,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import type {MoneyRequestReportPreviewProps} from './types';
 
@@ -125,8 +122,7 @@ function MoneyRequestReportPreview({
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
     const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
     const policy = usePolicy(policyID);
-    // Search snapshots never carry the full policy snapshot marker, so it is read from live Onyx even when this preview renders inside Search
-    const [fullPolicySnapshotLastModified] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(policyID)}`, {
         selector: fullPolicySnapshotLastModifiedSelector,
     });
     const lastTransaction = transactions?.at(0);

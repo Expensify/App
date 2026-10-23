@@ -57,7 +57,9 @@ function useDistanceTransactionBackup({
 }: UseDistanceTransactionBackupParams): void {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {selector: getReportPolicyID});
-    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportPolicyID)}`, {selector: fullPolicySnapshotLastModifiedSelector});
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(reportPolicyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     // This effect runs when the component is mounted and unmounted. It's purpose is to be able to properly
     // discard changes if the user cancels out of making any changes. This is accomplished by backing up the
     // original transaction, letting the user modify the current transaction, and then if the user ever

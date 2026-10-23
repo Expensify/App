@@ -45,6 +45,7 @@ jest.mock('@libs/actions/Report', () => {
 
 const POLICY_ID = 'policy1';
 const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}` as const;
+const FULL_POLICY_SNAPSHOT_KEY = `${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${POLICY_ID}` as const;
 const SEARCH_HASH = 123;
 const LIVE_FULL_POLICY_SNAPSHOT_LAST_MODIFIED = 1700000000000000;
 
@@ -73,10 +74,10 @@ describe('ChatTransactionPreview', () => {
         await Onyx.clear();
     });
 
-    it('sends the live full policy snapshot marker when creating a thread from a Search snapshot row', async () => {
-        // Given the live policy has a full policy snapshot marker, while the Search snapshot holds the same policy without it,
+    it('sends the full policy snapshot marker when creating a thread from a Search snapshot row', async () => {
+        // Given the policy has a full policy snapshot marker, while the Search snapshot holds the policy and no marker,
         // because only OpenReport writes the marker and Search results never carry it
-        await Onyx.merge(POLICY_KEY, {id: POLICY_ID, fullPolicySnapshotLastModified: LIVE_FULL_POLICY_SNAPSHOT_LAST_MODIFIED});
+        await Onyx.merge(FULL_POLICY_SNAPSHOT_KEY, {lastModified: LIVE_FULL_POLICY_SNAPSHOT_LAST_MODIFIED});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SEARCH_HASH}`, {data: {[POLICY_KEY]: {...createRandomPolicy(1), id: POLICY_ID}}});
 
         // When a legacy expense preview without a thread is pressed inside Search, where Onyx reads resolve from the snapshot
@@ -99,7 +100,7 @@ describe('ChatTransactionPreview', () => {
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('Transaction preview'));
 
-        // Then the thread is created with the marker from live Onyx, so OpenReport can skip the large policy collections
+        // Then the thread is created with the marker, so OpenReport can skip the large policy collections
         expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({fullPolicySnapshotLastModified: LIVE_FULL_POLICY_SNAPSHOT_LAST_MODIFIED}));
     });
 });

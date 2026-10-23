@@ -192,7 +192,7 @@ function Search({
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
-    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {accountID, email} = useCurrentUserPersonalDetails();

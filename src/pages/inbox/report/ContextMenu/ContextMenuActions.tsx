@@ -350,6 +350,10 @@ type ContextMenuActionPayload = {
     currentUserAccountID: number;
     report: OnyxEntry<ReportType>;
     policy?: OnyxEntry<Policy>;
+
+    /** The lastModified of the full policy snapshot for the report's policy */
+    fullPolicySnapshotLastModified?: number;
+
     selection: string;
     close: () => void;
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
@@ -683,15 +687,14 @@ const ContextMenuActions: ContextMenuAction[] = [
                 personalDetails,
                 reportIDToName,
                 report,
-                policy,
+                fullPolicySnapshotLastModified,
             },
         ) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
                     // The child report shares the policy of the report the action lives in
-                    const fullPolicySnapshot =
-                        report?.policyID && policy?.fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: policy.fullPolicySnapshotLastModified} : undefined;
+                    const fullPolicySnapshot = report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined;
                     openReport({reportID: childReportID, introSelected, personalDetails, hasReportActions: !!childReportActions, currentUserAccountID, conciergeChat, fullPolicySnapshot});
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 };

@@ -78,7 +78,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     // Search results for reports with several expenses aren't copied into Onyx, so the first open reads the policy from the search snapshot
     const reportPolicyID = report?.policyID ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`]?.policyID;
-    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportPolicyID)}`, {
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(reportPolicyID)}`, {
         selector: fullPolicySnapshotLastModifiedSelector,
     });
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});

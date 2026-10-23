@@ -125,7 +125,7 @@ function ReportFetchHandler() {
     const hiddenPreMountFetchedRouteRef = useRef<Pick<ReportScreenRoute, 'key' | 'params'> | undefined>(undefined);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportOnyx?.policyID)}`, {
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(reportOnyx?.policyID)}`, {
         selector: fullPolicySnapshotLastModifiedSelector,
     });
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});

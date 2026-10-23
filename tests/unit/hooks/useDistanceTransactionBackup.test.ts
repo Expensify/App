@@ -35,7 +35,7 @@ describe('useDistanceTransactionBackup', () => {
     it("sends the expense report policy's full policy snapshot marker when reopening the report after an unsaved edit", async () => {
         // Given a distance expense without a route in a workspace expense report whose full policy snapshot is already cached
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}report1`, {reportID: 'report1', policyID: 'policy1'});
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {id: 'policy1', fullPolicySnapshotLastModified: 123});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy1`, {lastModified: 123});
         await waitForBatchedUpdates();
         const {unmount} = renderHook(() =>
             useDistanceTransactionBackup({
