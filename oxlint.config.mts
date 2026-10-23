@@ -998,7 +998,7 @@ export default defineConfig({
             },
         },
         {
-            // This replaces the root's list, so the airbnb browser globals are left out on purpose.
+            // Like ESLint's block, this replaces the root's list, so the airbnb browser globals are not banned here.
             files: ['.github/actions/**/*.ts', '.github/libs/**/*.ts'],
             rules: {
                 'no-restricted-globals': [
