@@ -3,6 +3,7 @@ import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoo
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,7 +18,7 @@ import {clearPolicyErrorField} from '@libs/actions/Policy/Policy';
 import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import {canMemberUseTravel, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {canMemberUseTravel, isDeletedPolicyEmployee, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -25,6 +26,7 @@ import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -46,6 +48,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 
@@ -70,8 +73,10 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
         setPolicyTravelSettings(policy, {autoEnableNewMembers: enabled});
     };
 
+    // Count the same members the Members page lists
+    const shouldHideExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
     const memberLogins = Object.entries(policy?.employeeList ?? {})
-        .filter(([, employee]) => !isDeletedPolicyEmployee(employee, isOffline))
+        .filter(([login, employee]) => !isEmptyValueObject(employee) && !isDeletedPolicyEmployee(employee, isOffline) && !(shouldHideExpensifyTeam && isExpensifyTeam(login)))
         .map(([login]) => login);
     const membersWithTravelCount = memberLogins.filter((login) => canMemberUseTravel(policy, login)).length;
 
