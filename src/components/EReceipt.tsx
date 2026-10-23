@@ -1,7 +1,6 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEReceipt from '@hooks/useEReceipt';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import type {LazySvgLoader} from '@hooks/useLazySvg';
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
@@ -20,14 +19,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import React, {useEffect, useRef} from 'react';
+import type {SvgProps} from 'react-native-svg';
+
+import React, {Suspense, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
 
 import EReceiptBody from './EReceiptBody';
 import Icon from './Icon';
-import LazyImageSVG from './LazyImageSVG';
+import ImageSVG from './ImageSVG';
 import Text from './Text';
 
 type OverrideThemeProps = {
@@ -47,7 +48,7 @@ type OverrideThemeProps = {
     tripIcon?: IconAsset;
 
     /** Overrides background image set by default by useReceipt */
-    backgroundImage?: LazySvgLoader;
+    backgroundImage?: React.FC<SvgProps>;
 
     /** Overrides title text */
     titleText?: string;
@@ -126,7 +127,9 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false, 
         >
             <View style={[styles.flex1, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {}, styles.overflowHidden, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
-                    <LazyImageSVG loader={backgroundImage} />
+                    <Suspense fallback={null}>
+                        <ImageSVG src={backgroundImage} />
+                    </Suspense>
                 </View>
                 <View style={styles.eReceiptContentContainer}>
                     <View>

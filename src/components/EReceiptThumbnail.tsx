@@ -12,11 +12,11 @@ import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React from 'react';
+import React, {Suspense} from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
-import LazyImageSVG from './LazyImageSVG';
+import ImageSVG from './ImageSVG';
 import Text from './Text';
 
 type IconSize = 'x-small' | 'small' | 'medium' | 'large';
@@ -89,7 +89,9 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
             ]}
         >
             <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
-                <LazyImageSVG loader={backgroundImage} />
+                <Suspense fallback={null}>
+                    <ImageSVG src={backgroundImage} />
+                </Suspense>
             </View>
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(receiptIconWidth, receiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>

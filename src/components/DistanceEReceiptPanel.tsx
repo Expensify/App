@@ -1,6 +1,5 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import type {LazySvgLoader} from '@hooks/useLazySvg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -14,17 +13,15 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
-import React, {useMemo} from 'react';
+import React, {Suspense, useMemo} from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
-import LazyImageSVG from './LazyImageSVG';
+import {EReceiptBGDistance} from './Icon/EReceiptBGs';
+import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
 import ReceiptImage from './ReceiptImage';
 import Text from './Text';
-
-// Its own async chunk, so the pattern stays out of the main bundle.
-const loadEReceiptBackground: LazySvgLoader = () => import('@assets/images/eReceipt_background.svg');
 
 type DistanceEReceiptPanelProps = {
     /** The transaction for the distance expense */
@@ -60,11 +57,13 @@ function DistanceEReceiptPanel({transaction}: DistanceEReceiptPanelProps) {
     );
     return (
         <View style={styles.eReceiptPanel}>
-            <LazyImageSVG
-                loader={loadEReceiptBackground}
-                style={styles.eReceiptBackground}
-                pointerEvents="none"
-            />
+            <Suspense fallback={null}>
+                <ImageSVG
+                    src={EReceiptBGDistance}
+                    style={styles.eReceiptBackground}
+                    pointerEvents="none"
+                />
+            </Suspense>
 
             <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
                 {!canShowStoredRouteMap || !thumbnailSource ? (
