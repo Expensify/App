@@ -10092,6 +10092,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             `alterou o regime de trabalho de ${displayName} para ${newArrangement} (antes ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `alterou o regime de trabalho padrão para ${newArrangement} (antes ${oldArrangement})`,
+        updateRulesDocument: (isReplacement: boolean, overviewURL?: string) => {
+            const message = isReplacement ? 'substituiu o documento da política de despesas' : 'adicionou um documento de política de despesas';
+            return overviewURL ? `${message} em <a href="${overviewURL}">Espaço de trabalho &gt; Visão geral</a>` : message;
+        },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `atualizou "Impedir marcar relatórios não reembolsáveis como pagos" para "${newValue === 'true' ? 'Ativado' : 'Desativado'}" (antes "${oldValue === 'true' ? 'Ativado' : 'Desativado'}")`,
     },
