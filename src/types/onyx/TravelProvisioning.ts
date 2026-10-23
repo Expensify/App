@@ -34,6 +34,9 @@ type TravelProvisioning = {
     /** The members chosen to get travel when not every member gets it. The admin enabling travel always gets it too. */
     travelMemberAccountIDs?: number[];
 
+    /** The workspace the member choice was made for, so it isn't reused when enabling travel on another workspace */
+    travelMembersPolicyID?: string;
+
     /**
      * Ordered list of step names the enablement stepper decided this workspace needs, frozen at flow entry.
      * Each step of the flow is a separate navigation push (a fresh mount of EnableTravelContent), and completing

@@ -97,9 +97,12 @@ function TermsStep({policyID, resolvedDomain, firstIncompletePrerequisitePageNam
             resetToPage?.(firstIncompletePrerequisitePageName);
             return;
         }
-        // The member choice only applies when this session asked for it, so a choice left by an abandoned session isn't sent
+        // The member choice only applies when this session asked for it on this workspace, so a choice left by an abandoned
+        // session isn't sent
         const hasChosenTravelMembers =
-            !!travelProvisioning?.enabledSteps?.includes(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TRAVEL_MEMBERS) && travelProvisioning.shouldEnableAllTravelMembers !== undefined;
+            !!travelProvisioning?.enabledSteps?.includes(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TRAVEL_MEMBERS) &&
+            travelProvisioning.travelMembersPolicyID === policyID &&
+            travelProvisioning.shouldEnableAllTravelMembers !== undefined;
         const travelMembers = hasChosenTravelMembers
             ? {shouldEnableAllTravelMembers: !!travelProvisioning?.shouldEnableAllTravelMembers, travelMemberAccountIDs: travelProvisioning?.travelMemberAccountIDs ?? []}
             : undefined;

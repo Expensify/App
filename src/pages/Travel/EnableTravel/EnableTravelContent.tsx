@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setTravelProvisioningEnabledSteps} from '@libs/actions/Travel';
+import {clearTravelProvisioningMembers, setTravelProvisioningEnabledSteps} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getAdminsPrivateEmailDomains, isNonUSDPolicy, isPolicyAdmin, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
@@ -144,6 +144,7 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
             return;
         }
         setTravelProvisioningEnabledSteps(enabledStepNames);
+        clearTravelProvisioningMembers();
         // Persist once for this mount only — later flag changes (e.g. legal name getting saved) shouldn't
         // re-trigger this, since enabledStepNames is already frozen for the rest of this flow session.
         // eslint-disable-next-line react-hooks/exhaustive-deps

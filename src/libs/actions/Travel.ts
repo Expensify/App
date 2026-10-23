@@ -10,6 +10,9 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 type TravelMembersSelection = {
+    /** The workspace the choice was made for */
+    policyID: string;
+
     /** Whether every workspace member gets travel */
     shouldEnableAllTravelMembers: boolean;
 
@@ -120,8 +123,13 @@ function setTravelProvisioningNextStep(nextStepRoute?: Route) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {nextStepRoute});
 }
 
-function setTravelProvisioningMembers({shouldEnableAllTravelMembers, travelMemberAccountIDs}: TravelMembersSelection) {
-    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {shouldEnableAllTravelMembers, travelMemberAccountIDs});
+function setTravelProvisioningMembers({policyID, shouldEnableAllTravelMembers, travelMemberAccountIDs}: TravelMembersSelection) {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {shouldEnableAllTravelMembers, travelMemberAccountIDs, travelMembersPolicyID: policyID});
+}
+
+/** Forget the members chosen in an earlier travel setup, so they aren't offered again on another workspace. */
+function clearTravelProvisioningMembers() {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {shouldEnableAllTravelMembers: null, travelMemberAccountIDs: null, travelMembersPolicyID: null});
 }
 
 function setTravelProvisioningEnabledSteps(enabledSteps: string[]) {
@@ -135,6 +143,7 @@ function cleanupTravelProvisioningSession() {
 export {
     acceptSpotnanaTerms,
     cleanupTravelProvisioningSession,
+    clearTravelProvisioningMembers,
     requestTravelAccess,
     setTravelProvisioningDomain,
     setTravelProvisioningEnabledSteps,

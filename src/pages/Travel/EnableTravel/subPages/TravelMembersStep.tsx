@@ -37,7 +37,7 @@ const filterMember = (member: TravelMember, searchInput: string) => tokenizedSea
  * Asks who can book travel before travel is enabled. Everyone on the workspace is chosen by default, and an admin who
  * only wants some members unchecks it and picks them. The admin enabling travel always gets it.
  */
-function TravelMembersStep({onNext, policy}: EnableTravelSubPageProps) {
+function TravelMembersStep({onNext, policy, policyID}: EnableTravelSubPageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
@@ -45,8 +45,10 @@ function TravelMembersStep({onNext, policy}: EnableTravelSubPageProps) {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const workspaceMembers = useWorkspaceMembers(policy);
 
-    const [shouldEnableAllTravelMembers, setShouldEnableAllTravelMembers] = useState(travelProvisioning?.shouldEnableAllTravelMembers ?? true);
-    const [selectedAccountIDs, setSelectedAccountIDs] = useState<number[]>(travelProvisioning?.travelMemberAccountIDs ?? []);
+    // A choice made while enabling travel on another workspace doesn't carry over to this one
+    const savedSelection = travelProvisioning?.travelMembersPolicyID === policyID ? travelProvisioning : undefined;
+    const [shouldEnableAllTravelMembers, setShouldEnableAllTravelMembers] = useState(savedSelection?.shouldEnableAllTravelMembers ?? true);
+    const [selectedAccountIDs, setSelectedAccountIDs] = useState<number[]>(savedSelection?.travelMemberAccountIDs ?? []);
 
     const members: TravelMember[] = workspaceMembers
         .map(({email, accountID, details}) => ({
@@ -94,7 +96,7 @@ function TravelMembersStep({onNext, policy}: EnableTravelSubPageProps) {
         showButton: true,
         text: translate('common.next'),
         onConfirm: () => {
-            setTravelProvisioningMembers({shouldEnableAllTravelMembers, travelMemberAccountIDs: shouldEnableAllTravelMembers ? [] : selectedAccountIDs});
+            setTravelProvisioningMembers({policyID, shouldEnableAllTravelMembers, travelMemberAccountIDs: shouldEnableAllTravelMembers ? [] : selectedAccountIDs});
             onNext();
         },
     };
