@@ -1,5 +1,6 @@
 import Log from '@libs/Log';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {startFrameDropMonitor} from '@libs/telemetry/frameDrops/frameDropMonitor';
 
 import CONST from '@src/CONST';
 
@@ -85,6 +86,7 @@ function reportStartupMarkers(startupSpan: Span, nativeAppStartTimeMs: number) {
 
 export default function (): void {
     setupSentry();
+    startFrameDropMonitor();
 
     let nativeAppStartTimeMs: number | undefined;
     try {

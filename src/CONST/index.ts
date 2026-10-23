@@ -2633,6 +2633,75 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_MEMORY: 'Memory',
         CONTEXT_POLICIES: 'Policies',
+        FRAME_DROPS: {
+            // How often the recorded context timeline is matched against the native frame delay store. Both native stores keep
+            // delayed frames for 5+ minutes (Android: 5 min / 3600 frames, iOS: 500 s), so this must stay well below that.
+            FLUSH_INTERVAL_MS: 30_000,
+            // A flush waits for the JS thread to be idle, but not longer than this.
+            IDLE_FLUSH_TIMEOUT_MS: 5_000,
+            // Share of app launches that measure frame drops. Sentry metrics are billed by volume, and a ranking of
+            // interactions needs thousands of sessions, not all of them. Starts low and goes up once the real volume is known.
+            SESSION_SAMPLE_RATE: 0.05,
+            // Frame metrics reach the native store asynchronously, so the newest part of the timeline is left for the next flush.
+            SETTLE_MS: 1_000,
+            // Aggregates are sent this often, and whenever the app goes to the background.
+            REPORT_INTERVAL_MS: 5 * 60_000,
+            // How long after a press its frames are attributed to it (the same idle window Sentry uses for ui.action spans).
+            PRESS_WINDOW_MS: 1_000,
+            // A list counts as scrolling until it sends no scroll event for this long (the same delay useScrollEventEmitter uses).
+            SCROLL_END_DELAY_MS: 250,
+            // Upper bound of native queries per flush. On iOS each one runs on the UI thread (a sub-millisecond lookup), so a
+            // very busy window must not turn into a long burst of them; delay that can't be split within the budget is
+            // reported as unattributed. 20 resolved every press and scroll of a dense post-launch window on a simulator.
+            MAX_QUERIES_PER_FLUSH: 20,
+            // A native query that doesn't answer within this time counts as unmeasured, so a stuck query can't stall the monitor.
+            QUERY_TIMEOUT_MS: 2_000,
+            // Flushes wait while the user scrolls or presses, but not longer than this, to stay within the native retention.
+            MAX_FLUSH_DEFER_MS: 90_000,
+            // After this many flushes in a row without native frame data, frame tracking isn't running and the monitor stops.
+            MAX_UNMEASURED_FLUSHES: 3,
+            // Upper bound of timeline events kept between flushes, so a runaway caller can't grow memory.
+            MAX_EVENTS: 500,
+            // Upper bound of distinct contexts per report; the rest is reported as "overflow".
+            MAX_AGGREGATES: 100,
+            // An interval that was never closed (a lost scroll end, a request that never settled) stops owning frames after this long.
+            MAX_OPEN_INTERVAL_MS: 60_000,
+            // A screen change is backdated to the navigation action that caused it, if the action was at most this long ago.
+            MAX_NAVIGATION_START_AGE_MS: 2_000,
+            MAX_LABEL_LENGTH: 64,
+            // Requests that only carry telemetry, so they'd only hide the operation that is actually running.
+            IGNORED_COMMANDS: ['Log'],
+            NONE: 'none',
+            UNATTRIBUTED: 'unattributed',
+            OVERFLOW: 'overflow',
+            MODAL: 'modal',
+            STARTUP: 'startup',
+            INTERACTION_SCROLL: 'scroll',
+            INTERACTION_UNLABELED_PRESS: 'press',
+            OPERATION_API_PREFIX: 'api.',
+            OPERATION_PUSHER: 'pusher',
+            METRIC_ACTIVE_TIME: 'ui.frame_drops.active_time',
+            METRIC_FRAME_DELAY: 'ui.frame_drops.frame_delay',
+            METRIC_LONG_TASK_TIME: 'ui.frame_drops.long_task_time',
+            METRIC_LONG_TASK_COUNT: 'ui.frame_drops.long_task_count',
+            METRIC_INTERACTION_FRAME_DELAY: 'ui.interaction.frame_delay',
+            METRIC_INTERACTION_COUNT: 'ui.interaction.count',
+            ATTRIBUTE_SCREEN: 'screen',
+            ATTRIBUTE_INTERACTION: 'interaction',
+            ATTRIBUTE_OPERATION: 'operation',
+            ATTRIBUTE_FLOW: 'flow',
+            ATTRIBUTE_PLATFORM: 'platform',
+            ATTRIBUTE_DEVICE_TIER: 'device_tier',
+            // Total RAM thresholds of the device tier (see getDeviceTier).
+            DEVICE_TIER_MEDIUM_MIN_MEMORY_BYTES: 4 * 1024 ** 3,
+            DEVICE_TIER_HIGH_MIN_MEMORY_BYTES: 6 * 1024 ** 3,
+            DEVICE_TIER: {
+                LOW: 'low',
+                MEDIUM: 'medium',
+                HIGH: 'high',
+                UNKNOWN: 'unknown',
+            },
+        },
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
         BREADCRUMB_CATEGORY_MFA: 'mfa',

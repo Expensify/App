@@ -13,6 +13,7 @@ import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
 import {cancelSpan, endSpanWithAttributes} from './telemetry/activeSpans';
+import {endOperation, startOperation} from './telemetry/frameDrops/frameDropTimeline';
 import getRequestPhaseSpanNames, {getNextRequestPhaseAttempt} from './telemetry/measuredRequestPhaseCommands';
 import startRequestPhaseSpan, {getRequestPhaseSpanId} from './telemetry/startRequestPhaseSpan';
 import trackStartupDataRender from './telemetry/trackStartupDataRender';
@@ -29,8 +30,20 @@ function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response
     });
 }
 
+const frameDropIgnoredCommands = new Set<string>(CONST.TELEMETRY.FRAME_DROPS.IGNORED_COMMANDS);
+
 function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isFromSequentialQueue = false): Promise<Response<TKey> | void> {
     let result = makeXHR(request);
+
+    // Frames dropped while the response is processed and applied are attributed to this command (see frameDropMonitor). A 407 is
+    // left out: the Reauthentication middleware waits for a network round trip and retries, and the retry is measured on its own.
+    let frameDropOperationID: number | undefined;
+    result = result.then((response) => {
+        if (response?.jsonCode !== CONST.JSON_CODE.NOT_AUTHENTICATED && !frameDropIgnoredCommands.has(request.command)) {
+            frameDropOperationID = startOperation(`${CONST.TELEMETRY.FRAME_DROPS.OPERATION_API_PREFIX}${request.command}`);
+        }
+        return response;
+    });
 
     // The splash-based startup spans measure nothing for flows that never show a splash (magic code, copilot, supportal), and nothing at all for Search.
     const phaseSpanNames = getRequestPhaseSpanNames(request.command);
@@ -89,6 +102,8 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
             },
         );
     }
+
+    result = result.finally(() => endOperation(frameDropOperationID));
 
     return result.catch((reason: unknown) => {
         // Real Errors are already normalized/classified by the Logging middleware; pass them through untouched.

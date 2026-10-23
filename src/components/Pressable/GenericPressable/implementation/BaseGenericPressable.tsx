@@ -10,6 +10,7 @@ import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import mergeRefs from '@libs/mergeRefs';
 import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusReturn';
+import {recordPress} from '@libs/telemetry/frameDrops/frameDropTimeline';
 
 import CONST from '@src/CONST';
 
@@ -127,9 +128,10 @@ function GenericPressable({
                 Accessibility.moveAccessibilityFocus(nextFocusRef);
             }
             notifyPressedTrigger(internalRef, focusIdentifier);
+            recordPress(rest.sentryLabel);
             onLongPress(event);
         },
-        [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled, focusIdentifier],
+        [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled, focusIdentifier, rest.sentryLabel],
     );
 
     const onPressHandler = useCallback(
@@ -148,9 +150,10 @@ function GenericPressable({
                 Accessibility.moveAccessibilityFocus(nextFocusRef);
             }
             notifyPressedTrigger(internalRef, focusIdentifier);
+            recordPress(rest.sentryLabel);
             return onPress(event);
         },
-        [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled, interactive, focusIdentifier],
+        [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled, interactive, focusIdentifier, rest.sentryLabel],
     );
 
     const voidOnPressHandler = useCallback(
