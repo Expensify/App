@@ -12,7 +12,10 @@ import waitForWebServer from './waitForWebServer';
 async function startWeb() {
     // Bun loads .env automatically, preserving explicit shell overrides.
     const {isWorkerEnabled, isProxyEnabled, shouldOpenBrowser} = getWebDevFlags(Bun.env);
-    const {publicPort, internalPort} = getWebDevPorts(Bun.env, isWorkerEnabled);
+    const {publicPort, internalPort, ports} = getWebDevPorts(Bun.env, isWorkerEnabled);
+    for (const port of ports) {
+        assertWebPortAvailable(port);
+    }
     if (isProxyEnabled) {
         assertWebPortAvailable(API_PROXY_PORT, '::');
     }

@@ -1,7 +1,7 @@
 /** Keep local Worker/API opt-outs and coordinated port selection independent. */
 import {describe, expect, test} from 'bun:test';
 
-import {getDevelopmentConnectOrigins, getWebDevFlags, getWebDevPorts} from '../../scripts/utils/webDevConfig';
+import {assertWebPortAvailable, getDevelopmentConnectOrigins, getWebDevFlags, getWebDevPorts} from '../../scripts/utils/webDevConfig';
 
 describe('web development configuration', () => {
     test('defaults both services on and allows independent opt-outs', () => {
@@ -47,9 +47,10 @@ describe('web development configuration', () => {
             },
         });
         try {
-            // When this session tries to use it
-            // Then no child is started against that unrelated listener
-            expect(() => getWebDevPorts({WEB_PORT: String(listener.port)}, false)).toThrow('in use');
+            // When this session resolves and checks its ports
+            // Then resolving them stays side-effect free, and the availability check stops startup before any child starts
+            expect(getWebDevPorts({WEB_PORT: String(listener.port)}, false).publicPort).toBe(listener.port);
+            expect(() => assertWebPortAvailable(listener.port)).toThrow('in use');
         } finally {
             listener.stop(true);
         }
@@ -68,8 +69,8 @@ describe('web development configuration', () => {
         });
         const port = initial.port;
         initial.stop(true);
-        // When a session resolves and probes that port
-        expect(getWebDevPorts({WEB_PORT: String(port)}, false).publicPort).toBe(port);
+        // When a session probes that port
+        assertWebPortAvailable(port);
         // Then its actual server can bind the port immediately
         const listener = Bun.listen({
             hostname: '127.0.0.1',

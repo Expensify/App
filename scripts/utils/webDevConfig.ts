@@ -39,19 +39,18 @@ function assertWebPortAvailable(port: number, host = '127.0.0.1'): void {
     }
 }
 
+/** Parse and validate the session's ports. Use `assertWebPortAvailable` to check that they are free. */
 function getWebDevPorts(env: Record<string, string | undefined>, isWorkerEnabled: boolean) {
     const publicPort = Number(env.WEB_PORT ?? 8082);
     const internalPort = Number(env.WEB_INTERNAL_PORT ?? publicPort + 1);
     if (isWorkerEnabled && publicPort === internalPort) {
         throw new Error('WEB_PORT and WEB_INTERNAL_PORT must differ');
     }
-    for (const port of isWorkerEnabled ? [publicPort, internalPort] : [publicPort]) {
-        if (!Number.isInteger(port) || port < 1024 || port > 65535) {
-            throw new Error('WEB_PORT and WEB_INTERNAL_PORT must be integers between 1024 and 65535');
-        }
-        assertWebPortAvailable(port);
+    const ports = isWorkerEnabled ? [publicPort, internalPort] : [publicPort];
+    if (ports.some((port) => !Number.isInteger(port) || port < 1024 || port > 65535)) {
+        throw new Error('WEB_PORT and WEB_INTERNAL_PORT must be integers between 1024 and 65535');
     }
-    return {publicPort, internalPort};
+    return {publicPort, internalPort, ports};
 }
 
 export {assertWebPortAvailable, getDevelopmentConnectOrigins, getWebDevFlags, getWebDevPorts};
