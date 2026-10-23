@@ -37,7 +37,7 @@ function buildFilterFormValues(filters: InsightsFilters): Partial<SearchAdvanced
 
 /** Builds the dashboard-wide query the whole page is narrowed by. */
 function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
-    return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy, compare: filters.compare});
+    return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: getQueryGroupBy(filters), compare: filters.compare});
 }
 
 /** Builds a chart's query with the page's filters applied. */
