@@ -1,3 +1,5 @@
+import type PolicyData from '@hooks/usePolicyData/types';
+
 import {clearVendorErrors, openPolicyVendorsPage, setPolicyVendorsEnabled} from '@libs/actions/Policy/Vendor';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -8,6 +10,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyVendors} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 
 jest.mock('@libs/API');
 jest.mock('@expensify/react-native-hybrid-app', () => ({
@@ -152,7 +156,7 @@ describe('PolicyVendorAction', () => {
                 },
             };
 
-            const fakePolicyData = {
+            const fakePolicyData = createMock<PolicyData>({
                 policy: {
                     id: policyID,
                     type: CONST.POLICY.TYPE.CORPORATE,
@@ -169,20 +173,22 @@ describe('PolicyVendorAction', () => {
                         },
                     },
                 },
+                categories: {},
+                tags: {},
                 vendors: initialPolicyVendors,
                 reports: [
                     {
-                        reportID: 'report_1',
+                        reportID: 'report1',
                         policyID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     },
                 ],
                 transactionsAndViolations: {
-                    report_1: {
+                    report1: {
                         transactions: {
-                            trans_1: {
-                                transactionID: 'trans_1',
-                                reportID: 'report_1',
+                            trans1: {
+                                transactionID: 'trans1',
+                                reportID: 'report1',
                                 amount: 100,
                                 currency: CONST.CURRENCY.USD,
                                 created: '2025-01-01',
@@ -197,29 +203,33 @@ describe('PolicyVendorAction', () => {
                         violations: {},
                     },
                 },
-            };
+            });
 
             setPolicyVendorsEnabled({
                 policyID,
                 vendorIDs: ['vendor1'],
                 enabled: false,
                 policyVendors: initialPolicyVendors,
-                policyData: fakePolicyData as never,
+                policyData: fakePolicyData,
                 isVendorMatchingBetaEnabled: true,
             });
 
             expect(mockWrite).toHaveBeenCalledTimes(1);
-            const callArgs = mockWrite.mock.calls[0];
-            const onyxData = callArgs[2] as {optimisticData: Array<{key: string; value: unknown}>};
-            expect(onyxData.optimisticData).toContainEqual(
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_POLICY_VENDORS_ENABLED,
+                expect.anything(),
                 expect.objectContaining({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}trans_1`,
-                    value: [
+                    optimisticData: expect.arrayContaining([
                         expect.objectContaining({
-                            name: CONST.VIOLATIONS.INACTIVE_VENDOR,
-                            type: CONST.VIOLATION_TYPES.VIOLATION,
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}trans1`,
+                            value: [
+                                expect.objectContaining({
+                                    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                                }),
+                            ],
                         }),
-                    ],
+                    ]),
                 }),
             );
         });

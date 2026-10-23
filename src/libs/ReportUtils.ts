@@ -2277,13 +2277,14 @@ function getOptimisticPolicyState(
         : {
               ...(policyData.vendors ?? {}),
               ...Object.entries(vendorsUpdate).reduce<PolicyVendors>((acc, [vendorID, vendorUpdate]) => {
-                  if (!vendorUpdate) {
+                  const existingVendor = policyData.vendors?.[vendorID];
+                  if (!vendorUpdate || !existingVendor) {
                       return acc;
                   }
                   acc[vendorID] = {
-                      ...(policyData.vendors?.[vendorID] ?? {}),
+                      ...existingVendor,
                       ...vendorUpdate,
-                  } as PolicyVendor;
+                  };
                   return acc;
               }, {}),
           };

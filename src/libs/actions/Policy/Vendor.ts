@@ -1,7 +1,7 @@
 /**
  * Actions for enabling/disabling policy vendors and clearing their offline errors.
  */
-import type {PolicyData} from '@hooks/usePolicyData/types';
+import type PolicyData from '@hooks/usePolicyData/types';
 
 import {write, read} from '@libs/API';
 import type {SetPolicyVendorsEnabledParams} from '@libs/API/parameters';

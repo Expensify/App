@@ -15637,7 +15637,7 @@ describe('ReportUtils', () => {
         it('pushes inactiveVendor error when a vendor is disabled', () => {
             const fakePolicyID = '0';
             const fakeVendorID = 'vendor1';
-            const fakePolicy: Policy = {
+            const fakePolicy: Policy = createMock<Policy>({
                 ...createRandomPolicy(0),
                 id: fakePolicyID,
                 connections: {
@@ -15648,7 +15648,7 @@ describe('ReportUtils', () => {
                         },
                     },
                 },
-            };
+            });
 
             const openIOUReport: Report = {
                 ...mockIOUReport,
@@ -15676,6 +15676,8 @@ describe('ReportUtils', () => {
 
             const policyData: PolicyData = {
                 policy: fakePolicy,
+                categories: {},
+                tags: {},
                 vendors: initialPolicyVendors,
                 reports: [openIOUReport],
                 transactionsAndViolations: {
@@ -15708,7 +15710,7 @@ describe('ReportUtils', () => {
         it('clears inactiveVendor error when a disabled vendor is re-enabled', () => {
             const fakePolicyID = '0';
             const fakeVendorID = 'vendor1';
-            const fakePolicy: Policy = {
+            const fakePolicy: Policy = createMock<Policy>({
                 ...createRandomPolicy(0),
                 id: fakePolicyID,
                 connections: {
@@ -15719,7 +15721,7 @@ describe('ReportUtils', () => {
                         },
                     },
                 },
-            };
+            });
 
             const openIOUReport: Report = {
                 ...mockIOUReport,
@@ -15747,6 +15749,8 @@ describe('ReportUtils', () => {
 
             const policyData: PolicyData = {
                 policy: fakePolicy,
+                categories: {},
+                tags: {},
                 vendors: initialPolicyVendors,
                 reports: [openIOUReport],
                 transactionsAndViolations: {
