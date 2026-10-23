@@ -5265,9 +5265,9 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/rillet/advanced/export-method',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/export-method` as const,
     },
-    POLICY_ACCOUNTING_RILLET_BILL_PAYMENT_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/rillet/advanced/bill-payment-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/bill-payment-account` as const,
+    POLICY_ACCOUNTING_RILLET_ACH_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/ach-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/ach-payment-account` as const,
     },
     POLICY_ACCOUNTING_RILLET_FX_EXPENSE_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/rillet/advanced/fx-expense-account',
