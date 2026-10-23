@@ -2592,9 +2592,9 @@ function toLastAccessedReport(report: OnyxEntry<Report>): LastAccessedReport | u
 
 /**
  * Finds the last accessed report for navigation fallbacks using the module-scoped
- * Onyx subscriptions (non-UI, no view-based re-renders). `reportNameValuePairs` and
- * `reports` let a caller pass its own subscribed collections and fall back to the
- * module-scoped copies when omitted. Returns a minimal slice, not the full Report.
+ * Onyx subscriptions (non-UI, no view-based re-renders). `reports` lets a caller pass
+ * its own subscribed collection and fall back to the module-scoped copy when omitted.
+ * Returns a minimal slice, not the full Report.
  */
 function findLastAccessedReport(
     ignoreDomainRooms: boolean,
@@ -2605,7 +2605,6 @@ function findLastAccessedReport(
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reports?: OnyxCollection<Report>,
 ): LastAccessedReport | undefined {
-    const reportNameValuePairsCollection = reportNameValuePairs;
     const reportsCollection = reports ?? deprecatedAllReports ?? {};
 
     if (openOnAdminRoom) {
@@ -2629,7 +2628,7 @@ function findLastAccessedReport(
 
         // Filter out the system chat (Expensify chat) because the composer is disabled in it,
         // and it prompts the user to use the Concierge chat instead.
-        return !isSystemChat(report) && !isArchivedReport(reportNameValuePairsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
+        return !isSystemChat(report) && !isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
     };
     const isVisible = (report: OnyxEntry<Report>) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUser);
 
@@ -15636,5 +15635,4 @@ export type {
     OptimisticReportAction,
     ActionErrorsByTransaction,
     LastAccessedReport,
-    GetIOUReportActionWithBadgeParams,
 };
