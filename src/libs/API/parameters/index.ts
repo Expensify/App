@@ -139,6 +139,8 @@ export type {default as UpdateBusinessCentralReimbursableAccountParams} from './
 export type {default as UpdateBusinessCentralNonreimbursableAccountParams} from './UpdateBusinessCentralNonreimbursableAccountParams';
 export type {default as UpdateBusinessCentralDefaultVendorParams} from './UpdateBusinessCentralDefaultVendorParams';
 export type {default as UpdateBusinessCentralPaymentMethodParams} from './UpdateBusinessCentralPaymentMethodParams';
+export type {default as UpdateBusinessCentralExportToMultipleAccountsParams} from './UpdateBusinessCentralExportToMultipleAccountsParams';
+export type {default as UpdateBusinessCentralCardProgramAccountParams} from './UpdateBusinessCentralCardProgramAccountParams';
 export type {default as UpdateBusinessCentralAutoSyncParams} from './UpdateBusinessCentralAutoSyncParams';
 export type {default as UpdateBusinessCentralSyncReimbursedReportsParams} from './UpdateBusinessCentralSyncReimbursedReportsParams';
 export type {default as UpdateBusinessCentralSyncExpensifyCardSettlementsParams} from './UpdateBusinessCentralSyncExpensifyCardSettlementsParams';

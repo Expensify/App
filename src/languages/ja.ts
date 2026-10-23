@@ -139,6 +139,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: '考えています…',
         addCardTermsOfService: 'Expensify 利用規約',
         perPerson: '1人あたり',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 泊 • 1泊あたり ${nightlyRate}`,
+            other: `${count} 泊 • 1泊あたり ${nightlyRate}`,
+        }),
         phone: '電話',
         phoneNumber: '電話番号',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -3943,6 +3947,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             removeDelegate: '休暇代理人を削除',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}、完了`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `ステップ ${step}`;
         if (total) {
@@ -4047,11 +4052,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             outOfRange: ({min, max}: {min: number; max: number}) => `${min}から${max}の間の値を入力してください`,
             tooFewItems: ({min}: {min: number}) => `${min}件以上追加してください`,
             tooManyItems: ({max}: {max: number}) => `${max}件以内で追加してください`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}：${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}、${field}：${error}`,
         },
         addItem: ({item}: {item: string}) => `${item}を追加`,
         removeItemTitle: ({item}: {item: string}) => `${item}を削除しますか？`,
         removeItemPrompt: ({name}: {name: string}) => `本当に${name}を削除しますか？`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `末尾が ${ending} の${label}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
+        questionsChanged: 'このページの質問が変更されました',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',
@@ -9158,6 +9166,35 @@ ${reportName}`,
                 label: '会社カード口座',
                 description: '会社カード取引のエクスポート先を選択してください。',
             },
+            exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペースアカウントを上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'すべてのプログラムはデフォルトアカウントを使用します';
+                    }
+                    return {
+                        one: `カスタム勘定科目を使用するプログラム：${count} 件`,
+                        other: `${count} 件のプログラム（カスタムアカウントあり）`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'カード単位の口座',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    return {
+                        one: `カスタム口座付きカード ${count} 枚`,
+                        other: `カスタム口座のあるカードが ${count} 枚`,
+                    };
+                },
+            },
             paymentMethod: {
                 label: '支払方法',
                 description: 'Dynamics 365 Business Central が銀行と照合できるよう、購入請求書の支払方法を選択してください。',
@@ -9449,6 +9486,8 @@ ${reportName}`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `デフォルト通貨を${newCurrency}（以前は${oldCurrency}）に更新しました`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `自動レポート頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `承認モードを「${newValue}」（以前は「${oldValue}」）に更新しました`,
+        archivedWorkspace: 'このワークスペースをアーカイブしました',
+        unarchivedWorkspace: 'このワークスペースをアーカイブ解除しました',
         upgradedWorkspace: 'このワークスペースを Control プランにアップグレードしました',
         forcedCorporateUpgrade: `このワークスペースは Control プランにアップグレードされました。詳しくは<a href="${CONST.COLLECT_UPGRADE_HELP_URL}">こちら</a>をクリックしてください。`,
         downgradedWorkspace: 'このワークスペースを Collect プランにダウングレードしました',
@@ -10304,6 +10343,8 @@ ${reportName}`,
             topCategories: '上位カテゴリ',
             topMerchants: '上位加盟店',
             violationsBySubmitter: '申請者による違反',
+            travel: '出張',
+            trips: '出張',
         },
         mergeReports: {
             title: 'レポートをマージする',
@@ -11415,6 +11456,8 @@ ${reportName}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${date} に ${amount} を返金`,
             },
             billedTo: '請求先',
+            activity: 'アクティビティ',
+            findActiveUser: 'アクティブユーザーを検索',
             viewReceipt: '領収書を表示',
             viewInvoice: '請求書を表示',
         },

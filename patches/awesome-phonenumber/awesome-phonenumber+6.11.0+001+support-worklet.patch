@@ -1,8 +1,8 @@
 diff --git a/node_modules/awesome-phonenumber/index-esm.mjs b/node_modules/awesome-phonenumber/index-esm.mjs
-index 803ef1a..880a73b 100644
+index f1e3257..ab60425 100644
 --- a/node_modules/awesome-phonenumber/index-esm.mjs
 +++ b/node_modules/awesome-phonenumber/index-esm.mjs
-@@ -623,6 +623,8 @@ const {
+@@ -628,6 +628,8 @@ const {
  
  const parsePhoneNumber = ( ...args ) =>
  {
