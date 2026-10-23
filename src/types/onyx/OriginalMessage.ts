@@ -304,8 +304,10 @@ type OriginalMessageCreated = {
 
 /** Model of `created report for unapproved transactions` report action */
 type OriginalMessageCreatedReportForUnapprovedTransactions = {
-    /** The original report ID that the held expenses were moved from */
+    /** The original report ID that the expenses were moved from */
     originalID?: string;
+    /** Whether the expenses were moved because only selected expenses were approved */
+    isPartialApproval?: boolean;
 };
 
 /** Model of `closed` report action */
