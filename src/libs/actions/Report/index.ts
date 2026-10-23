@@ -4962,22 +4962,23 @@ function buildNewReportOptimisticData({
         optimisticReportData,
     };
 }
-
 // Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
 function createNewReport(
     ownerPersonalDetails: CurrentUserPersonalDetails,
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
     isTrackIntentUser: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    localize: {
+        getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    },
     rules: OnyxCollection<Rule>,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     options: {managedCardTransactionID?: string; reportName?: string} = {},
 ) {
+    const {getCurrencyDecimals, formatPhoneNumber} = localize;
     const {managedCardTransactionID, reportName} = options;
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();

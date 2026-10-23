@@ -234,7 +234,7 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, false, getCurrencyDecimalsLocal, formatPhoneNumber, undefined);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy, false, {getCurrencyDecimals: getCurrencyDecimalsLocal, formatPhoneNumber}, undefined);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),

@@ -154,8 +154,7 @@ function DynamicIOURequestStepUpgrade({
                 isASAPSubmitBetaEnabled,
                 newPolicy,
                 isTrackIntentUser,
-                getCurrencyDecimals,
-                formatPhoneNumber,
+                {getCurrencyDecimals, formatPhoneNumber},
                 rules,
             );
 

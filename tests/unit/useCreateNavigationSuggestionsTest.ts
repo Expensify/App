@@ -424,7 +424,17 @@ describe('useCreateNavigationSuggestions', () => {
         act(() => onCreateReport?.(submitPolicy, true));
 
         // Then the report is created on that workspace, and the Reports root is pushed first so back returns to the list
-        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, mockFormatPhoneNumber, undefined, false, true);
+        expect(createNewReport).toHaveBeenCalledWith(
+            expect.anything(),
+            false,
+            true,
+            submitPolicy,
+            false,
+            {getCurrencyDecimals: mockGetCurrencyDecimals, formatPhoneNumber: mockFormatPhoneNumber},
+            undefined,
+            false,
+            true,
+        );
         expect(clearLastSearchParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: false});
