@@ -103,10 +103,6 @@ function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, policyD
         });
     }
 
-    if (options.length === 0) {
-        return null;
-    }
-
     return (
         <ButtonWithDropdownMenu
             variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -117,7 +113,7 @@ function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, policyD
             options={options}
             isSplitButton={false}
             style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-            isDisabled={!selectedVendorKeys.length}
+            isDisabled={!selectedVendorKeys.length || options.length === 0}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS}
             testID="WorkspaceVendorsPage-header-dropdown-menu-button"
         />
@@ -227,9 +223,9 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
         </View>
     ) : undefined;
 
-    const canShowBulkActions = canWriteVendors && selectedVendorKeys.length > 0;
-    const isLoading = !isOffline && policyVendors === undefined;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const canShowBulkActions = canWriteVendors && (selectedVendorKeys.length > 0 || selectionModeHeader);
+    const isLoading = !isOffline && policyVendors === undefined;
 
     return (
         <AccessOrNotFoundWrapper
