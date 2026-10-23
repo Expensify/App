@@ -205,4 +205,53 @@ describe('customizing expense fields on native', () => {
         // Then the chosen order reaches the shared preferences and the required field cannot be turned off.
         expect(onSave).toHaveBeenCalledWith([DATE, TOTAL_AMOUNT, MERCHANT]);
     });
+
+    it('reorders selected fields through screen reader actions', () => {
+        // Given a screen reader user who cannot use touch dragging to choose the field order.
+        const onSave = renderFields();
+
+        // When they move optional and required fields through the available accessibility actions.
+        fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${MERCHANT}`), 'accessibilityAction', {nativeEvent: {actionName: 'moveDown'}});
+        fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${TOTAL_AMOUNT}`), 'accessibilityAction', {nativeEvent: {actionName: 'moveDown'}});
+        fireEvent.press(screen.getByText('common.save'));
+
+        // Then the new order is saved without changing which fields are selected.
+        expect(onSave).toHaveBeenCalledWith([DATE, TOTAL_AMOUNT, MERCHANT]);
+        const rows = screen.getAllByTestId(new RegExp(`^${CONST.BASE_LIST_ITEM_TEST_ID}`));
+        for (const [index, column] of [DATE, TOTAL_AMOUNT, MERCHANT, CATEGORY].entries()) {
+            expect(rows.at(index)).toHaveProp('testID', `${CONST.BASE_LIST_ITEM_TEST_ID}${column}`);
+        }
+        expect(mockDrag).not.toHaveBeenCalled();
+    });
+
+    it('limits screen reader moves to valid positions among selected fields', () => {
+        // Given selected fields followed by an unselected field that must stay outside the reorder area.
+        const onSave = renderFields();
+        const firstRow = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${TOTAL_AMOUNT}`);
+        const middleRow = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${MERCHANT}`);
+        const lastRow = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${DATE}`);
+        const unselectedRow = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${CATEGORY}`);
+
+        // When the reader encounters the available moves at each boundary.
+        expect(firstRow.props.accessibilityActions).toEqual([{name: 'moveDown', label: 'common.moveDown'}]);
+        expect(middleRow.props.accessibilityActions).toEqual([
+            {name: 'moveUp', label: 'common.moveUp'},
+            {name: 'moveDown', label: 'common.moveDown'},
+        ]);
+        expect(lastRow.props.accessibilityActions).toEqual([{name: 'moveUp', label: 'common.moveUp'}]);
+        expect(unselectedRow.props.accessibilityActions).toEqual([]);
+        fireEvent(firstRow, 'accessibilityAction', {
+            nativeEvent: {actionName: 'moveUp'},
+        });
+        fireEvent(lastRow, 'accessibilityAction', {
+            nativeEvent: {actionName: 'moveDown'},
+        });
+        fireEvent(unselectedRow, 'accessibilityAction', {
+            nativeEvent: {actionName: 'moveUp'},
+        });
+        fireEvent.press(screen.getByText('common.save'));
+
+        // Then unavailable moves cannot place a selected field outside its section or select another field.
+        expect(onSave).toHaveBeenCalledWith([TOTAL_AMOUNT, MERCHANT, DATE]);
+    });
 });

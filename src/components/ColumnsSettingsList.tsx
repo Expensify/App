@@ -107,7 +107,10 @@ function ColumnsSettingsList({
             return defaultColumns;
         }
 
-        const selected = selectedColumnIds.map((columnId) => ({columnId, isSelected: true}));
+        const selected = selectedColumnIds.map((columnId) => ({
+            columnId,
+            isSelected: true,
+        }));
         const unselected = allCustomColumns.filter((columnId) => !selectedColumnIds.includes(columnId)).map((columnId) => ({columnId, isSelected: false}));
 
         return [...selected, ...unselected];
@@ -195,16 +198,28 @@ function ColumnsSettingsList({
     const typeFocusedIndex = focusedIndex >= groupLength ? focusedIndex - groupLength : -1;
 
     const onGroupDragEnd = ({data}: {data: typeof allColumnsList}) => {
-        const newGroupColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
-        const existingTypeColumns = typeColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+        const newGroupColumns = data.map((item) => ({
+            columnId: item.value,
+            isSelected: item.isSelected,
+        }));
+        const existingTypeColumns = typeColumnsList.map((item) => ({
+            columnId: item.value,
+            isSelected: item.isSelected,
+        }));
         const newColumns = [...existingTypeColumns, ...newGroupColumns];
         setColumns(newColumns);
         setFocusedIndex(-1);
     };
 
     const onTypeDragEnd = ({data}: {data: typeof allColumnsList}) => {
-        const newTypeColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
-        const existingGroupColumns = groupColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+        const newTypeColumns = data.map((item) => ({
+            columnId: item.value,
+            isSelected: item.isSelected,
+        }));
+        const existingGroupColumns = groupColumnsList.map((item) => ({
+            columnId: item.value,
+            isSelected: item.isSelected,
+        }));
         const newColumns = [...existingGroupColumns, ...newTypeColumns];
         setColumns(newColumns);
         setFocusedIndex(-1);
@@ -218,15 +233,42 @@ function ColumnsSettingsList({
         onSave(selectedColumnIds);
     };
 
-    const renderItem = ({item, isFocused, drag, isActive}: DraggableListRenderItemParams<ColumnItem>) => (
-        <ColumnsSettingsListItem
-            item={item}
-            isFocused={isFocused}
-            drag={drag}
-            isActive={isActive}
-            onSelectRow={onSelectItem}
-        />
-    );
+    const moveColumn = (item: ColumnItem, offset: number) => {
+        const isGroupColumn = groupColumns.includes(item.value);
+        const columnList = isGroupColumn ? groupColumnsList : typeColumnsList;
+        const index = columnList.findIndex((column) => column.value === item.value);
+        const targetIndex = index + offset;
+        const targetItem = columnList.at(targetIndex);
+        if (index < 0 || targetIndex < 0 || item.isDragDisabled || !targetItem || targetItem.isDragDisabled) {
+            return;
+        }
+
+        const reorderedColumns = [...columnList];
+        reorderedColumns.splice(index, 1);
+        reorderedColumns.splice(targetIndex, 0, item);
+        const onDragEnd = isGroupColumn ? onGroupDragEnd : onTypeDragEnd;
+        onDragEnd({data: reorderedColumns});
+    };
+
+    const renderItem = ({item, isFocused, drag, isActive}: DraggableListRenderItemParams<ColumnItem>) => {
+        const columnList = groupColumns.includes(item.value) ? groupColumnsList : typeColumnsList;
+        const index = columnList.findIndex((column) => column.value === item.value);
+        const canMoveUp = !item.isDragDisabled && index > 0 && !columnList.at(index - 1)?.isDragDisabled;
+        const nextColumn = columnList.at(index + 1);
+        const canMoveDown = !item.isDragDisabled && !!nextColumn && !nextColumn.isDragDisabled;
+
+        return (
+            <ColumnsSettingsListItem
+                item={item}
+                isFocused={isFocused}
+                drag={drag}
+                isActive={isActive}
+                onSelectRow={onSelectItem}
+                onMoveUp={canMoveUp ? () => moveColumn(item, -1) : undefined}
+                onMoveDown={canMoveDown ? () => moveColumn(item, 1) : undefined}
+            />
+        );
+    };
 
     return (
         <ScreenWrapper

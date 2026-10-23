@@ -22,6 +22,8 @@ import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTy
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        moveUp: 'Mover hacia arriba',
+        moveDown: 'Mover hacia abajo',
         durationDays: ({count}: {count: number}) => ({
             one: `1 día`,
             other: `${count} días`,

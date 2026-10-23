@@ -76,6 +76,8 @@ const translations = {
             `@${billingOwnerEmail}, could you renew our Expensify subscription early? We'd get up to 2 months free. Claim it here: [subscription page](${subscriptionURL})`,
     },
     common: {
+        moveUp: 'Move up',
+        moveDown: 'Move down',
         durationDays: ({count}: {count: number}) => ({
             one: '1 day',
             other: `${count} days`,

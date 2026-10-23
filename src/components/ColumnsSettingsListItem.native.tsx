@@ -1,3 +1,4 @@
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -10,8 +11,13 @@ import type {ColumnsSettingsListItemProps} from './ColumnsSettingsListItem';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import MultiSelectListItem from './SelectionList/ListItem/MultiSelectListItem';
 
-function ColumnsSettingsListItem({item, isFocused, drag, isActive, onSelectRow}: ColumnsSettingsListItemProps) {
+function ColumnsSettingsListItem({item, isFocused, drag, isActive, onSelectRow, onMoveUp, onMoveDown}: ColumnsSettingsListItemProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const accessibilityActions = [
+        ...(onMoveUp ? [{name: 'moveUp', label: translate('common.moveUp')}] : []),
+        ...(onMoveDown ? [{name: 'moveDown', label: translate('common.moveDown')}] : []),
+    ];
     const startDrag = () => {
         if (item.isDragDisabled || isActive) {
             return;
@@ -48,6 +54,14 @@ function ColumnsSettingsListItem({item, isFocused, drag, isActive, onSelectRow}:
                 onSelectRow={onSelectRow}
                 onLongPressRow={startDrag}
                 isDisabled={item.isDisabled}
+                accessibilityActions={accessibilityActions}
+                onAccessibilityAction={({nativeEvent}) => {
+                    if (nativeEvent.actionName === 'moveUp') {
+                        onMoveUp?.();
+                    } else if (nativeEvent.actionName === 'moveDown') {
+                        onMoveDown?.();
+                    }
+                }}
             />
         </View>
     );

@@ -36,6 +36,8 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        moveUp: 'Déplacer vers le haut',
+        moveDown: 'Déplacer vers le bas',
         durationDays: ({count}: {count: number}) => ({
             one: `${count} jour`,
             other: `${count} jours`,

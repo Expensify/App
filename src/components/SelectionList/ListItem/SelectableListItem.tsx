@@ -20,6 +20,8 @@ function SelectableListItem<TItem extends ListItem>({
     onSelectionButtonPress,
     onSelectRow,
     onLongPressRow,
+    accessibilityActions,
+    onAccessibilityAction,
     isDisabled = false,
     children,
     isFocused,
@@ -47,6 +49,8 @@ function SelectableListItem<TItem extends ListItem>({
             shouldShowTooltip={showTooltip}
             onSelectRow={onSelectRow}
             onLongPressRow={onLongPressRow}
+            accessibilityActions={accessibilityActions}
+            onAccessibilityAction={onAccessibilityAction}
             isDisabled={isDisabled}
             canSelectMultiple={canSelectMultiple}
             isFocused={isFocused}

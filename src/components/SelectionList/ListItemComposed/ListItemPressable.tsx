@@ -46,6 +46,8 @@ function ListItemPressable<TItem extends ListItem>({
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
+    accessibilityActions,
+    onAccessibilityAction,
     shouldHighlightSelectedItem = false,
     shouldDisableHoverStyle,
     shouldAllowTextSelection = false,
@@ -188,6 +190,8 @@ function ListItemPressable<TItem extends ListItem>({
                 tabIndex={tabIndex}
                 {...accessibleAndAccessibilityLabel}
                 accessibilityState={accessibilityState}
+                accessibilityActions={accessibilityActions}
+                onAccessibilityAction={onAccessibilityAction}
                 aria-current={ariaCurrent}
                 onMouseLeave={clearHoverAndMouseDownState}
                 // When the list-level Enter shortcut is disabled (disableKeyboardShortcuts), items with role="option"
