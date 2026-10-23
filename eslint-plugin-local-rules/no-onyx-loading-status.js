@@ -9,7 +9,7 @@ const meta = {
     },
     schema: [],
     messages: {
-        isLoadingOnyxValueImport:
+        isLoadingOnyxValueUsage:
             'Do not use `isLoadingOnyxValue`. Onyx is removing per-key loading status from `useOnyx`, so after startup this will always return `false`. Read the value directly and treat `undefined` as no data (https://github.com/Expensify/App/issues/104583).',
         statusRead:
             'Do not read `status` from a `useOnyx` result. Onyx is removing per-key loading status, so after startup it will always be `loaded`. Read the value directly and treat `undefined` as no data (https://github.com/Expensify/App/issues/104583).',
@@ -82,7 +82,7 @@ function create(context) {
 
     return {
         ImportDeclaration(node) {
-            if (node.importKind === 'type' || typeof node.source.value !== 'string') {
+            if (typeof node.source.value !== 'string') {
                 return;
             }
             const source = node.source.value;
@@ -93,8 +93,13 @@ function create(context) {
                     useOnyxNames.add(specifier.local.name);
                 }
             }
-            if (source.endsWith(IS_LOADING_ONYX_VALUE_PATH_SUFFIX)) {
-                context.report({node, messageId: 'isLoadingOnyxValueImport'});
+            if (!source.endsWith(IS_LOADING_ONYX_VALUE_PATH_SUFFIX)) {
+                return;
+            }
+            for (const variable of context.sourceCode.getDeclaredVariables(node)) {
+                for (const reference of variable.references) {
+                    context.report({node: reference.identifier, messageId: 'isLoadingOnyxValueUsage'});
+                }
             }
         },
 

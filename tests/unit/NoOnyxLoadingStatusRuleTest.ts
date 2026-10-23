@@ -47,17 +47,15 @@ describe('no-onyx-loading-status', () => {
             "const results = await Promise.allSettled(promises); const isFulfilled = results[0].status === 'fulfilled';",
             "const [first, second] = useSomethingElse(); const isLoaded = second.status === 'loaded';",
             'const response = await fetch(url); const isOk = response.status === 200;',
-            "import type isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';",
-            "import useOnyx from '@hooks/useOnyx';",
         ],
         invalid: [
             {
-                code: "import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';",
-                errors: [{messageId: 'isLoadingOnyxValueImport'}],
+                code: "import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue'; const isLoading = isLoadingOnyxValue(sessionMetadata);",
+                errors: [{messageId: 'isLoadingOnyxValueUsage'}],
             },
             {
-                code: "import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';",
-                errors: [{messageId: 'isLoadingOnyxValueImport'}],
+                code: "import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue'; const a = isLoadingOnyxValue(sessionMetadata); const b = isLoadingOnyxValue(policyMetadata, reportMetadata);",
+                errors: [{messageId: 'isLoadingOnyxValueUsage'}, {messageId: 'isLoadingOnyxValueUsage'}],
             },
             {
                 code: "import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx'; const [policies, policiesMetadata] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.POLICY); const isLoading = policiesMetadata.status === 'loading';",
