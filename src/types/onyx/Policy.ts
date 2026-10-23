@@ -1812,6 +1812,9 @@ type RilletExport = {
     /** Export behavior for non-reimbursable expenses. */
     nonReimbursable: RilletExportNonReimbursable;
 
+    /** Account code where reimbursements land (applicable if `reimbursable` type is REIMBURSEMENT). */
+    reimbursementAccountCode: string;
+
     /** Default vendor to associate with exported transactions. */
     defaultVendorID: string;
 
