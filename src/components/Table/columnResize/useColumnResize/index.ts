@@ -197,12 +197,6 @@ function useColumnResize({
             fitColumnToContent(pendingFitColumnKey);
         }
 
-        // Shrinking a column while scrolled right would otherwise drag the pinned filter bar along with the columns.
-        const scroller = event.currentTarget.closest<HTMLElement>(TABLE_COLUMN_SCROLLER_SELECTOR);
-        if (scroller) {
-            scopeElementRef.current?.style.setProperty(SCROLL_EXTENT_FLOOR_VARIABLE, `${scroller.scrollLeft + scroller.clientWidth}px`);
-        }
-
         dragRef.current = {
             columnKey,
             startClientX: event.clientX,
@@ -231,6 +225,13 @@ function useColumnResize({
             // Kept once set, so a drag that comes back to where it started isn't a click. Clicks never show the line.
             drag.hasMovedPointer = true;
             revealIndicator(event.currentTarget);
+
+            // Shrinking a column while scrolled right would otherwise drag the pinned filter bar along with the columns.
+            // Only endDrag clears it, so a click, whose fit or reset may shrink the table, must never set it.
+            const scroller = event.currentTarget.closest<HTMLElement>(TABLE_COLUMN_SCROLLER_SELECTOR);
+            if (scroller) {
+                scopeElementRef.current?.style.setProperty(SCROLL_EXTENT_FLOOR_VARIABLE, `${scroller.scrollLeft + scroller.clientWidth}px`);
+            }
         }
 
         // The line rides the handle, so it follows the clamped width, not the pointer.
