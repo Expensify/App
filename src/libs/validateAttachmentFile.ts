@@ -3,6 +3,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ValueOf} from 'type-fest';
 
+import {getErrorMessage} from './ErrorUtils';
 import {
     appendExtensionFromMimeType,
     cleanFileName,
@@ -72,7 +73,7 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         try {
             await validateImageForCorruption(normalizedFile);
         } catch (error) {
-            Log.warn('[validateAttachmentFile] Image failed to decode', {type: normalizedFile.type, size: normalizedFile.size, error: describeError(error)});
+            Log.warn('[validateAttachmentFile] Image failed to decode', {type: normalizedFile.type, size: normalizedFile.size, error: getErrorMessage(error)});
             return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED};
         }
     }
@@ -106,7 +107,7 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
             updatedFile = await snapshotPickedFile(updatedFile, cleanName, fileType ?? updatedFile.type);
         } catch (error) {
             // The backing file was already modified or deleted since it was picked.
-            Log.warn('[validateAttachmentFile] Could not read the picked file', {type: normalizedFile.type, size: normalizedFile.size, error: describeError(error)});
+            Log.warn('[validateAttachmentFile] Could not read the picked file', {type: normalizedFile.type, size: normalizedFile.size, error: getErrorMessage(error)});
             return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID};
         }
         // Read the superseded URI from normalizedFile: snapshotPickedFile may return a fresh File that
@@ -123,7 +124,7 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         try {
             await validateImageForCorruption(updatedFile);
         } catch (error) {
-            Log.warn('[validateAttachmentFile] Image failed to decode', {type: updatedFile.type, size: updatedFile.size, error: describeError(error)});
+            Log.warn('[validateAttachmentFile] Image failed to decode', {type: updatedFile.type, size: updatedFile.size, error: getErrorMessage(error)});
             if (inputSource.startsWith('blob:')) {
                 URL.revokeObjectURL(inputSource);
             }
@@ -138,10 +139,6 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
     }
 
     return {isValid: true, file: normalizedFile};
-}
-
-function describeError(error: unknown): string {
-    return error instanceof Error ? `${error.name}: ${error.message}` : String(error);
 }
 
 function isDataTransferItemDirectory(item: DataTransferItem | undefined) {

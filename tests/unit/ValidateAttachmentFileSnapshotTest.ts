@@ -112,6 +112,27 @@ describe('validateAttachmentFile OS-backed file snapshot (web)', () => {
         }
     });
 
+    it('returns FILE_CORRUPTED and releases the snapshot URL when the snapshotted image fails to decode', async () => {
+        const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:snapshot-url');
+        const revokeObjectURLSpy = jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+        try {
+            // Given a readable picked image whose bytes do not decode as an image
+            const file: FileObject = new File([new Blob(['content'], {type: 'text/plain'})], 'image.png', {type: 'image/png'});
+            Object.defineProperty(file, 'arrayBuffer', {value: jest.fn().mockResolvedValue(new ArrayBuffer(7)), configurable: true});
+            mockFileUtils.validateImageForCorruption.mockRejectedValue(new Error('Error reading file: The file is corrupted'));
+
+            // When the file is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then it is reported as corrupted, and the object URL minted for the rejected snapshot is released so its bytes are not kept in memory
+            expect(result).toEqual({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
+            expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:snapshot-url');
+        } finally {
+            createObjectURLSpy.mockRestore();
+            revokeObjectURLSpy.mockRestore();
+        }
+    });
+
     it('keeps the lazy OS-backed File on mobile browsers so a multi-file selection is not held in memory', async () => {
         jest.mocked(isMobile).mockReturnValue(true);
         const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:new-url');
