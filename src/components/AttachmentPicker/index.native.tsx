@@ -149,10 +149,6 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
  * backend rejects DNG and it must never be uploaded unconverted.
  */
 async function transcodeDngFiles(files: LocalCopy[], showGeneralAlert: (message?: string) => void, translate: LocaleContextProps['translate']): Promise<LocalCopy[]> {
-    if (!files.some((file) => isLabelledDng(file))) {
-        return files;
-    }
-
     const failureMessages = new Set<string>();
     const collectFailure = (message = translate('attachmentPicker.errorWhileSelectingAttachment')) => {
         failureMessages.add(message);

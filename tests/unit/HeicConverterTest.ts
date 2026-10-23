@@ -118,19 +118,21 @@ describe('convertHeicImage (native)', () => {
         expect(onSuccess).toHaveBeenCalledWith(expect.objectContaining({size: 512}));
     });
 
-    it("falls back to the original size when the JPEG's size can't be read", async () => {
+    it("reports an error when the JPEG's size can't be read", async () => {
         // Given the converted JPEG can't be stat'ed
         mockRenderSuccess();
         mockStat.mockRejectedValueOnce(new Error('ENOENT'));
         const onSuccess = jest.fn();
         const onError = jest.fn();
+        const onFinish = jest.fn();
 
         // When a HEIC is converted
-        convertHeicImage(heicFile, {onSuccess, onError});
+        convertHeicImage(heicFile, {onSuccess, onError, onFinish});
         await jest.runAllTimersAsync();
 
-        // Then the conversion still succeeds, keeping the original size as before
-        expect(onError).not.toHaveBeenCalled();
-        expect(onSuccess).toHaveBeenCalledWith(expect.objectContaining({size: heicFile.size}));
+        // Then the conversion fails, since a guessed size would apply the upload size limits to the wrong number
+        expect(onError).toHaveBeenCalledTimes(1);
+        expect(onFinish).toHaveBeenCalledTimes(1);
+        expect(onSuccess).not.toHaveBeenCalled();
     });
 });

@@ -10,23 +10,12 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import type {HeicConverterFunction} from './types';
 
 /**
- * Size of the converted JPEG on disk. The original file's size is only a fallback: a JPEG made from a 25-75 MB DNG is
- * a fraction of it, and reusing the original would trip the attachment size limits for a file that fits them.
- */
-function getConvertedFileSize(uri: string, fallbackSize: number | null | undefined): Promise<number | null | undefined> {
-    return Promise.resolve()
-        .then(() => ReactNativeBlobUtil.fs.stat(fileURIToPath(uri)))
-        .then((stats) => (typeof stats?.size === 'number' ? stats.size : fallbackSize))
-        .catch(() => fallbackSize);
-}
-
-/**
  * Helper function to convert a HEIC/HEIF or DNG image to JPEG using ImageManipulator
  * @param file - The original file object
  * @param sourceUri - URI of the image to convert
  * @param callbacks - Callback functions for the conversion process
  */
-const convertImageWithManipulator = (
+const convertImageWithManipulator = async (
     file: FileObject,
     sourceUri: string,
     {
@@ -39,30 +28,25 @@ const convertImageWithManipulator = (
         onFinish?: () => void;
     } = {},
 ) => {
-    const imageManipulatorContext = ImageManipulator.manipulate(sourceUri);
-    imageManipulatorContext
-        .renderAsync()
-        .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-        .then((manipulationResult) =>
-            getConvertedFileSize(manipulationResult.uri, file.size).then((size) => {
-                const convertedFile = {
-                    uri: manipulationResult.uri,
-                    name: getConvertedJpegFileName(file.name, getFileName(manipulationResult.uri)),
-                    type: 'image/jpeg',
-                    size,
-                    width: manipulationResult.width,
-                    height: manipulationResult.height,
-                };
-                onSuccess(convertedFile);
-            }),
-        )
-        .catch((err) => {
-            Log.warn('Error converting image to JPEG', {error: err instanceof Error ? err.message : String(err)});
-            onError(err, file);
-        })
-        .finally(() => {
-            onFinish();
+    try {
+        const manipulatedImage = await ImageManipulator.manipulate(sourceUri).renderAsync();
+        const manipulationResult = await manipulatedImage.saveAsync({format: SaveFormat.JPEG});
+        // A JPEG made from a 25-75 MB DNG is a fraction of its size, so the upload size limits need the JPEG's own size.
+        const {size} = await ReactNativeBlobUtil.fs.stat(fileURIToPath(manipulationResult.uri));
+        onSuccess({
+            uri: manipulationResult.uri,
+            name: getConvertedJpegFileName(file.name, getFileName(manipulationResult.uri)),
+            type: 'image/jpeg',
+            size,
+            width: manipulationResult.width,
+            height: manipulationResult.height,
         });
+    } catch (err) {
+        Log.warn('Error converting image to JPEG', {error: err instanceof Error ? err.message : String(err)});
+        onError(err, file);
+    } finally {
+        onFinish();
+    }
 };
 
 /**

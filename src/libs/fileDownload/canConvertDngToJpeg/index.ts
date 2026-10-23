@@ -1,6 +1,6 @@
 /**
- * Browsers can't decode DNG (iPhone ProRAW / Android RAW), so web and desktop have no way to turn one into a JPEG.
- * DNGs are rejected there as an invalid file type instead.
+ * Browsers have no built-in DNG (iPhone ProRAW / Android RAW) decoder, so web and desktop reject DNGs as an invalid
+ * file type instead of converting them to JPEG.
  */
 const canConvertDngToJpeg = false;
 
