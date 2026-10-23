@@ -1,4 +1,4 @@
-import type {AlternateDirection, Coordinate} from '@components/MapView/MapViewTypes';
+import type {AlternateDirection, Coordinate, WayPoint} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 
 const SINGLE_SEGMENT: Coordinate[] = [
@@ -184,6 +184,100 @@ describe('MapView utils', () => {
 
         it('returns nothing when there are no coordinates', () => {
             expect(utils.getSinglePointCoordinate([], undefined)).toBeUndefined();
+        });
+    });
+
+    describe('getBoundsCenter', () => {
+        it('returns the center of the bounds as longitude and latitude', () => {
+            // Given bounds spanning longitudes 10 to 30 and latitudes 40 to 50
+            // When resolving their center
+            const center = utils.getBoundsCenter({southWest: [10, 40], northEast: [30, 50]});
+
+            // Then the center keeps each axis in its own field
+            expect(center).toEqual({lng: 20, lat: 45});
+        });
+    });
+
+    describe('findClosestCoordinateOnLineFromCenter', () => {
+        it('measures the distance to the route with longitude and latitude in their own roles', () => {
+            // Given a center at the equator near longitude 90, with a route that passes 0.1° east of it and then 0.2° north
+            // of it. Reading the [longitude, latitude] coordinates as [latitude, longitude] would scale the north/south gap
+            // by cos(90°) and make the farther northern part of the route look the closest.
+            const route: Coordinate[] = [
+                [89.6, -1],
+                [89.6, 0.2],
+                [88, 0.2],
+            ];
+
+            // When looking for the point of the route closest to the center
+            const closest = utils.findClosestCoordinateOnLineFromCenter({lng: 89.5, lat: 0}, route);
+
+            // Then it is the point 0.1° east of the center, not the one 0.2° north of it
+            expect(closest?.at(0)).toBeCloseTo(89.6);
+            expect(closest?.at(1)).toBeCloseTo(0);
+        });
+    });
+
+    describe('getCenterTargets', () => {
+        const START: WayPoint = {id: 'start', coordinate: [10, 10], markerType: 'START_WAYPOINT'};
+        const STOP: WayPoint = {id: 'stop', coordinate: [20, 20], markerType: 'STOP_WAYPOINT'};
+
+        it('offers the route when there is no real user location to alternate with', () => {
+            // Given a route with two waypoints and no user location (e.g. location access was never granted)
+            // When resolving what the center button can target
+            const targets = utils.getCenterTargets([START, STOP], undefined, undefined);
+
+            // Then the route is a target, so the first press frames it instead of zooming into the initialState fallback
+            expect(targets.hasWaypointsTarget).toBe(true);
+            expect(targets.singleWaypointCoordinate).toBeUndefined();
+        });
+
+        it('offers a lone waypoint when there is no real user location', () => {
+            // Given a single waypoint and no user location
+            // When resolving what the center button can target
+            const targets = utils.getCenterTargets([START], undefined, undefined);
+
+            // Then the lone waypoint is the target the button centers on
+            expect(targets.hasWaypointsTarget).toBe(true);
+            expect(targets.singleWaypointCoordinate).toEqual(START.coordinate);
+        });
+
+        it('does not offer a lone waypoint that sits on the user location', () => {
+            // Given a single waypoint placed exactly at the user's location
+            // When resolving what the center button can target
+            const targets = utils.getCenterTargets([START], undefined, START.coordinate);
+
+            // Then there is nothing to alternate with, as both targets are the same spot
+            expect(targets.hasWaypointsTarget).toBe(false);
+        });
+
+        it('offers a lone waypoint that is north of the user location near longitude -90', () => {
+            // Given a single waypoint ~1 km north of the user near longitude -90 (Memphis), where reading the
+            // [longitude, latitude] coordinates as [latitude, longitude] shrinks north/south distances to almost nothing
+            const waypoint: WayPoint = {id: 'start', coordinate: [-90.05, 35.159], markerType: 'START_WAYPOINT'};
+
+            // When resolving what the center button can target
+            const targets = utils.getCenterTargets([waypoint], undefined, [-90.05, 35.15]);
+
+            // Then the waypoint is still a separate target the button can alternate with
+            expect(targets.hasWaypointsTarget).toBe(true);
+            expect(targets.singleWaypointCoordinate).toEqual(waypoint.coordinate);
+        });
+    });
+
+    describe('areSameCoordinate', () => {
+        it('treats points ~10 m apart as the same coordinate', () => {
+            // Given two [longitude, latitude] points ~10 m apart north/south
+            // When comparing them
+            // Then they are the same coordinate, as they are within the 20 m threshold
+            expect(utils.areSameCoordinate([-90.05, 35.15], [-90.05, 35.15009])).toBe(true);
+        });
+
+        it('treats points ~300 m apart north/south as different coordinates', () => {
+            // Given two [longitude, latitude] points ~300 m apart north/south near longitude -87.6 (Chicago)
+            // When comparing them
+            // Then they are different coordinates, as the order is not mistaken for [latitude, longitude]
+            expect(utils.areSameCoordinate([-87.63, 41.88], [-87.63, 41.8827])).toBe(false);
         });
     });
 

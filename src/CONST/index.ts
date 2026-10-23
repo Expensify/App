@@ -126,7 +126,9 @@ type UnofferedOnboardingAccountingConnection =
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
     | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
     // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
-    | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
+    | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
+    // Still behind the ZOHO_BOOKS beta.
+    | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
 
 type UnhandledAccountingConnection = Exclude<TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>, OnboardingAccountingOption | UnofferedOnboardingAccountingConnection>;
 
@@ -236,6 +238,7 @@ const RULE_TRIGGERS = {
     REPORT_SUBMIT: 'ReportSubmit',
     REPORT_APPROVE: 'ReportApprove',
     CREATE_TRANSACTION: 'CreateTransaction',
+    UPDATE_TRANSACTION: 'UpdateTransaction',
 } as const;
 
 const EMAIL = {
@@ -431,9 +434,6 @@ const CONST = {
     RECEIPT_CAMERA: {
         PHOTO_WIDTH: 2880,
         PHOTO_HEIGHT: 2160,
-        // iPhones offer no 4:3 photo size between 3 MP and 12 MP, so the 6 MP target above selects 2016x1512
-        IOS_STILL_WIDTH: 4032,
-        IOS_STILL_HEIGHT: 3024,
         PHOTO_ASPECT_RATIO: 4 / 3,
     },
 
@@ -1407,7 +1407,9 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
+        INDIRECT_TAG_UPLOADS: 'indirectTagUploads',
         BUSINESS_CENTRAL: 'businessCentral',
+        ZOHO_BOOKS: 'zohoBooks',
         EXACT_ONLINE: 'exactOnline2026',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
@@ -1423,6 +1425,7 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
+        NL_FILTERS: 'nlFilters',
         PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
@@ -1431,6 +1434,7 @@ const CONST = {
         COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         DESCRIBE_RULE: 'describeRule',
+        TRAVEL_APPROVAL: 'travelApproval',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1942,7 +1946,6 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2159,6 +2162,7 @@ const CONST = {
                     ADD_OFFICE_LOCATION: 'POLICYCHANGELOG_ADD_OFFICE_LOCATION',
                     UPDATE_OFFICE_LOCATION: 'POLICYCHANGELOG_UPDATE_OFFICE_LOCATION',
                     DELETE_OFFICE_LOCATION: 'POLICYCHANGELOG_DELETE_OFFICE_LOCATION',
+                    UPDATE_EMPLOYEE_OFFICE_LOCATION: 'POLICYCHANGELOG_UPDATE_EMPLOYEE_OFFICE_LOCATION',
                     ADD_RULE: 'POLICYCHANGELOG_ADD_RULE',
                     UPDATE_RULE: 'POLICYCHANGELOG_UPDATE_RULE',
                     REMOVE_RULE: 'POLICYCHANGELOG_REMOVE_RULE',
@@ -2268,6 +2272,8 @@ const CONST = {
                     UPDATE_CARD_FEED_LIABILITY: 'POLICYCHANGELOG_UPDATE_CARD_FEED_LIABILITY',
                     UPDATE_CARD_FEED_STATEMENT_PERIOD: 'POLICYCHANGELOG_UPDATE_CARD_FEED_STATEMENT_PERIOD',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
+                    ARCHIVE_POLICY: 'POLICYCHANGELOG_ARCHIVE_POLICY',
+                    UNARCHIVE_POLICY: 'POLICYCHANGELOG_UNARCHIVE_POLICY',
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     CORPORATE_FORCE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
@@ -2504,10 +2510,6 @@ const CONST = {
         LAYOUT_OPTION: {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
-        },
-        SINGLE_EXPENSE_REPORT_VIEW: {
-            EXPENSE: 'expense',
-            TABLE: 'table',
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
@@ -2802,6 +2804,9 @@ const CONST = {
         // report list, so durations that include the openApp wait can be excluded from render measurements.
         ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         ATTRIBUTE_IS_PRELOADED: 'is_preloaded',
+        // Leaving a tab is paid inside the navigate-to-inbox-tab span, so the same tap costs more from some tabs.
+        ATTRIBUTE_SOURCE_TAB: 'source_tab',
+        ATTRIBUTE_MS_SINCE_PRELOAD: 'ms_since_preload',
         // The tap also kicked off an OpenReport request, so exclude these from render-only comparisons.
         ATTRIBUTE_WAITED_ON_OPEN_REPORT: 'waited_on_open_report',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
@@ -2839,10 +2844,7 @@ const CONST = {
         ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
         ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
         ATTRIBUTE_SOURCE: 'source',
-        ATTRIBUTE_PHASE_DETECTION_FORMAT_COUNT: 'phase_detection_format_count',
         ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM: 'selected_format_af_system',
-        ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT: 'has_interchangeable_phase_format',
-        ATTRIBUTE_MIN_FOCUS_DISTANCE: 'min_focus_distance',
         ATTRIBUTE_PHYSICAL_DEVICE_COUNT: 'physical_device_count',
         ATTRIBUTE_NEUTRAL_ZOOM: 'neutral_zoom',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
@@ -3774,6 +3776,7 @@ const CONST = {
         },
         ATS_APPROVER_FIELD: {
             RECRUITER: 'recruiter',
+            HIRING_MANAGER: 'hiringManager',
             RECRUITING_COORDINATOR: 'coordinator',
         },
         ATS_FILTER_TYPE: {
@@ -4407,6 +4410,8 @@ const CONST = {
         NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         DEFAULT_VENDOR_ID: 'defaultVendorID',
         PAYMENT_METHOD_CODE: 'paymentMethodCode',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
         AUTO_SYNC: 'autoSync',
         ACCOUNTING_METHOD: 'accountingMethod',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
@@ -5049,6 +5054,7 @@ const CONST = {
         ID_FAKE: '_FAKE_',
         SECONDARY_ACTIONS: {
             IMPORT_SPREADSHEET: 'importSpreadsheet',
+            APPEND_CUSTOM_TAG_LIST: 'appendCustomTagList',
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
             EXPORT: 'export',
@@ -5059,11 +5065,9 @@ const CONST = {
             REMOVE: 'remove',
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
-            MAKE_AUDITOR: 'makeAuditor',
-            MAKE_GUEST: 'makeGuest',
-            MAKE_CARD_ADMIN: 'makeCardAdmin',
-            MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
-            MAKE_PAYMENTS_ADMIN: 'makePaymentsAdmin',
+            CHANGE_ROLE: 'changeRole',
+            CHANGE_OFFICE_LOCATION: 'changeOfficeLocation',
+            CHANGE_WORK_ARRANGEMENT: 'changeWorkArrangement',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -5220,6 +5224,8 @@ const CONST = {
             ADDRESS: 'address',
             IS_DEFAULT: 'isDefault',
         },
+        // The officeID that assigns a member to the company address, which isn't keyed in the workspace's officeLocations
+        COMPANY_ADDRESS_OFFICE_ID: '1',
         WORK_ARRANGEMENT: {
             OFFICE_BASED: 'officeBased',
             NO_REGULAR_WORKPLACE: 'noRegularWorkplace',
@@ -5322,6 +5328,7 @@ const CONST = {
                     this.NAME.RILLET,
                     this.NAME.DUALENTRY,
                     this.NAME.CAMPFIRE,
+                    this.NAME.ZOHO_BOOKS,
                     this.NAME.BUSINESS_CENTRAL,
                 ] as const;
             },
@@ -5338,6 +5345,7 @@ const CONST = {
                     [this.NAME.RILLET]: 'rillet',
                     [this.NAME.DUALENTRY]: 'dualentry',
                     [this.NAME.CAMPFIRE]: 'campfire',
+                    [this.NAME.ZOHO_BOOKS]: 'zohoBooks',
                     [this.NAME.BUSINESS_CENTRAL]: 'businessCentral',
                 } as const;
             },
@@ -5996,6 +6004,11 @@ const CONST = {
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR: 'business_central_export_vendor',
+
+            /**
+             * Name of Card NVP for Business Central custom export accounts
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT: 'business_central_export_account',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -6058,6 +6071,11 @@ const CONST = {
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR_POLICY_ID: 'business_central_export_vendor_policy_id',
+
+            /**
+             * Name of Card NVP for Business Central custom export accounts
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT_POLICY_ID: 'business_central_export_account_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -7407,8 +7425,11 @@ const CONST = {
         SINGLE_MARKER_ZOOM: 15,
         DEFAULT_COORDINATE: [-122.4021, 37.7911] as [number, number],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
-        ANIMATION_DURATION_ON_CENTER_ME: 1000,
+        ANIMATION_DURATION_DEFAULT: 1000,
+        ANIMATION_DURATION_LONG: 1500,
         GPS_ROUTE_ANIMATION_DURATION_MS: 1000,
+        CAMERA_ANIMATION_MODE: 'flyTo',
+        FLY_TO_SPEED: 4,
     },
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
@@ -8844,6 +8865,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
+            TRIPS: 'trips',
         },
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
@@ -10177,7 +10199,6 @@ const CONST = {
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',

@@ -4314,7 +4314,7 @@ function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number, fun
 function updateMemberCustomField(policyID: string, login: string, customFieldType: CustomFieldType, value: string, currentValue: string | undefined) {
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
 
-    if (value === (currentValue ?? '')) {
+    if (!login || value === (currentValue ?? '')) {
         return;
     }
 
@@ -4399,7 +4399,7 @@ function createWorkspaceFromIOUPayment({
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName(currentUserEmail, currentUserDisplayName, lastWorkspaceNumber, localeTranslate);
     const employeeAccountID = iouReport?.ownerAccountID;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as iouReport?.currency could be an empty string
+    // `iouReport?.currency` can be an empty string
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency || currentUserLocalCurrency);
     const oldPersonalPolicyID = iouReport?.policyID;
     const iouReportID = iouReport?.reportID;

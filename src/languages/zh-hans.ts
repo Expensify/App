@@ -139,6 +139,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: '正在思考中…',
         addCardTermsOfService: 'Expensify 服务条款',
         perPerson: '每人',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 晚 • 每晚 ${nightlyRate}`,
+            other: `${count} 晚 • 每晚 ${nightlyRate}`,
+        }),
         phone: '电话',
         phoneNumber: '电话号码',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -3847,6 +3851,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             removeDelegate: '移除休假代理',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}，已完成`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `步骤 ${step}`;
         if (total) {
@@ -3950,11 +3955,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `请输入 ${min} 到 ${max} 之间的值`,
             tooFewItems: ({min}: {min: number}) => `至少添加 ${min} 项`,
             tooManyItems: ({max}: {max: number}) => `最多添加 ${max} 项`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}：${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}、${field}：${error}`,
         },
         addItem: ({item}: {item: string}) => `添加${item}`,
         removeItemTitle: ({item}: {item: string}) => `移除${item}？`,
         removeItemPrompt: ({name}: {name: string}) => `确定要移除${name}吗？`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `尾号为 ${ending} 的${label}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
+        questionsChanged: '此页面上的问题已更改',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符长度，由 6 个字母后接 2 或 5 个字母或数字组成。',
@@ -6069,9 +6077,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             fxExpenseAccount: {label: 'DualEntry 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 DualEntry 中将该成本作为一条日记账分录记入此科目。'},
             syncExpensifyCardSettlements: '同步 Expensify 卡结算',
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
-            syncTravelInvoicingSettlements: '同步旅行开票结算',
-            travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
-            travelInvoicingPayableAccount: {label: '差旅开票应付账户'},
+            syncTravelInvoicingSettlements: '同步合并差旅结算',
+            travelInvoicingSettlementAccount: {label: '合并差旅账单结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
+            travelInvoicingPayableAccount: {label: '合并差旅账单应付账户'},
         },
         type: {
             free: '免费',
@@ -6756,7 +6764,17 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             invoiceFieldInitialValueRequiredError: '请选择发票字段的初始值',
             addField: '添加字段',
         },
-        vendors: {emptyTitle: '尚无供应商', emptySubtitle: '会计同步完成后，供应商将显示在此处。', findVendor: '查找供应商', managedInAccountingSoftware: '供应商在您的'},
+        vendors: {
+            emptyTitle: '尚无供应商',
+            emptySubtitle: '会计同步完成后，供应商将显示在此处。',
+            findVendor: '查找供应商',
+            managedInAccountingSoftware: '供应商在您的',
+            enableVendor: '启用供应商',
+            enableVendors: '启用供应商',
+            disableVendor: '停用供应商',
+            disableVendors: '停用供应商',
+            updateFailureMessage: '更新供应商时出错，请重试',
+        },
         tags: {
             tagName: '标签名称',
             requiresTag: '成员必须为所有报销添加标签',
@@ -6799,6 +6817,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             tagRules: '标签规则',
             approverDescription: '审批人',
             importTags: '导入标签',
+            appendCustomTagList: '追加自定义标签列表',
             importTagsSupportingText: '为报销编码时可使用一种标签，也可使用多种标签。',
             configureMultiLevelTags: '为多级标签配置您的标签列表。',
             importMultiLevelTagsSupportingText: `这是您的标签预览。如果一切看起来都没问题，请点击下方以导入它们。`,
@@ -7054,6 +7073,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 optionNoRegularWorkspaceHelp: '成员在家办公或在各地点之间出差，没有固定办公地点，因此通勤规则不适用。',
                 futureOnlyNote: '更改仅适用于未来的里程计算，现有的里程报销将不会重新计算。',
             },
+            officeLocation: '办公室地点',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
+            changeOfficeLocation: '更改办公室位置',
+            changeWorkArrangement: '更改工作安排',
+            changeRole: '更改角色',
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -8690,7 +8714,7 @@ ${reportName}`,
             dontSeeYourATS: `<muted-text-label>没有看到你的 ATS？<a href="#">询问 Concierge</a>，我们可以帮你添加。</muted-text-label>`,
             importSettings: '导入设置',
             defaultApprover: '默认审批人',
-            approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员'},
+            approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员', hiringManager: '招聘经理'},
             filters: {
                 description: (providerName: string) => `选择要从 ${providerName} 导入的成员。您可以按工作阶段、标签和办公室进行选择。`,
                 stages: {
@@ -8714,7 +8738,12 @@ ${reportName}`,
             finalApprover: `最终审批人`,
             finalApproverOptional: '最终审批人（可选）',
             approvalModeDescription: (providerName: string) => `为从 ${providerName} 导入到 Expensify 的新成员设置审批人。`,
-            approverFieldDescription: (providerName: string) => `为候选人选择第一位审批人：可以是他们在 ${providerName} 中指定的招聘人员或协调员。`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `其 ${fieldNames.slice(0, -1).join(', ')} 或 ${lastFieldName}` : `其 ${fieldNames.join('或其')}`;
+                return `为您的候选人选择第一位审批人：在 ${providerName} 中分配的 ${fieldList}。`;
+            },
             approvalModeDescriptions: {basic: '选择单个审批人', advanced: `候选人的招聘人员或协调人将成为其报销审批人`, custom: '在 Expensify 中手动设置审批人'},
         },
         merge: {
@@ -8808,9 +8837,9 @@ ${reportName}`,
             billPaymentAccount: {label: '账单付款账户', description: '当 Expensify 将账单标记为已支付时，选择用于 Campfire 贷记的清算账户。'},
             syncExpensifyCardSettlements: '同步 Expensify 卡结算',
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 Campfire 中创建这笔付款。'},
-            syncTravelInvoicingSettlements: '同步差旅开票结算',
-            travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 Campfire 中创建这笔付款。'},
-            travelInvoicingPayableAccount: {label: '差旅开票应付账户'},
+            syncTravelInvoicingSettlements: '同步合并差旅结算',
+            travelInvoicingSettlementAccount: {label: '合并差旅账单结算账户', description: '选择您的结算账户，我们会在 Campfire 中创建这笔付款。'},
+            travelInvoicingPayableAccount: {label: '合并差旅账单应付账户'},
             exportToMultipleAccounts: '配置导出到多个账户',
             cardProgramAccount: {
                 label: '卡计划账户',
@@ -8840,6 +8869,9 @@ ${reportName}`,
                     return `${customAccountsCount} 张带有自定义账户的卡`;
                 },
             },
+        },
+        zohoBooks: {
+            organization: 'Zoho Books 组织',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central 设置',
@@ -8892,6 +8924,35 @@ ${reportName}`,
             companyCardAccount: {
                 label: '公司卡账户',
                 description: '选择公司卡交易的导出位置。',
+            },
+            exportToMultipleAccounts: '配置导出到多个账户',
+            cardProgramAccount: {
+                label: '卡计划账户',
+                description: '为这些卡计划覆盖工作区账户。',
+                descriptionLevel2: '覆盖此卡计划的工作区账户。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return '所有方案使用默认账户';
+                    }
+                    return {
+                        one: `${count} 个自定义账户的项目`,
+                        other: `${count} 个具有自定义科目的项目`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: '按卡计费账户',
+                description: '为单张卡片覆盖默认项目账户。',
+                descriptionLevel2: '为这些卡片覆盖默认项目账户。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return '所有卡都使用项目账户';
+                    }
+                    return {
+                        one: `${count} 张带有自定义账户的卡`,
+                        other: `${count} 张带有自定义账户的卡`,
+                    };
+                },
             },
             paymentMethod: {
                 label: '付款方式',
@@ -9180,6 +9241,8 @@ ${reportName}`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `已将默认货币更新为 ${newCurrency}（之前为 ${oldCurrency}）`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `已将自动报表频率更新为“${newFrequency}”（此前为“${oldFrequency}”）`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `将审批模式更新为“${newValue}”（之前为“${oldValue}”）`,
+        archivedWorkspace: '已归档此工作区',
+        unarchivedWorkspace: '取消归档此工作区',
         upgradedWorkspace: '已将此工作区升级到 Control 方案',
         forcedCorporateUpgrade: `此工作区已升级为 Control 方案。点击<a href="${CONST.COLLECT_UPGRADE_HELP_URL}">此处</a>了解更多信息。`,
         downgradedWorkspace: '将此工作区降级为 Collect 方案',
@@ -9418,6 +9481,11 @@ ${reportName}`,
             setAsPrimary: ({name}: {name: string}) => `将办公地点“${name}”设为主要地点`,
             setCompanyAddressAsPrimary: '将公司地址设为主要地址',
             removed: ({name}: {name: string}) => `已移除办公室地点“${name}”`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `已将 ${displayName} 的办公地点更改为 ${officeLocation}（先前为 ${previousOfficeLocation}）`,
+            quotedName: ({name}: {name: string}) => `“${name}”`,
+            companyAddress: '公司地址',
+            primaryOffice: '主办公地点',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `将默认工作安排设置为 ${arrangement}`,
@@ -9825,6 +9893,12 @@ ${reportName}`,
                 },
                 customDay: '自定义日期',
             },
+            describeSearch: {
+                title: '描述你的搜索',
+                description: '用简单的英文描述你想查看的报销记录，我们会自动为你应用合适的筛选条件。',
+                inputLabel: '描述你的搜索',
+                buttonText: '应用',
+            },
             status: '状态',
             keyword: '关键词',
             keywords: '关键词',
@@ -10000,6 +10074,8 @@ ${reportName}`,
             topCategories: '热门类别',
             topMerchants: '热门商家',
             violationsBySubmitter: '提交人违规',
+            travel: '差旅',
+            trips: '行程',
         },
         mergeReports: {
             title: '合并报表',
@@ -10051,8 +10127,6 @@ ${reportName}`,
             category: '类别',
             tag: '标签',
         },
-        switchToTableView: '切换到表格视图',
-        switchToExpenseView: '切换到报销视图',
     },
     report: {
         newReport: {
@@ -11089,6 +11163,8 @@ ${reportName}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${date} 已退款 ${amount}`,
             },
             billedTo: '账单对象',
+            activity: '活动',
+            findActiveUser: '查找活跃用户',
             viewReceipt: '查看收据',
             viewInvoice: '查看发票',
         },
@@ -11668,5 +11744,6 @@ ${reportName}`,
         mobileRenewPrompt: '请在网页浏览器中访问 Expensify 以提前续订。',
         mobileClaimPrompt: '请在网页浏览器中访问 Expensify 以领取您的续订折扣。',
     },
+    bulkActionBar: {label: '批量操作', clearSelection: '清除选择', loadingSelection: '正在加载所选内容'},
 };
 export default translations;

@@ -41,6 +41,7 @@ import type {
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
+    SearchFooterCount,
     SearchFooterTotal,
     SearchGroupBy,
     SearchPaidStatus,
@@ -119,6 +120,7 @@ import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard}
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
+import getTransactionFromTransactionListItem from './getTransactionFromTransactionListItem';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import isTransactionGroupListItemType from './isTransactionGroupListItemType';
 import memoize from './memoize';
@@ -143,6 +145,7 @@ import {
     isPolicyApprover,
     isPolicyPayer,
     isSubmitPolicy,
+    isWorkspaceProvisionedForTravel,
 } from './PolicyUtils';
 import {
     getIOUActionForReportID,
@@ -732,6 +735,7 @@ function getSuggestedSearchesVisibility(
     let shouldShowViolationsBySubmitterSuggestion = false;
     let hasEligibleGroupPolicies = false;
     let shouldShowSpendOverTimeSuggestion = false;
+    let shouldShowTripsSuggestion = false;
 
     const hasCardFeed = Object.values(cardFeedsByPolicy ?? {}).some((feeds) => feeds.length > 0);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
@@ -801,6 +805,8 @@ function getSuggestedSearchesVisibility(
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!policy.role;
         shouldShowSpendOverTimeSuggestion ||= isPolicyEligibleForSpendOverTime(policy, currentUserEmail);
+        // Only workspaces set up in Spotnana count, isTravelEnabled is just the feature switch
+        shouldShowTripsSuggestion ||= isWorkspaceProvisionedForTravel(policy.travelSettings);
     }
 
     return {
@@ -820,6 +826,7 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: shouldShowTopMerchantsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: shouldShowViolationsBySubmitterSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: shouldShowSpendOverTimeSuggestion,
+            [CONST.SEARCH.SEARCH_KEYS.TRIPS]: shouldShowTripsSuggestion,
         },
         hasEligibleGroupPolicies,
         shouldShowExpensifyCard: shouldShowExpensifyCardSuggestion,
@@ -4783,6 +4790,8 @@ const SPEND_INSIGHT_KEYS = [
 
 const insightsPageMenuKeys = new Set<SearchKey>([...SPEND_INSIGHT_KEYS, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]);
 
+const travelApprovalMenuKeys = new Set<SearchKey>([CONST.SEARCH.SEARCH_KEYS.TRIPS]);
+
 type TypeMenuSectionsParams = {
     currentUserEmail: string | undefined;
     currentUserAccountID: number | undefined;
@@ -4885,6 +4894,22 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
         if (expenseReportsSection.menuItems.length > 0) {
             typeMenuSections.push(expenseReportsSection);
+        }
+    }
+
+    // Travel section
+    {
+        const travelSection: SearchTypeMenuSection = {
+            translationPath: 'search.tabs.travel',
+            menuItems: [],
+        };
+
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.TRIPS]) {
+            travelSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TRIPS]);
+        }
+
+        if (travelSection.menuItems.length > 0) {
+            typeMenuSections.push(travelSection);
         }
     }
 
@@ -4995,14 +5020,23 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     return typeMenuSections;
 }
 
-function omitInsightsPageMenuItems(sections: SearchTypeMenuSection[]): SearchTypeMenuSection[] {
+function omitMenuItems(sections: SearchTypeMenuSection[], keysToOmit: ReadonlySet<SearchKey>): SearchTypeMenuSection[] {
     return sections.flatMap((section) => {
-        const menuItems = section.menuItems.filter((item) => !insightsPageMenuKeys.has(item.key));
+        const menuItems = section.menuItems.filter((item) => !keysToOmit.has(item.key));
         if (menuItems.length === section.menuItems.length) {
             return section;
         }
         return menuItems.length > 0 ? {...section, menuItems} : [];
     });
+}
+
+function omitInsightsPageMenuItems(sections: SearchTypeMenuSection[]): SearchTypeMenuSection[] {
+    return omitMenuItems(sections, insightsPageMenuKeys);
+}
+
+/** Removes the Travel items for users without the TravelApproval beta */
+function omitTravelApprovalMenuItems(sections: SearchTypeMenuSection[]): SearchTypeMenuSection[] {
+    return omitMenuItems(sections, travelApprovalMenuKeys);
 }
 
 /**
@@ -5414,6 +5448,14 @@ function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
 
 function getViewOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
+}
+
+/** The options the Spend footer's count selector offers, in display order. */
+function getFooterCountItems(translate: LocalizedTranslate) {
+    return [
+        {text: translate('common.expenses'), value: CONST.SEARCH.FOOTER_COUNT.EXPENSES},
+        {text: translate('common.reports'), value: CONST.SEARCH.FOOTER_COUNT.REPORTS},
+    ] satisfies Array<SingleSelectItem<SearchFooterCount>>;
 }
 
 /**
@@ -7066,39 +7108,6 @@ function getSettlementStatusBadgeProps(
 }
 
 /**
- * Extracts the core Transaction fields from a TransactionListItemType
- * This removes UI-specific fields like formattedFrom, hash, violations, etc.
- */
-function getTransactionFromTransactionListItem(item: TransactionListItemType): OnyxTypes.Transaction {
-    // Extract only the core Transaction fields, excluding UI-specific and search-specific fields
-
-    const {
-        keyForList,
-        action,
-        allActions,
-        report,
-        from,
-        to,
-        formattedFrom,
-        formattedTo,
-        formattedTotal,
-        formattedMerchant,
-        date,
-        shouldShowMerchant,
-        shouldShowYear: shouldTransactionShowYear,
-        isAmountColumnWide,
-        isTaxAmountColumnWide,
-        violations,
-        hash,
-        accountID,
-        policyID,
-        ...transaction
-    } = item;
-
-    return transaction as OnyxTypes.Transaction;
-}
-
-/**
  * Width of the arrow ending each row. The arrow is a row child rather than a column, so it is counted separately: leave
  * it out and it gets pushed past the edge instead of the table scrolling to reach it.
  */
@@ -7303,6 +7312,8 @@ function shouldShowDeleteOption(
     currentSearchResults: SearchResults['data'] | undefined,
     currentUserAccountID: number,
     rules: OnyxCollection<OnyxTypes.Rule>,
+    // The full list is needed because each pass below resolves a different report owner.
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     cardList: OnyxEntry<OnyxTypes.CardList>,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
@@ -7329,7 +7340,17 @@ function shouldShowDeleteOption(
                   }
               }
               const reportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`];
-              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID, rules, reportPolicy, cardList, true);
+              return canDeleteMoneyRequestReport(
+                  fullReport,
+                  reportTransactions,
+                  reportActionsArray,
+                  currentUserAccountID,
+                  rules,
+                  getLoginByAccountID(fullReport.ownerAccountID, personalDetails),
+                  reportPolicy,
+                  cardList,
+                  true,
+              );
           })
         : selectedTransactionsKeys.every((id) => {
               const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
@@ -7344,7 +7365,16 @@ function shouldShowDeleteOption(
                   selectedTransactions[id].reportAction;
 
               const parentReportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`];
-              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID, rules, parentReportPolicy, cardList);
+              return canDeleteMoneyRequestReport(
+                  parentReport,
+                  [transaction],
+                  parentReportAction ? [parentReportAction] : [],
+                  currentUserAccountID,
+                  rules,
+                  getLoginByAccountID(parentReport?.ownerAccountID, personalDetails),
+                  parentReportPolicy,
+                  cardList,
+              );
           });
 }
 
@@ -7481,6 +7511,7 @@ export {
     getPrimaryAction,
     createTypeMenuSections,
     omitInsightsPageMenuItems,
+    omitTravelApprovalMenuItems,
     SPEND_INSIGHT_KEYS,
     formatBadgeText,
     getSectionBadgeText,
@@ -7499,6 +7530,7 @@ export {
     getSortOrderOptions,
     getGroupBySections,
     getViewOptions,
+    getFooterCountItems,
     getFooterTotalItems,
     getCurrencyOptions,
     getFeedOptions,

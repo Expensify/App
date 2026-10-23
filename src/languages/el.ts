@@ -142,6 +142,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Γίνεται επεξεργασία…',
         addCardTermsOfService: 'Όροι χρήσης Expensify',
         perPerson: 'ανά άτομο',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 διανυκτέρευση • ${nightlyRate} ανά διανυκτέρευση`,
+            other: `${count} διανυκτερεύσεις • ${nightlyRate} ανά διανυκτέρευση`,
+        }),
         phone: 'Τηλέφωνο',
         phoneNumber: 'Αριθμός τηλεφώνου',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -4043,6 +4047,7 @@ ${amount} για ${merchant} - ${date}`,
             removeDelegate: 'Κατάργηση εκπροσώπου διακοπών',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, ολοκληρώθηκε`,
     stepCounter: (step, total, text) => {
         let result = `Βήμα ${step}`;
         if (total) {
@@ -4151,11 +4156,14 @@ ${amount} για ${merchant} - ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Εισαγάγετε μια τιμή μεταξύ ${min} και ${max}`,
             tooFewItems: ({min}: {min: number}) => `Προσθέστε τουλάχιστον ${min}`,
             tooManyItems: ({max}: {max: number}) => `Προσθέστε το πολύ ${max}`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `Προσθήκη ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Αφαίρεση ${item};`,
         removeItemPrompt: ({name}: {name: string}) => `Θέλετε σίγουρα να αφαιρέσετε ${name};`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} με κατάληξη ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'Οι ερωτήσεις σε αυτή τη σελίδα άλλαξαν',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
@@ -6431,12 +6439,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
             settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
-            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
+            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
             travelInvoicingSettlementAccount: {
-                label: 'Λογαριασμός διακανονισμού τιμολόγησης ταξιδιών',
+                label: 'λογαριασμός εκκαθάρισης συγκεντρωτικής χρέωσης ταξιδιών',
                 description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.',
             },
-            travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων τιμολόγησης ταξιδιών'},
+            travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων ενοποιημένης χρέωσης ταξιδιών'},
         },
         type: {
             free: 'Δωρεάν',
@@ -7230,6 +7238,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             tagRules: 'Κανόνες ετικετών',
             approverDescription: 'Έγκριση',
             importTags: 'Εισαγωγή ετικετών',
+            appendCustomTagList: 'Προσάρτηση προσαρμοσμένης λίστας ετικετών',
             importTagsSupportingText: 'Κωδικοποιήστε τα έξοδά σας με έναν τύπο ετικέτας ή με πολλούς.',
             configureMultiLevelTags: 'Ρυθμίστε τη λίστα με τις ετικέτες σας για πολυεπίπεδη επισήμανση.',
             importMultiLevelTagsSupportingText: `Δείτε εδώ μια προεπισκόπηση των ετικετών σας. Αν όλα φαίνονται σωστά, κάντε κλικ παρακάτω για να τις εισαγάγετε.`,
@@ -7506,6 +7515,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 optionNoRegularWorkspaceHelp: 'Το μέλος εργάζεται από το σπίτι ή ταξιδεύει μεταξύ τοποθεσιών χωρίς τακτικό γραφείο, επομένως οι κανόνες μετακίνησης δεν ισχύουν.',
                 futureOnlyNote: 'Οι αλλαγές ισχύουν μόνο για μελλοντικούς υπολογισμούς χιλιομέτρων. Οι υπάρχουσες δαπάνες χιλιομέτρων δεν επανυπολογίζονται.',
             },
+            officeLocation: 'Τοποθεσία γραφείου',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Αλλαγή τοποθεσίας γραφείου',
+            changeWorkArrangement: 'Αλλαγή ρύθμισης εργασίας',
+            changeRole: 'Αλλαγή ρόλου',
         },
         card: {
             getStartedIssuing: 'Ξεκινήστε εκδίδοντας την πρώτη σας εικονική ή φυσική κάρτα.',
@@ -7989,7 +8003,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             dontSeeYourATS: `<muted-text-label>Δεν βλέπετε εδώ το ATS σας; <a href="#">Ρωτήστε το Concierge</a> και μπορούμε να το προσθέσουμε.</muted-text-label>`,
             importSettings: 'Ρυθμίσεις εισαγωγής',
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
-            approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
+            approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων', hiringManager: 'Υπεύθυνος προσλήψεων'},
             filters: {
                 description: (providerName: string) => `Επιλέξτε ποια μέλη θα εισαχθούν από το ${providerName}. Μπορείτε να επιλέξετε από στάδια εργασίας, ετικέτες και γραφεία.`,
                 stages: {
@@ -8023,8 +8037,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             finalApprover: `Τελική έγκριση`,
             finalApproverOptional: 'Τελικός εγκρίτης (προαιρετικό)',
             approvalModeDescription: (providerName: string) => `Ορίστε τον εγκριτή για τα νέα μέλη που εισάγονται από το ${providerName} στο Expensify.`,
-            approverFieldDescription: (providerName: string) =>
-                `Επιλέξτε τον πρώτο εγκρίνοντα για τους υποψηφίους σας: είτε τον υπεύθυνο προσλήψεών τους είτε τον συντονιστή τους που έχει οριστεί στο ${providerName}.`,
+            approverFieldDescription: (providerName: string, approverFields: string[]) => {
+                const fieldNames = approverFields.map((approverField) => approverField.toLowerCase());
+                const lastFieldName = fieldNames.at(-1) ?? '';
+                const fieldList = fieldNames.length > 2 ? `το ${fieldNames.slice(0, -1).join(', ')} τους ή το ${lastFieldName} τους` : `είτε ο/η ${fieldNames.join('ή την/τον/τα')} τους`;
+                return `Επιλέξτε τον πρώτο εγκριτή για τους υποψηφίους σας: ${fieldList} που έχουν ανατεθεί στο ${providerName}.`;
+            },
             approvalModeDescriptions: {
                 basic: 'Επιλέξτε έναν μόνο εγκρίνοντα',
                 advanced: `Ο υπεύθυνος προσλήψεων ή ο συντονιστής της υποψηφιότητας γίνεται εγκρίνων των εξόδων τους`,
@@ -9341,6 +9359,11 @@ ${reportName}`,
             emptySubtitle: 'Οι προμηθευτές θα εμφανιστούν εδώ μετά την ολοκλήρωση του συγχρονισμού λογιστικής σας.',
             findVendor: 'Εύρεση προμηθευτή',
             managedInAccountingSoftware: 'Οι προμηθευτές διαχειρίζονται στο',
+            enableVendor: 'Ενεργοποίηση προμηθευτή',
+            enableVendors: 'Ενεργοποίηση προμηθευτών',
+            disableVendor: 'Απενεργοποίηση προμηθευτή',
+            disableVendors: 'Απενεργοποίηση προμηθευτών',
+            updateFailureMessage: 'Προέκυψε σφάλμα κατά την ενημέρωση του προμηθευτή, δοκιμάστε ξανά',
         },
         campfire: {
             campfireSetup: 'Ρύθμιση campfire',
@@ -9398,12 +9421,12 @@ ${reportName}`,
             },
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών Κάρτας Expensify',
             settlementAccount: {label: 'λογαριασμός εκκαθάρισης Κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Campfire.'},
-            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
+            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
             travelInvoicingSettlementAccount: {
-                label: 'Λογαριασμός διακανονισμού τιμολόγησης ταξιδιών',
+                label: 'λογαριασμός εκκαθάρισης συγκεντρωτικής χρέωσης ταξιδιών',
                 description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Campfire.',
             },
-            travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων για τιμολόγηση ταξιδιών'},
+            travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων ενοποιημένης χρέωσης ταξιδιών'},
             exportToMultipleAccounts: 'Ρύθμιση εξαγωγής σε πολλούς λογαριασμούς',
             cardProgramAccount: {
                 label: 'Λογαριασμός προγράμματος κάρτας',
@@ -9433,6 +9456,9 @@ ${reportName}`,
                     return `${customAccountsCount} κάρτες με προσαρμοσμένους λογαριασμούς`;
                 },
             },
+        },
+        zohoBooks: {
+            organization: 'Οργανισμός Zoho Books',
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
@@ -9485,6 +9511,35 @@ ${reportName}`,
             companyCardAccount: {
                 label: 'Λογαριασμός εταιρικής κάρτας',
                 description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
+            },
+            exportToMultipleAccounts: 'Ρύθμιση εξαγωγής σε πολλούς λογαριασμούς',
+            cardProgramAccount: {
+                label: 'Λογαριασμός προγράμματος κάρτας',
+                description: 'Παρακάμψτε τον λογαριασμό χώρου εργασίας για αυτά τα προγράμματα καρτών.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτό το πρόγραμμα κάρτας.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Όλα τα προγράμματα χρησιμοποιούν τον προεπιλεγμένο λογαριασμό';
+                    }
+                    return {
+                        one: `${count} πρόγραμμα με προσαρμοσμένο λογαριασμό`,
+                        other: `${count} προγράμματα με προσαρμοσμένους λογαριασμούς`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Λογαριασμός ανά κάρτα',
+                description: 'Παρακάμψτε τον λογαριασμό προγράμματος για μεμονωμένες κάρτες.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού προγράμματος για αυτές τις κάρτες.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Όλες οι κάρτες χρησιμοποιούν λογαριασμούς προγράμματος';
+                    }
+                    return {
+                        one: `${count} κάρτα με προσαρμοσμένο λογαριασμό`,
+                        other: `${count} κάρτες με προσαρμοσμένους λογαριασμούς`,
+                    };
+                },
             },
             paymentMethod: {
                 label: 'Μέθοδος πληρωμής',
@@ -9901,6 +9956,8 @@ ${reportName}`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `ενημέρωσε το προεπιλεγμένο νόμισμα σε ${newCurrency} (προηγουμένως ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `ενημέρωσε τη συχνότητα αυτόματης αναφοράς σε «${newFrequency}» (προηγουμένως «${oldFrequency}»)`,
         updateApprovalMode: (newValue, oldValue) => `ενημέρωσε τη λειτουργία έγκρισης σε «${newValue}» (προηγουμένως «${oldValue}»)`,
+        archivedWorkspace: 'αρχειοθέτησε αυτόν τον χώρο εργασίας',
+        unarchivedWorkspace: 'ήταν η κατάργηση αρχειοθέτησης αυτού του χώρου εργασίας',
         upgradedWorkspace: 'αναβάθμισε αυτόν τον χώρο εργασίας στο πρόγραμμα Control',
         forcedCorporateUpgrade: `Αυτός ο χώρος εργασίας έχει αναβαθμιστεί στο πλάνο Control. Κάντε κλικ <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">εδώ</a> για περισσότερες πληροφορίες.`,
         downgradedWorkspace: 'υποβίβασε αυτόν τον χώρο εργασίας στο πρόγραμμα Collect',
@@ -9992,6 +10049,11 @@ ${reportName}`,
             setAsPrimary: ({name}: {name: string}) => `ορίστε την τοποθεσία γραφείου «${name}» ως κύρια`,
             setCompanyAddressAsPrimary: 'ορίστε τη διεύθυνση της εταιρείας ως κύρια',
             removed: ({name}: {name: string}) => `αφαίρεσε την τοποθεσία γραφείου «${name}»`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `άλλαξε την τοποθεσία γραφείου του/της ${displayName} σε ${officeLocation} (προηγουμένως ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `«${name}»`,
+            companyAddress: 'η διεύθυνση της εταιρείας',
+            primaryOffice: 'το κύριο γραφείο',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `ορίστε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement}`,
@@ -10376,6 +10438,8 @@ ${reportName}`,
             topCategories: 'Κορυφαίες κατηγορίες',
             topMerchants: 'Κορυφαίοι έμποροι',
             violationsBySubmitter: 'Παραβάσεις από τον υποβάλλοντα',
+            travel: 'Ταξίδι',
+            trips: 'Ταξίδια',
         },
         resultsAreLimited: 'Τα αποτελέσματα αναζήτησης είναι περιορισμένα.',
         viewResults: 'Προβολή αποτελεσμάτων',
@@ -10495,6 +10559,12 @@ ${reportName}`,
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Τελευταία κατάσταση',
                 },
                 customDay: 'Προσαρμοσμένη ημέρα',
+            },
+            describeSearch: {
+                title: 'Περιγράψτε την αναζήτησή σας',
+                description: 'Περιγράψτε στα απλά αγγλικά ποιες δαπάνες θέλετε να δείτε και θα εφαρμόσουμε αυτόματα τα κατάλληλα φίλτρα.',
+                inputLabel: 'Περιγράψτε την αναζήτησή σας',
+                buttonText: 'Εφαρμογή',
             },
             status: 'Κατάσταση',
             keyword: 'Λέξη-κλειδί',
@@ -10737,8 +10807,6 @@ ${reportName}`,
             category: 'Κατηγορία',
             tag: 'Ετικέτα',
         },
-        switchToTableView: 'Εναλλαγή σε προβολή πίνακα',
-        switchToExpenseView: 'Εναλλαγή σε προβολή δαπάνης',
     },
     report: {
         newReport: {
@@ -11824,6 +11892,8 @@ ${reportName}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Επιστράφηκαν ${amount} στις ${date}`,
             },
             billedTo: 'Χρέωση σε',
+            activity: 'Δραστηριότητα',
+            findActiveUser: 'Εύρεση ενεργού χρήστη',
             viewReceipt: 'Προβολή απόδειξης',
             viewInvoice: 'Προβολή τιμολογίου',
         },
@@ -12447,5 +12517,6 @@ ${reportName}`,
         mobileRenewPrompt: 'Επισκεφθείτε το Expensify στον περιηγητή ιστού σας για να ανανεώσετε νωρίτερα.',
         mobileClaimPrompt: 'Επισκεφθείτε το Expensify στον φυλλομετρητή σας για να διεκδικήσετε την έκπτωση ανανέωσης.',
     },
+    bulkActionBar: {label: 'Μαζικές ενέργειες', clearSelection: 'Καθαρισμός επιλογής', loadingSelection: 'Φόρτωση επιλογής'},
 };
 export default translations;
