@@ -1,4 +1,5 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
@@ -62,9 +63,10 @@ export default function WorkspaceMembersTableRow({
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const roleLabel = translate('workspace.common.roleName', item.role);
+    const ownerLabel = item.isOwner ? translate('common.owner') : '';
     const bankAccountLabel =
         !shouldUseNarrowTableLayout && shouldShowBankAccountColumn && item.bankAccountLastFour ? `${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}` : '';
-    const accessibilityLabel = [item.name, item.email, bankAccountLabel, roleLabel].filter(Boolean).join(', ');
+    const accessibilityLabel = [item.name, ownerLabel, item.email, bankAccountLabel, roleLabel].filter(Boolean).join(', ');
     const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;
 
     return (
@@ -100,13 +102,23 @@ export default function WorkspaceMembersTableRow({
                             />
                         </View>
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                text={item.name}
-                                style={[styles.optionDisplayName, styles.pre]}
-                                numberOfLines={1}
-                                isSelectable
-                            />
+                            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    text={item.name}
+                                    style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
+                                    numberOfLines={1}
+                                    isSelectable
+                                />
+                                {!!item.isOwner && (
+                                    <Badge
+                                        text={translate('common.owner')}
+                                        textStyles={styles.textStrong}
+                                        isCondensed={shouldUseNarrowTableLayout}
+                                        badgeStyles={[styles.alignSelfCenter, styles.ml0]}
+                                    />
+                                )}
+                            </View>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={memberSubtitle}
