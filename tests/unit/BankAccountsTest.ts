@@ -100,6 +100,32 @@ describe('BankAccounts', () => {
             const personalBankAccount = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
             expect(getLatestErrorMessage(personalBankAccount)).toBe(serverMessage);
         });
+
+        test('sends both address lines as separate params', () => {
+            // Given an account with a second address line, which the API rejects when joined into addressStreet with a newline
+            const account = {addressStreet: '123 Main St', addressStreet2: 'Apt 4B'};
+
+            // When adding the personal bank account
+            addPersonalBankAccount(account, undefined);
+
+            // Then each line is sent in its own param so the backend can store both
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT,
+                expect.objectContaining({addressStreet: '123 Main St', addressStreet2: 'Apt 4B'}),
+                expect.anything(),
+            );
+        });
+
+        test('sends an empty second address line when addressStreet2 is missing', () => {
+            // Given an account without a second address line
+            const account = {addressStreet: '123 Main St'};
+
+            // When adding the personal bank account
+            addPersonalBankAccount(account, undefined);
+
+            // Then the second line is sent as an empty string, matching updatePersonalBankAccountInfo
+            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, expect.objectContaining({addressStreet: '123 Main St', addressStreet2: ''}), expect.anything());
+        });
     });
 
     describe('deletePaymentBankAccount', () => {
