@@ -28,7 +28,7 @@ import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
+import type {Card, FullPolicySnapshot, Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
 import type {PolicyConnectionName, PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
@@ -535,6 +535,20 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
+const fullPolicySnapshotLastModifiedSelector = (snapshot: OnyxEntry<FullPolicySnapshot>) => snapshot?.lastModified;
+
+/** Maps each policyID to the lastModified of its full policy snapshot, for screens that open reports from several policies. */
+const fullPolicySnapshotLastModifiedByPolicyIDSelector = (snapshots: OnyxCollection<FullPolicySnapshot>): Record<string, number> => {
+    const lastModifiedByPolicyID: Record<string, number> = {};
+    for (const [key, snapshot] of Object.entries(snapshots ?? {})) {
+        if (!snapshot?.lastModified) {
+            continue;
+        }
+        lastModifiedByPolicyID[key.slice(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT.length)] = snapshot.lastModified;
+    }
+    return lastModifiedByPolicyID;
+};
+
 /** The policy fields a workspace avatar renders from. */
 const policyAvatarFieldsSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'avatarURL' | 'name'> | undefined => (policy ? {avatarURL: policy.avatarURL, name: policy.name} : undefined);
 
@@ -614,6 +628,8 @@ export {
     homeAndOfficeCommuterExclusionPolicyNameSelector,
     policyAvatarFieldsSelector,
     policyNameSelector,
+    fullPolicySnapshotLastModifiedSelector,
+    fullPolicySnapshotLastModifiedByPolicyIDSelector,
     policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,

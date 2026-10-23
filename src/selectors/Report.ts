@@ -36,6 +36,10 @@ function getReportChatType(report: OnyxEntry<Report>) {
     return report?.chatType;
 }
 
+function getReportType(report: OnyxEntry<Report>) {
+    return report?.type;
+}
+
 function getReportPolicyID(report: OnyxEntry<Report>) {
     return report?.policyID;
 }
@@ -155,6 +159,13 @@ function reportPolicyFieldsSelector(report: OnyxEntry<Report>): Pick<Report, 'po
         return undefined;
     }
     return {policyID: report.policyID, policyName: report.policyName, oldPolicyName: report.oldPolicyName, policyAvatar: report.policyAvatar};
+}
+
+function reportTypeAndParentIDsSelector(report: OnyxEntry<Report>): Pick<Report, 'type' | 'chatReportID' | 'parentReportID'> | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {type: report.type, chatReportID: report.chatReportID, parentReportID: report.parentReportID};
 }
 
 const policyIDsWithEmptyReportsSelector =
@@ -429,6 +440,7 @@ const reportsByIDsSelector =
 export {
     getArchiveReason,
     getReportChatType,
+    getReportType,
     groupChatAvatarReportSelector,
     getReportOwnerAccountID,
     getReportParentReportID,
@@ -440,6 +452,7 @@ export {
     reportAvatarFieldsSelector,
     reportAvatarKindSelector,
     reportPolicyFieldsSelector,
+    reportTypeAndParentIDsSelector,
     roomAvatarFieldsSelector,
     createMoveExpenseReportNVPSelector,
     createOutstandingReportsForPolicySelector,
