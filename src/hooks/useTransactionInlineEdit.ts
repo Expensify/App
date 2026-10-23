@@ -14,6 +14,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isTrackExpenseReportNew} from '@libs/ReportUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -36,6 +37,7 @@ import {useCurrencyListActions} from './useCurrencyList';
 import useDelegateAccountID from './useDelegateAccountID';
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import {useLiveDuplicateTransactionsAndViolations} from './useDuplicateTransactionsAndViolations';
+import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -85,6 +87,7 @@ type UseTransactionInlineEditReturn = {
 };
 
 function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: UseTransactionInlineEditParams): UseTransactionInlineEditReturn {
+    const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -237,11 +240,11 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     };
 
     const onEditMerchant = (newMerchant: string) => {
-        editTransactionMerchantInline(getEditParams(), newMerchant);
+        showInlineEditError(editTransactionMerchantInline(translate, getEditParams(), newMerchant));
     };
 
     const onEditDescription = (newDescription: string) => {
-        editTransactionDescriptionInline(getEditParams(), newDescription);
+        showInlineEditError(editTransactionDescriptionInline(translate, getEditParams(), newDescription));
     };
 
     const onEditCategory = (newCategory: string) => {
@@ -249,7 +252,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     };
 
     const onEditAmount = (newAmount: number) => {
-        editTransactionAmountInline(getEditParams(), newAmount);
+        showInlineEditError(editTransactionAmountInline(translate, getEditParams(), newAmount));
     };
 
     const onEditTag = (newTag: string) => {
