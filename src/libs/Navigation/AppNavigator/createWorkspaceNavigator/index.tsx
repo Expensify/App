@@ -1,4 +1,5 @@
 import usePreserveNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import useReportTabRootRevealing from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useReportTabRootRevealing';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
@@ -15,6 +16,7 @@ import WorkspaceRouter from './WorkspaceRouter';
 function WorkspaceNavigatorEffects(props: CustomEffectsHookProps) {
     useNavigationResetOnLayoutChange(props);
     usePreserveNavigatorState(props.state, props.parentRoute);
+    useReportTabRootRevealing(props.state, props.descriptors);
     // Returning null makes Babel skip memoization for this Effects slot; an empty fragment is required.
     // eslint-disable-next-line react/jsx-no-useless-fragment
     return <></>;

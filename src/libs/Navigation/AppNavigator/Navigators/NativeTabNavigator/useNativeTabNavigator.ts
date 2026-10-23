@@ -28,6 +28,7 @@ import {useEffect} from 'react';
 import getActiveTabRoute from './getActiveTabRoute';
 import getTabWithoutBarItem from './getTabWithoutBarItem';
 import {isInboxTabAtChatList, isNativeTabSelectionEnabled} from './tabScreenListeners';
+import useIsTabRootRevealing from './useIsTabRootRevealing';
 import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
 
 /**
@@ -64,7 +65,9 @@ function useNativeTabNavigator() {
     const activeTabRoute = getActiveTabRoute(tabState);
     // A tab with no item in the bar is drawn over the other tabs as a full screen, so the bar hides while it is focused.
     const isActiveTabWithoutBarItem = activeTabRoute?.name === tabWithoutBarItem;
-    const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
+    const isAtTabRoot = isTabRouteAtRoot(activeTabRoute);
+    const [isTabRootRevealing, setIsTabRootRevealing] = useIsTabRootRevealing(isAtTabRoot, activeTabRoute?.key);
+    const shouldShowNativeTabBar = shouldUseNarrowLayout && (isAtTabRoot || isTabRootRevealing) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
     const getTabRoute = (tabName: string) => (isRealizedNavigationState(tabState) ? tabState.routes.find((tabRoute) => tabRoute.name === tabName) : undefined);
     const isInboxAtChatList = isInboxTabAtChatList(getTabRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
     const isWorkspacesTabRestored = useIsWorkspacesTabRestored(getTabRoute(NAVIGATORS.WORKSPACE_NAVIGATOR));
@@ -125,7 +128,7 @@ function useNativeTabNavigator() {
 
     const isTabSelectionEnabled = (routeName: string) => isNativeTabSelectionEnabled(routeName, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored});
 
-    return {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled};
+    return {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled, setIsTabRootRevealing};
 }
 
 export default useNativeTabNavigator;
