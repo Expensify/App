@@ -11,10 +11,33 @@ import {
 
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 
 import {Str} from 'expensify-common';
 
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+
+type BusinessInfoData = Pick<
+    ReimbursementAccountForm,
+    | typeof BUSINESS_INFO_STEP_KEYS.COMPANY_NAME
+    | typeof BUSINESS_INFO_STEP_KEYS.COMPANY_WEBSITE
+    | typeof BUSINESS_INFO_STEP_KEYS.COMPANY_STREET
+    | typeof BUSINESS_INFO_STEP_KEYS.COMPANY_CITY
+    | typeof BUSINESS_INFO_STEP_KEYS.COMPANY_POSTAL_CODE
+    | typeof BUSINESS_INFO_STEP_KEYS.COMPANY_STATE
+    | typeof BUSINESS_INFO_STEP_KEYS.COMPANY_COUNTRY_CODE
+    | typeof BUSINESS_INFO_STEP_KEYS.BUSINESS_CONTACT_NUMBER
+    | typeof BUSINESS_INFO_STEP_KEYS.BUSINESS_CONFIRMATION_EMAIL
+    | typeof BUSINESS_INFO_STEP_KEYS.BUSINESS_REGISTRATION_INCORPORATION_NUMBER
+    | typeof BUSINESS_INFO_STEP_KEYS.TAX_ID_EIN_NUMBER
+    | typeof BUSINESS_INFO_STEP_KEYS.FORMATION_INCORPORATION_COUNTRY_CODE
+    | typeof BUSINESS_INFO_STEP_KEYS.FORMATION_INCORPORATION_STATE
+    | typeof BUSINESS_INFO_STEP_KEYS.BUSINESS_CATEGORY
+    | typeof BUSINESS_INFO_STEP_KEYS.APPLICANT_TYPE_ID
+    | typeof BUSINESS_INFO_STEP_KEYS.ANNUAL_VOLUME
+    | typeof BUSINESS_INFO_STEP_KEYS.TRADE_VOLUME
+>;
+type BusinessCountry = ReimbursementAccountForm[typeof BUSINESS_INFO_STEP_KEYS.COMPANY_COUNTRY_CODE];
 
 function isMissingValidCompanyName(companyName: string) {
     return companyName === '' || !isValidCompanyName(companyName);
@@ -41,18 +64,18 @@ function isMissingValidBusinessContactInformation(contactNumber: string, contact
     return contactNumber === '' || contactEmail === '' || !isValidPhoneInternational(contactNumber) || !isValidEmail(contactEmail);
 }
 
-function isMissingValidRegistrationNumber(registrationNumber: string, country: string) {
-    return registrationNumber === '' || !isValidRegistrationNumber(registrationNumber, country as keyof typeof CONST.COUNTRY);
+function isMissingValidRegistrationNumber(registrationNumber: string, country: BusinessCountry) {
+    return registrationNumber === '' || !isValidRegistrationNumber(registrationNumber, country);
 }
 
-function isMissingValidTaxIDEINNumber(taxIDEINNumber: string, country: string) {
-    return taxIDEINNumber === '' || !isValidTaxIDEINNumber(taxIDEINNumber, country as keyof typeof CONST.COUNTRY);
+function isMissingValidTaxIDEINNumber(taxIDEINNumber: string, country: BusinessCountry) {
+    return taxIDEINNumber === '' || !isValidTaxIDEINNumber(taxIDEINNumber, country);
 }
 
 /**
  * Returns the initial subStep for the Business info step based on already existing data
  */
-function getInitialSubStepForBusinessInfoStep(data: Record<string, string>): number {
+function getInitialSubStepForBusinessInfoStep(data: BusinessInfoData): number {
     if (isMissingValidCompanyName(data[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME])) {
         return 0;
     }

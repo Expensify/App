@@ -7,6 +7,7 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => {
     const {DYNAMIC_ROUTES: actualDynamicRoutes} = jest.requireActual<typeof Routes>('@src/ROUTES');
     return {
         normalizedConfigs: {
+            MissingEntry: undefined,
             TestNavigator: {
                 path: actualDynamicRoutes.VERIFY_ACCOUNT.path,
                 routeNames: ['Wrapper', 'TargetScreen'],
@@ -25,10 +26,13 @@ const KEY_UNKNOWN = 'TWO_FACTOR_AUTH_VERIFY';
 
 describe('getStateForDynamicRoute', () => {
     it('should build correctly nested state for multi-level route', () => {
+        // Given a sparse entry precedes the real matching hierarchy
         const path = `/some/path/${DYNAMIC_ROUTES.VERIFY_ACCOUNT.path}`;
 
+        // When the consumer scans the captured entries
         const result = getStateForDynamicRoute(path, KEY_TEST);
 
+        // Then absence is skipped without losing the first matching hierarchy
         expect(result).toEqual({
             routes: [
                 {
