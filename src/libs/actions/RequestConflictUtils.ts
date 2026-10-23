@@ -115,9 +115,7 @@ function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persis
             // ReportFetchHandler when the screen mounts has no participants. Replacing would drop the
             // accountIDList, leaving the server with no way to resolve the optimistic reportID — Auth
             // returns NIL reportSummary and PHP throws "Report not found" (da7984df).
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const queuedHasParticipants = !!(request.data?.emailList || request.data?.accountIDList);
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const newHasParticipants = !!(parameters.emailList || parameters.accountIDList);
             if (queuedHasParticipants && !newHasParticipants) {
                 return {
@@ -351,6 +349,36 @@ function resolveEnableFeatureConflicts<TKey extends OnyxKey>(
     };
 }
 
+/**
+ * Removing the vacation delegate supersedes any change to it still waiting in the queue, e.g. a clear after date changed offline
+ * before the removal. Sending that change first would let its response bring the removed delegate back until the removal lands.
+ * Only the current user's own delegate is matched, so a domain admin's change for a member is left alone.
+ */
+function resolveVacationDelegateDeletionConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>): ConflictActionData {
+    const indicesToDelete = persistedRequests.reduce<number[]>((indices, request, index) => {
+        if (request.command === WRITE_COMMANDS.SET_VACATION_DELEGATE && !request.data?.domainAccountID) {
+            indices.push(index);
+        }
+        return indices;
+    }, []);
+
+    if (indicesToDelete.length === 0) {
+        return {
+            conflictAction: {
+                type: 'push',
+            },
+        };
+    }
+
+    return {
+        conflictAction: {
+            type: 'delete',
+            indices: indicesToDelete,
+            pushNewRequest: true,
+        },
+    };
+}
+
 export {
     resolveDuplicationConflictAction,
     resolveOpenAppDuplicationConflictAction,
@@ -365,6 +393,7 @@ export {
     createUpdateCommentMatcher,
     resolveEnableFeatureConflicts,
     enablePolicyFeatureCommand,
+    resolveVacationDelegateDeletionConflicts,
 };
 
 export type {EnablePolicyFeatureCommand, AnyRequestMatcher};

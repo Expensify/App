@@ -365,7 +365,6 @@ function AttachmentPicker({
                     return Promise.resolve(null);
                 }
 
-                /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
                 const fileDataName = ('fileName' in fileData && fileData.fileName) || ('name' in fileData && fileData.name) || '';
                 const fileDataUri = ('uri' in fileData && fileData.uri) || '';
 
