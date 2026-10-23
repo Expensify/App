@@ -8,8 +8,6 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 
-import {clearPersonalBankAccountErrors} from '@userActions/BankAccounts';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
@@ -48,13 +46,6 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
         };
     };
 
-    const moveToEditStep = (step: number) => {
-        if (error) {
-            clearPersonalBankAccountErrors();
-        }
-        onMove(step);
-    };
-
     const getSummaryItems = () => {
         const personalDetails = getPersonalDetails();
         const selectedPlaidAccount = plaidData?.bankAccounts?.find((bankAccount) => bankAccount?.plaidAccountID === bankAccountPersonalDetails?.selectedPlaidAccountID);
@@ -66,7 +57,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
                       title: bankAccountPersonalDetails?.routingNumber,
                       shouldShowRightIcon: true,
                       onPress: () => {
-                          moveToEditStep(0);
+                          onMove(0);
                       },
                   },
                   {
@@ -75,7 +66,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
                       title: bankAccountPersonalDetails?.accountNumber,
                       shouldShowRightIcon: true,
                       onPress: () => {
-                          moveToEditStep(0);
+                          onMove(0);
                       },
                   },
               ]
@@ -86,7 +77,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
                       title: selectedPlaidAccount?.addressName ?? '',
                       shouldShowRightIcon: true,
                       onPress: () => {
-                          moveToEditStep(0);
+                          onMove(0);
                       },
                   },
               ];
@@ -99,7 +90,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
                 title: `${personalDetails[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${personalDetails[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    moveToEditStep(1);
+                    onMove(1);
                 },
             },
             {
@@ -108,7 +99,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
                 title: `${personalDetails?.addressStreet}, ${personalDetails?.addressCity}, ${personalDetails?.addressState} ${personalDetails?.addressZip}`,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    moveToEditStep(2);
+                    onMove(2);
                 },
             },
             {
@@ -117,7 +108,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
                 title: personalDetails[PERSONAL_INFO_STEP_KEYS.PHONE_NUMBER],
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    moveToEditStep(3);
+                    onMove(3);
                 },
             },
         ];

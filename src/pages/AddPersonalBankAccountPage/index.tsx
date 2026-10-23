@@ -17,7 +17,8 @@ import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
 
-import {addPersonalBankAccount, clearPersonalBankAccount} from '@userActions/BankAccounts';
+import {addPersonalBankAccount, clearPersonalBankAccount, clearPersonalBankAccountErrors} from '@userActions/BankAccounts';
+import {setDraftValues} from '@userActions/FormActions';
 import {continueSetup} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
@@ -26,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useContext, useEffect, useRef} from 'react';
 
 import Address from './substeps/AddressStep';
@@ -36,6 +37,7 @@ import ManualBankAccountDetails from './substeps/ManualBankAccountDetailsStep';
 import PhoneNumber from './substeps/PhoneNumberStep';
 import PlaidBankAccount from './substeps/PlaidBankAccountStep';
 import Success from './substeps/SuccessStep';
+import ValidateCode from './substeps/ValidateCodeStep';
 import getSkippedStepsPersonalInfo from './utils/getSkippedStepsPersonalInfo';
 
 const SUB_PAGE_NAMES = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES;
@@ -45,6 +47,7 @@ const infoPages = [
     {pageName: SUB_PAGE_NAMES.ADDRESS, component: Address},
     {pageName: SUB_PAGE_NAMES.PHONE_NUMBER, component: PhoneNumber},
     {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: Confirmation},
+    {pageName: SUB_PAGE_NAMES.VALIDATE_CODE, component: ValidateCode},
     {pageName: SUB_PAGE_NAMES.SUCCESS, component: Success},
 ];
 const pagesWithPlaid = [{pageName: SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT, component: PlaidBankAccount}, ...infoPages];
@@ -53,9 +56,14 @@ const pagesWithManualSetup = [{pageName: SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETA
 const DEFAULT_OBJECT = {};
 const ACCOUNT_OWNERSHIP_ERROR_SUBSTRING = 'account ownership';
 
+// The backend's errors for a wrong magic code and for too many wrong magic codes
+const VALIDATE_CODE_ERROR_SUBSTRINGS = ['magic code', 'failed attempts'];
+
 function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
     const route = useRoute();
+    const navigation = useNavigation();
+    const isFocused = useIsFocused();
     const urlSubPage = (route.params as {subPage?: string} | undefined)?.subPage;
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -63,8 +71,10 @@ function AddPersonalBankAccountPage() {
     const [fullPersonalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const isManual = personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL || urlSubPage === SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS;
     const error = getLatestErrorMessage(fullPersonalBankAccount ?? DEFAULT_OBJECT);
-    const confirmedOwnershipDetails = useRef(false);
     const hasRefreshedExitReport = useRef(false);
+
+    // Each substep is a separate screen, so on the magic code screen this tracks whether a code was submitted from it
+    const hasSubmittedValidateCode = useRef(false);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
@@ -106,7 +116,7 @@ function AddPersonalBankAccountPage() {
         clearPersonalBankAccount();
     };
 
-    const submitBankAccountForm = () => {
+    const getAccountData = () => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
 
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccount?.selectedPlaidAccountID);
@@ -139,10 +149,10 @@ function AddPersonalBankAccountPage() {
             ...bankAccountWithToken,
             phoneNumber: formatE164PhoneNumber(finalPhoneNumber, countryCode),
         };
-        if (confirmedOwnershipDetails.current) {
-            accountData.confirmedOwnershipDetails = true;
-        }
-        addPersonalBankAccount(accountData, personalPolicyID);
+        // Compare against the phone number exactly as saved, without the fallback and formatting applied above, so that anything the backend treats as a change also asks for the
+        // magic code here. At worst this asks for a code the backend wouldn't need, such as when a saved phone number isn't in E.164 format.
+        const hasPhoneNumberChange = (accountData.phoneNumber ?? '') !== (privatePersonalDetails?.phoneNumber ?? '');
+        return {accountData, hasPhoneNumberChange};
     };
 
     const pages = isManual ? pagesWithManualSetup : pagesWithPlaid;
@@ -163,8 +173,15 @@ function AddPersonalBankAccountPage() {
 
     const confirmationIndex = pages.findIndex((page) => page.pageName === SUB_PAGE_NAMES.CONFIRMATION);
     const successIndex = pages.findIndex((page) => page.pageName === SUB_PAGE_NAMES.SUCCESS);
+    const successRoute = buildRoute(SUB_PAGE_NAMES.SUCCESS);
+    const isDetailsStep = currentPageName !== SUB_PAGE_NAMES.CONFIRMATION && currentPageName !== SUB_PAGE_NAMES.VALIDATE_CODE && currentPageName !== SUB_PAGE_NAMES.SUCCESS;
 
     const handleNext = (data?: unknown) => {
+        // Submitting a details step may change what the user confirmed after an account ownership error, so they need to confirm again
+        if (isDetailsStep) {
+            setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {confirmedOwnershipDetails: null});
+        }
+
         // When editing a field from the confirmation step, jump straight back to it.
         if (isEditing) {
             moveTo(confirmationIndex, false);
@@ -172,8 +189,23 @@ function AddPersonalBankAccountPage() {
         }
         // On the confirmation step we submit the bank account first; the success step is
         // only shown once the request succeeds (see the effect below).
+        // Saving a changed phone number to the user's private personal details requires a magic code, because it is used to verify Expensify Card transactions.
         if (currentPageName === SUB_PAGE_NAMES.CONFIRMATION) {
-            submitBankAccountForm();
+            const {accountData, hasPhoneNumberChange} = getAccountData();
+            if (hasPhoneNumberChange) {
+                // The error belongs to the previous submission, so the magic code page doesn't show it
+                clearPersonalBankAccountErrors();
+                nextPage();
+                return;
+            }
+            addPersonalBankAccount(accountData, personalPolicyID);
+            return;
+        }
+        if (currentPageName === SUB_PAGE_NAMES.VALIDATE_CODE) {
+            if (typeof data === 'string') {
+                hasSubmittedValidateCode.current = true;
+                addPersonalBankAccount(getAccountData().accountData, personalPolicyID, {validateCode: data});
+            }
             return;
         }
         nextPage(data);
@@ -197,12 +229,19 @@ function AddPersonalBankAccountPage() {
 
     // Advance to the success step once the bank account has been added successfully. This can resolve while the user
     // has navigated back to an earlier substep, so jump straight to success rather than relying on the current page.
+    // Every substep the user passed through stays mounted under the focused one, so only the focused substep moves on.
     useEffect(() => {
-        if (!shouldShowSuccess || currentPageName === SUB_PAGE_NAMES.SUCCESS) {
+        if (!shouldShowSuccess || currentPageName === SUB_PAGE_NAMES.SUCCESS || !navigation.isFocused()) {
+            return;
+        }
+
+        // Replace the magic code step, so going back from success lands on the confirmation step instead of a code form that would send another magic code
+        if (currentPageName === SUB_PAGE_NAMES.VALIDATE_CODE) {
+            Navigation.navigate(successRoute, {forceReplace: true});
             return;
         }
         moveTo(successIndex, false);
-    }, [shouldShowSuccess, currentPageName, moveTo, successIndex]);
+    }, [shouldShowSuccess, currentPageName, navigation, successRoute, moveTo, successIndex]);
 
     // Refresh the report the flow was opened from once the account is added, since that changes its server-owned fields.
     // Doing it here instead of on exit covers every way of closing the flow. The report may not be on screen, so don't mark it as read.
@@ -214,20 +253,54 @@ function AddPersonalBankAccountPage() {
         openReport({reportID: exitReportID, hasReportActions: hasExitReportActions, shouldMarkAsRead: false});
     }, [shouldShowSuccess, exitReportID, currentPageName, openReport, hasExitReportActions]);
 
+    // Once the user sees an account ownership mismatch on the confirmation step, the next submission confirms the details shown there. Each substep is a separate screen, and the
+    // error is cleared before the magic code step, so the confirmation is kept in the form draft, where every substep and later retry reads it. An error that arrives while a details
+    // step is focused is cleared there unseen, so it confirms nothing, and the next submission gets it again on the confirmation step.
+    // The magic code page doesn't show the details being confirmed, so a code submitted from it that gets this error sends the user back to the confirmation step, which shows them
+    // next to the error. An error already there when the page opens is from an earlier submission and is being cleared.
     useEffect(() => {
-        if (!error) {
+        if (!isFocused || !error?.includes(ACCOUNT_OWNERSHIP_ERROR_SUBSTRING)) {
             return;
         }
-        if (error.includes(ACCOUNT_OWNERSHIP_ERROR_SUBSTRING)) {
-            confirmedOwnershipDetails.current = true;
+        if (currentPageName === SUB_PAGE_NAMES.CONFIRMATION) {
+            setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {confirmedOwnershipDetails: true});
+            return;
         }
-        return () => {
-            confirmedOwnershipDetails.current = false;
-        };
-    }, [error]);
+        if (currentPageName !== SUB_PAGE_NAMES.VALIDATE_CODE || !hasSubmittedValidateCode.current) {
+            return;
+        }
+        hasSubmittedValidateCode.current = false;
+        prevPage();
+    }, [isFocused, error, currentPageName, prevPage]);
+
+    // The submission error is about the details being confirmed, so only the confirmation and magic code steps show it, and a magic code error only the magic code step. The details
+    // steps are forms on the same Onyx key, and a form with a server error shows it and won't submit. So the error is cleared once the user is on a step that doesn't show it, however
+    // they navigated there. An account ownership error the user saw on the confirmation step is already kept as a confirmation in the form draft by the effect above.
+    useEffect(() => {
+        if (!isFocused || !error) {
+            return;
+        }
+        const isValidateCodeError = VALIDATE_CODE_ERROR_SUBSTRINGS.some((substring) => error.includes(substring));
+        if (!isDetailsStep && !(currentPageName === SUB_PAGE_NAMES.CONFIRMATION && isValidateCodeError)) {
+            return;
+        }
+        clearPersonalBankAccountErrors();
+    }, [isFocused, isDetailsStep, currentPageName, error]);
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator />;
+    }
+
+    // The magic code page renders its own screen and header
+    if (currentPageName === SUB_PAGE_NAMES.VALIDATE_CODE) {
+        return (
+            <CurrentPage
+                isEditing={isEditing}
+                onNext={handleNext}
+                onMove={moveTo}
+                prevPage={prevPage}
+            />
+        );
     }
 
     return (
