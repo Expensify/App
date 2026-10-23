@@ -14,7 +14,7 @@ const cache = new Map();
 /**
  * Turns a comment like `eslint-disable-next-line rule-a, rule-b -- reason` into its kind and the rules
  * it names. A directive that names no rule applies to every rule.
- * @param {import('estree').Comment} comment
+ * @param {{type: 'Line' | 'Block', value: string, loc?: {start: {line: number, column: number}, end: {line: number, column: number}}}} comment
  * @returns {{kind: string, ruleIds: string[]} | null} null when the comment is not a directive
  */
 function parseComment(comment) {
@@ -35,7 +35,7 @@ function parseComment(comment) {
  * Collects a file's disable comments in a form that is quick to check for each report. A
  * `-line`/`-next-line` comment becomes the line it covers. `eslint-disable`/`eslint-enable` comments
  * stay in source order, because the last one before a report decides.
- * @param {import('estree').Comment[]} comments
+ * @param {Array<Parameters<typeof parseComment>[0]>} comments
  * @returns {{lines: Map<string, Set<number>>, blocks: Array<{line: number, column: number, ruleId: string, disable: boolean}>}}
  */
 function parseDirectives(comments) {
@@ -77,7 +77,7 @@ function parseDirectives(comments) {
 /**
  * Every wrapped rule checks the same file's comments, so they are parsed once per file.
  * @param {string | undefined} filename
- * @param {import('estree').Comment[]} comments
+ * @param {Array<Parameters<typeof parseComment>[0]>} comments
  * @returns {ReturnType<typeof parseDirectives>}
  */
 function directivesFor(filename, comments) {

@@ -89,7 +89,7 @@ const meta = {
 
 /**
  * Tells which export an import takes: `import MenuItem from` takes `default`, `import {X as Y} from` takes `X`.
- * @param {import('estree').ImportSpecifier | import('estree').ImportDefaultSpecifier | import('estree').ImportNamespaceSpecifier} specifier
+ * @param {{type: 'ImportSpecifier' | 'ImportDefaultSpecifier' | 'ImportNamespaceSpecifier', imported?: {type: string, name?: string, value?: string}}} specifier
  * @returns {string | null} null for a namespace import
  */
 function importedName(specifier) {
@@ -105,7 +105,7 @@ function importedName(specifier) {
 /**
  * Finds which identifiers a variable may hold, so a deprecated component renamed through
  * `const Item = isNew ? MenuItem : OldItem` is still caught when `<Item />` is used.
- * @param {import('estree').Expression | null | undefined} node
+ * @param {{type: string} | null | undefined} node the expression a variable is initialized with
  * @returns {string[]}
  */
 function initializerIdentifiers(node) {
