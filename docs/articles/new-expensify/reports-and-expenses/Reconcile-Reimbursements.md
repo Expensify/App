@@ -2,7 +2,7 @@
 title: Reconcile Reimbursements
 description: Learn how to use the Bank reconciliation report to match reimbursement payments to bank charges, trace payments to expense reports, and troubleshoot discrepancies with your accounting system.
 keywords: [New Expensify, reconcile reimbursements, match reimbursements bank statement, reimbursement payments Expensify, reimbursement mismatch NetSuite QuickBooks, trace reimbursement to expense reports, amount debited, amount reimbursed, cross-border reimbursement currency, bank reconciliation, reimbursement debit, export bank reconciliation CSV, withdrawal ID]
-internalScope: Audience is Workspace Admins reconciling reimbursement payments. Covers payment-based reconciliation under Accounting > Bank reconciliation. Does not cover Expensify Card reconciliation or company card statement matching.
+internalScope: Audience is workspace admins and payments admins reconciling reimbursement payments. Covers payment-based reconciliation under Accounting > Bank reconciliation. Does not cover Expensify Card reconciliation or company card statement matching.
 ---
 
 # Reconcile Reimbursements
@@ -13,7 +13,7 @@ Reimbursement reconciliation helps you match each reimbursement payment to the b
 
 ## Who can reconcile reimbursements
 
-Workspace Admins can use the Bank reconciliation report to reconcile reimbursements when Payments is enabled on the Workspace with a verified business bank account.
+Workspace admins and payments admins can use the Bank reconciliation report to reconcile reimbursements when Payments is enabled on the workspace with a verified business bank account.
 
 ---
 
