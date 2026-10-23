@@ -6,6 +6,8 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import PlaidLink from '@components/PlaidLink';
 import RenderHTML from '@components/RenderHTML';
@@ -97,12 +99,11 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     if (isSuccess) {
         return (
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     heading={translate('walletPage.linkPlaid.successHeading')}
                     description={translate('walletPage.linkPlaid.successDescription')}
                     descriptionStyle={styles.textSupportingNormal}
                     illustration={illustrations.BankCheck}
-                    shouldShowButton
                     onButtonPress={() => Navigation.goBack(backPath)}
                     buttonText={translate('common.buttonConfirm')}
                     containerStyle={styles.h100}
@@ -114,12 +115,11 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     if (isWrongAccountError) {
         return (
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     heading={translate('walletPage.linkPlaid.wrongAccountHeading')}
                     description={translate('walletPage.linkPlaid.wrongAccountDescription')}
                     descriptionStyle={styles.textSupportingNormal}
                     illustration={illustrations.BankX}
-                    shouldShowButton
                     onButtonPress={() => Navigation.goBack(backPath)}
                     buttonText={translate('common.buttonConfirm')}
                     containerStyle={styles.h100}
@@ -131,19 +131,21 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     if (latestErrorMessage) {
         return (
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <ConfirmationPage
-                    heading={translate('walletPage.linkPlaid.failureHeading')}
-                    illustration={illustrations.BankX}
-                    descriptionComponent={
+                <ConfirmationPage style={styles.h100}>
+                    <ConfirmationPage.Content>
+                        <ConfirmationPage.Illustration illustration={illustrations.BankX} />
+                        <ConfirmationPage.Heading>{translate('walletPage.linkPlaid.failureHeading')}</ConfirmationPage.Heading>
                         <View style={[styles.renderHTML, styles.textAlignCenter, styles.mh5]}>
                             <RenderHTML html={translate('walletPage.linkPlaid.failureDescription')} />
                         </View>
-                    }
-                    shouldShowButton
-                    onButtonPress={() => Navigation.goBack(backPath)}
-                    buttonText={translate('common.buttonConfirm')}
-                    containerStyle={styles.h100}
-                />
+                    </ConfirmationPage.Content>
+                    <FixedFooter>
+                        <ConfirmationPage.PrimaryButton
+                            text={translate('common.buttonConfirm')}
+                            onPress={() => Navigation.goBack(backPath)}
+                        />
+                    </FixedFooter>
+                </ConfirmationPage>
             </ScrollView>
         );
     }
