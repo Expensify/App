@@ -53,7 +53,6 @@ import {
     buildNewTransactionAfterReviewingDuplicates,
     canMergeDuplicates,
     compareDuplicateTransactionFields,
-    doesReportKeepExpensesAfterMerge,
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
 } from './duplicates';
@@ -1205,6 +1204,14 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
 }
 
 /**
+ * Manual expenses never show a scan to the user, so a backend scan of their receipt shouldn't block receipt edits.
+ * This checks iouRequestType directly instead of using getRequestType, which treats a missing type as manual.
+ */
+function isReceiptScanBlockingEdit(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    return isReceiptBeingScanned(transaction) && transaction?.iouRequestType !== CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+/**
  * Check if category is being analyzed (manual request creation or auto-categorization grace period)
  */
 function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): boolean {
@@ -1878,6 +1885,7 @@ export {
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
+    isReceiptScanBlockingEdit,
     didReceiptScanSucceed,
     getValidWaypoints,
     doesMoneyRequestDraftHaveUserInput,
@@ -1942,7 +1950,6 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     buildMergeDuplicatesParams,
     canMergeDuplicates,
-    doesReportKeepExpensesAfterMerge,
     getReimbursable,
     hasNonReimbursableTransactions,
     isPayAtEndExpense,
