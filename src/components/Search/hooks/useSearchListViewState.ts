@@ -137,7 +137,6 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
         modal,
         handleSelectRow,
         scrollToListIndex,
-        shouldScrollMainHeader,
     };
 }
 

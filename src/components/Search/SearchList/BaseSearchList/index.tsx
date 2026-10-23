@@ -62,7 +62,7 @@ function BaseSearchList({
     scrollToIndex,
     onEndReached,
     onEndReachedThreshold,
-    ListHeaderComponent,
+    selectionTopBar,
     ListFooterComponent,
     onViewableItemsChanged,
     onLayout,
@@ -196,32 +196,36 @@ function BaseSearchList({
     );
 
     return (
-        <AnimatedFlashListComponent
-            data={data}
-            renderItem={renderItemWithKeyboardFocus}
-            keyExtractor={keyExtractor}
-            onScroll={onScroll}
-            showsVerticalScrollIndicator={false}
-            ref={ref}
-            extraData={extraData}
-            onEndReached={onEndReached}
-            onEndReachedThreshold={onEndReachedThreshold}
-            ListHeaderComponent={ListHeaderComponent}
-            ListFooterComponent={ListFooterComponent}
-            onViewableItemsChanged={onViewableItemsChanged}
-            onLayout={handleLayout}
-            onContentSizeChange={handleContentSizeChange}
-            CellRendererComponent={CellRendererComponent}
-            removeClippedSubviews
-            drawDistance={250}
-            {...tabRootScrollProps}
-            maintainVisibleContentPosition={{disabled: true}}
-            stickyHeaderIndices={stickyHeaderIndices}
-            stickyHeaderConfig={stickyHeaderConfig}
-            getItemType={getItemType}
-            overrideItemLayout={overrideItemLayout}
-            overrideProps={scrollLockStyle ? {style: scrollLockStyle} : undefined}
-        />
+        <>
+            {/* Where the page header scrolls away, the select-all bar scrolls with the rows too, rather than staying pinned above them. */}
+            {!isUnderScrollAwayHeader && selectionTopBar}
+            <AnimatedFlashListComponent
+                data={data}
+                renderItem={renderItemWithKeyboardFocus}
+                keyExtractor={keyExtractor}
+                onScroll={onScroll}
+                showsVerticalScrollIndicator={false}
+                ref={ref}
+                extraData={extraData}
+                onEndReached={onEndReached}
+                onEndReachedThreshold={onEndReachedThreshold}
+                ListHeaderComponent={isUnderScrollAwayHeader ? selectionTopBar : undefined}
+                ListFooterComponent={ListFooterComponent}
+                onViewableItemsChanged={onViewableItemsChanged}
+                onLayout={handleLayout}
+                onContentSizeChange={handleContentSizeChange}
+                CellRendererComponent={CellRendererComponent}
+                removeClippedSubviews
+                drawDistance={250}
+                {...tabRootScrollProps}
+                maintainVisibleContentPosition={{disabled: true}}
+                stickyHeaderIndices={stickyHeaderIndices}
+                stickyHeaderConfig={stickyHeaderConfig}
+                getItemType={getItemType}
+                overrideItemLayout={overrideItemLayout}
+                overrideProps={scrollLockStyle ? {style: scrollLockStyle} : undefined}
+            />
+        </>
     );
 }
 

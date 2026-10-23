@@ -14,7 +14,6 @@ type BaseSearchListProps = Pick<
     | 'contentContainerStyle'
     | 'onEndReached'
     | 'onEndReachedThreshold'
-    | 'ListHeaderComponent'
     | 'ListFooterComponent'
     | 'onViewableItemsChanged'
     | 'keyExtractor'
@@ -25,6 +24,10 @@ type BaseSearchListProps = Pick<
     | 'overrideItemLayout'
 > & {
     data: SearchListItem[];
+
+    /** The select-all bar. Pinned above the list, or scrolled with the rows where the page header scrolls away too. */
+    selectionTopBar?: React.JSX.Element;
+
     renderItem: (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
 
     /** The columns that might change to trigger re-render via extraData */

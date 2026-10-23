@@ -58,15 +58,15 @@ function LHNOptionsList({
 
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
     const extraData = [data.length, optionMode, isOffline];
+    const hasListHeader = !!listHeaderComponent;
     const savedScrollIndex = getScrollIndex(route);
     // With a list header, index 0 is left to the list's natural start: FlashList restores an index to the row's offset
     // plus the header's height, so restoring 0 would scroll the header away.
-    const minRestorableScrollIndex = listHeaderComponent ? 1 : 0;
+    const minRestorableScrollIndex = hasListHeader ? 1 : 0;
     const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= minRestorableScrollIndex && savedScrollIndex < data.length ? savedScrollIndex : undefined;
 
     // Kept in a ref rather than state: onScroll is the only reader, and the header's height must never trigger a re-render.
     const listHeaderHeightRef = useRef(0);
-    const hasListHeader = !!listHeaderComponent;
     const onListHeaderLayout = (event: LayoutChangeEvent) => {
         listHeaderHeightRef.current = event.nativeEvent.layout.height;
     };
@@ -144,7 +144,7 @@ function LHNOptionsList({
         flashListRef.current.scrollToOffset({offset: 0});
     }, [previousOptionMode, optionMode]);
 
-    const listHeader = listHeaderComponent ? <View onLayout={onListHeaderLayout}>{listHeaderComponent}</View> : undefined;
+    const listHeader = hasListHeader ? <View onLayout={onListHeaderLayout}>{listHeaderComponent}</View> : undefined;
 
     return (
         <View style={style ?? styles.flex1}>

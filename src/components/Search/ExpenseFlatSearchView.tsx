@@ -70,7 +70,6 @@ function ExpenseFlatSearchView({
         isKeyboardShown,
         safeAreaPaddingBottomStyle,
         isLargeScreenWidth,
-        shouldScrollMainHeader,
         toggle,
         toggleAll,
         selectedTransactions,
@@ -134,7 +133,6 @@ function ExpenseFlatSearchView({
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
     const selectAllButtonVisible = canSelectMultiple && !searchTableHeader;
 
-    // Where the page header scrolls away, the select-all bar scrolls with the rows too, rather than staying pinned above them.
     const selectionTopBar = tableHeaderVisible ? (
         <SelectionTopBar
             isLargeScreenWidth={isLargeScreenWidth}
@@ -166,9 +164,8 @@ function ExpenseFlatSearchView({
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
         >
-            {!shouldScrollMainHeader && selectionTopBar}
             <BaseSearchList
-                ListHeaderComponent={shouldScrollMainHeader ? selectionTopBar : undefined}
+                selectionTopBar={selectionTopBar}
                 data={data}
                 renderItem={renderItem}
                 onSelectRow={handleSelectRow}
