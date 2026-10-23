@@ -121,10 +121,35 @@ describe('Numeric buttons', () => {
         };
 
         it('renders the button when negative values are allowed', async () => {
+            // Given a numeric input that allows negative values
+            // When the flip button is rendered
             renderFlipButton();
             await waitForBatchedUpdatesWithAct();
 
+            // Then the flip button is rendered with its accessible name and text label
             expect(screen.getByTestId(FLIP_TEST_ID)).toHaveAccessibleName('Flip');
+            expect(screen.getByText('Flip')).toBeOnTheScreen();
+        });
+
+        it('hides the text label when shouldShowLabel is false, keeping the accessible name', async () => {
+            // Given a numeric flip button configured not to display its text label
+            // When the component is rendered
+            renderWithProviders(
+                <NumericComponent
+                    value="12"
+                    allowNegative
+                >
+                    <NumericComponent.FlipButton
+                        shouldShowLabel={false}
+                        testID={FLIP_TEST_ID}
+                    />
+                </NumericComponent>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the text label is hidden from the UI to save space, but the accessible name is preserved
+            expect(screen.getByTestId(FLIP_TEST_ID)).toHaveAccessibleName('Flip');
+            expect(screen.queryByText('Flip')).not.toBeOnTheScreen();
         });
 
         it('does not render when negative values are not allowed', async () => {
