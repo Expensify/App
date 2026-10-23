@@ -182,9 +182,10 @@ describe('useAutoCreateSubmitWorkspace', () => {
         await result.current('John', 'Doe');
 
         // Then the user should be navigated to the newly created Submit workspace
-        // so they land on their workspace immediately after onboarding
+        // so they land on their workspace immediately after onboarding, with the side panel
+        // closed so they aren't onboarded in two places at once
         expect(navigateSpy).toHaveBeenCalledTimes(1);
-        expect(navigateSpy).toHaveBeenCalledWith(MOCK_POLICY_ID, expect.any(Boolean));
+        expect(navigateSpy).toHaveBeenCalledWith(MOCK_POLICY_ID, expect.any(Boolean), false);
     });
 
     it('reuses the existing onboarding workspace instead of creating a new one', async () => {
@@ -294,11 +295,12 @@ describe('useAutoCreateSubmitWorkspace', () => {
         await result.current('John', 'Doe', false);
 
         // Then no duplicate workspace is created, onboarding is not re-run, and the user is
-        // navigated to the existing Submit workspace instead of falling back to Home
+        // navigated to the existing Submit workspace instead of falling back to Home. The modal
+        // isn't part of onboarding, so it still opens the side panel to show the #admins room
         expect(createWorkspaceSpy).not.toHaveBeenCalled();
         expect(completeOnboardingSpy).not.toHaveBeenCalled();
         expect(navigateSpy).toHaveBeenCalledTimes(1);
-        expect(navigateSpy).toHaveBeenCalledWith(existingSubmitPolicy.id, expect.any(Boolean));
+        expect(navigateSpy).toHaveBeenCalledWith(existingSubmitPolicy.id, expect.any(Boolean), true);
     });
 
     it('keeps the Home fallback for onboarding callers when creation is skipped', async () => {
@@ -320,7 +322,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
         // behavior (landing on Home) so this fix stays scoped to already-onboarded callers
         expect(createWorkspaceSpy).not.toHaveBeenCalled();
         expect(navigateSpy).toHaveBeenCalledTimes(1);
-        expect(navigateSpy).toHaveBeenCalledWith(undefined, expect.any(Boolean));
+        expect(navigateSpy).toHaveBeenCalledWith(undefined, expect.any(Boolean), false);
     });
 
     it('uses the localCurrencyCode from personal details for workspace currency', () => {
