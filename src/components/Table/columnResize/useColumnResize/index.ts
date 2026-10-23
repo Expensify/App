@@ -4,6 +4,7 @@
  */
 import getDraggedSize from '@components/ResizeHandle/getDraggedSize';
 import usePointerDrag from '@components/ResizeHandle/usePointerDrag';
+import {SCROLL_EXTENT_FLOOR_VARIABLE, TABLE_COLUMN_SCROLLER_SELECTOR} from '@components/Table/columnResize/columnWidthExpressions';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -61,6 +62,7 @@ function useColumnResize({
     // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
     const endDrag = (drag: Drag) => {
         hideIndicator();
+        scopeElementRef.current?.style.removeProperty(SCROLL_EXTENT_FLOOR_VARIABLE);
 
         const width = readColumnWidth(drag.columnKey) ?? drag.startWidth;
 
@@ -103,6 +105,12 @@ function useColumnResize({
         }
 
         revealIndicator(event.currentTarget);
+
+        // Shrinking a column while scrolled right would otherwise drag the pinned filter bar along with the columns.
+        const scroller = event.currentTarget.closest<HTMLElement>(TABLE_COLUMN_SCROLLER_SELECTOR);
+        if (scroller) {
+            scopeElementRef.current?.style.setProperty(SCROLL_EXTENT_FLOOR_VARIABLE, `${scroller.scrollLeft + scroller.clientWidth}px`);
+        }
     };
 
     if (!columnResizingID) {

@@ -1,4 +1,5 @@
 import {importCSVCompanyCards} from '@libs/actions/CompanyCards';
+import * as API from '@libs/API';
 import type {ImportCSVCompanyCardsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
@@ -15,6 +16,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 const POLICY_ID = 'POLICY_1';
 const DOMAIN_ACCOUNT_ID = 777;
 const CSV_FEED = CONST.COMPANY_CARD.FEED_BANK_NAME.CSV;
+
+let numberedFeedWriteSpy: jest.SpiedFunction<typeof API.write>;
 
 const isImportCSVCompanyCardsParams = (value: unknown): value is ImportCSVCompanyCardsParams => typeof value === 'object' && value !== null && 'settings' in value && 'csvData' in value;
 
@@ -147,6 +150,155 @@ describe('actions/CompanyCards importCSVCompanyCards', () => {
         );
 
         apiWriteSpy.mockRestore();
+    });
+
+    describe('numbered CSV feeds', () => {
+        beforeEach(() => {
+            numberedFeedWriteSpy = jest.spyOn(API, 'write');
+            jest.spyOn(Date, 'now').mockReturnValue(1705320000000);
+            jest.spyOn(Math, 'random').mockReturnValue(0.5);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('retains the existing numbered feed, nickname and domain while normalizing rows', async () => {
+            // Given a numbered feed owned by the domain with an existing nickname.
+            numberedFeedWriteSpy.mockResolvedValue(undefined);
+            const existingFeeds: CardFeeds = {
+                settings: {companyCards: {csv2: {pending: false}}, companyCardNicknames: {csv2: 'Existing Layout'}},
+            };
+            const columnMappings = ['externalID', 'cardNumber', 'postedDate', 'merchant', 'amount', 'currency'];
+
+            // When that feed is re-imported with one valid row and one row missing its card identity.
+            const result = importCSVCompanyCards({
+                policyID: POLICY_ID,
+                domainAccountID: DOMAIN_ACCOUNT_ID,
+                layoutName: 'Replacement Layout',
+                layoutType: 'csv2',
+                columnMappings,
+                csvData: [
+                    ['ID', 'Card', 'Date', 'Merchant', 'Amount', 'Currency'],
+                    ['txn-1', '1234', '01/15/2024', 'Coffee Shop', '-5.00', 'USD'],
+                    ['txn-2', '', '01/16/2024', 'Book Store', '-10.00', 'USD'],
+                ],
+                existingInstanceID: 'domain-instance',
+                lastSelectedFeed: 'csv1#777',
+                workspaceCardFeeds: existingFeeds,
+            });
+
+            // Then serialization retains the numbered identity and the existing metadata is never overwritten.
+            expect(numberedFeedWriteSpy).toHaveBeenCalledTimes(1);
+            const call = numberedFeedWriteSpy.mock.calls.at(0);
+            if (!call) {
+                throw new Error('Expected the numbered CSV import request');
+            }
+            const [command, parameters, onyxData] = call;
+            expect(command).toBe(WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS);
+            expect(parameters).toStrictEqual({
+                policyID: POLICY_ID,
+                domainAccountID: DOMAIN_ACCOUNT_ID,
+                settings: JSON.stringify({columnMappings, instanceID: 'domain-instance', layoutName: 'Replacement Layout', layoutType: 'csv2'}),
+                csvData: JSON.stringify([
+                    ['ID', 'Card', 'Date', 'Merchant', 'Amount', 'Currency'],
+                    ['txn-1', '1234', '2024-01-15', 'Coffee Shop', '-5.00', 'USD'],
+                    ['txn-2', '', '01/16/2024', 'Book Store', '-10.00', 'USD'],
+                ]),
+            });
+            expect(onyxData?.optimisticData).toStrictEqual([{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${POLICY_ID}`, value: 'csv2#777'}]);
+            expect(onyxData?.successData).toStrictEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    value: {
+                        importFinalModalID: '1705320000000-0.5',
+                        importFinalModal: {
+                            titleKey: 'spreadsheet.importSuccessfulTitle',
+                            promptKey: 'spreadsheet.importCompanyCardTransactionsSuccessfulDescription',
+                            promptKeyParams: {count: 1},
+                            pendingMessageKey: 'spreadsheet.importCompanyCardTransactionsPendingMessage',
+                        },
+                    },
+                },
+            ]);
+            expect(onyxData?.failureData).toStrictEqual([
+                {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${POLICY_ID}`, value: 'csv1#777'},
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    value: {
+                        importFinalModalID: '1705320000000-0.5',
+                        importFinalModal: {titleKey: 'spreadsheet.importFailedTitle', promptKey: 'spreadsheet.importFailedDescription'},
+                    },
+                },
+            ]);
+            expect(existingFeeds.settings?.companyCardNicknames?.csv2).toBe('Existing Layout');
+            if (!onyxData?.successData) {
+                throw new Error('Expected the import success modal batch');
+            }
+            await Onyx.update(onyxData.successData);
+            await waitForBatchedUpdates();
+            await expect(result).resolves.toStrictEqual({
+                titleKey: 'spreadsheet.importSuccessfulTitle',
+                promptKey: 'spreadsheet.importCompanyCardTransactionsSuccessfulDescription',
+                promptKeyParams: {count: 1},
+                pendingMessageKey: 'spreadsheet.importCompanyCardTransactionsPendingMessage',
+            });
+        });
+
+        it('creates a fresh numbered feed and rolls back both new metadata entries with null', async () => {
+            // Given a fresh numbered feed and a request that fails before completing the import.
+            numberedFeedWriteSpy.mockRejectedValue(new Error('import failed'));
+            const columnMappings = ['externalID', 'cardNumber', 'postedDate', 'merchant', 'amount', 'currency'];
+
+            // When no previous feed or instance ID is available.
+            const result = await importCSVCompanyCards({
+                policyID: POLICY_ID,
+                domainAccountID: DOMAIN_ACCOUNT_ID,
+                layoutName: 'New Layout',
+                layoutType: 'csv2',
+                columnMappings,
+                csvData: [['txn-1', '1234', '01/15/2024', 'Coffee Shop', '-5.00', 'USD']],
+                workspaceCardFeeds: undefined,
+            });
+
+            // Then the domain key and numbered feed survive in both creation and deletion batches.
+            expect(numberedFeedWriteSpy).toHaveBeenCalledTimes(1);
+            const call = numberedFeedWriteSpy.mock.calls.at(0);
+            if (!call) {
+                throw new Error('Expected the fresh numbered CSV import request');
+            }
+            const [, parameters, onyxData] = call;
+            expect(parameters).toStrictEqual({
+                policyID: POLICY_ID,
+                domainAccountID: DOMAIN_ACCOUNT_ID,
+                settings: JSON.stringify({columnMappings, instanceID: '1705320000000', layoutName: 'New Layout', layoutType: 'csv2'}),
+                csvData: JSON.stringify([['txn-1', '1234', '2024-01-15', 'Coffee Shop', '-5.00', 'USD']]),
+            });
+            expect(onyxData?.optimisticData).toStrictEqual([
+                {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${POLICY_ID}`, value: 'csv2#777'},
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${DOMAIN_ACCOUNT_ID}`,
+                    value: {settings: {companyCards: {csv2: {statementPeriodEndDay: null, errors: null}}, companyCardNicknames: {csv2: 'New Layout'}}},
+                },
+            ]);
+            expect(onyxData?.failureData).toStrictEqual([
+                {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${POLICY_ID}`, value: null},
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    value: {importFinalModalID: '1705320000000-0.5', importFinalModal: result},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${DOMAIN_ACCOUNT_ID}`,
+                    value: {settings: {companyCards: {csv2: null}, companyCardNicknames: {csv2: null}}},
+                },
+            ]);
+            expect(result).toStrictEqual({titleKey: 'spreadsheet.importFailedTitle', promptKey: 'spreadsheet.importFailedDescription'});
+        });
     });
 
     describe('externalID', () => {
