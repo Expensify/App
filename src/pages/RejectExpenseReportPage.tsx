@@ -24,7 +24,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getSortedReportActions} from '@libs/ReportActionsUtils';
 
 import variables from '@styles/variables';
 
@@ -33,49 +32,15 @@ import {rejectExpenseReport} from '@userActions/IOU/RejectMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {currentCycleForwardedActorAccountIDsSelector, submitterAndLastForwardedActorEmailSelector} from '@src/selectors/RejectExpenseReport';
 import INPUT_IDS from '@src/types/form/ReportRejectForm';
-import type {PersonalDetailsList, ReportActions} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type RejectExpenseReportPageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.REPORT_REJECT>;
-
-function lastForwardedActorAccountIDSelector(reportActions: OnyxEntry<ReportActions>) {
-    if (!reportActions) {
-        return undefined;
-    }
-
-    const sortedActions = getSortedReportActions(Object.values(reportActions), true);
-
-    // Walk reverse chronologically. A SUBMITTED action marks the start of the current
-    // approval cycle — any FORWARDED actions older than that are stale (from a prior
-    // submit→approve→reject→resubmit cycle) and must be ignored.
-    let lastForwardedActorAccountID: number | undefined;
-    for (const action of sortedActions) {
-        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
-            break;
-        }
-        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED && action.actorAccountID) {
-            lastForwardedActorAccountID = action.actorAccountID;
-            break;
-        }
-    }
-
-    return lastForwardedActorAccountID;
-}
-
-function submitterAndLastForwardedActorEmailSelector(submitterAccountID: number | undefined, lastForwardedActorAccountID: number | undefined) {
-    return (personalDetailsList: OnyxEntry<PersonalDetailsList>) => ({
-        submitterEmail: personalDetailsLoginSelector(submitterAccountID)(personalDetailsList),
-        lastForwardedActorEmail: personalDetailsLoginSelector(lastForwardedActorAccountID)(personalDetailsList),
-    });
-}
 
 function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const {reportID} = route.params;
@@ -86,9 +51,12 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const delegateAccountID = useDelegateAccountID();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
-    const [lastForwardedActorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: lastForwardedActorAccountIDSelector});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [forwardedActorAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {
+        selector: currentCycleForwardedActorAccountIDsSelector,
+    });
     const [{submitterEmail, lastForwardedActorEmail} = getEmptyObject<{submitterEmail: string | undefined; lastForwardedActorEmail: string | undefined}>()] = useAllPersonalDetails(
-        submitterAndLastForwardedActorEmailSelector(report?.ownerAccountID, lastForwardedActorAccountID),
+        submitterAndLastForwardedActorEmailSelector(report?.ownerAccountID, forwardedActorAccountIDs, currentUserPersonalDetails?.accountID, policy),
     );
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -109,7 +77,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
           };
 
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const hasPreviousApprover = previousApprover !== null && previousApprover.accountID !== currentUserPersonalDetails?.accountID && previousApprover.accountID !== submitterAccountID;
+    const hasPreviousApprover = previousApprover !== null;
 
     const options = [];
 
@@ -134,12 +102,14 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         isSelected: selectedTargetAccountID === String(submitterAccountID),
     });
 
+    const validSelectedTargetAccountID = options.some((option) => option.keyForList === selectedTargetAccountID) ? selectedTargetAccountID : '';
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM> = {};
         if (!values[INPUT_IDS.COMMENT]) {
             errors[INPUT_IDS.COMMENT] = translate('common.error.fieldRequired');
         }
-        if (isSubmitAttempt.current && hasPreviousApprover && !selectedTargetAccountID) {
+        if (isSubmitAttempt.current && hasPreviousApprover && !validSelectedTargetAccountID) {
             setSelectionError(translate('iou.rejectReport.selectMemberError'));
             errors[INPUT_IDS.COMMENT] = errors[INPUT_IDS.COMMENT] ?? undefined;
         } else if (isSubmitAttempt.current) {
@@ -159,7 +129,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             return;
         }
 
-        const targetAccountID = hasPreviousApprover ? Number(selectedTargetAccountID) : submitterAccountID;
+        const targetAccountID = hasPreviousApprover ? Number(validSelectedTargetAccountID) : submitterAccountID;
         if (!report) {
             return;
         }
