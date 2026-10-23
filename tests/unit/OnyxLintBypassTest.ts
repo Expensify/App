@@ -358,10 +358,12 @@ describe('no-unsafe-onyx-read bypasses', () => {
     });
 
     it('covers every file the rule lints except tests', () => {
-        // Given linted files under src, .storybook, scripts and tests, plus a doc and a patch
+        // Given linted files under src, .storybook, scripts, __mocks__ and tests, plus a doc and a patch
         // When the read ban decides which files it checks
-        // Then every linted file outside tests is in scope, since reads are allowed in suites and they assert on Search snapshot keys
+        // Then every linted file outside tests is in scope, since reads are allowed in suites and they assert on Search snapshot keys,
+        // while the rule still reports reads in module mocks
         expect(ONYX_READ_BAN.appliesTo('src/pages/Foo.tsx')).toBe(true);
+        expect(ONYX_READ_BAN.appliesTo('__mocks__/react-native-onyx.ts')).toBe(true);
         expect(ONYX_READ_BAN.appliesTo('.storybook/preview.tsx')).toBe(true);
         expect(ONYX_READ_BAN.appliesTo('scripts/foo.ts')).toBe(true);
         expect(ONYX_READ_BAN.appliesTo('tests/unit/FooTest.ts')).toBe(false);
@@ -500,6 +502,147 @@ describe('no-unsafe-onyx-read member uses', () => {
         // When the read ban scans it
         // Then nothing is reported, because the directive covers no read reference
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([]);
+    });
+
+    it('flags a blanket disable over a spread of the Onyx object', () => {
+        // Given the Onyx object spread into a local copy under a blanket next-line directive
+        const source = [onyxImport, '// eslint-disable-next-line', 'const api = {...Onyx};', `export const load = (key) => api${'.get'}(key);`].join('\n');
+
+        // When the read ban scans it
+        // Then it counts, because no-unsafe-onyx-read reports the Onyx object used as a value and the copy hides the read
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
+    });
+
+    it('flags a blanket disable over a spread of the Onyx object behind a cast', () => {
+        // Given the Onyx object spread through a cast under a blanket next-line directive
+        const source = [onyxImport, '// eslint-disable-next-line', 'const api = {...(Onyx as typeof Onyx)};'].join('\n');
+
+        // When the read ban scans it
+        // Then it counts, because the cast is unwrapped to the spread, which the rule reports as a value use
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
+    });
+
+    it('flags a blanket disable over an export assignment of the Onyx object', () => {
+        // Given `export = Onyx` in a .ts file under a blanket next-line directive
+        const source = [onyxImport, '// eslint-disable-next-line', 'export = Onyx;'].join('\n');
+
+        // When the read ban scans it
+        // Then it counts, because TSExportAssignment is the one TS parent kept as a value position, and the rule reports the export
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
+    });
+
+    it('flags a blanket disable over a re-export of the Onyx object under another name', () => {
+        // Given the default export of react-native-onyx re-exported by name, and the module re-exported as a namespace, each under a blanket next-line directive
+        const named = ['// eslint-disable-next-line', "export {default as Store} from 'react-native-onyx';"].join('\n');
+        const namespace = ['// eslint-disable-next-line', "export * as Store from 'react-native-onyx';"].join('\n');
+
+        // When the read ban scans each
+        // Then both count, because the rule reports each re-export as a value use that hands the Onyx object to importers
+        expect(collectDisableDirectivesFromSource(named, 'src/libs/Store.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Store.ts', line: 1}]);
+        expect(collectDisableDirectivesFromSource(namespace, 'src/libs/Store.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Store.ts', line: 1}]);
+    });
+
+    it('ignores a blanket disable over a type-only re-export from react-native-onyx', () => {
+        // Given a type-only re-export from react-native-onyx under a blanket next-line directive
+        const source = ['// eslint-disable-next-line', "export type {OnyxEntry} from 'react-native-onyx';"].join('\n');
+
+        // When the read ban scans it
+        // Then nothing is reported, because a type reads nothing at runtime and the rule skips it
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Store.ts', ONYX_READ_BAN)).toEqual([]);
+    });
+
+    it('treats optional chaining on the Onyx object as a member use', () => {
+        // Given a read and a write through optional chaining, each under a blanket next-line directive
+        const source = [onyxImport, '// eslint-disable-next-line', `Onyx?.${'get'}(key);`, '// eslint-disable-next-line', 'Onyx?.merge(key, value);'].join('\n');
+
+        // When the read ban scans it
+        // Then only the read counts, through the read ban itself, since Onyx as the object of an optional member is not a value use
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
+    });
+
+    it('ignores value uses of the Onyx object in module mocks but still flags reads there', () => {
+        // Given the spread of __mocks__/react-native-onyx.ts and a read, each under a blanket next-line directive
+        const source = [onyxImport, '// eslint-disable-next-line', 'const mock = {...Onyx};', '// eslint-disable-next-line', `export const load = (key) => Onyx${'.get'}(key);`].join('\n');
+
+        // When the read ban scans it
+        // Then only the read counts, because the rule skips value uses in test infrastructure but its path check still reports reads in __mocks__
+        expect(collectDisableDirectivesFromSource(source, '__mocks__/react-native-onyx.ts', ONYX_READ_BAN)).toEqual([{file: '__mocks__/react-native-onyx.ts', line: 4}]);
+    });
+
+    it('ignores a blanket disable over the window dev console exposure', () => {
+        // Given the addUtilsToWindow shapes, with the Onyx object assigned to window, cast or not, and to globalThis, under blanket next-line directives
+        const source = [
+            onyxImport,
+            '// eslint-disable-next-line',
+            'window.Onyx = Onyx;',
+            '// eslint-disable-next-line',
+            'window.Onyx = Onyx as typeof Onyx & {log: () => void};',
+            '// eslint-disable-next-line',
+            'globalThis.Onyx = Onyx;',
+        ].join('\n');
+
+        // When the read ban scans it
+        // Then nothing is reported, because the rule allows that one value use, so the directive silences nothing of the ban
+        expect(collectDisableDirectivesFromSource(source, 'src/setup/addUtilsToWindow.ts', ONYX_READ_BAN)).toEqual([]);
+    });
+
+    it('ignores a blanket disable over the dev console exposure on a cast window', () => {
+        // Given the Onyx object assigned to the Onyx property of a cast window under a blanket next-line directive
+        const source = [onyxImport, '// eslint-disable-next-line', '(window as WindowWithOnyx).Onyx = Onyx;'].join('\n');
+
+        // When the read ban scans it
+        // Then nothing is reported, because the cast is unwrapped to window, which the rule allows as the dev console exposure
+        expect(collectDisableDirectivesFromSource(source, 'src/setup/addUtilsToWindow.ts', ONYX_READ_BAN)).toEqual([]);
+    });
+
+    it('ignores a blanket disable over the dev console exposure through a bracket key', () => {
+        // Given the Onyx object assigned to window through a quoted bracket key under a blanket next-line directive
+        const source = [onyxImport, '// eslint-disable-next-line', "window['Onyx'] = Onyx;"].join('\n');
+
+        // When the read ban scans it
+        // Then nothing is reported, because the bracket key resolves to the same Onyx property the rule allows
+        expect(collectDisableDirectivesFromSource(source, 'src/setup/addUtilsToWindow.ts', ONYX_READ_BAN)).toEqual([]);
+    });
+
+    it('flags a blanket disable over the Onyx object assigned to another property of window', () => {
+        // Given the Onyx object assigned to window.foo under a blanket next-line directive
+        const source = [onyxImport, '// eslint-disable-next-line', 'window.foo = Onyx;'].join('\n');
+
+        // When the read ban scans it
+        // Then it counts, because only window.Onyx is the dev console exposure and the rule reports any other property
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
+    });
+
+    it('ignores a blanket disable over a runtime typeof check of the Onyx object', () => {
+        // Given a runtime typeof check on the Onyx object under a blanket next-line directive
+        const source = [onyxImport, '// eslint-disable-next-line', "if (typeof Onyx === 'object') {", '    init();', '}'].join('\n');
+
+        // When the read ban scans it
+        // Then nothing is reported, because typeof only inspects the object and the rule does not report it
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([]);
+    });
+
+    it('flags a blanket disable over a member picked by a variable key but not over a write named by a template key', () => {
+        // Given an Onyx method picked by a variable key, and merge named by a template literal, each under a blanket next-line directive
+        const variableKey = [onyxImport, '// eslint-disable-next-line', 'await Onyx[method](key);'].join('\n');
+        const templateKey = [onyxImport, '// eslint-disable-next-line', 'await Onyx[`merge`](key, value);'].join('\n');
+
+        // When the read ban scans each
+        // Then only the variable key counts: the rule reports it by reference, and resolves the template key to merge, which is not a read
+        expect(collectDisableDirectivesFromSource(variableKey, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
+        expect(collectDisableDirectivesFromSource(templateKey, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([]);
+    });
+
+    it('flags a blanket disable over a read through the default member of a namespace import', () => {
+        // Given a read through Onyx.default, and through an alias of it, each under a blanket next-line directive
+        const namespaceImport = "import * as Onyx from 'react-native-onyx';";
+        const direct = [namespaceImport, '// eslint-disable-next-line', `await Onyx.default${'.get'}(key);`].join('\n');
+        const alias = [namespaceImport, 'const api = Onyx.default;', '// eslint-disable-next-line', `await api${'.get'}(key);`].join('\n');
+
+        // When the read ban scans each
+        // Then both count, because the rule resolves Onyx.default to the Onyx object
+        expect(collectDisableDirectivesFromSource(direct, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
+        expect(collectDisableDirectivesFromSource(alias, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 3}]);
     });
 
     it('still flags a blanket disable on an inner line of a multi-line multiGet', () => {

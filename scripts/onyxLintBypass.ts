@@ -5,7 +5,8 @@
  * None of these may be disabled inline. Directives beyond each ban's grandfathered count fail the lint run.
  *
  * A directive counts when it names the ban's rule, or when it is a blanket disable over a banned
- * use: `Onyx.connect` for the connect ban, a call of or any other reference to `Onyx.get` or `Onyx.multiGet` for the read ban.
+ * use: `Onyx.connect` for the connect ban, a call of or any other reference to `Onyx.get` or `Onyx.multiGet` for the read ban,
+ * or the Onyx object itself used as a value (`const api = {...Onyx}`) for the read ban.
  * For the OnyxUtils ban it counts only when it covers a runtime import of the module. Blanket
  * disables over unrelated code, like the ones around ReportUtils, are ignored. A file Babel cannot
  * parse fails closed: every disable in it counts.
@@ -58,6 +59,14 @@ type BannedRule = {
      */
     reportsOnMember?: boolean;
     /**
+     * The rule reports the banned object itself used as a value (`const api = {...Onyx}`, `fn(Onyx)`, `return Onyx`), so a
+     * blanket directive over such a line silences it. It allows the dev console exposure, an assignment to the Onyx property
+     * of window or globalThis, cast or not (`(window as X).Onyx = Onyx`), and skips value uses in test infrastructure.
+     * It also reports, in every file, a member with a key it cannot resolve (`Onyx[method]`), which may name a read method.
+     * A runtime re-export of the object (`export {default as Store} from 'react-native-onyx'`, `export * as Store from ...`) is a value use too.
+     */
+    reportsOnObjectValue?: boolean;
+    /**
      * A directive on an inner line of a multi-line banned call, such as an element line of `Onyx.multiGet([...])`,
      * counts too. The read rule reports a call on its first line, but a directive inside the call is still an
      * attempt to silence the read.
@@ -77,6 +86,14 @@ function isLintedFile(file: string): boolean {
 // The lint rules run on every linted file; test suites are exempt because reads are allowed there and suites exercise the rules themselves
 function isCheckedSourceFile(file: string): boolean {
     return isLintedFile(file) && !file.startsWith('tests/');
+}
+
+// Where no-unsafe-onyx-read skips value uses of the Onyx object, as in the `...Onyx` of __mocks__/react-native-onyx.ts.
+// Reads in `__mocks__/` and `jest/` are still reported by the path check, so those files stay checked for calls
+const TEST_INFRASTRUCTURE_DIRECTORIES = ['tests/', '__mocks__/', 'jest/'];
+
+function isTestInfrastructureFile(file: string): boolean {
+    return TEST_INFRASTRUCTURE_DIRECTORIES.some((directory) => file.startsWith(directory));
 }
 
 const ONYX_CONNECT_BAN: BannedRule = {
@@ -99,13 +116,15 @@ const ONYX_READ_BAN: BannedRule = {
     methods: new Set(['get', 'multiGet']),
     // The rule reports every reference to Onyx.get / Onyx.multiGet that is not a direct call, so a blanket directive there silences it
     reportsOnMember: true,
+    // The rule reports `const api = {...Onyx}` and other value uses of the Onyx object, which hide reads through the copy
+    reportsOnObjectValue: true,
     coversInnerLines: true,
     grandfathered: new Map<string, number>(),
     appliesTo: isCheckedSourceFile,
     // The import, not `Onyx`, since an aliased import such as `import O from 'react-native-onyx'` is a read site too
     searchTerms: [ONYX_MODULE, 'eslint'],
     message:
-        'Onyx reads checked by no-unsafe-onyx-read cannot be silenced with eslint-disable or an eslint config comment. Fix the read instead: use useOnyx() for data a component renders or reacts to, and call Onyx.get() or Onyx.multiGet() only from event handlers that render never calls, in components, pages and hooks.',
+        'Onyx reads checked by no-unsafe-onyx-read cannot be silenced with eslint-disable or an eslint config comment. Fix the read instead: use useOnyx() for data a component renders or reacts to, and call Onyx.get() or Onyx.multiGet() only from event handlers that render never calls, in components, pages and hooks. Use the Onyx object only through its members, not as a value that is passed, spread, aliased, returned or exported.',
 };
 
 const ONYX_UTILS_IMPORT_BAN: BannedRule = {
@@ -237,7 +256,10 @@ function identifierName(node: unknown): string | null {
     return BabelASTUtils.isASTNode(node) && node.type === 'Identifier' && typeof node.name === 'string' ? node.name : null;
 }
 
-/** The static name of a property or pattern key: an identifier when not computed, or a string literal either way, like the rules resolve it. */
+/**
+ * The static name of a property or pattern key: an identifier when not computed, or a string literal or a template literal
+ * without expressions either way, like the rules resolve it.
+ */
 function staticKeyName(node: unknown, computed: boolean): string | null {
     if (!computed) {
         const name = identifierName(node);
@@ -245,16 +267,50 @@ function staticKeyName(node: unknown, computed: boolean): string | null {
             return name;
         }
     }
-    return BabelASTUtils.isASTNode(node) && node.type === 'StringLiteral' && typeof node.value === 'string' ? node.value : null;
+    if (!BabelASTUtils.isASTNode(node)) {
+        return null;
+    }
+    if (node.type === 'StringLiteral' && typeof node.value === 'string') {
+        return node.value;
+    }
+    // cspell:disable-next-line -- quasis is the ESTree name for the static chunks of a template literal
+    const quasi: unknown = node.type === 'TemplateLiteral' && Array.isArray(node.expressions) && node.expressions.length === 0 && Array.isArray(node.quasis) ? node.quasis.at(0) : null;
+    const cooked: unknown = BabelASTUtils.isRecord(quasi) && BabelASTUtils.isRecord(quasi.value) ? quasi.value.cooked : null;
+    return typeof cooked === 'string' ? cooked : null;
+}
+
+function isMemberNode(node: ASTNode): boolean {
+    return node.type === 'MemberExpression' || node.type === 'OptionalMemberExpression';
+}
+
+/** `Onyx`, an alias in `objects`, or `Onyx.default` as on a namespace import, which the rules resolve to the Onyx object too. */
+function isBannedObject(node: unknown, objects: Set<string>): boolean {
+    if (!BabelASTUtils.isASTNode(node)) {
+        return false;
+    }
+    const current = unwrapExpression(node);
+    const name = identifierName(current);
+    if (name !== null) {
+        return objects.has(name);
+    }
+    if (!isMemberNode(current) || staticKeyName(current.property, current.computed === true) !== 'default' || !BabelASTUtils.isASTNode(current.object)) {
+        return false;
+    }
+    const namespaceName = identifierName(unwrapExpression(current.object));
+    return namespaceName !== null && objects.has(namespaceName);
 }
 
 function isBannedMember(node: ASTNode, ban: BannedRule, objects: Set<string>): boolean {
-    if ((node.type !== 'MemberExpression' && node.type !== 'OptionalMemberExpression') || !BabelASTUtils.isASTNode(node.object)) {
+    if (!isMemberNode(node)) {
         return false;
     }
     const propertyName = staticKeyName(node.property, node.computed === true);
-    const objectName = identifierName(unwrapExpression(node.object));
-    return propertyName !== null && ban.methods.has(propertyName) && objectName !== null && objects.has(objectName);
+    return propertyName !== null && ban.methods.has(propertyName) && isBannedObject(node.object, objects);
+}
+
+/** `Onyx[method]`: a member of the banned object whose key no rule can resolve, so it may name a banned method. */
+function isDynamicBannedMember(node: ASTNode, objects: Set<string>): boolean {
+    return isMemberNode(node) && node.computed === true && staticKeyName(node.property, true) === null && isBannedObject(node.object, objects);
 }
 
 /**
@@ -283,15 +339,14 @@ function collectBannedNames(root: ASTNode, ban: BannedRule): BannedNames {
         }
         if (node.type === 'VariableDeclarator' && BabelASTUtils.isASTNode(node.id) && BabelASTUtils.isASTNode(node.init)) {
             const init = unwrapExpression(node.init);
-            const initName = identifierName(init);
             const idName = identifierName(node.id);
-            if (idName !== null && initName !== null && objects.has(initName)) {
+            if (idName !== null && isBannedObject(init, objects)) {
                 objects.add(idName);
             }
             if (idName !== null && isBannedMember(init, ban, objects)) {
                 methods.add(idName);
             }
-            if (node.id.type === 'ObjectPattern' && initName !== null && objects.has(initName) && Array.isArray(node.id.properties)) {
+            if (node.id.type === 'ObjectPattern' && isBannedObject(init, objects) && Array.isArray(node.id.properties)) {
                 for (const property of node.id.properties) {
                     if (!BabelASTUtils.isASTNode(property) || property.type !== 'ObjectProperty') {
                         continue;
@@ -348,8 +403,7 @@ function bannedDestructuredProperties(node: ASTNode, ban: BannedRule, objects: S
     ) {
         return [];
     }
-    const initName = identifierName(unwrapExpression(node.init));
-    if (initName === null || !objects.has(initName)) {
+    if (!isBannedObject(node.init, objects)) {
         return [];
     }
     return node.id.properties.filter((property): property is ASTNode => {
@@ -361,7 +415,119 @@ function bannedDestructuredProperties(node: ASTNode, ban: BannedRule, objects: S
     });
 }
 
-function collectBannedCallRanges(root: ASTNode, ban: BannedRule): BannedRange[] {
+// Keys under which an identifier names a binding or a label instead of reading the value bound to that name
+const BINDING_KEYS = new Set(['id', 'params', 'param', 'label', 'imported', 'exported']);
+
+const PATTERN_TYPES = new Set(['ObjectPattern', 'ArrayPattern', 'RestElement']);
+
+const DEV_CONSOLE_GLOBALS = new Set(['window', 'globalThis']);
+
+const DEV_CONSOLE_PROPERTY = 'Onyx';
+
+type AncestorEntry = {node: ASTNode; key: string};
+
+// `window.Onyx = Onyx`, `window['Onyx'] = Onyx` or `globalThis.Onyx = Onyx as typeof Onyx & {...}`, which exposes the
+// library to the dev console. Only the Onyx property, the one react-native-onyx.d.ts declares on Window, is exempt
+function isDevConsoleExposure(assignment: ASTNode, key: string): boolean {
+    if (assignment.type !== 'AssignmentExpression' || key !== 'right' || !BabelASTUtils.isASTNode(assignment.left)) {
+        return false;
+    }
+    const target = assignment.left;
+    if (target.type !== 'MemberExpression' || !BabelASTUtils.isASTNode(target.object) || staticKeyName(target.property, target.computed === true) !== DEV_CONSOLE_PROPERTY) {
+        return false;
+    }
+    const globalName = identifierName(unwrapExpression(target.object));
+    return globalName !== null && DEV_CONSOLE_GLOBALS.has(globalName);
+}
+
+/**
+ * True when the identifier at the end of `ancestors` reads the value it names, outside the member-object position the
+ * rule allows. Like the rest of this file it goes by name, so a use of a parameter that shadows the import, or of any
+ * alias in `objects` such as `api` from `const api = Onyx`, counts too, although the rule reports only the import itself.
+ */
+function isObjectValueUse(ancestors: readonly AncestorEntry[]): boolean {
+    let index = ancestors.length - 1;
+    while (index > 0 && ancestors.at(index)?.key === 'expression' && WRAPPER_TYPES.has(ancestors.at(index - 1)?.node.type ?? '')) {
+        index--;
+    }
+    const parent = index > 0 ? ancestors.at(index - 1)?.node : undefined;
+    const key = ancestors.at(index)?.key ?? '';
+    if (!parent || BINDING_KEYS.has(key) || PATTERN_TYPES.has(parent.type) || (key === 'local' && parent.type.startsWith('Import'))) {
+        return false;
+    }
+    if ((parent.type === 'MemberExpression' || parent.type === 'OptionalMemberExpression') && (key === 'object' || parent.computed !== true)) {
+        return false;
+    }
+    if (key === 'key' && parent.computed !== true) {
+        return false;
+    }
+    // A runtime `typeof Onyx` only inspects the object
+    if (parent.type === 'UnaryExpression' && parent.operator === 'typeof') {
+        return false;
+    }
+    // A property value in a destructuring pattern, or the left side of a default or an assignment, is a binding or a
+    // write, not a read; the rule does report a write such as `Onyx = x`, which does not typecheck
+    if ((key === 'value' && ancestors.at(index - 2)?.node.type === 'ObjectPattern') || (key === 'left' && (parent.type === 'AssignmentPattern' || parent.type === 'AssignmentExpression'))) {
+        return false;
+    }
+    // `typeof Onyx` and the other type positions read nothing at runtime. A few TS value positions are skipped too
+    // (`import O = Onyx`, an enum initializer, `Onyx<T>`); of these only `import O = Onyx` on a namespace import typechecks
+    if (parent.type.startsWith('TS') && parent.type !== 'TSExportAssignment') {
+        return false;
+    }
+    return !isDevConsoleExposure(parent, key);
+}
+
+/**
+ * The nodes the rule reports for a runtime re-export of the Onyx object: each `default` specifier of
+ * `export {default as Store} from 'react-native-onyx'`, or the whole `export * as Store from 'react-native-onyx'`, which Babel
+ * parses as a named export with a namespace specifier.
+ */
+function onyxObjectReExportNodes(node: ASTNode): ASTNode[] {
+    if (node.type !== 'ExportNamedDeclaration' || importedSource(node) !== ONYX_MODULE || node.exportKind === 'type' || !Array.isArray(node.specifiers)) {
+        return [];
+    }
+    return node.specifiers.flatMap((specifier): ASTNode[] => {
+        if (!BabelASTUtils.isASTNode(specifier) || specifier.exportKind === 'type') {
+            return [];
+        }
+        if (specifier.type === 'ExportNamespaceSpecifier') {
+            return [node];
+        }
+        return specifier.type === 'ExportSpecifier' && staticKeyName(specifier.local, false) === 'default' ? [specifier] : [];
+    });
+}
+
+/** Starts of every value use of the banned object, such as `{...Onyx}`, `fn(Onyx)`, `return Onyx` or a re-export. */
+function collectObjectValueUseRanges(root: ASTNode, objects: Set<string>): BannedRange[] {
+    const ranges: BannedRange[] = [];
+    const ancestors: AncestorEntry[] = [];
+    const visit = (node: ASTNode, key: string) => {
+        ancestors.push({node, key});
+        const name = identifierName(node);
+        if (name !== null && objects.has(name) && isObjectValueUse(ancestors)) {
+            ranges.push({start: node.start, end: node.start});
+        }
+        for (const reExport of onyxObjectReExportNodes(node)) {
+            ranges.push({start: reExport.start, end: reExport.start});
+        }
+        for (const [childKey, value] of Object.entries(node)) {
+            if (NON_CHILD_KEYS.has(childKey)) {
+                continue;
+            }
+            for (const child of Array.isArray(value) ? value : [value]) {
+                if (BabelASTUtils.isASTNode(child)) {
+                    visit(child, childKey);
+                }
+            }
+        }
+        ancestors.pop();
+    };
+    visit(root, '');
+    return ranges;
+}
+
+function collectBannedCallRanges(root: ASTNode, ban: BannedRule, file: string): BannedRange[] {
     const names = collectBannedNames(root, ban);
     const ranges: BannedRange[] = [];
     const visit = (node: ASTNode) => {
@@ -375,11 +541,17 @@ function collectBannedCallRanges(root: ASTNode, ban: BannedRule): BannedRange[] 
                 ranges.push({start: use.start, end: use.start});
             }
         }
+        if (ban.reportsOnObjectValue && isDynamicBannedMember(node, names.objects)) {
+            ranges.push({start: node.start, end: node.start});
+        }
         for (const child of BabelASTUtils.children(node, NON_CHILD_KEYS)) {
             visit(child);
         }
     };
     visit(root);
+    if (ban.reportsOnObjectValue && !isTestInfrastructureFile(file)) {
+        ranges.push(...collectObjectValueUseRanges(root, names.objects));
+    }
     return ranges;
 }
 
@@ -534,7 +706,7 @@ function collectDisableDirectivesFromSource(source: string, file: string, ban: B
         }
         return bans;
     }
-    const bannedRanges = ban.importSources ? collectBannedImportRanges(parsed.root, ban.importSources) : collectBannedCallRanges(parsed.root, ban);
+    const bannedRanges = ban.importSources ? collectBannedImportRanges(parsed.root, ban.importSources) : collectBannedCallRanges(parsed.root, ban, file);
     const enableMatches = collectDirectiveMatches(parsed.comments, source, 'enable');
     for (const match of collectDirectiveMatches(parsed.comments, source, 'disable')) {
         const args = match.args;
