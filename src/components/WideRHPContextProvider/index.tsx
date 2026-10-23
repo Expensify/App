@@ -340,5 +340,6 @@ export {
     thirdOverlayProgress,
     useWideRHPState,
     useWideRHPActions,
+    WideRHPStateContext,
 };
 export type {RHPWidth} from './types';
