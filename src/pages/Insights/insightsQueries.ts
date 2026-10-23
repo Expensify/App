@@ -10,7 +10,7 @@ import type {InsightsChartSpec} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
-import {getQueryGroupBy} from './insightsGroupByUtils';
+import {getQueryGroupBy, getSavedGroupBy} from './insightsGroupByUtils';
 
 /** How many periods before the selected date range the Average mode spans */
 const COMPARE_AVERAGE_PERIOD_COUNT = 1;
@@ -37,7 +37,7 @@ function buildFilterFormValues(filters: InsightsFilters): Partial<SearchAdvanced
 
 /** Builds the dashboard-wide query the whole page is narrowed by. */
 function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
-    return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: getQueryGroupBy(filters), compare: filters.compare});
+    return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: getSavedGroupBy(filters), compare: filters.compare});
 }
 
 /** Builds a chart's query with the page's filters applied. */
