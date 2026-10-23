@@ -12145,7 +12145,7 @@ const translations = {
         rejectingTitle: 'Rejecting expenses...',
         deletingTitle: 'Deleting reports...',
         deletingExpensesTitle: 'Deleting expenses...',
-        runningBody: "This can take a few minutes. You can wait here, or Concierge can message you when it's done.",
+        runningBody: "Wait a few minutes, or Concierge can message you when it's done.",
         sendFromConcierge: "Message me when it's done",
         conciergeTitle: 'You bet!',
         conciergeBody: "Concierge will message you when it's done.",
