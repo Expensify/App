@@ -92,7 +92,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.EXPORT_DATE], rilletConfig?.pendingFields)}>
                 <MenuItemField
                     name={translate('workspace.rillet.exportDate.label')}
-                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_VENDOR_BILL_DATE.getRoute(policyID)) : undefined)}
+                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_GL_IMPACT_DATE.getRoute(policyID)) : undefined)}
                     value={translate(`workspace.rillet.exportDate.values.${exportDate}.label`)}
                 >
                     {areSettingsInErrorFields([CONST.RILLET_CONFIG.EXPORT_DATE], rilletConfig?.errorFields) && (
