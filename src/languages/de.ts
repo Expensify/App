@@ -11685,6 +11685,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 one: '1 aktiver Benutzer',
                 other: `${count} aktive Benutzer`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 Mitglied',
+                other: `${count} Mitglieder`,
+            }),
             state: {paid: 'Bezahlt', cleared: 'Ausgeglichen', failed: 'Fehlgeschlagen', refunded: 'Erstattet', disputed: 'Angefochten', balanceTransfer: 'Saldoübertrag'},
             details: 'Zahlungsdetails',
             badge: {
@@ -11699,6 +11703,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             billedTo: 'Abgerechnet an',
             activity: 'Aktivität',
             findActiveUser: 'Aktiven Benutzer suchen',
+            findMember: 'Mitglied suchen',
             viewReceipt: 'Beleg anzeigen',
             viewInvoice: 'Rechnung anzeigen',
         },
