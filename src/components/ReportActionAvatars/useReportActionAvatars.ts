@@ -164,7 +164,6 @@ function useReportActionAvatars({
     };
 
     if (passedPolicyID) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const workspaceAvatar = policyChatReport ? getWorkspaceIcon(policyChatReport, translate, policy) : {source: policy?.avatarURL || getDefaultWorkspaceAvatar(policy?.name)};
         const policyChatReportAvatar = policy ? {...workspaceAvatar, id: policyID, name: policy.name, type: CONST.ICON_TYPE_WORKSPACE} : fallbackWorkspaceAvatar;
         const firstAccountAvatar = avatarsForAccountIDs.at(0);
@@ -227,7 +226,6 @@ function useReportActionAvatars({
 
     /* Get correct primary & secondary icon */
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountID = reportPreviewSenderID || (actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const {avatar, fallbackIcon, login} = personalDetails?.[delegatePersonalDetails ? delegatePersonalDetails.accountID : accountID] ?? {};
 
@@ -240,7 +238,6 @@ function useReportActionAvatars({
     const isWorkspaceChatWithoutChatReport = !chatReport?.reportID && isAWorkspaceChat;
     const isAccessPlaceholderReportPreview = isAReportPreviewAction && isAWorkspaceChat && !iouReport;
     const usePersonalDetailsAvatars =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview && !isAnInvoiceRoom && !isAccessPlaceholderReportPreview;
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
@@ -274,7 +271,6 @@ function useReportActionAvatars({
         : undefined;
 
     const invoiceFallbackAvatar: IconType = {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         source: policy?.avatarURL || getDefaultWorkspaceAvatar(policy?.name),
         id: policy?.id,
         name: policy?.name,
@@ -394,7 +390,6 @@ function useReportActionAvatars({
             shouldDisplayAllActors: displayAllActors,
             isWorkspaceActor,
             shouldUseConciergeAvatar,
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
             accountID,
             delegateAccountID: !isWorkspaceActor && !!delegateAccountID ? actorAccountID : undefined,

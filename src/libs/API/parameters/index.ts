@@ -139,6 +139,8 @@ export type {default as UpdateBusinessCentralReimbursableAccountParams} from './
 export type {default as UpdateBusinessCentralNonreimbursableAccountParams} from './UpdateBusinessCentralNonreimbursableAccountParams';
 export type {default as UpdateBusinessCentralDefaultVendorParams} from './UpdateBusinessCentralDefaultVendorParams';
 export type {default as UpdateBusinessCentralPaymentMethodParams} from './UpdateBusinessCentralPaymentMethodParams';
+export type {default as UpdateBusinessCentralExportToMultipleAccountsParams} from './UpdateBusinessCentralExportToMultipleAccountsParams';
+export type {default as UpdateBusinessCentralCardProgramAccountParams} from './UpdateBusinessCentralCardProgramAccountParams';
 export type {default as UpdateBusinessCentralAutoSyncParams} from './UpdateBusinessCentralAutoSyncParams';
 export type {default as UpdateBusinessCentralSyncReimbursedReportsParams} from './UpdateBusinessCentralSyncReimbursedReportsParams';
 export type {default as UpdateBusinessCentralSyncExpensifyCardSettlementsParams} from './UpdateBusinessCentralSyncExpensifyCardSettlementsParams';
@@ -305,6 +307,7 @@ export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMem
 export type {default as OpenPolicyRoomsPageParams} from './OpenPolicyRoomsPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
+export type {default as OpenPolicyVendorsPageParams} from './OpenPolicyVendorsPageParams';
 export type {default as VerifyAddSecondaryLoginCodeParams} from './VerifyAddSecondaryLoginCodeParams';
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as OpenDraftPerDiemExpenseParams} from './OpenDraftPerDiemExpenseParams';
@@ -347,6 +350,7 @@ export type {default as UpdateWorkspaceDescriptionParams} from './UpdateWorkspac
 export type {default as UpdateWorkspaceClientIDParams} from './UpdateWorkspaceClientIDParams';
 export type {default as UpdateWorkspaceMembersRoleParams} from './UpdateWorkspaceMembersRoleParams';
 export type {default as SetWorkspaceCategoriesEnabledParams} from './SetWorkspaceCategoriesEnabledParams';
+export type {default as SetPolicyVendorsEnabledParams} from './SetPolicyVendorsEnabledParams';
 export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspaceCategoriesParams';
 export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
@@ -545,6 +549,7 @@ export type {default as RemoveDelegatorParams} from './RemoveDelegatorParams';
 export type {default as SetPolicyTagApproverParams} from './SetPolicyTagApproverParams';
 export type {default as SaveSearchParams} from './SaveSearch';
 export type {default as DeleteSavedSearchParams} from './DeleteSavedSearch';
+export type {default as SaveSearchFiltersParams} from './SaveSearchFiltersParams';
 export type {default as SetPolicyCategoryReceiptsRequiredParams} from './SetPolicyCategoryReceiptsRequiredParams';
 export type {default as RemovePolicyCategoryReceiptsRequiredParams} from './RemovePolicyCategoryReceiptsRequiredParams';
 export type {default as SetPolicyCategoryItemizedReceiptsRequiredParams} from './SetPolicyCategoryItemizedReceiptsRequiredParams';
@@ -641,6 +646,7 @@ export type {default as DisablePolicyCommuterExclusionsParams} from './DisablePo
 export type {default as AddOfficeLocationParams} from './AddOfficeLocationParams';
 export type {default as UpdateOfficeLocationParams} from './UpdateOfficeLocationParams';
 export type {default as DeleteOfficeLocationParams} from './DeleteOfficeLocationParams';
+export type {default as UpdateEmployeeOfficeLocationParams} from './UpdateEmployeeOfficeLocationParams';
 export type {default as SetPolicyRequireMapOrGPSParams} from './SetPolicyRequireMapOrGPSParams';
 export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
 export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuideCallAvailabilitySchedule';
@@ -677,6 +683,7 @@ export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredPara
 export type {default as AddMemberToDomainParams} from './AddMemberToDomainParams';
 export type {default as GetInsightsParams} from './GetInsightsParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
+export type {default as ParseExpenseFiltersParams} from './ParseExpenseFiltersParams';
 export type {default as OpenSearchTagFiltersPageParams} from './OpenSearchTagFiltersPageParams';
 export type {default as OpenSearchTagFiltersPageResponse} from './OpenSearchTagFiltersPageResponse';
 export type {default as OpenBulkChangeApproverPageParams} from './OpenBulkChangeApproverPageParams';

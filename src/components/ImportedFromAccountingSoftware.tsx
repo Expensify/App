@@ -57,6 +57,7 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',
     ]);

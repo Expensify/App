@@ -329,6 +329,10 @@ function shouldSkipAutoFocusDueToExistingFocus(): boolean {
     return false;
 }
 
+/** Web only. Native restores to a registered pressable rather than to a DOM element, so there is nothing to nominate. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function nominateTriggerFallback(_element: HTMLElement | null): void {}
+
 function resetForTests(): void {
     teardownNavigationFocusReturn();
 }
@@ -352,6 +356,7 @@ export {
     teardownNavigationFocusReturn,
     handleStateChange,
     notifyPressedTrigger,
+    nominateTriggerFallback,
     registerPressable,
     notifyPushParamsForward,
     notifyPushParamsBackward,

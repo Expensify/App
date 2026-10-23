@@ -1,13 +1,13 @@
+import type {AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {Dimensions} from '@src/types/utils/Layout';
 
-import type {ForwardedRef} from 'react';
 import type {GestureType} from 'react-native-gesture-handler';
 import type {GestureRef} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
-import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
 
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
@@ -53,7 +53,7 @@ type MultiGestureCanvasProps = ChildrenProps & {
     isPagerScrollEnabled: SharedValue<boolean>;
 
     /** If there is a pager wrapping the canvas, we need to disable the pan gesture in case the pager is swiping */
-    pagerRef?: ForwardedRef<PagerView | GestureType>; // TODO: For TS migration: Exclude<GestureRef, number>
+    pagerRef?: AttachmentCarouselPagerStateContextType['pagerRef']; // TODO: For TS migration: Exclude<GestureRef, number>
 
     isUsedInCarousel: boolean;
 

@@ -5,7 +5,10 @@ import RadioButtons from '@components/RadioButtons';
 
 import CONST from '@src/CONST';
 
-import React from 'react';
+import type {ComponentRef} from 'react';
+import type {View} from 'react-native';
+
+import React, {createRef} from 'react';
 
 jest.mock('@components/RadioButtons', () => jest.fn(() => null));
 jest.mock('@hooks/useLocalize', () =>
@@ -94,5 +97,16 @@ describe('YesNoAdapter', () => {
 
         // Then the radio buttons announce the question as their group name
         expect(mockedRadioButtons.mock.lastCall?.[0]?.accessibilityLabel).toBe(question);
+    });
+
+    it('hands the form ref to the radio buttons, so the form can scroll to the question to show its error', () => {
+        // Given a ref the form holds for the question
+        const ref = createRef<ComponentRef<typeof View>>();
+
+        // When the question renders
+        render(<YesNoAdapter ref={ref} />);
+
+        // Then the radio buttons get it, which attach it to their own view
+        expect(mockedRadioButtons.mock.lastCall?.[0].ref).toBe(ref);
     });
 });
