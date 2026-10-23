@@ -4933,6 +4933,8 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Administrar personas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrador de pagos';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return 'Solo aprobación';
                     case CONST.POLICY.ROLE.USER:
                         return 'Miembro';
                     default:
@@ -4974,6 +4976,7 @@ ${amount} para ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gestiona tarjetas del espacio de trabajo.',
             peopleAdminAlternateText: 'Gestiona miembros y flujos de aprobación.',
             paymentsAdminAlternateText: 'Gestiona los pagos del flujo de trabajo.',
+            approveOnlyAlternateText: 'Solo aprobar informes.',
             noAccessActionPrompt: 'Tu rol en el espacio de trabajo no tiene acceso a estos ajustes. Pide a un administrador que te lo habilite si lo necesitas.',
             connections: 'Conexiones',
         },
@@ -7155,6 +7158,15 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un miembro del espacio de trabajo. Por favor, inténtalo más tarde.',
+            approveOnlyRoleBlockedTitle: 'No se puede cambiar este rol',
+            approveOnlyRoleBlockedConfirm: 'Entendido',
+            approveOnlyRoleBlockedDescription: 'Los miembros de solo aprobación no pueden crear gastos en este espacio de trabajo. Primero deben resolverse lo siguiente:',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: 'Tienen una tarjeta asignada en este espacio de trabajo. Un administrador del espacio de trabajo o de tarjetas debe desasignarla primero.',
+                isRestrictedByDomainGroup:
+                    'Este espacio de trabajo es el espacio de trabajo preferido de un grupo de dominio al que pertenecen. Un administrador de dominio debe cambiarlo primero.',
+                isDefaultPolicy: 'Este es su espacio de trabajo predeterminado. Deberán establecer uno diferente antes de que puedas actualizar su rol.',
+            },
             removeMembersPrompt: ({memberName}) => ({
                 one: `¿Estás seguro de que deseas eliminar ${memberName}`,
                 other: '¿Estás seguro de que deseas eliminar a estos miembros?',
@@ -7207,6 +7219,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo',
                 genericRemove: 'Ha ocurrido un problema al eliminar al miembro del espacio de trabajo',
             },
+            makeApproveOnly: () => ({
+                one: 'Convertir en solo aprobación',
+                other: 'Convertir en miembros de solo aprobación',
+            }),
             addedWithPrimary: 'Se agregaron algunos miembros con sus nombres de usuario principales.',
             invitedBySecondaryLogin: (secondaryLogin) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             workspaceMembersCount: (count) => `Total de miembros del espacio de trabajo: ${count}`,
@@ -7214,6 +7230,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             admins: 'Administradores del espacio de trabajo',
             approvers: 'Aprobadores',
             auditors: 'Auditores',
+            approveOnly: 'Solo aprobación',
             guests: 'Invitados',
             editors: 'Editores',
             emptyRoleFilter: {
@@ -9586,7 +9603,7 @@ ${reportName}`,
                 other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats de gastos de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
             };
         },
-        demotedFromWorkspace: (policyName, oldRole) => `cambió tu rol en ${policyName} de ${oldRole} a miembro. Te eliminamos de todos los chats de gastos, excepto el suyo.`,
+        demotedFromWorkspace: (policyName, oldRole, newRole) => `cambió tu rol en ${policyName} de ${oldRole} a ${newRole}. Te eliminamos de todos los chats de gastos, excepto el suyo.`,
         updatedWorkspaceCurrencyAction: (oldCurrency, newCurrency) => `actualizó la moneda predeterminada a ${newCurrency} (previamente ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency, newFrequency) => `actualizó la frecuencia de generación automática de informes a "${newFrequency}" (previamente "${oldFrequency}")`,
         updateApprovalMode: (newValue, oldValue) => `actualizó el modo de aprobación a "${newValue}" (previamente "${oldValue}")`,
