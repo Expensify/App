@@ -125,7 +125,7 @@ function DynamicIOURequestStepTaxAmountPage({
         const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, splitDraftTransaction ?? transaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
             saveAndNavigateBack();
             return;
         }

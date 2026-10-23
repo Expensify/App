@@ -150,7 +150,7 @@ function DynamicIOURequestStepDescription({
         }
 
         if (isEditingSplit) {
-            setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction, {comment: newComment}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction ?? transaction, {comment: newComment}, getCurrencyDecimals, getCurrencySymbol);
             setIsSaved(true);
             armNavigateBack();
             return;
