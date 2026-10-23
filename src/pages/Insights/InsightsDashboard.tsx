@@ -40,6 +40,7 @@ import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDash
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
+import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
@@ -198,6 +199,8 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const isCompareEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE);
     const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, isCompareEnabled) : undefined;
     const hash = query?.hash;
+    // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
+    const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
 
     const requestDashboard = () => {
         if (!query || hash === undefined || isOffline) {
@@ -215,8 +218,8 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             return;
         }
         onRequestConditionsChanged();
-        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. Group by is listed because the hash leaves it out
-    }, [dashboardID, hash, filters.groupBy, isCompareEnabled, isFocused, isOffline]);
+        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The effective bucket is listed because the hash leaves it out, so changing it triggers a refetch while a pure Running total toggle does not.
+    }, [dashboardID, hash, queryGroupBy, isCompareEnabled, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];

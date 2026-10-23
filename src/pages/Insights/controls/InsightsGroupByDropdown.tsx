@@ -1,3 +1,4 @@
+import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
@@ -45,7 +46,7 @@ function InsightsGroupByDropdown({groupBy, options, onChange}: InsightsGroupByDr
     // The stored bucket may no longer fit the date range, so the pill and radio follow the one it fits to.
     const fittedGroupBy = getFittingGroupBy(groupBy, options);
     const selectedValue: GroupByValue = isRunningTotal ? INSIGHTS_RUNNING_TOTAL_GROUP_BY : fittedGroupBy;
-    const pillText = isRunningTotal ? runningTotalText : translate(`search.filters.groupBy.${fittedGroupBy}`);
+    const pillText = translate(`search.filters.groupBy.${fittedGroupBy}`);
 
     const groupByPopover = ({closeOverlay}: PopoverComponentProps) => (
         <InsightsGroupByPopup
@@ -60,8 +61,9 @@ function InsightsGroupByDropdown({groupBy, options, onChange}: InsightsGroupByDr
 
     return (
         <DropdownButton
-            label={label}
-            value={pillText}
+            // Running total isn't a bucket the chart groups by, so its pill drops the `Group by` prefix and reads `Running total` alone
+            label={isRunningTotal ? runningTotalText : label}
+            value={isRunningTotal ? null : pillText}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_GROUP_BY}
             wrapperStyle={[styles.getWidgetHeaderButtonOverflowStyle(variables.componentSizeSmall), styles.flexShrink1]}
             innerStyles={styles.bgTransparent}
@@ -128,17 +130,19 @@ function InsightsGroupByPopup({options, runningTotalText, selectedValue, label, 
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
         >
-            <ListFilterWrapper
-                itemCount={itemCount}
-                hasHeader
-            >
-                <SelectionListWithSections
-                    sections={sections}
-                    shouldSingleExecuteRowSelect
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={updateSelectedItem}
-                />
-            </ListFilterWrapper>
+            <ListFilterHeightContextProvider>
+                <ListFilterWrapper
+                    itemCount={itemCount}
+                    hasHeader
+                >
+                    <SelectionListWithSections
+                        sections={sections}
+                        shouldSingleExecuteRowSelect
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={updateSelectedItem}
+                    />
+                </ListFilterWrapper>
+            </ListFilterHeightContextProvider>
         </BasePopup>
     );
 }

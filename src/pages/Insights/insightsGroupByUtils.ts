@@ -88,13 +88,5 @@ function getQueryGroupBy(filters: InsightsFilters): InsightsTimeGroupBy {
     return getFittingGroupBy(filters.groupBy, getInsightsGroupByOptions(filters.date));
 }
 
-/** Returns the grouping saved in the dashboard's query. Keeps the user's selected bucket so a wider range brings it back, but resolves the Running total display grouping to a real bucket, since the backend has no Running total bucket. */
-function getSavedGroupBy(filters: InsightsFilters): InsightsTimeGroupBy {
-    if (filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY) {
-        return getQueryGroupBy(filters);
-    }
-    return filters.groupBy;
-}
-
-export {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy, getSavedGroupBy, isRunningTotalAvailable};
+export {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable};
 export type {InsightsTimeGroupBy};
