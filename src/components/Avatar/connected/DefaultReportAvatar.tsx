@@ -1,4 +1,3 @@
-import type {HorizontalStackingOptions} from '@components/Avatar/layouts/HorizontalAvatars';
 import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 
@@ -8,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 
-import {getIconsForParticipants, getParticipantIcon, isOneOnOneChat, isSelfDM, isSupportTicket, isSystemChat, isTripRoom} from '@libs/ReportUtils';
+import {getIconsForParticipants, getParticipantIcon, isOneOnOneChat, isSelfDM, isSupportTicket, isSystemChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,10 +21,6 @@ import type {ValueOf} from 'type-fest';
 import {accountIDSelector} from '@selectors/Session';
 import React, {use} from 'react';
 
-import TripRoomAvatar from './TripRoomAvatar';
-
-type SortingOption = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
-
 type DefaultReportAvatarProps = {
     /** Report whose avatar to render */
     reportID: string;
@@ -35,12 +30,6 @@ type DefaultReportAvatarProps = {
 
     /** Container styles for the single-avatar layout. Replaces the size-derived default container styles when provided */
     containerStyle?: StyleProp<ViewStyle>;
-
-    /** Whether (and how) to stack the avatars horizontally. Only a trip room fills a stack; every other report renders its single avatar */
-    horizontalStacking?: HorizontalStackingOptions | boolean;
-
-    /** How to order the avatars before rendering them. Only applies to a horizontal stack, where every avatar sits in an equivalent slot */
-    sort?: SortingOption | SortingOption[];
 
     /** Display name used as a fallback for the avatar tooltip */
     fallbackDisplayName?: string;
@@ -65,12 +54,11 @@ function getChatAccountID(report: OnyxEntry<Report>, currentUserAccountID: numbe
 }
 
 /** Renders the avatar of a DM, self DM, system chat, support ticket or any other report without a dedicated avatar: the account the chat is pictured by. */
-function DefaultReportAvatar({reportID, size, containerStyle, horizontalStacking, sort, fallbackDisplayName}: DefaultReportAvatarProps) {
+function DefaultReportAvatar({reportID, size, containerStyle, fallbackDisplayName}: DefaultReportAvatarProps) {
     const StyleUtils = useStyleUtils();
     const defaultAvatars = useDefaultAvatars();
     const {formatPhoneNumber, translate} = useLocalize();
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [isReportTripRoom] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: isTripRoom});
     const [isReportSupportTicket] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: isSupportTicket});
     // Resolved inside the selector, so a participants change only re-renders when the pictured account changes.
     const chatAccountIDSelector = (report: OnyxEntry<Report>) => getChatAccountID(report, currentUserAccountID);
@@ -78,19 +66,6 @@ function DefaultReportAvatar({reportID, size, containerStyle, horizontalStacking
     const [personalDetailsFromSnapshot] = useAllPersonalDetails();
     // On Search, the snapshot can hold an account missing from the live list. The live list covers the gap while the snapshot loads.
     const personalDetails = personalDetailsFromSnapshot ?? use(PersonalDetailsContext);
-
-    if (isReportTripRoom) {
-        return (
-            <TripRoomAvatar
-                reportID={reportID}
-                size={size}
-                containerStyle={containerStyle}
-                horizontalStacking={horizontalStacking}
-                sort={sort}
-                fallbackDisplayName={fallbackDisplayName}
-            />
-        );
-    }
 
     // The unknown account stands in while there is no account to picture, such as a report that hasn't loaded.
     let avatar: Icon = {id: CONST.DEFAULT_NUMBER_ID, type: CONST.ICON_TYPE_AVATAR, source: defaultAvatars.FallbackAvatar, name: ''};

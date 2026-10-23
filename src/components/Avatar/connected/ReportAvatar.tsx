@@ -22,6 +22,7 @@ import GroupChatAvatar from './GroupChatAvatar';
 import PolicyExpenseChatAvatar from './PolicyExpenseChatAvatar';
 import RoomAvatar from './RoomAvatar';
 import TaskReportAvatar from './TaskReportAvatar';
+import TripRoomAvatar from './TripRoomAvatar';
 
 type SortingOption = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
 
@@ -145,15 +146,25 @@ function ReportAvatar({
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
-        case CONST.REPORT_AVATAR_KIND.DEFAULT:
+        case CONST.REPORT_AVATAR_KIND.TRIP_ROOM:
             return (
-                <DefaultReportAvatar
+                <TripRoomAvatar
                     reportID={reportID}
                     size={size}
                     // Only a single layout reads the container styles, and inside a horizontal stack it renders without them.
                     containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
                     horizontalStacking={horizontalStacking}
                     sort={sort}
+                    fallbackDisplayName={fallbackDisplayName}
+                />
+            );
+        case CONST.REPORT_AVATAR_KIND.DEFAULT:
+            return (
+                <DefaultReportAvatar
+                    reportID={reportID}
+                    size={size}
+                    // The layout is always single, but the legacy component still drops the single avatar's container styles when horizontal stacking is requested.
+                    containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );

@@ -60,6 +60,17 @@ jest.mock('@components/Avatar/connected/RoomAvatar', () => {
 
 let mockCapturedDefaultReportAvatarProps: Record<string, unknown> = {};
 
+let mockCapturedTripRoomAvatarProps: Record<string, unknown> = {};
+
+jest.mock('@components/Avatar/connected/TripRoomAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return (props: Record<string, unknown>) => {
+        mockCapturedTripRoomAvatarProps = props;
+        return <View testID="MockedTripRoomAvatar" />;
+    };
+});
+
 jest.mock('@components/Avatar/connected/DefaultReportAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
@@ -130,6 +141,7 @@ describe('ReportAvatar (connected)', () => {
         mockCapturedTaskReportAvatarProps = {};
         mockCapturedRoomAvatarProps = {};
         mockCapturedDefaultReportAvatarProps = {};
+        mockCapturedTripRoomAvatarProps = {};
     });
 
     afterEach(async () => {
@@ -472,7 +484,7 @@ describe('ReportAvatar (connected)', () => {
         ['a DM', {type: CONST.REPORT.TYPE.CHAT}],
         ['a self DM', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}],
         ['the system chat', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SYSTEM}],
-        ['a trip room without its parent fields', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}],
+        ['a trip room whose type has not populated yet', {chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}],
         ['a report with neither a type nor a chat type', {}],
         ['a support ticket', {type: CONST.REPORT.TYPE.SUPPORT_TICKET}],
         ['an unsupported report type', {type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK}],
@@ -516,8 +528,41 @@ describe('ReportAvatar (connected)', () => {
             />,
         );
 
-        // Then the wrapper gets the single container style, emptied inside a stack, and never the backdrop or subscript style it has no layout for
+        // Then the wrapper gets only the single container style, emptied inside a stack
         expect(mockCapturedDefaultReportAvatarProps).toEqual({
+            reportID: REPORT_ID,
+            size: CONST.AVATAR_SIZE.SMALL,
+            containerStyle: expectedContainerStyle,
+            fallbackDisplayName: FALLBACK_NAME,
+        });
+    });
+
+    it.each([
+        ['outside a horizontal stack, with the single container style', undefined, [{marginRight: 12}]],
+        ['inside a horizontal stack, without container styles', {maxRows: 2}, []],
+    ])('should hand a trip room without its parent fields to TripRoomAvatar %s', async (_case, horizontalStacking, expectedContainerStyle) => {
+        // Given a trip room missing its parent fields
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the dispatcher renders it with every prop
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.SMALL}
+                singleAvatarContainerStyle={[{marginRight: 12}]}
+                backdropColor="#ff0000"
+                subscriptAvatarContainerStyle={[{marginRight: 0}]}
+                horizontalStacking={horizontalStacking}
+                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
+                fallbackDisplayName={FALLBACK_NAME}
+            />,
+        );
+
+        // Then TripRoomAvatar gets the stacking props and the single container style, emptied inside a stack
+        expect(screen.getByTestId('MockedTripRoomAvatar')).toBeOnTheScreen();
+        expect(screen.queryByTestId('MockedDefaultReportAvatar')).not.toBeOnTheScreen();
+        expect(mockCapturedTripRoomAvatarProps).toEqual({
             reportID: REPORT_ID,
             size: CONST.AVATAR_SIZE.SMALL,
             containerStyle: expectedContainerStyle,

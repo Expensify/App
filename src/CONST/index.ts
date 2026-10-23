@@ -530,6 +530,7 @@ const CONST = {
         GROUP_CHAT: 'groupChat',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         ROOM: 'room',
+        TRIP_ROOM: 'tripRoom',
         DEFAULT: 'default',
     },
 

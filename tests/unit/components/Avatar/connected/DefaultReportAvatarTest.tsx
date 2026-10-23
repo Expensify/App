@@ -42,9 +42,8 @@ const buildParticipantIcon = (accountID: number) => ({
 // The unknown account, standing in while there is no account to picture
 const PLACEHOLDER_ICON = {id: CONST.DEFAULT_NUMBER_ID, type: CONST.ICON_TYPE_AVATAR, source: MockFallbackAvatar, name: ''};
 
-// Capture the props handed to the single layout and to the trip room leaf: the routing and the icon are this component's whole contract.
+// Capture the props handed to the single layout: they are this component's whole contract.
 let mockCapturedSingleAvatarProps: Record<string, unknown> = {};
-let mockCapturedTripRoomAvatarProps: Record<string, unknown> = {};
 
 const mockGetContainerStyles = jest.fn((size: string) => [{marginRight: 12, size}]);
 
@@ -88,15 +87,6 @@ jest.mock('@components/Avatar/layouts/SingleAvatar', () => {
     };
 });
 
-jest.mock('@components/Avatar/connected/TripRoomAvatar', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {View} = require('react-native');
-    return (props: Record<string, unknown>) => {
-        mockCapturedTripRoomAvatarProps = props;
-        return <View testID="MockedTripRoomAvatar" />;
-    };
-});
-
 /** Builds a participants map with the given account IDs. */
 const buildParticipants = (...accountIDs: number[]) => Object.fromEntries(accountIDs.map((accountID) => [accountID, {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}]));
 
@@ -112,7 +102,6 @@ describe('DefaultReportAvatar (connected)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockCapturedSingleAvatarProps = {};
-        mockCapturedTripRoomAvatarProps = {};
         mockOnyxData = {};
         mockPersonalDetails = Object.fromEntries(
             [CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID, THIRD_ACCOUNT_ID, CONST.ACCOUNT_ID.CONCIERGE, CONST.ACCOUNT_ID.NOTIFICATIONS].map((accountID) => [
@@ -277,65 +266,17 @@ describe('DefaultReportAvatar (connected)', () => {
         // Given a 1:1 DM
         seedReport({type: CONST.REPORT.TYPE.CHAT, participants: buildParticipants(CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID)});
 
-        // When it renders inside a reversed horizontal stack, with the container style the dispatcher resolved
+        // When it renders with the container style the dispatcher resolved
         renderWithPersonalDetails(
             <DefaultReportAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
                 containerStyle={containerStyle}
-                horizontalStacking
-                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
             />,
         );
 
-        // Then a DM has nothing to stack, so the single layout gets the given container style, replacing the size-derived one
+        // Then the single layout gets the given container style, replacing the size-derived one
         expect(screen.getByTestId('MockedSingleAvatar')).toBeOnTheScreen();
         expect(mockCapturedSingleAvatarProps.containerStyles).toEqual(expectedContainerStyles);
-    });
-
-    it('should hand a trip room to its leaf with every prop', () => {
-        // Given a trip room that isn't linked to its trip preview
-        seedReport({type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM, policyID: POLICY_ID});
-
-        // When it renders with every prop
-        renderWithPersonalDetails(
-            <DefaultReportAvatar
-                reportID={REPORT_ID}
-                size={CONST.AVATAR_SIZE.SMALL}
-                containerStyle={CONTAINER_STYLE}
-                horizontalStacking={{maxRows: 2}}
-                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
-                fallbackDisplayName={FALLBACK_NAME}
-            />,
-        );
-
-        // Then the leaf renders it, and no single avatar renders here
-        expect(screen.getByTestId('MockedTripRoomAvatar')).toBeOnTheScreen();
-        expect(screen.queryByTestId('MockedSingleAvatar')).not.toBeOnTheScreen();
-        expect(mockCapturedTripRoomAvatarProps).toEqual({
-            reportID: REPORT_ID,
-            size: CONST.AVATAR_SIZE.SMALL,
-            containerStyle: CONTAINER_STYLE,
-            horizontalStacking: {maxRows: 2},
-            sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE,
-            fallbackDisplayName: FALLBACK_NAME,
-        });
-    });
-
-    it('should picture a trip room chat type without a report type by its participants', () => {
-        // Given a report with the trip room chat type whose type has not populated yet
-        seedReport({chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM, participants: buildParticipants(OTHER_ACCOUNT_ID)});
-
-        // When it renders
-        renderWithPersonalDetails(
-            <DefaultReportAvatar
-                reportID={REPORT_ID}
-                size={CONST.AVATAR_SIZE.DEFAULT}
-            />,
-        );
-
-        // Then only a chat counts as a trip room, so the report is pictured by its participant
-        expect(screen.queryByTestId('MockedTripRoomAvatar')).not.toBeOnTheScreen();
-        expect(mockCapturedSingleAvatarProps.avatar).toEqual(buildParticipantIcon(OTHER_ACCOUNT_ID));
     });
 });
