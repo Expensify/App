@@ -36,7 +36,7 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
     const personalDetails = usePersonalDetails();
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
-    const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
+    const singleAvatarContainerStyle = [styles.actionAvatar];
     const avatarSize = isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(optionItem?.parentReportAction);
@@ -105,6 +105,7 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
             avatar={primaryIcon}
             size={avatarSize}
             containerStyles={singleAvatarContainerStyle}
+            style={styles.mr3}
         />
     );
 }

@@ -27,7 +27,12 @@ function MoneyRequestReportEmptyStateView({report, policy, onLayout}: MoneyReque
     const styles = useThemeStyles();
 
     return (
-        <ScrollView contentContainerStyle={styles.flexGrow1}>
+        // `pt5` matches the 20px the unified list puts between the report header and its first row.
+        // `handled` lets a tap on another report field or a dropdown's clear button land while the keyboard is open, matching the unified list.
+        <ScrollView
+            contentContainerStyle={[styles.flexGrow1, styles.pt5]}
+            keyboardShouldPersistTaps="handled"
+        >
             <MoneyRequestViewReportFields
                 report={report}
                 policy={policy}
