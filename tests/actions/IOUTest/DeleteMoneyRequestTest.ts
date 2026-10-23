@@ -683,6 +683,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactionThreadReport: thread,
                     parentReport: iouReport,
                     iouReportOwnerLogin: undefined,
+                    iouReportTransactions: [],
                     transactionViolations: {},
                     reportPolicyTags: undefined,
                     amount: 20000,

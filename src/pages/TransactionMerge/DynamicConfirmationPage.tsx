@@ -18,6 +18,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -81,6 +82,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(targetTransactionThreadParentReport?.ownerAccountID, loginSelector);
+    const iouReportTransactions = useReportTransactions(targetTransactionThreadParentReport?.reportID);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(targetTransactionThreadParentReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
@@ -133,6 +135,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             targetTransactionThreadReport,
             targetTransactionThreadParentReport,
             iouReportOwnerLogin,
+            iouReportTransactions,
             allTransactionViolations,
             policy: targetTransactionPolicy,
             policyTags,

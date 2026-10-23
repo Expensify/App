@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -41,6 +42,7 @@ type AmountSubmitData = Pick<
     | 'userBillingGracePeriodEnds'
     | 'duplicateTransactions'
     | 'duplicateTransactionViolations'
+    | 'parentReportTransactions'
     | 'reportAttributesDerivedValue'
     | 'isASAPSubmitBetaEnabled'
     | 'quickAction'
@@ -108,6 +110,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
 
     const duplicateTransactionIDs = isEditing && transactionID ? [transactionID] : [];
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(duplicateTransactionIDs);
+    const parentReportTransactions = useReportTransactions(report?.parentReportID);
 
     useLayoutEffect(() => {
         // Mutating the parent-owned ref is intentional: the screen's submit handler reads the latest snapshot at click time
@@ -130,6 +133,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
             userBillingGracePeriodEnds,
             duplicateTransactions,
             duplicateTransactionViolations,
+            parentReportTransactions,
             reportAttributesDerivedValue,
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             quickAction,
@@ -161,6 +165,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
         userBillingGracePeriodEnds,
         duplicateTransactions,
         duplicateTransactionViolations,
+        parentReportTransactions,
         reportAttributesDerivedValue,
         isBetaEnabled,
         quickAction,

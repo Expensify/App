@@ -708,6 +708,7 @@ describe('TransactionInlineEdit', () => {
                 transactionID: TRANSACTION_ID,
                 transaction: snapshotTransaction,
                 parentReport: selfDMReport,
+                parentReportTransactions: [],
                 parentReportAction: undefined,
                 transactionThreadReport: undefined,
                 policy: undefined,

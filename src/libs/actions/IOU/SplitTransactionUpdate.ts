@@ -1128,6 +1128,9 @@ function updateSplitTransactions({
                     transactionID: existingTransactionID,
                     transactionThreadReport,
                     iouReport: transactionIOUReport,
+                    iouReportTransactions: Object.values(allTransactionsList ?? {}).filter(
+                        (reportTransaction): reportTransaction is OnyxTypes.Transaction => !!reportTransaction && reportTransaction.reportID === transactionIOUReport?.reportID,
+                    ),
                     iouReportOwnerLogin: getLoginByAccountID(transactionIOUReport?.ownerAccountID, personalDetails),
                     transactionChanges,
                     policy,

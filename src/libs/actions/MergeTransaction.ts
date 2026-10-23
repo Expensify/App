@@ -306,6 +306,7 @@ function getOnyxTargetTransactionData({
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
     iouReportOwnerLogin,
+    iouReportTransactions,
     policy,
     policyTags,
     policyCategories,
@@ -327,6 +328,7 @@ function getOnyxTargetTransactionData({
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
     iouReportOwnerLogin: string | undefined;
+    iouReportTransactions: Transaction[];
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyCategories: OnyxEntry<PolicyCategories>;
@@ -377,6 +379,7 @@ function getOnyxTargetTransactionData({
             transactionThreadReport: targetTransactionThreadReport,
             iouReport: targetTransactionThreadParentReport,
             iouReportOwnerLogin,
+            iouReportTransactions,
             transactionChanges: filteredTransactionChanges,
             policy,
             policyTagList: policyTags,
@@ -440,6 +443,7 @@ type MergeTransactionRequestParams = {
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
     iouReportOwnerLogin: string | undefined;
+    iouReportTransactions: Transaction[];
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyCategories: OnyxEntry<PolicyCategories>;
@@ -479,6 +483,7 @@ function mergeTransactionRequest({
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
     iouReportOwnerLogin,
+    iouReportTransactions,
     allTransactionViolations,
     policy,
     policyTags,
@@ -542,6 +547,7 @@ function mergeTransactionRequest({
         targetTransactionThreadReport,
         targetTransactionThreadParentReport,
         iouReportOwnerLogin,
+        iouReportTransactions,
         policy,
         policyTags,
         policyCategories,

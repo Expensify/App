@@ -21,6 +21,7 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
+import useReportTransactions from './useReportTransactions';
 
 type UseUpdateTransactionCategoryParams = {
     /** ID of the expense being written to, and of the draft a not-yet-created expense lives in */
@@ -80,6 +81,7 @@ function useUpdateTransactionCategory({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const parentReportTransactions = useReportTransactions(parentReport?.reportID);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -102,6 +104,7 @@ function useUpdateTransactionCategory({
                 transaction,
                 transactionThreadReport: report,
                 parentReport,
+                iouReportTransactions: parentReportTransactions,
                 iouReportOwnerLogin,
                 category,
                 policy,

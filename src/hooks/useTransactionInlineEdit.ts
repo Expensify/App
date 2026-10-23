@@ -46,6 +46,7 @@ import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
+import useReportTransactions from './useReportTransactions';
 import useSelfDMReport from './useSelfDMReport';
 
 type UseTransactionInlineEditParams = {
@@ -105,6 +106,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [liveSelfDMReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const parentReportForAction = isUnreported ? (liveSelfDMReport ?? selfDMReport) : (effectiveParentReport ?? liveParentReport);
+    const parentReportTransactions = useReportTransactions(parentReportForAction?.reportID);
 
     const linkedReportActionID = linkedReportAction?.reportActionID;
 
@@ -211,6 +213,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             transactionID,
             transaction,
             parentReport: parentReportForAction,
+            parentReportTransactions,
             parentReportAction,
             transactionThreadReport: transactionThreadReport ?? liveTransactionThreadReport,
             policy: completePolicy ?? policy,

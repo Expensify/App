@@ -14,7 +14,6 @@ import {
     buildOptimisticModifiedExpenseReportAction,
     getOutstandingChildRequest,
     getParsedComment,
-    getReportTransactions,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
@@ -77,6 +76,7 @@ type UpdateMoneyRequestDateParams = {
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
@@ -230,6 +230,7 @@ function updateMoneyRequestDate({
     transaction: transactionParam,
     transactionThreadReport,
     parentReport,
+    iouReportTransactions,
     iouReportOwnerLogin,
     transactions,
     transactionViolations,
@@ -278,6 +279,7 @@ function updateMoneyRequestDate({
             transaction,
             transactionThreadReport,
             parentReport,
+            iouReportTransactions,
             iouReportOwnerLogin,
             rateID: newRateID,
             created: value,
@@ -332,6 +334,7 @@ function updateMoneyRequestDate({
             transaction,
             transactionThreadReport,
             iouReport: parentReport,
+            iouReportTransactions,
             iouReportOwnerLogin,
             transactionChanges,
             policy: effectivePolicy,
@@ -380,6 +383,7 @@ function updateMoneyRequestBillable({
     transaction,
     transactionThreadReport,
     parentReport,
+    iouReportTransactions,
     iouReportOwnerLogin,
     value,
     policy,
@@ -402,6 +406,7 @@ function updateMoneyRequestBillable({
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     value: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -429,6 +434,7 @@ function updateMoneyRequestBillable({
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportTransactions,
         iouReportOwnerLogin,
         transactionChanges,
         policy,
@@ -463,6 +469,7 @@ function updateMoneyRequestReimbursable({
     transaction,
     transactionThreadReport,
     parentReport,
+    iouReportTransactions,
     iouReportOwnerLogin,
     value,
     policy,
@@ -486,6 +493,7 @@ function updateMoneyRequestReimbursable({
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     value: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -514,6 +522,7 @@ function updateMoneyRequestReimbursable({
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportTransactions,
         iouReportOwnerLogin,
         transactionChanges,
         policy,
@@ -550,6 +559,7 @@ function updateMoneyRequestMerchant({
     transaction,
     transactionThreadReport,
     parentReport,
+    iouReportTransactions,
     iouReportOwnerLogin,
     value,
     policy,
@@ -574,6 +584,7 @@ function updateMoneyRequestMerchant({
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     value: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -615,6 +626,7 @@ function updateMoneyRequestMerchant({
             transaction,
             transactionThreadReport,
             iouReport: parentReport,
+            iouReportTransactions,
             iouReportOwnerLogin,
             transactionChanges,
             policy,
@@ -643,6 +655,7 @@ function updateMoneyRequestAttendees({
     transactionID,
     transactionThreadReport,
     parentReport,
+    iouReportTransactions,
     iouReportOwnerLogin,
     attendees,
     policy,
@@ -665,6 +678,7 @@ function updateMoneyRequestAttendees({
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     attendees: Attendee[];
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -690,6 +704,7 @@ function updateMoneyRequestAttendees({
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportTransactions,
         iouReportOwnerLogin,
         transactionChanges,
         policy,
@@ -901,6 +916,7 @@ type UpdateMoneyRequestTagParams = {
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     tag: string;
     /** Which level of a multi-level tag was edited, so the "Create a rule" callout can seed that level alone */
@@ -932,6 +948,7 @@ function updateMoneyRequestTag({
     transaction,
     transactionThreadReport,
     parentReport,
+    iouReportTransactions,
     iouReportOwnerLogin,
     tag,
     tagListIndex,
@@ -963,6 +980,7 @@ function updateMoneyRequestTag({
         transaction,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportTransactions,
         iouReportOwnerLogin,
         transactionChanges,
         policy,
@@ -1011,6 +1029,7 @@ function updateMoneyRequestTaxAmount({
     transactionID,
     transactionThreadReport,
     parentReport,
+    iouReportTransactions,
     iouReportOwnerLogin,
     taxAmount,
     policy,
@@ -1031,6 +1050,7 @@ function updateMoneyRequestTaxAmount({
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     taxAmount: number;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -1054,6 +1074,7 @@ function updateMoneyRequestTaxAmount({
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportTransactions,
         iouReportOwnerLogin,
         transactionChanges,
         policy,
@@ -1077,6 +1098,7 @@ type UpdateMoneyRequestTaxRateParams = {
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     taxCode: string;
     taxAmount: number;
@@ -1103,6 +1125,7 @@ function updateMoneyRequestTaxRate({
     transaction,
     transactionThreadReport,
     parentReport,
+    iouReportTransactions,
     iouReportOwnerLogin,
     taxCode,
     taxAmount,
@@ -1132,6 +1155,7 @@ function updateMoneyRequestTaxRate({
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportTransactions,
         iouReportOwnerLogin,
         transactionChanges,
         policy,
@@ -1166,6 +1190,7 @@ type UpdateMoneyRequestDistanceParams = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     waypoints?: WaypointCollection;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
@@ -1198,6 +1223,7 @@ function updateMoneyRequestDistance({
     transaction,
     transactionThreadReport,
     parentReport,
+    iouReportTransactions,
     iouReportOwnerLogin,
     waypoints,
     recentWaypoints = [],
@@ -1256,6 +1282,7 @@ function updateMoneyRequestDistance({
             transactionID: transaction?.transactionID,
             transactionThreadReport,
             iouReport: parentReport,
+            iouReportTransactions,
             iouReportOwnerLogin,
             transactionChanges,
             policy,
@@ -1345,6 +1372,7 @@ function updateMoneyRequestCategory({
     transaction,
     transactionThreadReport,
     parentReport,
+    iouReportTransactions,
     iouReportOwnerLogin,
     category,
     isEditedFromExpenseList,
@@ -1370,6 +1398,7 @@ function updateMoneyRequestCategory({
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     category: string;
     /** Whether the edit came from a list of expenses, where the "Create a rule" callout has nowhere to appear */
@@ -1400,6 +1429,7 @@ function updateMoneyRequestCategory({
         transaction,
         transactionThreadReport,
         iouReport: parentReport,
+        iouReportTransactions,
         iouReportOwnerLogin,
         transactionChanges,
         policy,
@@ -1438,6 +1468,7 @@ function updateMoneyRequestDescription({
     transaction,
     transactionThreadReport,
     parentReport,
+    iouReportTransactions,
     iouReportOwnerLogin,
     comment,
     isEditedFromExpenseList,
@@ -1463,6 +1494,7 @@ function updateMoneyRequestDescription({
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     comment: string;
     /** Whether the edit came from a list of expenses, where the "Create a rule" callout has nowhere to appear */
@@ -1507,6 +1539,7 @@ function updateMoneyRequestDescription({
             transaction,
             transactionThreadReport,
             iouReport: parentReport,
+            iouReportTransactions,
             iouReportOwnerLogin,
             transactionChanges,
             policy,
@@ -1547,6 +1580,7 @@ function updateMoneyRequestDistanceRate({
     transaction,
     transactionThreadReport,
     parentReport,
+    iouReportTransactions,
     iouReportOwnerLogin,
     rateID,
     created,
@@ -1579,6 +1613,7 @@ function updateMoneyRequestDistanceRate({
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     rateID: string;
     created?: string;
@@ -1652,6 +1687,7 @@ function updateMoneyRequestDistanceRate({
             transactionID: transaction?.transactionID,
             transactionThreadReport,
             iouReport: parentReport,
+            iouReportTransactions,
             iouReportOwnerLogin,
             transactionChanges,
             policy,
@@ -1689,6 +1725,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     currency: string;
     amount: number;
@@ -1721,6 +1758,7 @@ function updateMoneyRequestAmountAndCurrency({
     transaction,
     transactionThreadReport,
     parentReport,
+    iouReportTransactions,
     iouReportOwnerLogin,
     currency,
     amount,
@@ -1774,6 +1812,7 @@ function updateMoneyRequestAmountAndCurrency({
             transaction,
             transactionThreadReport,
             iouReport: parentReport,
+            iouReportTransactions,
             iouReportOwnerLogin,
             transactionChanges,
             policy,
@@ -1815,6 +1854,7 @@ type GetUpdateMoneyRequestParamsType = {
     allowNegative?: boolean;
     newTransactionReportID?: string | undefined;
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     iouReportOwnerLogin: string | undefined;
     shouldBuildOptimisticModifiedExpenseReportAction?: boolean;
     currentUserAccountIDParam: number;
@@ -1869,6 +1909,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         hash,
         allowNegative,
         newTransactionReportID,
+        iouReportTransactions,
         iouReport,
         iouReportOwnerLogin,
         shouldBuildOptimisticModifiedExpenseReportAction = true,
@@ -2443,10 +2484,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 (hasModifiedReimbursable && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED))
         ) {
             const moneyRequestReport = updatedMoneyRequestReport ?? iouReport ?? undefined;
-            const reportTransactions = [
-                ...getReportTransactions(moneyRequestReport?.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transactionID),
-                updatedTransaction,
-            ];
+            const reportTransactions = [...iouReportTransactions.filter((reportTransaction) => reportTransaction.transactionID !== transactionID), updatedTransaction];
             const shouldFixViolations = hasSubmissionBlockingViolationInReport(
                 reportTransactions,
                 // TODO: https://github.com/Expensify/App/issues/66512

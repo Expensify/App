@@ -145,6 +145,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
             iouReport,
+            iouReportTransactions: [],
             transactionChanges: {amount: 1500, currency: CONST.CURRENCY.USD},
             policy: undefined,
             policyTagList: undefined,
@@ -179,6 +180,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
             iouReport,
+            iouReportTransactions: [],
             transactionChanges: {amount: 1500, currency: CONST.CURRENCY.USD},
             policy: undefined,
             policyTagList: undefined,
@@ -220,6 +222,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
             iouReport,
+            iouReportTransactions: [],
             transactionChanges: {amount: 1500, currency: CONST.CURRENCY.USD},
             policy: undefined,
             policyTagList: undefined,
@@ -251,6 +254,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
             iouReport,
+            iouReportTransactions: [],
             transactionChanges: {amount: 1500, currency: CONST.CURRENCY.USD},
             policy: undefined,
             policyTagList: undefined,
@@ -280,6 +284,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             transactionID: 'nonexistentTransactionID',
             transactionThreadReport,
             iouReport,
+            iouReportTransactions: [],
             transactionChanges: {amount: 1500, currency: CONST.CURRENCY.USD},
             policy: undefined,
             policyTagList: undefined,
@@ -321,6 +326,7 @@ describe('split distance system message', () => {
             delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
+            iouReportTransactions: [],
             transactionChanges: {
                 waypoints: {
                     waypoint0: {lat: 37.78, lng: -122.4, address: 'Start', name: 'Start'},
@@ -358,6 +364,7 @@ describe('split distance system message', () => {
             delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
+            iouReportTransactions: [],
             transactionChanges: {
                 waypoints: {
                     waypoint0: {lat: 37.78, lng: -122.4, address: 'Start', name: 'Start'},
@@ -401,6 +408,7 @@ describe('split distance system message', () => {
             delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
+            iouReportTransactions: [],
             transactionChanges: {
                 waypoints: {
                     waypoint0: {lat: 37.78, lng: -122.4, address: 'Start', name: 'Start'},
@@ -437,6 +445,7 @@ describe('split distance system message', () => {
             delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
+            iouReportTransactions: [],
             transactionChanges: {
                 waypoints: {
                     waypoint0: {lat: 37.78, lng: -122.4, address: 'Start', name: 'Start'},

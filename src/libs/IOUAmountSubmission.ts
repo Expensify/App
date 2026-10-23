@@ -110,6 +110,9 @@ type SubmitAmountArgs = {
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     duplicateTransactions: OnyxCollection<OnyxTypes.Transaction>;
     duplicateTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+
+    /** All transactions on the parent report of the expense being edited, used to recompute that report's violations. */
+    parentReportTransactions: OnyxTypes.Transaction[];
     isTrackIntentUser: boolean | undefined;
     reportAttributesDerivedValue: OnyxEntry<ReportAttributesDerivedValue>;
     isASAPSubmitBetaEnabled: boolean;
@@ -643,6 +646,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         report,
         duplicateTransactions,
         duplicateTransactionViolations,
+        parentReportTransactions,
         policyCategories,
         delegateAccountID,
         policyRecentlyUsedCurrencies,
@@ -694,6 +698,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         transactionID,
         transactionThreadReport: report,
         parentReport,
+        iouReportTransactions: parentReportTransactions,
         iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, allPersonalDetails),
         transactions: duplicateTransactions,
         transactionViolations: duplicateTransactionViolations,
