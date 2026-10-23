@@ -345,6 +345,39 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
         });
 
+        it('keeps Concierge when the newest action is a pregenerated reply still waiting for its followup list', async () => {
+            // Given Concierge processing the user's followup question and a newer typed message
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                userMessage: {
+                    reportActionID: 'userMessage',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: currentUserAccountID,
+                    created: '2026-10-23 12:41:08.159',
+                    message: [{type: 'TEXT', text: 'Will it also sync my tax rates?'}],
+                },
+            });
+            await setProcessingIndicator({[CONST.ACCOUNT_ID.CONCIERGE]: 'Concierge is working on your request...'});
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            await waitForBatchedUpdates();
+
+            // When the pregenerated reply is revealed after the label turned on, sorting after the typed message
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                pregeneratedReply: {
+                    reportActionID: 'pregeneratedReply',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    created: '2026-10-23 12:41:08.803',
+                    message: [{type: 'TEXT', text: 'To keep QuickBooks Online in sync, use Auto-sync.'}],
+                },
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`, {reportActionID: 'pregeneratedReply', createdAt: Date.now()});
+            await waitForBatchedUpdates();
+
+            // Then the bubble stays, because that reply answers the earlier question and the server is still working
+            expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
         it('drops Concierge as soon as a reply lands after the label turned on', async () => {
             // Given Concierge processing a user message that is the newest action
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});

@@ -7,6 +7,7 @@ import {isDM} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type ConciergePendingFollowupList from '@src/types/onyx/ConciergePendingFollowupList';
 import type Report from '@src/types/onyx/Report';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -47,6 +48,10 @@ function reportMetaSelector(report: OnyxEntry<Report>): ReportMeta {
         parentReportID: getReportParentReportID(report),
         participantAccountIDs: getReportParticipantAccountIDs(report),
     };
+}
+
+function pendingFollowupReplyIDSelector(pendingFollowupList: OnyxEntry<ConciergePendingFollowupList>): string | undefined {
+    return pendingFollowupList?.reportActionID;
 }
 
 const defaultState: AgentZeroStatusState = {
@@ -180,17 +185,19 @@ function AgentZeroStatusGate({
     // can arrive up to ~250ms after the reply Pusher event, leaving the bubble visible on top of
     // the completed response. Dropping the agent here as soon as their ADDCOMMENT lands prevents
     // that flash without waiting for the NVP clear.
-    // An agent comment that was already newest when its label turned on is a previous turn's reply (a pregenerated
-    // followup answer can sort after the user's next message), so it does not mean the current turn is answered.
+    // A pregenerated followup reply, or an agent comment that was already newest when its label turned on, answers an
+    // earlier question; it can sort after the user's next message, so it does not mean the current turn is answered.
     const serverAgentIDsKey = (serverAgentIDs ?? []).join(',');
     const [labelBaseline, setLabelBaseline] = useState({key: serverAgentIDsKey, newestActionID: newestReportAction?.reportActionID});
     if (labelBaseline.key !== serverAgentIDsKey) {
         setLabelBaseline({key: serverAgentIDsKey, newestActionID: newestReportAction?.reportActionID});
     }
-    const isNewestFromBeforeLabel = labelBaseline.key === serverAgentIDsKey && labelBaseline.newestActionID === newestReportAction?.reportActionID;
+    const [pendingFollowupReplyID] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${isActive ? reportID : undefined}`, {selector: pendingFollowupReplyIDSelector});
     if (newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && newestReportAction.actorAccountID !== undefined) {
         const isLabelOn = (serverAgentIDs ?? []).includes(newestReportAction.actorAccountID);
-        if (!isLabelOn || !isNewestFromBeforeLabel) {
+        const isNewestFromBeforeLabel = labelBaseline.key === serverAgentIDsKey && labelBaseline.newestActionID === newestReportAction.reportActionID;
+        const isPendingFollowupReply = !!pendingFollowupReplyID && pendingFollowupReplyID === newestReportAction.reportActionID;
+        if (!isLabelOn || (!isNewestFromBeforeLabel && !isPendingFollowupReply)) {
             candidateIDs.delete(newestReportAction.actorAccountID);
         }
     }
