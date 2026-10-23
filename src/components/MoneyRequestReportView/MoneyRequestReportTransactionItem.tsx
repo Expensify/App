@@ -1,7 +1,6 @@
 import {useEditingCellState} from '@components/EditableCell';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useCardList} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -391,12 +390,13 @@ function MoneyRequestReportTransactionItem({
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const {email, accountID} = useCurrentUserPersonalDetails();
-    const cardList = useCardList();
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
 
     const [rawTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [rawViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+    const cardID = rawTransaction?.cardID;
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList) => (cardID ? cardList?.[cardID] : undefined)});
 
     // Hoisted out of the body so the highlight animation timeline survives the narrow↔wide
     // component-type swap caused by browser resize.
@@ -414,7 +414,6 @@ function MoneyRequestReportTransactionItem({
     const isNarrowLayout = shouldUseNarrowLayout || (isMediumScreenWidth && !shouldScrollHorizontally);
 
     // The search API pre-resolves the card name, local Onyx transactions carry the raw one
-    const card = rawTransaction.cardID ? cardList?.[rawTransaction.cardID] : undefined;
     const resolvedCardName = card ? getCardDescription(card, translate) : undefined;
     const transaction = resolvedCardName && resolvedCardName !== rawTransaction.cardName ? {...rawTransaction, cardName: resolvedCardName} : rawTransaction;
     const violations = getVisibleReportRowViolations(transaction, rawViolations, email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, report, reportOwnerLogin, policy);
