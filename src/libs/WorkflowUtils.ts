@@ -838,6 +838,10 @@ function buildAnd(left: RuleFilter['left'], right: RuleFilter['right']): RuleFil
     return {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left, right};
 }
 
+function buildOr(left: RuleFilter['left'], right: RuleFilter['right']): RuleFilter {
+    return {operator: CONST.SEARCH.SYNTAX_OPERATORS.OR, left, right};
+}
+
 function buildSubmitterFilter(memberEmails: string[]): RuleFilterComparison {
     return buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, [...memberEmails]);
 }
@@ -929,14 +933,10 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
             earlierLimit === undefined
                 ? overLimit
                 : buildAnd(overLimit, buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, earlierLimit));
-        const skipsOverLimitApprover: RuleFilterNode =
+        const skipsOverLimitApprover =
             earlierLimit === undefined
                 ? withinLimit
-                : {
-                      operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
-                      left: withinLimit,
-                      right: buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, earlierLimit),
-                  };
+                : buildOr(withinLimit, buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, earlierLimit));
 
         rules.push({triggers: buildApproveTriggers(), filters: buildAnd(source, skipsOverLimitApprover), actions});
         rules.push({triggers: buildApproveTriggers(), filters: buildAnd(source, goesToOverLimitApprover), actions: buildForwardActions(overLimitApproverEmail)});
