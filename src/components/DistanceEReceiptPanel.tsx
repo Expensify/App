@@ -1,7 +1,6 @@
-import EReceiptBackground from '@assets/images/eReceipt_background.svg';
-
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import type {LazySvgLoader} from '@hooks/useLazySvg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,10 +18,13 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
-import ImageSVG from './ImageSVG';
+import LazyImageSVG from './LazyImageSVG';
 import PendingMapView from './MapView/PendingMapView';
 import ReceiptImage from './ReceiptImage';
 import Text from './Text';
+
+// Its own async chunk, so the pattern stays out of the main bundle.
+const loadEReceiptBackground: LazySvgLoader = () => import('@assets/images/eReceipt_background.svg');
 
 type DistanceEReceiptPanelProps = {
     /** The transaction for the distance expense */
@@ -58,8 +60,8 @@ function DistanceEReceiptPanel({transaction}: DistanceEReceiptPanelProps) {
     );
     return (
         <View style={styles.eReceiptPanel}>
-            <ImageSVG
-                src={EReceiptBackground}
+            <LazyImageSVG
+                loader={loadEReceiptBackground}
                 style={styles.eReceiptBackground}
                 pointerEvents="none"
             />

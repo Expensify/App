@@ -1,8 +1,11 @@
-import EReceiptBG_Blue from '@assets/images/eReceiptBGs/eReceiptBG_blue.svg';
-import EReceiptBG_Green from '@assets/images/eReceiptBGs/eReceiptBG_green.svg';
-import EReceiptBG_Ice from '@assets/images/eReceiptBGs/eReceiptBG_ice.svg';
-import EReceiptBG_Pink from '@assets/images/eReceiptBGs/eReceiptBG_pink.svg';
-import EReceiptBG_Tangerine from '@assets/images/eReceiptBGs/eReceiptBG_tangerine.svg';
-import EReceiptBG_Yellow from '@assets/images/eReceiptBGs/eReceiptBG_yellow.svg';
+import type {LazySvgLoader} from '@hooks/useLazySvg';
 
-export {EReceiptBG_Yellow, EReceiptBG_Ice, EReceiptBG_Blue, EReceiptBG_Green, EReceiptBG_Tangerine, EReceiptBG_Pink};
+// Each pattern is its own async chunk, so it stays out of the main bundle. Keep these as module-level constants: useLazySvg caches by loader identity.
+const loadEReceiptBGBlue: LazySvgLoader = () => import('@assets/images/eReceiptBGs/eReceiptBG_blue.svg');
+const loadEReceiptBGGreen: LazySvgLoader = () => import('@assets/images/eReceiptBGs/eReceiptBG_green.svg');
+const loadEReceiptBGIce: LazySvgLoader = () => import('@assets/images/eReceiptBGs/eReceiptBG_ice.svg');
+const loadEReceiptBGPink: LazySvgLoader = () => import('@assets/images/eReceiptBGs/eReceiptBG_pink.svg');
+const loadEReceiptBGTangerine: LazySvgLoader = () => import('@assets/images/eReceiptBGs/eReceiptBG_tangerine.svg');
+const loadEReceiptBGYellow: LazySvgLoader = () => import('@assets/images/eReceiptBGs/eReceiptBG_yellow.svg');
+
+export {loadEReceiptBGYellow, loadEReceiptBGIce, loadEReceiptBGBlue, loadEReceiptBGGreen, loadEReceiptBGTangerine, loadEReceiptBGPink};
