@@ -6296,6 +6296,10 @@ const translations = {
                     },
                 },
             },
+            reimbursementAccount: {
+                label: 'Reimbursement account',
+                description: 'Choose where to export reimbursable expenses.',
+            },
             exportDate: {
                 label: 'GL impact date',
                 description: 'Use this date when exporting reports to Rillet.',
