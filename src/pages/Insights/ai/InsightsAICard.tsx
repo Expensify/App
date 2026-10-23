@@ -2,16 +2,16 @@ import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {InsightsCard} from '@src/types/onyx';
+import type {AIInsight} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
 
 type InsightsAICardProps = {
-    card: InsightsCard;
+    insight: AIInsight;
 };
 
-function InsightsAICard({card}: InsightsAICardProps) {
+function InsightsAICard({insight}: InsightsAICardProps) {
     const styles = useThemeStyles();
 
     return (
@@ -20,7 +20,7 @@ function InsightsAICard({card}: InsightsAICardProps) {
                 variant="h2"
                 style={styles.insightsAICardText}
             >
-                {card.text}
+                {insight.text}
             </Text>
         </View>
     );

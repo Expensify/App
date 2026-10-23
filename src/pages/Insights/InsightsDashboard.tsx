@@ -27,7 +27,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsCard, InsightsDashboardID} from '@src/types/onyx';
+import type {AIInsight, InsightsDashboardID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -50,7 +50,7 @@ import useInsightsFilters from './useInsightsFilters';
 
 type InsightsDashboardContentProps = {
     state: InsightsDashboardState;
-    aiInsights: InsightsCard[] | undefined;
+    aiInsights: AIInsight[] | undefined;
     isLoadingAIInsights: boolean;
     headlineChart: InsightsDashboardChart;
 
@@ -151,7 +151,7 @@ function InsightsDashboardContent({state, aiInsights, isLoadingAIInsights, headl
                 <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
                     {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
                         <InsightsAICardRow
-                            cards={aiInsights}
+                            insights={aiInsights}
                             isLoading={isLoadingAIInsights}
                         />
                     )}

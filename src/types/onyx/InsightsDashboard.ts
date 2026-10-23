@@ -26,7 +26,7 @@ type InsightsGraph = {
 };
 
 /** AI-written insight about the dashboard's data */
-type InsightsCard = {
+type AIInsight = {
     /** Narration shown on the card */
     text: string;
 
@@ -43,7 +43,7 @@ type InsightsDashboard = {
     hasResults?: boolean;
 
     /** Cards drawn above the headline chart */
-    aiInsights?: InsightsCard[];
+    aiInsights?: AIInsight[];
 
     /** Query the stored graphs answer */
     inputQuery?: string;
@@ -54,5 +54,5 @@ type InsightsDashboard = {
     responseJsonCode?: number;
 };
 
-export type {InsightsCard, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};
+export type {AIInsight, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};
 export default InsightsDashboard;
