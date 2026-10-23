@@ -326,26 +326,27 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         openPolicyCategoriesPage(policyID);
     }, [policyID, policy?.areCategoriesEnabled, policyCategories]);
 
-    const fetchPolicyVendors = useCallback(() => {
+    const fetchPolicyVendors = () => {
         if (!isVendorFeatureAvailable || policyVendors !== undefined) {
             return;
         }
         openPolicyVendorsPage(policyID);
-    }, [isVendorFeatureAvailable, policyID, policyVendors]);
+    };
 
-    const fetchDependencies = useCallback(() => {
+    const fetchDependencies = () => {
         fetchPolicyCategories();
         fetchPolicyVendors();
-    }, [fetchPolicyCategories, fetchPolicyVendors]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchDependencies});
 
     useFocusEffect(
         useCallback(() => {
             fetchDependencies();
-        }, [fetchDependencies]),
+        }, [fetchPolicyCategories]),
     );
 
+    const hasVendorColumn = Object.values(spreadsheet?.columns ?? {}).includes(CONST.CSV_IMPORT_COLUMNS.VENDOR);
     const isVendorPolicyListLoading = isVendorFeatureAvailable && !isOffline && policyVendors === undefined;
     const isVendorListLoading = isVendorConnectionsFetchNeeded || isVendorConnectionsFetchedFlagLoading || isVendorPolicyListLoading;
 
@@ -490,7 +491,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                     importFunction={importRules}
                     errors={isValidationEnabled ? validate() : undefined}
                     columnRoles={columnRoles}
-                    isButtonLoading={isImportingRules || isVendorListLoading}
+                    isButtonLoading={isImportingRules || (hasVendorColumn && isVendorListLoading)}
                     customHeaderText={translate('workspace.rules.merchantRules.importRulesSupportingText')}
                     shouldDisableButtonWhenOffline={!canImportOffline}
                 />

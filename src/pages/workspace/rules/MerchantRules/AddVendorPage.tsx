@@ -26,7 +26,7 @@ import type {Policy, PolicyVendors} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
@@ -79,23 +79,25 @@ function AddVendorPage({route}: AddVendorPageProps) {
     const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
 
     // Stale sessions may never have received the policyVendors_ collection, so fetch it if missing.
-    const fetchVendorsIfMissing = useCallback(() => {
+    const fetchVendorsIfMissing = () => {
         if (!isFeatureAvailable || !policyID || policyVendors !== undefined) {
             return;
         }
         openPolicyVendorsPage(policyID);
-    }, [isFeatureAvailable, policyID, policyVendors]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchVendorsIfMissing});
 
     useEffect(() => {
         fetchVendorsIfMissing();
-    }, [fetchVendorsIfMissing]);
+        // Run only on mount because reconnect re-fetches are handled by useNetwork above.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const unavailableLabel = translate('workspace.rules.merchantRules.vendorUnavailable');
     const selectedVendorItem = getSelectedVendorItem(policy, form?.vendorID, unavailableLabel);
 
-    const vendorItems = useMemo(() => getVendorSelectionItems(policy, localeCompare, policyVendors, form?.vendorID), [policy, localeCompare, policyVendors, form?.vendorID]);
+    const vendorItems = getVendorSelectionItems(policy, localeCompare, policyVendors, form?.vendorID);
 
     const saveVendor = (value?: string) => {
         updateDraftMerchantRule({vendorID: value});

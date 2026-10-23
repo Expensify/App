@@ -316,6 +316,7 @@ describe('ImportedMerchantRulesPage', () => {
         });
 
         it('excludes disabled vendors from the lookup', () => {
+            // Given a policy with a vendor marked as disabled in policyVendors
             const policyWithDisabledVendor = buildQBOPolicyWithVendors([
                 {id: 'v1', name: 'Acme Co', currency: 'USD'},
                 {id: 'v2', name: 'Globex', currency: 'USD'},
@@ -323,7 +324,12 @@ describe('ImportedMerchantRulesPage', () => {
             const policyVendors = {
                 v1: {externalID: 'v1', name: 'Acme Co', enabled: false},
             };
-            expect(buildImportedVendorLookup(policyWithDisabledVendor, policyVendors).get('acme co')).toBeUndefined();
+
+            // When building the imported vendor lookup
+            const lookup = buildImportedVendorLookup(policyWithDisabledVendor, policyVendors);
+
+            // Then the disabled vendor is excluded and cannot be resolved by name
+            expect(lookup.get('acme co')).toBeUndefined();
         });
     });
 
