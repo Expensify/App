@@ -73,10 +73,8 @@ describe('usePaymentOptions', () => {
         // Given mixed bank and fund methods, when the hook builds invoice menus, then only ready banks appear.
         const {result} = renderHook(() => usePaymentOptions({iouReport: invoice, onPress: jest.fn(), currency: CONST.CURRENCY.USD, policyID: undefined}));
         expect(mockFormatPaymentMethods).toHaveBeenCalledWith(bankAccounts, funds, expect.anything(), expect.any(Function));
-        expect(menuTitles(result.current, 0)).toContain('Personal ready');
-        expect(menuTitles(result.current, 0)).not.toEqual(expect.arrayContaining(['Setup', 'Pending', 'Debit card', 'Business ready']));
-        expect(menuTitles(result.current, 1)).toContain('Business ready');
-        expect(menuTitles(result.current, 1)).not.toEqual(expect.arrayContaining(['Verifying', 'Debit card', 'Personal ready']));
+        expect(menuTitles(result.current, 0)).toEqual(['Personal ready', 'iou.payElsewhere', 'bankAccount.addBankAccount']);
+        expect(menuTitles(result.current, 1)).toEqual(['Business ready', 'bankAccount.addBankAccount', 'iou.payElsewhere']);
     });
 
     it('hides Expensify invoice methods for unsupported currency', () => {
