@@ -1,3 +1,6 @@
+/**
+ * Builds the ordered list of completed and upcoming workflow steps shown on the ReportHistoryPage.
+ */
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {getNextStepETA} from '@libs/NextStepUtils';
