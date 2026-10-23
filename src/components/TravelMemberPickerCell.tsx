@@ -18,16 +18,23 @@ type TravelMemberPickerCellProps = {
     /** Whether the current user can change the member's travel setting */
     canEdit: boolean;
 
+    /**
+     * Whether the shown value is stored on the member. A member without a stored value shows as off, so picking off still
+     * saves it.
+     */
+    isValueStored?: boolean;
+
     onSave: (value: TravelMemberAccessValue) => void;
 };
 
-function TravelMemberPickerCell({value, label, options, canEdit, onSave}: TravelMemberPickerCellProps) {
+function TravelMemberPickerCell({value, label, options, canEdit, isValueStored = true, onSave}: TravelMemberPickerCellProps) {
     const preferredPopoverHeight = useTravelMemberPickerPopoverHeight(options.length);
 
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, popoverHeight, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value,
         onSave,
+        isEqual: isValueStored ? undefined : () => false,
         popoverHeight: preferredPopoverHeight,
     });
 

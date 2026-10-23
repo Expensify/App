@@ -451,6 +451,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 canEditRole,
                 onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
                 travelAccessValue: shouldShowTravelColumn ? getTravelMemberAccessValue(policy, login) : undefined,
+                isTravelAccessStored: typeof policyEmployee.canUseTravel === 'boolean',
                 canEditTravelAccess: canChangeTravelAccess && !isSelectionModeActive && !isPendingDeleteOrError,
                 onChangeTravelAccess: (value) => setPolicyTravelMemberAccessValue(policy, [{email: login, accountID}], value),
                 // Note which secondary login was used to invite this primary login

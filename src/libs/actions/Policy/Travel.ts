@@ -4,7 +4,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getObjectKeys} from '@libs/ObjectUtils';
-import {canMemberUseTravel, getTravelMemberRole, goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {isTravelMemberRole} from '@libs/TravelMemberOptionUtils';
 import type {TravelMemberAccessValue} from '@libs/TravelMemberOptionUtils';
 
@@ -154,7 +154,9 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
     }
     const employeeList = policy?.employeeList ?? {};
 
-    const targets = members.filter((member) => !!employeeList[member.email] && canMemberUseTravel(policy, member.email) !== enabled);
+    // Compare with the stored value rather than whether the member can use travel, so turning off a member without a
+    // stored value still stores false, the same way the server does
+    const targets = members.filter((member) => !!employeeList[member.email] && employeeList[member.email]?.canUseTravel !== enabled);
     if (targets.length === 0) {
         return;
     }
@@ -220,7 +222,7 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
 function setPolicyTravelMemberRole(policy: OnyxEntry<OnyxTypes.Policy>, members: TravelMemberAccessTarget[], travelRole: ValueOf<typeof CONST.TRAVEL.MEMBER_ROLE>) {
     const policyID = policy?.id;
     const employeeList = policy?.employeeList ?? {};
-    const targets = members.filter((member) => !!employeeList[member.email] && getTravelMemberRole(policy, member.email) !== travelRole);
+    const targets = members.filter((member) => !!employeeList[member.email] && employeeList[member.email]?.travelRole !== travelRole);
     if (!policyID || targets.length === 0) {
         return;
     }

@@ -53,6 +53,9 @@ type WorkspaceMemberRowData = TableData & {
 
     /** Whether the member can book travel and their travel role, set on workspaces provisioned for travel */
     travelAccessValue?: TravelMemberAccessValue;
+
+    /** Whether the member's travel access is stored, rather than shown as off because it isn't set yet */
+    isTravelAccessStored?: boolean;
     canEditTravelAccess?: boolean;
     onChangeTravelAccess?: (value: TravelMemberAccessValue) => void;
 };

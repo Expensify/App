@@ -216,6 +216,7 @@ export default function WorkspaceMembersTableRow({
                                     label={getTravelMemberAccessName(translate, item.travelAccessValue)}
                                     options={getTravelMemberAccessOptions(translate, item.travelAccessValue)}
                                     canEdit={!!item.canEditTravelAccess}
+                                    isValueStored={item.isTravelAccessStored ?? true}
                                     onSave={(value) => item.onChangeTravelAccess?.(value)}
                                 />
                             )}
