@@ -143,6 +143,12 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Myślę…',
         addCardTermsOfService: 'Regulamin Expensify',
         perPerson: 'na osobę',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 noc • ${nightlyRate} za noc`,
+            few: `${count} noce • ${nightlyRate} za noc`,
+            many: `${count} nocy • ${nightlyRate} za noc`,
+            other: `${count} nocy • ${nightlyRate} za noc`,
+        }),
         phone: 'Telefon',
         phoneNumber: 'Numer telefonu',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -4031,6 +4037,7 @@ ${amount} dla ${merchant} - ${date}`,
             removeDelegate: 'Usuń zastępcę urlopowego',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, ukończony`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Krok ${step}`;
         if (total) {
@@ -4138,11 +4145,14 @@ ${amount} dla ${merchant} - ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Wprowadź wartość od ${min} do ${max}`,
             tooFewItems: ({min}: {min: number}) => `Dodaj co najmniej ${min}`,
             tooManyItems: ({max}: {max: number}) => `Dodaj maksymalnie ${max}`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `Dodaj ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Usunąć ${item}?`,
         removeItemPrompt: ({name}: {name: string}) => `Czy na pewno chcesz usunąć ${name}?`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} z końcówką ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'Pytania na tej stronie się zmieniły',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Kod SWIFT/BIC musi mieć długość 8 lub 11 znaków, z 6 literami, po których następują 2 lub 5 liter lub cyfr.',
@@ -6334,9 +6344,12 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             },
             syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
             settlementAccount: {label: 'Rachunek rozliczeniowy Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w DualEntry.'},
-            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia Travel Invoicing',
-            travelInvoicingSettlementAccount: {label: 'Konto rozliczeniowe fakturowania podróży', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w DualEntry.'},
-            travelInvoicingPayableAccount: {label: 'Konto zobowiązań z tytułu faktur za podróże'},
+            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia Consolidated Travel Billing',
+            travelInvoicingSettlementAccount: {
+                label: 'Konto rozliczeniowe skonsolidowanego rozliczania podróży',
+                description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w DualEntry.',
+            },
+            travelInvoicingPayableAccount: {label: 'Konto zobowiązań skonsolidowanego rozliczania podróży'},
         },
         type: {
             free: 'Darmowy',
@@ -7370,6 +7383,10 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 optionNoRegularWorkspaceHelp: 'Członek pracuje z domu lub podróżuje między lokalizacjami bez stałego biura, więc zasady dotyczące dojazdów do pracy nie mają zastosowania.',
                 futureOnlyNote: 'Zmiany mają zastosowanie tylko do przyszłych obliczeń kilometrówki. Istniejące wydatki za przejazdy nie są przeliczane ponownie.',
             },
+            officeLocation: 'Lokalizacja biura',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Zmień lokalizację biura',
+            changeWorkArrangement: 'Zmień tryb pracy',
             changeRole: 'Zmień rolę',
         },
         card: {
@@ -9207,9 +9224,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             billPaymentAccount: {label: 'Konto do opłacania rachunków', description: 'Wybierz konto rozliczeniowe dla kredytów Campfire, gdy Expensify oznaczy rachunek jako zapłacony.'},
             syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
             settlementAccount: {label: 'Rachunek rozliczeniowy Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Campfire.'},
-            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia Travel Invoicing',
-            travelInvoicingSettlementAccount: {label: 'Konto rozliczeniowe fakturowania podróży', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Campfire.'},
-            travelInvoicingPayableAccount: {label: 'Konto zobowiązań z tytułu faktur za podróże'},
+            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia Consolidated Travel Billing',
+            travelInvoicingSettlementAccount: {
+                label: 'Konto rozliczeniowe skonsolidowanego rozliczania podróży',
+                description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Campfire.',
+            },
+            travelInvoicingPayableAccount: {label: 'Konto zobowiązań skonsolidowanego rozliczania podróży'},
             exportToMultipleAccounts: 'Skonfiguruj eksport do wielu kont',
             cardProgramAccount: {
                 label: 'Konto programu kartowego',
@@ -9294,6 +9314,39 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             companyCardAccount: {
                 label: 'Konto karty firmowej',
                 description: 'Wybierz, dokąd eksportować transakcje kartą firmową.',
+            },
+            exportToMultipleAccounts: 'Skonfiguruj eksport do wielu kont',
+            cardProgramAccount: {
+                label: 'Konto programu kartowego',
+                description: 'Zastąp konto przestrzeni roboczej dla tych programów kart.',
+                descriptionLevel2: 'Zastąp konto przestrzeni roboczej dla tego programu kart.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Wszystkie programy używają domyślnego konta';
+                    }
+                    return {
+                        one: `${count} program z niestandardowym kontem`,
+                        few: `${count} programy z niestandardowymi kontami`,
+                        many: `${count} programów z niestandardowymi kontami`,
+                        other: `${count} programu z niestandardowymi kontami`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Konto przypisane do karty',
+                description: 'Zastąp konto programu dla poszczególnych kart.',
+                descriptionLevel2: 'Zastąp konto programu dla tych kart.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Wszystkie karty korzystają z kont programu';
+                    }
+                    return {
+                        one: `${count} karta z niestandardowym kontem`,
+                        few: `${count} karty z niestandardowymi kontami`,
+                        many: `${count} kart z niestandardowymi kontami`,
+                        other: `${count} karty z niestandardowymi kontami`,
+                    };
+                },
             },
             paymentMethod: {
                 label: 'Metoda płatności',
@@ -9591,6 +9644,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `zaktualizowano częstotliwość automatycznego raportowania na „${newFrequency}” (poprzednio „${oldFrequency}”)`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `zaktualizowano tryb zatwierdzania na „${newValue}” (wcześniej „${oldValue}”)`,
+        archivedWorkspace: 'zarchiwizował(-a) ten workspace',
+        unarchivedWorkspace: 'przywrócono to miejsce pracy z archiwum',
         upgradedWorkspace: 'zaktualizowano ten workspace do planu Control',
         forcedCorporateUpgrade: `Ta przestrzeń robocza została zaktualizowana do planu Control. Kliknij <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">tutaj</a>, aby uzyskać więcej informacji.`,
         downgradedWorkspace: 'zmniejszono plan tego workspace’u do Collect',
@@ -9836,6 +9891,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             setAsPrimary: ({name}: {name: string}) => `ustaw lokalizację biura „${name}” jako główną`,
             setCompanyAddressAsPrimary: 'ustaw firmowy adres jako główny',
             removed: ({name}: {name: string}) => `usunięto lokalizację biura „${name}”`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `zmienił(-a) lokalizację biura użytkownika ${displayName} na ${officeLocation} (poprzednio ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `„${name}”`,
+            companyAddress: 'adres firmy',
+            primaryOffice: 'główne biuro',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `ustaw domyślny tryb pracy na ${arrangement}`,
@@ -10460,6 +10520,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             topCategories: 'Najpopularniejsze kategorie',
             topMerchants: 'Najważniejsi sprzedawcy',
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
+            travel: 'Podróże',
+            trips: 'Podróże',
         },
         mergeReports: {
             title: 'Połącz raporty',
@@ -10517,8 +10579,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             category: 'Kategoria',
             tag: 'Tag',
         },
-        switchToTableView: 'Przełącz na widok tabeli',
-        switchToExpenseView: 'Przełącz na widok wydatku',
     },
     report: {
         newReport: {
@@ -11585,6 +11645,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Zwrócono ${amount} ${date}`,
             },
             billedTo: 'Obciążono',
+            activity: 'Aktywność',
+            findActiveUser: 'Znajdź aktywnego użytkownika',
             viewReceipt: 'Wyświetl paragon',
             viewInvoice: 'Wyświetl fakturę',
         },
