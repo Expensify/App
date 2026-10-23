@@ -196,8 +196,8 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 <>
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
                     <ToggleSettingOptionRow
-                        title={translate('workspace.rillet.syncTravelInvoicingSettlements')}
-                        switchAccessibilityLabel={translate('workspace.rillet.syncTravelInvoicingSettlements')}
+                        title={translate('workspace.rillet.syncTravelBillingSettlements')}
+                        switchAccessibilityLabel={translate('workspace.rillet.syncTravelBillingSettlements')}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTravelInvoicingSettlements}
@@ -212,7 +212,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.pendingFields)}>
                             <MenuItemField
-                                name={translate('workspace.rillet.travelInvoicingSettlementAccount.label')}
+                                name={translate('workspace.rillet.travelBillingSettlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={travelBillingSettlementsBankAccount ? `${travelBillingSettlementsBankAccount?.accountCode} ${travelBillingSettlementsBankAccount?.name}` : undefined}
                             >

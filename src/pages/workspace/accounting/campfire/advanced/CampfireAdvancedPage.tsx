@@ -176,8 +176,8 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 <>
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
                     <ToggleSettingOptionRow
-                        title={translate('workspace.campfire.syncTravelInvoicingSettlements')}
-                        switchAccessibilityLabel={translate('workspace.campfire.syncTravelInvoicingSettlements')}
+                        title={translate('workspace.campfire.syncTravelBillingSettlements')}
+                        switchAccessibilityLabel={translate('workspace.campfire.syncTravelBillingSettlements')}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTravelInvoicingSettlements}
@@ -193,7 +193,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], campfireConfig?.pendingFields)}>
                             <MenuItemWithTopDescription
                                 title={travelInvoicingSettlementsBankAccount ? `${travelInvoicingSettlementsBankAccount?.id} ${travelInvoicingSettlementsBankAccount?.name}` : undefined}
-                                description={translate('workspace.campfire.travelInvoicingSettlementAccount.label')}
+                                description={translate('workspace.campfire.travelBillingSettlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 shouldShowRightIcon
                                 brickRoadIndicator={
@@ -206,7 +206,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID], campfireConfig?.pendingFields)}>
                             <MenuItemWithTopDescription
                                 title={travelInvoicingPayableAccount ? `${travelInvoicingPayableAccount?.id} ${travelInvoicingPayableAccount?.name}` : undefined}
-                                description={translate('workspace.campfire.travelInvoicingPayableAccount.label')}
+                                description={translate('workspace.campfire.travelBillingPayableAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT.getRoute(policyID)) : undefined)}
                                 shouldShowRightIcon
                                 brickRoadIndicator={

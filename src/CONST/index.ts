@@ -656,6 +656,14 @@ const CONST = {
             RECEIPTS: 'receipts',
         },
     },
+    BULK_ACTION: {
+        STATE: {
+            RUNNING: 'running',
+            DONE: 'done',
+            FAILED: 'failed',
+        },
+        DELETE_EXPENSES: 'deleteExpenses',
+    },
 
     SECURE_DOWNLOAD_TYPE: {
         CSV_EXPORT: 'csvexport',
@@ -2272,6 +2280,8 @@ const CONST = {
                     UPDATE_CARD_FEED_LIABILITY: 'POLICYCHANGELOG_UPDATE_CARD_FEED_LIABILITY',
                     UPDATE_CARD_FEED_STATEMENT_PERIOD: 'POLICYCHANGELOG_UPDATE_CARD_FEED_STATEMENT_PERIOD',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
+                    ARCHIVE_POLICY: 'POLICYCHANGELOG_ARCHIVE_POLICY',
+                    UNARCHIVE_POLICY: 'POLICYCHANGELOG_UNARCHIVE_POLICY',
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     CORPORATE_FORCE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
@@ -3299,7 +3309,7 @@ const CONST = {
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
-    ATTACHMENT_OR_RECEIPT_LOCAL_URL: /^https:\/\/(www\.)?([a-z0-9_-]+\.)*expensify.com(:[0-9]+)?\/(chat-attachments|receipts)/,
+    ATTACHMENT_OR_RECEIPT_LOCAL_URL: /^https:\/\/(www\.)?([a-z0-9_-]+\.)*expensify\.com(:[0-9]+)?\/(chat-attachments\/[0-9]+|receipts)\/[^/?#]+\.[a-z0-9]+([?#]|$)/,
     ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE: 'data-expensify-thumbnail-url',
     ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
     ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
@@ -4408,6 +4418,8 @@ const CONST = {
         NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         DEFAULT_VENDOR_ID: 'defaultVendorID',
         PAYMENT_METHOD_CODE: 'paymentMethodCode',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
         AUTO_SYNC: 'autoSync',
         ACCOUNTING_METHOD: 'accountingMethod',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
@@ -4854,6 +4866,10 @@ const CONST = {
         SUCCESS: 'success',
         ERROR: 'error',
         WARNING: 'warning',
+        POSITION: {
+            TOP: 'top',
+            BOTTOM_RIGHT: 'bottomRight',
+        },
         DURATION: 2000,
         DURATION_LONG: 3500,
         // Longer duration for growls with an actionable button (e.g. "View"), giving the user enough time to tap it.
@@ -4861,10 +4877,6 @@ const CONST = {
         // Pixel distance used to park the growl fully offscreen before it slides in. It only needs to
         // exceed the growl's height + margins; the exact value isn't tied to a measured dimension.
         OFFSCREEN_OFFSET: 255,
-        POSITION: {
-            TOP: 'top',
-            BOTTOM_RIGHT: 'bottomRight',
-        },
     },
 
     LOCALES,
@@ -4937,6 +4949,12 @@ const CONST = {
             CARD_ADMIN: 'cardAdmin',
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
+            APPROVE_ONLY: 'approveOnly',
+        },
+        APPROVE_ONLY_BLOCKED_REASONS: {
+            HAS_CARD_ON_POLICY: 'hasCardOnPolicy',
+            IS_RESTRICTED_BY_DOMAIN_GROUP: 'isRestrictedByDomainGroup',
+            IS_DEFAULT_POLICY: 'isDefaultPolicy',
         },
         WORKSPACE_STATUS: {
             ACTIVE: 'active',
@@ -4969,6 +4987,7 @@ const CONST = {
             REPORT_FIELDS: 'reportFields',
             ACCOUNTING: 'accounting',
             MORE_FEATURES: 'moreFeatures',
+            CREATE_EXPENSES: 'createExpenses',
         },
         POLICY_FEATURE_ACCESS: {
             READ: 'read',
@@ -6000,6 +6019,11 @@ const CONST = {
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR: 'business_central_export_vendor',
+
+            /**
+             * Name of Card NVP for Business Central custom export accounts
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT: 'business_central_export_account',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -6062,6 +6086,11 @@ const CONST = {
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR_POLICY_ID: 'business_central_export_vendor_policy_id',
+
+            /**
+             * Name of Card NVP for Business Central custom export accounts
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT_POLICY_ID: 'business_central_export_account_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
