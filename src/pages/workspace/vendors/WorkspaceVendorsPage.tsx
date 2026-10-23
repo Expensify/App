@@ -15,6 +15,8 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyData from '@hooks/usePolicyData';
+import type {PolicyData} from '@hooks/usePolicyData/types';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -48,11 +50,13 @@ type VendorBulkActionsProps = {
     policyID: string;
     selectedVendorKeys: string[];
     policyVendors?: OnyxEntry<PolicyVendors>;
+    policyData: PolicyData;
+    isVendorMatchingBetaEnabled: boolean;
     defaultVendorID?: string;
     onClearSelection: () => void;
 };
 
-function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection}: VendorBulkActionsProps) {
+function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, policyData, isVendorMatchingBetaEnabled, defaultVendorID, onClearSelection}: VendorBulkActionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -72,6 +76,8 @@ function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, default
                     vendorIDs: disabledVendors,
                     enabled: true,
                     policyVendors,
+                    policyData,
+                    isVendorMatchingBetaEnabled,
                 });
             },
         });
@@ -90,6 +96,8 @@ function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, default
                     vendorIDs: vendorsToDisable,
                     enabled: false,
                     policyVendors,
+                    policyData,
+                    isVendorMatchingBetaEnabled,
                 });
             },
         });
@@ -131,6 +139,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const {canWrite: canWriteVendors, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.VENDORS);
 
     const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`);
+    const policyData = usePolicyData(policyID);
     const [selectedVendorKeys, setSelectedVendorKeys] = useFilteredSelection(policyVendors, (vendor) => !!vendor);
 
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.vendors');
@@ -184,6 +193,8 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
             vendorIDs: [vendorID],
             enabled,
             policyVendors,
+            policyData,
+            isVendorMatchingBetaEnabled,
         });
     };
 
@@ -254,6 +265,8 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                             policyID={policyID}
                             selectedVendorKeys={selectedVendorKeys}
                             policyVendors={policyVendors}
+                            policyData={policyData}
+                            isVendorMatchingBetaEnabled={isVendorMatchingBetaEnabled}
                             defaultVendorID={defaultVendorID}
                             onClearSelection={clearTableSelection}
                         />
@@ -265,6 +278,8 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                             policyID={policyID}
                             selectedVendorKeys={selectedVendorKeys}
                             policyVendors={policyVendors}
+                            policyData={policyData}
+                            isVendorMatchingBetaEnabled={isVendorMatchingBetaEnabled}
                             defaultVendorID={defaultVendorID}
                             onClearSelection={clearTableSelection}
                         />

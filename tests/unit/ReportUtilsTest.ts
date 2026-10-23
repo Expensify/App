@@ -265,6 +265,7 @@ import type {
     PolicyEmployeeList,
     PolicyTag,
     PolicyTagLists,
+    PolicyVendors,
     Report,
     ReportAction,
     ReportActions,
@@ -15631,6 +15632,150 @@ describe('ReportUtils', () => {
                     value: expect.not.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.MISSING_TAG})]),
                 }),
             );
+        });
+
+        it('pushes inactiveVendor error when a vendor is disabled', () => {
+            const fakePolicyID = '0';
+            const fakeVendorID = 'vendor1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {
+                            vendors: [{id: fakeVendorID, name: 'Vendor 1', currency: 'USD'}],
+                        },
+                    },
+                },
+            };
+
+            const openIOUReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+            };
+
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                comment: {
+                    vendor: {
+                        externalID: fakeVendorID,
+                        wasManuallySet: true,
+                    },
+                },
+            };
+
+            const initialPolicyVendors: PolicyVendors = {
+                [fakeVendorID]: {
+                    externalID: fakeVendorID,
+                    name: 'Vendor 1',
+                    enabled: true,
+                },
+            };
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                vendors: initialPolicyVendors,
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {
+                            [mockTransaction.transactionID]: transaction,
+                        },
+                        violations: {},
+                    },
+                },
+            };
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, policyData, true, {}, {}, {}, undefined, {[fakeVendorID]: {enabled: false}});
+
+            expect(onyxData.optimisticData).toContainEqual({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                value: [
+                    {
+                        name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
+            });
+        });
+
+        it('clears inactiveVendor error when a disabled vendor is re-enabled', () => {
+            const fakePolicyID = '0';
+            const fakeVendorID = 'vendor1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {
+                            vendors: [{id: fakeVendorID, name: 'Vendor 1', currency: 'USD'}],
+                        },
+                    },
+                },
+            };
+
+            const openIOUReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+            };
+
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                comment: {
+                    vendor: {
+                        externalID: fakeVendorID,
+                        wasManuallySet: true,
+                    },
+                },
+            };
+
+            const initialPolicyVendors: PolicyVendors = {
+                [fakeVendorID]: {
+                    externalID: fakeVendorID,
+                    name: 'Vendor 1',
+                    enabled: false,
+                },
+            };
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                vendors: initialPolicyVendors,
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {
+                            [mockTransaction.transactionID]: transaction,
+                        },
+                        violations: {
+                            [mockTransaction.transactionID]: [
+                                {
+                                    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                                    showInReview: true,
+                                },
+                            ],
+                        },
+                    },
+                },
+            };
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, policyData, true, {}, {}, {}, undefined, {[fakeVendorID]: {enabled: true}});
+
+            expect(onyxData.optimisticData).toContainEqual({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                value: [],
+            });
         });
     });
 

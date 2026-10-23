@@ -141,6 +141,88 @@ describe('PolicyVendorAction', () => {
                 },
             );
         });
+
+        it('includes optimistic transaction errors when policyData is provided', () => {
+            const initialPolicyVendors: PolicyVendors = {
+                vendor1: {
+                    externalID: 'vendor1',
+                    name: 'Acme Corp',
+                    enabled: true,
+                    origin: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                },
+            };
+
+            const fakePolicyData = {
+                policy: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    name: 'Test Policy',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    owner: 'test@expensify.com',
+                    outputCurrency: CONST.CURRENCY.USD,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {
+                                vendors: [{id: 'vendor1', name: 'Acme Corp', currency: 'USD'}],
+                            },
+                        },
+                    },
+                },
+                vendors: initialPolicyVendors,
+                reports: [
+                    {
+                        reportID: 'report_1',
+                        policyID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                    },
+                ],
+                transactionsAndViolations: {
+                    report_1: {
+                        transactions: {
+                            trans_1: {
+                                transactionID: 'trans_1',
+                                reportID: 'report_1',
+                                amount: 100,
+                                currency: CONST.CURRENCY.USD,
+                                created: '2025-01-01',
+                                comment: {
+                                    vendor: {
+                                        externalID: 'vendor1',
+                                        wasManuallySet: true,
+                                    },
+                                },
+                            },
+                        },
+                        violations: {},
+                    },
+                },
+            };
+
+            setPolicyVendorsEnabled({
+                policyID,
+                vendorIDs: ['vendor1'],
+                enabled: false,
+                policyVendors: initialPolicyVendors,
+                policyData: fakePolicyData as never,
+                isVendorMatchingBetaEnabled: true,
+            });
+
+            expect(mockWrite).toHaveBeenCalledTimes(1);
+            const callArgs = mockWrite.mock.calls[0];
+            const onyxData = callArgs[2] as {optimisticData: Array<{key: string; value: unknown}>};
+            expect(onyxData.optimisticData).toContainEqual(
+                expect.objectContaining({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}trans_1`,
+                    value: [
+                        expect.objectContaining({
+                            name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                            type: CONST.VIOLATION_TYPES.VIOLATION,
+                        }),
+                    ],
+                }),
+            );
+        });
     });
 
     describe('clearVendorErrors', () => {
