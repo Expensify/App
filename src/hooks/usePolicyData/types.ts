@@ -12,4 +12,3 @@ type PolicyData = {
 };
 
 export default PolicyData;
-export type {PolicyData};
