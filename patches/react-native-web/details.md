@@ -60,18 +60,6 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/39520 and https://github.com/Expensify/App/pull/76277
 
-### [react-native-web+0.21.4+007+fix-scrollable-overflown-text.patch](react-native-web+0.21.4+007+fix-scrollable-overflown-text.patch)
-
-- Reason:
-  
-    ```
-    Changes Text component's multiline `overflow` property to clip instead of hiding, thus forbidding scrolling entirely through any mechanism and preventing issues when selecting clipped text.
-    ```
-  
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR introducing patch: https://github.com/Expensify/App/pull/47532
-
 ### [react-native-web+0.21.4+008+fix-nested-flatlist-scroll-on-web.patch](react-native-web+0.21.4+008+fix-nested-flatlist-scroll-on-web.patch)
 
 - Reason:
