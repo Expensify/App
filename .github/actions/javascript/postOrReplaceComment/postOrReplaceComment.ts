@@ -16,10 +16,6 @@ function getMobileExpensifySource(mobileExpensifyPr?: number, mobileExpensifyRef
         return 'Mobile-Expensify `main`';
     }
 
-    if (mobileExpensifyRef) {
-        return `Mobile-Expensify commit Expensify/Mobile-Expensify@${mobileExpensifyRef}`;
-    }
-
     return 'the pinned Mobile-Expensify submodule';
 }
 

@@ -9,7 +9,7 @@ on:
         type: string
         required: false
         default: ''
-      # Mobile-Expensify is resolved in this order: MOBILE_EXPENSIFY_PULL_REQUEST_URL, then MOBILE_EXPENSIFY_MAIN, then an unmerged MOBILE-EXPENSIFY entry in App's PR description, then the commit pinned by the App submodule.
+      # Mobile-Expensify is resolved in this order: MOBILE_EXPENSIFY_PULL_REQUEST_URL, then MOBILE_EXPENSIFY_MAIN, then a MOBILE-EXPENSIFY entry in App's PR description (Mobile-Expensify main if that PR is already merged), then the commit pinned by the App submodule.
       MOBILE_EXPENSIFY_PULL_REQUEST_URL:
         description: The Expensify/Mobile-Expensify pull request URL. Defaults to the pinned submodule commit. Overrides MOBILE-EXPENSIFY set in App's PR description. Cannot be combined with MOBILE_EXPENSIFY_MAIN.
         type: string
