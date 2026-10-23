@@ -10523,7 +10523,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cartes',
-            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exportations',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exports',
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégories',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçants',
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
