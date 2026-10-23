@@ -3,6 +3,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReimbursementAccountConfirmationEdit from '@hooks/useReimbursementAccountConfirmationEdit';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
@@ -122,9 +123,17 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
         skipPages,
     });
 
+    const {moveToEditPage, submitEdit, cancelEdit} = useReimbursementAccountConfirmationEdit({
+        isEditing,
+        reimbursementAccountDraft,
+        nextPage,
+        moveTo,
+    });
+
     const handleBackButtonPress = useCallback(() => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
+            cancelEdit();
             Navigation.goBack(buildRoute(SUB_PAGE_NAMES.CONFIRMATION));
             return;
         }
@@ -146,7 +155,7 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
         } else {
             prevPage();
         }
-    }, [buildRoute, isEditing, isEditingCreatedOwner, pageIndex, prevPage, skipPages]);
+    }, [buildRoute, cancelEdit, isEditing, isEditingCreatedOwner, pageIndex, prevPage, skipPages]);
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator />;
@@ -162,8 +171,8 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
         >
             <CurrentPage
                 isEditing={isEditing}
-                onNext={nextPage}
-                onMove={moveTo}
+                onNext={submitEdit}
+                onMove={moveToEditPage}
                 currentPageName={currentPageName}
                 ownerBeingModifiedID={ownerBeingModifiedID}
                 isUserEnteringHisOwnData={isUserEnteringHisOwnData}
