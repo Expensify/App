@@ -180,6 +180,8 @@ describe('live development worker', () => {
         assert.equal(bundle.headers.get('Cache-Control'), 'no-store');
         assert.equal(missing.status, 404);
         assert.match(missing.headers.get('Content-Type') ?? '', /text\/plain/);
+        // And the 404 keeps the development CSP, like every other live response
+        assert.ok(missing.headers.get('Content-Security-Policy')?.includes(origin.replace('http:', 'ws:')));
     });
 
     test('preserves backend errors/downloads without treating HTML errors as SPA responses', async () => {

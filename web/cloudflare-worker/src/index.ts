@@ -97,9 +97,9 @@ function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'] | 
     headers.set('Document-Policy', 'js-profiling');
 }
 
-function createNotFoundResponse(environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string): Response {
+function createNotFoundResponse(environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, developmentOrigins?: DevelopmentOrigins): Response {
     const notFound = new Response('Not Found', {status: 404, headers: {'Content-Type': 'text/plain; charset=utf-8'}});
-    setSecurityHeaders(notFound.headers, environment, nonce);
+    setSecurityHeaders(notFound.headers, environment, nonce, developmentOrigins);
     return notFound;
 }
 
@@ -213,9 +213,7 @@ export default {
             const previousBuildFile = isAASAPath || isDevelopment ? null : await getPreviousBuildFile(env, url, request.method, isPrecompressed);
             if (!previousBuildFile) {
                 await served.response.body?.cancel();
-                const notFound = new Response('Not Found', {status: 404, headers: {'Content-Type': 'text/plain; charset=utf-8'}});
-                setSecurityHeaders(notFound.headers, env.ENVIRONMENT, nonce, developmentOrigins);
-                return notFound;
+                return createNotFoundResponse(env.ENVIRONMENT, nonce, developmentOrigins);
             }
             await served.response.body?.cancel();
             served = previousBuildFile;
