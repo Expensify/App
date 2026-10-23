@@ -58,10 +58,7 @@ function getAttendeesMinusOwnerCount(attendees: Attendee[], ownerLogin: string |
     return attendees.filter((attendee) => attendee?.email !== ownerLogin).length;
 }
 
-/**
- * Returns whether there are missing attendees for the given category.
- * Pass the login of the expense's report owner, so the result doesn't depend on who is viewing the expense.
- */
+/** Returns whether there are missing attendees for the given category */
 function getIsMissingAttendeesViolation(
     policyCategories: PolicyCategories | undefined,
     category: string,
