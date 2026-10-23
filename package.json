@@ -182,6 +182,7 @@
     "react-dom": "19.3.0",
     "react-error-boundary": "^4.0.11",
     "react-fast-pdf": "^1.0.34",
+    "react-freeze": "1.0.3",
     "react-is": "^18.3.1",
     "react-map-gl": "^8.1.1",
     "react-native": "0.88.0",
