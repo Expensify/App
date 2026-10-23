@@ -32,6 +32,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 let mockPrompt = '';
 let mockIsDescribeRuleBetaEnabled = true;
+const mockScrollTo = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation = jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native');
@@ -124,15 +125,30 @@ jest.mock('@components/Button', () => {
     MockButton.Text = ({children}: {children: React.ReactNode}) => ReactModule.createElement(Text, null, children);
     return MockButton;
 });
-jest.mock('@components/Form/InputWrapper', () => () => null);
+jest.mock('@components/Form/InputWrapper', () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {TextInput} = jest.requireActual<{TextInput: React.ComponentType<{accessibilityLabel?: string; onFocus?: () => void}>}>('react-native');
+    return ({accessibilityLabel, onFocus}: {accessibilityLabel: string; onFocus?: () => void}) => ReactModule.createElement(TextInput, {accessibilityLabel, onFocus});
+});
 jest.mock('@components/Form/FormProvider', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<{
         Pressable: React.ComponentType<{accessibilityLabel?: string; onPress?: () => void; children?: React.ReactNode}>;
         Text: React.ComponentType<{children?: React.ReactNode}>;
     }>('react-native');
-    return ({children, onSubmit, submitButtonText}: {children: React.ReactNode; onSubmit: (values: {prompt: string}) => void; submitButtonText: string}) =>
-        ReactModule.createElement(
+    function MockFormProvider({
+        children,
+        onSubmit,
+        submitButtonText,
+        ref,
+    }: {
+        children: React.ReactNode;
+        onSubmit: (values: {prompt: string}) => void;
+        submitButtonText: string;
+        ref: React.Ref<{scrollTo: (y: number) => void}>;
+    }) {
+        ReactModule.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo}));
+        return ReactModule.createElement(
             ReactModule.Fragment,
             null,
             children,
@@ -142,6 +158,8 @@ jest.mock('@components/Form/FormProvider', () => {
                 ReactModule.createElement(Text, null, submitButtonText),
             ),
         );
+    }
+    return MockFormProvider;
 });
 
 type RulesNewPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_NEW>;
@@ -252,6 +270,19 @@ describe('New rule describe section', () => {
         // Then the error above Next explains both ways forward, and nothing is sent, because the box is optional on New rule
         expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.selectTemplateOrDescribe')]);
         expect(writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.GENERATE_RULE)).toHaveLength(0);
+    });
+
+    it('scrolls to the describe box when it gets focus', async () => {
+        // Given an admin on New rule, where the describe box sits below the templates
+        await renderRulesNewPage();
+        const input = screen.getByLabelText('workspace.rules.newRule.describeRuleInputLabel');
+        fireEvent(input, 'layout', {nativeEvent: {layout: {x: 0, y: 420, width: 300, height: 96}}});
+
+        // When the admin taps the describe box, which opens the keyboard
+        fireEvent(input, 'focus');
+
+        // Then the form scrolls to the top of the box, because iOS and Android do not scroll it above the keyboard
+        expect(mockScrollTo).toHaveBeenCalledWith(420);
     });
 
     it('hides the describe section when New rule opens for a category', async () => {
