@@ -114,6 +114,7 @@ function VerticalBarChartCanvas({
                   canvasWidth: chartWidth,
               }
             : undefined;
+    // `getBarChartLoadingHeight` reserves the same lines while the chart loads, so update the two together.
     const wrapLabelHeight = wrapConfig ? wrapConfig.maxLines * wrapConfig.lineHeight : 0;
     // When wrapping, labelAreaWidth is 0 above so the hook returns EMPTY_LAYOUT (horizontal, skip 1).
     // xAxisLabelHeight is 0 there too, so the wrap height has to be substituted explicitly.

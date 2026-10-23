@@ -19,6 +19,7 @@ function getBarChartHeight(shouldShowLabels = true, xAxisLabelHeight = 0): numbe
 }
 
 // Wrapped labels keep every line of label space even when the names fit on fewer, so their height is known before the chart measures them.
+// Mirrors the wrap height `VerticalBarChartContent` draws, so update the two together.
 function getBarChartLoadingHeight(shouldShowLabels = true, shouldWrapLabels = false): number {
     return getBarChartHeight(shouldShowLabels, shouldWrapLabels ? MAX_BAR_LABEL_LINES * X_AXIS_LABEL_LINE_HEIGHT : 0);
 }
@@ -28,6 +29,7 @@ function hasRoomForSideLegend(chartWidth: number): boolean {
     return chartWidth - CHART_CONTENT_MIN_HEIGHT - VictoryTheme.pie.legendGap >= VictoryTheme.pie.legendMinWidth;
 }
 
+// Mirrors the legend layouts `PieChartContent` draws with the `pieChartLegend*` and `pieChartResponsive*` styles, so update it with any change to their structure or spacing.
 function getPieChartLoadingHeight(chartWidth: number | null, shouldUseNarrowLayout: boolean, shouldShowLegend = true, shouldUseResponsiveLegend = false): number {
     if (shouldShowLegend && shouldUseResponsiveLegend) {
         // Until the card reports its width, the layout stands in for it: phone cards are too narrow for a side legend, and typical desktop cards fit one

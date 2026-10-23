@@ -286,6 +286,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
         </GestureDetector>
     );
 
+    // `getPieChartLoadingHeight` rebuilds the height of both layouts below from the same theme values, so update it with any change to their structure or spacing.
     if (shouldUseResponsiveLegend) {
         return (
             <View style={isLegendSideBySide ? styles.pieChartResponsiveRow : styles.pieChartResponsiveColumn}>

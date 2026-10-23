@@ -7104,6 +7104,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             height: 12,
         },
+        // `getPieChartLoadingHeight` sizes the loading chart from the responsive legend styles below, so update it with them.
         pieChartResponsiveRow: {
             flexDirection: 'row',
             alignItems: 'center',
