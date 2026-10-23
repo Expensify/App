@@ -341,7 +341,7 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(getReportIDs(result)).toEqual([undefined, 'B']);
     });
 
-    it('drops the focused tab route key on wide layout when no pre-mount is revealed', () => {
+    it('keeps the focused tab route key on wide layout when no pre-mount is revealed', () => {
         // Given a wide layout with the Reports tab focused on report A and no wide pre-mount
         mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
         mockGetIsNarrowLayout.mockReturnValue(false);
@@ -355,8 +355,9 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
             stackRouter,
         );
 
-        // Then the Reports split route is keyless and remounts, so reveals that do not use a pre-mount behave as before
-        expect(getReportsSplitRouteKey(result)).toBeUndefined();
+        // Then the Reports split route keeps its key, because wide has no push animation to flash and a remount would
+        // re-render the whole tab, while the destination is still report B
+        expect(getReportsSplitRouteKey(result)).toBe('reports-split-key');
         expect(getReportIDs(result)).toEqual([undefined, 'B']);
     });
 
@@ -429,6 +430,32 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(getReportsSplitState(result)?.key).toBe('reports-split-state-key');
         expect(getReportsSplitState(result)?.routes.at(-1)?.key).toBe('Report-wide-pre-mount-5');
         expect(getReportsSplitState(result)?.routes.at(-1)?.params).toEqual({reportID: 'B'});
+    });
+
+    it('keeps the mounted route object of the wide pre-mount when the reveal asks for the same params', () => {
+        // Given a wide layout with a mounted Reports stack where report B was pre-mounted with the params the reveal asks for
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const state = makeExistingReportsState(
+            [
+                makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'),
+                makeRoute(SCREENS.REPORT, {reportID: 'B'}, undefined, 'Report-wide-pre-mount-5'),
+                makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key'),
+            ],
+            2,
+        );
+        const reportsSplitState = getReportsSplitState(state);
+        if (reportsSplitState) {
+            Object.assign(reportsSplitState, {stale: false, key: 'reports-split-state-key'});
+        }
+        const preMountedRoute = reportsSplitState?.routes.at(1);
+        const action: ReplaceFullscreenUnderRHPActionType = {...makeReportsAction('B'), payload: {...makeReportsAction('B').payload, preMountedRouteKey: 'Report-wide-pre-mount-5'}};
+
+        // When report B is revealed under the RHP
+        const result = handleReplaceFullscreenUnderRHP(state, action, CONFIG_OPTIONS, stackRouter);
+
+        // Then the revealed route is the same object, because a new route object would re-render the revealed screen
+        expect(getReportsSplitState(result)?.routes.at(-1)).toBe(preMountedRoute);
     });
 
     it('rebuilds the route snapshot history of the mounted stack from the revealed routes', () => {

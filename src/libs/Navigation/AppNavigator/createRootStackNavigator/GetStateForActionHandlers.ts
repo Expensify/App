@@ -19,6 +19,7 @@ import type {CommonActions, NavigationState, PartialState, RouterConfigOptions, 
 import type {ParamListBase, Router} from '@react-navigation/routers';
 
 import {StackActions} from '@react-navigation/native';
+import {deepEqual} from 'fast-equals';
 
 import type {
     PushActionType,
@@ -538,10 +539,14 @@ function withPreMountedDestination(builtTabState: TabStateForReplacement, existi
     // A partial state would be rehydrated under a new key, which makes the navigator re-render all of its screens.
     const mountedNestedState = isRealizedNavigationState(existingTargetTabRoute?.state) ? existingTargetTabRoute.state : undefined;
 
-    // Params still come from the built routes, so both branches reveal the destination the action asked for.
+    // Params still come from the built routes, so both branches reveal the destination the action asked for. A route whose
+    // params already match is kept as is, because a new route object re-renders the revealed screen.
     const mountedRoutes = nestedRoutes.map((route) => {
         const existing = mountedNestedState?.routes.find((mountedRoute) => 'key' in route && mountedRoute.key === route.key);
-        return existing ? {...existing, params: route.params} : undefined;
+        if (!existing) {
+            return undefined;
+        }
+        return deepEqual(existing.params ?? {}, route.params ?? {}) ? existing : {...existing, params: route.params};
     });
     const routes = [...builtTabState.routes];
     if (mountedNestedState && mountedRoutes.every((route): route is NonNullable<typeof route> => !!route) && 'key' in targetTabRoute && typeof targetTabRoute.key === 'string') {
@@ -659,10 +664,10 @@ function handleReplaceFullscreenUnderRHP(
             updatedTabState = withoutFocusedTabPreload(withoutPreMountedRoute(builtTabState, preMountedRouteKey));
         }
 
-        // The remount guards against a push-transition flash on narrow layout (#90985). A wide pre-mount reveal keeps the key,
-        // because a remount would drop the pre-mounted screen. Wide renders split screens without a push animation.
+        // The remount guards against a push-transition flash on narrow layout (#90985). Wide renders split screens without a
+        // push animation, so it keeps the key: a remount would drop a pre-mounted screen and re-render the whole tab.
         let tabStateForReplace = updatedTabState;
-        if (preMountedRouteKey && !getIsNarrowLayout()) {
+        if (!getIsNarrowLayout()) {
             tabStateForReplace = withFocusedTabInHistory(updatedTabState);
         } else if (existingTabState) {
             tabStateForReplace = markFocusedTabRouteForRemount(updatedTabState, existingTabState);
