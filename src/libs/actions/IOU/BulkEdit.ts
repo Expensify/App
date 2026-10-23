@@ -617,7 +617,6 @@ function updateMultipleMoneyRequests({
                         updatedAttendees?.map(({avatarUrl, displayName, email}) => ({avatarUrl, displayName, ...(email ? {email} : {})})) ?? [],
                         getRecentAttendees(),
                         // Use || so empty-string emails fall back to displayName for the union key
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         (attendee) => attendee.email || attendee.displayName,
                     ).slice(0, CONST.IOU.MAX_RECENT_ATTENDEES),
                 },

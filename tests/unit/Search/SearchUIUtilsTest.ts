@@ -18,7 +18,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {SearchColumnType, SearchFilterKey, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
+import type {ASTNode, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
 import Navigation from '@navigation/Navigation';
@@ -33,6 +33,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
+import getTransactionFromTransactionListItem, {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@src/libs/getTransactionFromTransactionListItem';
 import {savedSearchIDToSearchKey} from '@src/libs/SearchKeyUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
@@ -44,6 +45,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchTask} from '@src/types/onyx/SearchResults';
+import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
@@ -2912,6 +2914,57 @@ describe('SearchUIUtils', () => {
             expect(allReportActionsLength).toBe(6);
         });
 
+        it('should hide a MARKED_REIMBURSED action that has a sibling PAY action in the Search snapshot when the report is not loaded into Onyx', () => {
+            // Given a CHAT search result whose report only exists in the snapshot, with a stale MARKED_REIMBURSED action and its sibling PAY action
+            const snapshotReportID = 'snapshotOnlyReportID';
+            const markedReimbursedAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: 'markedReimbursedActionID',
+                reportID: snapshotReportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            } as OnyxTypes.ReportAction;
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: 'payActionID',
+                reportID: snapshotReportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: snapshotReportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as OnyxTypes.ReportAction;
+            const data: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${snapshotReportID}`]: {
+                    [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                    [payAction.reportActionID]: payAction,
+                },
+            };
+
+            // When the CHAT sections are built from the snapshot
+            const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
+                type: CONST.SEARCH.DATA_TYPES.CHAT,
+                data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                rules: undefined,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+                reportAttributesDerivedValue: {},
+            });
+
+            // Then only the PAY action is listed, because the snapshot is used to find the sibling of the MARKED_REIMBURSED action
+            const snapshotReportActionIDs = sections
+                .filter(SearchUIUtils.isReportActionListItemType)
+                .filter((item) => item.reportID === snapshotReportID)
+                .map((item) => item.reportActionID);
+            expect(snapshotReportActionIDs).toStrictEqual([payAction.reportActionID]);
+        });
+
         it('should return getTransactionsSections result when groupBy is undefined', () => {
             expect(
                 SearchUIUtils.getSections({
@@ -4015,6 +4068,7 @@ describe('SearchUIUtils', () => {
                 groupedBy: CONST.SEARCH.GROUP_BY.DAY,
                 formattedDay: 'September 15, 2026',
                 shortFormattedDay: 'Sep 15, ’26',
+                lineChartFormattedDay: 'Sep 15',
                 transactions: [],
                 transactionsQueryJSON: undefined,
                 keyForList: 'group_2026-09-15',
@@ -4276,6 +4330,7 @@ describe('SearchUIUtils', () => {
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
                 formattedWeek: 'Jan 25 - Jan 31, 2026',
                 shortFormattedWeek: 'Jan 25 - 31, ’26',
+                lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                 transactions: [],
                 transactionsQueryJSON: undefined,
                 keyForList: '2026-01-25-01-25',
@@ -4876,6 +4931,7 @@ describe('SearchUIUtils', () => {
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
                     formattedWeek: 'Jan 25 - Jan 31, 2026',
                     shortFormattedWeek: 'Jan 25 - 31, ’26',
+                    lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                     transactions: [],
                     transactionsQueryJSON: undefined,
                     keyForList: 'group_2026-01-25',
@@ -4888,6 +4944,7 @@ describe('SearchUIUtils', () => {
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
                     formattedWeek: 'Dec 21 - Dec 27, 2025',
                     shortFormattedWeek: 'Dec 21 - 27, ’25',
+                    lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2025-12-21', undefined, new Date().getFullYear() !== 2025),
                     transactions: [],
                     transactionsQueryJSON: undefined,
                     keyForList: 'group_2025-12-21',
@@ -5311,7 +5368,7 @@ describe('SearchUIUtils', () => {
             expect(emptyMerchantItem?.transactionsQueryJSON).toBeDefined();
             // The query should use 'none' (MERCHANT_EMPTY_VALUE) instead of empty string
             expect(emptyMerchantItem?.transactionsQueryJSON?.inputQuery).toContain(CONST.SEARCH.MERCHANT_EMPTY_VALUE);
-            expect(emptyMerchantItem?.transactionsQueryJSON?.exactMatchFilterKeys).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+            expect(emptyMerchantItem?.transactionsQueryJSON?.inputQuery).toContain(`merchant=${CONST.SEARCH.MERCHANT_EMPTY_VALUE}`);
         });
 
         it('should treat DEFAULT_MERCHANT "Expense" as empty merchant and display "No merchant"', () => {
@@ -8183,6 +8240,96 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('Merchant group exact match', () => {
+        function findFilterNode(node: ASTNode | null | undefined, key: string): ASTNode | undefined {
+            if (!node) {
+                return undefined;
+            }
+            if (node.left === key) {
+                return node;
+            }
+            const leftMatch = typeof node.left === 'object' ? findFilterNode(node.left, key) : undefined;
+            if (leftMatch) {
+                return leftMatch;
+            }
+            return typeof node.right === 'object' && !Array.isArray(node.right) ? findFilterNode(node.right, key) : undefined;
+        }
+
+        function getMerchantNode(queryJSON: SearchQueryJSON): ASTNode | undefined {
+            return findFilterNode(queryJSON.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+        }
+
+        function getMerchantDrillDownQuery(merchant: string): SearchQueryJSON | undefined {
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: {
+                        personalDetailsList: {},
+                        [`${CONST.SEARCH.GROUP_PREFIX}777777777` as const]: {merchant, count: 1, currency: 'USD', total: 10},
+                    },
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+                    queryJSON: buildSearchQueryJSON('type:expense groupBy:merchant'),
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionMerchantGroupListItemType,
+            );
+            return result.at(0)?.transactionsQueryJSON;
+        }
+
+        it('should send an exact merchant match when drilling down into a merchant group', () => {
+            // Given a merchant group "Amazon", where a contains match would also load "Amazon Marketplace" expenses
+            // When the sections build the drill-down query for that group
+            const drillDownQueryJSON = getMerchantDrillDownQuery('Amazon');
+            if (!drillDownQueryJSON) {
+                throw new Error('Expected the merchant drill-down query to be defined');
+            }
+
+            // Then the query uses the exact `merchant=` syntax and the backend receives it unchanged as `eq`,
+            // so only the group's own expenses load
+            expect(drillDownQueryJSON.inputQuery).toContain('merchant=Amazon');
+            expect(SearchQueryUtils.serializeQueryJSONForBackend(drillDownQueryJSON)).toBe(JSON.stringify(drillDownQueryJSON));
+            const merchantNode = getMerchantNode(drillDownQueryJSON);
+            expect(merchantNode?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+            expect(merchantNode?.right).toBe('Amazon');
+        });
+
+        it.each(['merchant:Amazon', 'merchant*:Amazon'])('should give the merchant drill-down query a different hash than the same search with %s', (containsFilter) => {
+            // Given the drill-down query of the "Amazon" group and the same search with a contains merchant filter
+            const drillDownQueryJSON = getMerchantDrillDownQuery('Amazon');
+            const containsQueryJSON = buildSearchQueryJSON(drillDownQueryJSON?.inputQuery.replace('merchant=Amazon', containsFilter) ?? '');
+
+            // When the two queries are compared
+            // Then their hashes differ, because `merchant=` already makes the query string differ, so the snapshots never share results
+            expect(containsQueryJSON?.inputQuery).toContain(containsFilter);
+            expect(drillDownQueryJSON?.hash).not.toBe(containsQueryJSON?.hash);
+            expect(drillDownQueryJSON?.recentSearchHash).not.toBe(containsQueryJSON?.recentSearchHash);
+        });
+
+        it('should give each selected merchant group a merchant filter entry with its own value', () => {
+            // Given the "Amazon" group and the "No merchant" group of a merchant-grouped search
+            const groups = [{merchant: 'Amazon'}, {merchant: ''}];
+
+            // When the export builds the filter entry for each selected group
+            const selectedGroupEntries = groups.map((group) => SearchUIUtils.getSelectedGroupFilterEntry(CONST.SEARCH.GROUP_BY.MERCHANT, group));
+
+            // Then each entry filters on merchant with the group's own value, and the empty merchant maps to `none`,
+            // so the export can match each group exactly. The hook test checks that the backend gets `eq`.
+            expect(selectedGroupEntries).toEqual([
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: 'Amazon'},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: CONST.SEARCH.MERCHANT_EMPTY_VALUE},
+            ]);
+        });
+    });
+
     describe('Test getSortedSections', () => {
         it('should return getSortedReportActionData result when type is CHAT', () => {
             const sortedActions = getSortedSectionsByType(
@@ -8365,6 +8512,7 @@ describe('SearchUIUtils', () => {
         it.each([
             {columnName: 'Reimbursable', sortBy: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, boolOverride: {reimbursable: true}},
             {columnName: 'Billable', sortBy: CONST.SEARCH.TABLE_COLUMNS.BILLABLE, boolOverride: {billable: true}},
+            {columnName: 'Held', sortBy: CONST.SEARCH.TABLE_COLUMNS.HELD, boolOverride: {comment: {hold: '123'}}},
         ])('should still tie-break tied $columnName rows by inserted honoring sortOrder', ({sortBy, boolOverride}) => {
             // Guards against this fix over-reaching: boolean columns resolve to a non-empty "yes"/"no" value, so every row
             // ties on the primary comparison but is NOT empty — the inserted/transactionID tie breaker must still run and
@@ -8400,6 +8548,43 @@ describe('SearchUIUtils', () => {
 
             expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['bool-jan', 'bool-feb', 'bool-mar']);
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['bool-mar', 'bool-feb', 'bool-jan']);
+        });
+
+        it('should sort the held column by whether the expense is on hold, with expenses not on hold first when ascending', () => {
+            // Given one expense on hold, one that was unheld (its hold is an empty string), and one that was never held
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const transactions: TransactionListItemType[] = [
+                {...baseTransaction, transactionID: 'held', keyForList: 'held', inserted: '2024-01-01', comment: {hold: '123'}},
+                {...baseTransaction, transactionID: 'unheld', keyForList: 'unheld', inserted: '2024-02-02', comment: {hold: ''}},
+                {...baseTransaction, transactionID: 'never-held', keyForList: 'never-held', inserted: '2024-03-03', comment: {}},
+            ];
+
+            // When the expenses are sorted by the held column in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.HELD,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.HELD,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                undefined,
+            );
+
+            // Then the expense on hold comes last ascending and first descending, and the unheld expense counts as not held
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['unheld', 'never-held', 'held']);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['held', 'never-held', 'unheld']);
         });
 
         it('should sort the exported-to column by export name, with never exported rows first when ascending', () => {
@@ -10245,6 +10430,86 @@ describe('SearchUIUtils', () => {
             expect(payItem).toBeDefined();
             expect(exportItem).toBeDefined();
         });
+
+        describe('Travel section', () => {
+            const createSectionsForPolicy = (travelSettings: WorkspaceTravelSettings | undefined) =>
+                SearchUIUtils.createTypeMenuSections({
+                    currentUserEmail: adminEmail,
+                    currentUserAccountID: adminAccountID,
+                    cardFeedsByPolicy: {},
+                    defaultCardFeed: undefined,
+                    policies: {
+                        policy1: {
+                            ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                            isTravelEnabled: true,
+                            travelSettings,
+                        },
+                    },
+                    savedSearches: {},
+                    isOffline: false,
+                    defaultExpensifyCard: undefined,
+                    draftTransactionIDs: [],
+                    isTrackIntentUser: false,
+                });
+
+            it('should show the Travel section with Trips when a workspace is set up for Expensify Travel', () => {
+                // Given a workspace that is set up in Spotnana
+                const sections = createSectionsForPolicy({spotnanaCompanyID: 'spotnana-company-1', hasAcceptedTerms: true});
+
+                // When looking for the Travel section in the Spend menu
+                const travelSection = sections.find((section) => section.translationPath === 'search.tabs.travel');
+
+                // Then it holds only the Trips search, which is a trip search
+                expect(travelSection?.menuItems).toHaveLength(1);
+                expect(travelSection?.menuItems.at(0)).toStrictEqual(
+                    expect.objectContaining({
+                        key: CONST.SEARCH.SEARCH_KEYS.TRIPS,
+                        translationPath: 'search.tabs.trips',
+                        type: CONST.SEARCH.DATA_TYPES.TRIP,
+                        icon: 'Plane',
+                    }),
+                );
+            });
+
+            it('should show the Travel section when the travel domain is linked even without a Spotnana company', () => {
+                // Given a workspace provisioned through its travel domain only, since either ID means it's set up for travel
+                const sections = createSectionsForPolicy({associatedTravelDomainAccountID: '123'});
+
+                // When looking for the Travel section in the Spend menu
+                const travelSection = sections.find((section) => section.translationPath === 'search.tabs.travel');
+
+                // Then the Travel section shows
+                expect(travelSection).toBeDefined();
+            });
+
+            it('should not show the Travel section when travel is only switched on but the workspace is not set up', () => {
+                // Given a workspace with the travel feature switched on but not provisioned in Spotnana, since isTravelEnabled is only the feature switch
+                const sections = createSectionsForPolicy(undefined);
+
+                // When looking for the Trips search in the Spend menu
+                const menuKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
+
+                // Then there is no Travel section and no Trips search
+                expect(sections.find((section) => section.translationPath === 'search.tabs.travel')).toBeUndefined();
+                expect(menuKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.TRIPS);
+            });
+
+            it('should remove the Travel section for users without the TravelApproval beta', () => {
+                // Given a user in a workspace set up for travel
+                const sections = createSectionsForPolicy({spotnanaCompanyID: 'spotnana-company-1'});
+                expect(sections.find((section) => section.translationPath === 'search.tabs.travel')).toBeDefined();
+
+                // When the menu drops the items behind the TravelApproval beta, as it does when the beta is off
+                const menuSections = SearchUIUtils.omitTravelApprovalMenuItems(sections);
+                const menuKeys = menuSections.flatMap((section) => section.menuItems.map((item) => item.key));
+
+                // Then the empty Travel section is removed and the other sections stay as they are
+                expect(menuSections.find((section) => section.translationPath === 'search.tabs.travel')).toBeUndefined();
+                expect(menuKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.TRIPS);
+                expect(menuSections).toHaveLength(sections.length - 1);
+                expect(menuKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            });
+        });
     });
 
     describe('Test isSearchDataLoaded', () => {
@@ -10761,6 +11026,32 @@ describe('SearchUIUtils', () => {
             // A report awaiting the user's approval surfaces the suggestion regardless of workflow membership.
             const withReport = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, true);
             expect(withReport.visibility.approve).toBe(true);
+        });
+
+        test('Should not throw when employeeList contains a null entry', () => {
+            // Given an approval-enabled policy whose employeeList holds a null entry, which Onyx can leave behind when
+            // several policy updates are applied in one batch
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.USER,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: 'someoneelse@policy.com',
+                    employeeList: {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This entry deliberately exercises the runtime guard for a null employee.
+                        'removed@policy.com': null as unknown as OnyxTypes.PolicyEmployee,
+                        'employee@policy.com': {email: 'employee@policy.com', submitsTo: adminEmail},
+                    },
+                },
+            };
+
+            // When the suggested searches visibility is computed
+            const getVisibility = () => SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+
+            // Then it skips the null entry instead of crashing, and still finds the member who submits to the user
+            expect(getVisibility).not.toThrow();
+            expect(getVisibility().visibility.approve).toBe(true);
         });
 
         test('Should show Top Categories when areCategoriesEnabled is true', () => {
@@ -13351,6 +13642,22 @@ describe('SearchUIUtils', () => {
             expect(transaction).toBeTruthy();
         });
 
+        it('Should not save Search row display fields on the optimistic transaction', async () => {
+            // Given a Search row whose transaction isn't in Onyx yet
+            const transactionListItem = getTransactionListItem(0);
+
+            // When the transaction thread preview data is set optimistically
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal, undefined);
+            await waitForBatchedUpdates();
+
+            // Then only the real transaction fields are saved, so display values can't shadow later edits
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionListItem.transactionID}`);
+            expect(transaction?.transactionID).toBe(transactionListItem.transactionID);
+            for (const fieldName of SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES) {
+                expect(transaction).not.toHaveProperty(fieldName);
+            }
+        });
+
         it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
             setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, undefined, '456');
@@ -13360,6 +13667,25 @@ describe('SearchUIUtils', () => {
             const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}456`);
 
             expect(transactionThread).toBeTruthy();
+        });
+    });
+
+    describe('getTransactionFromTransactionListItem', () => {
+        it('removes the display-only fields of a Search row and keeps the transaction fields', () => {
+            // Given a Search row, which carries display-only fields on top of the transaction
+            const transactionListItem = getTransactionListItem(0);
+
+            // When it is turned back into a transaction
+            const transaction = getTransactionFromTransactionListItem(transactionListItem);
+
+            // Then the row-only fields are gone and the real transaction fields are untouched
+            for (const fieldName of SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES) {
+                expect(transaction).not.toHaveProperty(fieldName);
+            }
+            expect(transaction.transactionID).toBe(transactionListItem.transactionID);
+            expect(transaction.reportID).toBe(transactionListItem.reportID);
+            expect(transaction.amount).toBe(transactionListItem.amount);
+            expect(transaction.merchant).toBe(transactionListItem.merchant);
         });
     });
 
@@ -13561,7 +13887,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined, undefined)).toBe(true);
         });
 
         it('should show delete option for unreported expense which can be deleted', async () => {
@@ -13747,7 +14073,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined, undefined)).toBe(true);
         });
     });
     describe('getToFieldValueForTransaction', () => {
@@ -14672,6 +14998,32 @@ describe('SearchUIUtils', () => {
 
             expect(result).toBe(translateLocal('common.read'));
         });
+
+        test.each([
+            [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'search.filters.merchant.equalTo'],
+            [CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, 'search.filters.merchant.contains'],
+            [undefined, 'search.filters.merchant.contains'],
+        ] as const)('includes the %s match type in a Merchant filter label', (merchantOperator, translationKey) => {
+            // Given a Merchant filter with an exact, contains, or missing operator
+            const form = {[FILTER_KEYS.MERCHANT]: 'I', [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator};
+
+            // When the filter label is built
+            const result = SearchUIUtils.getDisplayValue(FILTER_KEYS.MERCHANT, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            // Then the match type is part of the translated label, so a missing operator reads as contains
+            expect(result).toBe(translateLocal(translationKey, 'I'));
+        });
+
+        test.each([FILTER_KEYS.BILLABLE_NOT, FILTER_KEYS.REIMBURSABLE_NOT, FILTER_KEYS.DECLINED_NOT] as const)('translates the yes/no value of a negated %s filter', (key) => {
+            // Given a negated yes/no filter, as stored when the query is "-billable:yes", "-reimbursable:yes" or "-declined:yes"
+            const form = {[key]: CONST.SEARCH.BOOLEAN.YES};
+
+            // When the filter label is built
+            const result = SearchUIUtils.getDisplayValue(key, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            // Then the label uses the localized value instead of the raw query token, matching the non-negated filter
+            expect(result).toBe(translateLocal('common.yes'));
+        });
     });
 
     describe('filterValidHasValues', () => {
@@ -15281,6 +15633,14 @@ describe('hasFilterContentValuesChanged', () => {
             ignored: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'a', type: CONST.SEARCH.DATA_TYPES.INVOICE}],
         },
         {
+            kind: 'merchant, reading its match type',
+            filterKey: SYNTAX_FILTER_KEYS.MERCHANT,
+            read: [
+                {[SYNTAX_FILTER_KEYS.MERCHANT]: 'a', [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS},
+                {[SYNTAX_FILTER_KEYS.MERCHANT]: 'a', [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO},
+            ],
+        },
+        {
             kind: 'amount',
             filterKey: SYNTAX_FILTER_KEYS.AMOUNT,
             read: [
@@ -15322,5 +15682,22 @@ describe('hasFilterContentValuesChanged', () => {
         if (ignored) {
             expect(SearchUIUtils.hasFilterContentValuesChanged(filterKey, ignored.at(0), ignored.at(1))).toBe(false);
         }
+    });
+});
+
+describe('getDatePresets', () => {
+    it('does not offer never for anyApproval', () => {
+        // Given anyApproval, which always matches an approval action
+        // When presets are requested
+        const presets = SearchUIUtils.getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL, false);
+
+        // Then only the common date presets are returned, without never
+        expect(presets).toEqual([
+            CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
+            CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
+            CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
+        ]);
+        expect(presets).not.toContain(CONST.SEARCH.DATE_PRESETS.NEVER);
     });
 });

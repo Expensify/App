@@ -4,21 +4,25 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
 
 import type {ConnectionListing} from './types';
 
 import ConnectionCard from './ConnectionCard';
+import ExactOnlineWaitlistCard from './ExactOnlineWaitlistCard';
 
 // Invisible fillers take the empty slots of the last row so its cards keep their column width
 const FILLER_COUNT = 2;
 
 type ConnectionsGridProps = {
     listings: ConnectionListing[];
+    policyID?: string;
 };
 
-function ConnectionsGrid({listings}: ConnectionsGridProps) {
+function ConnectionsGrid({listings, policyID}: ConnectionsGridProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     // Medium screens can leave less than a card's minimum width once both navigation panes are shown
@@ -26,13 +30,20 @@ function ConnectionsGrid({listings}: ConnectionsGridProps) {
 
     return (
         <View style={styles.connectionsGrid}>
-            {listings.map((listing) => (
-                <ConnectionCard
-                    key={listing.key}
-                    listing={listing}
-                    shouldUseFullWidth={shouldStackCards}
-                />
-            ))}
+            {listings.map((listing) =>
+                listing.key === CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE ? (
+                    <ExactOnlineWaitlistCard
+                        key={listing.key}
+                        policyID={policyID}
+                    />
+                ) : (
+                    <ConnectionCard
+                        key={listing.key}
+                        listing={listing}
+                        shouldUseFullWidth={shouldStackCards}
+                    />
+                ),
+            )}
             {!shouldStackCards &&
                 Array.from({length: FILLER_COUNT}, (_, index) => (
                     <View
