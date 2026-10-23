@@ -16,6 +16,7 @@ This is how the application manages all the data stored in Onyx.
 This improves performance and lessens the chance that one action will overwrite the changes made by another action.
 
 ### - UI Components MUST NOT call Onyx methods directly and should call an action instead
+The one exception is a one-shot `Onyx.get()` or `Onyx.multiGet()` inside an event handler of a component, page or hook, under the rules in the reading section below.
 ### - Data SHOULD be optimistically stored on disk whenever possible without waiting for a server response
 Example of creating a new optimistic comment:
 1. User adds a comment
@@ -37,13 +38,15 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 - Add the key to the `evictableKeys` option in `Onyx.init(options)`
 - A least recently accessed key will only be deleted when an Onyx operation retries after failing.
 
-## Reading Onyx data: `useOnyx` vs `Onyx.connectWithoutView`
-There are only two ways to read Onyx data, and `Onyx.connect` is deprecated:
+## Reading Onyx data: `useOnyx`, `Onyx.connectWithoutView`, `Onyx.get()` and `Onyx.multiGet()`
+There are four ways to read Onyx data, and `Onyx.connect` is deprecated:
 1. **`useOnyx`** (from `@hooks/useOnyx`) — the default for anything a React component renders.
 2. **`Onyx.connectWithoutView`** — an imperative subscription for non-render logic, used only when `useOnyx` genuinely does not fit.
+3. **`Onyx.get()`**: an asynchronous, one-shot read of the cache that never subscribes, for event handlers in components, pages and hooks.
+4. **`Onyx.multiGet()`**: takes an array of keys and resolves each one the way `Onyx.get()` does, in the order given. Every `Onyx.get()` rule below applies to it and to each key it reads.
 
 ### - Prefer a pure function over reading Onyx at all
-A pure function does not read Onyx itself — it receives the data it needs as parameters, and its caller does the reading (with `useOnyx` or `Onyx.connectWithoutView`) and passes it in. Before adding either subscription, check whether the code can be a pure function instead: it needs no connection, is trivial to test, and cannot cause extra rerenders. Prefer this even when it means passing more arguments. This takes precedence over everything below.
+A pure function does not read Onyx itself — it receives the data it needs as parameters, and its caller does the reading (with `useOnyx`, `Onyx.connectWithoutView` or, in an event handler, `Onyx.get()`) and passes it in. Before adding either subscription, check whether the code can be a pure function instead: it needs no connection, is trivial to test, and cannot cause extra rerenders. Prefer this even when it means passing more arguments. This takes precedence over everything below.
 
 ### - Components MUST read Onyx with `useOnyx`, never `Onyx.connectWithoutView`
 Any value used during render belongs in `useOnyx` so the UI updates when the value changes.
@@ -59,6 +62,25 @@ Add an inline comment at each new `Onyx.connectWithoutView` call stating why the
 
 ### - Using `Onyx.connectWithoutView` in a component for performance REQUIRES @frontend-performance approval
 In rare cases a component that subscribes to multiple large collections through `useOnyx` suffers a significant performance regression. Reaching for `Onyx.connectWithoutView` to avoid that is an explicit exception, not a self-serve option: it MUST be approved by the `@frontend-performance` team on Slack, and the PR description MUST link to that discussion.
+
+### - `Onyx.get()` is ONLY for event handlers in components, pages and hooks
+It reads the cache once and never subscribes, so the value it returns MUST NOT reach rendered output, directly or through state, a ref or a module variable. Use it in event handlers and `useCallback` bodies under `src/components`, `src/pages` and `src/hooks`. Never during render, at module scope, or in code an effect runs.
+
+### - `Onyx.get()` MUST NOT read the Search snapshot keys
+`@hooks/useOnyx` redirects the keys in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` to a Search snapshot inside a `SearchScopeProvider`, and `Onyx.get()` always reads the global key. These keys stay on `useOnyx`, and no element of an `Onyx.multiGet()` key list may be one of them. Write that list as an array literal of static keys, or a `const` bound to one, declared once in the same file, not exported, and only ever passed to `Onyx.multiGet()`, so lint can check each element.
+
+Live data is right only when the read replaces a subscription that never went through the `useOnyx` redirection, such as a module-level `Onyx.connect()` used from handlers only. Then disable `rulesdir/no-onyx-get-snapshot-key` on that line (for `Onyx.multiGet()`, the line of the call, which covers every key in the list) with a reason after `--`, for example `// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot`. The reason is required, one line at a time, and reviewers judge it. A read of the Concierge chat always wants the live report, whatever Search scope the component sits in, so `Onyx.get()` may read `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}` without a disable when `conciergeReportID` is a `const` in the same file bound to a read of `ONYXKEYS.CONCIERGE_REPORT_ID`.
+
+### - Reads MUST come before a write in the same tick, or after the write is awaited
+`Onyx.get()` captures the cache when it is called, and most writes land later, so a read queued behind a write returns the old value. A derived key (`ONYXKEYS.DERIVED.*`) lags its sources, so read it only before writing them.
+
+### - A subscription that triggers work MUST stay on `useOnyx`
+If the value re-runs an effect, directly or through a callback in a dependency array, a one-shot read stops that effect from re-running.
+
+### - Reapply the `selector` and never mutate the result
+`Onyx.get()` returns the stored value, not the `selector` projection `useOnyx` hands out, and a read returns the cached object itself, for a single key and for every member of a collection, so writing to it changes the cache without telling subscribers.
+
+`rulesdir/no-unsafe-onyx-read` enforces where a read may run and cannot be disabled inline in any linted file outside `tests/`. `rulesdir/no-onyx-get-snapshot-key` enforces which keys it may read, and can be disabled only with a reason after `--`. [ONYX-1](../../.claude/skills/app-coding-standards/rules/onyx-1-no-render-reachable-onyx-read.md) covers the rest in review, with examples.
 
 ## Onyx Derived Values
 
