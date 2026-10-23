@@ -80,6 +80,17 @@ const REACT_COMPILER_CONFIG_KEY = JSON.stringify(oxcReactCompilerConfig());
 
 const REACT_COMPILER_OPTIONS = oxcReactCompilerConfig();
 
+const COVERAGE_PACKAGES = ['@babel/core', 'babel-plugin-istanbul', '@babel/plugin-transform-modules-commonjs', '@babel/plugin-transform-dynamic-import'];
+
+let coverageVersionsKey;
+// The coverage pass output depends on these packages, so a bump must miss the Jest cache.
+function getCoverageVersionsKey() {
+    if (!coverageVersionsKey) {
+        coverageVersionsKey = COVERAGE_PACKAGES.map((name) => `${name}@${require(`${name}/package.json`).version}`).join(',');
+    }
+    return coverageVersionsKey;
+}
+
 function getLang(filename) {
     const ext = path.extname(filename).slice(1);
     if (ext === 'tsx') {
@@ -95,12 +106,8 @@ function shouldUseOxc(filename) {
     return !NODE_MODULES_RE.test(filename) && !TESTS_RE.test(filename) && !JEST_SETUP_RE.test(filename) && !MOCKS_RE.test(filename) && !TEST_FILE_RE.test(filename);
 }
 
-/**
- * Coverage runs: OXC compiles as usual, then one light Babel pass converts to CommonJS and adds the
- * istanbul counters, reading OXC's source map so coverage points at the original lines. That replaces
- * esbuild rather than adding a third pass after it.
- */
-function processWithOxcForCoverage(sourceText, sourcePath, transformOptions) {
+/** Compile with OXC (TS, JSX and React Compiler). Returns null on a fatal error so the caller falls back to babel-jest. */
+function compileWithOxc(sourceText, sourcePath) {
     const {transformSync} = getOxcPipeline();
     const oxcResult = transformSync(sourcePath, sourceText, {
         lang: getLang(sourcePath),
@@ -110,6 +117,19 @@ function processWithOxcForCoverage(sourceText, sourcePath, transformOptions) {
     });
 
     if (oxcResult.fatal || !oxcResult.code) {
+        return null;
+    }
+    return oxcResult;
+}
+
+/**
+ * Coverage runs: OXC compiles as usual, then one light Babel pass converts to CommonJS and adds the
+ * istanbul counters, reading OXC's source map so coverage points at the original lines. That replaces
+ * esbuild rather than adding a third pass after it.
+ */
+function processWithOxcForCoverage(sourceText, sourcePath, transformOptions) {
+    const oxcResult = compileWithOxc(sourceText, sourcePath);
+    if (!oxcResult) {
         return null;
     }
 
@@ -131,18 +151,12 @@ function processWithOxcForCoverage(sourceText, sourcePath, transformOptions) {
 }
 
 function processWithOxc(sourceText, sourcePath) {
-    const {esbuild, transformSync} = getOxcPipeline();
-    const oxcResult = transformSync(sourcePath, sourceText, {
-        lang: getLang(sourcePath),
-        sourcemap: true,
-        jsx: {runtime: 'automatic', development: true},
-        reactCompiler: REACT_COMPILER_OPTIONS,
-    });
-
-    if (oxcResult.fatal || !oxcResult.code) {
+    const oxcResult = compileWithOxc(sourceText, sourcePath);
+    if (!oxcResult) {
         return null;
     }
 
+    const {esbuild} = getOxcPipeline();
     // esbuild chains an inline input map, so its output maps straight back to the original file.
     const inputMap = Buffer.from(JSON.stringify(oxcResult.map)).toString('base64');
     const cjs = esbuild.transformSync(`${oxcResult.code}\n//# sourceMappingURL=data:application/json;base64,${inputMap}`, {
@@ -175,7 +189,7 @@ module.exports = {
             .update(REACT_COMPILER_CONFIG_KEY)
             .update(esbuild.version)
             .update(oxcVersion)
-            .update(transformOptions?.instrument ? 'instrument' : '')
+            .update(transformOptions?.instrument ? `instrument:${getCoverageVersionsKey()}` : '')
             .digest('hex');
     },
     process(sourceText, sourcePath, transformOptions) {

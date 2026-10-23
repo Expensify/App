@@ -181,5 +181,10 @@ module.exports = (api) => {
         return repack;
     }
 
-    return runningIn === 'babel-jest' || runningIn === 'metro' ? metro : {};
+    // React Compiler now runs only in OXC (Re.Pack and Jest), so a Metro bundle would ship without it.
+    if (runningIn === 'metro') {
+        throw new Error('Metro bundles no longer run React Compiler. Build with Re.Pack instead (unset BUNDLER=metro).');
+    }
+
+    return runningIn === 'babel-jest' ? metro : {};
 };
