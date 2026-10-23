@@ -142,7 +142,7 @@ The **Agents** tab holds agent rules, which are written in plain language and ru
 
 - **Restrict card spend** – Block or limit spend at the point of sale.
 - **Flag for review** – Notify when your conditions are met.
-- **Set field requirements** – Require receipts, categories, and other fields.
+- **Set field requirements** – Receipts, categories, etc.
 - **Apply expense defaults** – Update fields automatically.
 - **Describe agent rule** – Create flexible rules that run when you need.
 
