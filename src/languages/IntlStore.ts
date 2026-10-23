@@ -278,12 +278,16 @@ class IntlStore {
             });
     }
 
-    public static get<TPath extends TranslationPaths>(key: TPath, locale?: Locale) {
+    public static get<TPath extends TranslationPaths>(key: TPath, locale?: Locale): FlatTranslationsObject[TPath] | null;
+
+    public static get(key: TranslationPaths | `allCountries.${string}`, locale?: Locale): FlatTranslationsObject[TranslationPaths] | null;
+
+    public static get(key: TranslationPaths | `allCountries.${string}`, locale?: Locale): FlatTranslationsObject[TranslationPaths] | null {
         const localeToUse = locale && this.cache.has(locale) ? locale : this.currentLocale;
         if (!localeToUse) {
             return null;
         }
-        const translations = this.cache.get(localeToUse);
+        const translations: (FlatTranslationsObject & Partial<Record<`allCountries.${string}`, string>>) | undefined = this.cache.get(localeToUse);
         return translations?.[key] ?? null;
     }
 }

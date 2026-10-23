@@ -35,7 +35,6 @@ import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
-import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -231,7 +230,7 @@ function getPayMoneyRequestParams({
             introSelected,
             activePolicy,
             conciergeChat,
-            companySize: introSelected?.companySize as OnboardingCompanySize,
+            companySize: introSelected?.companySize,
             isSelfTourViewed,
             delegateAccountID,
             // This workspace is created by the invoice payment command, which does not apply CreatePolicy's
@@ -867,7 +866,7 @@ function completePaymentOnboarding(
         onboardingPolicyID,
         paymentSelected,
         wasInvited: true,
-        companySize: introSelected?.companySize as OnboardingCompanySize,
+        companySize: introSelected?.companySize,
         introSelected,
         isSelfTourViewed,
         conciergeChat,
