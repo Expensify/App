@@ -238,6 +238,7 @@ const RULE_TRIGGERS = {
     REPORT_SUBMIT: 'ReportSubmit',
     REPORT_APPROVE: 'ReportApprove',
     CREATE_TRANSACTION: 'CreateTransaction',
+    UPDATE_TRANSACTION: 'UpdateTransaction',
 } as const;
 
 const EMAIL = {
@@ -448,9 +449,6 @@ const CONST = {
     RECEIPT_CAMERA: {
         PHOTO_WIDTH: 2880,
         PHOTO_HEIGHT: 2160,
-        // iPhones offer no 4:3 photo size between 3 MP and 12 MP, so the 6 MP target above selects 2016x1512
-        IOS_STILL_WIDTH: 4032,
-        IOS_STILL_HEIGHT: 3024,
         PHOTO_ASPECT_RATIO: 4 / 3,
     },
 
@@ -672,6 +670,14 @@ const CONST = {
             PDF: 'pdf',
             RECEIPTS: 'receipts',
         },
+    },
+    BULK_ACTION: {
+        STATE: {
+            RUNNING: 'running',
+            DONE: 'done',
+            FAILED: 'failed',
+        },
+        DELETE_EXPENSES: 'deleteExpenses',
     },
 
     SECURE_DOWNLOAD_TYPE: {
@@ -1451,6 +1457,7 @@ const CONST = {
         COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         DESCRIBE_RULE: 'describeRule',
+        TRAVEL_APPROVAL: 'travelApproval',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1962,7 +1969,6 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2179,6 +2185,7 @@ const CONST = {
                     ADD_OFFICE_LOCATION: 'POLICYCHANGELOG_ADD_OFFICE_LOCATION',
                     UPDATE_OFFICE_LOCATION: 'POLICYCHANGELOG_UPDATE_OFFICE_LOCATION',
                     DELETE_OFFICE_LOCATION: 'POLICYCHANGELOG_DELETE_OFFICE_LOCATION',
+                    UPDATE_EMPLOYEE_OFFICE_LOCATION: 'POLICYCHANGELOG_UPDATE_EMPLOYEE_OFFICE_LOCATION',
                     ADD_RULE: 'POLICYCHANGELOG_ADD_RULE',
                     UPDATE_RULE: 'POLICYCHANGELOG_UPDATE_RULE',
                     REMOVE_RULE: 'POLICYCHANGELOG_REMOVE_RULE',
@@ -2288,6 +2295,8 @@ const CONST = {
                     UPDATE_CARD_FEED_LIABILITY: 'POLICYCHANGELOG_UPDATE_CARD_FEED_LIABILITY',
                     UPDATE_CARD_FEED_STATEMENT_PERIOD: 'POLICYCHANGELOG_UPDATE_CARD_FEED_STATEMENT_PERIOD',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
+                    ARCHIVE_POLICY: 'POLICYCHANGELOG_ARCHIVE_POLICY',
+                    UNARCHIVE_POLICY: 'POLICYCHANGELOG_UNARCHIVE_POLICY',
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     CORPORATE_FORCE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
@@ -2524,10 +2533,6 @@ const CONST = {
         LAYOUT_OPTION: {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
-        },
-        SINGLE_EXPENSE_REPORT_VIEW: {
-            EXPENSE: 'expense',
-            TABLE: 'table',
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
@@ -2822,6 +2827,9 @@ const CONST = {
         // report list, so durations that include the openApp wait can be excluded from render measurements.
         ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         ATTRIBUTE_IS_PRELOADED: 'is_preloaded',
+        // Leaving a tab is paid inside the navigate-to-inbox-tab span, so the same tap costs more from some tabs.
+        ATTRIBUTE_SOURCE_TAB: 'source_tab',
+        ATTRIBUTE_MS_SINCE_PRELOAD: 'ms_since_preload',
         // The tap also kicked off an OpenReport request, so exclude these from render-only comparisons.
         ATTRIBUTE_WAITED_ON_OPEN_REPORT: 'waited_on_open_report',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
@@ -2859,10 +2867,7 @@ const CONST = {
         ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
         ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
         ATTRIBUTE_SOURCE: 'source',
-        ATTRIBUTE_PHASE_DETECTION_FORMAT_COUNT: 'phase_detection_format_count',
         ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM: 'selected_format_af_system',
-        ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT: 'has_interchangeable_phase_format',
-        ATTRIBUTE_MIN_FOCUS_DISTANCE: 'min_focus_distance',
         ATTRIBUTE_PHYSICAL_DEVICE_COUNT: 'physical_device_count',
         ATTRIBUTE_NEUTRAL_ZOOM: 'neutral_zoom',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
@@ -3319,7 +3324,7 @@ const CONST = {
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
-    ATTACHMENT_OR_RECEIPT_LOCAL_URL: /^https:\/\/(www\.)?([a-z0-9_-]+\.)*expensify.com(:[0-9]+)?\/(chat-attachments|receipts)/,
+    ATTACHMENT_OR_RECEIPT_LOCAL_URL: /^https:\/\/(www\.)?([a-z0-9_-]+\.)*expensify\.com(:[0-9]+)?\/(chat-attachments\/[0-9]+|receipts)\/[^/?#]+\.[a-z0-9]+([?#]|$)/,
     ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE: 'data-expensify-thumbnail-url',
     ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
     ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
@@ -4429,6 +4434,8 @@ const CONST = {
         NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         DEFAULT_VENDOR_ID: 'defaultVendorID',
         PAYMENT_METHOD_CODE: 'paymentMethodCode',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
         AUTO_SYNC: 'autoSync',
         ACCOUNTING_METHOD: 'accountingMethod',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
@@ -4875,6 +4882,10 @@ const CONST = {
         SUCCESS: 'success',
         ERROR: 'error',
         WARNING: 'warning',
+        POSITION: {
+            TOP: 'top',
+            BOTTOM_RIGHT: 'bottomRight',
+        },
         DURATION: 2000,
         DURATION_LONG: 3500,
         // Longer duration for growls with an actionable button (e.g. "View"), giving the user enough time to tap it.
@@ -4882,10 +4893,6 @@ const CONST = {
         // Pixel distance used to park the growl fully offscreen before it slides in. It only needs to
         // exceed the growl's height + margins; the exact value isn't tied to a measured dimension.
         OFFSCREEN_OFFSET: 255,
-        POSITION: {
-            TOP: 'top',
-            BOTTOM_RIGHT: 'bottomRight',
-        },
     },
 
     LOCALES,
@@ -4958,6 +4965,12 @@ const CONST = {
             CARD_ADMIN: 'cardAdmin',
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
+            APPROVE_ONLY: 'approveOnly',
+        },
+        APPROVE_ONLY_BLOCKED_REASONS: {
+            HAS_CARD_ON_POLICY: 'hasCardOnPolicy',
+            IS_RESTRICTED_BY_DOMAIN_GROUP: 'isRestrictedByDomainGroup',
+            IS_DEFAULT_POLICY: 'isDefaultPolicy',
         },
         WORKSPACE_STATUS: {
             ACTIVE: 'active',
@@ -4990,6 +5003,7 @@ const CONST = {
             REPORT_FIELDS: 'reportFields',
             ACCOUNTING: 'accounting',
             MORE_FEATURES: 'moreFeatures',
+            CREATE_EXPENSES: 'createExpenses',
         },
         POLICY_FEATURE_ACCESS: {
             READ: 'read',
@@ -5083,6 +5097,8 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
             CHANGE_ROLE: 'changeRole',
+            CHANGE_OFFICE_LOCATION: 'changeOfficeLocation',
+            CHANGE_WORK_ARRANGEMENT: 'changeWorkArrangement',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -5239,6 +5255,8 @@ const CONST = {
             ADDRESS: 'address',
             IS_DEFAULT: 'isDefault',
         },
+        // The officeID that assigns a member to the company address, which isn't keyed in the workspace's officeLocations
+        COMPANY_ADDRESS_OFFICE_ID: '1',
         WORK_ARRANGEMENT: {
             OFFICE_BASED: 'officeBased',
             NO_REGULAR_WORKPLACE: 'noRegularWorkplace',
@@ -6017,6 +6035,11 @@ const CONST = {
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR: 'business_central_export_vendor',
+
+            /**
+             * Name of Card NVP for Business Central custom export accounts
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT: 'business_central_export_account',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -6079,6 +6102,11 @@ const CONST = {
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR_POLICY_ID: 'business_central_export_vendor_policy_id',
+
+            /**
+             * Name of Card NVP for Business Central custom export accounts
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT_POLICY_ID: 'business_central_export_account_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -8868,6 +8896,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
+            TRIPS: 'trips',
         },
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
@@ -10201,7 +10230,6 @@ const CONST = {
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',

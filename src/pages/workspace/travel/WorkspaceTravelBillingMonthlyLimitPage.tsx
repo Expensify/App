@@ -68,8 +68,8 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
             return;
         }
         showConfirmModal({
-            title: translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.reduceLimitTitle'),
-            prompt: translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.reduceLimitWarning'),
+            title: translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.reduceLimitTitle'),
+            prompt: translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.reduceLimitWarning'),
             confirmText: translate('common.confirm'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
@@ -88,7 +88,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
             testID="WorkspaceTravelBillingMonthlyLimitPage"
         >
             <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitLabel')}
+                title={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitLabel')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
@@ -114,7 +114,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
                         displayAsTextInput
                     />
                     <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>
-                        {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitDescription')}
+                        {translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitDescription')}
                     </Text>
                 </View>
             </FormProvider>
