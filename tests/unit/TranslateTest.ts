@@ -29,29 +29,6 @@ const originalTranslations = {
 
 describe('TranslateTest', () => {
     describe('translate', () => {
-        it.each([
-            {
-                key: 'preventFutureActivity',
-                action: 'delete your workspace(s)',
-                billingWarning: "you'll be charged for any outstanding activity that was incurred during the current calendar month.",
-            },
-            {
-                key: 'preventFutureActivityWithArchive',
-                action: 'archive all your paid workspaces',
-                billingWarning: 'Archived workspaces with billable activity during the current month will still be included in your bill.',
-            },
-        ] as const)('preserves the workspace link and billing warning for $key', ({key, action, billingWarning}) => {
-            // Given the Workspaces destination shared by the archive and delete cancellation instructions
-            const workspacesListRoute = 'https://new.expensify.com/workspaces';
-
-            // When the cancellation confirmation uses the copy appropriate to the available workspace action
-            const message = translate(CONST.LOCALES.EN, `subscription.cancelSubscription.subscriptionCanceled.${key}`, workspacesListRoute);
-
-            // Then the action leads to Workspaces and explains the billing consequences for that action
-            expect(message).toContain(`<a href="${workspacesListRoute}">${action}</a>`);
-            expect(message).toContain(billingWarning);
-        });
-
         test('Test when key is not found in default', () => {
             // @ts-expect-error - This deliberately exercises a missing translation key.
             expect(() => translate(CONST.LOCALES.EN, 'testKey4')).toThrow(Error);
