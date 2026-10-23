@@ -67,4 +67,4 @@ function getTravelMemberAccessOptions(translate: LocalizedTranslate, selectedVal
 }
 
 export {isTravelMemberRole, getTravelMemberRoleName, getTravelMemberAccessName, getTravelMemberRoleOptions, getTravelMemberAccessOptions};
-export type {TravelMemberRole, TravelMemberAccessValue, TravelMemberOption};
+export type {TravelMemberAccessValue, TravelMemberOption};
