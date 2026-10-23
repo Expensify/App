@@ -59,7 +59,6 @@ type LHNOrderedReportsInputs = LHNOrderedReportsParams & {
 type LHNOrderedReports = {
     reportsToDisplay: ReportsToDisplayInLHN;
     orderedReportIDs: string[];
-    reportsByID: Record<string, OnyxTypes.Report>;
     hasDraftByReportID: Record<string, boolean>;
     chatTabBrickRoad: BrickRoad;
 };
@@ -138,17 +137,6 @@ function getReportKeysByPolicyID(reports: OnyxCollection<OnyxTypes.Report>): Map
     return result;
 }
 
-function getReportsByID(reportsToDisplay: ReportsToDisplayInLHN, reports: OnyxCollection<OnyxTypes.Report>): Record<string, OnyxTypes.Report> {
-    const result: Record<string, OnyxTypes.Report> = {};
-    for (const reportKey of Object.keys(reportsToDisplay)) {
-        const report = reports?.[reportKey];
-        if (report) {
-            result[report.reportID] = report;
-        }
-    }
-    return result;
-}
-
 function toReportID(reportKey: string): string {
     return reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
 }
@@ -182,7 +170,6 @@ function buildFromScratch(inputs: LHNOrderedReportsInputs): LHNOrderedReportsCac
         output: {
             reportsToDisplay,
             orderedReportIDs: order.orderedReportIDs,
-            reportsByID: getReportsByID(reportsToDisplay, inputs.reports),
             hasDraftByReportID,
             chatTabBrickRoad: getChatTabBrickRoad(order.orderedReportIDs, inputs.reportAttributes),
         },
@@ -302,23 +289,6 @@ function updateIncrementally(cache: LHNOrderedReportsCache, inputs: LHNOrderedRe
         hasDraftByReportID = hasChanged ? next : hasDraftByReportID;
     }
 
-    let reportsByID = previousOutput.reportsByID;
-    for (const reportKey of updatedReportKeys) {
-        const reportID = toReportID(reportKey);
-        const report = reportKey in reportsToDisplay ? inputs.reports?.[reportKey] : undefined;
-        if (reportsByID[reportID] === report) {
-            continue;
-        }
-        if (reportsByID === previousOutput.reportsByID) {
-            reportsByID = {...reportsByID};
-        }
-        if (report) {
-            reportsByID[reportID] = report;
-        } else {
-            delete reportsByID[reportID];
-        }
-    }
-
     const order = SidebarUtils.updateLHNOrder(
         cache.order,
         [...updatedReportKeys].map(toReportID),
@@ -339,7 +309,6 @@ function updateIncrementally(cache: LHNOrderedReportsCache, inputs: LHNOrderedRe
     const hasOutputChanged =
         reportsToDisplay !== previousOutput.reportsToDisplay ||
         orderedReportIDs !== previousOutput.orderedReportIDs ||
-        reportsByID !== previousOutput.reportsByID ||
         hasDraftByReportID !== previousOutput.hasDraftByReportID ||
         chatTabBrickRoad !== previousOutput.chatTabBrickRoad;
 
@@ -347,7 +316,7 @@ function updateIncrementally(cache: LHNOrderedReportsCache, inputs: LHNOrderedRe
         inputs,
         order,
         reportKeysByPolicyID,
-        output: hasOutputChanged ? {reportsToDisplay, orderedReportIDs, reportsByID, hasDraftByReportID, chatTabBrickRoad} : previousOutput,
+        output: hasOutputChanged ? {reportsToDisplay, orderedReportIDs, hasDraftByReportID, chatTabBrickRoad} : previousOutput,
     };
 }
 

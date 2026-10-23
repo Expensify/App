@@ -28,6 +28,7 @@ import {
     rendersColumnHeaderAsStickyRow,
     rendersColumnHeaderInListHeader,
 } from './buildTableListData';
+import {TABLE_COLUMN_SCROLLER_DATA_SET} from './columnResize/columnWidthExpressions';
 import dismissKeyboardOnDrag from './dismissKeyboardOnDrag';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowSemanticIDContext, useTableContext} from './TableContext';
@@ -57,7 +58,7 @@ type ColumnScrollOverrideProps = Record<string, unknown> & {
 function getColumnScrollOverrideProps(overflowXAutoStyle: ViewStyle, overrideProps: ColumnScrollOverrideProps = {}) {
     return {
         ...overrideProps,
-        dataSet: {...overrideProps.dataSet, tableColumnScroller: true},
+        dataSet: {...overrideProps.dataSet, ...TABLE_COLUMN_SCROLLER_DATA_SET},
         style: [overrideProps.style, overflowXAutoStyle],
     };
 }
@@ -150,7 +151,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         processedData: filteredAndSortedData,
         listProps,
         listRef,
-        scrollbarWidth,
         measureScrollbarRef,
         listContainerRef,
         trackScrollOffset,
@@ -164,6 +164,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         noResultsStateElement,
         tableListMetadata,
         isEmptyResult,
+        isBulkActionBarVisible,
         isDefaultViewEmpty,
         scrollWidth,
         tableWidth,
@@ -316,8 +317,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         </View>
     ) : null;
 
-    // While the columns scroll the column header sits here rather than in FlashList's sticky-row overlay, so the
-    // scroller carries it sideways. Also one copy instead of the overlay's two, so no duplicate to hide from readers.
+    // The column header sits here rather than in FlashList's sticky-row overlay so that the scroller holds it, which keeps
+    // it clear of the scrollbar and carries it sideways. Also one copy instead of the overlay's two, so no duplicate to
+    // hide from readers.
     const listHeaderContent = shouldRenderColumnHeaderInListHeader ? (
         <>
             {pageHeaderElement}
@@ -421,13 +423,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     isAccessibilityHidden,
                 });
 
-                // The list draws its stuck header as a sibling of the scroller rather than inside it, so the header
-                // spans a width the rows below never get. Holding it off the scrollbar keeps the two edges in line.
-                if (info.target !== 'StickyHeader' || scrollbarWidth === 0) {
-                    return headerElement;
-                }
-
-                return <View style={StyleUtils.getPaddingRight(scrollbarWidth)}>{headerElement}</View>;
+                return headerElement;
             }
             case 'data':
             default: {
@@ -479,7 +475,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     measureScrollbarRef(instance);
                 }}
                 data={listData}
-                style={[styles.flex1, styles.mnh0]}
+                style={[styles.flex1, styles.mnh0, isBulkActionBarVisible && styles.bulkActionBarScrollPadding]}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListHeaderComponent={listHeaderContent}
                 ListHeaderComponentStyle={[
@@ -498,6 +494,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
                     contentContainerStyle,
+                    isBulkActionBarVisible && styles.bulkActionBarListSpacing,
                     // Absolutely positioned rows don't widen the scroller's content, so hold the scroll extent open.
                     isColumnScrollEnabled && StyleUtils.getMinimumWidth(scrollWidth),
                     shouldRenderEmptyStateInList && styles.flexGrow1,

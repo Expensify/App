@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions as ReportActionsType, Rule} from '@src/types/onyx';
-import type {ReportAttributes, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {ReportNamesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ViewStyle} from 'react-native';
@@ -83,6 +83,7 @@ function getInitialDependencies(reportID: string): OnyxKey[] {
         `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
         ONYXKEYS.NVP_INTRO_SELECTED,
         ONYXKEYS.COLLECTION.RULE,
+        ONYXKEYS.BANK_ACCOUNT_LIST,
     ];
 }
 
@@ -176,7 +177,7 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
                 }
             }
 
-            const reportNamesView = new Proxy<Record<string, Pick<ReportAttributes, 'reportName'>>>(
+            const reportNamesView = new Proxy<ReportNamesDerivedValue>(
                 {},
                 {
                     get: (_target, id) => {
@@ -253,6 +254,7 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
                 isTrackIntentUser,
                 formatPhoneNumber,
                 rules,
+                bankAccountList: read<Parameters<typeof SidebarUtils.getOptionData>[0]['bankAccountList']>(ONYXKEYS.BANK_ACCOUNT_LIST),
             });
 
             const deps = toSortedDeps(reads.map((recordedRead) => recordedRead.key));
@@ -323,11 +325,4 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
 
 OptionRowLHNData.displayName = 'OptionRowLHNData';
 
-/**
- * This component is rendered in a list.
- * On scroll we want to avoid that a item re-renders
- * just because the list has to re-render when adding more items.
- * Thats also why the React.memo is used on the outer component here, as we just
- * use it to prevent re-renders from parent re-renders.
- */
-export default React.memo(OptionRowLHNData);
+export default OptionRowLHNData;

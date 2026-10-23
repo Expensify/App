@@ -1,13 +1,17 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {isCategoryMissing} from '@libs/CategoryUtils';
+import containsHtmlTag from '@libs/containsHtmlTag';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
+import {isMerchantRequired, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getTagLists, isGroupPolicy, isMultiLevelTags, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport, isInvoiceReport, isIOUReport, shouldEnableNegative} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     calculateTaxAmount,
@@ -19,6 +23,7 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
+import {getMerchantError, getMerchantErrorMessage} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -122,6 +127,10 @@ type GetIouParamsInput = {
     transactionThreadReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
     policyForTrackExpense?: OnyxEntry<Policy>;
+
+    /** The lastModified of the full policy snapshot for the parent report's policy */
+    fullPolicySnapshotLastModified?: number;
+
     policyCategories: OnyxEntry<PolicyCategories>;
     policyTags: OnyxEntry<PolicyTagLists>;
     reportPolicyTags: OnyxEntry<PolicyTagLists>;
@@ -179,6 +188,7 @@ function getIouParamsForTransaction({
     transactionThreadReport,
     policy,
     policyForTrackExpense,
+    fullPolicySnapshotLastModified,
     policyCategories,
     policyTags,
     reportPolicyTags,
@@ -220,6 +230,7 @@ function getIouParamsForTransaction({
             personalDetails: personalDetailsList,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
+            fullPolicySnapshotLastModified,
         });
     }
 
@@ -269,14 +280,19 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
 }
 
 /** Updates the merchant of an expense from the Search results table or the Expense Report page. */
-function editTransactionMerchantInline(params: TransactionInlineEditParams, newMerchant: string) {
-    // Validate before building iouParams: getIouParamsForTransaction can call createTransactionThreadReport,
-    // which fires Onyx.merge + openReport (an API call). Building params first would optimistically create a
-    // thread report for an edit we're about to discard, so validate first.
-    if (!isValidMerchant(newMerchant, params.transaction, params.parentReport)) {
-        return;
+function editTransactionMerchantInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newMerchant: string): string | undefined {
+    // The merchant form uses strict HTML validation, which also rejects values like <✓>. FormProvider runs that
+    // check after validate and overwrites any length error, so a value that fails both must show invalid character.
+    if (containsHtmlTag(newMerchant, true)) {
+        return translate('common.error.invalidCharacter');
     }
 
+    const merchantError = getMerchantError(newMerchant, isMerchantRequired(params.parentReport, params.transaction));
+    if (merchantError) {
+        return getMerchantErrorMessage(translate, merchantError);
+    }
+
+    // Building params can create a transaction thread, so do it only once the merchant is valid.
     const iouParams = getIouParamsForTransaction(params);
 
     updateMoneyRequestMerchant({
@@ -289,12 +305,23 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
 }
 
 /** Updates the description of an expense from the Search results table or the Expense Report page. */
-function editTransactionDescriptionInline(params: TransactionInlineEditParams, newDescription: string) {
+function editTransactionDescriptionInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newDescription: string): string | undefined {
+    // The description step validates and saves the value after FormProvider strips invisible characters and trims it.
+    // The cell passes the raw text, so prepare it the same way. Otherwise trailing spaces past the limit toast a value the step would save.
+    // HTML is checked first so a value that fails both shows the invalid character error.
+    const description = StringUtils.removeInvisibleCharacters(newDescription);
+    if (containsHtmlTag(description)) {
+        return translate('common.error.invalidCharacter');
+    }
+    if (description.length > CONST.DESCRIPTION_LIMIT) {
+        return translate('common.error.characterLimitExceedCounter', description.length, CONST.DESCRIPTION_LIMIT);
+    }
+
     const iouParams = getIouParamsForTransaction(params);
     updateMoneyRequestDescription({
         isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
-        comment: newDescription,
+        comment: description,
         hash: params.hash,
         isEditedFromExpenseList: true,
     });
@@ -313,7 +340,7 @@ function editTransactionCategoryInline(params: TransactionInlineEditParams, newC
 }
 
 /** Updates the amount and currency of an expense from the Search results table or the Expense Report page. */
-function editTransactionAmountInline(params: TransactionInlineEditParams, newAmount: number) {
+function editTransactionAmountInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newAmount: number): string | undefined {
     // Validate before building iouParams: getIouParamsForTransaction can call createTransactionThreadReport,
     // which fires Onyx.merge + openReport (an API call). Building params first would optimistically create a
     // thread report for an edit we're about to discard, so validate against params directly first.
@@ -322,7 +349,7 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
     const isP2P = isIOUReport(params.parentReport);
 
     if (!isValidMoneyRequestAmount(newAmount, iouType, allowNegative, isP2P)) {
-        return;
+        return translate('iou.error.invalidAmount');
     }
 
     const iouParams = getIouParamsForTransaction(params);
