@@ -302,19 +302,25 @@ function getOptionListKind(callSite: string, query: string): OptionListKind {
     return kind;
 }
 
-// Reports returned by the SearchAutocompleteList server pass in Auth ranking order, including a self-DM that the pass drops.
+// Reports returned by the SearchAutocompleteList server pass in Auth ranking order, including a self-DM that the pass drops and reports the canonical filter rejects.
 const SERVER_PASS_REPORT_NAMES = [
     '#admins',
     '#announce',
+    'Hidden thread',
     '#vít-room',
     'Weekend Hiking',
     'Current User (you)',
+    'Empty thread',
     'Book flights',
     'Offsite expenses',
+    'Empty submitted report',
     'Thread about the offsite',
     'İsmail Yılmaz',
     "Mary-Jane O'Brien (archived) ",
 ];
+
+// An ID Auth returns for a report the client has not loaded, which the pass drops because it has no local option. No fixture report uses it.
+const UNKNOWN_SERVER_REPORT_ID = '999999';
 
 /** Finds a fixture report by its name, so a test never depends on the reportIDs the fixture assigns. */
 function getReportIDByName(sourceFixture: SearchFixture, reportName: string): string {
@@ -372,7 +378,7 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
         ]),
     );
 
-    const orderedServerReportIDs = SERVER_PASS_REPORT_NAMES.map((reportName) => getReportIDByName(sourceFixture, reportName)).slice(
+    const orderedServerReportIDs = [...SERVER_PASS_REPORT_NAMES.map((reportName) => getReportIDByName(sourceFixture, reportName)), UNKNOWN_SERVER_REPORT_ID].slice(
         0,
         CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
     );
@@ -449,7 +455,7 @@ describe('OptionsListUtils search parity (golden master)', () => {
     });
 
     it('SearchRouter blank query and server-ID pass match the golden master', () => {
-        // Given the SearchRouter idle list at the production cap, the SearchAutocompleteList server pass (a fixed set of reports in Auth's order, no query) and the SearchRouter opened over a focused empty thread or empty submitted report
+        // Given the SearchRouter idle list at the production cap, the SearchAutocompleteList server pass (a fixed set of reports in Auth's order, no query, including rejected and unknown IDs that it drops) and the SearchRouter opened over a focused empty thread or empty submitted report
         // When they run through their production configs, the focused ones for a blank query and for a query matching the focused report
         // Then all match the recorded golden master, with the focused report shown only while it is focused
         expectToMatchGoldenMaster(goldenMaster.passes);
