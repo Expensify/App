@@ -11202,6 +11202,45 @@ describe('actions/Report', () => {
             expect(result?.parentReportID).toBe(parentReport.reportID);
         });
 
+        it("should send the expense report policy's full policy snapshot marker with OpenReport", async () => {
+            // Given an expense report whose policy has a cached full policy snapshot
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(150, undefined),
+                reportID: '150',
+                policyID: 'policy150',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await waitForBatchedUpdates();
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(150),
+                reportActionID: 'action-150',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            // When its transaction thread is created with that snapshot's lastModified
+            Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                iouReport: parentReport,
+                iouReportAction: reportAction,
+                fullPolicySnapshotLastModified: 123,
+            });
+            await waitForBatchedUpdates();
+
+            // Then OpenReport sends the marker so the server can leave out the policy collections the client already has
+            const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.OPEN_REPORT).at(0)?.[1]?.body;
+            if (!(body instanceof FormData)) {
+                throw new Error('Expected OpenReport request body to be FormData');
+            }
+            const formEntries = Object.fromEntries(body);
+            expect(formEntries.fullPolicySnapshotPolicyID).toBe('policy150');
+            expect(formEntries.fullPolicySnapshotLastModified).toBe('123');
+        });
+
         it('should accept introSelected as first parameter and not bypass it', async () => {
             const parentReport: OnyxTypes.Report = {
                 ...createRandomReport(200, undefined),

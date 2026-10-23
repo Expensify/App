@@ -1034,6 +1034,9 @@ const ONYXKEYS = {
         /** Session-scoped loading flags for a policy's on-demand tags read, keyed by policyID.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_POLICY_TAGS_LOADING_STATE: 'policyTagsLoadingState_',
+        /** The policy lastModified of the last full policy snapshot OpenReport returned, keyed by policyID.
+         *  Registered as RAM-only in `setup/index.ts`, so it never outlives the in-memory policy collections it vouches for. */
+        RAM_ONLY_FULL_POLICY_SNAPSHOT: 'ramOnlyFullPolicySnapshot_',
         /** Pagination cursors for a report's action list. */
         REPORT_PAGINATION_STATE: 'reportPaginationState_',
         REPORT_ACTIONS: 'reportActions_',
@@ -1666,6 +1669,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS]: OnyxTypes.SearchTagFilterItem[];
     [ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE]: OnyxTypes.PolicyDataLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE]: OnyxTypes.PolicyDataLoadingState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT]: OnyxTypes.FullPolicySnapshot;
     [ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE]: OnyxTypes.ReportPaginationState;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
