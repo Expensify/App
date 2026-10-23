@@ -44,4 +44,4 @@ function useMentionedAccountIDToNameMap(htmlString: string | undefined): Account
 }
 
 export default useAccountIDToNameMap;
-export {buildAccountIDToNameMap, useMentionedAccountIDToNameMap};
+export {buildAccountIDToNameMap, getMentionedAccountIDs, useMentionedAccountIDToNameMap};
