@@ -7,16 +7,14 @@ import {useState} from 'react';
  */
 function useIsTabRootRevealing(isAtTabRoot: boolean, activeTabKey: string | undefined): [boolean, (isRevealing: boolean) => void] {
     const [previous, setPrevious] = useState({isAtTabRoot, activeTabKey});
-    const [revealingTabKey, setRevealingTabKey] = useState<string>();
+    const [isRevealing, setIsRevealing] = useState(false);
 
     if (previous.isAtTabRoot !== isAtTabRoot || previous.activeTabKey !== activeTabKey) {
         setPrevious({isAtTabRoot, activeTabKey});
-        setRevealingTabKey(undefined);
+        setIsRevealing(false);
     }
 
-    const setIsTabRootRevealing = (isRevealing: boolean) => setRevealingTabKey(isRevealing ? activeTabKey : undefined);
-
-    return [!isAtTabRoot && !!revealingTabKey && revealingTabKey === activeTabKey, setIsTabRootRevealing];
+    return [!isAtTabRoot && isRevealing, setIsRevealing];
 }
 
 export default useIsTabRootRevealing;

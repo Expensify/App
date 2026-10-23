@@ -1,6 +1,5 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import useReportTabRootRevealing from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useReportTabRootRevealing';
 import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToNativeNavigationOptions';
 import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {
@@ -92,8 +91,6 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         ...customCodeProps,
         state,
     };
-
-    useReportTabRootRevealing(state, descriptors);
 
     const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state);
 
