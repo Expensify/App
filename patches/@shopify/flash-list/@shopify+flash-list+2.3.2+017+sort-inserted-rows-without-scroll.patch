@@ -1,0 +1,52 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
+index 3d3e4b0..74d4008 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
+@@ -265,7 +265,7 @@ export const ViewHolderCollection = (props) => {
+         maybeDoSortOnScroll();
+         return clearPendingSort;
+         // eslint-disable-next-line react-hooks/exhaustive-deps
+-    }, [renderStack, renderId]);
++    }, [renderStack, renderId, data && data.length]);
+     // Track input modality globally. Capture-phase document listeners so
+     // we observe events before any handler can call `stopPropagation()`.
+     // `pointerdown` covers mouse/touch/pen; `keydown` covers Tab and
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+index 4c3862c..b29e546 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+@@ -36,6 +36,7 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+     // Set by `announceProgrammaticScroll()` to announce an imminent scroll.
+     // Handed off to `isProgrammaticScrollActiveRef` at `scrollToIndex` entry.
+     const isProgrammaticScrollQueuedRef = useRef(false);
++    const programmaticScrollRequestRef = useRef(0);
+     // Source-agnostic "viewport in motion" flag.
+     const isScrollingRef = useRef(false);
+     // Timestamp of the most recent scroll event; used to correlate scroll
+@@ -382,6 +383,7 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+                         // can't gate sorts indefinitely.
+                         isProgrammaticScrollQueuedRef.current = false;
+                         isProgrammaticScrollActiveRef.current = true;
++                        const scrollRequest = ++programmaticScrollRequestRef.current;
+                         const getFinalOffset = () => {
+                             const layout = recyclerViewManager.getLayout(index);
+                             const offset = horizontal ? layout.x : layout.y;
+@@ -511,6 +513,10 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+                             setTimeout(() => {
+                                 pauseOffsetCorrection.current = false;
+                                 recyclerViewManager.setOffsetProjectionEnabled(true);
++                                // Non-animated scrolls may not emit a scroll event when the list fits the viewport.
++                                if (!animated && scrollRequest === programmaticScrollRequestRef.current && !isProgrammaticScrollQueuedRef.current) {
++                                    notifyProgrammaticScrollSettled();
++                                }
+                                 resolve(); // Resolve the promise after re-enabling corrections
+                             }, animated ? 300 : 200);
+                         };
+@@ -587,6 +593,7 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+         isUnmounted,
+         updateScrollOffsetWithCallback,
+         announceProgrammaticScroll,
++        notifyProgrammaticScrollSettled,
+     ]);
+     const applyInitialScrollIndex = useCallback(() => {
+         var _a, _b, _c;

@@ -201,3 +201,11 @@
 - E/App issue: https://github.com/Expensify/App/issues/97472
 - Sentry: https://expensify.sentry.io/issues/APP-8PG
 - PR introducing patch: https://github.com/Expensify/App/pull/98015
+
+### [@shopify+flash-list+2.3.2+017+sort-inserted-rows-without-scroll.patch](@shopify+flash-list+2.3.2+017+sort-inserted-rows-without-scroll.patch)
+
+- Reason: When data grows without scrolling, the web DOM-order sort from patch `011` needs a data-length trigger because `renderStack` can retain its identity and `renderId` can remain unchanged. Workspace Members also calls `scrollToIndex({animated: false})` after inviting someone; if the list fits the viewport, no scroll event occurs, leaving the programmatic-scroll flag active and blocking the deferred sort. Schedule sorting on data-length changes and settle non-animated requests when their existing completion timer fires. Animated scrolls remain gated until they stop, and a request counter prevents an older timer from settling a newer scroll.
+- Files changed: `dist/recyclerview/ViewHolderCollection.js`, `dist/recyclerview/hooks/useRecyclerViewController.js`.
+- Upstream PR/issue: https://github.com/Shopify/flash-list/issues/1955
+- E/App issue: https://github.com/Expensify/App/issues/86126
+- PR introducing patch: TBD
