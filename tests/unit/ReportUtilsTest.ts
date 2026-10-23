@@ -3362,6 +3362,44 @@ describe('ReportUtils', () => {
                     expect(reportName).toBe('Deleted report');
                 });
 
+                test('should only consider a closed expense report with zero totals empty when it has no linked transactions', () => {
+                    // Given a closed expense report whose totals are zero and has no transactionCount,
+                    // so only the linked transactions can tell us whether it has expenses
+                    const expenseReport: Report = {
+                        ...baseExpenseReport,
+                        statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                        total: 0,
+                        transactionCount: 0,
+                    };
+
+                    // When we check it with and without linked transactions
+                    const withTransactions = isClosedExpenseReportWithNoExpenses(expenseReport, true);
+                    const withoutTransactions = isClosedExpenseReportWithNoExpenses(expenseReport, false);
+
+                    // Then only the report without linked transactions is considered closed with no expenses
+                    expect(withTransactions).toBe(false);
+                    expect(withoutTransactions).toBe(true);
+                });
+
+                test('should not show deleted report name for closed expense report that has a linked transaction', () => {
+                    // Given a closed expense report with zero totals and a transaction that belongs to it
+                    const expenseReport: Report = {
+                        ...baseExpenseReport,
+                        statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                        total: 0,
+                        transactionCount: 0,
+                    };
+                    const transaction: Transaction = {...createRandomTransaction(1), reportID: expenseReport.reportID};
+                    const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy};
+                    const transactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction};
+
+                    // When computing the report name with the transaction available
+                    const reportName = computeReportName(expenseReport, undefined, policies, transactions, undefined, participantsPersonalDetails);
+
+                    // Then the transaction lookup by reportID prevents the "Deleted report" fallback
+                    expect(reportName).not.toBe('Deleted report');
+                });
+
                 test('closed expense report with total and transactions not loaded', () => {
                     // Given a closed (submitted) expense report with a total and no transactions yet loaded
                     const expenseReport: Report = {
@@ -3371,7 +3409,7 @@ describe('ReportUtils', () => {
                     };
 
                     // Then it should not be considered closed without expenses, because it has a total
-                    expect(isClosedExpenseReportWithNoExpenses(expenseReport)).toBe(false);
+                    expect(isClosedExpenseReportWithNoExpenses(expenseReport, false)).toBe(false);
                 });
 
                 test('closed expense report with zero total but non-reimbursable total exists', () => {
@@ -3385,7 +3423,7 @@ describe('ReportUtils', () => {
                     };
 
                     // Then it should not be considered closed without expenses, because nonReimbursableTotal indicates expenses exist
-                    expect(isClosedExpenseReportWithNoExpenses(expenseReport)).toBe(false);
+                    expect(isClosedExpenseReportWithNoExpenses(expenseReport, false)).toBe(false);
                 });
 
                 test('should handle paid elsewhere money request', () => {
@@ -8286,6 +8324,68 @@ describe('ReportUtils', () => {
                     reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
+        });
+
+        it('should allow editing the RECEIPT of a manual expense, but not a scan expense, while the receipt is SCAN_READY', async () => {
+            // Given an OPEN expense report the approver can edit, with an expense whose receipt is waiting to be scanned
+            const openExpenseReport: Report = {
+                reportID: '12360',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const scanReadyTransaction: Transaction = {
+                transactionID: 'txn12360',
+                reportID: openExpenseReport.reportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: 'Test expense'},
+                created: '2025-01-01',
+                merchant: 'Test Merchant',
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+            };
+
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'action12360',
+                actorAccountID: submitterAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: openExpenseReport.reportID,
+                    IOUTransactionID: scanReadyTransaction.transactionID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
+                created: '2025-01-01 12:00:00',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
+            await waitForBatchedUpdates();
+
+            const canEditReceipt = (transaction: Transaction) =>
+                canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction: moneyRequestAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction,
+                    report: openExpenseReport,
+                    policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
+                });
+
+            // When checking whether the receipt can be edited during the scan, once for a manual expense and once for a scan expense
+            const canEditManualReceipt = canEditReceipt({...scanReadyTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+            const canEditScanReceipt = canEditReceipt({...scanReadyTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+
+            // Then the backend scan the user never sees doesn't block the manual expense's receipt edit,
+            // but the scan expense's receipt edit stays blocked until the scan finishes because the user sees that scan in progress
+            expect(canEditManualReceipt).toBe(true);
+            expect(canEditScanReceipt).toBe(false);
         });
 
         it('should NOT allow workflow approver to edit money request on SUBMITTED expense report', async () => {
@@ -21522,12 +21622,11 @@ describe('ReportUtils', () => {
             const report = undefined;
 
             // Given a report action with childReportName and childMoneyRequestCount === 0
-            const reportAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(),
+            const reportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 childReportName: 'Expense Report 2025-01-15',
                 childMoneyRequestCount: 0,
-            };
+            });
 
             // When we call getReportPreviewReportActionMessage
             const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
@@ -21541,13 +21640,12 @@ describe('ReportUtils', () => {
             const report = undefined;
 
             // Given a report action with childReportName but childMoneyRequestCount > 0
-            const reportAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(),
+            const reportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 childReportName: 'Expense Report 2025-01-15',
                 childMoneyRequestCount: 3,
                 message: [{html: 'payer owes $100', type: 'COMMENT', text: 'payer owes $100'}],
-            };
+            });
 
             // When we call getReportPreviewReportActionMessage
             const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
@@ -21675,14 +21773,23 @@ describe('ReportUtils', () => {
 
             it('shows the bank account from the action accountNumber instead of the policy default', () => {
                 // Given a pay action that carries the masked accountNumber of the bank account actually used
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
                 const actionWithAccountNumber: ReportAction = {
                     ...payReportAction,
                     originalMessage: {...payOriginalMessage, accountNumber: 'XXXXXX4321'},
                 };
 
-                const result = getReportPreviewReportActionMessage(
-                    {reportOrID: settledReport, iouReportAction: actionWithAccountNumber, originalReportAction: actionWithAccountNumber},
-                    getCurrencyDecimalsLocal,
+                // When the localized preview is built, since it is the only variant that receives IOU actions
+                const result = getReportPreviewMessage(
+                    englishTranslate,
+                    convertToDisplayString,
+                    {
+                        reportOrID: settledReport,
+                        iouReportAction: actionWithAccountNumber,
+                        originalReportAction: actionWithAccountNumber,
+                        policy: settledPolicy,
+                    },
+                    formatPhoneNumber,
                 );
 
                 // Then the preview shows the last 4 digits of that account, not the policy default
@@ -21690,11 +21797,23 @@ describe('ReportUtils', () => {
             });
 
             it('falls back to the policy default bank account when the action has no accountNumber', () => {
-                const result = getReportPreviewReportActionMessage(
-                    {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction},
-                    getCurrencyDecimalsLocal,
+                // Given a pay action without an accountNumber
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+
+                // When the localized preview is built
+                const result = getReportPreviewMessage(
+                    englishTranslate,
+                    convertToDisplayString,
+                    {
+                        reportOrID: settledReport,
+                        iouReportAction: payReportAction,
+                        originalReportAction: payReportAction,
+                        policy: settledPolicy,
+                    },
+                    formatPhoneNumber,
                 );
 
+                // Then the policy default account is used
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
             });
 
@@ -21729,18 +21848,6 @@ describe('ReportUtils', () => {
                     expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
                 });
 
-                it('keeps the bank account wording in the stored report action message', () => {
-                    // Given a workspace payment that names the admin’s selected bank account.
-                    // When the stored English report action message is generated.
-                    // Then it retains workspace payment wording rather than invoice wording.
-                    const result = getReportPreviewReportActionMessage(
-                        {reportOrID: settledReport, iouReportAction: actionNamingAccount, originalReportAction: actionNamingAccount, policy: settledPolicy},
-                        getCurrencyDecimalsLocal,
-                    );
-
-                    expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
-                });
-
                 it('resolves the account through bankAccountList when the action only carries its ID', () => {
                     // Given the payer paid from an account other than the workspace one, and the action recorded only its ID
                     const actionNamingAccountID: ReportAction = {...payReportAction, originalMessage: {...payOriginalMessage, bankAccountID: 5678001}};
@@ -21748,22 +21855,49 @@ describe('ReportUtils', () => {
                     const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
                     const params = {reportOrID: settledReport, iouReportAction: actionNamingAccountID, originalReportAction: actionNamingAccountID, policy: settledPolicy, bankAccountList};
 
-                    // Then both previews name that account, matching PaymentContent, rather than the workspace default
+                    // Then the preview names that account, matching PaymentContent, rather than the workspace default
                     expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber)).toBe(
                         translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'),
                     );
-                    expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
                 });
             });
 
-            it('matches the localized getReportPreviewMessage output when translated to English', () => {
+            it('matches the localized getReportPreviewMessage output when translated to English for a report preview action', () => {
+                // Given a settled report whose preview action message says it was paid with Expensify
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-                const params = {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction, policy: settledPolicy};
+                const reportPreviewAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
+                    ...LHNTestUtils.getFakeReportAction(),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    originalMessage: {linkedReportID: settledReport.reportID},
+                    message: [{html: 'paid with Expensify', text: 'paid with Expensify', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
+                });
+                const params = {reportOrID: settledReport, iouReportAction: reportPreviewAction, originalReportAction: reportPreviewAction, policy: settledPolicy};
 
-                // The hardcoded English copy must not drift from the localized function
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(
-                    getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber),
-                );
+                // When both variants build the message
+                const storedMessage = getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal);
+
+                // Then the hardcoded English copy must not drift from the localized function
+                expect(storedMessage).toContain('paid with wallet');
+                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber));
+            });
+
+            it('falls back to the marked as paid wording for a report preview action without a payment hint', () => {
+                // Given a settled report whose preview action carries no payment information
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+                const reportPreviewAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
+                    ...LHNTestUtils.getFakeReportAction(),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    originalMessage: {linkedReportID: settledReport.reportID},
+                    message: [{html: '', text: '', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
+                });
+                const params = {reportOrID: settledReport, iouReportAction: reportPreviewAction, originalReportAction: reportPreviewAction, policy: settledPolicy};
+
+                // When both variants build the message
+                const storedMessage = getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal);
+
+                // Then the stored message is the plain "marked as paid" wording and matches the localized variant
+                expect(storedMessage).toContain('marked as paid');
+                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber));
             });
 
             describe('cross-border payment', () => {
@@ -21785,13 +21919,6 @@ describe('ReportUtils', () => {
                             debitBankAccount: '0000',
                             creditBankAccount: '3335',
                         }),
-                    );
-                });
-
-                it('stores the same wording on the report action as the localized preview shows', () => {
-                    // The hardcoded English copy must not drift from the localized function
-                    expect(getReportPreviewReportActionMessage(crossBorderParams, getCurrencyDecimalsLocal)).toBe(
-                        getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams, formatPhoneNumber),
                     );
                 });
 

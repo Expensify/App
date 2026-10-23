@@ -69,6 +69,13 @@ jobs:
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
 
+      # react-android is compiled against the headers of the Hermes that hermes-engine builds for this release.
+      # Recording its version in the POM lets the resolver reject an artifact whose Hermes differs from the one the
+      # consuming app links.
+      - name: Resolve Hermes version
+        id: hermes
+        run: echo "VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)" >> "$GITHUB_OUTPUT"
+
       - name: Get Java version
         id: get-java-version
         uses: ./.github/actions/composite/getJavaVersion
@@ -97,6 +104,7 @@ jobs:
           echo "Starting artifacts build for ${{ matrix.is_hybrid == 'true' && 'HybridApp' || 'NewDot Standalone' }}"
           echo "Version: ${{ env.PATCHED_VERSION }}"
           echo "Patches hash: ${{ env.PATCHES_HASH }}"
+          echo "Hermes version: ${{ env.HERMES_VERSION }}"
           export ORG_GRADLE_PROJECT_reactNativeArchitectures="armeabi-v7a,arm64-v8a,x86,x86_64"
 
           # Exclude ktfmt and test tasks from the included react-native build
@@ -117,6 +125,7 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
           PATCHED_VERSION: ${{ steps.getNewPatchedVersion.outputs.NEW_PATCHED_VERSION }}
           PATCHES_HASH: ${{ steps.computePatchesHash.outputs.PATCHES_HASH }}
+          HERMES_VERSION: ${{ steps.hermes.outputs.VERSION }}
           CMAKE_VERSION: 3.31.6
 
       - name: Announce failed workflow in Slack
