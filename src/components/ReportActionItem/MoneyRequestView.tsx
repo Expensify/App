@@ -89,6 +89,7 @@ import {
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getTransactionDetails,
+    isActionCreator,
     isExpenseReport,
     isInvoiceReport,
     isOpenReport,
@@ -111,6 +112,7 @@ import {
     getOriginalAmountForDisplay,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
+    getReservationNights,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -360,6 +362,12 @@ function MoneyRequestView({
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
     const formattedPerAttendeeAmount =
         shouldDisplayTransactionAmount && actualAmount !== undefined ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
+    // Explains the per-night category limit check, so it uses the same reservation nights. Single-night stays show nothing.
+    const reservationNights = getReservationNights(updatedTransaction ?? transaction);
+    const reservationNightsHintText =
+        reservationNights > 1 && actualAmount !== undefined
+            ? translate('common.reservationNightsWithNightlyRate', {count: reservationNights, nightlyRate: convertToDisplayString(actualAmount / reservationNights, actualCurrency)})
+            : '';
 
     const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
@@ -519,7 +527,13 @@ function MoneyRequestView({
         }) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 
-    const policyTagLists = getTagLists(policyTagList);
+    // For unreported expenses `policy` is the viewer's own workspace, so when someone other than the expense owner views it,
+    // its tag lists have nothing to do with the expense. Show the expense's full tag in a single generic "Tag" row instead.
+    const shouldShowFullTransactionTag = isExpenseUnreported && !isPerDiemRequest && !!parentReportAction && !isActionCreator(parentReportAction, currentUserAccountIDParam);
+    const policyTagLists = shouldShowFullTransactionTag ? [{name: translate('common.tag'), required: false, tags: {}, orderWeight: 0}] : getTagLists(policyTagList);
+    // The full tag row is display-only. Domain admins can still edit another user's unreported managed card expense,
+    // but pressing the row would edit or clear the tag against the viewer's unrelated tag lists.
+    const canEditTag = canEdit && !shouldShowFullTransactionTag;
     const policyHasEnabledTags = hasEnabledTags(policyTagLists);
 
     const category = transactionCategory ?? '';
@@ -1163,7 +1177,7 @@ function MoneyRequestView({
         </>
     );
 
-    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTagList);
+    const hasDependentTags = !shouldShowFullTransactionTag && hasDependentTagsPolicyUtils(policy, policyTagList);
     const shouldShowTagList = hasDependentTags ? getDependentTagVisibility(policyTagLists, transactionTag) : [];
 
     const [previousTransactionTag, setPreviousTransactionTag] = useState(transactionTag);
@@ -1183,8 +1197,8 @@ function MoneyRequestView({
     const areAttendeesCopyable = !!attendeesCopyValue;
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
-        const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
-        const shouldShow = hasDependentTags ? !!shouldShowTagList.at(index) : !!tagForDisplay || (canEdit && hasEnabledOptions(tags));
+        const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, shouldShowFullTransactionTag ? undefined : index);
+        const shouldShow = hasDependentTags ? !!shouldShowTagList.at(index) : !!tagForDisplay || (canEditTag && hasEnabledOptions(tags));
 
         if (!shouldShow) {
             return null;
@@ -1212,11 +1226,11 @@ function MoneyRequestView({
                     descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
                     title={tagForDisplay}
                     numberOfLinesTitle={2}
-                    interactive={canEdit}
-                    shouldShowRightIcon={canEdit}
+                    interactive={canEditTag}
+                    shouldShowRightIcon={canEditTag}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
+                        if (!canEditTag || !transaction?.transactionID || !transactionThreadReport?.reportID) {
                             return;
                         }
                         if (shouldShowTagDisabledAlert) {
@@ -1235,7 +1249,7 @@ function MoneyRequestView({
                     shouldShowBasicTitle
                     shouldShowDescriptionOnTop
                     copyValue={tagCopyValue}
-                    copyable={!canEdit && !!tagCopyValue}
+                    copyable={!canEditTag && !!tagCopyValue}
                     isTitleSelectable={!!tagCopyValue}
                 />
             </OfflineWithFeedback>
@@ -1517,6 +1531,7 @@ function MoneyRequestView({
                                     message={getErrorForField('category')}
                                 />
                             )}
+                            {!!reservationNightsHintText && <MenuItem.HelpText message={reservationNightsHintText} />}
                         </MenuItem.Root>
                     </OfflineWithFeedback>
                 )}
