@@ -1,5 +1,5 @@
 /** Resolve one set of ports and flags for every process in a local web session. */
-const LOCAL_BACKEND_KEYS = ['EXPENSIFY_URL', 'SECURE_EXPENSIFY_URL', 'STAGING_EXPENSIFY_URL', 'STAGING_SECURE_EXPENSIFY_URL', 'NGROK_URL', 'SECURE_NGROK_URL'];
+import {LOCAL_BACKEND_URL_KEYS} from '../../config/rsbuild/developmentEnvKeys';
 
 function getWebDevFlags(env: Record<string, string | undefined>) {
     return {isWorkerEnabled: env.USE_CLOUDFLARE_WORKER !== 'false', isProxyEnabled: env.USE_WEB_PROXY !== 'false', shouldOpenBrowser: env.WEB_OPEN !== 'false'};
@@ -7,7 +7,7 @@ function getWebDevFlags(env: Record<string, string | undefined>) {
 
 function getDevelopmentConnectOrigins(env: Record<string, string | undefined>): string[] {
     const origins = new Set<string>();
-    for (const key of LOCAL_BACKEND_KEYS) {
+    for (const key of LOCAL_BACKEND_URL_KEYS) {
         const value = env[key];
         if (!value) {
             continue;
