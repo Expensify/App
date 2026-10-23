@@ -268,6 +268,8 @@ function ReportActionItem({
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
 
+    const [sendMoneyChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+
     const updateHiddenState = (isHiddenValue: boolean) => {
         setIsHidden(isHiddenValue);
         const message = Array.isArray(action.message) ? action.message?.at(-1) : action.message;
@@ -299,6 +301,7 @@ function ReportActionItem({
                 isOffline,
                 isSingleTransactionView: true,
                 policy: iouPolicy,
+                chatReportActions: sendMoneyChatReportActions,
             });
             return;
         }

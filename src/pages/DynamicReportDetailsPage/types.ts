@@ -27,6 +27,7 @@ type ReportDetailsRequestData = {
     iouReportTransactions: Transaction[];
     requestParentReportActionChildReport: OnyxEntry<Report>;
     transactionThreadReportActions: OnyxEntry<ReportActions>;
+    chatIOUReportActions: OnyxEntry<ReportActions>;
     isDeletedParentAction: boolean;
     moneyRequestReport: OnyxEntry<Report>;
     isMoneyRequestReportArchived: boolean;
