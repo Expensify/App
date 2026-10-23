@@ -86,9 +86,17 @@ jest.mock('@hooks/useRootNavigationState', () => ({
             ],
         }),
 }));
+const mockClearFooterConversion = jest.fn<void, []>();
 jest.mock('@libs/actions/Search', () => ({
     ...jest.requireActual<typeof SearchActions>('@libs/actions/Search'),
     search: jest.fn(() => Promise.resolve(200)),
+    clearFooterConversion: () => mockClearFooterConversion(),
+}));
+
+const mockIsStaleWideTabPreMountRouteKey = jest.fn<boolean, [string | undefined]>(() => false);
+jest.mock('@libs/Navigation/helpers/wideTabPreMountRouteKey', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/Navigation/helpers/wideTabPreMountRouteKey'),
+    isStaleWideTabPreMountRouteKey: (key: string | undefined) => mockIsStaleWideTabPreMountRouteKey(key),
 }));
 
 const mockIsNavigationFocused = jest.fn(() => true);
@@ -1752,5 +1760,35 @@ describe('SearchPageNarrow', () => {
             // Then the rows stay at one page, because the missing snapshot's `hasMoreResults: false` is a default, not the server's answer
             expect(renderedRowKeys()).toHaveLength(CONST.SEARCH.RESULTS_PAGE_SIZE);
         });
+    });
+
+    it('clears the converted footer totals when the user leaves Search', async () => {
+        // Given a Search page the user has open
+        const page = renderPage();
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // When it unmounts because the user leaves Search
+        page.unmount();
+
+        // Then the converted footer totals are dropped, since they only apply to this visit
+        expect(mockClearFooterConversion).toHaveBeenCalled();
+    });
+
+    it('keeps the converted footer totals when a cancelled wide pre-mount of Search unmounts', async () => {
+        // Given a Search screen that was pre-mounted for a wide submit and then cancelled, so it was never shown
+        mockIsStaleWideTabPreMountRouteKey.mockReturnValue(true);
+        const page = renderPage();
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // When that hidden screen unmounts
+        page.unmount();
+        mockIsStaleWideTabPreMountRouteKey.mockReturnValue(false);
+
+        // Then the totals stay, because they belong to the Search the user can still see
+        expect(mockClearFooterConversion).not.toHaveBeenCalled();
     });
 });
