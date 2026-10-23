@@ -9219,6 +9219,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         zohoBooks: {
             organization: 'Zoho Books-organisatie',
+            importDescription: 'Kies welke boekhoudconfiguraties je wilt importeren uit Zoho Books.',
+            accountTypesDescription: 'Je Zoho Books-accounts worden geïmporteerd als categorieën.',
+            enableNewAccountsTitle: 'Nieuw geïmporteerde rekeningen inschakelen',
+            enableNewAccountsDescription: 'Nieuwe Zoho Books-accounts zijn beschikbaar als categorieën.',
+            reportingTagsImport: 'Alle Zoho Books-rapportagetags worden als labels geïmporteerd',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-configuratie',

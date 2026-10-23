@@ -8872,6 +8872,11 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Zoho Books 组织',
+            importDescription: '选择要从 Zoho Books 导入的编码配置。',
+            accountTypesDescription: '您的 Zoho Books 账户将会作为类别导入。',
+            enableNewAccountsTitle: '启用新导入的账户',
+            enableNewAccountsDescription: '新的 Zoho Books 账户将可用作类别。',
+            reportingTagsImport: '所有 Zoho Books 报告标签都会作为标签导入',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central 设置',

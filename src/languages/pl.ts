@@ -9237,6 +9237,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         zohoBooks: {
             organization: 'Organizacja Zoho Books',
+            importDescription: 'Wybierz, które konfiguracje kodowania zaimportować z Zoho Books.',
+            accountTypesDescription: 'Twoje konta Zoho Books zostaną zaimportowane jako kategorie.',
+            enableNewAccountsTitle: 'Włącz nowo zaimportowane konta',
+            enableNewAccountsDescription: 'Nowe konta Zoho Books będą dostępne jako kategorie.',
+            reportingTagsImport: 'Wszystkie tagi raportowania Zoho Books są importowane jako tagi',
         },
         businessCentral: {
             businessCentralSetup: 'Konfiguracja Dynamics 365 Business Central',

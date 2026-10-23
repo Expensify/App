@@ -9459,6 +9459,11 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Οργανισμός Zoho Books',
+            importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θέλετε να εισαγάγετε από το Zoho Books.',
+            accountTypesDescription: 'Οι λογαριασμοί Zoho Books σας θα εισαχθούν ως κατηγορίες.',
+            enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
+            enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Zoho Books θα είναι διαθέσιμοι ως κατηγορίες.',
+            reportingTagsImport: 'Όλες οι ετικέτες αναφορών του Zoho Books εισάγονται ως ετικέτες',
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',

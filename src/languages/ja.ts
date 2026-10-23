@@ -9113,6 +9113,11 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Zoho Books 組織',
+            importDescription: 'Zoho Books からインポートするコーディング設定を選択してください。',
+            accountTypesDescription: 'Zoho Books のアカウントはカテゴリとしてインポートされます。',
+            enableNewAccountsTitle: '新しくインポートされた口座を有効にする',
+            enableNewAccountsDescription: '新しい Zoho Books アカウントは、カテゴリーとして利用できるようになります。',
+            reportingTagsImport: 'すべての Zoho Books レポートタグがタグとしてインポートされます',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',

@@ -9318,6 +9318,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         zohoBooks: {
             organization: 'Organisation Zoho Books',
+            importDescription: 'Choisissez les configurations de codage à importer depuis Zoho Books.',
+            accountTypesDescription: 'Vos comptes Zoho Books seront importés en tant que catégories.',
+            enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
+            enableNewAccountsDescription: 'Les nouveaux comptes Zoho Books seront disponibles en tant que catégories.',
+            reportingTagsImport: 'Toutes les balises de reporting Zoho Books sont importées en tant que tags',
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',

@@ -9244,6 +9244,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         zohoBooks: {
             organization: 'Organizzazione Zoho Books',
+            importDescription: 'Scegli quali configurazioni di codifica importare da Zoho Books.',
+            accountTypesDescription: 'I tuoi account Zoho Books verranno importati come categorie.',
+            enableNewAccountsTitle: 'Abilita i conti appena importati',
+            enableNewAccountsDescription: 'I nuovi account Zoho Books saranno disponibili come categorie.',
+            reportingTagsImport: 'Tutti i tag di reporting di Zoho Books vengono importati come tag',
         },
         businessCentral: {
             businessCentralSetup: 'Configurazione Dynamics 365 Business Central',
