@@ -888,8 +888,12 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
     const rules: ApprovalWorkflowRule[] = [{triggers: buildSubmitTriggers(), filters: fromComparison, actions: buildForwardActions(firstApproverEmail)}];
     const approverEmails = new Set(approvers.map((approver) => approver.email));
 
-    // An approver's approval limit decides where a report goes once they approve it: over the limit, it goes to their
-    // `overLimitForwardsTo` instead of carrying on down the workflow.
+    // For each over-limit approver who isn't one of this workflow's approvers, the lowest limit among the approvers
+    // already handled that send them reports. Any report over it has already been through them.
+    const lowestEarlierLimits = new Map<string, number>();
+
+    // An approver's approval limit adds their `overLimitForwardsTo` after them: once they approve a report over the
+    // limit, it goes to the over-limit approver, and from there on down the workflow as it would have gone otherwise.
     for (const [index, approver] of approvers.entries()) {
         if (!approver.email) {
             continue;
@@ -898,29 +902,62 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
         const nextApproverEmail = approvers.at(index + 1)?.email;
         const source = buildAnd(fromComparison, buildToComparison(approver.email));
         const actions = nextApproverEmail ? buildForwardActions(nextApproverEmail) : buildApproveActions();
+        const overLimitApproverEmail = approver.overLimitForwardsTo;
 
-        if (!approver.approvalLimit || approver.approvalLimit <= 0 || !approver.overLimitForwardsTo) {
+        if (!approver.approvalLimit || approver.approvalLimit <= 0 || !overLimitApproverEmail) {
             rules.push({triggers: buildApproveTriggers(), filters: source, actions});
             continue;
         }
 
         const withinLimit = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, approver.approvalLimit);
         const overLimit = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, approver.approvalLimit);
-        rules.push({triggers: buildApproveTriggers(), filters: buildAnd(source, withinLimit), actions});
-        rules.push({triggers: buildApproveTriggers(), filters: buildAnd(source, overLimit), actions: buildForwardActions(approver.overLimitForwardsTo)});
 
-        // An over-limit approver who isn't one of this workflow's approvers has no step of their own to carry on from, so
-        // they finalize the report.
-        if (!approverEmails.has(approver.overLimitForwardsTo)) {
-            rules.push({
-                triggers: buildApproveTriggers(),
-                filters: buildAnd(fromComparison, buildToComparison(approver.overLimitForwardsTo)),
-                actions: buildApproveActions(),
-            });
+        // When an earlier approver sends reports over a lower limit to the same over-limit approver, those reports have
+        // already been through them, so only the ones still within that limit go to them from here.
+        const isWorkflowApprover = approverEmails.has(overLimitApproverEmail);
+        const earlierLimit = isWorkflowApprover ? undefined : lowestEarlierLimits.get(overLimitApproverEmail);
+        const goesToOverLimitApprover =
+            earlierLimit === undefined
+                ? overLimit
+                : buildAnd(overLimit, buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, earlierLimit));
+        const skipsOverLimitApprover: RuleFilterNode =
+            earlierLimit === undefined
+                ? withinLimit
+                : {
+                      operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
+                      left: withinLimit,
+                      right: buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, earlierLimit),
+                  };
+
+        rules.push({triggers: buildApproveTriggers(), filters: buildAnd(source, skipsOverLimitApprover), actions});
+        rules.push({triggers: buildApproveTriggers(), filters: buildAnd(source, goesToOverLimitApprover), actions: buildForwardActions(overLimitApproverEmail)});
+
+        // An over-limit approver who is also one of this workflow's approvers carries on from their own step.
+        if (isWorkflowApprover) {
+            continue;
         }
+
+        lowestEarlierLimits.set(overLimitApproverEmail, Math.min(earlierLimit ?? approver.approvalLimit, approver.approvalLimit));
+
+        // The over-limit approver only gets reports over the limit, so where they send them next only depends on the
+        // amount when other approvers send them reports too.
+        const isSharedOverLimitApprover = approvers.some(
+            (otherApprover) =>
+                otherApprover !== approver &&
+                !!otherApprover.email &&
+                otherApprover.overLimitForwardsTo === overLimitApproverEmail &&
+                !!otherApprover.approvalLimit &&
+                otherApprover.approvalLimit > 0,
+        );
+        const toOverLimitApprover = buildAnd(fromComparison, buildToComparison(overLimitApproverEmail));
+        rules.push({
+            triggers: buildApproveTriggers(),
+            filters: isSharedOverLimitApprover ? buildAnd(toOverLimitApprover, goesToOverLimitApprover) : toOverLimitApprover,
+            actions,
+        });
     }
 
-    // Different approvers may share an `overLimitForwardsTo`, which would emit identical terminal rules.
+    // An approver listed more than once would emit the same rule more than once.
     const seen = new Set<string>();
     const dedupedRules = rules.filter((rule) => {
         const serializedRule = JSON.stringify(sortObjectKeysDeep(rule));

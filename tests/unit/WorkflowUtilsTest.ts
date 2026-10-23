@@ -2393,7 +2393,7 @@ describe('WorkflowUtils', () => {
                 const rules = buildApprovalWorkflowRules(workflow);
 
                 // Then every report reaches the approver. Once they approve it, a report within the limit is finalized,
-                // and one over it goes on to the over-limit approver, who finalizes it
+                // and one over it goes on to the over-limit approver, who finalizes it since there is no later step
                 expect(rules).toEqual([
                     {
                         triggers: submitTriggers,
@@ -2415,6 +2415,104 @@ describe('WorkflowUtils', () => {
                         filters: and(from, buildToFilter('3@example.com')),
                         actions: approveActions,
                     },
+                ]);
+            });
+
+            it('Should send an over-limit report on to the next approver once the over-limit approver approves it', () => {
+                // Given 1 -> 2, where reports over 100.00 also need 3@example.com right after 1@example.com
+                const workflow: ApprovalWorkflow = {
+                    members: [buildMember(5)],
+                    approvers: [buildApprover(1, {approvalLimit: 10000, overLimitForwardsTo: '3@example.com'}), buildApprover(2)],
+                    isDefault: false,
+                };
+                const from = buildFromFilter(['5@example.com']);
+                const overLimit = {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000};
+
+                // When the workflow is turned into rules
+                const rules = buildApprovalWorkflowRules(workflow);
+
+                // Then 3@example.com sends the reports they get over the limit on to 2@example.com, the step after
+                // 1@example.com
+                expect(rules).toEqual([
+                    {triggers: submitTriggers, filters: from, actions: forwardActions('1@example.com')},
+                    {
+                        triggers: approveTriggers,
+                        filters: and(and(from, buildToFilter('1@example.com')), {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                            left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                            right: 10000,
+                        }),
+                        actions: forwardActions('2@example.com'),
+                    },
+                    {triggers: approveTriggers, filters: and(and(from, buildToFilter('1@example.com')), overLimit), actions: forwardActions('3@example.com')},
+                    {triggers: approveTriggers, filters: and(from, buildToFilter('3@example.com')), actions: forwardActions('2@example.com')},
+                    {triggers: approveTriggers, filters: and(from, buildToFilter('2@example.com')), actions: approveActions},
+                ]);
+            });
+
+            it('Should only split where a shared over-limit approver sends reports next on the amount', () => {
+                // Given 1 -> 2 -> 3, where 1@example.com sends reports over 500.00 and 2@example.com sends reports over
+                // 100.00 to 9@example.com
+                const workflow: ApprovalWorkflow = {
+                    members: [buildMember(5)],
+                    approvers: [
+                        buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '9@example.com'}),
+                        buildApprover(2, {approvalLimit: 10000, overLimitForwardsTo: '9@example.com'}),
+                        buildApprover(3),
+                    ],
+                    isDefault: false,
+                };
+                const from = buildFromFilter(['5@example.com']);
+                const amount = (operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, right: number) => ({operator, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right});
+
+                // When the workflow is turned into rules
+                const rules = buildApprovalWorkflowRules(workflow);
+
+                // Then 9@example.com has a rule for each approver that sends them reports, told apart by the amount. A report
+                // over 500.00 already went to them after 1@example.com, so 2@example.com only sends them the ones up to 500.00
+                expect(rules).toEqual([
+                    {triggers: submitTriggers, filters: from, actions: forwardActions('1@example.com')},
+                    {
+                        triggers: approveTriggers,
+                        filters: and(and(from, buildToFilter('1@example.com')), amount(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 50000)),
+                        actions: forwardActions('2@example.com'),
+                    },
+                    {
+                        triggers: approveTriggers,
+                        filters: and(and(from, buildToFilter('1@example.com')), amount(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 50000)),
+                        actions: forwardActions('9@example.com'),
+                    },
+                    {
+                        triggers: approveTriggers,
+                        filters: and(and(from, buildToFilter('9@example.com')), amount(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 50000)),
+                        actions: forwardActions('2@example.com'),
+                    },
+                    {
+                        triggers: approveTriggers,
+                        filters: and(and(from, buildToFilter('2@example.com')), {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
+                            left: amount(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 10000),
+                            right: amount(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 50000),
+                        }),
+                        actions: forwardActions('3@example.com'),
+                    },
+                    {
+                        triggers: approveTriggers,
+                        filters: and(
+                            and(from, buildToFilter('2@example.com')),
+                            and(amount(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 10000), amount(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 50000)),
+                        ),
+                        actions: forwardActions('9@example.com'),
+                    },
+                    {
+                        triggers: approveTriggers,
+                        filters: and(
+                            and(from, buildToFilter('9@example.com')),
+                            and(amount(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 10000), amount(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 50000)),
+                        ),
+                        actions: forwardActions('3@example.com'),
+                    },
+                    {triggers: approveTriggers, filters: and(from, buildToFilter('3@example.com')), actions: approveActions},
                 ]);
             });
 
@@ -2479,7 +2577,7 @@ describe('WorkflowUtils', () => {
                     return approverEmails;
                 };
 
-                // 1 -> 2 -> 3, where reports over 500.00 go from 2@example.com to 4@example.com instead of to 3@example.com
+                // 1 -> 2 -> 3, where reports over 500.00 also need 4@example.com right after 2@example.com
                 const limitedSecondApproverWorkflow: ApprovalWorkflow = {
                     members: [buildMember(5)],
                     approvers: [buildApprover(1), buildApprover(2, {approvalLimit: 50000, overLimitForwardsTo: '4@example.com'}), buildApprover(3)],
@@ -2494,7 +2592,7 @@ describe('WorkflowUtils', () => {
                 it.each([
                     ['under the limit', limitedSecondApproverWorkflow, -49999, ['1@example.com', '2@example.com', '3@example.com']],
                     ['exactly at the limit', limitedSecondApproverWorkflow, -50000, ['1@example.com', '2@example.com', '3@example.com']],
-                    ['over the limit', limitedSecondApproverWorkflow, -50001, ['1@example.com', '2@example.com', '4@example.com']],
+                    ['over the limit', limitedSecondApproverWorkflow, -50001, ['1@example.com', '2@example.com', '4@example.com', '3@example.com']],
                     ['at the limit of an only approver', limitedOnlyApproverWorkflow, -50000, ['1@example.com']],
                     ['over the limit of an only approver', limitedOnlyApproverWorkflow, -50001, ['1@example.com', '4@example.com']],
                 ])('Should keep the limited approver and only add the over-limit approver after them for a report %s', (_description, workflow, reportTotal, expectedApproverEmails) => {
@@ -2502,8 +2600,34 @@ describe('WorkflowUtils', () => {
                     // When a report goes through its rules
                     const approverEmails = routeReport(workflow, '5@example.com', reportTotal);
 
-                    // Then the limited approver always approves it, and only a report strictly over their limit goes on to
-                    // the over-limit approver once they have, the way Expensify Classic routes it
+                    // Then the limited approver always approves it, and a report strictly over their limit also goes to the
+                    // over-limit approver right after them, before carrying on to the next approver
+                    expect(approverEmails).toEqual(expectedApproverEmails);
+                });
+
+                const buildSharedOverLimitApproverWorkflow = (firstLimit: number, secondLimit: number): ApprovalWorkflow => ({
+                    members: [buildMember(5)],
+                    approvers: [
+                        buildApprover(1, {approvalLimit: firstLimit, overLimitForwardsTo: '9@example.com'}),
+                        buildApprover(2, {approvalLimit: secondLimit, overLimitForwardsTo: '9@example.com'}),
+                        buildApprover(3),
+                    ],
+                    isDefault: false,
+                });
+
+                it.each([
+                    ['under both limits', 10000, 50000, -5000, ['1@example.com', '2@example.com', '3@example.com']],
+                    ['over the lower first limit only', 10000, 50000, -20000, ['1@example.com', '9@example.com', '2@example.com', '3@example.com']],
+                    ['over both limits', 10000, 50000, -60000, ['1@example.com', '9@example.com', '2@example.com', '3@example.com']],
+                    ['over the lower second limit only', 50000, 10000, -20000, ['1@example.com', '2@example.com', '9@example.com', '3@example.com']],
+                    ['over both limits when the second one is lower', 50000, 10000, -60000, ['1@example.com', '9@example.com', '2@example.com', '3@example.com']],
+                ])('Should add an over-limit approver shared by two approvers only once for a report %s', (_description, firstLimit, secondLimit, reportTotal, expectedApproverEmails) => {
+                    // Given 1 -> 2 -> 3, where 1@example.com and 2@example.com both send reports over their limits to 9@example.com
+                    // When a report goes through its rules
+                    const approverEmails = routeReport(buildSharedOverLimitApproverWorkflow(firstLimit, secondLimit), '5@example.com', reportTotal);
+
+                    // Then 9@example.com approves it once, right after the first approver whose limit it is over, and it then
+                    // carries on down the workflow
                     expect(approverEmails).toEqual(expectedApproverEmails);
                 });
 
@@ -2912,27 +3036,34 @@ describe('WorkflowUtils', () => {
                 expect(approvers.at(1)?.approvalLimit).toBeNull();
             });
 
-            it('Should round-trip an over-limit approver who is also an approver in the workflow', () => {
-                // Given rules for 1 -> 2 -> 3, where reports over 100.00 go from 1@example.com straight to 3@example.com
-                const workflow: ApprovalWorkflow = {
-                    members: [buildMember(5)],
-                    approvers: [buildApprover(1, {approvalLimit: 10000, overLimitForwardsTo: '3@example.com'}), buildApprover(2), buildApprover(3)],
-                    isDefault: false,
-                };
+            it.each([
+                [
+                    'an over-limit approver who is also an approver in the workflow',
+                    [buildApprover(1, {approvalLimit: 10000, overLimitForwardsTo: '3@example.com'}), buildApprover(2), buildApprover(3)],
+                ],
+                [
+                    'an over-limit approver shared by two approvers',
+                    [
+                        buildApprover(1, {approvalLimit: 10000, overLimitForwardsTo: '9@example.com'}),
+                        buildApprover(2, {approvalLimit: 50000, overLimitForwardsTo: '9@example.com'}),
+                        buildApprover(3),
+                    ],
+                ],
+            ])('Should round-trip %s', (_description, approvers) => {
+                // Given rules for 1 -> 2 -> 3, where reports over a limit also need an over-limit approver
+                const workflow: ApprovalWorkflow = {members: [buildMember(5)], approvers, isDefault: false};
                 const rules = keyRules(buildApprovalWorkflowRules(workflow));
                 const policy = createPolicy({'5@example.com': {email: '5@example.com', submitsTo: '1@example.com'}}, 'owner@example.com');
 
                 // When the workflows are read back from those rules
                 const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
 
-                // Then the limit stays on 1@example.com, the chain still runs through 2@example.com, and the workflow
-                // turns back into the same rules
+                // Then every approver keeps their own limit and over-limit approver, and the workflow turns back into the
+                // same rules
                 const readWorkflow = approvalWorkflows.find((approvalWorkflow) => approvalWorkflow.members.some((member) => member.email === '5@example.com'));
-                expect(readWorkflow?.approvers.map((approver) => [approver.email, approver.approvalLimit, approver.overLimitForwardsTo])).toEqual([
-                    ['1@example.com', 10000, '3@example.com'],
-                    ['2@example.com', null, undefined],
-                    ['3@example.com', null, undefined],
-                ]);
+                expect(readWorkflow?.approvers.map((approver) => [approver.email, approver.approvalLimit, approver.overLimitForwardsTo])).toEqual(
+                    approvers.map((approver) => [approver.email, approver.approvalLimit ?? null, approver.overLimitForwardsTo]),
+                );
                 expect(readWorkflow).toBeDefined();
                 if (readWorkflow) {
                     expect(buildApprovalWorkflowRules(readWorkflow)).toEqual(Object.values(rules));
