@@ -11763,6 +11763,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 info: 'Si vous souhaitez continuer à utiliser votre/vos espace(s) de travail à l’utilisation, tout est prêt.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Si vous souhaitez empêcher toute activité et tout prélèvement futurs, vous devez <a href="${workspacesListRoute}">supprimer votre/vos espace(s) de travail</a>. Notez que lorsque vous supprimez votre/vos espace(s) de travail, vous serez facturé pour toute activité en cours survenue durant le mois civil en cours.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Si vous souhaitez empêcher toute activité et tout prélèvement futurs, vous devez <a href="${workspacesListRoute}">archiver tous vos espaces de travail payants</a>. Notez que lorsque vous archivez votre/vos espace(s) de travail, vous serez facturé pour toute activité en cours survenue durant le mois civil en cours.`,
             },
             requestSubmitted: {
                 title: 'Demande soumise',

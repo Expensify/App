@@ -11514,6 +11514,8 @@ ${reportName}`,
                 info: 'ワークスペースを従量課金制で使い続けたい場合は、これで準備完了です。',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `今後のアクティビティや請求を防ぎたい場合は、<a href="${workspacesListRoute}">ワークスペースを削除</a>する必要があります。ワークスペースを削除すると、当月中に発生した未精算のアクティビティについて請求が行われることにご注意ください。`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `今後のアクティビティや請求を防ぎたい場合は、<a href="${workspacesListRoute}">すべての有料ワークスペースをアーカイブ</a>する必要があります。ワークスペースをアーカイブすると、当月中に発生した未精算のアクティビティについて請求が行われることにご注意ください。`,
             },
             requestSubmitted: {
                 title: 'リクエストを送信しました',

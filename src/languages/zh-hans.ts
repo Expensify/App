@@ -11222,6 +11222,8 @@ ${reportName}`,
                 info: '如果你想按次付费继续使用你的工作区，你就都准备好了。',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `如果你想阻止未来的活动和收费，你必须<a href="${workspacesListRoute}">删除你的工作区</a>。请注意，当你删除工作区时，你将被收取在当前日历月内产生的所有未结活动费用。`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `如果你想阻止未来的活动和收费，你必须<a href="${workspacesListRoute}">归档你的所有付费工作区</a>。请注意，当你归档工作区时，你将被收取在当前日历月内产生的所有未结活动费用。`,
             },
             requestSubmitted: {
                 title: '请求已提交',

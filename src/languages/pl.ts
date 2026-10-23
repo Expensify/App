@@ -11680,6 +11680,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 info: 'Jeśli chcesz nadal korzystać ze swojego(-ich) workspace’u(-ów) w modelu płatności za użycie, wszystko jest gotowe.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Jeśli chcesz zapobiec przyszłej aktywności i obciążeniom, musisz <a href="${workspacesListRoute}">usunąć swoje przestrzenie robocze</a>. Pamiętaj, że po usunięciu przestrzeni roboczych zostaniesz obciążony za wszelką nierozliczoną aktywność z bieżącego miesiąca kalendarzowego.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Jeśli chcesz zapobiec przyszłej aktywności i obciążeniom, musisz <a href="${workspacesListRoute}">zarchiwizować wszystkie swoje płatne przestrzenie robocze</a>. Pamiętaj, że po zarchiwizowaniu przestrzeni roboczych zostaniesz obciążony za wszelką nierozliczoną aktywność z bieżącego miesiąca kalendarzowego.`,
             },
             requestSubmitted: {
                 title: 'Wniosek wysłany',

@@ -11653,6 +11653,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 info: 'Als je je werkruimte(s) op basis van betalen-per-gebruik wilt blijven gebruiken, ben je helemaal klaar.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Als je toekomstige activiteit en kosten wilt voorkomen, moet je je <a href="${workspacesListRoute}">werkruimte(s) verwijderen</a>. Let op: wanneer je je werkruimte(s) verwijdert, worden eventuele openstaande activiteiten die in de huidige kalendermaand hebben plaatsgevonden alsnog in rekening gebracht.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Als je toekomstige activiteit en kosten wilt voorkomen, moet je <a href="${workspacesListRoute}">al je betaalde werkruimtes archiveren</a>. Let op: wanneer je je werkruimte(s) archiveert, worden eventuele openstaande activiteiten die in de huidige kalendermaand hebben plaatsgevonden alsnog in rekening gebracht.`,
             },
             requestSubmitted: {
                 title: 'Aanvraag ingediend',
