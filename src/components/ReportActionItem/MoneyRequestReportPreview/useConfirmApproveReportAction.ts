@@ -14,6 +14,7 @@ import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
@@ -21,7 +22,7 @@ import type useReportPreviewActionButtonData from './useReportPreviewActionButto
 
 import {useReportPreviewActions} from './MoneyRequestReportPreviewContext';
 
-function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useReportPreviewActionButtonData>, hasViolations: boolean) {
+function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useReportPreviewActionButtonData>, transactions: Transaction[], hasViolations: boolean) {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
@@ -40,6 +41,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
             approveMoneyRequest({
                 getCurrencyDecimals,
                 expenseReport: iouReport,
+                expenseReportTransactions: transactions,
                 expenseReportPolicy: policy,
                 rules,
                 currentUserAccountIDParam: currentUserDetails.accountID,

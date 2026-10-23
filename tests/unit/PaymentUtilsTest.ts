@@ -148,6 +148,7 @@ describe('PaymentUtils', () => {
             hasViolations: false,
             isASAPSubmitBetaEnabled: false,
             iouReport: {reportID: '1'} as Report,
+            iouReportTransactions: [],
             rules: undefined,
             userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
@@ -246,6 +247,7 @@ describe('PaymentUtils', () => {
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
+                expenseReportTransactions: params.iouReportTransactions,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,
                 currentUserEmailParam: params.currentEmail,
@@ -275,6 +277,7 @@ describe('PaymentUtils', () => {
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
+                expenseReportTransactions: params.iouReportTransactions,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,
                 currentUserEmailParam: params.currentEmail,

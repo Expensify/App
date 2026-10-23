@@ -56,6 +56,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
         approveMoneyRequest({
             getCurrencyDecimals,
             expenseReport: moneyRequestReport,
+            expenseReportTransactions: Object.values(reportTransactions),
             expenseReportPolicy: policy,
             rules,
             currentUserAccountIDParam: accountID,
