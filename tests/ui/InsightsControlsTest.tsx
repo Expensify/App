@@ -232,8 +232,8 @@ describe('Insights controls', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        // Then the pill reads Running total rather than a time bucket
-        expect(screen.getByText(/: (Running total|insightsPage\.runningTotal)$/)).toBeOnTheScreen();
+        // Then the pill reads Running total alone, without the Group by prefix a time bucket gets
+        expect(screen.getByText(/^(Running total|insightsPage\.runningTotal)$/)).toBeOnTheScreen();
     });
 
     it('resets Workspace to every workspace', async () => {
