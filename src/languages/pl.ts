@@ -12194,6 +12194,90 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         errorTitle: 'Coś poszło nie tak. Spróbuj ponownie.',
         errorPrompt: 'Wygląda na to, że coś nie zadziałało. Spróbuj ponownie. Jeśli problem będzie się powtarzał, skontaktuj się z Concierge.',
     },
+    bulkAction: {
+        approvingTitle: 'Zatwierdzanie raportów...',
+        submittingTitle: 'Wysyłanie raportów...',
+        payingTitle: 'Oznaczanie raportów jako opłacone...',
+        holdingTitle: 'Wstrzymywanie wydatków...',
+        unholdingTitle: 'Usuwanie blokady wydatków...',
+        rejectingTitle: 'Odrzucanie wydatków...',
+        deletingTitle: 'Usuwanie raportów...',
+        deletingExpensesTitle: 'Usuwanie wydatków...',
+        runningBody: 'Poczekaj kilka minut albo pozwól, by Concierge wysłał ci wiadomość, gdy wszystko będzie gotowe.',
+        sendFromConcierge: 'Napisz do mnie, kiedy będzie gotowe',
+        conciergeTitle: 'No jasne!',
+        conciergeBody: 'Gdy Concierge skończy, wyśle ci wiadomość.',
+        goToConcierge: 'Przejdź do Concierge',
+        approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Zatwierdzono ${doneCount} z ${count} raportu`,
+            other: `Zatwierdzono ${doneCount} z ${count} raportów`,
+        }),
+        submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Przesłano ${doneCount} z ${count} raportu`,
+            other: `Przesłano ${doneCount} z ${count} raportów`,
+        }),
+        paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Oznaczono ${doneCount} z ${count} raportu jako opłacone`,
+            other: `Oznaczono ${doneCount} z ${count} raportów jako opłacone`,
+        }),
+        heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Wstrzymano wydatki w ${doneCount} z ${count} raportu`,
+            other: `Wstrzymano wydatki w ${doneCount} z ${count} raportów`,
+        }),
+        unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Usunięto blokadę wydatków w ${doneCount} z ${count} raportu`,
+            other: `Usunięto blokadę wydatków w ${doneCount} z ${count} raportów`,
+        }),
+        rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Odrzucono wydatki w ${doneCount} z ${count} raportu`,
+            other: `Odrzucono wydatki w ${doneCount} z ${count} raportów`,
+        }),
+        deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Usunięto ${doneCount} z ${count} raportu`,
+            other: `Usunięto ${doneCount} z ${count} raportów`,
+        }),
+        deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Usunięto wydatki w ${doneCount} z ${count} raportu`,
+            other: `Usunięto wydatki w ${doneCount} z ${count} raportów`,
+        }),
+        noReportsTitle: 'Brak pasujących raportów',
+        noReportsBody: 'Żaden z wybranych raportów nie wymagał tej akcji.',
+        viewFailedReports: 'Wyświetl raporty',
+        failedTitle: 'Coś poszło nie tak',
+        failedBody: 'Nie udało się rozpocząć tej akcji. Spróbuj ponownie później.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się zatwierdzić 1 raportu.',
+            other: `Nie udało się zatwierdzić ${count} raportów.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się przesłać 1 raportu.',
+            other: `Nie udało się przesłać ${count} raportów.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się oznaczyć 1 raportu jako opłaconego.',
+            other: `Nie udało się oznaczyć ${count} raportów jako opłaconych.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się wstrzymać wydatków w 1 raporcie.',
+            other: `Nie udało się wstrzymać wydatków w ${count} raportach.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się usunąć blokady wydatków w 1 raporcie.',
+            other: `Nie udało się usunąć blokady wydatków w ${count} raportach.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się odrzucić wydatków w 1 raporcie.',
+            other: `Nie udało się odrzucić wydatków w ${count} raportach.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się usunąć 1 raportu.',
+            other: `Nie udało się usunąć ${count} raportów.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się usunąć wydatków w 1 raporcie.',
+            other: `Nie udało się usunąć wydatków w ${count} raportach.`,
+        }),
+    },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Odnów swoją subskrypcję na 12-miesięczny okres, od ${startDate} do ${endDate}.`,
         title: 'Odnów swoją subskrypcję Expensify',

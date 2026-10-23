@@ -12512,6 +12512,90 @@ ${reportName}`,
         errorTitle: 'Algo salió mal. Por favor, inténtalo de nuevo.',
         errorPrompt: 'Parece que algo no ha funcionado. Por favor, inténtalo de nuevo. Si el problema persiste, ponte en contacto con Concierge.',
     },
+    bulkAction: {
+        approvingTitle: 'Aprobando informes...',
+        submittingTitle: 'Enviando informes...',
+        payingTitle: 'Marcando informes como pagados...',
+        holdingTitle: 'Reteniendo gastos...',
+        unholdingTitle: 'Desbloqueando gastos...',
+        rejectingTitle: 'Rechazando gastos...',
+        deletingTitle: 'Eliminando informes...',
+        deletingExpensesTitle: 'Eliminando gastos...',
+        runningBody: 'Espera unos minutos o deja que Concierge te envíe un mensaje cuando termine.',
+        sendFromConcierge: 'Envíame un mensaje cuando esté listo',
+        conciergeTitle: '¡Por supuesto!',
+        conciergeBody: 'Concierge te enviará un mensaje cuando haya terminado.',
+        goToConcierge: 'Ir a Concierge',
+        approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Aprobados ${doneCount} de ${count} informe`,
+            other: `Aprobados ${doneCount} de ${count} informes`,
+        }),
+        submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Enviados ${doneCount} de ${count} informe`,
+            other: `Enviados ${doneCount} de ${count} informes`,
+        }),
+        paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Marcados ${doneCount} de ${count} informe como pagados`,
+            other: `Marcados ${doneCount} de ${count} informes como pagados`,
+        }),
+        heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Gastos retenidos en ${doneCount} de ${count} informe`,
+            other: `Gastos retenidos en ${doneCount} de ${count} informes`,
+        }),
+        unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Gastos desbloqueados en ${doneCount} de ${count} informe`,
+            other: `Gastos desbloqueados en ${doneCount} de ${count} informes`,
+        }),
+        rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Gastos rechazados en ${doneCount} de ${count} informe`,
+            other: `Gastos rechazados en ${doneCount} de ${count} informes`,
+        }),
+        deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Eliminados ${doneCount} de ${count} informe`,
+            other: `Eliminados ${doneCount} de ${count} informes`,
+        }),
+        deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Gastos eliminados en ${doneCount} de ${count} informe`,
+            other: `Gastos eliminados en ${doneCount} de ${count} informes`,
+        }),
+        noReportsTitle: 'No hay informes coincidentes',
+        noReportsBody: 'Ninguno de los informes que seleccionaste necesitaba esta acción.',
+        viewFailedReports: 'Ver informes',
+        failedTitle: 'Algo salió mal',
+        failedBody: 'No se pudo iniciar esta acción. Por favor, inténtalo de nuevo más tarde.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: 'No se pudo aprobar 1 informe.',
+            other: `No se pudieron aprobar ${count} informes.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: 'No se pudo enviar 1 informe.',
+            other: `No se pudieron enviar ${count} informes.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: 'No se pudo pagar 1 informe.',
+            other: `No se pudieron pagar ${count} informes.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: 'No se pudieron retener los gastos en 1 informe.',
+            other: `No se pudieron retener los gastos en ${count} informes.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: 'No se pudieron desbloquear los gastos de 1 informe.',
+            other: `No se pudieron desbloquear los gastos en ${count} informes.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: 'No se pudieron rechazar los gastos en 1 informe.',
+            other: `No se pudieron rechazar los gastos en ${count} informes.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: 'No se pudo eliminar 1 informe.',
+            other: `No se pudieron eliminar ${count} informes.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: 'Los gastos de 1 informe no se pudieron eliminar.',
+            other: `No se pudieron eliminar los gastos en ${count} informes.`,
+        }),
+    },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renueva tu suscripción por un período de 12 meses, desde ${startDate} hasta ${endDate}.`,
         title: 'Renueva tu suscripción de Expensify',
