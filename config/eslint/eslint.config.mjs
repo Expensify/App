@@ -824,8 +824,6 @@ const config = defineConfig([
     globalIgnores([
         '!**/.storybook',
         '!**/.github',
-        // Oxlint's config: its quoted rule-name keys trip naming-convention hundreds of times.
-        'oxlint.config.mts',
         '.github/actions/**/index.js',
         '**/*.config.js',
         '**/*.config.mjs',

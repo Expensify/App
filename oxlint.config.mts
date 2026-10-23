@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/naming-convention -- the rule names in this file are quoted object keys */
+/* eslint-disable import/no-extraneous-dependencies -- oxlint is a devDependency; this file only runs while linting */
 import {defineConfig} from 'oxlint';
 
 // An oxlint override replaces a rule's options instead of merging them, so every block that sets
@@ -126,7 +128,6 @@ export default defineConfig({
         'import/extensions': ['.js', '.mjs', '.jsx', '.ts', '.tsx', '.d.ts', '.cts', '.mts'],
     },
     ignorePatterns: [
-        'oxlint.config.mts',
         '!**/.storybook',
         '!**/.github',
         '.github/actions/**/index.js',
