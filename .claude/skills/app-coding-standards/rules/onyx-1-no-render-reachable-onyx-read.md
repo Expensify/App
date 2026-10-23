@@ -18,6 +18,7 @@ Do not re-check these:
 | A read inside an effect, or in a same-file function an effect calls | `no-unsafe-onyx-read` |
 | A read in a module-level function, object or class in `src/components`, `src/pages` or `src/hooks`, outside a component or hook body | `no-unsafe-onyx-read` |
 | A reference to `Onyx.get` or `Onyx.multiGet` that is not a direct call (`.call`, `.bind`, `keys.map(Onyx.get)`, `const read = Onyx.get`, `const {get} = Onyx`) | `no-unsafe-onyx-read` |
+| The `Onyx` object used as a value instead of through a member, such as `{...Onyx}` or `const api = Onyx` | `no-unsafe-onyx-read` |
 | A Search snapshot key, or a key lint can't resolve, including any `multiGet` element | `no-onyx-get-snapshot-key` |
 | A runtime import of `react-native-onyx/dist/OnyxUtils` | `@typescript-eslint/no-restricted-imports` |
 | An inline `eslint-disable` that covers `no-unsafe-onyx-read`, named or blanket, or one over a runtime OnyxUtils import, in any linted file outside `tests/` | `scripts/checkOnyxLintBypass.ts` |
@@ -28,11 +29,11 @@ A disable of `no-onyx-get-snapshot-key` is allowed with a reason, and the script
 
 What's left crosses a file boundary, depends on write ordering, only shows in the diff, or happens after the read.
 
-Mutating a read result writes the cache, since a single-key read returns the cached object and a collection read returns the cached members. `useOnyx` hands out the same object, so this stays a documented convention and isn't flagged here.
+Mutating a read result writes the cache, since a single-key read returns the cached object and a collection read returns the cached members. `useOnyx` hands out the same object, so this stays a documented convention and isn't flagged here. A `set` with that same object can be skipped as unchanged, so the mutation is neither saved nor announced.
 
 **A. Position.** Render reaches a read wherever it's written. Lint counts a function as a render body when it's named like a component or hook, has a top-level `return <JSX>`, is wrapped in `memo` or `forwardRef`, or is passed to a `useMemo`, `useState`, `useReducer` or `useSyncExternalStore` slot or a `selector` option, inline or by name. It follows a helper the render body calls in the same file, through aliases and `useCallback`, but misses one imported from another file. It also misses a helper that returns JSX from inside an `if` or `switch`, a component passed inline to any call other than `memo` or `forwardRef` (such as a HOC), and a function passed to a child that calls it during render. When one of these helpers is `async`, `tsc` catches it only where the Promise lands in a slot typed `ReactElement`, such as `renderItem`; a JSX child or a `render*` prop typed `ReactNode` accepts a Promise, so check for a type error before relying on it.
 
-**B. Tick.** Awaiting a read doesn't wait for an earlier write. `Onyx.get` captures the cached value when it's called. `set` and `multiSet` update the cache before they return, but `merge`, `mergeCollection`, `setCollection` and every `update` operation, including SET, apply to the cache after at least one microtask, so a read queued behind them sees the old value: await the write, or read first. A derived key (`ONYXKEYS.DERIVED.*`) is recomputed on a microtask after its source changes, so a read in the same synchronous stretch returns the old derived value, even after a `set` that already updated the source. Read a derived key only before writing its sources.
+**B. Tick.** Awaiting a read doesn't wait for an earlier write. `Onyx.get` captures the cached value when it's called. `set` and `multiSet` update the cache before they return, but `merge`, `mergeCollection`, `setCollection`, `clear` and every `update` operation, including SET, apply to the cache after at least one microtask, so a read queued behind them sees the old value: await the write, or read first. A derived key (`ONYXKEYS.DERIVED.*`) is recomputed on a microtask after its source changes, so a read in the same synchronous stretch returns the old derived value, even after a `set` that already updated the source. Read a derived key only before writing its sources.
 
 **C. Effect in another file.** Lint bans a read inside an effect, but only within one file. A handler that reads can still end up in an effect when it's passed to a child or hook that calls it from `useEffect`, `useLayoutEffect` or `useFocusEffect`. A receiver that only registers the handler for an event (an `on*` prop, `addEventListener`, `useKeyboardShortcut`) is fine, even if the handler sits in that effect's dependency array.
 
@@ -154,7 +155,7 @@ return <Text>Current theme: {theme}</Text>;
 
 #### B. Tick
 
-- B1. An `Onyx.merge`, `Onyx.mergeCollection`, `Onyx.setCollection` or `Onyx.update` that isn't awaited is followed in the same tick by a read of the written key, a member of the written collection, or a `DERIVED` key built from either (see `dependencies` in `src/libs/actions/OnyxDerived/configs/`). `Onyx.set` and `Onyx.multiSet` update the cache before they return, so a read after them is fine, but a `DERIVED` key still lags. The read can be direct or in a called function whose file contains it. Repeat on any plain function it calls. Comment on the write, naming the callee and the key.
+- B1. An `Onyx.merge`, `Onyx.mergeCollection`, `Onyx.setCollection`, `Onyx.update` or `Onyx.clear` that isn't awaited is followed in the same tick by a read of the written key, a member of the written collection, or a `DERIVED` key built from either (see `dependencies` in `src/libs/actions/OnyxDerived/configs/`). `Onyx.set` and `Onyx.multiSet` update the cache before they return, so a read after them is fine, but a `DERIVED` key still lags. The read can be direct or in a called function whose file contains it. Repeat on any plain function it calls. Comment on the write, naming the callee and the key.
 - B2. The diff adds a read to a function whose callers write that key before calling it in the same tick.
 
 #### C. Effect in another file
