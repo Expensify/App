@@ -31,9 +31,11 @@ function useSingleRHPWidth(): SingleRHPWidth {
     const {min, max} = getSingleRHPWidthBounds(windowWidth, isExtraLargeScreenWidth && !shouldHideSidePanel ? variables.sidePanelWidth : 0);
 
     // The beta can turn off without a chance to clear the saved width, and there is no handle to drag it back then.
-    const savedWidth = isBetaEnabled(CONST.BETAS.RESIZABLE_RHP) ? storedWidth : undefined;
+    if (!isBetaEnabled(CONST.BETAS.RESIZABLE_RHP)) {
+        return {width: variables.rhpWidth, min, max};
+    }
 
-    return {width: lodashClamp(savedWidth ?? variables.rhpWidth, min, max), min, max};
+    return {width: lodashClamp(storedWidth ?? variables.rhpWidth, min, max), min, max};
 }
 
 export default useSingleRHPWidth;

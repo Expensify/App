@@ -93,4 +93,18 @@ describe('useSingleRHPWidth', () => {
         // Then it is the default width, because without the beta there is no handle to drag the card back
         expect(result.current.width).toBe(variables.rhpWidth);
     });
+
+    it('keeps the default width in a window too narrow for it once the beta is off', async () => {
+        // Given a user without the beta in a window whose resize bounds fall below the default width
+        mockIsResizableRHPEnabled = false;
+        mockWindowWidth = 805;
+        expect(getSingleRHPWidthBounds(mockWindowWidth, 0).max).toBeLessThan(variables.rhpWidth);
+
+        // When the width is read
+        const {result} = renderHook(() => useSingleRHPWidth());
+        await waitForBatchedUpdates();
+
+        // Then it is still the default width, because the resize bounds belong to the beta and must not change the RHP for everyone else
+        expect(result.current.width).toBe(variables.rhpWidth);
+    });
 });
