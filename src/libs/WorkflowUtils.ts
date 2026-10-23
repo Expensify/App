@@ -888,6 +888,13 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
     const rules: ApprovalWorkflowRule[] = [{triggers: buildSubmitTriggers(), filters: fromComparison, actions: buildForwardActions(firstApproverEmail)}];
     const approverEmails = new Set(approvers.map((approver) => approver.email));
 
+    // Each approver's approval limit and over-limit approver, for the approvers whose limit routes anything.
+    const limitSplits = approvers.map((approver) =>
+        !!approver.email && !!approver.approvalLimit && approver.approvalLimit > 0 && !!approver.overLimitForwardsTo
+            ? {approvalLimit: approver.approvalLimit, overLimitApproverEmail: approver.overLimitForwardsTo}
+            : undefined,
+    );
+
     // For each over-limit approver who isn't one of this workflow's approvers, the lowest limit among the approvers
     // already handled that send them reports. Any report over it has already been through them.
     const lowestEarlierLimits = new Map<string, number>();
@@ -902,18 +909,20 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
         const nextApproverEmail = approvers.at(index + 1)?.email;
         const source = buildAnd(fromComparison, buildToComparison(approver.email));
         const actions = nextApproverEmail ? buildForwardActions(nextApproverEmail) : buildApproveActions();
-        const overLimitApproverEmail = approver.overLimitForwardsTo;
+        const limitSplit = limitSplits.at(index);
 
-        if (!approver.approvalLimit || approver.approvalLimit <= 0 || !overLimitApproverEmail) {
+        if (!limitSplit) {
             rules.push({triggers: buildApproveTriggers(), filters: source, actions});
             continue;
         }
 
-        const withinLimit = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, approver.approvalLimit);
-        const overLimit = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, approver.approvalLimit);
+        const {approvalLimit, overLimitApproverEmail} = limitSplit;
+        const withinLimit = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, approvalLimit);
+        const overLimit = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, approvalLimit);
 
         // When an earlier approver sends reports over a lower limit to the same over-limit approver, those reports have
-        // already been through them, so only the ones still within that limit go to them from here.
+        // already been through them, so only the ones still within that limit go to them from here. Reading the rules
+        // back takes this approver's limit from the first amount comparison of each rule, so it goes before that one.
         const isWorkflowApprover = approverEmails.has(overLimitApproverEmail);
         const earlierLimit = isWorkflowApprover ? undefined : lowestEarlierLimits.get(overLimitApproverEmail);
         const goesToOverLimitApprover =
@@ -937,18 +946,11 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
             continue;
         }
 
-        lowestEarlierLimits.set(overLimitApproverEmail, Math.min(earlierLimit ?? approver.approvalLimit, approver.approvalLimit));
+        lowestEarlierLimits.set(overLimitApproverEmail, Math.min(earlierLimit ?? approvalLimit, approvalLimit));
 
         // The over-limit approver only gets reports over the limit, so where they send them next only depends on the
         // amount when other approvers send them reports too.
-        const isSharedOverLimitApprover = approvers.some(
-            (otherApprover) =>
-                otherApprover !== approver &&
-                !!otherApprover.email &&
-                otherApprover.overLimitForwardsTo === overLimitApproverEmail &&
-                !!otherApprover.approvalLimit &&
-                otherApprover.approvalLimit > 0,
-        );
+        const isSharedOverLimitApprover = limitSplits.some((otherLimitSplit, otherIndex) => otherIndex !== index && otherLimitSplit?.overLimitApproverEmail === overLimitApproverEmail);
         const toOverLimitApprover = buildAnd(fromComparison, buildToComparison(overLimitApproverEmail));
         rules.push({
             triggers: buildApproveTriggers(),
