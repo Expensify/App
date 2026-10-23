@@ -23,6 +23,7 @@ import {isPaidGroupPolicy, isPolicyAdmin, resolveCurrentTaxCode} from '@libs/Pol
 import {getIOUActionForReportID, getReportAction, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticIOUReportAction,
+    buildTransactionThread,
     getReportOrDraftReport,
     getTransactionDetails,
     isCurrentUserSubmitter,
@@ -798,22 +799,47 @@ function mergeTransactionRequest({
         if (targetTransactionThreadReportID && !isSelfDMDestinationWithoutReport) {
             // Reattach the transaction thread to the new IOU action on the destination report.
             newIOUAction.childReportID = targetTransactionThreadReportID;
+
+            // The thread can be one that was never opened, so Onyx has no report for it even though we hold a copy
+            // from the Search snapshot. Merging only the parent fields onto that key would leave a report with no
+            // reportID, and we navigate straight to it after the merge, so the screen would show a skeleton that
+            // offline never clears. Seed the whole report in that case instead.
+            const threadReportInOnyx = getReportOrDraftReport(targetTransactionThreadReportID);
+            const reattachedThreadFields = {
+                parentReportID: optimisticDestinationReportID,
+                parentReportActionID: newIOUAction.reportActionID,
+            };
+
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`,
-                value: {
-                    parentReportID: optimisticDestinationReportID,
-                    parentReportActionID: newIOUAction.reportActionID,
-                },
+                value: threadReportInOnyx
+                    ? reattachedThreadFields
+                    : {
+                          ...buildTransactionThread(
+                              newIOUAction,
+                              getReportOrDraftReport(optimisticDestinationReportID) ?? selfDMReport,
+                              currentUserAccountIDParam,
+                              undefined,
+                              targetTransactionThreadReportID,
+                          ),
+                          ...targetTransactionThreadReport,
+                          reportID: targetTransactionThreadReportID,
+                          ...reattachedThreadFields,
+                      },
             });
 
             failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
+                // Onyx held nothing before the merge in the seeded case, so a failure drops the report rather than
+                // restoring fields onto one that should not exist.
+                onyxMethod: threadReportInOnyx ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`,
-                value: {
-                    parentReportID: targetTransactionThreadReport?.parentReportID ?? targetTransaction.reportID,
-                    parentReportActionID: targetTransactionThreadReport?.parentReportActionID ?? targetIOUActionOnOriginalReport?.reportActionID,
-                },
+                value: threadReportInOnyx
+                    ? {
+                          parentReportID: threadReportInOnyx.parentReportID ?? targetTransaction.reportID,
+                          parentReportActionID: threadReportInOnyx.parentReportActionID ?? targetIOUActionOnOriginalReport?.reportActionID,
+                      }
+                    : null,
             });
         }
 

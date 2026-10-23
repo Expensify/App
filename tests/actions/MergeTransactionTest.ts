@@ -1139,6 +1139,153 @@ describe('mergeTransactionRequest', () => {
         expect(updatedTargetTransactionThread?.parentReportActionID).toBe(placeholderReportActionID);
     });
 
+    it('should seed the whole transaction thread when Onyx has no report for it', async () => {
+        // Given a thread the confirmation page resolved from the Search snapshot, so a report object is passed in
+        // while Onyx itself holds nothing under that ID. This is the state a thread that was never opened lands in.
+        const fixtures = await setupCrossReportMergeToSourceReportFixtures();
+        const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetTransactionThreadID, targetTransactionThread} = fixtures;
+        const selfDMReport = {
+            ...createRandomReport(5),
+            reportID: 'self-dm-report-123',
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+        const unreportedSourceTransaction = {...sourceTransaction, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+        const unreportedMergeTransaction = {...mergeTransaction, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadID}`, null);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${unreportedSourceTransaction.transactionID}`, unreportedSourceTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, unreportedMergeTransaction);
+        await waitForBatchedUpdates();
+
+        // When the merge moves the expense to another destination and re-points the thread
+        mockFetch?.pause?.();
+        mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
+            iouReportOwnerLogin: undefined,
+            mergeTransactionID,
+            mergeTransaction: unreportedMergeTransaction,
+            targetTransaction,
+            transactionsOfDeletableReportCollection: {[unreportedSourceTransaction.transactionID]: unreportedSourceTransaction},
+            sourceTransaction: unreportedSourceTransaction,
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+            allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, unreportedSourceTransaction.transactionID, mockViolations, mockViolations),
+            sourceIOUActionThreadReport: undefined,
+            // Truthy, like the snapshot copy the page passes, even though Onyx has nothing under this ID
+            targetTransactionThreadReport: targetTransactionThread,
+            targetTransactionThreadParentReport: undefined,
+            reportPolicyTags: undefined,
+            currentUserAccountIDParam: 123,
+            currentUserEmailParam: 'existing@example.com',
+            isASAPSubmitBetaEnabled: false,
+            selfDMReport,
+            selfDMReportActions: undefined,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
+            sourceActionIOUReport: undefined,
+            sourceActionChatReport: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            rules: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the report carries a reportID rather than only the two parent fields. The merge navigates straight to
+        // this report, and a report without a reportID reads as unloaded, so the screen sits on a loading skeleton
+        // that offline never clears.
+        const seededThread = await new Promise<Report | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadID}`,
+                callback: (report) => {
+                    Onyx.disconnect(connection);
+                    resolve(report ?? null);
+                },
+            });
+        });
+
+        expect(seededThread?.reportID).toBe(targetTransactionThreadID);
+        expect(seededThread?.parentReportID).toBe(selfDMReport.reportID);
+
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
+    });
+
+    it('should drop the seeded transaction thread when the merge fails', async () => {
+        // Given the same thread, which exists only because the merge seeded it
+        const fixtures = await setupCrossReportMergeToSourceReportFixtures();
+        const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetTransactionThreadID, targetTransactionThread} = fixtures;
+        const selfDMReport = {
+            ...createRandomReport(5),
+            reportID: 'self-dm-report-123',
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+        const unreportedSourceTransaction = {...sourceTransaction, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+        const unreportedMergeTransaction = {...mergeTransaction, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadID}`, null);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${unreportedSourceTransaction.transactionID}`, unreportedSourceTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, unreportedMergeTransaction);
+        await waitForBatchedUpdates();
+
+        // When the server rejects the merge
+        mockFetch?.pause?.();
+        mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
+            iouReportOwnerLogin: undefined,
+            mergeTransactionID,
+            mergeTransaction: unreportedMergeTransaction,
+            targetTransaction,
+            transactionsOfDeletableReportCollection: {[unreportedSourceTransaction.transactionID]: unreportedSourceTransaction},
+            sourceTransaction: unreportedSourceTransaction,
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+            allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, unreportedSourceTransaction.transactionID, mockViolations, mockViolations),
+            sourceIOUActionThreadReport: undefined,
+            targetTransactionThreadReport: targetTransactionThread,
+            targetTransactionThreadParentReport: undefined,
+            reportPolicyTags: undefined,
+            currentUserAccountIDParam: 123,
+            currentUserEmailParam: 'existing@example.com',
+            isASAPSubmitBetaEnabled: false,
+            selfDMReport,
+            selfDMReportActions: undefined,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
+            sourceActionIOUReport: undefined,
+            sourceActionChatReport: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            rules: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        mockFetch?.fail?.();
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
+
+        // Then the report is removed rather than left behind: Onyx held nothing before the merge, so restoring the
+        // parent fields would recreate the same half-written report the seeding exists to avoid.
+        const rolledBackThread = await new Promise<Report | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadID}`,
+                callback: (report) => {
+                    Onyx.disconnect(connection);
+                    resolve(report ?? null);
+                },
+            });
+        });
+
+        expect(rolledBackThread).toBeNull();
+    });
+
     it('should not inject the target IOU action into the source report when a cross-report merge fails', async () => {
         const fixtures = await setupCrossReportMergeToSourceReportFixtures();
         const {sourceExpenseReport, targetIOUActionID, targetTransactionThreadID, targetTransactionThread} = fixtures;
