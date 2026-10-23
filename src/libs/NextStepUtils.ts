@@ -97,7 +97,8 @@ function buildNextStepMessage(
         nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT
             ? translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency)
             : translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
-    return `<next-step>${message}</next-step>`;
+    const autoExportMessage = nextStep.autoExport ? ` ${translate(`nextStep.autoExport.${nextStep.autoExport.messageKey}`)}` : '';
+    return `<next-step>${message}${autoExportMessage}</next-step>`;
 }
 
 function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
