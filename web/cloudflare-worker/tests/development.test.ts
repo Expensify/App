@@ -226,8 +226,8 @@ describe('live development worker', () => {
             writeFileSync(
                 entryPath,
                 entry.replace(
-                    'const response = new Response(assetResponse.body, assetResponse);',
-                    'const response = new Response(assetResponse.body, assetResponse); response.headers.set("X-Reload-Proof", "entry");',
+                    'setSecurityHeaders(headers, env.ENVIRONMENT, nonce, connectSrcHosts);',
+                    'setSecurityHeaders(headers, env.ENVIRONMENT, nonce, connectSrcHosts); headers.set("X-Reload-Proof", "entry");',
                 ),
             );
             await waitForResponse((response) => response.headers.get('X-Reload-Proof') === 'entry');
