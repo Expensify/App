@@ -4073,10 +4073,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/expensify-card/bank-account-success',
         getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/bank-account-success` as const,
     },
-    WORKSPACE_EXPENSIFY_CARD_REQUEST_LIMIT_INCREASE: {
-        route: 'workspaces/:policyID/expensify-card/request-limit-increase',
-        getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/request-limit-increase` as const,
-    },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS: {
         route: 'workspaces/:policyID/expensify-card/settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/settings` as const,

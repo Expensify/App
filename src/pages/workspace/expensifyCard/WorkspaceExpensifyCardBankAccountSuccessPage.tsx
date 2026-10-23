@@ -1,12 +1,15 @@
+import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import Button from '@components/Button';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,23 +22,29 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 
 import ExpensifyCardLimitDescription from './ExpensifyCardLimitDescription';
+import getBankAccountSuccessState from './getBankAccountSuccessState';
 
 type WorkspaceExpensifyCardBankAccountSuccessPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT_SUCCESS>;
 
 function WorkspaceExpensifyCardBankAccountSuccessPage({route}: WorkspaceExpensifyCardBankAccountSuccessPageProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
     const policyID = route.params.policyID;
     const fundID = useDefaultFundID(policyID);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
+    const [cardSettings, cardSettingsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
+    const [cardsPageLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE}${policyID}`);
+    // There is no explicit review flag yet; a missing limit on a provisioned US feed is only a proxy for underwriting review.
     const limit = cardSettings?.US?.limit;
+    const hasLoadedPage = cardsPageLoadingState?.hasOnceLoadedPage ?? cardSettings?.hasOnceLoaded;
+    const successState = getBankAccountSuccessState(fundID, cardSettings, isLoadingOnyxValue(cardSettingsMetadata), hasLoadedPage, cardsPageLoadingState?.hasLoadingError, isOffline);
 
     const closePage = () => Navigation.closeRHPFlow();
 
@@ -53,34 +62,47 @@ function WorkspaceExpensifyCardBankAccountSuccessPage({route}: WorkspaceExpensif
             >
                 <Header>
                     <Header.BackButton onPress={closePage} />
-                    <Header.Title title={translate('common.success')} />
+                    <Header.Title title={translate(successState === 'ready' ? 'common.success' : 'workspace.expensifyCard.chooseBankAccount')} />
                 </Header>
-                <ConfirmationPage>
-                    <ConfirmationPage.Content>
-                        <ConfirmationPage.Illustration />
-                        <ConfirmationPage.Heading>{translate('workspace.expensifyCard.bankAccountSuccessTitle')}</ConfirmationPage.Heading>
-                        <ExpensifyCardLimitDescription
-                            limit={limit}
-                            formattedLimit={limit === undefined || limit === null ? undefined : convertToDisplayString(limit, CONST.CURRENCY.USD)}
-                        />
-                    </ConfirmationPage.Content>
-                    <FixedFooter>
-                        <Button
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            onPress={closePage}
-                            style={styles.mb3}
-                        >
-                            <Button.Text>{translate('workspace.expensifyCard.gotIt')}</Button.Text>
-                        </Button>
-                        <Button
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_REQUEST_LIMIT_INCREASE.getRoute(policyID))}
-                        >
-                            <Button.Text>{translate('workspace.expensifyCard.requestLimitIncrease')}</Button.Text>
-                        </Button>
-                    </FixedFooter>
-                </ConfirmationPage>
+                {successState === 'loading' && <FullScreenLoadingIndicator />}
+                {successState === 'unavailable' && (
+                    <FullPageErrorView
+                        shouldShow
+                        title={translate('errorPage.title', {isBreakLine: false})}
+                        subtitle={translate('errorPage.subtitle')}
+                        buttonTranslationKey="workspace.expensifyCard.gotIt"
+                        onButtonPress={closePage}
+                    />
+                )}
+                {successState === 'ready' && (
+                    <ConfirmationPage>
+                        <ConfirmationPage.Content>
+                            <ConfirmationPage.Illustration />
+                            <ConfirmationPage.Heading>{translate('workspace.expensifyCard.bankAccountSuccessTitle')}</ConfirmationPage.Heading>
+                            <ExpensifyCardLimitDescription
+                                limit={limit}
+                                formattedLimit={limit === undefined || limit === null ? undefined : convertToDisplayString(limit, CONST.CURRENCY.USD)}
+                            />
+                        </ConfirmationPage.Content>
+                        <FixedFooter>
+                            <Button
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                onPress={closePage}
+                                style={styles.mb3}
+                            >
+                                <Button.Text>{translate('workspace.expensifyCard.gotIt')}</Button.Text>
+                            </Button>
+                            {/* #99702 needs a domainAccountID, which cannot safely be inferred from the selected fundID. */}
+                            <Button
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                isDisabled
+                            >
+                                <Button.Text>{translate('workspace.expensifyCard.requestLimitIncrease')}</Button.Text>
+                            </Button>
+                        </FixedFooter>
+                    </ConfirmationPage>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
