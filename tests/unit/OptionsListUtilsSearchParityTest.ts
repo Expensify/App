@@ -16,6 +16,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import Navigation from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Rule} from '@src/types/onyx';
 
@@ -324,6 +325,22 @@ function getReportIDByName(sourceFixture: SearchFixture, reportName: string): st
     return reportID;
 }
 
+// Dropped from the list unless focused, because the focused report skips the checks that drop empty threads and empty submitted reports
+const FOCUSED_REPORT_NAMES = ['Empty thread', 'Empty submitted report'];
+
+// Matches both focused reports, so the pass shows whether they come back while a query is typed
+const FOCUSED_REPORT_QUERY = 'empty';
+
+/** Runs with the report focused, as when Cmd+K opens over it, then goes back to nothing focused so no other pass sees it. */
+function withFocusedReport<T>(reportID: string, run: () => T): T {
+    jest.mocked(Navigation.getTopmostReportId).mockReturnValue(reportID);
+    try {
+        return run();
+    } finally {
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
+    }
+}
+
 /** Computes every recorded pass over the fixture, starting from cold caches. */
 function computeGoldenMaster(sourceFixture: SearchFixture) {
     const {serializeOption, serializeResult, serializeOptionList} = createOptionSerializer();
@@ -385,6 +402,16 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
     const passes = {
         searchRouterBlankAtProductionCap: serializeResult(searchCallSites.searchRouterDisplayed(searchRouterIdleAtProductionCap, '')),
         serverPass: serverPass.map((option) => serializeOption(option)),
+        // Recorded after the passes above, which run with nothing focused
+        focusedReport: Object.fromEntries(
+            FOCUSED_REPORT_NAMES.map((reportName) => [
+                reportName,
+                withFocusedReport(getReportIDByName(sourceFixture, reportName), () => ({
+                    blank: serializeResult(searchCallSites.searchRouterDisplayed(searchRouterIdleAtProductionCap, '')),
+                    [FOCUSED_REPORT_QUERY]: serializeResult(searchCallSites.searchRouterDisplayed(searching, FOCUSED_REPORT_QUERY)),
+                })),
+            ]),
+        ),
     };
 
     return {optionLists, callSites, passes};
@@ -422,9 +449,9 @@ describe('OptionsListUtils search parity (golden master)', () => {
     });
 
     it('SearchRouter blank query and server-ID pass match the golden master', () => {
-        // Given the SearchRouter idle list at the production cap and the SearchAutocompleteList server pass (a fixed set of reports in Auth's order, no query)
-        // When they run through their production configs
-        // Then both match the recorded golden master
+        // Given the SearchRouter idle list at the production cap, the SearchAutocompleteList server pass (a fixed set of reports in Auth's order, no query) and the SearchRouter opened over a focused empty thread or empty submitted report
+        // When they run through their production configs, the focused ones for a blank query and for a query matching the focused report
+        // Then all match the recorded golden master, with the focused report shown only while it is focused
         expectToMatchGoldenMaster(goldenMaster.passes);
     });
 });
