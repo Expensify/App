@@ -8,7 +8,10 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import ImpossibleRuleNotice from '@pages/workspace/rules/ImpossibleRuleNotice';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,18 +23,31 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import useAgentPromptInputStyles from './useAgentPromptInputStyles';
+import useAgentRulePromptCheck from './useAgentRulePromptCheck';
 
 type AddAgentRuleFormID = typeof ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM;
 
 type AddAgentRuleWriteTabProps = {
+    policyID: string;
+
+    /** A rule with this text saves without a check, because Concierge already wrote it */
+    checkedPrompt?: string;
+
     /** Called with the form values when the user saves the rule */
     onSave: (values: FormOnyxValues<AddAgentRuleFormID>) => void;
 };
 
-function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
+function AddAgentRuleWriteTab({policyID, checkedPrompt, onSave}: AddAgentRuleWriteTabProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const formRef = useRef<FormRef>(null);
+    const [isChecking = false] = useOnyx(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {selector: (form) => !!form?.isLoading});
+    const {refusal, checkThenSavePrompt, checkSuggestedPrompt, dismissRefusal} = useAgentRulePromptCheck({
+        policyID,
+        formID: ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM,
+        checkedPrompt,
+        savePrompt: (prompt) => onSave({[INPUT_IDS.PROMPT]: prompt}),
+    });
     const describeRuleLabel = translate('workspace.rules.agentRules.describeRuleForConcierge');
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -55,13 +71,18 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
 
     const inputWrapperStyles = useAgentPromptInputStyles();
 
+    const trySuggestedPrompt = (suggestedPrompt: string) => {
+        formRef.current?.resetForm({[INPUT_IDS.PROMPT]: suggestedPrompt});
+        checkSuggestedPrompt(suggestedPrompt);
+    };
+
     return (
         <FormProvider
             ref={formRef}
             formID={ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM}
             validate={validate}
-            onSubmit={onSave}
-            submitButtonText={translate('workspace.rules.agentRules.createRule')}
+            onSubmit={(values) => checkThenSavePrompt(values[INPUT_IDS.PROMPT])}
+            submitButtonText={translate(refusal ? 'workspace.rules.agentRules.createAnyway' : 'workspace.rules.agentRules.createRule')}
             style={[styles.flex1, styles.ph5]}
             submitFlexEnabled={false}
             shouldUseScrollView={false}
@@ -82,6 +103,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
                         type="markdown"
                         excludedMarkdownStyles={['mentionReport']}
                         onKeyPress={submitFormOnModEnter}
+                        onValueChange={dismissRefusal}
                         multiline
                         shouldSaveDraft
                         shouldLabelStayOnSingleLine
@@ -90,7 +112,15 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
                         inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                     />
                 </View>
-                <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
+                {!!refusal && (
+                    <ImpossibleRuleNotice
+                        refusal={refusal}
+                        onTrySuggestion={trySuggestedPrompt}
+                    />
+                )}
+                <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>
+                    {translate(isChecking ? 'workspace.rules.agentRules.checkingRule' : 'workspace.rules.agentRules.disclaimer')}
+                </Text>
             </View>
         </FormProvider>
     );

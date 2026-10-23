@@ -1,12 +1,10 @@
 /**
  * Form where an admin describes a rule in plain English and Concierge builds the rule.
  */
-import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
@@ -27,11 +25,10 @@ import {
 } from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NewRulePromptForm';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
-import type {GeneratedRuleImpossibleReason, GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
+import type {GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import type {ReactNode} from 'react';
 import type {StyleProp, TextInputKeyPressEvent, ViewStyle} from 'react-native';
@@ -40,6 +37,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+import ImpossibleRuleNotice from './ImpossibleRuleNotice';
 
 type NewRulePromptFormID = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM;
 
@@ -100,15 +99,6 @@ type PendingGeneration = {
 
 const GENERATED_RULE_TYPES = new Set<string>(Object.values(CONST.GENERATED_RULE.RULE_TYPE));
 
-// A reason that this app version does not know gets the general title
-const IMPOSSIBLE_TITLE_BY_REASON: Partial<Record<string, TranslationPaths>> = {
-    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_TRIGGER]: 'workspace.rules.newRule.impossible.noTrigger',
-    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY]: 'workspace.rules.newRule.impossible.noCapability',
-    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.MISSING_DATA]: 'workspace.rules.newRule.impossible.missingData',
-    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.RETROACTIVE]: 'workspace.rules.newRule.impossible.retroactive',
-    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.HISTORY_LIMIT]: 'workspace.rules.newRule.impossible.historyLimit',
-} satisfies Record<GeneratedRuleImpossibleReason, TranslationPaths>;
-
 /** Returns whether a description with this answer can become an agent rule */
 function isAgentRuleFallbackState(state: GeneratedRuleState): boolean {
     return state === CONST.GENERATED_RULE.STATE.UNSUPPORTED || state === CONST.GENERATED_RULE.STATE.MULTIPLE_RULES || state === CONST.GENERATED_RULE.STATE.AGENT_RULE;
@@ -162,7 +152,6 @@ function DescribeRuleForm({
     const generatedRuleValues = generatedRule?.rule;
     const generatedAgentRulePrompt = generatedRule?.agentRulePrompt;
     const refusal = generatedRuleState === CONST.GENERATED_RULE.STATE.IMPOSSIBLE && !!generatedRuleID && generatedRuleID === submittedGenerationID ? generatedRule : undefined;
-    const refusalSuggestedPrompt = refusal?.suggestedPrompt;
     const inputLabel = translate('workspace.rules.newRule.describeRuleInputLabel');
 
     const finish = () => {
@@ -335,23 +324,10 @@ function DescribeRuleForm({
                 />
             </View>
             {!!refusal && (
-                <View style={styles.mt4}>
-                    <Text style={styles.textStrong}>{translate(IMPOSSIBLE_TITLE_BY_REASON[refusal.reason ?? ''] ?? 'workspace.rules.newRule.impossible.noCapability')}</Text>
-                    {!!refusal.explanation && <Text style={[styles.textSupporting, styles.mt1]}>{refusal.explanation}</Text>}
-                    {!!refusalSuggestedPrompt && (
-                        <>
-                            <Text style={styles.mt3}>{refusalSuggestedPrompt}</Text>
-                            <Button
-                                size={CONST.BUTTON_SIZE.SMALL}
-                                onPress={() => describeSuggestedRule(refusalSuggestedPrompt)}
-                                style={[styles.mt2, styles.alignSelfStart]}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
-                            >
-                                <Button.Text>{translate('workspace.rules.newRule.impossible.tryThisInstead')}</Button.Text>
-                            </Button>
-                        </>
-                    )}
-                </View>
+                <ImpossibleRuleNotice
+                    refusal={refusal}
+                    onTrySuggestion={describeSuggestedRule}
+                />
             )}
         </FormProvider>
     );
