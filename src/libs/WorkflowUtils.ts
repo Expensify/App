@@ -1378,8 +1378,7 @@ function resolveApprovalHop(submitter: string, rules: Record<string, ApprovalWor
         didMatchRule = true;
 
         const amountLeaf = getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT);
-        const isOverLimitBranch =
-            !!amountLeaf && (amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO || amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
+        const isOverLimitBranch = amountLeaf?.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN;
 
         if (amountLeaf && typeof amountLeaf.right === 'number') {
             hop.approvalLimit = hop.approvalLimit ?? amountLeaf.right;
