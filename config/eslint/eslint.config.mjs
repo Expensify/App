@@ -619,6 +619,15 @@ const config = defineConfig([
         },
         rules: {
             '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
+
+            // `ignorePrimitives: true` narrows this to the cases a type checker can decide: it reports
+            // `||` only when the left operand cannot be `''`, `0` or `false`, so `||` and `??` are
+            // provably equivalent. When the left operand can hold one of those, whether it counts as
+            // "missing" is domain knowledge the rule does not have — many API fields represent "unset"
+            // as an empty string rather than `null`, and several Onyx keys require `|| undefined` so an
+            // empty string never reaches a collection subscription.
+            // See contributingGuides/STYLE.md#accessing-object-properties-and-default-values
+            '@typescript-eslint/prefer-nullish-coalescing': ['error', {ignoreIfStatements: true, ignorePrimitives: true, ignoreTernaryTests: true}],
         },
     },
 

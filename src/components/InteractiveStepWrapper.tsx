@@ -27,6 +27,12 @@ type InteractiveStepWrapperProps = {
 
     stepNames?: readonly string[];
 
+    /** What the current step asks, read by screen readers with its step number. Defaults to the header title. */
+    stepAccessibilityDescription?: string;
+
+    /** Whether screen readers hear that a step before the current one is completed */
+    shouldAnnounceCompletedSteps?: boolean;
+
     /** Remounts the sub header when `startStepIndex` changes, for flows that move between steps on one screen. Other flows drive the sub header through its own state. */
     shouldRemountSubHeaderOnStepChange?: boolean;
     shouldEnableMaxHeight?: boolean;
@@ -62,6 +68,8 @@ function InteractiveStepWrapper({
     headerSubtitle,
     startStepIndex,
     stepNames,
+    stepAccessibilityDescription,
+    shouldAnnounceCompletedSteps,
     shouldRemountSubHeaderOnStepChange = false,
     shouldEnableMaxHeight,
     shouldShowOfflineIndicator,
@@ -102,7 +110,8 @@ function InteractiveStepWrapper({
                             key={shouldRemountSubHeaderOnStepChange ? startStepIndex : undefined}
                             startStepIndex={startStepIndex}
                             stepNames={stepNames}
-                            currentStepAccessibilityDescription={headerTitle}
+                            currentStepAccessibilityDescription={stepAccessibilityDescription ?? headerTitle}
+                            shouldAnnounceCompletedSteps={shouldAnnounceCompletedSteps}
                         />
                     </View>
                 )}
