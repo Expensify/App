@@ -12,7 +12,12 @@ const require = createRequire(import.meta.url);
 const pluginDir = path.dirname(fileURLToPath(import.meta.url));
 const expensifyPlugin = path.resolve(pluginDir, '../../node_modules/eslint-config-expensify/eslint-plugin-expensify');
 
-/** `require` of these ESM modules returns the namespace, so unwrap `default`. */
+/**
+ * Loads a module from eslint-plugin-expensify, so this copy uses the same message as the original rule.
+ * `require` of these ESM modules returns the namespace, so unwrap `default`.
+ * @param {string} relative path inside eslint-plugin-expensify
+ * @returns {any}
+ */
 function load(relative) {
     const module = require(path.join(expensifyPlugin, relative));
     return module?.default ?? module;
@@ -31,6 +36,11 @@ const meta = {
     schema: [],
 };
 
+/**
+ * Reports every `x.localeCompare(...)` outside tests.
+ * @param {import('eslint').Rule.RuleContext} context
+ * @returns {import('eslint').Rule.RuleListener}
+ */
 function create(context) {
     return {
         CallExpression(node) {

@@ -17,6 +17,11 @@ import {hostedRuleNames} from '../ruleNames.mjs';
 const require = createRequire(import.meta.url);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
+/**
+ * Loads the rules of an installed ESLint plugin, so oxlint runs the same rule code as ESLint.
+ * @param {string} packageName an ESLint plugin package, or an absolute path to one
+ * @returns {Record<string, import('eslint').Rule.RuleModule>}
+ */
 function rulesOf(packageName) {
     let mod;
     try {
@@ -51,6 +56,12 @@ const STUB_PARSER_SERVICES = {
     tsNodeToESTreeNodeMap: new Map(),
 };
 
+/**
+ * Lets typescript-eslint's naming-convention run in oxlint. The rule fails without TypeScript parser
+ * services, which oxlint's JS plugins do not have, so it gets STUB_PARSER_SERVICES instead.
+ * @param {import('eslint').Rule.RuleModule} rule
+ * @returns {import('eslint').Rule.RuleModule}
+ */
 function withStubbedParserServices(rule) {
     return {
         ...rule,
@@ -73,12 +84,26 @@ function withStubbedParserServices(rule) {
     };
 }
 
+/**
+ * Loads `names` from an ESLint plugin as hosted rules, and makes `eslint-disable` comments that use the
+ * ESLint name (`<eslintPrefix>/<name>`) apply to them.
+ * @param {Record<string, import('eslint').Rule.RuleModule>} rules
+ * @param {string} eslintPrefix
+ * @param {string[]} names
+ * @returns {Record<string, import('eslint').Rule.RuleModule>}
+ */
 function hostRules(rules, eslintPrefix, names) {
     return withEslintDirectiveIDsFor(Object.fromEntries(names.map((name) => [name, rules[name]])), (name) => `${eslintPrefix}/${name}`);
 }
 
 const SEPARATELY_GATED = new Set(['jsx-no-constructed-context-values', 'exhaustive-deps']);
 
+/**
+ * Lists the hosted rules from one ESLint plugin that React Compiler does not gate. The SEPARATELY_GATED
+ * ones are added one by one at the end of the file.
+ * @param {string} eslintPrefix
+ * @returns {string[]}
+ */
 function plainlyHosted(eslintPrefix) {
     return hostedRuleNames(eslintPrefix).filter((name) => !SEPARATELY_GATED.has(name));
 }

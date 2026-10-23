@@ -68,6 +68,11 @@ const CATEGORY_PATTERN = /react-compiler\(([^)]+)\)/;
 
 const cache = new Map();
 
+/**
+ * Picks the parser oxc-transform-react uses for the file. Plain JS files are parsed as JSX.
+ * @param {string} ext file extension without the dot
+ * @returns {'tsx' | 'ts' | 'jsx'} the `lang` oxc-transform-react parses the file as
+ */
 function getLang(ext) {
     if (ext === 'tsx') {
         return 'tsx';
@@ -78,6 +83,11 @@ function getLang(ext) {
     return 'jsx';
 }
 
+/**
+ * Byte width of a character in UTF-8, used by buildOffsetToPoint to turn the compiler's byte offsets into columns.
+ * @param {number} code a code point
+ * @returns {number} how many UTF-8 bytes it takes
+ */
 function utf8Length(code) {
     if (code < 0x80) {
         return 1;
@@ -93,10 +103,14 @@ function utf8Length(code) {
     return 4;
 }
 
-// `label.start`/`label.end` are UTF-8 byte offsets, while JavaScript strings index UTF-16 code units.
-// Using them directly drifts in any non-ASCII file, anchoring diagnostics on the wrong line where
-// `eslint-disable-next-line` no longer suppresses them. This maps a byte offset to the line and UTF-16
-// column oxlint's `loc` expects.
+/**
+ * `label.start`/`label.end` are UTF-8 byte offsets, while JavaScript strings index UTF-16 code units.
+ * Using them directly drifts in any non-ASCII file, anchoring diagnostics on the wrong line where
+ * `eslint-disable-next-line` no longer suppresses them. This maps a byte offset to the line and UTF-16
+ * column oxlint's `loc` expects.
+ * @param {string} source
+ * @returns {(offset: number) => {line: number, column: number}}
+ */
 function buildOffsetToPoint(source) {
     const lineBytes = [0];
     const lineUnits = [0];
@@ -111,6 +125,10 @@ function buildOffsetToPoint(source) {
         }
     }
 
+    /**
+     * @param {number} offset UTF-8 byte offset into `source`
+     * @returns {{line: number, column: number}} 1-based line and 0-based UTF-16 column
+     */
     return function offsetToPoint(offset) {
         let low = 0;
         let high = lineBytes.length - 1;
@@ -134,12 +152,25 @@ function buildOffsetToPoint(source) {
     };
 }
 
+/**
+ * Formats the message the way eslint-plugin-react-hooks does, so both linters report the same text.
+ * @param {string} category
+ * @param {{message?: string, helpMessage?: string}} error
+ * @returns {string}
+ */
 function buildMessage(category, error) {
     const heading = COMPILATION_SKIPPED_CATEGORIES.has(category) ? 'Compilation Skipped' : 'Error';
     const summary = `${heading}: ${error.message ?? 'Unknown compiler error'}`;
     return error.helpMessage ? `${summary}\n\n${error.helpMessage}.` : summary;
 }
 
+/**
+ * Runs the compiler on one file and returns its findings as react-hooks rule reports. Throws on a
+ * category it does not know, so an oxc-transform-react bump that changes the categories fails the run.
+ * @param {string} filename
+ * @param {string} sourceText
+ * @returns {Array<{ruleName: string, loc: {start: {line: number, column: number}, end: {line: number, column: number}}, message: string}>}
+ */
 function analyze(filename, sourceText) {
     let result;
     try {
@@ -219,6 +250,13 @@ function analyze(filename, sourceText) {
     return diagnostics;
 }
 
+/**
+ * Each rc/* rule (one per react-hooks rule) needs the same compiler output, so the compile runs once
+ * per file and the result is cached.
+ * @param {string} filename
+ * @param {string} sourceText
+ * @returns {ReturnType<typeof analyze>}
+ */
 function reactCompilerDiagnostics(filename, sourceText) {
     if (!cache.has(filename)) {
         cache.set(filename, analyze(filename, sourceText));

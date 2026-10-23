@@ -59,10 +59,23 @@ const HOSTED_RULE_ESLINT_ID = {
 
 const OXLINT_DIAGNOSTIC_CODE = /^([\w@/.-]+)\((.+)\)$/;
 
+/**
+ * Lists the hosted rules copied from one ESLint plugin, so hosted-rules.mjs knows which rules to load
+ * from that package.
+ * @param {string} eslintPrefix an ESLint plugin name, like `react`
+ * @returns {string[]}
+ */
 function hostedRuleNames(eslintPrefix) {
     return Object.keys(HOSTED_RULE_ORIGIN).filter((name) => HOSTED_RULE_ORIGIN[name] === eslintPrefix);
 }
 
+/**
+ * Converts oxlint's name for a finding, like `typescript(no-explicit-any)`, to ESLint's rule ID, like
+ * `@typescript-eslint/no-explicit-any`, so the lint output and the oxlint seatbelt baseline use the
+ * same rule names as ESLint. A code that does not look like `plugin(rule)` comes back unchanged.
+ * @param {string} code
+ * @returns {string}
+ */
 function oxlintCodeToESLintRuleID(code) {
     const match = OXLINT_DIAGNOSTIC_CODE.exec(code);
     if (!match) {

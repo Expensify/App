@@ -11,6 +11,11 @@ import {fileURLToPath} from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
+/**
+ * Reads tsconfig.json, which JSON.parse cannot read because it can have comments and trailing commas.
+ * @param {string} file
+ * @returns {any}
+ */
 function readJsonc(file) {
     const text = fs
         .readFileSync(file, 'utf8')
@@ -21,6 +26,11 @@ function readJsonc(file) {
 
 let aliasPrefixes;
 
+/**
+ * Reads the import aliases (`@components/*`, `@libs/*`, ...) from tsconfig.json, so an import through
+ * an alias can be matched to the deprecated component's file. Read once, on first use.
+ * @returns {Array<[string, string]>} pairs of alias prefix and the absolute directory it points to
+ */
 function getAliasPrefixes() {
     if (!aliasPrefixes) {
         const paths = readJsonc(path.join(repoRoot, 'tsconfig.json')).compilerOptions?.paths ?? {};
@@ -31,6 +41,13 @@ function getAliasPrefixes() {
     return aliasPrefixes;
 }
 
+/**
+ * Turns an import path into the file it points to, so `@components/MenuItem` and `../MenuItem` both
+ * match the `module` set in the rule options.
+ * @param {string} source
+ * @param {string} filename the importing file
+ * @returns {string | null} null for package imports
+ */
 function resolveModule(source, filename) {
     let resolved = null;
     if (source.startsWith('.')) {
@@ -70,6 +87,11 @@ const meta = {
     ],
 };
 
+/**
+ * Tells which export an import takes: `import MenuItem from` takes `default`, `import {X as Y} from` takes `X`.
+ * @param {import('estree').ImportSpecifier | import('estree').ImportDefaultSpecifier | import('estree').ImportNamespaceSpecifier} specifier
+ * @returns {string | null} null for a namespace import
+ */
 function importedName(specifier) {
     if (specifier.type === 'ImportDefaultSpecifier') {
         return 'default';
@@ -80,6 +102,12 @@ function importedName(specifier) {
     return null;
 }
 
+/**
+ * Finds which identifiers a variable may hold, so a deprecated component renamed through
+ * `const Item = isNew ? MenuItem : OldItem` is still caught when `<Item />` is used.
+ * @param {import('estree').Expression | null | undefined} node
+ * @returns {string[]}
+ */
 function initializerIdentifiers(node) {
     if (!node) {
         return [];
@@ -100,6 +128,12 @@ function initializerIdentifiers(node) {
     }
 }
 
+/**
+ * Collects the deprecated imports, their aliases and every `<X />` tag while walking the file, and
+ * reports at the end, so it does not matter whether an alias is declared before or after its use.
+ * @param {import('eslint').Rule.RuleContext} context
+ * @returns {import('eslint').Rule.RuleListener}
+ */
 function create(context) {
     const components = context.options[0]?.components ?? [];
     if (components.length === 0) {

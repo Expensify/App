@@ -5,6 +5,12 @@
 import {withEslintDirectiveIDs} from '../eslintDirectives.mjs';
 import {RULE_BY_CATEGORY, reactCompilerDiagnostics} from '../reactCompilerRust.mjs';
 
+/**
+ * Builds the oxlint stand-in for one React Compiler rule of eslint-plugin-react-hooks, like
+ * `react-hooks/refs`. It reports only that rule's findings. The compile is shared (see reactCompilerDiagnostics).
+ * @param {string} ruleName a react-hooks rule name, like `refs`
+ * @returns {import('eslint').Rule.RuleModule}
+ */
 function buildRule(ruleName) {
     return {
         meta: {
