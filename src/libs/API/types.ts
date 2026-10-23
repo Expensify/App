@@ -310,6 +310,7 @@ const WRITE_COMMANDS = {
     ADD_OFFICE_LOCATION: 'AddOfficeLocation',
     UPDATE_OFFICE_LOCATION: 'UpdateOfficeLocation',
     DELETE_OFFICE_LOCATION: 'DeleteOfficeLocation',
+    UPDATE_EMPLOYEE_OFFICE_LOCATION: 'UpdateEmployeeOfficeLocation',
     SET_POLICY_REQUIRE_MAP_OR_GPS: 'SetPolicyRequireMapOrGPS',
     SET_POLICY_EXPENSE_MAX_AGE: 'SetPolicyExpenseMaxAge',
     ADD_POLICY_AGENT_RULE: 'AddPolicyAgentRule',
@@ -606,6 +607,8 @@ const WRITE_COMMANDS = {
     UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_ACCOUNT: 'UpdateBusinessCentralNonreimbursableAccount',
     UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR: 'UpdateBusinessCentralDefaultVendor',
     UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD: 'UpdateBusinessCentralPaymentMethod',
+    UPDATE_BUSINESS_CENTRAL_EXPORT_TO_MULTIPLE_ACCOUNTS: 'UpdateBusinessCentralExportToMultipleAccounts',
+    UPDATE_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT: 'UpdateBusinessCentralCardProgramAccount',
     UPDATE_BUSINESS_CENTRAL_PROJECTS_MAPPING: 'UpdateBusinessCentralProjectsMapping',
     UPDATE_BUSINESS_CENTRAL_AUTO_SYNC: 'UpdateBusinessCentralAutoSync',
     UPDATE_BUSINESS_CENTRAL_ACCOUNTING_METHOD: 'UpdateBusinessCentralAccountingMethod',
@@ -1262,6 +1265,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ADD_OFFICE_LOCATION]: Parameters.AddOfficeLocationParams;
     [WRITE_COMMANDS.UPDATE_OFFICE_LOCATION]: Parameters.UpdateOfficeLocationParams;
     [WRITE_COMMANDS.DELETE_OFFICE_LOCATION]: Parameters.DeleteOfficeLocationParams;
+    [WRITE_COMMANDS.UPDATE_EMPLOYEE_OFFICE_LOCATION]: Parameters.UpdateEmployeeOfficeLocationParams;
     [WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS]: Parameters.SetPolicyRequireMapOrGPSParams;
     [WRITE_COMMANDS.RETRACT_REPORT]: Parameters.RetractReportParams;
     [WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING]: Parameters.FinishCorpayBankAccountOnboardingParams;
@@ -1375,6 +1379,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_ACCOUNT]: Parameters.UpdateBusinessCentralNonreimbursableAccountParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR]: Parameters.UpdateBusinessCentralDefaultVendorParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD]: Parameters.UpdateBusinessCentralPaymentMethodParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_TO_MULTIPLE_ACCOUNTS]: Parameters.UpdateBusinessCentralExportToMultipleAccountsParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT]: Parameters.UpdateBusinessCentralCardProgramAccountParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PROJECTS_MAPPING]: Parameters.UpdateBusinessCentralCustomerMappingParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_AUTO_SYNC]: Parameters.UpdateBusinessCentralAutoSyncParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_ACCOUNTING_METHOD]: Parameters.UpdateBusinessCentralAccountingMethodParams;
