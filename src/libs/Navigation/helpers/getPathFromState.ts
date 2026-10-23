@@ -1,7 +1,7 @@
 import Log from '@libs/Log';
 import {config, normalizedConfigs, screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
 import type {State} from '@libs/Navigation/types';
-import {hasKey} from '@libs/ObjectUtils';
+import {hasKey, isRecord} from '@libs/ObjectUtils';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
 
@@ -146,7 +146,7 @@ function getPathFromStateWithDynamicRoute(state: State): string {
         return RNGetPathFromState(state, config);
     }
 
-    let actualSuffix = buildSuffixFromPattern(suffixPattern, focusedRoute?.params ? {...focusedRoute.params} : undefined);
+    let actualSuffix = buildSuffixFromPattern(suffixPattern, isRecord(focusedRoute?.params) ? focusedRoute.params : undefined);
 
     // If this dynamic screen hosts a tab navigator, append the focused tab's path segment.
     if (screensWithOnyxTabNavigator.has(screenName)) {

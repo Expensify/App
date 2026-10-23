@@ -58,7 +58,10 @@ function areNamesAndParamsEqual(currentState: NavigationState, stateFromPath: Pa
     const targetFocusedRoute = findFocusedRoute(stateFromPath);
 
     const areNamesEqual = currentFocusedRoute?.name === targetFocusedRoute?.name;
-    const areParamsEqual = shallowCompare(currentFocusedRoute?.params ? {...currentFocusedRoute.params} : undefined, targetFocusedRoute?.params ? {...targetFocusedRoute.params} : undefined);
+    const areParamsEqual = shallowCompare(
+        isRecord(currentFocusedRoute?.params) ? currentFocusedRoute.params : undefined,
+        isRecord(targetFocusedRoute?.params) ? targetFocusedRoute.params : undefined,
+    );
 
     return areNamesEqual && areParamsEqual;
 }
@@ -239,7 +242,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // When something other than TAB_NAVIGATOR is on top of the stack and we're navigating
     // to TAB_NAVIGATOR, PUSH a new instance above (e.g., above RHP).
     const currentTopRoute = currentState.routes[currentState.index];
-    if (currentTopRoute?.name !== NAVIGATORS.TAB_NAVIGATOR && 'payload' in action && action.payload && 'name' in action.payload && action.payload.name === NAVIGATORS.TAB_NAVIGATOR) {
+    if (currentTopRoute?.name !== NAVIGATORS.TAB_NAVIGATOR && 'payload' in action && isNamedActionPayload(action.payload) && action.payload.name === NAVIGATORS.TAB_NAVIGATOR) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
@@ -301,7 +304,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     const {action: resolvedAction, isFocusedRouteInDifferentScope} = getMinimalAction(action, navigation.getRootState());
-    const resolvedActionName = resolvedAction.payload && 'name' in resolvedAction.payload && typeof resolvedAction.payload.name === 'string' ? resolvedAction.payload.name : undefined;
+    const resolvedActionName = isNamedActionPayload(resolvedAction.payload) ? resolvedAction.payload.name : undefined;
 
     // A focused split in another workspace or domain needs a sibling in the same stack.
     const shouldPushSiblingSplit = isFocusedRouteInDifferentScope && resolvedAction.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE;
