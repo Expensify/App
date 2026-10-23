@@ -51,10 +51,10 @@ jobs:
       # (espree/acorn) whose bumps can silently change parse results, plus
       # typescript/ts-api-utils since a TS bump can change type-aware lint results.
       # The cache key hashes this slice so a cold full re-lint happens only when
-      # the lint config, a local rule or a lint dependency changes -- not on every dep bump.
+      # the lint config, a local rule or a lint dependency changes, not on every dep bump.
       # The local rules are in the key because ESLint's own cache hashes the serialized
-      # config, which drops rule functions, so a rule edit alone never invalidates it.
-      # The snapshot rule also reads SnapshotUtils.ts and runtimeDefaults.ts at lint time.
+      # config, which leaves out rule functions, so editing a rule alone never invalidates it.
+      # no-onyx-get-snapshot-key also loads SnapshotUtils.ts and runtimeDefaults.ts at lint time.
       - name: Extract lint-related deps from package-lock.json
         shell: bash
         run: |

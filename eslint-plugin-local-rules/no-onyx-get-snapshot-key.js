@@ -2,7 +2,7 @@ import {createRequire} from 'node:module';
 import path from 'path';
 
 /* eslint-disable import/extensions */
-// Node ESM needs the extension to load a rule's helper module
+// Node's ESM loader does not add file extensions, so the helper import needs `.js`, which import/extensions reports
 import {
     createOnyxReadTracker,
     getConstInitializer,
@@ -23,7 +23,7 @@ import {
 
 const name = 'no-onyx-get-snapshot-key';
 
-// A read of the Concierge chat always wants the live report, so a report key provably built from this ID may read live data
+// A Concierge chat read wants the live report in any Search scope, so the rule allows a report key it can prove is built from this ID
 const CONCIERGE_REPORT_ID_KEY_PATH = 'CONCIERGE_REPORT_ID';
 
 const REPORT_COLLECTION_KEY_PATH = 'COLLECTION.REPORT';
@@ -35,16 +35,18 @@ const USE_ONYX_EXPORT_NAME = 'useOnyx';
 const SELECTOR_OPTION_NAME = 'selector';
 
 if (!REPO_ROOT) {
-    throw new Error(`${name} could not locate ${SNAPSHOT_KEYS_SOURCE}. Without it the rule would silently stop refusing Search snapshot keys.`);
+    throw new Error(
+        `${name} could not find ${SNAPSHOT_KEYS_SOURCE} two directories above eslint-plugin-local-rules/utils/. Without it the rule cannot tell which keys are Search snapshot keys, so it stops instead of letting them through.`,
+    );
 }
 
-// ESLint's result cache is keyed on the linted file and the config, not on the modules required here, so after SnapshotUtils.ts,
-// ONYXKEYS.ts or runtimeDefaults.ts changes a cached pass survives until that file or the config changes; lint with --no-cache then.
+// ESLint's --cache keeps a file's result until that file or the ESLint config changes. It does not track the modules loaded
+// below, so after an edit to SnapshotUtils.ts, ONYXKEYS.ts or runtimeDefaults.ts a cached pass can be stale. Lint with --no-cache then.
 const requireFromRepo = createRequire(path.join(REPO_ROOT, 'package.json'));
 
 let snapshotKeyResolver = null;
 
-// Loading SnapshotUtils.ts, ONYXKEYS.ts and runtimeDefaults.ts takes tens of ms, so it is deferred to the first Onyx.get or Onyx.multiGet a lint worker meets
+/** Loads the key check shared with useOnyx on first use. SnapshotUtils.ts, ONYXKEYS.ts and runtimeDefaults.ts take tens of ms to load, so a lint worker pays it only once it meets an Onyx.get or Onyx.multiGet. */
 function getSnapshotKeyResolver() {
     if (snapshotKeyResolver) {
         return snapshotKeyResolver;
@@ -53,7 +55,9 @@ function getSnapshotKeyResolver() {
     const snapshotKeys = requireFromRepo(`./${SNAPSHOT_KEYS_SOURCE}`).default?.SEARCH_SNAPSHOT_ONYX_KEYS;
 
     if (!Array.isArray(snapshotKeys) || snapshotKeys.length === 0) {
-        throw new Error(`${name} could not read SEARCH_SNAPSHOT_ONYX_KEYS from ${SNAPSHOT_KEYS_SOURCE}. Without it the rule would silently stop refusing Search snapshot keys.`);
+        throw new Error(
+            `${name} found no SEARCH_SNAPSHOT_ONYX_KEYS entries in the default export of ${SNAPSHOT_KEYS_SOURCE}. Without them the rule cannot tell which keys are Search snapshot keys, so it stops instead of letting them through.`,
+        );
     }
 
     snapshotKeyResolver = {
@@ -72,8 +76,8 @@ function getOnyxKeyValue(keyPath) {
 }
 
 const DISABLE_GUIDANCE =
-    'Live data is right only when the read replaces a subscription that never went through the useOnyx() redirection, such as a module-level Onyx.connect() used from handlers only. ' +
-    'Then disable this rule on the line with a reason after `--`, for example: `// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot`.';
+    'Live data is correct only when the read replaces a subscription that never went through the useOnyx() redirection, such as a module-level Onyx.connect() used only by handlers. ' +
+    'In that case disable this rule on the line with a reason after `--`, for example: `// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot`.';
 
 const meta = {
     type: 'problem',
@@ -84,13 +88,13 @@ const meta = {
     schema: [],
     messages: {
         noRestrictedOnyxKey: [
-            'Do not read {{keyPath}} with a one-shot Onyx read. src/hooks/useOnyx.ts rewrites this key to snapshot_<hash> inside a SearchScopeProvider subtree, so a component subscribed to it may never have been reading the global key at all. A read here returns live data where the component saw the snapshot, and nothing at the call site can tell the two apart.',
-            'Take the value as a parameter from the component, which knows whether it is inside a Search scope, or keep the useOnyx subscription. A read of the Concierge chat always wants the live report, so a report key built from a const read of ONYXKEYS.CONCIERGE_REPORT_ID in this file is allowed.',
+            'Do not read {{keyPath}} with Onyx.get() or Onyx.multiGet(). Inside a SearchScopeProvider subtree, src/hooks/useOnyx.ts redirects this key to snapshot_<hash>, so this read returns live data where the component showed the snapshot.',
+            'Take the value as a parameter from the component, which knows whether it is inside a Search scope, or keep the useOnyx subscription. A Concierge chat read is allowed, because it always wants the live report: build the report key from a const in this file bound to a read of ONYXKEYS.CONCIERGE_REPORT_ID.',
             DISABLE_GUIDANCE,
         ].join('\n\n'),
         noUnresolvableOnyxKey: [
-            'Do not read Onyx with `{{keyText}}`, a key this rule cannot resolve. The read surface is restricted to keys that are provably not Search snapshot keys, and a key built at runtime cannot be checked, so a caller can route a snapshot key here without anything failing.',
-            'Write the key as an ONYXKEYS access, such as ONYXKEYS.SESSION, or as a template literal that starts with an ONYXKEYS collection prefix. For Onyx.multiGet(), pass an array literal, or a const bound to one, whose every element is written that way. If the key cannot be static, keep the useOnyx subscription or take the value as a parameter.',
+            'Do not read Onyx with `{{keyText}}`, a key this rule cannot resolve. The rule cannot check a key built at runtime, so a Search snapshot key could reach this read without any error.',
+            'Write the key as an ONYXKEYS access, such as ONYXKEYS.SESSION, or as a template literal that starts with an ONYXKEYS collection prefix. For Onyx.multiGet(), pass an array literal, or a const bound to one, with every element written that way. If the key cannot be static, keep the useOnyx subscription or take the value as a parameter.',
             DISABLE_GUIDANCE,
         ].join('\n\n'),
     },
@@ -107,7 +111,7 @@ function unwrapAwaitAndTypeOnlyExpressions(node) {
     return current;
 }
 
-// Index of `variableName` in `const [a, b = ''] = ...`. A default must be a literal, so a missing ID cannot fall back to another report
+/** The index of `variableName` in `arrayPattern`, or null. An element with a default counts only when the default is a literal, so a missing ID cannot fall back to another report's ID. */
 function getBoundElementIndex(arrayPattern, variableName) {
     return arrayPattern.elements.findIndex((element) => {
         if (element?.type === 'AssignmentPattern') {
@@ -139,7 +143,7 @@ function create(context) {
         return getCalledReadMethod(call.callee) === MULTI_READ_METHOD;
     }
 
-    // `import useOnyx from '@hooks/useOnyx'` or `import {useOnyx as x} from 'react-native-onyx'`
+    /** True for a call of `import useOnyx from '@hooks/useOnyx'` or `import {useOnyx as x} from 'react-native-onyx'`. */
     function isUseOnyxCall(call) {
         if (call.callee.type !== 'Identifier') {
             return false;
@@ -156,8 +160,7 @@ function create(context) {
         return onyxSpecifier?.type === 'ImportSpecifier' && getStaticName(onyxSpecifier.imported, false) === USE_ONYX_EXPORT_NAME;
     }
 
-    // ONYXKEYS.X, directly or through a const. Unlike getOnyxKeyPath it never accepts a template literal, whose leading
-    // ONYXKEYS prefix would otherwise count as the whole key
+    /** The ONYXKEYS member path `node` reads, or null. Unlike getOnyxKeyPath it rejects a template literal, whose leading ONYXKEYS prefix would otherwise count as the whole key. */
     function getMemberKeyPath(node, seen = new Set()) {
         const current = unwrapTypeOnlyExpressions(node);
 
@@ -175,14 +178,13 @@ function create(context) {
         return current?.type === 'MemberExpression' ? getOnyxKeyPath(current, sourceCode) : null;
     }
 
-    // The proof follows const aliases only, since a `let` alias of Onyx.get could be reassigned before the read
+    /** True for `Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID)`, also through a const alias of Onyx.get. A `let` alias does not count, since it could be reassigned before the read. */
     function readsConciergeReportID(call) {
         return (
             call?.type === 'CallExpression' && getCalledReadMethod(call.callee, {constOnly: true}) === READ_METHOD && getMemberKeyPath(call.arguments.at(0)) === CONCIERGE_REPORT_ID_KEY_PATH
         );
     }
 
-    // Slot `elementIndex` of a `const [...] = useOnyx(...)` tuple or an awaited Onyx.multiGet() result
     function tupleElementIsConciergeReportID(call, elementIndex) {
         if (call?.type !== 'CallExpression') {
             return false;
@@ -206,7 +208,7 @@ function create(context) {
         return getMemberKeyPath(keyElements.at(elementIndex)) === CONCIERGE_REPORT_ID_KEY_PATH;
     }
 
-    // True when the ID is a const bound, in this file, to a read of ONYXKEYS.CONCIERGE_REPORT_ID
+    /** True when `node` is a const declared in this file and bound to a read of ONYXKEYS.CONCIERGE_REPORT_ID. */
     function isConciergeReportIDExpression(node) {
         const current = unwrapTypeOnlyExpressions(node);
 
@@ -236,7 +238,7 @@ function create(context) {
         return elementIndex !== -1 && tupleElementIsConciergeReportID(call, elementIndex);
     }
 
-    // `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, written inline or through a const
+    /** True for `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, written inline or through a const. */
     function isConciergeChatKey(node, seen = new Set()) {
         const current = unwrapTypeOnlyExpressions(node);
 
@@ -259,6 +261,7 @@ function create(context) {
         return getMemberKeyPath(current.expressions.at(0)) === REPORT_COLLECTION_KEY_PATH && isConciergeReportIDExpression(current.expressions.at(1));
     }
 
+    /** Null when the key is allowed, `{keyPath}` for a Search snapshot key, `{keyPath: null, keyNode}` for an unresolvable key. */
     function findRestrictedKey(keyArgument) {
         const keyPath = getOnyxKeyPath(keyArgument, sourceCode);
         const key = keyPath ? getOnyxKeyValue(keyPath) : null;
@@ -291,7 +294,7 @@ function create(context) {
             return [{node: call, keyPath: null, keyNode: keyArgument}];
         }
 
-        // Every finding is reported on the call so one directive above a multi-line call covers all of its keys
+        // Every finding is reported on the call, so one directive above a multi-line call covers all of its keys
         return elements.flatMap((element) => {
             if (!element || element.type === 'SpreadElement') {
                 return [{node: call, keyPath: null, keyNode: element}];

@@ -1,4 +1,4 @@
-// Node ESM needs the extension to load a rule's helper module
+// Node's ESM loader does not add file extensions, so the helper import needs `.js`, which import/extensions reports
 /* eslint-disable import/extensions */
 import {
     createOnyxReadTracker,
@@ -19,12 +19,13 @@ const TESTS_DIRECTORY = 'tests/';
 
 const READ_ALLOWED_DIRECTORIES = ['src/components/', 'src/pages/', 'src/hooks/', TESTS_DIRECTORY];
 
-// Suites, Jest setup and the root __mocks__/ directory (not a nested one), where the Onyx object may be handled freely, as in the `...Onyx` of __mocks__/react-native-onyx.ts
+// Test suites, Jest setup and the root __mocks__/ directory may use the Onyx object as a value, as the `...Onyx` in
+// __mocks__/react-native-onyx.ts does. A nested __mocks__/ directory does not count.
 const TEST_INFRASTRUCTURE_DIRECTORIES = [TESTS_DIRECTORY, '__mocks__/', 'jest/'];
 
 const READ_ALLOWED_FILES = new Set([]);
 
-// Hooks whose callback React runs at commit, with the argument index that callback sits at
+// Hooks that run their callback after render, mapped to the argument index of that callback
 const EFFECT_HOOK_CALLBACK_INDICES = new Map([
     ['useEffect', 0],
     ['useLayoutEffect', 0],
@@ -76,10 +77,9 @@ const RENDER_TIME_HOOK_ARGUMENTS = new Map([
 
 const RENDER_TIME_OPTION_NAMES = new Set(['selector']);
 
-// Globals a dev-console exposure such as `window.Onyx = Onyx` assigns to
 const DEV_CONSOLE_GLOBALS = new Set(['window', 'globalThis']);
 
-// The one property react-native-onyx.d.ts declares on Window for that exposure
+// The one property react-native-onyx.d.ts declares on Window
 const DEV_CONSOLE_PROPERTY = 'Onyx';
 
 const COMPONENT_WRAPPER_NAMES = new Set(['memo', 'forwardRef']);
@@ -104,24 +104,26 @@ const meta = {
     schema: [],
     messages: {
         noOnyxReadInRender:
-            'Do not read Onyx during render. Onyx.get() and Onyx.multiGet() are one-shot reads that never subscribe, so a value they return while rendering does not re-render the component when that key changes and the UI can show stale data indefinitely. A component cannot await it either, so reaching it from render means use() or .then(), both of which read without subscribing.\n\n' +
-            'Use useOnyx() for anything the component renders. Reserve Onyx.get() and Onyx.multiGet() for event handlers that render never calls.',
+            'Do not read Onyx during render. Onyx.get() and Onyx.multiGet() do not subscribe, so the component keeps showing the value it read after the key changes.\n\n' +
+            'Use useOnyx() for anything the component renders, and keep Onyx.get() and Onyx.multiGet() for event handlers that render does not call.',
         noOnyxReadAtModuleScope:
-            'Do not read Onyx at module scope. A module body runs at import time and cannot await, so the value can only be parked in a module variable through .then(), where it is a one-shot snapshot that never updates when the key changes.\n\n' +
-            'Move the read inside the function that needs it, so it runs at event time and reads the current value. If the module genuinely needs to track a key, subscribe with Onyx.connectWithoutView() instead of caching one read.',
+            'Do not read Onyx at module scope. The module body runs once at import, so a value read there never updates when the key changes.\n\n' +
+            'Move the read into the function that needs the value, so it reads the current value when that function runs. If the module must track a key, subscribe with Onyx.connectWithoutView().',
         noOnyxReadOutsideAllowedPath:
-            'Onyx.get() and Onyx.multiGet() are only allowed in src/components, src/pages, src/hooks and tests.\n\n' +
-            'Elsewhere, take the value as a parameter or keep the Onyx.connectWithoutView() subscription. Reviewers accept a new READ_ALLOWED_FILES entry only in a PR that removes an Onyx.connectWithoutView() from that file.',
+            'Onyx.get() and Onyx.multiGet() are only allowed in src/components, src/pages, src/hooks and tests. Outside them this rule cannot tell whether a read runs during render, in an effect or in an event handler.\n\n' +
+            'Take the value as a parameter or keep the Onyx.connectWithoutView() subscription. Reviewers accept a new READ_ALLOWED_FILES entry only in a PR that removes an Onyx.connectWithoutView() from that file.',
         noOnyxReadInEffect:
-            'Do not read Onyx inside an effect, or in a function an effect calls. When the value was in the effect dependency array, the useOnyx subscription is what re-runs the effect, and a one-shot read stops that.\n\n' +
-            'Keep the useOnyx subscription. Reads inside effects stay banned until a check can confirm the value was not in the dependency array.',
+            'Do not read Onyx inside an effect or in a function an effect calls. If the value is an effect dependency, its useOnyx subscription is what re-runs the effect, and a one-shot read stops that.\n\n' +
+            'Keep the useOnyx subscription. This rule cannot yet tell whether the value is a dependency, so it reports every read in an effect.',
         noOnyxReadOutsideComponentOrHook:
-            'Call Onyx.get() and Onyx.multiGet() inside the component or hook that needs the value, or in a handler defined inside it. A module-level helper here can be imported from src/libs, which is where these reads are banned.\n\n' +
-            'Take the value as a parameter instead.',
+            'Do not call Onyx.get() or Onyx.multiGet() in a module-level helper. Files in src/libs can import the helper, and these reads are banned there.\n\n' +
+            'Read inside the component or hook that needs the value, or in a handler defined inside it, and pass the value to the helper as a parameter.',
         noOnyxReadByReference:
-            'Call Onyx.get() and Onyx.multiGet() directly. A reference that is not a direct call (Onyx.get.call, Onyx.get.bind, keys.map(Onyx.get), const read = Onyx.get, const {get} = Onyx, Onyx[name]) hides the key from no-onyx-get-snapshot-key and the call site from this rule.',
+            'Do not use Onyx.get or Onyx.multiGet other than as a direct call, as in Onyx.get.call, Onyx.get.bind, keys.map(Onyx.get), const read = Onyx.get, const {get} = Onyx or Onyx[name]. Such a reference hides the key from no-onyx-get-snapshot-key and the call site from this rule.\n\n' +
+            'Call Onyx.get() or Onyx.multiGet() directly.',
         noOnyxObjectAsValue:
-            'Use Onyx only through its members, such as Onyx.get() or Onyx.merge(). Passing, spreading, aliasing, returning or exporting the Onyx object can let reads escape this rule and the key check of no-onyx-get-snapshot-key, and makes them hard to follow. The only allowed value use is exposing it as window.Onyx or globalThis.Onyx for the dev console.',
+            'Do not pass, spread, alias, return or export the Onyx object. Reads made through such a value can escape this rule and the key check of no-onyx-get-snapshot-key.\n\n' +
+            'Use Onyx through its members, such as Onyx.get() or Onyx.merge(). The one allowed value use is window.Onyx = Onyx or globalThis.Onyx = Onyx for the dev console.',
     },
 };
 
@@ -141,7 +143,7 @@ function isComponentOrHookName(functionName) {
     return !!functionName && (isHookName(functionName) || isComponentName(functionName));
 }
 
-// Only an own id or a variable binding names a component or hook; an object key such as `APPROVE` or `Enter` does not
+/** The name a function is declared or assigned under, or null. An object key such as `APPROVE` or `Enter` does not count, because it does not name a component or hook. */
 function getFunctionName(functionNode, parent) {
     if (functionNode.id?.type === 'Identifier') {
         return functionNode.id.name;
@@ -154,7 +156,7 @@ function getFunctionName(functionNode, parent) {
     return null;
 }
 
-// JSX written directly, or behind `cond ? <A /> : null`, `cond && <A />` or a TS wrapper
+/** True for JSX written directly, or behind `cond ? <A /> : null`, `cond && <A />` or a TS cast. */
 function isJSXExpression(node) {
     if (!node) {
         return false;
@@ -175,6 +177,7 @@ function isJSXExpression(node) {
     return TYPE_ONLY_EXPRESSIONS.has(node.type) && isJSXExpression(node.expression);
 }
 
+/** True when the function body is JSX or has a top-level `return` of JSX. A `return` nested in a block is not checked. */
 function returnsJSX(functionNode) {
     const body = functionNode.body;
 
@@ -195,7 +198,6 @@ function getRenderTimeArgumentIndices(callee) {
     return calleeName ? (RENDER_TIME_HOOK_ARGUMENTS.get(calleeName) ?? null) : null;
 }
 
-// The outermost of `node` and the TS casts around it, so `{...} as const` or `options as X` is the argument itself
 function getOutermostTypeOnlyWrapper(node) {
     let current = node;
 
@@ -216,7 +218,7 @@ function isHookArgument(node, call) {
     return !!calleeName && isHookName(calleeName);
 }
 
-// `useOnyx(key, {selector})` inline, or `const options = {selector}; useOnyx(key, options)`, with TS casts on either side
+/** True when `property` sits in the options object of a hook call, inline as in `useOnyx(key, {selector})` or through `const options = {selector}; useOnyx(key, options)`, with TS casts on either side. */
 function isHookOption(property, sourceCode) {
     const holder = getOutermostTypeOnlyWrapper(property.parent);
 
@@ -256,6 +258,7 @@ function isRenderTimeUsage(identifier, sourceCode) {
     return matchesCalleeName(parent.callee, COMPONENT_WRAPPER_NAMES) || !!getRenderTimeArgumentIndices(parent.callee)?.has(parent.arguments.indexOf(identifier));
 }
 
+/** How the function can be referred to: `{declaration, name}` for a named function or variable, `{definition, classBody, key}` for a class member, `{definition, holder, key}` for a property of a `const` or `let` object, or null. */
 function getFunctionBinding(functionNode, parent) {
     if (functionNode.type === 'FunctionDeclaration' && functionNode.id?.type === 'Identifier') {
         return {declaration: functionNode, name: functionNode.id.name};
@@ -294,7 +297,7 @@ function isNamedMember(node, key) {
     return node?.type === 'MemberExpression' && getStaticName(node.property, node.computed) === key;
 }
 
-// A nested non-arrow function or class rebinds `this`, but a member of this class is called on the instance
+/** Collects the `this.key` uses inside `classBody` into `uses`. Skips nested non-arrow functions and classes, which rebind `this`, but still enters the methods of `classBody`. */
 function collectThisMemberUses(node, classBody, key, sourceCode, uses) {
     if (isNamedMember(node, key) && node.object.type === 'ThisExpression') {
         uses.push(node);
@@ -315,7 +318,7 @@ function collectThisMemberUses(node, classBody, key, sourceCode, uses) {
     }
 }
 
-// The expressions that evaluate to the bound function: a read of its variable, `holder.key`, or `this.key` inside its class
+/** Every place the bound function is referred to: a read of its variable, `holder.key`, or `this.key` inside its class. */
 function getBindingUses(binding, sourceCode, seen) {
     const seenKey = binding.definition ?? getDeclaredVariable(binding.declaration, binding.name, sourceCode);
 
@@ -340,7 +343,7 @@ function getBindingUses(binding, sourceCode, seen) {
     return getReadIdentifiers(binding.declaration, binding.name, sourceCode);
 }
 
-// `const run = useCallback(load, [])` or `useEffectEvent(load)` makes `run` another name for `load`
+/** The `run` binding of `const run = useCallback(load, [])` or `const run = useEffectEvent(load)`, which names the same function as `load`, or null. */
 function getCallbackHookAlias(node) {
     const call = node.parent;
     const declarator = call?.parent;
@@ -352,7 +355,7 @@ function getCallbackHookAlias(node) {
     return declarator?.type === 'VariableDeclarator' && declarator.init === call && declarator.id.type === 'Identifier' ? {declaration: declarator, name: declarator.id.name} : null;
 }
 
-// `const run = load` or a callback hook wrapping `load` binds another name to the same function
+/** The binding of another name for the same function, from `const run = load` or a callback hook wrapping `load`, or null. */
 function getAliasBinding(use) {
     const parent = use.parent;
 
@@ -364,9 +367,10 @@ function getAliasBinding(use) {
 }
 
 /**
- * RENDER or MODULE_SCOPE when some reference to the bound function runs it there (a render slot, a call, synchronous
- * array callback or Promise executor written in a render body or at module scope, or an alias used that way), otherwise null. `classifyCall` is injected from
- * classifyPosition, which this recursion feeds back into for the call sites.
+ * RENDER or MODULE_SCOPE when some use of the bound function runs it there, otherwise null. A use counts when it is a
+ * render-time slot, or a call, synchronous array callback or Promise executor that sits in a render body or at module
+ * scope, or an alias used in one of those ways. `classifyCall` runs classifyPosition on a call site; it is passed in
+ * because classifyPosition also calls this function.
  */
 function getEscalatedPosition(binding, sourceCode, seen, classifyCall) {
     for (const use of getBindingUses(binding, sourceCode, seen)) {
@@ -422,6 +426,7 @@ function isEffectHookCallbackArgument(call, argument) {
     return !!calleeName && EFFECT_HOOK_CALLBACK_INDICES.get(calleeName) === call.arguments.indexOf(argument);
 }
 
+/** True for an effect hook callback, passed directly as in `useEffect(fn)` or through `useEffect(useCallback(fn, []))`. */
 function isEffectCallback(functionNode, parent, grandparent) {
     if (parent?.type !== 'CallExpression' || !parent.arguments.includes(functionNode)) {
         return false;
@@ -439,12 +444,12 @@ function isEffectCallback(functionNode, parent, grandparent) {
     );
 }
 
-// A function the enclosing one returns: `return () => {...}` or an arrow whose body is the function
+/** True for a function the enclosing one returns: `return () => {...}`, or an arrow whose body is the function. */
 function isReturnedFunction(functionNode, parent) {
     return parent?.type === 'ReturnStatement' || (isFunctionNode(parent) && parent.body === functionNode);
 }
 
-// `const read = useMemo(() => () => Onyx.get(key), [])` binds `read` to the function the factory returns
+/** The `read` binding of `const read = useMemo(() => () => Onyx.get(key), [])`, for the function the factory returns, or null. */
 function getMemoizedFunctionBinding(functionNode, parent) {
     if (!isReturnedFunction(functionNode, parent)) {
         return null;
@@ -472,6 +477,7 @@ function getHandlerBinding(functionNode, parent) {
     return binding ?? getCallbackHookAlias(functionNode);
 }
 
+/** True when the function runs with the code around it: called at once, a synchronous array callback or a Promise executor. For the effect search, a callback passed to `.then()`, `setTimeout()` or another EFFECT_CONTINUATION_NAMES call counts too. */
 function runsWithEnclosingCode(functionNode, parent) {
     if (parent?.type === 'NewExpression' && matchesCalleeName(parent.callee, SYNCHRONOUS_EXECUTOR_NAMES)) {
         return true;
@@ -491,6 +497,7 @@ function runsWithEnclosingCode(functionNode, parent) {
     );
 }
 
+/** True when the read at the innermost ancestor runs inside an effect callback or its cleanup, or in a named handler, possibly through aliases, that an effect calls. */
 function isReachedFromEffect(ancestors, fromIndex, sourceCode, seen) {
     function isHandlerInvokedFromEffect(binding) {
         return getBindingUses(binding, sourceCode, seen).some((use) => {
@@ -560,6 +567,7 @@ function isReachedFromEffect(ancestors, fromIndex, sourceCode, seen) {
     return false;
 }
 
+/** True for a file under the allowed directories or listed in READ_ALLOWED_FILES. Also true for a file the rule cannot place in the repo. */
 function isReadAllowedInFile(filename) {
     const relativePath = getRepoRelativePath(filename);
 
@@ -570,14 +578,14 @@ function isReadAllowedInFile(filename) {
     return READ_ALLOWED_DIRECTORIES.some((directory) => relativePath.startsWith(directory)) || READ_ALLOWED_FILES.has(relativePath);
 }
 
-// Suites read at module level in `it` blocks, so only the allowed source directories need the read inside a component or hook
+/** True for a file under `src/components`, `src/pages` or `src/hooks`, where a read must sit inside a component or hook. Test suites are exempt, because their reads sit in module-level `it` blocks. */
 function requiresComponentOrHookScope(filename) {
     const relativePath = getRepoRelativePath(filename);
 
     return !!relativePath && !relativePath.startsWith(TESTS_DIRECTORY) && READ_ALLOWED_DIRECTORIES.some((directory) => relativePath.startsWith(directory));
 }
 
-// A component or hook by name, or the function memo() or forwardRef() wraps, or any function nested in one
+/** True when some enclosing function is named like a component or hook. The function memo() or forwardRef() wraps counts too. */
 function isInsideComponentOrHook(ancestors) {
     return ancestors.some((ancestor, index) => {
         if (!isFunctionNode(ancestor)) {
@@ -594,7 +602,11 @@ function isInsideComponentOrHook(ancestors) {
     });
 }
 
-// `classifyCall` comes from classifyPosition, which this function and getEscalatedPosition recurse into for a helper's call sites
+/**
+ * How the function a read sits in is run. RENDER and MODULE_SCOPE are final. SYNCHRONOUS means it runs with the
+ * enclosing code, so the caller keeps walking outward. DEFERRED means a handler or other later callback. `classifyCall`
+ * runs classifyPosition on a call site, so getEscalatedPosition can classify where a helper is called.
+ */
 function classifyFunctionBoundary(functionNode, parent, sourceCode, seen, classifyCall) {
     if (parent?.type === 'Property' && parent.value === functionNode && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed)) && isHookOption(parent, sourceCode)) {
         return RENDER;
@@ -644,9 +656,9 @@ function classifyFunctionBoundary(functionNode, parent, sourceCode, seen, classi
 }
 
 /**
- * Where a read at the innermost of `ancestors` runs. With `skipEffectCheck`, a deferred position is reported as EVENT
- * without looking for an effect: the helper call sites only need to know whether they are RENDER or MODULE_SCOPE, and
- * the effect search would otherwise repeat for every call site.
+ * Where a read with these `ancestors` runs: RENDER, MODULE_SCOPE, EFFECT or EVENT. With `skipEffectCheck`, a deferred
+ * position returns EVENT without the effect search. Helper call sites only need to know whether they are RENDER or
+ * MODULE_SCOPE, and the search would otherwise repeat for every call site.
  */
 function classifyPosition(ancestors, sourceCode, seen = new Set(), skipEffectCheck = false) {
     const classifyCall = (call) => classifyPosition(sourceCode.getAncestors(call), sourceCode, seen, true);
@@ -682,9 +694,11 @@ function classifyPosition(ancestors, sourceCode, seen = new Set(), skipEffectChe
     return MODULE_SCOPE;
 }
 
-// The Onyx property of window or globalThis assigned the Onyx object, with any operator, such as `window.Onyx = Onyx`,
-// `window['Onyx'] = Onyx` or `(window as WindowWithOnyx).Onyx = Onyx as typeof Onyx & {...}`, which exposes the library
-// to the dev console. It is allowed in any file on purpose, since it is the dev console pattern rather than a way to hide a read.
+/**
+ * True when `value` is assigned, with any operator, to the Onyx property of window or globalThis, as in
+ * `window.Onyx = Onyx`, `window['Onyx'] = Onyx` or `(window as WindowWithOnyx).Onyx = Onyx as typeof Onyx & {...}`.
+ * That exposes the library to the dev console, and the rule allows it in every file because it does not hide a read.
+ */
 function isDevConsoleExposure(value) {
     const assignment = value.parent;
 
@@ -697,12 +711,12 @@ function isDevConsoleExposure(value) {
     return target.type === 'Identifier' && DEV_CONSOLE_GLOBALS.has(target.name) && getStaticName(assignment.left.property, assignment.left.computed) === DEV_CONSOLE_PROPERTY;
 }
 
-// True when a reference to the Onyx import uses the object itself as a value instead of reading one of its members
 function isObjectValueUse(reference, getReferencedReadMethod) {
     const identifier = reference.identifier;
 
-    // Type-only references, `typeof Onyx` and `typeof Onyx.get` read nothing at runtime. typescript-eslint marks an export
-    // as both a type and a value reference, so `export {Onyx}` is still checked; espree sets neither flag
+    // Type-only references, `typeof Onyx` and `typeof Onyx.get` read nothing at runtime. @typescript-eslint/scope-manager
+    // marks the reference in `export {Onyx}` as both type and value (referenceDualValueType in ExportVisitor), so the
+    // isValueReference check keeps it reported. eslint-scope, used with espree, sets neither flag.
     if ((reference.isTypeReference && !reference.isValueReference) || identifier.parent?.type === 'TSTypeQuery' || identifier.parent?.type === 'TSQualifiedName') {
         return false;
     }
@@ -710,12 +724,12 @@ function isObjectValueUse(reference, getReferencedReadMethod) {
     const value = getOutermostTypeOnlyWrapper(identifier);
     const parent = value.parent;
 
-    // A runtime `typeof Onyx` only inspects the object
+    // A member access, a runtime `typeof Onyx` and the dev console exposure do not hand the object to other code
     if ((parent?.type === 'MemberExpression' && parent.object === value) || (parent?.type === 'UnaryExpression' && parent.operator === 'typeof') || isDevConsoleExposure(value)) {
         return false;
     }
 
-    // `const {get} = Onyx` is already reported on the destructured property, but `...rest` still carries the other reads
+    // `const {get} = Onyx` is reported on the destructured property instead, unless a `...rest` element also takes the other methods
     return !(
         parent?.type === 'VariableDeclarator' &&
         parent.init === value &&
@@ -759,7 +773,7 @@ function create(context) {
             reportReference(node);
         },
         'ObjectPattern > Property': reportReference,
-        // Through scope analysis, so a local that shadows the import is not reported
+        // Walks the import's references through scope analysis, so a local that shadows the import is not reported
         ImportDeclaration(node) {
             if (!shouldCheckObjectValueUses || node.source.value !== ONYX_MODULE || node.importKind === 'type') {
                 return;

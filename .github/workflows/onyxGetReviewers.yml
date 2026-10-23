@@ -31,12 +31,12 @@ jobs:
             const pr = context.payload.pull_request;
             const {owner, repo} = context.repo;
 
-            // Trigger only on a net-new production call. Only code under `src/` counts, since docs, lint rules
-            // and scripts mention `Onyx.get(` in prose and messages. Jest mocks are excluded, and we
-            // compare added vs. removed call lines per file (a call matches `Onyx.get(` or `Onyx.multiGet(`,
-            // but not `Onyx.getAllKeys(` or the dev-console `window.Onyx.get(`), so editing a call in place
-            // nets to zero, lines that start with a comment don't count on either side, and a removal in one
-            // file can't mask a new call in another.
+            // Trigger only on a net-new production call. Only code under `src/` counts: docs, lint rules and
+            // scripts mention `Onyx.get(` in prose and messages. Jest mocks are excluded. A call matches
+            // `Onyx.get(` or `Onyx.multiGet(`, not `Onyx.getAllKeys(` or the dev-console `window.Onyx.get(`.
+            // Added and removed call lines are compared per file, so editing a call in place nets to zero and
+            // a removal in one file can't mask a new call in another. Lines that start with a comment don't
+            // count on either side.
             const CALL = /(?<![\w$.])Onyx\s*\.\s*(?:get|multiGet)\s*\(/;
             const COMMENT_LINE = /^\s*(?:\/\/|\/\*|\*)/;
             const SOURCE_FILE = /^src\/.*\.[jt]sx?$/;

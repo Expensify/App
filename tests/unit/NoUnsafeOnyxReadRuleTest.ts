@@ -1059,7 +1059,7 @@ describe('no-unsafe-onyx-read value uses of the Onyx object', () => {
             `${ONYX_IMPORT} window['Onyx'] = Onyx;`,
             // Given a write called through optional chaining
             // When the rule checks the Onyx reference
-            // Then it is a member access, not a value use
+            // Then it is a member access rather than a value use, so nothing is reported
             `${ONYX_IMPORT} export function save(key, value) { Onyx?.merge(key, value); }`,
             // Given a parameter that shadows the import
             // When the function returns it
@@ -1068,7 +1068,7 @@ describe('no-unsafe-onyx-read value uses of the Onyx object', () => {
             {
                 // Given the spread shape in a test suite
                 // When the rule checks the Onyx reference
-                // Then suites may handle the Onyx object freely, so nothing is reported
+                // Then suites are exempt from the value-use check, so nothing is reported
                 code: SPREAD_READ,
                 filename: inRepo('tests/unit/Foo.ts'),
             },
@@ -1089,7 +1089,7 @@ describe('no-unsafe-onyx-read value uses of the Onyx object', () => {
             {
                 // Given the Onyx object re-exported under another name in a test suite
                 // When the rule checks the re-export
-                // Then suites may handle the Onyx object freely, so nothing is reported
+                // Then suites are exempt from the value-use check, so nothing is reported
                 code: "export {default as Store} from 'react-native-onyx'; export * as OnyxModule from 'react-native-onyx';",
                 filename: inRepo('tests/utils/Store.ts'),
             },
@@ -1135,14 +1135,14 @@ describe('no-unsafe-onyx-read value uses of the Onyx object', () => {
             {
                 // Given the Onyx object as an array element
                 // When the rule checks the array
-                // Then it is a value use and is reported
+                // Then the array could carry the object out of sight, so it is reported
                 code: `${ONYX_IMPORT} export const libraries = [Onyx];`,
                 errors: OBJECT_AS_VALUE_ERRORS,
             },
             {
                 // Given the Onyx object as an object property value
                 // When the rule checks the property
-                // Then it is a value use and is reported
+                // Then the object could carry Onyx out of sight, so it is reported
                 code: `${ONYX_IMPORT} export const dependencies = {onyx: Onyx};`,
                 errors: OBJECT_AS_VALUE_ERRORS,
             },

@@ -4,19 +4,19 @@ import {file} from 'bun';
 /**
  * Fails the lint run when a new inline `eslint-disable` or `eslint` config comment silences one of
  * the Onyx lint bans in `BANNED_RULES` (see `onyxLintBypass.ts`). Every ban there is a normal lint
- * rule, so an inline comment can silence it. The runner re-elevates those by scanning source for
- * directives that name the ban, blanket directives that cover a real banned use, and config comments
+ * rule, so ESLint honors an inline comment that turns it off. This script reads the source itself and
+ * reports directives that name the ban, blanket directives over a real banned use, and config comments
  * that name the ban. For the OnyxUtils ban a named directive or config comment counts only when the
- * file has a runtime import. No disable comment can reach this check.
+ * file has a runtime import. The script runs outside ESLint, so no disable comment can turn it off.
  *
- * A real bypass requires a file to contain an `eslint` comment and the ban's search terms,
- * so we first narrow the targets to files matching all of them (via git grep). The candidate scan
- * does not require the contiguous text `Onyx.connect`: git grep is line-oriented, so a spaced or
- * split `Onyx . connect(` would otherwise be skipped. Extra matches like `Onyx.connectWithoutView`
- * are harmless: we only fail on disable directives that actually suppress a ban.
+ * A bypass needs an `eslint` comment and the ban's search terms in the same file, so git grep first
+ * narrows the targets to files that contain all of them. The terms are separate words rather than
+ * `Onyx.connect`, because git grep matches one line at a time and would miss a call split across lines
+ * or spaced as `Onyx . connect(`. Extra matches such as `Onyx.connectWithoutView` are harmless, since
+ * only a directive that silences a real use fails the run.
  *
  * It also fails when the seatbelt TSV has a row for a rule in `SEATBELT_FORBIDDEN_RULES`, since such a row allows the
- * rule's errors the same way a disable comment would. A row is global, so this runs whatever the lint targets are.
+ * rule's errors the same way a disable comment would. A row is not tied to the lint targets, so this check runs on every call.
  */
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
@@ -29,7 +29,7 @@ const projectRoot = path.resolve(import.meta.dir, '..');
 
 const SEATBELT_TSV = 'config/eslint/eslint.seatbelt.tsv';
 
-/** Files among the lint targets that mention every one of `searchTerms`. */
+/** Repo-relative paths of the files under `targets` that contain every search term. An empty `targets` searches the whole repo. */
 function findCandidateFiles(targets: string[], searchTerms: string[]): string[] {
     const pathSpecs = targets.length > 0 ? targets : ['.'];
     try {
@@ -39,6 +39,7 @@ function findCandidateFiles(targets: string[], searchTerms: string[]): string[] 
         });
         return output.split('\n').filter(Boolean);
     } catch (error: unknown) {
+        // git grep exits with status 1 when no file matches
         if (typeof error === 'object' && error !== null && 'status' in error && error.status === 1) {
             return [];
         }
@@ -46,10 +47,7 @@ function findCandidateFiles(targets: string[], searchTerms: string[]): string[] 
     }
 }
 
-/**
- * Checks `targets` for new bypasses of `ban`, reporting any to stderr.
- * Returns `true` if a new bypass was found.
- */
+/** Prints each new bypass to stderr and resolves to `true` when there is one. */
 async function checkBan(targets: string[], ban: BannedRule): Promise<boolean> {
     const candidates = findCandidateFiles(targets, ban.searchTerms)
         .map((relativePath) => relativePath.split(path.sep).join('/'))
@@ -80,10 +78,7 @@ async function checkBan(targets: string[], ban: BannedRule): Promise<boolean> {
     return true;
 }
 
-/**
- * Checks the seatbelt TSV for rows that grandfather a rule in `SEATBELT_FORBIDDEN_RULES`, reporting any to stderr.
- * A missing TSV has no rows. Returns `true` if a forbidden row was found.
- */
+/** Prints each forbidden row to stderr and resolves to `true` when there is one. A missing TSV passes. */
 async function checkSeatbelt(): Promise<boolean> {
     const tsvFile = file(path.join(projectRoot, SEATBELT_TSV));
     if (!(await tsvFile.exists())) {
@@ -95,7 +90,7 @@ async function checkSeatbelt(): Promise<boolean> {
     }
 
     console.error(
-        `${SEATBELT_FORBIDDEN_RULES.join(' and ')} cannot be grandfathered through the seatbelt ratchet (SEATBELT_INCREASE). Remove the row from ${SEATBELT_TSV} and fix the read instead.`,
+        `${SEATBELT_TSV} has a row for ${SEATBELT_FORBIDDEN_RULES.join(' or ')}. A seatbelt row allows the rule's errors in that file, the same as a disable comment. Remove the row and fix the reads it covers; SEATBELT_INCREASE must not be used for these rules.`,
     );
     console.error('Forbidden seatbelt rows found:');
     for (const row of forbiddenRows) {

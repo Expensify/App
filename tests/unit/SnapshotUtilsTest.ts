@@ -5,13 +5,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 describe('isSnapshotCompatibleKey', () => {
     it('accepts a member of a snapshot collection', () => {
-        // Given a report key, whose collection a Search snapshot carries
+        // Given a report key, from a collection that a Search snapshot carries
         const key = `${ONYXKEYS.COLLECTION.REPORT}123`;
 
-        // When it is checked
+        // When the key is matched against the snapshot collections
         const result = isSnapshotCompatibleKey(key, CONST.SEARCH.SNAPSHOT_ONYX_KEYS);
 
-        // Then it is redirected to the snapshot inside a Search scope
+        // Then it matches, so a read of it inside a Search scope goes to the snapshot
         expect(result).toBe(true);
     });
 
@@ -19,10 +19,10 @@ describe('isSnapshotCompatibleKey', () => {
         // Given a report draft key, which starts with "report" but not with the report collection prefix
         const key = `${ONYXKEYS.COLLECTION.REPORT_DRAFT}1`;
 
-        // When it is checked
+        // When the key is matched against the snapshot collections
         const result = isSnapshotCompatibleKey(key, CONST.SEARCH.SNAPSHOT_ONYX_KEYS);
 
-        // Then it stays on live data
+        // Then it does not match, so a read of it stays on live data
         expect(result).toBe(false);
     });
 });

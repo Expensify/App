@@ -8,11 +8,11 @@ const FILE = 'src/components/Foo.tsx';
 
 describe('collectUnreasonedDisables', () => {
     it('accepts a next-line disable that explains itself', () => {
-        // Given a deliberate live read of a snapshot key with a reason after --
+        // Given a deliberate live read of a snapshot key, disabled with a reason after --
         const source = [`// eslint-disable-next-line ${RULE_ID} -- ${REASON}`, snapshotKeyRead].join('\n');
 
         // When the reason check scans it
-        // Then nothing is reported, since a reviewed reason is how this rule is meant to be bypassed
+        // Then nothing is reported, because a written reason is the intended way past this rule
         expect(collectUnreasonedDisables(source, FILE)).toEqual([]);
     });
 
@@ -21,7 +21,7 @@ describe('collectUnreasonedDisables', () => {
         const source = `${snapshotKeyRead} // eslint-disable-line ${RULE_ID} -- ${REASON}`;
 
         // When the reason check scans it
-        // Then nothing is reported, because both line forms cover exactly one read
+        // Then nothing is reported, because each line form covers a single read
         expect(collectUnreasonedDisables(source, FILE)).toEqual([]);
     });
 
@@ -34,7 +34,7 @@ describe('collectUnreasonedDisables', () => {
         expect(collectUnreasonedDisables(source, FILE)).toEqual([{file: FILE, line: 1}]);
     });
 
-    it('flags a reason too short to explain anything', () => {
+    it('flags a reason with too few letters or digits', () => {
         // Given a token reason, a row of punctuation, a reason of only stars and spaces, and one with exactly enough letters
         const tooShort = [`// eslint-disable-next-line ${RULE_ID} -- ok`, snapshotKeyRead].join('\n');
         const punctuation = [`// eslint-disable-next-line ${RULE_ID} -- ----------------`, snapshotKeyRead].join('\n');
@@ -42,7 +42,7 @@ describe('collectUnreasonedDisables', () => {
         const justEnough = [`// eslint-disable-next-line ${RULE_ID} -- ${'x'.repeat(MIN_REASON_LENGTH)}`, snapshotKeyRead].join('\n');
 
         // When the reason check scans each
-        // Then everything without enough letters or digits is reported, since the floor counts words and not characters
+        // Then all but the last are reported, since the floor counts letters and digits and ignores punctuation and spaces
         expect(collectUnreasonedDisables(tooShort, FILE)).toEqual([{file: FILE, line: 1}]);
         expect(collectUnreasonedDisables(punctuation, FILE)).toEqual([{file: FILE, line: 1}]);
         expect(collectUnreasonedDisables(stars, FILE)).toEqual([{file: FILE, line: 1}]);
@@ -74,7 +74,7 @@ describe('collectUnreasonedDisables', () => {
         const quoted = [`// eslint-disable-next-line "${RULE_ID}"`, snapshotKeyRead].join('\n');
 
         // When the reason check scans them
-        // Then all three count, since ESLint accepts every spelling and none may dodge the reason
+        // Then all three are reported, since ESLint accepts each spelling, so each one needs a reason
         expect(collectUnreasonedDisables(bare, FILE)).toEqual([{file: FILE, line: 1}]);
         expect(collectUnreasonedDisables(qualified, FILE)).toEqual([{file: FILE, line: 1}]);
         expect(collectUnreasonedDisables(quoted, FILE)).toEqual([{file: FILE, line: 1}]);
@@ -85,7 +85,7 @@ describe('collectUnreasonedDisables', () => {
         const source = ['// eslint-disable-next-line no-console', 'console.log(1);', '/* eslint-disable */', snapshotKeyRead].join('\n');
 
         // When the reason check scans it
-        // Then nothing is reported here, since blanket disables are the bypass check's business
+        // Then nothing is reported, since the bypass check owns blanket disables
         expect(collectUnreasonedDisables(source, FILE)).toEqual([]);
     });
 
@@ -104,7 +104,7 @@ describe('collectUnreasonedDisables', () => {
         const source = ['const = ;', `// eslint-disable-next-line ${RULE_ID} -- ${REASON}`, snapshotKeyRead, `// eslint-disable-next-line ${RULE_ID}`, snapshotKeyRead].join('\n');
 
         // When the reason check scans it
-        // Then both directives naming the rule are reported, even the reasoned one, since nothing can be verified without an AST
+        // Then both directives naming the rule are reported, even the reasoned one, since no reason can be checked without an AST
         expect(collectUnreasonedDisables(source, FILE)).toEqual([
             {file: FILE, line: 2},
             {file: FILE, line: 4},
@@ -127,7 +127,7 @@ describe('a reasoned key disable next to the read ban', () => {
         const source = [`// eslint-disable-next-line ${RULE_ID}, rulesdir/no-unsafe-onyx-read -- ${REASON}`, snapshotKeyRead].join('\n');
 
         // When the read ban scans it
-        // Then it still counts as a read bypass, because only the key choice may be explained away
+        // Then it still counts as a read bypass, because a reason may justify the key choice but not the read
         expect(collectDisableDirectivesFromSource(source, FILE, ONYX_READ_BAN)).toEqual([{file: FILE, line: 1}]);
     });
 });

@@ -3,9 +3,9 @@
 import {file} from 'bun';
 /**
  * Fails the lint run when an inline `eslint-disable` of one of the rules in `REASONED_RULES` (see
- * `onyxLintDisableReason.ts`) does not explain itself, or an `eslint` config comment names one of
- * them. Candidate files are narrowed with git grep the same way `checkOnyxLintBypass.ts` does, then
- * each comment is checked in the Babel AST.
+ * `onyxLintDisableReason.ts`) gives no reason, or an `eslint` config comment names one of them.
+ * git grep narrows the candidate files the same way it does in `checkOnyxLintBypass.ts`, then the
+ * script checks each comment Babel finds.
  */
 import path from 'node:path';
 
@@ -16,10 +16,7 @@ import {REASONED_RULES, collectUnreasonedDisables} from './onyxLintDisableReason
 
 const projectRoot = path.resolve(import.meta.dir, '..');
 
-/**
- * Checks `targets` for unreasoned disables of `rule`, reporting any to stderr.
- * Returns `true` if one was found.
- */
+/** Prints each disable without a reason to stderr and resolves to `true` when there is one. */
 async function checkRule(targets: string[], rule: ReasonedRule): Promise<boolean> {
     const candidates = findCandidateFiles(targets, rule.searchTerms)
         .map((relativePath) => relativePath.split(path.sep).join('/'))

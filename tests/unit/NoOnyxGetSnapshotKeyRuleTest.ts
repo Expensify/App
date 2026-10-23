@@ -219,7 +219,7 @@ describe('no-onyx-get-snapshot-key Concierge chat key', () => {
                 code: `${ONYX_IMPORT} export function submit(reportID) { const key = \`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`; return async () => { const reportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID); return Onyx.get(key); }; }`,
                 errors: RESTRICTED_ERRORS,
             },
-            // The prefix must be the collection key itself, not a template that merely starts with it
+            // The prefix must be the collection key itself, not a template that starts with it
             {
                 code: `${ONYX_IMPORT} export async function submit(reportID) { const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID); const prefix = \`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`; return Onyx.get(\`\${prefix}\${conciergeReportID}\`); }`,
                 errors: RESTRICTED_ERRORS,
@@ -391,7 +391,7 @@ describe('no-onyx-get-snapshot-key every ONYXKEYS entry', () => {
         // When each one is read with Onyx.get and compared with what useOnyx would redirect to a snapshot
         const disagreements = keyPaths.filter(([keyPath, value]) => isRejected(keyPath) !== isSnapshotCompatibleKey(value, CONST.SEARCH.SNAPSHOT_ONYX_KEYS));
 
-        // Then the rule's list, the hook's list and the predicate agree on every key
+        // Then the rule's list, the hook's list and the predicate agree on every key, so the rule bans the keys useOnyx redirects and no others
         expect(disagreements).toEqual([]);
     });
 });
@@ -442,7 +442,7 @@ describe('no-onyx-get-snapshot-key on a multi-line Onyx.multiGet', () => {
             rules: {[`localRules/${ruleModule.name}`]: 'error'},
         });
 
-        // Then nothing is reported: the directive is used and silences every restricted element of the call
+        // Then nothing is reported, because the one directive is used and silences every restricted element of the call
         expect(messages).toEqual([]);
     });
 });

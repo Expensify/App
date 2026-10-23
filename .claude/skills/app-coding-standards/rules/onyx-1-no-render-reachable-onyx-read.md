@@ -27,13 +27,13 @@ Do not re-check these:
 
 A disable of `no-onyx-get-snapshot-key` is allowed with a reason, and the script checks only that it holds at least 12 letters or digits. Judge its content under E1. The key `${ONYXKEYS.COLLECTION.REPORT}${id}`, inline or through a const, passes `no-onyx-get-snapshot-key` without a disable when `id` is a same-file `const` bound to `ONYXKEYS.CONCIERGE_REPORT_ID` by `await Onyx.get(...)`, `const [id] = useOnyx(...)` with no `selector`, or the matching slot of `Onyx.multiGet(...)`. That read needs no E1 review, and A through D still apply to it.
 
-What's left crosses a file boundary, depends on write ordering, only shows in the diff, or happens after the read.
+What lint leaves to review is below: a read reached from render across files (A), write ordering (B), a handler an effect in another file calls (C), a read value shown later as current (D), and the content of a disable reason (E).
 
 Mutating a read result writes the cache, since a single-key read returns the cached object and a collection read returns the cached members. `useOnyx` hands out the same object, so this stays a documented convention and isn't flagged here. A `set` with that same object can be skipped as unchanged, so the mutation is neither saved nor announced.
 
-**A. Position.** Render reaches a read wherever it's written. Lint counts a function as a render body when it's named like a component or hook, has a top-level `return <JSX>`, is wrapped in `memo` or `forwardRef`, or is passed to a `useMemo`, `useState`, `useReducer` or `useSyncExternalStore` slot or a `selector` option, inline or by name. It follows a helper the render body calls in the same file, through aliases and `useCallback`, but misses one imported from another file. It also misses a helper that returns JSX from inside an `if` or `switch`, a component passed inline to any call other than `memo` or `forwardRef` (such as a HOC), and a function passed to a child that calls it during render. When one of these helpers is `async`, `tsc` catches it only where the Promise lands in a slot typed `ReactElement`, such as `renderItem`; a JSX child or a `render*` prop typed `ReactNode` accepts a Promise, so check for a type error before relying on it.
+**A. Position.** A read runs during render when any render body reaches it, whichever file holds it. Lint counts a function as a render body when it's named like a component or hook, has a top-level `return <JSX>`, is wrapped in `memo` or `forwardRef`, or is passed to a `useMemo`, `useState`, `useReducer` or `useSyncExternalStore` slot or a `selector` option, inline or by name. It follows a helper the render body calls in the same file, through aliases and `useCallback`, but misses one imported from another file. It also misses a helper that returns JSX from inside an `if` or `switch`, a component passed inline to any call other than `memo` or `forwardRef` (such as a HOC), and a function passed to a child that calls it during render. When one of these helpers is `async`, `tsc` catches it only where the Promise lands in a slot typed `ReactElement`, such as `renderItem`. A JSX child or a `render*` prop typed `ReactNode` accepts a Promise, so rely on `tsc` only when it reports an error.
 
-**B. Tick.** Awaiting a read doesn't wait for an earlier write. `Onyx.get` captures the cached value when it's called. `set` and `multiSet` update the cache before they return, but `merge`, `mergeCollection`, `setCollection`, `clear` and every `update` operation, including SET, apply to the cache after at least one microtask, so a read queued behind them sees the old value: await the write, or read first. A derived key (`ONYXKEYS.DERIVED.*`) is recomputed on a microtask after its source changes, so a read in the same synchronous stretch returns the old derived value, even after a `set` that already updated the source. Read a derived key only before writing its sources.
+**B. Tick.** Awaiting a read doesn't wait for an earlier write. `Onyx.get` captures the cached value when it's called. `set` and `multiSet` update the cache before they return, but `merge`, `mergeCollection`, `setCollection`, `clear` and every `update` operation, including SET, apply to the cache after at least one microtask. A read queued behind them sees the old value, so await the write or read first. A derived key (`ONYXKEYS.DERIVED.*`) is recomputed on a microtask after its source changes, so a read in the same synchronous stretch returns the old derived value, even after a `set` that already updated the source. Read a derived key only before writing its sources.
 
 **C. Effect in another file.** Lint bans a read inside an effect, but only within one file. A handler that reads can still end up in an effect when it's passed to a child or hook that calls it from `useEffect`, `useLayoutEffect` or `useFocusEffect`. A receiver that only registers the handler for an event (an `on*` prop, `addEventListener`, `useKeyboardShortcut`) is fine, even if the handler sits in that effect's dependency array.
 
@@ -58,7 +58,7 @@ function useCurrentUserEmail() {
 **A2. A render body lint doesn't recognize.**
 
 ```tsx
-// Every return is JSX, but inside a switch, so lint sees no render body.
+// The JSX return sits inside a switch, so lint sees no top-level JSX return and no render body.
 async function renderTagBadge(policyID: string) {
     const tags = await Onyx.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
@@ -148,10 +148,10 @@ return <Text>Current theme: {theme}</Text>;
 
 #### A. Position
 
-- A1. The diff adds a read to a function that some caller reaches from render: a component or hook body, a `useMemo` callback, a `useOnyx` selector, a lazy initializer, an IIFE or array callback in the body, or a local function the body calls. Grep `src/` for the function's name, ignoring imports. A plain-function caller isn't a verdict, so repeat on its name. When the render-side call is in the diff, comment on that call and name the read; otherwise comment on the read and name the calling file and line. A3 covers a new call whose value is discarded; A1 covers every other render-reached read.
+- A1. The diff adds a read to a function that some caller reaches from render: a component or hook body, a `useMemo` callback, a `useOnyx` selector, a lazy initializer, an IIFE or array callback in the body, or a local function the body calls. Grep `src/` for the function's name, ignoring imports. If a caller is a plain function, repeat the Grep on its name. When the render-side call is in the diff, comment on that call and name the read. Otherwise, comment on the read and name the calling file and line. A3 covers a new call whose value is discarded. A1 covers every other render-reached read.
 - A2. The function holding the read returns JSX from any branch, or is passed as `renderItem`, `ListHeaderComponent`, or any `render*` or `*Component` prop. Flag the read.
 - A3. The diff adds a call at a render position in a component or hook, the call's value is discarded or the callee returns `void`, and the callee's file contains `Onyx.get` or `Onyx.multiGet`. Comment on the call.
-- A4. The diff passes a function that reads, or whose file contains `Onyx.get` or `Onyx.multiGet`, as a prop, and the receiver calls that prop from render. Open the receiver's file and Grep the prop's name followed by `(`; follow forwarded props. If the receiver can't be resolved (a spread, or a component held in a variable), ask the author to confirm nothing calls it during render.
+- A4. The diff passes a function that reads, or whose file contains `Onyx.get` or `Onyx.multiGet`, as a prop, and the receiver calls that prop from render. Open the receiver's file and Grep the prop's name followed by `(`. Follow forwarded props. If the receiver can't be resolved (a spread, or a component held in a variable), ask the author to confirm nothing calls it during render.
 
 #### B. Tick
 
@@ -160,7 +160,7 @@ return <Text>Current theme: {theme}</Text>;
 
 #### C. Effect in another file
 
-- C1. The diff passes a function that reads, or whose file contains `Onyx.get` or `Onyx.multiGet`, to another component or hook, or turns a function already passed that way into one that reads. Open the receiver, Grep the prop's name followed by `(`, and flag when a call sits inside a `useEffect`, `useLayoutEffect` or `useFocusEffect` callback, directly or through a local function. Follow forwarded props. The prop's name never matters here: an `onReady` the receiver calls from an effect is a finding. Comment on the prop, naming the receiver's effect.
+- C1. The diff passes a function that reads, or whose file contains `Onyx.get` or `Onyx.multiGet`, to another component or hook, or turns a function already passed that way into one that reads. Open the receiver, Grep the prop's name followed by `(`, and flag when a call sits inside a `useEffect`, `useLayoutEffect` or `useFocusEffect` callback, directly or through a local function. Follow forwarded props. The prop's name doesn't matter: an `onReady` the receiver calls from an effect is a finding. Comment on the prop, naming the receiver's effect.
 
 #### D. Output
 
@@ -168,7 +168,7 @@ return <Text>Current theme: {theme}</Text>;
 
 #### E. Reason
 
-- E1. The diff adds or edits an `eslint-disable` of `no-onyx-get-snapshot-key`. The text after `--` has to say why that key never went through the `useOnyx` snapshot redirection: it replaces a module-level `Onyx.connect()` used only by handlers, or the value is never read inside a Search scope. Flag a reason that restates the rule, says live data is wanted without saying why the snapshot was never involved, or names a different key than the one read. Comment on the directive.
+- E1. The diff adds or edits an `eslint-disable` of `no-onyx-get-snapshot-key`. The text after `--` must say why that key never went through the `useOnyx` snapshot redirection: it replaces a module-level `Onyx.connect()` used only by handlers, or the value is never read inside a Search scope. Flag a reason that restates the rule, says live data is wanted without saying why the snapshot was never involved, or names a different key than the one read. Comment on the directive.
 
 **DO NOT flag if:**
 

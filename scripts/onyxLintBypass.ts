@@ -5,17 +5,17 @@
  * None of these may be disabled inline. Directives beyond each ban's grandfathered count fail the lint run.
  *
  * A directive counts when it names the ban's rule, or when it is a blanket disable over a banned
- * use: `Onyx.connect` for the connect ban, a call of or any other reference to `Onyx.get` or `Onyx.multiGet` for the read ban,
- * or the Onyx object itself used as a value (`const api = {...Onyx}`) for the read ban.
- * For the OnyxUtils ban it counts only when it covers a runtime import of the module. Blanket
+ * use. For the connect ban that use is `Onyx.connect`. For the read ban it is any reference to `Onyx.get` or
+ * `Onyx.multiGet`, or the Onyx object itself used as a value (`const api = {...Onyx}`).
+ * For the OnyxUtils ban a directive counts only when it covers a runtime import of the module. Blanket
  * disables over unrelated code, like the ones around ReportUtils, are ignored. A file Babel cannot
  * parse fails closed: every disable in it counts.
  *
- * Calls and imports are located in the Babel AST, so spacing, comments and parentheses cannot hide
- * them the way they could from a text scan.
+ * The script finds calls and imports in the Babel AST, so spacing, comments and parentheses that would
+ * fool a text scan cannot hide them.
  *
- * The seatbelt ratchet is the other way to turn a rule's error into an allowed one, so the two Onyx read rules in
- * `SEATBELT_FORBIDDEN_RULES` may not have a row in the seatbelt TSV at all.
+ * A seatbelt TSV row also turns a rule's errors into allowed ones, so the two Onyx read rules in
+ * `SEATBELT_FORBIDDEN_RULES` may not have a row there at all.
  */
 
 import type {ParserPlugin} from '@babel/parser';
@@ -26,18 +26,13 @@ import type {ASTNode} from './utils/BabelASTUtils';
 
 import BabelASTUtils from './utils/BabelASTUtils';
 
-/** Rule id of the Onyx.connect() ban, as exposed through eslint-plugin-rulesdir. */
 const BANNED_RULE_ID = 'rulesdir/no-onyx-connect';
 
 const BANNED_RULE_NAME = 'no-onyx-connect';
 
 const ONYX_MODULE = 'react-native-onyx';
 
-/**
- * Disables of the ban that already exist on `main`, keyed by repo-relative path with the number of
- * occurrences in each file. Migrating these call sites to useOnyx() is already in progress; any
- * suppressed violation beyond these counts is treated as a new bypass.
- */
+/** Inline disables of no-onyx-connect that already existed on `main`, by file path and count. A file with more than its count fails the check. */
 const GRANDFATHERED_BYPASSES = new Map<string, number>([
     ['src/libs/NextStepUtils.ts', 1],
     ['src/libs/ReportNameUtils.ts', 2],
@@ -51,19 +46,20 @@ type BannedRule = {
     /** Bans runtime imports of these modules instead of `objects`/`methods` calls. */
     importSources?: Set<string>;
     /**
-     * The rule reports on the member access itself, not only on a call, so a line holding `Onyx.connect` or `Onyx.get`
-     * as a value (`const read = Onyx.get`, `keys.map(Onyx.get)`, `Onyx.get.call(...)`) or a destructured
-     * `const {get} = Onyx` is a use too. Calls, including calls through an alias, count for every ban. no-onyx-connect
-     * reports neither alias calls nor destructuring, so counting them there is part of the name-based superset described
+     * The rule reports the member access itself as well as a call, so a line that holds `Onyx.connect` or `Onyx.get`
+     * as a value (`const read = Onyx.get`, `keys.map(Onyx.get)`, `Onyx.get.call(...)`) or takes it by destructuring
+     * (`const {get} = Onyx`) is a use too. Calls, including calls through an alias, count for every ban. no-onyx-connect
+     * reports neither alias calls nor destructuring, so counting them for it is part of the name-based superset described
      * at `collectBannedNames`.
      */
     reportsOnMember?: boolean;
     /**
      * The rule reports the banned object itself used as a value (`const api = {...Onyx}`, `fn(Onyx)`, `return Onyx`), so a
-     * blanket directive over such a line silences it. It allows the dev console exposure, an assignment to the Onyx property
-     * of window or globalThis, cast or not (`(window as X).Onyx = Onyx`), and skips value uses in test infrastructure.
-     * It also reports, in every file, a member with a key it cannot resolve (`Onyx[method]`), which may name a read method.
-     * A runtime re-export of the object (`export {default as Store} from 'react-native-onyx'`, `export * as Store from ...`) is a value use too.
+     * blanket directive over such a line silences it. The rule allows one value use, the dev console exposure: an assignment
+     * to the Onyx property of window or globalThis, cast or not (`(window as X).Onyx = Onyx`). It skips value uses in test
+     * infrastructure. In every file it also reports a member whose key it cannot resolve (`Onyx[method]`), since that key
+     * may name a read method. A runtime re-export of the object (`export {default as Store} from 'react-native-onyx'`,
+     * `export * as Store from ...`) is a value use too.
      */
     reportsOnObjectValue?: boolean;
     /**
@@ -78,18 +74,18 @@ type BannedRule = {
     message: string;
 };
 
-/** A file ESLint lints, so a directive in it means something. Docs and patches mention directives without honoring them. */
+/** True for a file ESLint lints. A directive quoted in a markdown doc or a patch file silences nothing, so those files are skipped. */
 function isLintedFile(file: string): boolean {
     return /\.[cm]?[jt]sx?$/.test(file);
 }
 
-// The lint rules run on every linted file; test suites are exempt because reads are allowed there and suites exercise the rules themselves
+/** True for a linted file outside `tests/`. Test suites may read Onyx, and the rule suites quote banned code as fixtures. */
 function isCheckedSourceFile(file: string): boolean {
     return isLintedFile(file) && !file.startsWith('tests/');
 }
 
-// Where no-unsafe-onyx-read skips value uses of the Onyx object, as in the `...Onyx` of __mocks__/react-native-onyx.ts.
-// Reads in `__mocks__/` and `jest/` are still reported by the path check, so those files stay checked for calls
+// Directories where no-unsafe-onyx-read skips value uses of the Onyx object, such as the `...Onyx` in __mocks__/react-native-onyx.ts.
+// Its path check still reports reads in `__mocks__/` and `jest/`, so calls in those files stay checked
 const TEST_INFRASTRUCTURE_DIRECTORIES = ['tests/', '__mocks__/', 'jest/'];
 
 function isTestInfrastructureFile(file: string): boolean {
@@ -106,7 +102,8 @@ const ONYX_CONNECT_BAN: BannedRule = {
     appliesTo: isLintedFile,
     // `eslint` rather than `eslint-disable`, so a file whose only directive is a config comment is a candidate
     searchTerms: ['Onyx', 'connect', 'eslint'],
-    message: 'Onyx.connect() is banned and the ban cannot be bypassed with eslint-disable or an eslint config comment. Use the useOnyx() hook to read Onyx data instead.',
+    message:
+        'An eslint-disable or eslint config comment silences rulesdir/no-onyx-connect. Onyx.connect() is deprecated, and its ban allows no new inline exceptions. Remove the comment and read the data with useOnyx().',
 };
 
 const ONYX_READ_BAN: BannedRule = {
@@ -114,17 +111,17 @@ const ONYX_READ_BAN: BannedRule = {
     name: 'no-unsafe-onyx-read',
     objects: new Set(['Onyx']),
     methods: new Set(['get', 'multiGet']),
-    // The rule reports every reference to Onyx.get / Onyx.multiGet that is not a direct call, so a blanket directive there silences it
+    // The rule reports every reference to Onyx.get or Onyx.multiGet that is not a direct call, so a blanket directive there silences it
     reportsOnMember: true,
     // The rule reports `const api = {...Onyx}` and other value uses of the Onyx object, which hide reads through the copy
     reportsOnObjectValue: true,
     coversInnerLines: true,
     grandfathered: new Map<string, number>(),
     appliesTo: isCheckedSourceFile,
-    // The import, not `Onyx`, since an aliased import such as `import O from 'react-native-onyx'` is a read site too
+    // The module name rather than `Onyx`, because a file with an aliased import such as `import O from 'react-native-onyx'` can read too
     searchTerms: [ONYX_MODULE, 'eslint'],
     message:
-        'Onyx reads checked by no-unsafe-onyx-read cannot be silenced with eslint-disable or an eslint config comment. Fix the read instead: use useOnyx() for data a component renders or reacts to, and call Onyx.get() or Onyx.multiGet() only from event handlers that render never calls, in components, pages and hooks. Use the Onyx object only through its members, not as a value that is passed, spread, aliased, returned or exported.',
+        'An eslint-disable or eslint config comment silences rulesdir/no-unsafe-onyx-read. Onyx.get() and Onyx.multiGet() never subscribe, so a read the rule rejects can leave the UI on stale data. Remove the comment and fix the read: use useOnyx() for data a component renders or reacts to, call Onyx.get() or Onyx.multiGet() only from event handlers in components, pages and hooks that render never calls, and use the Onyx object only through its members, never as a value.',
 };
 
 const ONYX_UTILS_IMPORT_BAN: BannedRule = {
@@ -137,12 +134,11 @@ const ONYX_UTILS_IMPORT_BAN: BannedRule = {
     appliesTo: isCheckedSourceFile,
     searchTerms: ['OnyxUtils', 'eslint'],
     message:
-        'The react-native-onyx/dist/OnyxUtils import restriction cannot be silenced with eslint-disable or an eslint config comment. Read Onyx with useOnyx(), Onyx.get() or Onyx.multiGet() instead. Type-only imports of OnyxUtils are still allowed.',
+        'An eslint-disable or eslint config comment silences the @typescript-eslint/no-restricted-imports ban on react-native-onyx/dist/OnyxUtils. Reads through OnyxUtils skip no-unsafe-onyx-read and no-onyx-get-snapshot-key. Remove the comment and read with useOnyx(), Onyx.get() or Onyx.multiGet(). Type-only imports of OnyxUtils are still allowed.',
 };
 
 const BANNED_RULES: BannedRule[] = [ONYX_CONNECT_BAN, ONYX_READ_BAN, ONYX_UTILS_IMPORT_BAN];
 
-/** A banned-rule violation that an inline disable directive silenced. */
 type SuppressedBan = {
     file: string;
     line: number;
@@ -162,7 +158,7 @@ type BabelComment = {
     end: number | null;
 };
 
-// A `.ts` file may use angle-bracket assertions, which the jsx plugin would reject
+// Babel's jsx plugin rejects the angle-bracket assertions (`<T>value`) a `.ts` file may use, so `.ts` files parse without it
 function babelPluginsFor(file: string): ParserPlugin[] {
     return /\.[cm]?ts$/.test(file) ? ['typescript'] : ['typescript', 'jsx'];
 }
@@ -170,8 +166,8 @@ function babelPluginsFor(file: string): ParserPlugin[] {
 type ParsedSource = {root: ASTNode; comments: BabelComment[]};
 
 /**
- * Comments found by a plain regex, for a file Babel cannot parse. The regex does not understand strings, so a `/*` in
- * one can hide a later directive; the file already failed to parse, so this is a best effort.
+ * Comments found with a regex, for a file Babel cannot parse. The regex does not skip strings, so a `/*` inside a
+ * string can hide a later directive. The check accepts that gap for a file that is already broken.
  */
 function extractCommentsByRegex(source: string): BabelComment[] {
     return [...source.matchAll(/\/\*(?<block>[\s\S]*?)\*\/|\/\/(?<line>[^\n\r\u2028\u2029]*)/g)].map((match) => ({
@@ -182,6 +178,7 @@ function extractCommentsByRegex(source: string): BabelComment[] {
     }));
 }
 
+/** The Babel AST and comments of `source`, or null when Babel throws or returns something that is not an AST node. */
 function parseSource(source: string, file: string): ParsedSource | null {
     try {
         const parsed: unknown = parse(source, {sourceType: 'unambiguous', plugins: babelPluginsFor(file), errorRecovery: true, attachComment: true});
@@ -206,9 +203,9 @@ function parseSource(source: string, file: string): ParsedSource | null {
     }
 }
 
-// ESLint only supports -line / -next-line on disable. `eslint-enable-line` and `eslint-enable-next-line` are not real
-// directives, so treating them as enables would reopen a blanket disable that ESLint still honors. The keyword must be
-// followed by whitespace or the end of the comment, as in ESLint, so `eslint-enable**` is a plain comment too.
+// ESLint has -line and -next-line forms only for disable. It ignores `eslint-enable-line` and `eslint-enable-next-line`,
+// so reading them as enables would reopen a blanket disable that ESLint still applies. ESLint also needs whitespace or
+// the end of the comment after the keyword, so `eslint-enable**` is a plain comment too.
 const DIRECTIVE_PATTERNS = {
     disable: /^\s*eslint-disable(?<kind>-next-line|-line)?(?=\s|$)(?<args>[\s\S]*)$/,
     enable: /^\s*eslint-enable(?=\s|$)(?<args>[\s\S]*)$/,
@@ -246,7 +243,6 @@ function unwrapExpression(node: ASTNode): ASTNode {
     return current;
 }
 
-/** Names bound to the banned object or to one of its banned methods in a file, including aliases. */
 type BannedNames = {
     objects: Set<string>;
     methods: Set<string>;
@@ -256,10 +252,7 @@ function identifierName(node: unknown): string | null {
     return BabelASTUtils.isASTNode(node) && node.type === 'Identifier' && typeof node.name === 'string' ? node.name : null;
 }
 
-/**
- * The static name of a property or pattern key: an identifier when not computed, or a string literal or a template literal
- * without expressions either way, like the rules resolve it.
- */
+/** The static name of a property key (`get`, `'get'` or a plain template literal), or null for a computed key the lint rules cannot resolve either. */
 function staticKeyName(node: unknown, computed: boolean): string | null {
     if (!computed) {
         const name = identifierName(node);
@@ -283,7 +276,7 @@ function isMemberNode(node: ASTNode): boolean {
     return node.type === 'MemberExpression' || node.type === 'OptionalMemberExpression';
 }
 
-/** `Onyx`, an alias in `objects`, or `Onyx.default` as on a namespace import, which the rules resolve to the Onyx object too. */
+/** True when `node` names the banned object, `Onyx` or an alias of it. Also true for `Onyx.default` on a namespace import, which the rules resolve to the Onyx object too. */
 function isBannedObject(node: unknown, objects: Set<string>): boolean {
     if (!BabelASTUtils.isASTNode(node)) {
         return false;
@@ -308,19 +301,19 @@ function isBannedMember(node: ASTNode, ban: BannedRule, objects: Set<string>): b
     return propertyName !== null && ban.methods.has(propertyName) && isBannedObject(node.object, objects);
 }
 
-/** `Onyx[method]`: a member of the banned object whose key no rule can resolve, so it may name a banned method. */
+/** True for `Onyx[method]`: a member of the banned object whose key no rule can resolve, so it may name a banned method. */
 function isDynamicBannedMember(node: ASTNode, objects: Set<string>): boolean {
     return isMemberNode(node) && node.computed === true && staticKeyName(node.property, true) === null && isBannedObject(node.object, objects);
 }
 
 /**
- * The lint rules resolve the Onyx import and its aliases (`import O from 'react-native-onyx'`, `const api = Onyx`,
- * `const {get} = Onyx`, `const read = Onyx.get`), so a blanket directive over an aliased call silences them just as
- * well. Collect every such name by walking declarations until no new name appears.
+ * The names bound to the Onyx object or to a banned method in a file. The lint rules resolve the Onyx import and its
+ * aliases (`import O from 'react-native-onyx'`, `const api = Onyx`, `const {get} = Onyx`, `const read = Onyx.get`), so a
+ * blanket directive over an aliased call silences them too. The walk repeats over the declarations until no new name appears.
  *
- * This is a name-based superset of what the rules track on purpose: a `let` alias, a parameter that shadows the
- * import, or a bare `Onyx` in a file without the import also count. The rules would not report there, but a blanket
- * directive on such a call is still a bypass worth refusing, and none exists in the repo today.
+ * Matching by name is a deliberate superset of what the rules track: a `let` alias, a parameter that shadows the
+ * import, or a bare `Onyx` in a file without the import also count. The rules would not report those, but a blanket
+ * directive over such a call is still a bypass to refuse, and the repo has none today.
  */
 function collectBannedNames(root: ASTNode, ban: BannedRule): BannedNames {
     const objects = new Set(ban.objects);
@@ -372,9 +365,9 @@ function collectBannedNames(root: ASTNode, ban: BannedRule): BannedNames {
 }
 
 function isBannedCall(node: ASTNode, ban: BannedRule, names: BannedNames): boolean {
-    // Optional chaining anywhere in the call (`Onyx?.connect(...)`, `Onyx.connect?.(...)`) produces
-    // `OptionalCallExpression`/`OptionalMemberExpression` nodes instead of their non-optional
-    // counterparts, so a blanket disable directive over one would otherwise silently bypass the ban.
+    // Babel parses optional chaining anywhere in a call (`Onyx?.connect(...)`, `Onyx.connect?.(...)`) as
+    // `OptionalCallExpression` and `OptionalMemberExpression` instead of the plain node types. Both are matched,
+    // or a blanket disable over an optional call would bypass the ban.
     if ((node.type !== 'CallExpression' && node.type !== 'OptionalCallExpression') || !BabelASTUtils.isASTNode(node.callee)) {
         return false;
     }
@@ -386,13 +379,11 @@ function isBannedCall(node: ASTNode, ban: BannedRule, names: BannedNames): boole
     return isBannedMember(callee, ban, names.objects);
 }
 
-/** Source range of a banned call or import, so a directive on any of its lines can be matched. */
 type BannedRange = {
     start: number;
     end: number;
 };
 
-/** The properties of `const {get} = Onyx` that pull a banned method off the banned object, since a rule reporting on member access reports these too. */
 function bannedDestructuredProperties(node: ASTNode, ban: BannedRule, objects: Set<string>): ASTNode[] {
     if (
         node.type !== 'VariableDeclarator' ||
@@ -426,8 +417,10 @@ const DEV_CONSOLE_PROPERTY = 'Onyx';
 
 type AncestorEntry = {node: ASTNode; key: string};
 
-// `window.Onyx = Onyx`, `window['Onyx'] = Onyx` or `globalThis.Onyx = Onyx as typeof Onyx & {...}`, which exposes the
-// library to the dev console. Only the Onyx property, the one react-native-onyx.d.ts declares on Window, is exempt
+/**
+ * True for `window.Onyx = Onyx`, `window['Onyx'] = Onyx` or `globalThis.Onyx = Onyx as typeof Onyx & {...}`, which expose
+ * the library to the dev console. Only the Onyx property is exempt, the one react-native-onyx.d.ts declares on Window.
+ */
 function isDevConsoleExposure(assignment: ASTNode, key: string): boolean {
     if (assignment.type !== 'AssignmentExpression' || key !== 'right' || !BabelASTUtils.isASTNode(assignment.left)) {
         return false;
@@ -466,12 +459,12 @@ function isObjectValueUse(ancestors: readonly AncestorEntry[]): boolean {
         return false;
     }
     // A property value in a destructuring pattern, or the left side of a default or an assignment, is a binding or a
-    // write, not a read; the rule does report a write such as `Onyx = x`, which does not typecheck
+    // write. The rule does report a write such as `Onyx = x`, but that does not typecheck, so it is skipped here
     if ((key === 'value' && ancestors.at(index - 2)?.node.type === 'ObjectPattern') || (key === 'left' && (parent.type === 'AssignmentPattern' || parent.type === 'AssignmentExpression'))) {
         return false;
     }
     // `typeof Onyx` and the other type positions read nothing at runtime. A few TS value positions are skipped too
-    // (`import O = Onyx`, an enum initializer, `Onyx<T>`); of these only `import O = Onyx` on a namespace import typechecks
+    // (`import O = Onyx`, an enum initializer, `Onyx<T>`). Of these, only `import O = Onyx` on a namespace import typechecks
     if (parent.type.startsWith('TS') && parent.type !== 'TSExportAssignment') {
         return false;
     }
@@ -498,7 +491,7 @@ function onyxObjectReExportNodes(node: ASTNode): ASTNode[] {
     });
 }
 
-/** Starts of every value use of the banned object, such as `{...Onyx}`, `fn(Onyx)`, `return Onyx` or a re-export. */
+/** The start offsets of every value use of the banned object, such as `{...Onyx}`, `fn(Onyx)`, `return Onyx` or a re-export. */
 function collectObjectValueUseRanges(root: ASTNode, objects: Set<string>): BannedRange[] {
     const ranges: BannedRange[] = [];
     const ancestors: AncestorEntry[] = [];
@@ -527,6 +520,7 @@ function collectObjectValueUseRanges(root: ASTNode, objects: Set<string>): Banne
     return ranges;
 }
 
+/** The source ranges a blanket disable must not cover: banned calls, plus the member, destructuring and object value uses that the ban's flags say the rule reports. */
 function collectBannedCallRanges(root: ASTNode, ban: BannedRule, file: string): BannedRange[] {
     const names = collectBannedNames(root, ban);
     const ranges: BannedRange[] = [];
@@ -596,23 +590,23 @@ function collectBannedImportRanges(root: ASTNode, sources: Set<string>): BannedR
 /** ESLint splits a directive from its description only on `--` surrounded by whitespace. */
 const DESCRIPTION_SEPARATOR = /\s-{2,}\s/u;
 
-/** The rule list of a directive, with its description and comment decoration removed. */
 function directiveRuleList(args: string): string {
     return args.split(DESCRIPTION_SEPARATOR).at(0) ?? '';
 }
 
-/** The description after `--`, or an empty string when the directive has none. */
 function directiveDescription(args: string): string {
     const match = DESCRIPTION_SEPARATOR.exec(args);
     return match ? args.slice(match.index + match[0].length) : '';
 }
 
+/** The rule list of a directive, without its description and with runs of whitespace collapsed. A `*` counts as whitespace, since block comment lines start with one. */
 function normalizedDirectiveArgs(args: string): string {
     return directiveRuleList(args)
         .replaceAll(/[\s*]+/g, ' ')
         .trim();
 }
 
+/** True when the directive's rule list names `ban`, with or without a plugin prefix such as `rulesdir/`. */
 function directiveTargetsBan(args: string, ban: Pick<BannedRule, 'id' | 'name'>): boolean {
     const trimmed = normalizedDirectiveArgs(args);
     if (trimmed.length === 0) {
@@ -626,8 +620,9 @@ function directiveTargetsBan(args: string, ban: Pick<BannedRule, 'id' | 'name'>)
 }
 
 /**
- * The value is ignored: `["error", {...}]` can drop the OnyxUtils path from the import restriction, so every value is a
- * bypass. A backslash counts too, because ESLint runs rule names through JSON.parse and decodes `\u` escapes.
+ * True when an `eslint` config comment's rule list mentions `ban.name`, whatever value it sets: `["error", {...}]` can drop
+ * the OnyxUtils path from the import restriction, so any value is a bypass. A backslash counts too, because ESLint runs
+ * rule names through JSON.parse, which decodes `\u` escapes.
  */
 function configDirectiveNamesBan(args: string, ban: Pick<BannedRule, 'name'>): boolean {
     const ruleList = directiveRuleList(args);
@@ -638,6 +633,7 @@ function isBlanketDirective(args: string): boolean {
     return normalizedDirectiveArgs(args).length === 0;
 }
 
+/** The 1-based line number at `offset`, counting `\r`, U+2028 and U+2029 as line breaks the way ESLint does. */
 function lineNumberAtOffset(source: string, offset: number): number {
     let line = 1;
     let index = 0;
@@ -658,9 +654,10 @@ function lineNumberAtOffset(source: string, offset: number): number {
 }
 
 /**
- * A directive covers a banned use when it reaches any line of its range. A range spans every line of a call only for a
- * ban with `coversInnerLines`, where a line directive inside a multi-line `Onyx.multiGet([...])` is still an attempt to
- * silence the read; every other range is the first line of the use.
+ * True when the directive reaches any line of a banned range. A range spans every line of a call only for a ban with
+ * `coversInnerLines`, where a line directive inside a multi-line `Onyx.multiGet([...])` still tries to silence the read.
+ * Every other range is the first line of the use. A block disable stops covering a use once a blanket enable, or one that
+ * names the ban, comes between them.
  */
 function blanketDirectiveCoversCall(source: string, match: DirectiveMatch, bannedRanges: BannedRange[], enableMatches: DirectiveMatch[], ban: BannedRule): boolean {
     const directiveLine = lineNumberAtOffset(source, match.index);
@@ -691,10 +688,7 @@ function blanketDirectiveCoversCall(source: string, match: DirectiveMatch, banne
     });
 }
 
-/**
- * Find disable directives in `source` that suppress `ban`.
- * Line numbers are 1-based. Matches both full-line and trailing `eslint-disable-line`.
- */
+/** Every directive in `source` that silences `ban`: a disable that names it, a blanket disable over a banned use, or a config comment that names it. Lines are 1-based. */
 function collectDisableDirectivesFromSource(source: string, file: string, ban: BannedRule = ONYX_CONNECT_BAN): SuppressedBan[] {
     const parsed = parseSource(source, file);
     const bans: SuppressedBan[] = [];
@@ -727,7 +721,7 @@ function collectDisableDirectivesFromSource(source: string, file: string, ban: B
     return bans.sort((a, b) => a.line - b.line);
 }
 
-/** Return the suppressed bans that exceed the grandfathered allowance for their file. */
+/** The suppressed bans beyond each file's grandfathered count. The earliest lines in a file use up its allowance first. */
 function findNewBypasses(suppressedBans: readonly SuppressedBan[], rule: BannedRule = ONYX_CONNECT_BAN): SuppressedBan[] {
     const byFile = new Map<string, SuppressedBan[]>();
     for (const ban of suppressedBans) {
@@ -750,12 +744,12 @@ function findNewBypasses(suppressedBans: readonly SuppressedBan[], rule: BannedR
 
 /**
  * Rules the seatbelt ratchet must never grandfather. `SEATBELT_INCREASE=<rule>` writes a row that turns the rule's
- * errors in that file into allowed ones, which silences the rule as thoroughly as a disable directive.
- * `rulesdir/no-onyx-connect` is not listed, because its existing rows are the grandfathered migration backlog.
+ * errors in that file into allowed ones, which silences the rule as fully as a disable directive.
+ * `rulesdir/no-onyx-connect` is not listed, because its existing rows are the backlog still waiting for migration.
  */
 const SEATBELT_FORBIDDEN_RULES: readonly string[] = ['rulesdir/no-unsafe-onyx-read', 'rulesdir/no-onyx-get-snapshot-key'];
 
-/** A seatbelt TSV row that allows errors of a forbidden rule. `file` is as written in the TSV, relative to its directory. */
+/** A seatbelt row for a rule the seatbelt may not cover. `file` is as written in the TSV, relative to its directory. */
 type ForbiddenSeatbeltRow = {
     file: string;
     rule: string;
@@ -775,7 +769,6 @@ function decodeSeatbeltCell(cell: string): string {
     return cell.trim().replace(/^"(.*)"$/, '$1');
 }
 
-/** Rows of a seatbelt TSV whose rule id is one of `forbiddenRules`, with their 1-based line numbers. Blank and `#` lines are skipped. */
 function findForbiddenSeatbeltRows(tsvText: string, forbiddenRules: readonly string[]): ForbiddenSeatbeltRow[] {
     const rows: ForbiddenSeatbeltRow[] = [];
     for (const [index, rawLine] of tsvText.split(/\r?\n/).entries()) {

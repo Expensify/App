@@ -193,15 +193,15 @@ describe('no-onyx-connect member uses', () => {
 describe('findNewBypasses', () => {
     it('flags a bypass in a file with no grandfathered allowance', () => {
         // Given one suppressed ban in a file with no allowance
-        // When the overflow is computed
-        // Then it is reported as new
+        // When the bans are compared with the grandfathered counts
+        // Then it is reported as new, since no allowance covers it
         expect(findNewBypasses([{file: 'src/libs/CurrencyUtils.ts', line: 5}])).toEqual([{file: 'src/libs/CurrencyUtils.ts', line: 5}]);
     });
 
     it('allows grandfathered disables up to their recorded count', () => {
         // Given suppressed bans that match the recorded counts of two grandfathered files
-        // When the overflow is computed
-        // Then nothing is reported
+        // When the bans are compared with the grandfathered counts
+        // Then nothing is reported, since each file stays within its allowance
         const bans = [
             {file: 'src/libs/ReportNameUtils.ts', line: 192},
             {file: 'src/libs/ReportNameUtils.ts', line: 201},
@@ -212,7 +212,7 @@ describe('findNewBypasses', () => {
 
     it('flags only the overflow when a grandfathered file gains an extra disable', () => {
         // Given one more suppressed ban than a grandfathered file allows
-        // When the overflow is computed
+        // When the bans are compared with the grandfathered counts
         // Then only the highest-line extra one is reported
         const bans = [
             {file: 'src/libs/ReportNameUtils.ts', line: 192},
@@ -224,7 +224,7 @@ describe('findNewBypasses', () => {
 
     it('returns nothing for an empty input', () => {
         // Given no suppressed bans
-        // When the overflow is computed
+        // When the bans are compared with the grandfathered counts
         // Then nothing is reported
         expect(findNewBypasses([])).toEqual([]);
     });
@@ -249,7 +249,7 @@ describe('no-unsafe-onyx-read bypasses', () => {
         const source = ['/* eslint-disable */', onyxReadCall].join('\n');
 
         // When the read ban scans it
-        // Then it counts, because a blanket directive silences the rule just as well as a named one
+        // Then it counts, because a blanket directive silences the rule the same as a named one
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
     });
 
@@ -341,7 +341,7 @@ describe('no-unsafe-onyx-read bypasses', () => {
         const source = [`// eslint-disable-next-line ${BANNED_RULE_ID}`, onyxReadCall].join('\n');
 
         // When the read ban scans it
-        // Then it is left to the connect ban, since each ban only owns its own rule
+        // Then it is left to the connect ban, since each ban checks only its own rule
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([]);
     });
 
@@ -360,8 +360,8 @@ describe('no-unsafe-onyx-read bypasses', () => {
     it('covers every file the rule lints except tests', () => {
         // Given linted files under src, .storybook, scripts, __mocks__ and tests, plus a doc and a patch
         // When the read ban decides which files it checks
-        // Then every linted file outside tests is in scope, since reads are allowed in suites and they assert on Search snapshot keys,
-        // while the rule still reports reads in module mocks
+        // Then every linted file outside tests is in scope, since suites may read Onyx and assert on Search snapshot keys,
+        // while module mocks stay in scope because the rule still reports reads there
         expect(ONYX_READ_BAN.appliesTo('src/pages/Foo.tsx')).toBe(true);
         expect(ONYX_READ_BAN.appliesTo('__mocks__/react-native-onyx.ts')).toBe(true);
         expect(ONYX_READ_BAN.appliesTo('.storybook/preview.tsx')).toBe(true);
@@ -377,7 +377,7 @@ describe('no-unsafe-onyx-read bypasses', () => {
         const source = ['function f() {', `    const read = api${'.get'};`, '    // eslint-disable-next-line', '    read(ONYXKEYS.SESSION);', '}', 'const api = Onyx;'].join('\n');
 
         // When the read ban scans it
-        // Then the blanket directive counts, because alias collection repeats until no new alias appears instead of taking one pass
+        // Then the blanket directive counts, because alias collection repeats until no new alias appears, so declaration order does not matter
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 3}]);
     });
 
@@ -388,7 +388,7 @@ describe('no-unsafe-onyx-read bypasses', () => {
         const forConnect = ['/* eslint-disable */', '/* eslint-enable rulesdir/no-onyx-connect */', onyxReadCall].join('\n');
 
         // When the read ban scans each
-        // Then only the enable that names the read ban frees it
+        // Then only the enable that names the read ban frees it, since an enable of another rule leaves this ban disabled
         expect(collectDisableDirectivesFromSource(forRead, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([]);
         expect(collectDisableDirectivesFromSource(forConsole, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
         expect(collectDisableDirectivesFromSource(forConnect, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
@@ -491,7 +491,7 @@ describe('no-unsafe-onyx-read member uses', () => {
         const source = [onyxImport, '// eslint-disable-next-line', 'const {get} = Onyx;', 'export default get;'].join('\n');
 
         // When the read ban scans it
-        // Then it counts, since destructuring takes the method by reference just like `const read = Onyx.get`
+        // Then it counts, since destructuring takes the method by reference, the same as `const read = Onyx.get`
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
     });
 
@@ -582,7 +582,7 @@ describe('no-unsafe-onyx-read member uses', () => {
         ].join('\n');
 
         // When the read ban scans it
-        // Then nothing is reported, because the rule allows that one value use, so the directive silences nothing of the ban
+        // Then nothing is reported, because the rule allows that one value use, so the directive hides no read
         expect(collectDisableDirectivesFromSource(source, 'src/setup/addUtilsToWindow.ts', ONYX_READ_BAN)).toEqual([]);
     });
 
@@ -628,7 +628,7 @@ describe('no-unsafe-onyx-read member uses', () => {
         const templateKey = [onyxImport, '// eslint-disable-next-line', 'await Onyx[`merge`](key, value);'].join('\n');
 
         // When the read ban scans each
-        // Then only the variable key counts: the rule reports it by reference, and resolves the template key to merge, which is not a read
+        // Then only the variable key counts, because the rule reports it by reference and resolves the template key to merge, which is not a read
         expect(collectDisableDirectivesFromSource(variableKey, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 2}]);
         expect(collectDisableDirectivesFromSource(templateKey, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([]);
     });
@@ -678,14 +678,14 @@ describe('OnyxUtils import bypasses', () => {
     it('flags a blanket disable over an OnyxUtils import', () => {
         // Given a blanket disable over the import
         // When the OnyxUtils ban scans it
-        // Then it counts, because a blanket directive silences the restriction just as well
+        // Then it counts, because a blanket directive silences the restriction the same as a named one
         expect(scan(['// eslint-disable-next-line', onyxUtilsImport])).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
     });
 
     it('flags re-exports and import-equals of OnyxUtils', () => {
-        // Given other runtime forms the restriction also reports
+        // Given a re-export and an import-equals of OnyxUtils, runtime forms the restriction also reports
         // When the OnyxUtils ban scans them
-        // Then each disable counts, so the ban cannot be dodged by changing the import syntax
+        // Then each disable counts, so changing the import syntax does not dodge the ban
         expect(scan(['// eslint-disable-next-line @typescript-eslint/no-restricted-imports', `export {default} from 'react-native-onyx/dist/${'OnyxUtils'}';`])).toEqual([
             {file: 'src/libs/Foo.ts', line: 1},
         ]);
@@ -695,7 +695,7 @@ describe('OnyxUtils import bypasses', () => {
     });
 
     it('ignores restricted-imports disables over other modules', () => {
-        // Given the many existing disables that silence the rule for unrelated paths
+        // Given existing disables that silence the rule for unrelated paths
         const source = [
             '// eslint-disable-next-line @typescript-eslint/no-restricted-imports',
             "import {Text} from 'react-native';",
@@ -776,7 +776,7 @@ describe('eslint config comments', () => {
     it('flags a config comment that turns off the read ban', () => {
         // Given a config comment that turns no-unsafe-onyx-read off above a read in a function
         // When the read ban scans it
-        // Then it is reported
+        // Then it is reported, since it turns the rule off for the whole file
         const source = ['/* eslint rulesdir/no-unsafe-onyx-read: off */', ...readFile].join('\n');
 
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);

@@ -17,9 +17,10 @@ const READ_METHODS = new Set([READ_METHOD, MULTI_READ_METHOD]);
 
 const TYPE_ONLY_EXPRESSIONS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSInstantiationExpression', 'TSTypeAssertion']);
 
-// This module lives at eslint-plugin-local-rules/utils/, so the repo root is two levels up. Resolving it from the module
-// rather than process.cwd() keeps the rules working when ESLint runs from an editor or a parent workspace. The Jest
-// transformer compiles this file to CommonJS and turns `import.meta` into an empty object, hence the __dirname fallback.
+// This module lives at eslint-plugin-local-rules/utils/, so the repo root is two levels up. The root comes from this
+// module's path rather than process.cwd(), so the rules still work when ESLint runs from an editor or a parent workspace.
+// Under Jest, config/babel/oxcJestTransformer.js compiles this file to CommonJS with esbuild, which replaces `import.meta`
+// with an empty object, so `import.meta.dirname` is undefined there and __dirname is used instead.
 const RULES_UTILS_DIR = import.meta.dirname ?? __dirname;
 
 function findRepoRoot() {
@@ -57,6 +58,7 @@ function unwrapTypeOnlyExpressions(node) {
     return current;
 }
 
+/** The key expression with casts removed. A template literal that starts with an expression, such as `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, resolves to that leading expression, the collection prefix. */
 function unwrapKeyExpression(node) {
     const current = unwrapTypeOnlyExpressions(node);
 
@@ -98,7 +100,6 @@ function getDeclaredVariable(declaration, name, sourceCode) {
     return sourceCode.getDeclaredVariables(declaration).find((declaredVariable) => declaredVariable.name === name) ?? null;
 }
 
-// The single `const` (or, unless `constOnly`, `let`/`var`) definition of a variable, or null
 function getSingleVariableDefinition(variable, constOnly) {
     if (variable?.defs.length !== 1) {
         return null;
@@ -117,7 +118,7 @@ function isImportFrom(definition, isSource) {
     return definition.type === 'ImportBinding' && definition.parent?.type === 'ImportDeclaration' && isSource(definition.parent.source.value);
 }
 
-// Resolves `identifier` from its own scope, so a shadowed name in an outer declaration is never confused with the inner one
+/** The initializer of the `const` an identifier resolves to, or null. The lookup starts in the identifier's own scope, so an outer declaration that the inner one shadows is never used. */
 function getConstInitializer(identifier, sourceCode) {
     const variable = resolveVariable(identifier, sourceCode);
 
@@ -134,13 +135,14 @@ function getConstInitializer(identifier, sourceCode) {
     return definition.node.init ?? null;
 }
 
-// The ONYXKEYS root must be the import of src/ONYXKEYS, not a local object or another module's export under the same name
+/** True when `identifier` is the ONYXKEYS default import. Also true for an undeclared global named ONYXKEYS. */
 function isOnyxKeysImport(identifier, sourceCode) {
     const variable = resolveVariable(identifier, sourceCode);
 
     return !variable || variable.defs.every((definition) => isImportFrom(definition, (source) => ONYXKEYS_MODULE_SOURCE.test(source)));
 }
 
+/** The dotted path `node` reads below ONYXKEYS, such as `COLLECTION.REPORT`, or null. A const alias is followed, and a template literal that starts with an ONYXKEYS access resolves to that access. */
 function getOnyxKeyPath(node, sourceCode, seen = new Set()) {
     const segments = [];
     let current = unwrapKeyExpression(node);
@@ -198,18 +200,17 @@ function getRepoRelativePath(filename) {
     return relativePath.startsWith('..') ? null : relativePath;
 }
 
-// True when every use of the const is an argument of a call `isAllowedCall` accepts, so nothing like `keys.push()`,
-// `keys[0] = x` or a helper that mutates its argument could have changed the elements
+/** True when every use of `identifier` is an argument of a call `isAllowedCall` accepts, so no `keys.push()`, `keys[0] = x` or helper that mutates its argument can have changed the elements. */
 function isOnlyPassedTo(identifier, sourceCode, isAllowedCall) {
     const variable = resolveVariable(identifier, sourceCode);
 
-    // An exported const is visible to every importer, which this file cannot see
+    // Other files can import an exported const, and this rule cannot see their uses
     if (!variable || variable.defs.some((definition) => definition.parent?.parent?.type === 'ExportNamedDeclaration')) {
         return false;
     }
 
     return variable.references.every((reference) => {
-        // A `typeof keys` type query reads nothing at runtime
+        // The initializing write, a type reference and a `typeof keys` type query do not use the value at runtime
         if (reference.init || reference.isTypeReference || reference.identifier.parent?.type === 'TSTypeQuery') {
             return true;
         }
@@ -226,10 +227,7 @@ function isOnlyPassedTo(identifier, sourceCode, isAllowedCall) {
     });
 }
 
-/**
- * Elements of an array literal, or of a const bound to one that is only ever passed to a call `isAllowedCall` accepts.
- * Returns null when the list cannot be resolved.
- */
+/** The elements of an array literal, written inline or behind a const, or null. A const counts only when it is only ever passed to a call `isAllowedCall` accepts. */
 function getKeyListElements(node, sourceCode, isAllowedCall, seen = new Set()) {
     const current = unwrapTypeOnlyExpressions(node);
 
@@ -248,11 +246,12 @@ function getKeyListElements(node, sourceCode, isAllowedCall, seen = new Set()) {
 }
 
 /**
- * Resolves, on demand, whether a callee is `Onyx.get` or `Onyx.multiGet` from `react-native-onyx`, through any chain of
- * aliases in the file: `import O from 'react-native-onyx'`, `const api = Onyx`, `const {get: read} = Onyx`,
- * `const read = Onyx.get`, `Onyx.default` on a namespace import, with TS casts unwrapped at every step. Resolution walks
- * variable definitions instead of visitor order, so an alias declared after its first use is still recognized. With `constOnly`, an alias bound by `let` or `var`
- * does not count, which the Concierge proof needs since such a binding could be reassigned.
+ * Returns functions that tell whether a callee or reference is `Onyx.get` or `Onyx.multiGet` from `react-native-onyx`.
+ * They follow any chain of aliases in the file, such as `import O from 'react-native-onyx'`, `const api = Onyx`,
+ * `const {get: read} = Onyx`, `const read = Onyx.get` or `Onyx.default` on a namespace import, and strip TS casts at
+ * every step. They walk variable definitions rather than visitor order, so an alias declared after its first use is
+ * still found. With `constOnly`, an alias bound by `let` or `var` does not count. The Concierge exemption in
+ * no-onyx-get-snapshot-key needs that, because such a binding could be reassigned.
  */
 function createOnyxReadTracker(sourceCode) {
     const memo = new Map();
@@ -261,7 +260,7 @@ function createOnyxReadTracker(sourceCode) {
         return source === ONYX_MODULE;
     }
 
-    // One slot per question (object or read method) and per strictness, so the two never return each other's answer
+    /** Caches the answer to `question` about `variable`. One slot per question and per `constOnly`, so an answer computed with one strictness is never returned for the other. */
     function memoized(variable, question, constOnly, compute) {
         const key = `${question}:${constOnly ? 'const' : 'any'}`;
         let entry = memo.get(variable);
@@ -272,7 +271,7 @@ function createOnyxReadTracker(sourceCode) {
         }
 
         if (!(key in entry)) {
-            // A self-referential chain resolves to "not Onyx" while it is being computed
+            // The null seed makes a self-referential chain read as "not Onyx" instead of recursing without end
             entry[key] = null;
             entry[key] = compute();
         }
@@ -280,15 +279,13 @@ function createOnyxReadTracker(sourceCode) {
         return entry[key];
     }
 
-    /** The import specifier node `identifier` is bound to when it comes from a module `isSource` accepts, or null. */
     function getImportSpecifier(identifier, isSource) {
         const variable = resolveVariable(identifier, sourceCode);
 
         return !!variable && variable.defs.length === 1 && isImportFrom(variable.defs.at(0), isSource) ? variable.defs.at(0).node : null;
     }
 
-    // True when `node` is the Onyx default or namespace import, an alias of it, or `Onyx.default` on a namespace import,
-    // with TS casts unwrapped
+    /** True when `node` is the Onyx import or a const alias of it. Also true for `Onyx.default` on a namespace import. */
     function isOnyxObjectExpression(node, constOnly) {
         const current = unwrapTypeOnlyExpressions(node);
 
@@ -316,7 +313,6 @@ function createOnyxReadTracker(sourceCode) {
         });
     }
 
-    // The read method a member access `Onyx.get` / `api['multiGet']` names, or null
     function getMemberReadMethod(node, constOnly) {
         const member = unwrapTypeOnlyExpressions(node);
 
@@ -329,7 +325,7 @@ function createOnyxReadTracker(sourceCode) {
         return READ_METHODS.has(propertyName) && isOnyxObjectExpression(member.object, constOnly) ? propertyName : null;
     }
 
-    // The read method an identifier is bound to through `const read = Onyx.get`, `const read2 = read` or `const {get: read} = Onyx`, or null
+    /** The read method an identifier is bound to through `const read = Onyx.get`, `const read2 = read` or `const {get: read} = Onyx`, or null. */
     function getIdentifierReadMethod(identifier, constOnly) {
         const variable = resolveVariable(identifier, sourceCode);
         const definition = getSingleVariableDefinition(variable, constOnly);
@@ -359,10 +355,7 @@ function createOnyxReadTracker(sourceCode) {
         });
     }
 
-    /**
-     * The Onyx read method `callee` invokes (`get` or `multiGet`), or null. Pass `{constOnly: true}` to reject aliases
-     * bound by `let` or `var`.
-     */
+    /** Returns `get`, `multiGet` or null. */
     function getCalledReadMethod(callee, {constOnly = false} = {}) {
         const current = unwrapTypeOnlyExpressions(callee);
 
@@ -373,7 +366,7 @@ function createOnyxReadTracker(sourceCode) {
         return getMemberReadMethod(current, constOnly);
     }
 
-    /** The read method a member access (`Onyx.get`) or a destructured property (`const {get} = Onyx`) names, or null */
+    /** The read method a member access (`Onyx.get`) or a destructured property (`const {get} = Onyx`) names, or null. */
     function getReferencedReadMethod(node) {
         if (node.type !== 'Property' || node.parent?.type !== 'ObjectPattern') {
             return getMemberReadMethod(node, false);

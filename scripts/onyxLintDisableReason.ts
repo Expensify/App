@@ -1,8 +1,8 @@
 /**
- * Finds inline `eslint-disable` directives of the rules in `REASONED_RULES` that do not explain
- * themselves. These rules may be disabled, unlike the bans in `onyxLintBypass.ts`, but only one line
- * at a time and only with a reason after `--`, so every exception is recorded where it is made and a
- * reviewer can judge it.
+ * Finds inline `eslint-disable` directives of the rules in `REASONED_RULES` that give no reason.
+ * Unlike the bans in `onyxLintBypass.ts`, these rules may be disabled, but only one line at a time
+ * and only with a reason after `--`. The reason then sits next to the exception, where a reviewer
+ * can judge it.
  *
  * A directive counts when it names the rule, in the `-line` or `-next-line` form, and its text after
  * `--` holds fewer than `MIN_REASON_LENGTH` letters or digits. A block `eslint-disable` that names the
@@ -38,13 +38,11 @@ const ONYX_SNAPSHOT_KEY_RULE: ReasonedRule = {
     name: 'no-onyx-get-snapshot-key',
     appliesTo: isCheckedSourceFile,
     searchTerms: ['no-onyx-get-snapshot-key', 'eslint'],
-    message:
-        'A disable of no-onyx-get-snapshot-key needs a reason after `--` that says why live data is right for this Search snapshot key, on the line it covers. For example: `// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot`. A block eslint-disable or an eslint config comment for this rule is never accepted.',
+    message: `A disable of rulesdir/no-onyx-get-snapshot-key gives no reason, or is a block eslint-disable or an eslint config comment. Each exception must say, on the line it covers, why live data is right for this Search snapshot key, so a reviewer can judge it. Use eslint-disable-next-line or eslint-disable-line with a reason of at least ${MIN_REASON_LENGTH} letters or digits after \`--\`, for example: \`// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot\`.`,
 };
 
 const REASONED_RULES: ReasonedRule[] = [ONYX_SNAPSHOT_KEY_RULE];
 
-/** A disable directive of a reasoned rule that gives no usable reason. */
 type UnreasonedDisable = {
     file: string;
     line: number;
@@ -54,10 +52,7 @@ function hasReason(args: string): boolean {
     return (directiveDescription(args).match(/[\p{L}\p{N}]/gu) ?? []).length >= MIN_REASON_LENGTH;
 }
 
-/**
- * Find disable directives in `source` that name `rule` without an acceptable reason.
- * Line numbers are 1-based.
- */
+/** Every disable of `rule` in `source` that lacks an acceptable reason. Lines are 1-based. */
 function collectUnreasonedDisables(source: string, filePath: string, rule: ReasonedRule = ONYX_SNAPSHOT_KEY_RULE): UnreasonedDisable[] {
     const parsed = parseSource(source, filePath);
     // Fail closed: when Babel cannot parse the file, comments come from a regex and every directive naming the rule counts
