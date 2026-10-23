@@ -12,7 +12,7 @@ type InsightsFilters = {
     /** Workspaces to report on, or every workspace the user can see when empty. */
     policyIDs: string[];
 
-    // Time bucket the headline chart aggregates into. `INSIGHTS_RUNNING_TOTAL_GROUP_BY` is a display grouping, not a bucket. `getQueryGroupBy` swaps it for a real day/month bucket before any query, so it never reaches the backend.
+    /** Time bucket the headline chart aggregates into. `INSIGHTS_RUNNING_TOTAL_GROUP_BY` is a display grouping, not a bucket. `getQueryGroupBy` swaps it for a real day/month bucket before any query, so it never reaches the backend. */
     groupBy:
         | typeof CONST.SEARCH.GROUP_BY.DAY
         | typeof CONST.SEARCH.GROUP_BY.WEEK

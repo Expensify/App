@@ -94,7 +94,7 @@ function InsightsChartWidget({
 
     const groupByOptions = getInsightsGroupByOptions(filters.date);
     const canRunningTotal = isRunningTotalAvailable(filters.date);
-    const isRunningTotal = filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && view === CONST.SEARCH.VIEW.LINE;
+    const shouldShowRunningTotal = filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && canRunningTotal && view === CONST.SEARCH.VIEW.LINE;
 
     const downloadCSV = () => {
         if (!queryJSON || state !== INSIGHTS_CHART_STATE.READY) {
@@ -165,7 +165,7 @@ function InsightsChartWidget({
                         data={data}
                         isLoading={isLoading}
                         comparison={comparison}
-                        shouldShowRunningTotal={isRunningTotal}
+                        shouldShowRunningTotal={shouldShowRunningTotal}
                         chartContainerStyle={cardPaddingHorizontal}
                         shouldShowSinglePointAsBar
                         shouldShowGroupLabels={false}

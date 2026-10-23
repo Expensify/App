@@ -124,6 +124,7 @@ function InsightsGroupByPopup({options, runningTotalText, selectedValue, label, 
             onReset={resetChanges}
             onApply={applyChanges}
             label={label}
+            showLabel={false}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
         >

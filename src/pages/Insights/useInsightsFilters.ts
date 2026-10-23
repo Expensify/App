@@ -2,6 +2,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {saveInsightsFilters, setInsightsFilters} from '@libs/actions/Insights';
 import {getPolicyIDOrDefault} from '@libs/PolicyUtils';
+import {getLastSearchQuery} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,10 +34,7 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersR
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy, activePolicyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(activePolicyID)}`);
 
-    const [searchFilters, searchFiltersMetadata] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
-    // Tolerates the legacy object entry shape alongside the plain query string.
-    const storedEntry = searchFilters?.[searchKey];
-    const storedQuery = typeof storedEntry === 'object' ? storedEntry.query : storedEntry;
+    const [storedQuery, storedQueryMetadata] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: (searchFilters) => getLastSearchQuery(searchFilters, searchKey)});
 
     const defaultFilters: InsightsFilters = {
         ...DEFAULT_INSIGHTS_FILTERS,
@@ -58,7 +56,7 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersR
     return {
         filters,
         defaultFilters,
-        isResolved: activePolicyIDMetadata.status === 'loaded' && activePolicyMetadata.status === 'loaded' && searchFiltersMetadata.status === 'loaded',
+        isResolved: activePolicyIDMetadata.status === 'loaded' && activePolicyMetadata.status === 'loaded' && storedQueryMetadata.status === 'loaded',
         setFilters,
     };
 }

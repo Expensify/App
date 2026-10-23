@@ -4,6 +4,9 @@ import type {GroupedItem, SearchGroupBy} from './types';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import {isTimeGroupBy} from './comparisonBuckets';
 
+/** Reads the start/end dates a grouped row covers, so rows can be ordered oldest first before accumulating. */
+type GetDateRange = (typeof CHART_GROUP_BY_CONFIG)[SearchGroupBy]['getDateRange'];
+
 type RunningTotalParams = {
     /** A time-grouped chart's own rows, each holding one period's own total */
     data: GroupedItem[];
@@ -21,12 +24,12 @@ type RunningTotalResult = {
 };
 
 /** Orders a group ahead of another by the date its bucket starts, so totals accumulate oldest first whatever order the search returned. */
-function getChronologicalKey(item: GroupedItem, getDateRange: (typeof CHART_GROUP_BY_CONFIG)[SearchGroupBy]['getDateRange']): string {
+function getChronologicalKey(item: GroupedItem, getDateRange: GetDateRange): string {
     return getDateRange?.(item)?.start ?? item.keyForList;
 }
 
 /** Returns a copy of the rows ordered oldest first by the date each bucket starts. */
-function sortChronologically(items: GroupedItem[], getDateRange: (typeof CHART_GROUP_BY_CONFIG)[SearchGroupBy]['getDateRange']): GroupedItem[] {
+function sortChronologically(items: GroupedItem[], getDateRange: GetDateRange): GroupedItem[] {
     return [...items].sort((first, second) => {
         const firstKey = getChronologicalKey(first, getDateRange);
         const secondKey = getChronologicalKey(second, getDateRange);
@@ -38,7 +41,7 @@ function sortChronologically(items: GroupedItem[], getDateRange: (typeof CHART_G
 }
 
 /** Replaces each row's own total, count and share with the sum of itself and every earlier period, keeping the rows in their original order. */
-function accumulate(items: GroupedItem[], getDateRange: (typeof CHART_GROUP_BY_CONFIG)[SearchGroupBy]['getDateRange']): GroupedItem[] {
+function accumulate(items: GroupedItem[], getDateRange: GetDateRange): GroupedItem[] {
     const ordered = sortChronologically(items, getDateRange);
 
     let runningTotal = 0;

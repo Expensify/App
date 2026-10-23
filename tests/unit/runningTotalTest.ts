@@ -32,8 +32,8 @@ function monthGroup(year: number, month: number, total: number, count = 1, perce
 const MONTH = CONST.SEARCH.GROUP_BY.MONTH;
 const getCurrencyDecimals = () => 2;
 
-/** The plotted primary values of a running-total line, in the order the chart draws them. */
-function runningValues(data: GroupedItem[], comparison?: ChartComparison) {
+/** The chart rows a running-total line draws, in order, after accumulation. */
+function runningRows(data: GroupedItem[], comparison?: ChartComparison) {
     const result = applyRunningTotal({data, comparison, groupBy: MONTH});
     return buildChartSeries({
         data: result.data,
@@ -45,7 +45,12 @@ function runningValues(data: GroupedItem[], comparison?: ChartComparison) {
         translate: translateLocal,
         dateFnsLocale: undefined,
         colorScheme: CONST.COLOR_SCHEME.LIGHT,
-    }).rows.map((row) => row.point);
+    }).rows;
+}
+
+/** The plotted primary values of a running-total line, in the order the chart draws them. */
+function runningValues(data: GroupedItem[], comparison?: ChartComparison) {
+    return runningRows(data, comparison).map((row) => row.point);
 }
 
 describe('applyRunningTotal', () => {
@@ -100,18 +105,7 @@ describe('applyRunningTotal', () => {
         const comparison: ChartComparison = {data: [monthGroup(2026, 1, 999999)], color: themeColors.green200, label: 'Average'};
 
         // When the points are turned into a running total
-        const result = applyRunningTotal({data, comparison, groupBy: MONTH});
-        const {rows} = buildChartSeries({
-            data: result.data,
-            comparison: result.comparison,
-            groupBy: MONTH,
-            view: CONST.SEARCH.VIEW.LINE,
-            getLabel: CHART_GROUP_BY_CONFIG[MONTH].getLabel,
-            getCurrencyDecimals,
-            translate: translateLocal,
-            dateFnsLocale: undefined,
-            colorScheme: CONST.COLOR_SCHEME.LIGHT,
-        });
+        const rows = runningRows(data, comparison);
 
         // Then the Average line climbs by the average month (900000 / 3 = 300000 cents = 3000) and ends at the range total
         expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([3000, 6000, 9000]);
@@ -128,18 +122,7 @@ describe('applyRunningTotal', () => {
         };
 
         // When the points are turned into a running total
-        const result = applyRunningTotal({data, comparison, groupBy: MONTH});
-        const {rows} = buildChartSeries({
-            data: result.data,
-            comparison: result.comparison,
-            groupBy: MONTH,
-            view: CONST.SEARCH.VIEW.LINE,
-            getLabel: CHART_GROUP_BY_CONFIG[MONTH].getLabel,
-            getCurrencyDecimals,
-            translate: translateLocal,
-            dateFnsLocale: undefined,
-            colorScheme: CONST.COLOR_SCHEME.LIGHT,
-        });
+        const rows = runningRows(data, comparison);
 
         // Then each line accumulates from its own period's start, pairing point for point
         expect(rows.map((row) => row.point.values)).toEqual([
@@ -158,18 +141,7 @@ describe('applyRunningTotal', () => {
         };
 
         // When the points are turned into a running total
-        const result = applyRunningTotal({data, comparison, groupBy: MONTH});
-        const {rows} = buildChartSeries({
-            data: result.data,
-            comparison: result.comparison,
-            groupBy: MONTH,
-            view: CONST.SEARCH.VIEW.LINE,
-            getLabel: CHART_GROUP_BY_CONFIG[MONTH].getLabel,
-            getCurrencyDecimals,
-            translate: translateLocal,
-            dateFnsLocale: undefined,
-            colorScheme: CONST.COLOR_SCHEME.LIGHT,
-        });
+        const rows = runningRows(data, comparison);
 
         // Then the unpaired third month draws as its own trailing point, carrying the comparison's full running total
         expect(rows.map((row) => row.point.values)).toEqual([
@@ -185,18 +157,7 @@ describe('applyRunningTotal', () => {
         const comparison: ChartComparison = {data: [monthGroup(2026, 1, 100000)], color: themeColors.green200, label: 'Average'};
 
         // When the points are turned into a running total
-        const result = applyRunningTotal({data, comparison, groupBy: MONTH});
-        const {rows} = buildChartSeries({
-            data: result.data,
-            comparison: result.comparison,
-            groupBy: MONTH,
-            view: CONST.SEARCH.VIEW.LINE,
-            getLabel: CHART_GROUP_BY_CONFIG[MONTH].getLabel,
-            getCurrencyDecimals,
-            translate: translateLocal,
-            dateFnsLocale: undefined,
-            colorScheme: CONST.COLOR_SCHEME.LIGHT,
-        });
+        const rows = runningRows(data, comparison);
 
         // Then the single running point is the month itself and the even-pace line lands on it
         expect(rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 1000}]);
