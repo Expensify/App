@@ -12,7 +12,7 @@ import {downloadReportPDF} from '@libs/actions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React from 'react';
+import React, {useSyncExternalStore} from 'react';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -38,6 +38,14 @@ const REPORT_ID = '1';
 const PDF_FILENAME_KEY = `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${REPORT_ID}`;
 
 let mockOnyxValues: Record<string, unknown> = {};
+const onyxListeners = new Set<() => void>();
+const subscribeToOnyx = (listener: () => void) => {
+    onyxListeners.add(listener);
+    return () => onyxListeners.delete(listener);
+};
+
+// A minimal reactive store, so an update re-renders the modal the global modal stack renders, like a real Onyx subscription.
+const useMockOnyx = (key: string) => [useSyncExternalStore(subscribeToOnyx, () => mockOnyxValues[key])];
 
 describe('useReportPDFDownloadModal', () => {
     const mockedFileDownloadModal = jest.mocked(FileDownloadModal);
@@ -48,11 +56,13 @@ describe('useReportPDFDownloadModal', () => {
             wrapper: ({children}: {children: React.ReactNode}) => <ModalProvider>{children}</ModalProvider>,
         });
 
-    // Mirrors a backend-pushed Onyx update: change the value, then re-render so the hook reads it.
-    const setOnyxValue = async (key: string, value: unknown, rerender: (props: unknown) => void) => {
-        mockOnyxValues = {...mockOnyxValues, [key]: value};
-        rerender({});
+    // Mirrors a backend-pushed Onyx update.
+    const setOnyxValue = async (key: string, value: unknown) => {
         await act(async () => {
+            mockOnyxValues = {...mockOnyxValues, [key]: value};
+            for (const listener of onyxListeners) {
+                listener();
+            }
             await waitForBatchedUpdates();
         });
     };
@@ -63,12 +73,12 @@ describe('useReportPDFDownloadModal', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: {reportID: REPORT_ID, reportName: 'Expense Report'},
             [ONYXKEYS.SESSION]: {encryptedAuthToken: 'token'},
         };
-        (jest.mocked(useOnyx) as jest.Mock).mockImplementation((key: string) => [mockOnyxValues[key]]);
+        (jest.mocked(useOnyx) as jest.Mock).mockImplementation(useMockOnyx);
     });
 
     it('updates the open modal in place as the PDF generates', async () => {
         // Given the modal opened for a report whose PDF is still generating
-        const {result, rerender} = renderReportPDFDownloadModal();
+        const {result} = renderReportPDFDownloadModal();
         await act(async () => {
             result.current.showReportPDFDownloadModal({reportID: REPORT_ID});
             await waitForBatchedUpdates();
@@ -86,7 +96,7 @@ describe('useReportPDFDownloadModal', () => {
         );
 
         // When the backend pushes the generated filename
-        await setOnyxValue(PDF_FILENAME_KEY, 'report.pdf', rerender);
+        await setOnyxValue(PDF_FILENAME_KEY, 'report.pdf');
 
         // Then the same modal instance switches to the ready state instead of being remounted
         expect(getLatestModalProps()).toEqual(expect.objectContaining({isVisible: true, status: CONST.FILE_DOWNLOAD_STATUS.READY, message: 'reportDetailsPage.successPDF'}));
@@ -103,14 +113,14 @@ describe('useReportPDFDownloadModal', () => {
 
     it('shows the failed state when the PDF generation fails', async () => {
         // Given the modal opened for a report
-        const {result, rerender} = renderReportPDFDownloadModal();
+        const {result} = renderReportPDFDownloadModal();
         await act(async () => {
             result.current.showReportPDFDownloadModal({reportID: REPORT_ID});
             await waitForBatchedUpdates();
         });
 
         // When the backend reports the generation failed
-        await setOnyxValue(PDF_FILENAME_KEY, CONST.REPORT_DETAILS_MENU_ITEM.ERROR, rerender);
+        await setOnyxValue(PDF_FILENAME_KEY, CONST.REPORT_DETAILS_MENU_ITEM.ERROR);
 
         // Then the modal shows the error state, which stops the spinner
         expect(getLatestModalProps()).toEqual(expect.objectContaining({status: CONST.FILE_DOWNLOAD_STATUS.FAILED, message: 'reportDetailsPage.errorPDF'}));
@@ -144,12 +154,12 @@ describe('useReportPDFDownloadModal', () => {
     it('resolves with CONFIRM when dismissed after the PDF is ready', async () => {
         // Given the modal opened by Submit via PDF and the filename has arrived, so the submit has already resolved
         const onResolve = jest.fn();
-        const {result, rerender} = renderReportPDFDownloadModal();
+        const {result} = renderReportPDFDownloadModal();
         await act(async () => {
             result.current.showReportPDFDownloadModal({reportID: REPORT_ID}).then(onResolve);
             await waitForBatchedUpdates();
         });
-        await setOnyxValue(PDF_FILENAME_KEY, 'report.pdf', rerender);
+        await setOnyxValue(PDF_FILENAME_KEY, 'report.pdf');
 
         // When the user dismisses the modal and it finishes hiding
         await act(async () => {
@@ -198,7 +208,7 @@ describe('useReportPDFDownloadModal', () => {
 
     it('does not reopen a dismissed modal when the filename arrives late', async () => {
         // Given the user dismissed the modal while the PDF was still generating
-        const {result, rerender} = renderReportPDFDownloadModal();
+        const {result} = renderReportPDFDownloadModal();
         await act(async () => {
             result.current.showReportPDFDownloadModal({reportID: REPORT_ID});
             await waitForBatchedUpdates();
@@ -209,24 +219,48 @@ describe('useReportPDFDownloadModal', () => {
         });
 
         // When the filename arrives while the modal is hiding, and again after it has gone
-        await setOnyxValue(PDF_FILENAME_KEY, 'report.pdf', rerender);
+        await setOnyxValue(PDF_FILENAME_KEY, 'report.pdf');
         expect(getLatestModalProps()).toEqual(expect.objectContaining({isVisible: false, status: CONST.FILE_DOWNLOAD_STATUS.GENERATING}));
         await act(async () => {
             getLatestModalProps()?.onModalHide?.();
             await waitForBatchedUpdates();
         });
         const renderCountAfterHide = mockedFileDownloadModal.mock.calls.length;
-        await setOnyxValue(PDF_FILENAME_KEY, 'report-2.pdf', rerender);
+        await setOnyxValue(PDF_FILENAME_KEY, 'report-2.pdf');
 
         // Then the modal is not shown again
         expect(mockedFileDownloadModal.mock.calls.length).toBe(renderCountAfterHide);
         expect(mockOnFileDownloadModalMount).toHaveBeenCalledTimes(1);
     });
 
+    it('keeps updating the modal after the caller unmounts', async () => {
+        // Given a caller, such as the report header, that opens the modal and then unmounts while the PDF is generating
+        let shouldRenderCaller = true;
+        const {result, rerender} = renderHook(() => useReportPDFDownloadModal(), {
+            wrapper: ({children}: {children: React.ReactNode}) => <ModalProvider>{shouldRenderCaller ? children : null}</ModalProvider>,
+        });
+        await act(async () => {
+            result.current.showReportPDFDownloadModal({reportID: REPORT_ID});
+            await waitForBatchedUpdates();
+        });
+        shouldRenderCaller = false;
+        rerender({});
+
+        // When the backend pushes the generated filename
+        await setOnyxValue(PDF_FILENAME_KEY, 'report.pdf');
+
+        // Then the modal, which owns its own subscriptions, still switches to the ready state and offers the download
+        expect(getLatestModalProps()).toEqual(expect.objectContaining({isVisible: true, status: CONST.FILE_DOWNLOAD_STATUS.READY}));
+        act(() => {
+            getLatestModalProps()?.onDownload();
+        });
+        expect(downloadReportPDF).toHaveBeenCalledWith('report.pdf', 'Expense Report', expect.any(Function), 'employee@mail.com', 'token');
+    });
+
     it('logs a stall only while the open modal is waiting on the filename', async () => {
         // Given the modal opened for a report whose PDF is still generating
-        const {result, rerender} = renderReportPDFDownloadModal();
-        expect(jest.mocked(useStallLogger).mock.calls.at(-1)?.[0]).toBe(false);
+        const {result} = renderReportPDFDownloadModal();
+        expect(useStallLogger).not.toHaveBeenCalled();
         await act(async () => {
             result.current.showReportPDFDownloadModal({reportID: REPORT_ID});
             await waitForBatchedUpdates();
@@ -236,7 +270,7 @@ describe('useReportPDFDownloadModal', () => {
         expect(jest.mocked(useStallLogger).mock.calls.at(-1)?.[0]).toBe(REPORT_ID);
 
         // When the filename arrives
-        await setOnyxValue(PDF_FILENAME_KEY, 'report.pdf', rerender);
+        await setOnyxValue(PDF_FILENAME_KEY, 'report.pdf');
 
         // Then the stall timer stops
         expect(jest.mocked(useStallLogger).mock.calls.at(-1)?.[0]).toBe(false);

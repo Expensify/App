@@ -1,66 +1,24 @@
-import {downloadExpensifyCardStatementPDF} from '@libs/ExpensifyCardStatementUtils';
-import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
+import ExpensifyCardStatementPDFDownloadModal from '@components/ExpensifyCardStatementPDFDownloadModal';
+import type {ExpensifyCardStatementPDFDownloadModalProps} from '@components/ExpensifyCardStatementPDFDownloadModal';
+import {useModal} from '@components/Modal/Global/ModalContext';
+import type {ModalProps} from '@components/Modal/Global/ModalContext';
 
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+type ExpensifyCardStatementPDFDownloadModalOptions = Omit<ExpensifyCardStatementPDFDownloadModalProps, keyof ModalProps>;
 
-import {useState} from 'react';
-
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useEnvironment from './useEnvironment';
-import useFileDownloadModal from './useFileDownloadModal';
-import useLocalize from './useLocalize';
-import useOnyx from './useOnyx';
-
-type ExpensifyCardStatementPDFDownloadModalOptions = {
-    statementParams: ExpensifyCardStatementParams;
-};
-
-// A second show call updates the open modal in place, which is how the statementKey reaches it once
-// GetExpensifyCardStatementPDF returns.
+// A fixed id lets a second show call update the open modal in place, which is how the statementKey reaches it
+// once GetExpensifyCardStatementPDF returns.
 const EXPENSIFY_CARD_STATEMENT_PDF_DOWNLOAD_MODAL_ID = 'expensifyCardStatementPDFDownloadModal';
 
 const useExpensifyCardStatementPDFDownloadModal = () => {
-    const [statementParams, setStatementParams] = useState<ExpensifyCardStatementParams>();
+    const context = useModal();
 
-    const [expensifyCardStatement] = useOnyx(ONYXKEYS.EXPENSIFY_CARD_STATEMENT);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const {translate} = useLocalize();
-    const {environment} = useEnvironment();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserLogin = currentUserPersonalDetails?.login ?? '';
-    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+    /** Resolves once the modal has finished hiding, with `CLOSE` if it was dismissed while the statement was still generating. */
+    const showExpensifyCardStatementPDFDownloadModal = (options: ExpensifyCardStatementPDFDownloadModalOptions) =>
+        context.showModal({component: ExpensifyCardStatementPDFDownloadModal, id: EXPENSIFY_CARD_STATEMENT_PDF_DOWNLOAD_MODAL_ID, props: options});
 
-    const statementKey = statementParams?.statementKey;
-    const isGeneratingPDF = expensifyCardStatement?.isGenerating === true;
-    const statementFileName = statementKey ? expensifyCardStatement?.[statementKey] : undefined;
-    const hasFinishedPDFDownload = !!statementKey && !isGeneratingPDF && typeof statementFileName === 'string' && statementFileName.length > 0;
+    const closeExpensifyCardStatementPDFDownloadModal = () => context.closeModalByID(EXPENSIFY_CARD_STATEMENT_PDF_DOWNLOAD_MODAL_ID);
 
-    const {showFileDownloadModal, closeFileDownloadModal} = useFileDownloadModal({
-        id: EXPENSIFY_CARD_STATEMENT_PDF_DOWNLOAD_MODAL_ID,
-        title: translate('reportDetailsPage.generatingPDF'),
-        status: hasFinishedPDFDownload ? CONST.FILE_DOWNLOAD_STATUS.READY : CONST.FILE_DOWNLOAD_STATUS.GENERATING,
-        message: hasFinishedPDFDownload ? translate('reportDetailsPage.successPDF') : translate('reportDetailsPage.waitForPDF'),
-        shouldCloseOnDownload: true,
-        shouldUseSuccessButton: true,
-        onDownload: () => {
-            if (!statementKey || typeof statementFileName !== 'string') {
-                return;
-            }
-            downloadExpensifyCardStatementPDF(translate, statementFileName, statementKey, currentUserLogin, encryptedAuthToken, environment);
-        },
-    });
-
-    const showExpensifyCardStatementPDFDownloadModal = (options: ExpensifyCardStatementPDFDownloadModalOptions) => {
-        setStatementParams(options.statementParams);
-        return showFileDownloadModal().then((result) => {
-            // A modal closed by id can resolve after a newer show call, so leave that call's params in place.
-            setStatementParams((currentParams) => (currentParams === options.statementParams ? undefined : currentParams));
-            return result;
-        });
-    };
-
-    return {showExpensifyCardStatementPDFDownloadModal, closeExpensifyCardStatementPDFDownloadModal: closeFileDownloadModal};
+    return {showExpensifyCardStatementPDFDownloadModal, closeExpensifyCardStatementPDFDownloadModal};
 };
 
 export default useExpensifyCardStatementPDFDownloadModal;

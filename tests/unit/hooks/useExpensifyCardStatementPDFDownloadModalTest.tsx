@@ -11,7 +11,7 @@ import {downloadExpensifyCardStatementPDF} from '@libs/ExpensifyCardStatementUti
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React from 'react';
+import React, {useSyncExternalStore} from 'react';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -36,6 +36,14 @@ const STATEMENT_PARAMS = {policyID: 'policy1', feedCountry: 'US', entryIDs: [123
 const STATEMENT_KEY = 'statement-key';
 
 let mockOnyxValues: Record<string, unknown> = {};
+const onyxListeners = new Set<() => void>();
+const subscribeToOnyx = (listener: () => void) => {
+    onyxListeners.add(listener);
+    return () => onyxListeners.delete(listener);
+};
+
+// A minimal reactive store, so an update re-renders the modal the global modal stack renders, like a real Onyx subscription.
+const useMockOnyx = (key: string) => [useSyncExternalStore(subscribeToOnyx, () => mockOnyxValues[key])];
 
 describe('useExpensifyCardStatementPDFDownloadModal', () => {
     const mockedFileDownloadModal = jest.mocked(FileDownloadModal);
@@ -46,11 +54,13 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
             wrapper: ({children}: {children: React.ReactNode}) => <ModalProvider>{children}</ModalProvider>,
         });
 
-    // Mirrors a backend-pushed Onyx update: change the value, then re-render so the hook reads it.
-    const setStatementInOnyx = async (statement: Record<string, unknown>, rerender: (props: unknown) => void) => {
-        mockOnyxValues = {...mockOnyxValues, [ONYXKEYS.EXPENSIFY_CARD_STATEMENT]: statement};
-        rerender({});
+    // Mirrors a backend-pushed Onyx update.
+    const setStatementInOnyx = async (statement: Record<string, unknown>) => {
         await act(async () => {
+            mockOnyxValues = {...mockOnyxValues, [ONYXKEYS.EXPENSIFY_CARD_STATEMENT]: statement};
+            for (const listener of onyxListeners) {
+                listener();
+            }
             await waitForBatchedUpdates();
         });
     };
@@ -58,12 +68,12 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockOnyxValues = {[ONYXKEYS.SESSION]: {encryptedAuthToken: 'token'}};
-        (jest.mocked(useOnyx) as jest.Mock).mockImplementation((key: string) => [mockOnyxValues[key]]);
+        (jest.mocked(useOnyx) as jest.Mock).mockImplementation(useMockOnyx);
     });
 
     it('updates the open modal in place as the statementKey and file arrive', async () => {
         // Given the modal opened before GetExpensifyCardStatementPDF has returned a statementKey
-        const {result, rerender} = renderStatementPDFDownloadModal();
+        const {result} = renderStatementPDFDownloadModal();
         let firstPromise: Promise<unknown> | undefined;
         await act(async () => {
             firstPromise = result.current.showExpensifyCardStatementPDFDownloadModal({statementParams: STATEMENT_PARAMS});
@@ -88,7 +98,7 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
             secondPromise = result.current.showExpensifyCardStatementPDFDownloadModal({statementParams: {...STATEMENT_PARAMS, statementKey: STATEMENT_KEY}});
             await waitForBatchedUpdates();
         });
-        await setStatementInOnyx({isGenerating: false, [STATEMENT_KEY]: 'statement.pdf'}, rerender);
+        await setStatementInOnyx({isGenerating: false, [STATEMENT_KEY]: 'statement.pdf'});
 
         // Then the same modal instance switches to the ready state
         expect(getLatestModalProps()).toEqual(expect.objectContaining({isVisible: true, status: CONST.FILE_DOWNLOAD_STATUS.READY, message: 'reportDetailsPage.successPDF'}));
@@ -111,16 +121,40 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
         await expect(secondPromise).resolves.toEqual({action: ModalActions.CONFIRM});
     });
 
+    it('keeps updating the modal after the caller unmounts', async () => {
+        // Given a caller, such as the Search page, that opens the modal and then unmounts while the statement is generating
+        let shouldRenderCaller = true;
+        const {result, rerender} = renderHook(() => useExpensifyCardStatementPDFDownloadModal(), {
+            wrapper: ({children}: {children: React.ReactNode}) => <ModalProvider>{shouldRenderCaller ? children : null}</ModalProvider>,
+        });
+        await act(async () => {
+            result.current.showExpensifyCardStatementPDFDownloadModal({statementParams: {...STATEMENT_PARAMS, statementKey: STATEMENT_KEY}});
+            await waitForBatchedUpdates();
+        });
+        shouldRenderCaller = false;
+        rerender({});
+
+        // When the backend pushes the generated file
+        await setStatementInOnyx({isGenerating: false, [STATEMENT_KEY]: 'statement.pdf'});
+
+        // Then the modal, which owns its own subscription, still switches to the ready state and offers the download
+        expect(getLatestModalProps()).toEqual(expect.objectContaining({isVisible: true, status: CONST.FILE_DOWNLOAD_STATUS.READY}));
+        act(() => {
+            getLatestModalProps()?.onDownload();
+        });
+        expect(downloadExpensifyCardStatementPDF).toHaveBeenCalledWith(expect.any(Function), 'statement.pdf', STATEMENT_KEY, 'employee@mail.com', 'token', 'development');
+    });
+
     it('keeps the generating state while the statement is still generating', async () => {
         // Given the modal opened with a statementKey whose file is cached but being regenerated
-        const {result, rerender} = renderStatementPDFDownloadModal();
+        const {result} = renderStatementPDFDownloadModal();
         await act(async () => {
             result.current.showExpensifyCardStatementPDFDownloadModal({statementParams: {...STATEMENT_PARAMS, statementKey: STATEMENT_KEY}});
             await waitForBatchedUpdates();
         });
 
         // When Onyx says the statement is generating
-        await setStatementInOnyx({isGenerating: true, [STATEMENT_KEY]: 'statement.pdf'}, rerender);
+        await setStatementInOnyx({isGenerating: true, [STATEMENT_KEY]: 'statement.pdf'});
 
         // Then the modal still waits instead of offering a stale file
         expect(getLatestModalProps()?.status).toBe(CONST.FILE_DOWNLOAD_STATUS.GENERATING);
@@ -159,7 +193,7 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
 
     it('does not reopen a dismissed modal when the statementKey arrives during the hide animation', async () => {
         // Given the user dismissed the modal before the statementKey arrived
-        const {result, rerender} = renderStatementPDFDownloadModal();
+        const {result} = renderStatementPDFDownloadModal();
         await act(async () => {
             result.current.showExpensifyCardStatementPDFDownloadModal({statementParams: STATEMENT_PARAMS});
             await waitForBatchedUpdates();
@@ -174,7 +208,7 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
             result.current.showExpensifyCardStatementPDFDownloadModal({statementParams: {...STATEMENT_PARAMS, statementKey: STATEMENT_KEY}});
             await waitForBatchedUpdates();
         });
-        await setStatementInOnyx({isGenerating: false, [STATEMENT_KEY]: 'statement.pdf'}, rerender);
+        await setStatementInOnyx({isGenerating: false, [STATEMENT_KEY]: 'statement.pdf'});
 
         // Then the hiding modal is left alone
         expect(getLatestModalProps()).toEqual(expect.objectContaining({isVisible: false, status: CONST.FILE_DOWNLOAD_STATUS.GENERATING}));
@@ -185,7 +219,7 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
             await waitForBatchedUpdates();
         });
         const renderCountAfterHide = mockedFileDownloadModal.mock.calls.length;
-        await setStatementInOnyx({isGenerating: false, [STATEMENT_KEY]: 'statement-2.pdf'}, rerender);
+        await setStatementInOnyx({isGenerating: false, [STATEMENT_KEY]: 'statement-2.pdf'});
 
         // Then the modal is not shown again
         expect(mockedFileDownloadModal.mock.calls.length).toBe(renderCountAfterHide);
@@ -194,7 +228,7 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
 
     it('closes the modal by id without reopening it on a later update', async () => {
         // Given an open modal waiting on the statement
-        const {result, rerender} = renderStatementPDFDownloadModal();
+        const {result} = renderStatementPDFDownloadModal();
         let hasResolved = false;
         await act(async () => {
             result.current.showExpensifyCardStatementPDFDownloadModal({statementParams: {...STATEMENT_PARAMS, statementKey: STATEMENT_KEY}}).then(() => {
@@ -214,7 +248,7 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
         expect(hasResolved).toBe(true);
 
         // When the file arrives afterwards
-        await setStatementInOnyx({isGenerating: false, [STATEMENT_KEY]: 'statement.pdf'}, rerender);
+        await setStatementInOnyx({isGenerating: false, [STATEMENT_KEY]: 'statement.pdf'});
 
         // Then the modal is not shown again
         expect(mockedFileDownloadModal.mock.calls.length).toBe(renderCountAfterClose);
@@ -222,7 +256,7 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
 
     it('opens a new modal when shown right after closing by id', async () => {
         // Given an open modal
-        const {result, rerender} = renderStatementPDFDownloadModal();
+        const {result} = renderStatementPDFDownloadModal();
         let firstPromise: Promise<unknown> | undefined;
         await act(async () => {
             firstPromise = result.current.showExpensifyCardStatementPDFDownloadModal({statementParams: STATEMENT_PARAMS});
@@ -245,7 +279,7 @@ describe('useExpensifyCardStatementPDFDownloadModal', () => {
         expect(getLatestModalProps()?.isVisible).toBe(true);
 
         // When the file arrives
-        await setStatementInOnyx({isGenerating: false, [STATEMENT_KEY]: 'statement.pdf'}, rerender);
+        await setStatementInOnyx({isGenerating: false, [STATEMENT_KEY]: 'statement.pdf'});
 
         // Then the new modal still receives updates
         expect(getLatestModalProps()).toEqual(expect.objectContaining({isVisible: true, status: CONST.FILE_DOWNLOAD_STATUS.READY}));

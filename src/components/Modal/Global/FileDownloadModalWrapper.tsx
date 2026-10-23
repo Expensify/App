@@ -16,8 +16,8 @@ type FileDownloadModalWrapperProps = ModalProps & Omit<FileDownloadModalProps, '
 function FileDownloadModalWrapper({closeModal, ...props}: FileDownloadModalWrapperProps) {
     const [isVisible, setIsVisible] = useState(true);
 
-    // The props at the moment the user dismissed the modal. The caller keeps updating the modal in place until it has
-    // finished hiding, so render these instead to keep a dismissed modal from changing while it fades out.
+    // The props at the moment the user dismissed the modal. The props keep changing as the file generates until the
+    // modal has finished hiding, so render these instead to keep a dismissed modal from changing while it fades out.
     const [dismissedProps, setDismissedProps] = useState<typeof props>();
     const closeActionRef = useRef<ValueOf<typeof ModalActions>>(ModalActions.CLOSE);
     const hasClosedModalRef = useRef(false);
