@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -18,11 +18,10 @@ function SuccessReportCardLost({cardID, isFromDomainCardDetail = false}: {cardID
     const illustrations = useMemoizedLazyIllustrations(['CardReplacementSuccess']);
 
     return (
-        <ConfirmationPage
+        <ConfirmationPageDefault
             heading={translate('reportCardLostOrDamaged.successTitle')}
             description={translate('reportCardLostOrDamaged.successDescription')}
             illustration={illustrations.CardReplacementSuccess}
-            shouldShowButton
             onButtonPress={() => {
                 // Going back with compareParams: false collapses the flow onto the deleted card route and
                 // replaces its cardID with the replacement card instead of a stale/NotFound route.
@@ -30,7 +29,6 @@ function SuccessReportCardLost({cardID, isFromDomainCardDetail = false}: {cardID
                 Navigation.goBack(cardDetailRoute, {compareParams: false});
             }}
             buttonText={translate('common.buttonConfirm')}
-            containerStyle={styles.h100}
             illustrationStyle={[styles.w100, StyleUtils.getSuccessReportCardLostIllustrationStyle()]}
             innerContainerStyle={styles.ph0}
             descriptionStyle={[styles.ph4, styles.textSupporting]}
