@@ -1,3 +1,8 @@
+/**
+ * Which accounting integration is connected, whether it is syncing, and who exports.
+ * Extracted from PolicyUtils/index.ts to keep that file smaller.
+ */
+
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {isConnectionUnverified} from '@libs/actions/connections';
@@ -9,10 +14,6 @@ import type {ConnectionLastSync, ConnectionName, Connections, NetSuiteConnection
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-/**
- * Which accounting integration is connected, whether it is syncing, and who exports.
- * Extracted from PolicyUtils/index.ts to keep that file smaller.
- */
 import {CONST as COMMON_CONST} from 'expensify-common';
 
 type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
@@ -128,6 +129,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.campfire?.config?.export?.exporter,
         policy?.connections?.financialforce?.config?.export?.exporter,
         policy?.connections?.businessCentral?.config?.export?.exporter,
+        policy?.connections?.zohoBooks?.config?.export?.exporter,
     ];
 }
 
