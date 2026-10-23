@@ -21,8 +21,7 @@ import {waitFor} from './waitFor';
 /**
  * Finish first-run onboarding with minimal choices: the LOOKING_AROUND purpose
  * ("Something else"), the given first and last name, no workspace. Contract:
- * melvin docs/app-state-tools.md. Implementation notes: research
- * 03-onboarding-completion-state.md in the melvin prestart spec folder.
+ * melvin docs/app-state-tools.md.
  *
  * The guarantee is the *stored* flag, not the dispatch: `completeOnboarding`
  * resolves when the CompleteGuidedSetup request is queued and flips the flag
