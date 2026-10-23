@@ -137,17 +137,15 @@ function ModalProvider({children}: {children: React.ReactNode}) {
     // about has gone away and the user never answered. Such a caller cannot use `closeModal`, because by then another
     // modal may sit above it and that is the one `closeModal` would take down.
     const closeModalByID: ModalContextType['closeModalByID'] = (id, data = {action: ModalActions.CLOSE}) => {
-        // Released right away rather than in the state updater, so a show call with the same id in the same tick
-        // pushes a new modal instead of updating the one being closed and getting its promise back.
-        const modalPromise = modalPromisesStack.current?.[id];
-        if (modalPromise) {
-            modalPromise.resolve(data);
-            delete modalPromisesStack.current[id];
-        }
-
         setModalStack((prevState) => {
             if (!prevState.modals.some((modal) => modal.id === id)) {
                 return prevState;
+            }
+
+            const modalPromise = modalPromisesStack.current?.[id];
+            if (modalPromise) {
+                modalPromise.resolve(data);
+                delete modalPromisesStack.current[id];
             }
 
             return {

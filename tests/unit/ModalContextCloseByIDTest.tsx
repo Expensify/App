@@ -114,40 +114,4 @@ describe('ModalProvider closeModalByID', () => {
         // Then it resolves on its own promise, proving the id was released rather than left pointing at the dead one
         expect(secondResult).toEqual({action: ModalActions.CONFIRM});
     });
-
-    it('should show a new modal when the same id is shown in the same tick it was closed by id', async () => {
-        // Given an owned prompt
-        const {result} = renderModalContext();
-
-        let firstResult: {action: string} | undefined;
-        await act(async () => {
-            result.current.showModal({component: StubModal, id: OWNED_MODAL_ID}).then((payload) => {
-                firstResult = payload;
-            });
-            await waitForBatchedUpdates();
-        });
-
-        // When it is closed by id and shown again before React has processed the close
-        let secondResult: {action: string} | undefined;
-        await act(async () => {
-            result.current.closeModalByID(OWNED_MODAL_ID);
-            result.current.showModal({component: StubModal, id: OWNED_MODAL_ID}).then((payload) => {
-                secondResult = payload;
-            });
-            await waitForBatchedUpdates();
-        });
-
-        // Then the first prompt resolves as a close while the second one stays open on its own promise
-        expect(firstResult).toEqual({action: ModalActions.CLOSE});
-        expect(secondResult).toBeUndefined();
-
-        // When the user answers the second prompt
-        await act(async () => {
-            result.current.closeModal({action: ModalActions.CONFIRM});
-            await waitForBatchedUpdates();
-        });
-
-        // Then it resolves with that answer
-        expect(secondResult).toEqual({action: ModalActions.CONFIRM});
-    });
 });

@@ -13,7 +13,7 @@ import {ModalActions} from './ModalContext';
 
 type FileDownloadModalWrapperProps = ModalProps & Omit<FileDownloadModalProps, 'isVisible' | 'onClose' | 'onModalHide'>;
 
-function FileDownloadModalWrapper({closeModal, ...props}: FileDownloadModalWrapperProps) {
+function FileDownloadModalWrapper({closeModal, resolveModal, ...props}: FileDownloadModalWrapperProps) {
     const [isVisible, setIsVisible] = useState(true);
 
     // The props at the moment the user dismissed the modal. The props keep changing as the file generates until the
@@ -46,8 +46,6 @@ function FileDownloadModalWrapper({closeModal, ...props}: FileDownloadModalWrapp
 
     return (
         <FileDownloadModal
-            // Spreading is needed to forward the presentation props the caller passes through the global modal stack.
-
             {...(dismissedProps ?? props)}
             isVisible={isVisible}
             onClose={handleClose}
