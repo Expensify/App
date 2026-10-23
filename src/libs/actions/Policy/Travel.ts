@@ -169,7 +169,9 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
             canUseTravel: enabled,
             pendingFields: {canUseTravel: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
         };
-        employeeListSuccessUpdate[target.email] = {pendingFields: {canUseTravel: null}, pendingAction: null, errors: null};
+        // A success leaves the member's error alone, since turning travel on and setting a role are separate requests
+        // for the same member and one succeeding must not hide the other failing
+        employeeListSuccessUpdate[target.email] = {pendingFields: {canUseTravel: null}};
 
         // The update pending action makes dismissing the error clear it, like a failed role change, instead of
         // treating the member as one that failed to be added
@@ -235,7 +237,7 @@ function setPolicyTravelMemberRole(policy: OnyxEntry<OnyxTypes.Policy>, members:
             travelRole,
             pendingFields: {travelRole: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
         };
-        employeeListSuccessUpdate[target.email] = {pendingFields: {travelRole: null}, pendingAction: null, errors: null};
+        employeeListSuccessUpdate[target.email] = {pendingFields: {travelRole: null}};
         employeeListFailureUpdate[target.email] = {
             travelRole: employeeList[target.email]?.travelRole ?? null,
             pendingFields: {travelRole: null},

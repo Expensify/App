@@ -61,7 +61,7 @@ describe('Policy travel member access', () => {
             setPolicyTravelMemberAccess(buildPolicy({canUseTravel: false}), [MEMBER], true);
 
             // Then a failure restores off and marks the member as a failed update, so dismissing the error keeps them in
-            // the list, and a success clears both
+            // the list, and a success only clears the pending field
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
                 expect.anything(),
@@ -75,7 +75,7 @@ describe('Policy travel member access', () => {
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
                 expect.anything(),
-                withEmployeeUpdate('successData', {pendingFields: {canUseTravel: null}, pendingAction: null, errors: null}),
+                withEmployeeUpdate('successData', {pendingFields: {canUseTravel: null}}),
             );
         });
     });
