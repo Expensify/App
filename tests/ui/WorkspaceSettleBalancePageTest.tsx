@@ -13,6 +13,7 @@ import WorkspaceSettleBalancePage from '@pages/workspace/expensifyCard/Workspace
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@src/libs/API/types';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -173,6 +174,46 @@ describe('WorkspaceSettleBalancePage', () => {
         // Then the admin is told how much can be settled and the backend is not asked for a preview
         expect(screen.getByText('Enter an amount up to $17.00')).toBeTruthy();
         expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('drops the backend maximum error once the amount is changed', async () => {
+        // Given a workspace on monthly settlement whose backend can settle less than the balance shown
+        await act(async () => {
+            await Onyx.merge(cardSettingsKey, monthlyCardSettings);
+            await waitForBatchedUpdatesWithAct();
+        });
+        mockFetch.mockAPICommand(SIDE_EFFECT_REQUEST_COMMANDS.CALCULATE_EXPENSIFY_CARD_PARTIAL_SETTLEMENT, () => ({
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+            requestedAmount: 1500,
+            roundedAmount: 0,
+            maximumAmount: 1200,
+            transactionCount: 0,
+            isAboveMaximum: true,
+            isEverythingEligible: false,
+        }));
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When a partial amount within the balance is previewed and the backend answers with a lower maximum
+        fireEvent.press(screen.getByText('Settle partial balance'));
+        await waitForBatchedUpdatesWithAct();
+        const amountInput = screen.getByLabelText('Amount to settle');
+        fireEvent.changeText(amountInput, '15');
+        fireEvent.press(screen.getByText('Next'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the backend maximum is shown under the amount
+        expect(screen.getByText('Enter an amount up to $12.00')).toBeTruthy();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+
+        // When the amount is cleared and Next is pressed again
+        fireEvent.changeText(amountInput, '');
+        fireEvent.press(screen.getByText('Next'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the required-field error is left, the maximum answered for the old amount is gone
+        expect(screen.getByText('This field is required')).toBeTruthy();
+        expect(screen.queryByText('Enter an amount up to $12.00')).toBeNull();
     });
 
     it('does not let a partial settlement be previewed offline, since the rounded amount comes from the backend', async () => {

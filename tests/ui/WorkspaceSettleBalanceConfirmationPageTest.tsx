@@ -190,6 +190,52 @@ describe('WorkspaceSettleBalanceConfirmationPage', () => {
         expect(screen.queryByText('$17.00')).toBeNull();
     });
 
+    it('still queues a full settlement offline, since nothing about it depends on the backend', async () => {
+        // Given an admin who is offline and chose to settle the full balance
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            await Onyx.set(ONYXKEYS.RAM_ONLY_EXPENSIFY_CARD_SETTLEMENT_PREVIEW, {settlementType: CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.FULL});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the confirmation page opens and the settlement is confirmed
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        const settleButton = screen.getByRole('button', {name: 'Settle balance'});
+        expect(settleButton).toBeEnabled();
+        fireEvent.press(settleButton);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the full settlement is queued optimistically, like any other write made offline
+        await expect(getOnyxValue(manualBillingKey)).resolves.toBe('true');
+        expect(Navigation.dismissModal).toHaveBeenCalled();
+    });
+
+    it('does not let a partial settlement be confirmed offline, since its rounded amount came from a preview that may be stale', async () => {
+        // Given an admin who is offline with a partial settlement previewed earlier
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            await Onyx.set(ONYXKEYS.RAM_ONLY_EXPENSIFY_CARD_SETTLEMENT_PREVIEW, {
+                settlementType: CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL,
+                requestedAmount: 350,
+                roundedAmount: 400,
+                maximumAmount: 1700,
+                transactionCount: 2,
+                isAboveMaximum: false,
+                isEverythingEligible: false,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the confirmation page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the amount is shown but cannot be confirmed until the connection is back
+        expect(screen.getByText('$4.00')).toBeTruthy();
+        expect(screen.getByRole('button', {name: 'Settle balance'})).toBeDisabled();
+    });
+
     it('goes back to the amount page when there is nothing to confirm', async () => {
         // Given no preview, which is what a refresh or a deep link lands on since the preview only lives in memory
         // When the confirmation page opens

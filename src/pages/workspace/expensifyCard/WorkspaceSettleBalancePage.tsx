@@ -85,11 +85,13 @@ function WorkspaceSettleBalancePage({route}: WorkspaceSettleBalancePageProps) {
         {value: CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL, label: translate('workspace.expensifyCard.settlePartialBalance'), keyForList: CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL},
     ];
 
+    // The preview answers the amount it was asked for, so its error only applies while that amount is still the one in the input
+    const isPreviewForEnteredAmount = preview?.requestedAmount === convertToBackendAmount(Number(draftForm?.[INPUT_IDS.AMOUNT]));
     let previewErrorMessage = '';
-    if (preview?.isAboveMaximum) {
+    if (isPreviewForEnteredAmount && preview?.isAboveMaximum) {
         previewErrorMessage = translate('workspace.expensifyCard.settleBalanceAmountAboveMaximum', convertToDisplayString(preview.maximumAmount, currency));
     }
-    if (!previewErrorMessage) {
+    if (isPreviewForEnteredAmount && !previewErrorMessage) {
         previewErrorMessage = getLatestErrorMessage(preview);
     }
 

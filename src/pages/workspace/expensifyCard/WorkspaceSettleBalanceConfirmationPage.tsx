@@ -12,7 +12,6 @@ import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -41,7 +40,6 @@ type WorkspaceSettleBalanceConfirmationPageProps = PlatformStackScreenProps<Sett
 function WorkspaceSettleBalanceConfirmationPage({route}: WorkspaceSettleBalanceConfirmationPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {convertToDisplayString} = useCurrencyListActions();
     const policyID = route.params.policyID;
@@ -120,10 +118,12 @@ function WorkspaceSettleBalanceConfirmationPage({route}: WorkspaceSettleBalanceC
                     {!!roundingMessage && <Text style={[styles.textSupporting, styles.ph5, styles.mb3]}>{roundingMessage}</Text>}
                     <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                         <FormAlertWithSubmitButton
-                            isDisabled={!hasPreview || (isPartial && isOffline)}
+                            isDisabled={!hasPreview}
                             onSubmit={settleBalance}
                             buttonText={translate('workspace.expensifyCard.settleBalance')}
                             shouldShowLoadingImmediatelyOnPress={false}
+                            // A full settlement queues offline like any write, a partial one depends on the preview the backend computed
+                            enabledWhenOffline={!isPartial}
                         />
                     </View>
                 </ScrollView>
