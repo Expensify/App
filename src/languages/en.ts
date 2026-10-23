@@ -6288,8 +6288,11 @@ const translations = {
             exportReimbursable: {
                 label: 'Export reimbursable expenses as',
                 values: {
-                    [CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                    VENDOR_BILL: {
                         label: 'Vendor bills',
+                    },
+                    REIMBURSEMENT: {
+                        label: 'Reimbursements',
                     },
                 },
             },
