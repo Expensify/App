@@ -53,6 +53,7 @@ function clearSearchCaches() {
 
 /**
  * Serializes options into "<keyForList> <text> [flags] [alt: ...] [accID: ...]" lines to pin option ordering and content rather than rendering details.
+ * Flags are [selected], [disabled], [bold], [gbr], [rbr] and [archived], where [archived] surfaces private_isArchived, which drives ranking and the archived preview text.
  * Invited users include their login when different from text to distinguish email from phone invites.
  */
 function createOptionSerializer() {
@@ -66,6 +67,7 @@ function createOptionSerializer() {
             option.isBold ? ' [bold]' : '',
             option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? ' [gbr]' : '',
             option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? ' [rbr]' : '',
+            option.private_isArchived ? ' [archived]' : '',
         ].join('');
         const invitedLogin = isUserToInvite && option.login !== option.text ? ` ${option.login ?? ''}` : '';
         const altText = option.alternateText ? ` [alt: ${option.alternateText}]` : '';

@@ -133,7 +133,7 @@ exports[`OptionsListUtils search parity (golden master) SearchRouter blank query
     "2031 Offsite expenses [alt: No activity yet] [accID: 1]",
     "2021 Thread about the offsite [bold] [alt: José Ñúñez: Count me in]",
     "1004 İsmail Yılmaz [alt: Thanks!] [accID: 4]",
-    "2000 Mary-Jane O'Brien (archived)  [alt: This chat room has been archived.] [accID: 11]",
+    "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [accID: 11]",
   ],
 }
 `;
@@ -222,7 +222,7 @@ exports[`OptionsListUtils search parity (golden master) builds searching and Sea
       "1126 Cyd Cole [alt: cyd.cole.26@example.com] [accID: 126]",
       "1105 Fay Ames [alt: fay.ames.5@example.com] [accID: 105]",
       "1021 Concierge [alt: concierge@expensify.com] [accID: 21]",
-      "2000 Mary-Jane O'Brien (archived)  [alt: obrien@example.com] [accID: 11]",
+      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: obrien@example.com] [accID: 11]",
     ],
   },
   "searching": {
@@ -283,7 +283,7 @@ exports[`OptionsListUtils search parity (golden master) builds searching and Sea
       "137 Bea Dunn [alt: bea.dunn.37@example.com] [accID: 137]",
       "17 Account Executive [alt: Account Executive] [accID: 17]",
       "20 René Dupont [alt: rene@example.com] [accID: 20]",
-      "2000 Mary-Jane O'Brien [alt: obrien@example.com] [accID: 11]",
+      "2000 Mary-Jane O'Brien [archived] [alt: obrien@example.com] [accID: 11]",
       "2001 Alex Smith [alt: alex.smith@example.com] [accID: 14]",
       "2020 José Ñúñez [alt: jose.nunez@example.com] [accID: 2]",
       "5 Groß Straße [alt: strasse@example.com] [accID: 5]",
@@ -393,7 +393,7 @@ exports[`OptionsListUtils search parity (golden master) builds searching and Sea
       "1136 Ada Dunn [alt: ada.dunn.36@example.com] [accID: 136]",
       "1138 Cyd Dunn [alt: cyd.dunn.38@example.com] [accID: 138]",
       "1139 Dan Dunn [alt: dan.dunn.39@example.com] [accID: 139]",
-      "2000 Mary-Jane O'Brien (archived)  [alt: obrien@example.com] [accID: 11]",
+      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: obrien@example.com] [accID: 11]",
       "2001 Alex Smith [alt: alex.smith@example.com] [accID: 14]",
       "2002  [accID: 999]",
       "2003 Weekend Hiking [alt: Group]",
@@ -889,7 +889,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
     "personalDetails": [],
     "recentReports": [
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
-      "2000 Mary-Jane O'Brien (archived)  [alt: This chat room has been archived.] [accID: 11]",
+      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [accID: 11]",
     ],
     "selfDMChat": null,
     "userToInvite": null,
@@ -970,7 +970,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
     "personalDetails": [],
     "recentReports": [
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
-      "2000 Mary-Jane O'Brien (archived)  [alt: This chat room has been archived.] [accID: 11]",
+      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [accID: 11]",
     ],
     "selfDMChat": null,
     "userToInvite": null,
@@ -1728,11 +1728,11 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterLo
     "currentUserOption": null,
     "hasMore": false,
     "personalDetails": [
-      "2000 Mary-Jane O'Brien [alt: obrien@example.com] [accID: 11]",
+      "2000 Mary-Jane O'Brien [archived] [alt: obrien@example.com] [accID: 11]",
     ],
     "recentReports": [
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
-      "2000 Mary-Jane O'Brien (archived)  [alt: This chat room has been archived.] [accID: 11]",
+      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [accID: 11]",
     ],
     "selfDMChat": null,
     "userToInvite": null,
@@ -1820,11 +1820,11 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterLo
     "currentUserOption": null,
     "hasMore": false,
     "personalDetails": [
-      "2000 Mary-Jane O'Brien [alt: obrien@example.com] [accID: 11]",
+      "2000 Mary-Jane O'Brien [archived] [alt: obrien@example.com] [accID: 11]",
     ],
     "recentReports": [
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
-      "2000 Mary-Jane O'Brien (archived)  [alt: This chat room has been archived.] [accID: 11]",
+      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [accID: 11]",
     ],
     "selfDMChat": null,
     "userToInvite": null,
