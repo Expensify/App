@@ -12126,13 +12126,41 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         }),
         noReportsTitle: 'Nessun report corrispondente',
         noReportsBody: 'Nessuno dei report che hai selezionato richiedeva questa azione.',
-        failedReportsBody: ({count}: {count: number}) => ({
-            one: '1 report non può essere aggiornato.',
-            other: `${count} report non hanno potuto essere aggiornati.`,
-        }),
         viewFailedReports: 'Visualizza report',
         failedTitle: 'Qualcosa è andato storto',
         failedBody: 'Questa azione non può essere avviata. Riprova più tardi.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: '1 report non può essere approvato.',
+            other: `${count} report non hanno potuto essere approvati.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: '1 report non può essere inviato.',
+            other: `${count} report non hanno potuto essere inviati.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: '1 report non può essere pagato.',
+            other: `${count} report non hanno potuto essere pagati.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: 'Le spese di 1 report non hanno potuto essere messe in attesa.',
+            other: `Le spese di ${count} report non hanno potuto essere messe in attesa.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: 'Le spese di 1 report non hanno potuto essere sbloccate.',
+            other: `Le spese di ${count} report non hanno potuto essere sbloccate.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: 'Le spese di 1 report non hanno potuto essere rifiutate.',
+            other: `Le spese di ${count} report non hanno potuto essere rifiutate.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: '1 report non può essere eliminato.',
+            other: `${count} report non hanno potuto essere eliminati.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: 'Le spese di 1 report non hanno potuto essere eliminate.',
+            other: `Le spese di ${count} report non hanno potuto essere eliminate.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Rinnova il tuo abbonamento per un periodo di 12 mesi, dal ${startDate} al ${endDate}.`,

@@ -12437,13 +12437,41 @@ ${reportName}`,
         }),
         noReportsTitle: 'No hay informes coincidentes',
         noReportsBody: 'Ninguno de los informes que seleccionaste necesitaba esta acción.',
-        failedReportsBody: ({count}: {count: number}) => ({
-            one: 'No se pudo actualizar 1 informe.',
-            other: `No se pudieron actualizar ${count} informes.`,
-        }),
         viewFailedReports: 'Ver informes',
         failedTitle: 'Algo salió mal',
         failedBody: 'No se pudo iniciar esta acción. Por favor, inténtalo de nuevo más tarde.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: 'No se pudo aprobar 1 informe.',
+            other: `No se pudieron aprobar ${count} informes.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: 'No se pudo enviar 1 informe.',
+            other: `No se pudieron enviar ${count} informes.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: 'No se pudo pagar 1 informe.',
+            other: `No se pudieron pagar ${count} informes.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: 'No se pudieron retener los gastos en 1 informe.',
+            other: `No se pudieron retener los gastos en ${count} informes.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: 'No se pudieron desbloquear los gastos de 1 informe.',
+            other: `No se pudieron desbloquear los gastos en ${count} informes.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: 'No se pudieron rechazar los gastos en 1 informe.',
+            other: `No se pudieron rechazar los gastos en ${count} informes.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: 'No se pudo eliminar 1 informe.',
+            other: `No se pudieron eliminar ${count} informes.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: 'Los gastos de 1 informe no se pudieron eliminar.',
+            other: `No se pudieron eliminar los gastos en ${count} informes.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renueva tu suscripción por un período de 12 meses, desde ${startDate} hasta ${endDate}.`,

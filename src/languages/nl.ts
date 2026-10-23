@@ -12087,13 +12087,41 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         }),
         noReportsTitle: 'Geen overeenkomende rapporten',
         noReportsBody: 'Geen van de rapporten die je hebt geselecteerd had deze actie nodig.',
-        failedReportsBody: ({count}: {count: number}) => ({
-            one: '1 rapport kon niet worden bijgewerkt.',
-            other: `${count} rapporten konden niet worden bijgewerkt.`,
-        }),
         viewFailedReports: 'Rapporten bekijken',
         failedTitle: 'Er is iets misgegaan',
         failedBody: 'Deze actie kon niet worden gestart. Probeer het later opnieuw.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: '1 rapport kon niet worden goedgekeurd.',
+            other: `${count} rapporten konden niet worden goedgekeurd.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: '1 rapport kon niet worden ingediend.',
+            other: `${count} rapporten konden niet worden ingediend.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: '1 rapport kon niet worden betaald.',
+            other: `${count} rapporten konden niet worden betaald.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: 'Uitgaven in 1 rapport konden niet worden vastgehouden.',
+            other: `Uitgaven in ${count} rapporten konden niet worden vastgehouden.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: 'De blokkering van uitgaven in 1 rapport kon niet worden opgeheven.',
+            other: `De blokkering van uitgaven in ${count} rapporten kon niet worden opgeheven.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: 'Uitgaven in 1 rapport konden niet worden afgewezen.',
+            other: `Uitgaven in ${count} rapporten konden niet worden afgewezen.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: '1 rapport kon niet worden verwijderd.',
+            other: `${count} rapporten konden niet worden verwijderd.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: 'Uitgaven in 1 rapport konden niet worden verwijderd.',
+            other: `Uitgaven in ${count} rapporten konden niet worden verwijderd.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Verleng je abonnement voor een periode van 12 maanden, van ${startDate} tot ${endDate}.`,

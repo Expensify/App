@@ -12078,13 +12078,41 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         }),
         noReportsTitle: 'Nenhum relatório correspondente',
         noReportsBody: 'Nenhum dos relatórios que você selecionou precisava dessa ação.',
-        failedReportsBody: ({count}: {count: number}) => ({
-            one: '1 relatório não pôde ser atualizado.',
-            other: `${count} relatórios não puderam ser atualizados.`,
-        }),
         viewFailedReports: 'Ver relatórios',
         failedTitle: 'Algo deu errado',
         failedBody: 'Não foi possível iniciar esta ação. Tente novamente mais tarde.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: '1 relatório não pôde ser aprovado.',
+            other: `${count} relatórios não puderam ser aprovados.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: '1 relatório não pôde ser enviado.',
+            other: `${count} relatórios não puderam ser enviados.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: '1 relatório não pôde ser pago.',
+            other: `${count} relatórios não puderam ser pagos.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: 'As despesas de 1 relatório não puderam ser retidas.',
+            other: `As despesas de ${count} relatórios não puderam ser retidas.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: 'As despesas de 1 relatório não puderam ser desbloqueadas.',
+            other: `As despesas de ${count} relatórios não puderam ser desbloqueadas.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: 'As despesas de 1 relatório não puderam ser rejeitadas.',
+            other: `As despesas de ${count} relatórios não puderam ser rejeitadas.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: '1 relatório não pôde ser excluído.',
+            other: `${count} relatórios não puderam ser excluídos.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: 'As despesas de 1 relatório não puderam ser excluídas.',
+            other: `As despesas de ${count} relatórios não puderam ser excluídas.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renove sua assinatura por um período de 12 meses, de ${startDate} a ${endDate}.`,

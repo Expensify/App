@@ -11644,13 +11644,41 @@ ${reportName}`,
         }),
         noReportsTitle: '没有匹配的报表',
         noReportsBody: '您选择的报表都不需要执行此操作。',
-        failedReportsBody: ({count}: {count: number}) => ({
-            one: '1 份报表无法更新。',
-            other: `${count} 份报表无法更新。`,
-        }),
         viewFailedReports: '查看报表',
         failedTitle: '出现问题',
         failedBody: '无法开始此操作。请稍后重试。',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: '1 份报表无法批准。',
+            other: `${count} 份报表无法批准。`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: '1 份报表无法提交。',
+            other: `${count} 份报表无法提交。`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: '1 份报表无法标记为已支付。',
+            other: `${count} 份报表无法标记为已支付。`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: '无法暂挂 1 份报表的报销费用。',
+            other: `无法暂挂 ${count} 份报表的报销费用。`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: '无法解除 1 份报表的报销费用保留。',
+            other: `无法解除 ${count} 份报表的报销费用保留。`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: '无法拒绝 1 份报表的报销费用。',
+            other: `无法拒绝 ${count} 份报表的报销费用。`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: '1 份报表无法删除。',
+            other: `${count} 份报表无法删除。`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: '无法删除 1 份报表的报销费用。',
+            other: `无法删除 ${count} 份报表的报销费用。`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `将您的订阅续订为 12 个月期限，自 ${startDate} 至 ${endDate}。`,

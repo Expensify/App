@@ -48,6 +48,17 @@ const DONE_TITLES = {
     [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.deletedExpensesTitle',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 
+const FAILED_BODIES = {
+    [CONST.SEARCH.BULK_ACTION_TYPES.APPROVE]: 'bulkAction.notApprovedBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT]: 'bulkAction.notSubmittedBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.PAY]: 'bulkAction.notPaidBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.HOLD]: 'bulkAction.notHeldBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD]: 'bulkAction.notUnheldBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.REJECT]: 'bulkAction.notRejectedBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.DELETE]: 'bulkAction.notDeletedBody',
+    [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.expensesNotDeletedBody',
+} as const satisfies Record<BulkActionType, TranslationPaths>;
+
 type BulkActionRunningProps = {
     /** The action that is running */
     action: BulkActionType | undefined;
@@ -147,7 +158,7 @@ function BulkActionDone({action, total, failedReportIDs, onClose}: BulkActionDon
             {total === 0 && <Text style={styles.mb5}>{translate('bulkAction.noReportsBody')}</Text>}
             {failedReportIDs.length > 0 && (
                 <>
-                    <Text style={styles.mb5}>{translate('bulkAction.failedReportsBody', {count: failedReportIDs.length})}</Text>
+                    <Text style={styles.mb5}>{translate(FAILED_BODIES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY], {count: failedReportIDs.length})}</Text>
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={viewFailedReports}

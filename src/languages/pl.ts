@@ -12105,13 +12105,41 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         }),
         noReportsTitle: 'Brak pasujących raportów',
         noReportsBody: 'Żaden z wybranych raportów nie wymagał tej akcji.',
-        failedReportsBody: ({count}: {count: number}) => ({
-            one: 'Nie udało się zaktualizować 1 raportu.',
-            other: `Nie udało się zaktualizować ${count} raportów.`,
-        }),
         viewFailedReports: 'Wyświetl raporty',
         failedTitle: 'Coś poszło nie tak',
         failedBody: 'Nie udało się rozpocząć tej akcji. Spróbuj ponownie później.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się zatwierdzić 1 raportu.',
+            other: `Nie udało się zatwierdzić ${count} raportów.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się przesłać 1 raportu.',
+            other: `Nie udało się przesłać ${count} raportów.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się oznaczyć 1 raportu jako opłaconego.',
+            other: `Nie udało się oznaczyć ${count} raportów jako opłaconych.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się wstrzymać wydatków w 1 raporcie.',
+            other: `Nie udało się wstrzymać wydatków w ${count} raportach.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się usunąć blokady wydatków w 1 raporcie.',
+            other: `Nie udało się usunąć blokady wydatków w ${count} raportach.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się odrzucić wydatków w 1 raporcie.',
+            other: `Nie udało się odrzucić wydatków w ${count} raportach.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się usunąć 1 raportu.',
+            other: `Nie udało się usunąć ${count} raportów.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się usunąć wydatków w 1 raporcie.',
+            other: `Nie udało się usunąć wydatków w ${count} raportach.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Odnów swoją subskrypcję na 12-miesięczny okres, od ${startDate} do ${endDate}.`,

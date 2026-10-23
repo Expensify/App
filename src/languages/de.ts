@@ -12174,13 +12174,41 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         }),
         noReportsTitle: 'Keine übereinstimmenden Berichte',
         noReportsBody: 'Keiner der von Ihnen ausgewählten Berichte benötigte diese Aktion.',
-        failedReportsBody: ({count}: {count: number}) => ({
-            one: '1 Bericht konnte nicht aktualisiert werden.',
-            other: `${count} Berichte konnten nicht aktualisiert werden.`,
-        }),
         viewFailedReports: 'Berichte anzeigen',
         failedTitle: 'Es ist ein Fehler aufgetreten',
         failedBody: 'Diese Aktion konnte nicht gestartet werden. Bitte versuchen Sie es später noch einmal.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: '1 Bericht konnte nicht genehmigt werden.',
+            other: `${count} Berichte konnten nicht genehmigt werden.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: '1 Bericht konnte nicht eingereicht werden.',
+            other: `${count} Berichte konnten nicht eingereicht werden.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: '1 Bericht konnte nicht bezahlt werden.',
+            other: `${count} Berichte konnten nicht bezahlt werden.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: 'Ausgaben in 1 Bericht konnten nicht zurückgehalten werden.',
+            other: `Ausgaben in ${count} Berichten konnten nicht zurückgehalten werden.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: 'Das Zurückhalten von Ausgaben in 1 Bericht konnte nicht aufgehoben werden.',
+            other: `Das Zurückhalten von Ausgaben in ${count} Berichten konnte nicht aufgehoben werden.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: 'Ausgaben in 1 Bericht konnten nicht abgelehnt werden.',
+            other: `Ausgaben in ${count} Berichten konnten nicht abgelehnt werden.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: '1 Bericht konnte nicht gelöscht werden.',
+            other: `${count} Berichte konnten nicht gelöscht werden.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: 'Ausgaben in 1 Bericht konnten nicht gelöscht werden.',
+            other: `Ausgaben in ${count} Berichten konnten nicht gelöscht werden.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) =>

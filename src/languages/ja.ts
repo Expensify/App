@@ -11952,13 +11952,41 @@ ${reportName}`,
         }),
         noReportsTitle: '一致するレポートはありません',
         noReportsBody: '選択したレポートには、いずれもこの操作は必要ありませんでした。',
-        failedReportsBody: ({count}: {count: number}) => ({
-            one: '1件のレポートを更新できませんでした。',
-            other: `${count} 件のレポートを更新できませんでした。`,
-        }),
         viewFailedReports: 'レポートを表示',
         failedTitle: '問題が発生しました',
         failedBody: 'この操作を開始できませんでした。後でもう一度お試しください。',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: '1件のレポートを承認できませんでした。',
+            other: `${count} 件のレポートを承認できませんでした。`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: '1件のレポートを提出できませんでした。',
+            other: `${count} 件のレポートを提出できませんでした。`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: '1件のレポートを支払済みにできませんでした。',
+            other: `${count} 件のレポートを支払済みにできませんでした。`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: '1件のレポートの経費を保留にできませんでした。',
+            other: `${count} 件のレポートの経費を保留にできませんでした。`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: '1件のレポートの経費の保留を解除できませんでした。',
+            other: `${count} 件のレポートの経費の保留を解除できませんでした。`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: '1件のレポートの経費を却下できませんでした。',
+            other: `${count} 件のレポートの経費を却下できませんでした。`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: '1件のレポートを削除できませんでした。',
+            other: `${count} 件のレポートを削除できませんでした。`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: '1件のレポートの経費を削除できませんでした。',
+            other: `${count} 件のレポートの経費を削除できませんでした。`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} から ${endDate} までの12か月契約でサブスクリプションを更新します。`,
