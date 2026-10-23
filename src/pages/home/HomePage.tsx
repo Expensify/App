@@ -21,6 +21,7 @@ import openHomePage from '@libs/actions/HomePage';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentRef} from 'react';
@@ -162,6 +163,7 @@ function HomePage() {
                         style={styles.homePageScrollView}
                         {...tabRootScrollProps}
                         onScroll={triggerScrollEvent}
+                        scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >

@@ -28,6 +28,7 @@ import {
     rendersColumnHeaderAsStickyRow,
     rendersColumnHeaderInListHeader,
 } from './buildTableListData';
+import {TABLE_COLUMN_SCROLLER_DATA_SET} from './columnResize/columnWidthExpressions';
 import dismissKeyboardOnDrag from './dismissKeyboardOnDrag';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowSemanticIDContext, useTableContext} from './TableContext';
@@ -57,7 +58,7 @@ type ColumnScrollOverrideProps = Record<string, unknown> & {
 function getColumnScrollOverrideProps(overflowXAutoStyle: ViewStyle, overrideProps: ColumnScrollOverrideProps = {}) {
     return {
         ...overrideProps,
-        dataSet: {...overrideProps.dataSet, tableColumnScroller: true},
+        dataSet: {...overrideProps.dataSet, ...TABLE_COLUMN_SCROLLER_DATA_SET},
         style: [overrideProps.style, overflowXAutoStyle],
     };
 }

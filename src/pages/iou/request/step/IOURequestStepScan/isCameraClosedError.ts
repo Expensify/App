@@ -1,19 +1,20 @@
-// CameraX rejects an in-flight capture with this message when the camera closes, and vision-camera passes it through as `unknown/unknown`.
-const CAMERA_CLOSED_MESSAGE = 'Camera is closed';
-
-// vision-camera rejects with this code when the session is already gone by the time the capture reaches native.
-const CAMERA_SESSION_GONE_CODE = 'session/camera-not-ready';
+// VisionCamera v5 errors carry no code, so a capture cancelled by leaving the screen is recognised by its message:
+// CameraX closing the camera mid-capture, a photo output that is no longer attached to the session (iOS, then Android),
+// and an Android snapshot taken after the preview is gone.
+const CAMERA_CLOSED_MESSAGES = [
+    'Camera is closed',
+    'PhotoOutput is not yet connected to the CameraSession!',
+    'Photo Output is not yet attached to the CameraSession!',
+    "PreviewView isn't ready yet",
+];
 
 function isCameraClosedError(error: unknown): boolean {
-    if (typeof error !== 'object' || error === null) {
+    if (typeof error !== 'object' || error === null || !('message' in error) || typeof error.message !== 'string') {
         return false;
     }
 
-    if ('code' in error && error.code === CAMERA_SESSION_GONE_CODE) {
-        return true;
-    }
-
-    return 'message' in error && typeof error.message === 'string' && error.message.includes(CAMERA_CLOSED_MESSAGE);
+    const {message} = error;
+    return CAMERA_CLOSED_MESSAGES.some((closedMessage) => message.includes(closedMessage));
 }
 
 export default isCameraClosedError;
