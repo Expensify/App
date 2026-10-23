@@ -4940,7 +4940,7 @@ ${amount} für ${merchant} – ${date}`,
             deleteConfirmation: 'Möchten Sie diesen Workspace wirklich löschen?',
             deleteWithCardsConfirmation: 'Möchtest du diesen Workspace wirklich löschen? Dadurch werden alle Kartenfeeds und zugewiesenen Karten entfernt.',
             deleteOpenExpensifyCardsError: 'Ihre Firma hat noch Expensify Karten. Bitte <concierge-link>wenden Sie sich an Concierge</concierge-link>, um sie zu entfernen.',
-            deleteTravelInvoicingError: 'Ihr Unternehmen hat die Konsolidierte Reiseabrechnung noch aktiviert.',
+            deleteTravelBillingError: 'Ihr Unternehmen hat die Konsolidierte Reiseabrechnung noch aktiviert.',
             outstandingBalanceWarning:
                 'Sie haben einen offenen Saldo, der beglichen werden muss, bevor Sie Ihren letzten Workspace löschen können. Bitte gehen Sie zu Ihren Abonnementeinstellungen, um die Zahlung abzuschließen.',
             settleBalance: 'Zu Abo wechseln',
@@ -5045,9 +5045,9 @@ ${amount} für ${merchant} – ${date}`,
             budgetFrequencyUnit: {monthly: 'Monat', yearly: 'Jahr'},
             budgetTypeForNotificationMessage: {tag: 'Tag', category: 'Kategorie'},
             deepDiveExpensifyCard: `<muted-text-label>Transaktionen der Expensify Karte werden automatisch in ein „Expensify Karte Verbindlichkeitskonto” exportiert, das mit <a href=”${CONST.DEEP_DIVE_EXPENSIFY_CARD}”>unserer Integration</a> erstellt wird.</muted-text-label>`,
-            travelInvoicing: 'Konsolidierte Reisekostenabrechnungen exportieren als',
-            travelInvoicingVendor: 'Reiseanbieter',
-            travelInvoicingPayableAccount: 'Reiseverbindlichkeitskonto',
+            travelBilling: 'Konsolidierte Reisekostenabrechnungen exportieren als',
+            travelBillingVendor: 'Reiseanbieter',
+            travelBillingPayableAccount: 'Reiseverbindlichkeitskonto',
             hr: 'Personalwesen',
             recruiting: 'Personalbeschaffung',
             rooms: 'Räume',
@@ -5349,7 +5349,7 @@ ${amount} für ${merchant} – ${date}`,
             notConfigured: 'Nicht konfiguriert',
             bankAccountDescription: 'Wähle aus, von wo Schecks versendet werden sollen.',
             creditCardAccount: 'Kreditkartenkonto',
-            travelInvoicingDescription: (integrationName = 'QuickBooks Online') =>
+            travelBillingDescription: (integrationName = 'QuickBooks Online') =>
                 `Reisekosten werden als Kreditkartenbelastungen in das unten angegebene ${integrationName}-Konto exportiert.`,
             companyCardsLocationEnabledDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} unterstützt keine Standorte beim Export von Kreditorenrechnungen, wenn Standorte als Tags importiert werden. Da in Ihrem Workspace Standorte als Tags importiert sind, ist diese Exportoption nicht verfügbar.`,
@@ -5457,7 +5457,7 @@ ${amount} für ${merchant} – ${date}`,
             exportDeepDiveCompanyCard:
                 'Exportierte Ausgaben werden als Banktransaktionen auf das unten angegebene Xero-Bankkonto gebucht, und die Buchungsdaten entsprechen den Daten auf Ihrem Kontoauszug.',
             bankTransactions: 'Banktransaktionen',
-            travelInvoicingDescription: 'Reisekosten werden als Banktransaktionen auf das unten angegebene Xero-Konto exportiert.',
+            travelBillingDescription: 'Reisekosten werden als Banktransaktionen auf das unten angegebene Xero-Konto exportiert.',
             xeroBankAccount: 'Xero-Bankkonto',
             bankAccount: 'Bankkonto',
             xeroBankAccountDescription: 'Wählen Sie, wo Spesen als Banktransaktionen verbucht werden.',
@@ -5558,7 +5558,7 @@ ${amount} für ${merchant} – ${date}`,
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Lieferantenrechnungen',
                 },
             },
-            travelInvoicingDescription: 'Reisekosten werden als Kreditkartenbelastungen in das unten angegebene Sage Intacct-Konto exportiert.',
+            travelBillingDescription: 'Reisekosten werden als Kreditkartenbelastungen in das unten angegebene Sage Intacct-Konto exportiert.',
             creditCardAccount: 'Kreditkartenkonto',
             defaultVendor: 'Standardanbieter',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -6183,8 +6183,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie aus, von wo Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in Rillet.'},
             syncExpensifyCardSettlements: 'Expensify Kartenabrechnungen synchronisieren',
             settlementAccount: {label: 'Verrechnungskonto für Expensify Karte', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
-            syncTravelInvoicingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
-            travelInvoicingSettlementAccount: {
+            syncTravelBillingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
+            travelBillingSettlementAccount: {
                 label: 'Konsolidiertes Abrechnungs­konto für Geschäftsreisen',
                 description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.',
             },
@@ -6339,12 +6339,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             },
             syncExpensifyCardSettlements: 'Expensify Karten-Abrechnungen synchronisieren',
             settlementAccount: {label: 'Expensify Karte Verrechnungskonto', description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in DualEntry.'},
-            syncTravelInvoicingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
-            travelInvoicingSettlementAccount: {
+            syncTravelBillingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
+            travelBillingSettlementAccount: {
                 label: 'Abrechnungskonto für konsolidierte Reiseabrechnung',
                 description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in DualEntry.',
             },
-            travelInvoicingPayableAccount: {label: 'Verbindlichkeitskonto für konsolidierte Reisekostenabrechnung'},
+            travelBillingPayableAccount: {label: 'Verbindlichkeitskonto für konsolidierte Reisekostenabrechnung'},
         },
         type: {
             free: 'Kostenlos',
@@ -6750,13 +6750,13 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         subtitle: 'Kategorien, Tags und Berichtsfelder dieses Arbeitsbereichs an Expensify Travel übertragen, damit Reisende sie beim Buchen beantworten.',
                     },
                 },
-                travelInvoicing: {
+                travelBilling: {
                     travelBookingSection: {
                         title: 'Reisebuchung',
                         subtitle: 'Glückwunsch! Du kannst jetzt in diesem Workspace Reisen buchen und verwalten.',
                         manageTravelLabel: 'Reisen verwalten',
                     },
-                    travelInvoicingSection: {
+                    travelBillingSection: {
                         title: 'Konsolidierte Reiseabrechnung',
                         subtitle: 'Zentralisieren Sie alle Reisekosten in einer monatlichen Rechnung, anstatt direkt beim Kauf zu bezahlen.',
                         learnHow: 'Mehr erfahren.',
@@ -7799,13 +7799,13 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 chooseBankAccount: 'Wählen Sie das Bankkonto aus, mit dem Ihre Zahlungen mit der Expensify Karte abgeglichen werden.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Stellen Sie sicher, dass dieses Konto mit Ihrem <a href="${settlementAccountUrl}">Expensify Karte-Abrechnungskonto</a> (endend auf ${lastFourPAN}) übereinstimmt, damit die fortlaufende Abstimmung richtig funktioniert.`,
-                chooseTravelInvoicingBankAccount: 'Wählen Sie das Bankkonto aus, mit dem Ihre Zahlungen für die konsolidierte Reiseabrechnung abgeglichen werden.',
-                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                chooseTravelBillingBankAccount: 'Wählen Sie das Bankkonto aus, mit dem Ihre Zahlungen für die konsolidierte Reiseabrechnung abgeglichen werden.',
+                travelBillingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Stellen Sie sicher, dass dieses Konto mit Ihrem Konsolidierten Reiseabrechnungs-Abrechnungskonto (endet auf ${lastFourPAN}) übereinstimmt, damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
             },
-            syncTravelInvoicingSettlements: 'Konsolidierte Reiseabrechnungs-Abrechnungen synchronisieren',
-            syncTravelInvoicingSettlementsNoAccountTooltip: 'Zum Aktivieren legen Sie ein Konto für Ihre Exporte fest.',
-            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Zum Entsperren automatische Synchronisierung aktivieren.',
+            syncTravelBillingSettlements: 'Konsolidierte Reiseabrechnungs-Abrechnungen synchronisieren',
+            syncTravelBillingSettlementsNoAccountTooltip: 'Zum Aktivieren legen Sie ein Konto für Ihre Exporte fest.',
+            syncTravelBillingSettlementsNoAutoSyncTooltip: 'Zum Entsperren automatische Synchronisierung aktivieren.',
             campfire: 'Campfire',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
@@ -9278,12 +9278,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie das Verrechnungskonto „Campfire-Guthaben“, wenn Expensify eine Rechnung als bezahlt markiert.'},
             syncExpensifyCardSettlements: 'Expensify Karte-Abrechnungen synchronisieren',
             settlementAccount: {label: 'Verrechnungskonto der Expensify Karte', description: 'Wählen Sie Ihr Verrechnungskonto aus, und wir erstellen die Zahlung in Campfire.'},
-            syncTravelInvoicingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
-            travelInvoicingSettlementAccount: {
+            syncTravelBillingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
+            travelBillingSettlementAccount: {
                 label: 'Abrechnungskonto für konsolidierte Reiseabrechnung',
                 description: 'Wählen Sie Ihr Verrechnungskonto aus, und wir erstellen die Zahlung in Campfire.',
             },
-            travelInvoicingPayableAccount: {label: 'Verbindlichkeitskonto für konsolidierte Reisekostenabrechnung'},
+            travelBillingPayableAccount: {label: 'Verbindlichkeitskonto für konsolidierte Reisekostenabrechnung'},
             exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
             cardProgramAccount: {
                 label: 'Kartenprogramm-Konto',
@@ -10410,7 +10410,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Alle ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Alle importierten CSV-Karten${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                travelInvoicing: 'Konsolidierte Reiseabrechnung',
+                travelBilling: 'Konsolidierte Reiseabrechnung',
             },
             bankAccount: {banks: 'Bankkonten', closedBankAccounts: 'Geschlossene Bankkonten'},
             workspace: {active: 'Aktiv', archived: 'Archiviert', selectAll: 'Alle auswählen'},
@@ -10938,7 +10938,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         personalCard: 'Private Karte',
         companyCard: 'Firmenkarte',
         expensifyCard: 'Expensify Karte',
-        travelInvoicing: 'Konsolidierte Reiseabrechnung',
+        travelBilling: 'Konsolidierte Reiseabrechnung',
         travelCard: 'Reisekarte',
     },
     distance: {

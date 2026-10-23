@@ -4947,7 +4947,7 @@ ${amount} pour ${merchant} - ${date}`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
             deleteOpenExpensifyCardsError: 'Votre entreprise a encore des Cartes Expensify. Veuillez <concierge-link>contacter Concierge</concierge-link> pour les supprimer.',
-            deleteTravelInvoicingError: 'Votre entreprise a toujours la facturation de voyages consolidée activée.',
+            deleteTravelBillingError: 'Votre entreprise a toujours la facturation de voyages consolidée activée.',
             outstandingBalanceWarning:
                 'Vous avez un solde impayé qui doit être réglé avant de supprimer votre dernier espace de travail. Veuillez accéder à vos paramètres d’abonnement pour résoudre le paiement.',
             settleBalance: 'Aller à l’abonnement',
@@ -5051,9 +5051,9 @@ ${amount} pour ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'catégorie'},
             policyExpenseChatName: (displayName: string) => `Dépenses de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions de la Carte Expensify seront automatiquement exportées vers un « compte de passif Carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
-            travelInvoicing: 'Exporter les dépenses de facturation de voyage consolidée en tant que',
-            travelInvoicingVendor: 'Fournisseur de voyages',
-            travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
+            travelBilling: 'Exporter les dépenses de facturation de voyage consolidée en tant que',
+            travelBillingVendor: 'Fournisseur de voyages',
+            travelBillingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
             recruiting: 'Recrutement',
             rooms: 'Salons',
@@ -5355,7 +5355,7 @@ ${amount} pour ${merchant} - ${date}`,
             notConfigured: 'Non configuré',
             bankAccountDescription: 'Choisissez d’où envoyer les chèques.',
             creditCardAccount: 'Compte de carte de crédit',
-            travelInvoicingDescription: (integrationName = 'QuickBooks Online') =>
+            travelBillingDescription: (integrationName = 'QuickBooks Online') =>
                 `Les frais de voyage seront exportés comme des débits de carte de crédit vers le compte ${integrationName} indiqué ci-dessous.`,
             companyCardsLocationEnabledDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} ne prend pas en charge les emplacements dans les exports de factures fournisseur lorsque les emplacements sont importés en tant que tags. Comme vous avez des emplacements importés en tant que tags dans votre espace de travail, cette option d’export n’est pas disponible.`,
@@ -5463,7 +5463,7 @@ ${amount} pour ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Les dépenses exportées seront enregistrées comme des transactions bancaires sur le compte bancaire Xero ci-dessous, et les dates de transaction correspondront aux dates figurant sur votre relevé bancaire.',
             bankTransactions: 'Transactions bancaires',
-            travelInvoicingDescription: 'Les frais de voyage seront exportés sous forme de transactions bancaires vers le compte Xero indiqué ci-dessous.',
+            travelBillingDescription: 'Les frais de voyage seront exportés sous forme de transactions bancaires vers le compte Xero indiqué ci-dessous.',
             xeroBankAccount: 'Compte bancaire Xero',
             bankAccount: 'Compte bancaire',
             xeroBankAccountDescription: 'Choisissez où les dépenses seront enregistrées comme transactions bancaires.',
@@ -5564,7 +5564,7 @@ ${amount} pour ${merchant} - ${date}`,
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Factures fournisseurs',
                 },
             },
-            travelInvoicingDescription: 'Les frais de voyage seront exportés comme des débits de carte de crédit vers le compte Sage Intacct indiqué ci-dessous.',
+            travelBillingDescription: 'Les frais de voyage seront exportés comme des débits de carte de crédit vers le compte Sage Intacct indiqué ci-dessous.',
             creditCardAccount: 'Compte de carte de crédit',
             defaultVendor: 'Fournisseur par défaut',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -6191,8 +6191,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             billPaymentAccount: {label: 'Compte de paiement des factures', description: 'Choisissez d’où payer les factures et nous créerons le paiement dans Rillet.'},
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.'},
-            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage consolidée',
-            travelInvoicingSettlementAccount: {
+            syncTravelBillingSettlements: 'Synchroniser les règlements de facturation de voyage consolidée',
+            travelBillingSettlementAccount: {
                 label: 'Compte de règlement de facturation de voyage consolidée',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.',
             },
@@ -6344,12 +6344,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.'},
-            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage consolidés',
-            travelInvoicingSettlementAccount: {
+            syncTravelBillingSettlements: 'Synchroniser les règlements de facturation de voyage consolidés',
+            travelBillingSettlementAccount: {
                 label: 'Compte de règlement de facturation de voyage consolidée',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.',
             },
-            travelInvoicingPayableAccount: {label: 'Compte fournisseur de facturation de voyage consolidée'},
+            travelBillingPayableAccount: {label: 'Compte fournisseur de facturation de voyage consolidée'},
         },
         type: {
             free: 'Gratuit',
@@ -6766,13 +6766,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             'Envoyez les catégories, tags et champs de note de frais de cet espace de travail vers Expensify Travel pour que les voyageurs y répondent au moment de la réservation.',
                     },
                 },
-                travelInvoicing: {
+                travelBilling: {
                     travelBookingSection: {
                         title: 'Réservation de voyage',
                         subtitle: 'Félicitations ! Vous êtes prêt à réserver et gérer des voyages sur cet espace de travail.',
                         manageTravelLabel: 'Gérer les déplacements',
                     },
-                    travelInvoicingSection: {
+                    travelBillingSection: {
                         title: 'Facturation de voyages consolidée',
                         subtitle: 'Centralisez toutes les dépenses de voyage dans une facture mensuelle au lieu de payer au moment de l’achat.',
                         learnHow: 'Découvrez comment.',
@@ -7820,13 +7820,13 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 chooseBankAccount: 'Choisissez le compte bancaire avec lequel les paiements de votre Carte Expensify seront rapprochés.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Assurez-vous que ce compte correspond à votre <a href="${settlementAccountUrl}">compte de règlement Carte Expensify</a> (se terminant par ${lastFourPAN}) afin que la réconciliation continue fonctionne correctement.`,
-                chooseTravelInvoicingBankAccount: 'Choisissez le compte bancaire sur lequel vos paiements de facturation de voyage consolidée seront rapprochés.',
-                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                chooseTravelBillingBankAccount: 'Choisissez le compte bancaire sur lequel vos paiements de facturation de voyage consolidée seront rapprochés.',
+                travelBillingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Assurez-vous que ce compte correspond à votre compte de règlement Consolidated Travel Billing (se terminant par ${lastFourPAN}) afin que le rapprochement continu fonctionne correctement.`,
             },
-            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyages consolidés',
-            syncTravelInvoicingSettlementsNoAccountTooltip: 'Pour le déverrouiller, définissez un compte pour vos exports.',
-            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Pour le déverrouiller, activez la synchronisation automatique.',
+            syncTravelBillingSettlements: 'Synchroniser les règlements de facturation de voyages consolidés',
+            syncTravelBillingSettlementsNoAccountTooltip: 'Pour le déverrouiller, définissez un compte pour vos exports.',
+            syncTravelBillingSettlementsNoAutoSyncTooltip: 'Pour le déverrouiller, activez la synchronisation automatique.',
             campfire: 'Campfire',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
@@ -9301,12 +9301,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.'},
-            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage consolidés',
-            travelInvoicingSettlementAccount: {
+            syncTravelBillingSettlements: 'Synchroniser les règlements de facturation de voyage consolidés',
+            travelBillingSettlementAccount: {
                 label: 'Compte de règlement de facturation de voyage consolidée',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.',
             },
-            travelInvoicingPayableAccount: {label: 'Compte fournisseur de facturation de voyage consolidée'},
+            travelBillingPayableAccount: {label: 'Compte fournisseur de facturation de voyage consolidée'},
             exportToMultipleAccounts: 'Configurer l’exportation vers plusieurs comptes',
             cardProgramAccount: {
                 label: 'Compte du programme de carte',
@@ -10436,7 +10436,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Tous les ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Toutes les cartes CSV importées${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                travelInvoicing: 'Facturation de voyages consolidée',
+                travelBilling: 'Facturation de voyages consolidée',
             },
             bankAccount: {banks: 'Comptes bancaires', closedBankAccounts: 'Comptes bancaires fermés'},
             workspace: {active: 'Actif', archived: 'Archivé', selectAll: 'Tout sélectionner'},
@@ -10964,7 +10964,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         personalCard: 'Carte personnelle',
         companyCard: 'Carte d’entreprise',
         expensifyCard: 'Carte Expensify',
-        travelInvoicing: 'Facturation de voyages consolidée',
+        travelBilling: 'Facturation de voyages consolidée',
         travelCard: 'Carte de voyage',
     },
     distance: {
