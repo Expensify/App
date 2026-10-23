@@ -5,8 +5,10 @@ import {
     classCallCheckNoiseFilterIntegration,
     consoleIntegration,
     googleTranslateRecursionNoiseFilterIntegration,
+    hermesProfilingIntegration,
     navigationIntegration,
     reportingObserverIntegration,
+    searchRouterProfilingSamplerIntegration,
     thirdPartyErrorFilterIntegration,
     tracingIntegration,
 } from '@libs/telemetry/integrations';
@@ -41,6 +43,8 @@ function setupSentry(): void {
         navigationIntegration,
         tracingIntegration,
         browserProfilingIntegration,
+        searchRouterProfilingSamplerIntegration,
+        hermesProfilingIntegration,
         breadcrumbsIntegration,
         consoleIntegration,
         reportingObserverIntegration,
@@ -100,7 +104,8 @@ function setupSentry(): void {
         _experiments: {
             profilingOptions: {
                 // When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
-                // This option replaces `profilesSampleRate`
+                // UI profiling of native threads only. It reaches the native SDK only when RN initializes it, which
+                // `autoInitializeNativeSdk: false` prevents. Hermes (JS) profiling is gated by `searchRouterProfilingSampler`.
                 profileSessionSampleRate: 0.5,
                 lifecycle: 'trace',
             },

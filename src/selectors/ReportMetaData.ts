@@ -33,7 +33,11 @@ const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): 
 
 const pendingDeleteMemberAccountIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers);
 
-const pendingDeleteMemberAccountIDsByReportIDSelector = (reportMetadata: OnyxCollection<ReportMetadata>): Record<string, string[]> => {
+// Shared by every subscriber when nothing is pending, so a fresh subscription returns the same reference. The option
+// list cache in OptionsListUtils compares this by reference, and a new empty object per mount made it miss every time.
+const NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS: Readonly<Record<string, string[]>> = Object.freeze({});
+
+const pendingDeleteMemberAccountIDsByReportIDSelector = (reportMetadata: OnyxCollection<ReportMetadata>): Readonly<Record<string, string[]>> => {
     const result: Record<string, string[]> = {};
 
     for (const [key, metadata] of Object.entries(reportMetadata ?? {})) {
@@ -50,7 +54,7 @@ const pendingDeleteMemberAccountIDsByReportIDSelector = (reportMetadata: OnyxCol
         result[key.replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '')] = pendingDeleteMemberAccountIDs;
     }
 
-    return result;
+    return Object.keys(result).length > 0 ? result : NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS;
 };
 
 const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>

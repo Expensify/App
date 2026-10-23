@@ -1,10 +1,16 @@
 import * as Sentry from '@sentry/react-native';
 
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, shouldCreateSpanForRequest} from './common';
+import searchRouterProfilingSampler from './searchRouterProfilingSampler';
 
 const tracingIntegration = Sentry.reactNativeTracingIntegration({
     shouldCreateSpanForRequest,
 });
+
+// Only the Search Router open is profiled, see `searchRouterProfilingSampler`. The JS profile is what the open's
+// tail is made of, and leaving the platform profilers off keeps the profiler's own cost out of the measured span.
+const searchRouterProfilingSamplerIntegration = searchRouterProfilingSampler();
+const hermesProfilingIntegration = Sentry.hermesProfilingIntegration({platformProfilers: false});
 
 // The Reporting API is a browser-only feature, so there is no native integration. This stub keeps
 // the web/native export shape in parity; it is filtered out of the integrations list on native.
@@ -25,6 +31,8 @@ export {
     navigationIntegration,
     tracingIntegration,
     browserProfilingIntegration,
+    searchRouterProfilingSamplerIntegration,
+    hermesProfilingIntegration,
     breadcrumbsIntegration,
     consoleIntegration,
     reportingObserverIntegration,
