@@ -52,9 +52,18 @@ const SCANNED_EXTENSIONS = new Set(['.js', '.cjs', '.mjs', '.jsx', '.ts', '.tsx'
  * Build-time tooling that ships to node_modules as a prod dependency but is never resolved into
  * the native app bundle. Some implement codegen detection themselves (regexes/strings); others are
  * genuinely Flow-typed but only ever run on the build machine. Verified against a real bundle:
- * neither @expo/metro-file-map nor jsc-safe-url appears in it.
+ * neither @expo/metro-file-map nor jsc-safe-url appears in it. @expo/metro-config is the Metro config only
+ * `metro.config.js` loads; since SDK 58 it ships its own copy of the RN codegen babel plugin.
  */
-const TOOLING_PACKAGE_PREFIXES = ['@expo/cli', '@expo/metro-file-map', '@react-native-community/cli', 'expo-modules-autolinking', '@react-native/codegen', 'jsc-safe-url'];
+const TOOLING_PACKAGE_PREFIXES = [
+    '@expo/cli',
+    '@expo/metro-config',
+    '@expo/metro-file-map',
+    '@react-native-community/cli',
+    'expo-modules-autolinking',
+    '@react-native/codegen',
+    'jsc-safe-url',
+];
 
 function isToolingPackage(packageName: string): boolean {
     return TOOLING_PACKAGE_PREFIXES.some((prefix) => packageName === prefix || packageName.startsWith(`${prefix}-`) || packageName.startsWith(`${prefix}/`));

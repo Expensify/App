@@ -89,7 +89,8 @@
         "shellcheck",
         "patch-package",
         "diff-so-fancy",
-        "@babel/plugin-proposal-class-properties"
+        "@babel/plugin-proposal-class-properties",
+        "@react-native/assets-registry"
     ],
     "ignoreBinaries": ["metro-symbolicate", "mkcert", "openssl"]
 }

@@ -5,7 +5,7 @@ import Clipboard from '@libs/Clipboard';
 
 import CONST from '@src/CONST';
 
-import type {AccessibilityRole, StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 
 import React, {useCallback} from 'react';
 
@@ -20,7 +20,7 @@ type CopyTextToClipboardProps = {
     textStyles?: StyleProp<TextStyle>;
     urlToCopy?: string;
 
-    accessibilityRole?: AccessibilityRole;
+    accessibilityRole?: PressableWithDelayToggleProps['accessibilityRole'];
 } & Pick<PressableWithDelayToggleProps, 'iconStyles' | 'iconSize' | 'styles' | 'shouldUseButtonBackground' | 'shouldHaveActiveBackground' | 'inline'>;
 
 function CopyTextToClipboard({

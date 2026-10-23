@@ -9,12 +9,22 @@ const {createSentryMetroSerializer} = require('@sentry/react-native/dist/js/tool
 
 const path = require('path');
 
-const {wrapTransformResultMaps} = require('@expo/metro-config/build/serializer/packedMap');
+// Expo SDK 56/57's transformer emits packed per-module source maps stock metro-source-map can't
+// read ("Unexpected module with full source map found"); unpack them here as Expo's CLI does.
+// Expo SDK 58 replaced the packed format with Metro's compact VlqMap and removed
+// @expo/metro-config/build/serializer/packedMap, so the patch is skipped when the module is gone.
+let wrapTransformResultMaps;
+try {
+    ({wrapTransformResultMaps} = require('@expo/metro-config/build/serializer/packedMap'));
+} catch {
+    wrapTransformResultMaps = undefined;
+}
 const Bundler = require('metro/private/Bundler').default;
 
-// Expo SDK 56's transformer emits packed per-module source maps stock metro-source-map can't
-// read ("Unexpected module with full source map found"); unpack them here as Expo's CLI does.
 function patchMetroForExpoPackedSourceMaps() {
+    if (!wrapTransformResultMaps) {
+        return;
+    }
     // Rock never exposes a Bundler instance, so we patch the shared prototype; the flag stops
     // repeated config evaluation from stacking wrappers.
     if (Bundler.prototype.__expoPackedSourceMapsPatched) {
