@@ -6554,16 +6554,10 @@ function getColumnsToShow({
         if (column === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED) {
             return !!reportToCheck?.creditedAmount && !!reportToCheck?.creditedCurrency;
         }
-        if (column === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID) {
-            return !!reportToCheck?.withdrawalIDs;
-        }
         return !!getReportCustomColumnValue(column, reportToCheck);
     };
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        // Keep WITHDRAWAL_ID out of reportCustomColumns, because expense rows show each expense's own withdrawal ID, not the report's.
-        const expenseReportCustomColumns = new Set<SearchColumnType>([...reportCustomColumns, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]);
-
         const defaultReportColumns: SearchColumnType[] = [
             CONST.SEARCH.TABLE_COLUMNS.AVATAR,
             CONST.SEARCH.TABLE_COLUMNS.DATE,
@@ -6603,7 +6597,7 @@ function getColumnsToShow({
         }
 
         return result.filter((column) => {
-            if (!expenseReportCustomColumns.has(column)) {
+            if (!reportCustomColumns.has(column)) {
                 return true;
             }
 

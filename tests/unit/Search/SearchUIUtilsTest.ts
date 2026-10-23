@@ -12005,34 +12005,18 @@ describe('SearchUIUtils', () => {
             expect(sortedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
         });
 
-        test('Should only show the Withdrawal ID column on report searches when a report on the page has a withdrawal', () => {
-            // Given a page of reports where only one report has withdrawals
+        test('Should show the selected Withdrawal ID column on report searches even when no report on the page has a withdrawal', () => {
+            // Given a page of reports where no report has withdrawals, and the user selected the Withdrawal ID column
             const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID];
             const unpaidReportID = '1';
-            const paidReportID = '2';
             const unpaidReport = {reportID: unpaidReportID, type: CONST.REPORT.TYPE.EXPENSE, total: -10000, currency: 'USD'};
-            const paidReport = {...unpaidReport, reportID: paidReportID, withdrawalIDs: '1234,5678'};
-
             const unpaidData: OnyxTypes.SearchResults['data'] = {[`report_${unpaidReportID}`]: unpaidReport};
-            const paidData: OnyxTypes.SearchResults['data'] = {...unpaidData, [`report_${paidReportID}`]: paidReport};
 
-            // When no report on the page has a withdrawal, then the column is hidden
-            const unpaidColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: unpaidData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
-            expect(unpaidColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
+            // When the columns to show are computed
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: unpaidData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
 
-            // When a report on the page has a withdrawal, then the column is shown
-            const paidColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: paidData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
-            expect(paidColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
-
-            // When the reports are sorted by the empty column, then it stays so the sort can still be changed
-            const sortedColumns = SearchUIUtils.getColumnsToShow({
-                currentAccountID: 1,
-                data: unpaidData,
-                visibleColumns,
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                sortBy: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
-            });
-            expect(sortedColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
+            // Then the column stays visible, because the user selected it
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
         });
 
         test('Should only show the conversion amount columns for withdrawal groups that converted currencies', () => {
