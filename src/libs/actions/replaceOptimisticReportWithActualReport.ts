@@ -279,7 +279,8 @@ Onyx.connectWithoutView({
         }
 
         for (const report of Object.values(value)) {
-            if (!report) {
+            // Only reports with a preexistingReportID get replaced, so skip the rest before building a draft key per report
+            if (!report?.preexistingReportID) {
                 continue;
             }
 

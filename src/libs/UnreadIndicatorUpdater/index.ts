@@ -130,7 +130,8 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
     });
 }
 
-const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator, {maxArgs: 3});
+// Every report write passes a new `reports` object, so a deep, unbounded cache only grows and deep-compares every past snapshot; keep the last call by reference
+const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator, {maxArgs: 3, maxSize: 1, equality: 'shallow'});
 
 /**
  * Debouncing is used here to limit the frequency of updates to the unread indicator.
@@ -169,4 +170,4 @@ AppStateMonitor.addBecameActiveListener(() => {
     triggerUnreadUpdate();
 });
 
-export default {getUnreadReportsForUnreadIndicator};
+export default {getUnreadReportsForUnreadIndicator, memoizedGetUnreadReportsForUnreadIndicator};
