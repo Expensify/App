@@ -30,7 +30,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card, CardFeeds, CurrencyList, Policy} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
-import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {
     AddNewCardFeedData,
     AddNewCardFeedStep,
@@ -68,7 +67,7 @@ type ImportCSVCompanyCardsData = {
     policyID: string;
     domainAccountID: number;
     layoutName: string;
-    layoutType: string;
+    layoutType: CompanyCardFeedWithNumber;
     columnMappings: string[];
     csvData: string[][];
     lastSelectedFeed?: CompanyCardFeedWithDomainID;
@@ -100,7 +99,7 @@ function parseCSVAmount(value: string): number | undefined {
 function buildOptimisticCompanyCardCSVTransactions(
     csvData: string[][],
     columnMappings: string[],
-    feedName: CompanyCardFeed,
+    feedName: CompanyCardFeedWithNumber,
 ): {
     csvDataWithGeneratedIDs: string[][];
     normalizedColumnMappings: string[];
@@ -1267,7 +1266,7 @@ function importCSVCompanyCards({
     workspaceCardFeeds,
     existingInstanceID,
 }: ImportCSVCompanyCardsData): Promise<ImportFinalModal> {
-    const feedName = layoutType as CompanyCardFeed;
+    const feedName = layoutType;
     const {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions} = buildOptimisticCompanyCardCSVTransactions(csvData, columnMappings, feedName);
     // `existingInstanceID` is typed as a string, but for legacy feeds Onyx/NVP can store it as a number.
     // The backend rejects a non-string `instanceID` before parsing the CSV, so coerce it to a string here.
@@ -1439,7 +1438,7 @@ function linkCardFeedToPolicy(domainAccountID: number, policyID: string, feedTyp
                     reject('common.genericErrorMessage');
                     return;
                 }
-                resolve(response as ExpensifyCardDetails);
+                resolve(response);
             })
             // eslint-disable-next-line prefer-promise-reject-errors
             .catch(() => reject('common.genericErrorMessage'));

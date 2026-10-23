@@ -53,7 +53,6 @@ import {
     buildNewTransactionAfterReviewingDuplicates,
     canMergeDuplicates,
     compareDuplicateTransactionFields,
-    doesReportKeepExpensesAfterMerge,
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
 } from './duplicates';
@@ -237,9 +236,11 @@ type ManuallyEnteredScanFields = Pick<Transaction, 'iouRequestType' | 'isAmountS
 /**
  * The Scan confirmation's amount / merchant / date are all-or-nothing: leave all three blank to let SmartScan read
  * them, or fill all three in to submit as a manual expense whose receipt is never scanned over.
+ * `isMerchantRequired` mirrors the manual flow, where only a workspace chat requires a merchant: outside of one
+ * (P2P, self DM) a blank merchant doesn't keep the entered amount and date from counting as complete.
  */
-function hasAllManuallyEnteredScanFields(transaction: OnyxEntry<ManuallyEnteredScanFields>): boolean {
-    return isScanRequest(transaction) && !!transaction?.isAmountSet && !!transaction?.isMerchantSet && !!transaction?.isCreatedSet;
+function hasAllManuallyEnteredScanFields(transaction: OnyxEntry<ManuallyEnteredScanFields>, isMerchantRequired = true): boolean {
+    return isScanRequest(transaction) && !!transaction?.isAmountSet && (!isMerchantRequired || !!transaction?.isMerchantSet) && !!transaction?.isCreatedSet;
 }
 
 /** Whether the user filled in at least one of those three fields, which is what turns the scan into a manual expense. */
@@ -252,8 +253,8 @@ function hasAnyManuallyEnteredScanField(transaction: OnyxEntry<ManuallyEnteredSc
  * `canEnterScanFieldsManually` says whether the surface offers those fields at all, since splits, moved tracked
  * expenses and test receipts carry the same flags without ever having shown them.
  */
-function isPartiallyEnteredScanExpense(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false): boolean {
-    return canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction) && !hasAllManuallyEnteredScanFields(transaction);
+function isPartiallyEnteredScanExpense(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, isMerchantRequired = true): boolean {
+    return canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction) && !hasAllManuallyEnteredScanFields(transaction, isMerchantRequired);
 }
 
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -1205,6 +1206,14 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
 }
 
 /**
+ * Manual expenses never show a scan to the user, so a backend scan of their receipt shouldn't block receipt edits.
+ * This checks iouRequestType directly instead of using getRequestType, which treats a missing type as manual.
+ */
+function isReceiptScanBlockingEdit(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    return isReceiptBeingScanned(transaction) && transaction?.iouRequestType !== CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+/**
  * Check if category is being analyzed (manual request creation or auto-categorization grace period)
  */
 function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): boolean {
@@ -1878,6 +1887,7 @@ export {
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
+    isReceiptScanBlockingEdit,
     didReceiptScanSucceed,
     getValidWaypoints,
     doesMoneyRequestDraftHaveUserInput,
@@ -1942,7 +1952,6 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     buildMergeDuplicatesParams,
     canMergeDuplicates,
-    doesReportKeepExpensesAfterMerge,
     getReimbursable,
     hasNonReimbursableTransactions,
     isPayAtEndExpense,

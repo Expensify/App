@@ -190,7 +190,7 @@ function VerticalBarChartCanvas({
 
         return (
             <Bar
-                key={`bar-${seriesItem.key}-${dataPoint.label}`}
+                key={`bar-${seriesItem.key}-${point.xValue}`}
                 points={[{...point, x: point.x + offset}]}
                 chartBounds={chartBounds}
                 color={color}
