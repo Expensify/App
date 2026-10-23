@@ -91,6 +91,13 @@ function getPaymentMethods(params?: OpenPaymentsPageParams) {
 }
 
 /**
+ * Loads the reimbursement details of the user's policies, which decide which payment options can be shown
+ */
+function openPaymentMethods() {
+    API.read(READ_COMMANDS.OPEN_PAYMENT_METHODS, null);
+}
+
+/**
  * Sets the default bank account or debit card for an Expensify Wallet
  *
  */
@@ -614,6 +621,7 @@ export {
     deletePaymentCard,
     addPaymentCard,
     getPaymentMethods,
+    openPaymentMethods,
     makeDefaultPaymentMethod,
     continueSetup,
     addSubscriptionPaymentCard,

@@ -31,7 +31,7 @@ import {isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@lib
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
-import {isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
+import {canPayViaABA, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -46,6 +46,7 @@ import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import {clearPersonalBankAccount, pressLockedBankAccount} from '@userActions/BankAccounts';
+import {openPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -345,6 +346,16 @@ function SettlementButton({
             }
         }
 
+        if (isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy)) {
+            buttonOptions.push({
+                ...paymentMethods[CONST.PAYMENT_METHODS.ABA],
+                // The file is downloaded straight from the API, which can't be queued for when the user is back online
+                disabled: isOffline,
+                onSelected: () =>
+                    runPaymentAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA})),
+            });
+        }
+
         if (shouldShowPayElsewhereOption) {
             buttonOptions.push({
                 ...paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE],
@@ -546,6 +557,14 @@ function SettlementButton({
         customText = translate('iou.settlePayment', formattedAmount);
     }
 
+    const handlePaymentOptionsShow = () => {
+        // Only AUD policies support the pay via ABA option, for which we need additional reimbursement data
+        if (policy?.outputCurrency === CONST.CURRENCY.AUD) {
+            openPaymentMethods();
+        }
+        onPaymentOptionsShow?.();
+    };
+
     const popoverUseScrollView = shouldPopoverUseScrollView(paymentButtonOptions);
 
     return (
@@ -564,7 +583,7 @@ function SettlementButton({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<string>
-                    onOptionsMenuShow={onPaymentOptionsShow}
+                    onOptionsMenuShow={handlePaymentOptionsShow}
                     onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu

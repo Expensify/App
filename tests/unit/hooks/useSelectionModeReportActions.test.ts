@@ -6,6 +6,7 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 
 import useLifecycleActions from '@hooks/useLifecycleActions';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
+import useSelectionModePayment from '@hooks/useSelectionModePayment';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
 
 import {submitReport} from '@libs/actions/IOU/ReportWorkflow';
@@ -538,6 +539,21 @@ describe('useSelectionModeReportActions', () => {
             expect(result.current.nonHeldAmount).toBe('$100.00');
             expect(result.current.fullAmount).toBe('$100.00');
             expect(result.current.hasValidNonHeldAmount).toBe(true);
+        });
+
+        it('keeps the payment method the hold menu was opened with, so paying via ABA downloads the ABA file', () => {
+            // Given selection mode on a report
+            const {result} = renderSelectionModeHook();
+            const {onHoldMenuOpen} = jest.mocked(useSelectionModePayment).mock.calls.at(-1)?.at(0) ?? {};
+
+            // When its hold menu opens for paying via ABA
+            act(() => {
+                onHoldMenuOpen?.({requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA});
+            });
+
+            // Then the hold menu gets the ABA payment method along with the payment type
+            expect(result.current.isHoldMenuVisible).toBe(true);
+            expect(result.current.paymentMethod).toBe(CONST.PAYMENT_METHODS.ABA);
         });
     });
 
