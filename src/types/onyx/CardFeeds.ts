@@ -285,7 +285,7 @@ type AddNewCardFeedData = {
     companyCardLayoutName?: string;
 
     /** Identifier for the CSV layout template */
-    layoutType?: string;
+    layoutType?: CompanyCardFeedWithNumber;
 
     /** Existing instance ID when editing a CSV feed */
     existingInstanceID?: string;
