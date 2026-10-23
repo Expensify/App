@@ -6294,7 +6294,7 @@ const translations = {
                 },
             },
             exportDate: {
-                label: 'Vendor bill date',
+                label: 'GL impact date',
                 description: 'Use this date when exporting reports to Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
