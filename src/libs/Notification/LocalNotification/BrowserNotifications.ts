@@ -3,13 +3,13 @@ import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.p
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider/types';
 
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
-import {translateLocal} from '@libs/Localize';
+import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import {format} from '@libs/NumberFormatUtils';
 import {getTextFromHtml} from '@libs/ReportActionMessageUtils';
-import {getMarkedReimbursedMessage, isActionOfType} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -163,9 +163,16 @@ export default {
         }
         if (!plainTextMessage) {
             if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-                plainTextMessage = getMarkedReimbursedMessage(translateLocal, reportAction);
+                const originalMessage = getOriginalMessage(reportAction) as {message?: string} | undefined;
+                plainTextMessage = translate(IntlStore.getCurrentLocale(), 'iou.paidElsewhere', undefined, originalMessage?.message?.trim());
             } else {
-                const messages = Array.isArray(reportAction.message) ? reportAction.message : reportAction.message ? [reportAction.message] : [];
+                const rawMessage = reportAction.message;
+                let messages: NonNullable<typeof rawMessage>[];
+                if (Array.isArray(rawMessage)) {
+                    messages = rawMessage;
+                } else {
+                    messages = rawMessage ? [rawMessage] : [];
+                }
                 plainTextMessage = messages
                     .filter((m): m is NonNullable<typeof m> => m?.style === 'normal')
                     .map((m) => m.text ?? '')
