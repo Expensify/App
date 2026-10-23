@@ -581,7 +581,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: '附件错误',
         errorWhileSelectingAttachment: '选择附件时发生错误。请重试。',
         errorWhileSelectingCorruptedAttachment: '选择已损坏的附件时发生错误。请尝试另一个文件。',
-        errorWhileConvertingHeic: '我们无法处理此图片。请重试，或以其他格式上传照片。',
+        errorWhileConvertingImage: '我们无法处理此图片。请重试，或以其他格式上传照片。',
         takePhoto: '拍照',
         retake: '重拍',
         usePhoto: '使用照片',
@@ -9721,6 +9721,10 @@ ${reportName}`,
             `已将 ${displayName} 的工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `已将默认工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
+        updateRulesDocument: (isReplacement: boolean, overviewURL?: string) => {
+            const message = isReplacement ? '已替换报销政策文档' : '已添加报销政策文档';
+            return overviewURL ? `${message} 在 <a href="${overviewURL}">工作区 &gt; 概览</a>` : message;
+        },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `已将“防止将不可报销报表标记为已支付”更新为“${newValue === 'true' ? '已启用' : '已禁用'}”（之前为“${oldValue === 'true' ? '已启用' : '已禁用'}”）`,
     },
