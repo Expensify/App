@@ -136,8 +136,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldDisplayCompactArrowIcon = !!(item.parentReportIcon || item.parentReportName);
+    const shouldDisplayCompactArrowIcon = !!(item.parentReportIcon ?? item.parentReportName);
 
     if (!isLargeScreenWidth) {
         return (

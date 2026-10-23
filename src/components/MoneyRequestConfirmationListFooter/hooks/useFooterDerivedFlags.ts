@@ -5,7 +5,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
-import {isSubmitPolicy} from '@libs/PolicyUtils';
+import {canShowReimbursableToggleForPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getCurrency, isManagedCardTransaction, isScanRequest, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
 
@@ -95,7 +95,11 @@ function useFooterDerivedFlags({
     // A flag for showing the billable field
     const shouldShowBillable = isBillableEnabledOnPolicy(policy);
     const shouldShowReimbursable =
-        (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
+        (isPolicyExpenseChat || isTrackExpense) &&
+        !!policy &&
+        canShowReimbursableToggleForPolicy(policy, transaction?.reimbursable) &&
+        !isManagedCardTransaction(transaction) &&
+        !isTypeInvoice;
     // Submit workspaces ship Categories/Distance enabled by default, so never route their fields to the upgrade gate.
     const isSubmitWorkspace = isSubmitPolicy(policy);
     const shouldNavigateToUpgradePath = !isSubmitWorkspace && canNavigateToUpgradePath;
