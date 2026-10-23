@@ -21,6 +21,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+import {getTravelMembersSelectionToSend} from '@libs/TravelMembersSelectionUtils';
 
 import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
 
@@ -97,16 +98,7 @@ function TermsStep({policyID, resolvedDomain, firstIncompletePrerequisitePageNam
             resetToPage?.(firstIncompletePrerequisitePageName);
             return;
         }
-        // The member choice only applies when this session asked for it on this workspace, so a choice left by an abandoned
-        // session isn't sent
-        const hasChosenTravelMembers =
-            !!travelProvisioning?.enabledSteps?.includes(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TRAVEL_MEMBERS) &&
-            travelProvisioning.travelMembersPolicyID === policyID &&
-            travelProvisioning.shouldEnableAllTravelMembers !== undefined;
-        const travelMembers = hasChosenTravelMembers
-            ? {shouldEnableAllTravelMembers: !!travelProvisioning?.shouldEnableAllTravelMembers, travelMemberAccountIDs: travelProvisioning?.travelMemberAccountIDs ?? []}
-            : undefined;
-        acceptSpotnanaTerms(domain, policyID, travelProvisioning?.taxID, travelMembers)
+        acceptSpotnanaTerms(domain, policyID, travelProvisioning?.taxID, getTravelMembersSelectionToSend(travelProvisioning, policyID))
             .then((response) => {
                 // Extract the error code from onyxData - the backend sets errors in TRAVEL_PROVISIONING via onyxData
                 const travelProvisioningData = response?.onyxData?.find((data) => data.key === ONYXKEYS.TRAVEL_PROVISIONING);

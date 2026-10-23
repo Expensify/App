@@ -15,6 +15,8 @@ import useWorkspaceMembers from '@hooks/useWorkspaceMembers';
 import {setTravelProvisioningMembers} from '@libs/actions/Travel';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import {getSavedTravelMembersSelection, getTravelMemberAccountIDsToSave, isTravelMemberChoiceLocked} from '@libs/TravelMembersSelectionUtils';
+import type {TravelMemberCandidate} from '@libs/TravelMembersSelectionUtils';
 
 import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
 
@@ -24,12 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type TravelMember = {
-    accountID: number;
-
-    /** Whether the accountID is a placeholder because the member's personal details haven't loaded */
-    isAccountIDGenerated: boolean;
-    email: string;
+type TravelMember = TravelMemberCandidate & {
     name: string;
     avatar: ListItem['icons'];
 };
@@ -48,10 +45,9 @@ function TravelMembersStep({onNext, policy, policyID}: EnableTravelSubPageProps)
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const workspaceMembers = useWorkspaceMembers(policy);
 
-    // A choice made while enabling travel on another workspace doesn't carry over to this one
-    const savedSelection = travelProvisioning?.travelMembersPolicyID === policyID ? travelProvisioning : undefined;
-    const [shouldEnableAllTravelMembers, setShouldEnableAllTravelMembers] = useState(savedSelection?.shouldEnableAllTravelMembers ?? true);
-    const [selectedAccountIDs, setSelectedAccountIDs] = useState<number[]>(savedSelection?.travelMemberAccountIDs ?? []);
+    const savedSelection = getSavedTravelMembersSelection(travelProvisioning, policyID);
+    const [shouldEnableAllTravelMembers, setShouldEnableAllTravelMembers] = useState(savedSelection.shouldEnableAllTravelMembers ?? true);
+    const [selectedAccountIDs, setSelectedAccountIDs] = useState<number[]>(savedSelection.travelMemberAccountIDs ?? []);
 
     const members: TravelMember[] = workspaceMembers
         .map(({email, accountID, details, isAccountIDGenerated}) => ({
@@ -82,9 +78,7 @@ function TravelMembersStep({onNext, policy, policyID}: EnableTravelSubPageProps)
             login: member.email,
             icons: member.avatar,
             isSelected: shouldEnableAllTravelMembers || isCurrentUser || selectedAccountIDs.includes(member.accountID),
-
-            // The server matches members by accountID, so a member whose real one hasn't loaded can't be chosen yet
-            isDisabled: shouldEnableAllTravelMembers || isCurrentUser || member.isAccountIDGenerated,
+            isDisabled: isTravelMemberChoiceLocked(member, shouldEnableAllTravelMembers, currentUserLogin),
         };
     });
 
@@ -102,9 +96,10 @@ function TravelMembersStep({onNext, policy, policyID}: EnableTravelSubPageProps)
         showButton: true,
         text: translate('common.next'),
         onConfirm: () => {
-            const realAccountIDs = new Set(members.filter((member) => !member.isAccountIDGenerated).map((member) => member.accountID));
-            const travelMemberAccountIDs = shouldEnableAllTravelMembers ? [] : selectedAccountIDs.filter((accountID) => realAccountIDs.has(accountID));
-            setTravelProvisioningMembers(policyID, {shouldEnableAllTravelMembers, travelMemberAccountIDs});
+            setTravelProvisioningMembers(policyID, {
+                shouldEnableAllTravelMembers,
+                travelMemberAccountIDs: getTravelMemberAccountIDsToSave(members, selectedAccountIDs, shouldEnableAllTravelMembers),
+            });
             onNext();
         },
     };
