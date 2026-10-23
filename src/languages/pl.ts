@@ -143,6 +143,12 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Myślę…',
         addCardTermsOfService: 'Regulamin Expensify',
         perPerson: 'na osobę',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 noc • ${nightlyRate} za noc`,
+            few: `${count} noce • ${nightlyRate} za noc`,
+            many: `${count} nocy • ${nightlyRate} za noc`,
+            other: `${count} nocy • ${nightlyRate} za noc`,
+        }),
         phone: 'Telefon',
         phoneNumber: 'Numer telefonu',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -4006,6 +4012,7 @@ ${amount} dla ${merchant} - ${date}`,
             removeDelegate: 'Usuń zastępcę urlopowego',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, ukończony`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Krok ${step}`;
         if (total) {
@@ -4113,11 +4120,14 @@ ${amount} dla ${merchant} - ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Wprowadź wartość od ${min} do ${max}`,
             tooFewItems: ({min}: {min: number}) => `Dodaj co najmniej ${min}`,
             tooManyItems: ({max}: {max: number}) => `Dodaj maksymalnie ${max}`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `Dodaj ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Usunąć ${item}?`,
         removeItemPrompt: ({name}: {name: string}) => `Czy na pewno chcesz usunąć ${name}?`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} z końcówką ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'Pytania na tej stronie się zmieniły',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Kod SWIFT/BIC musi mieć długość 8 lub 11 znaków, z 6 literami, po których następują 2 lub 5 liter lub cyfr.',
@@ -6309,9 +6319,12 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             },
             syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
             settlementAccount: {label: 'Rachunek rozliczeniowy Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w DualEntry.'},
-            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia Travel Invoicing',
-            travelInvoicingSettlementAccount: {label: 'Konto rozliczeniowe fakturowania podróży', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w DualEntry.'},
-            travelInvoicingPayableAccount: {label: 'Konto zobowiązań z tytułu faktur za podróże'},
+            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia Consolidated Travel Billing',
+            travelInvoicingSettlementAccount: {
+                label: 'Konto rozliczeniowe skonsolidowanego rozliczania podróży',
+                description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w DualEntry.',
+            },
+            travelInvoicingPayableAccount: {label: 'Konto zobowiązań skonsolidowanego rozliczania podróży'},
         },
         type: {
             free: 'Darmowy',
@@ -9186,9 +9199,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             billPaymentAccount: {label: 'Konto do opłacania rachunków', description: 'Wybierz konto rozliczeniowe dla kredytów Campfire, gdy Expensify oznaczy rachunek jako zapłacony.'},
             syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
             settlementAccount: {label: 'Rachunek rozliczeniowy Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Campfire.'},
-            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia Travel Invoicing',
-            travelInvoicingSettlementAccount: {label: 'Konto rozliczeniowe fakturowania podróży', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Campfire.'},
-            travelInvoicingPayableAccount: {label: 'Konto zobowiązań z tytułu faktur za podróże'},
+            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia Consolidated Travel Billing',
+            travelInvoicingSettlementAccount: {
+                label: 'Konto rozliczeniowe skonsolidowanego rozliczania podróży',
+                description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Campfire.',
+            },
+            travelInvoicingPayableAccount: {label: 'Konto zobowiązań skonsolidowanego rozliczania podróży'},
             exportToMultipleAccounts: 'Skonfiguruj eksport do wielu kont',
             cardProgramAccount: {
                 label: 'Konto programu kartowego',
@@ -9273,6 +9289,39 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             companyCardAccount: {
                 label: 'Konto karty firmowej',
                 description: 'Wybierz, dokąd eksportować transakcje kartą firmową.',
+            },
+            exportToMultipleAccounts: 'Skonfiguruj eksport do wielu kont',
+            cardProgramAccount: {
+                label: 'Konto programu kartowego',
+                description: 'Zastąp konto przestrzeni roboczej dla tych programów kart.',
+                descriptionLevel2: 'Zastąp konto przestrzeni roboczej dla tego programu kart.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Wszystkie programy używają domyślnego konta';
+                    }
+                    return {
+                        one: `${count} program z niestandardowym kontem`,
+                        few: `${count} programy z niestandardowymi kontami`,
+                        many: `${count} programów z niestandardowymi kontami`,
+                        other: `${count} programu z niestandardowymi kontami`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Konto przypisane do karty',
+                description: 'Zastąp konto programu dla poszczególnych kart.',
+                descriptionLevel2: 'Zastąp konto programu dla tych kart.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Wszystkie karty korzystają z kont programu';
+                    }
+                    return {
+                        one: `${count} karta z niestandardowym kontem`,
+                        few: `${count} karty z niestandardowymi kontami`,
+                        many: `${count} kart z niestandardowymi kontami`,
+                        other: `${count} karty z niestandardowymi kontami`,
+                    };
+                },
             },
             paymentMethod: {
                 label: 'Metoda płatności',
@@ -9570,6 +9619,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `zaktualizowano częstotliwość automatycznego raportowania na „${newFrequency}” (poprzednio „${oldFrequency}”)`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `zaktualizowano tryb zatwierdzania na „${newValue}” (wcześniej „${oldValue}”)`,
+        archivedWorkspace: 'zarchiwizował(-a) ten workspace',
+        unarchivedWorkspace: 'przywrócono to miejsce pracy z archiwum',
         upgradedWorkspace: 'zaktualizowano ten workspace do planu Control',
         forcedCorporateUpgrade: `Ta przestrzeń robocza została zaktualizowana do planu Control. Kliknij <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">tutaj</a>, aby uzyskać więcej informacji.`,
         downgradedWorkspace: 'zmniejszono plan tego workspace’u do Collect',
@@ -10444,6 +10495,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             topCategories: 'Najpopularniejsze kategorie',
             topMerchants: 'Najważniejsi sprzedawcy',
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
+            travel: 'Podróże',
+            trips: 'Podróże',
         },
         mergeReports: {
             title: 'Połącz raporty',
@@ -11567,6 +11620,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Zwrócono ${amount} ${date}`,
             },
             billedTo: 'Obciążono',
+            activity: 'Aktywność',
+            findActiveUser: 'Znajdź aktywnego użytkownika',
             viewReceipt: 'Wyświetl paragon',
             viewInvoice: 'Wyświetl fakturę',
         },
@@ -12138,6 +12193,90 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         completedSteps: 'Wykonałem/am powyższe kroki',
         errorTitle: 'Coś poszło nie tak. Spróbuj ponownie.',
         errorPrompt: 'Wygląda na to, że coś nie zadziałało. Spróbuj ponownie. Jeśli problem będzie się powtarzał, skontaktuj się z Concierge.',
+    },
+    bulkAction: {
+        approvingTitle: 'Zatwierdzanie raportów...',
+        submittingTitle: 'Wysyłanie raportów...',
+        payingTitle: 'Oznaczanie raportów jako opłacone...',
+        holdingTitle: 'Wstrzymywanie wydatków...',
+        unholdingTitle: 'Usuwanie blokady wydatków...',
+        rejectingTitle: 'Odrzucanie wydatków...',
+        deletingTitle: 'Usuwanie raportów...',
+        deletingExpensesTitle: 'Usuwanie wydatków...',
+        runningBody: 'Poczekaj kilka minut albo pozwól, by Concierge wysłał ci wiadomość, gdy wszystko będzie gotowe.',
+        sendFromConcierge: 'Napisz do mnie, kiedy będzie gotowe',
+        conciergeTitle: 'No jasne!',
+        conciergeBody: 'Gdy Concierge skończy, wyśle ci wiadomość.',
+        goToConcierge: 'Przejdź do Concierge',
+        approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Zatwierdzono ${doneCount} z ${count} raportu`,
+            other: `Zatwierdzono ${doneCount} z ${count} raportów`,
+        }),
+        submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Przesłano ${doneCount} z ${count} raportu`,
+            other: `Przesłano ${doneCount} z ${count} raportów`,
+        }),
+        paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Oznaczono ${doneCount} z ${count} raportu jako opłacone`,
+            other: `Oznaczono ${doneCount} z ${count} raportów jako opłacone`,
+        }),
+        heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Wstrzymano wydatki w ${doneCount} z ${count} raportu`,
+            other: `Wstrzymano wydatki w ${doneCount} z ${count} raportów`,
+        }),
+        unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Usunięto blokadę wydatków w ${doneCount} z ${count} raportu`,
+            other: `Usunięto blokadę wydatków w ${doneCount} z ${count} raportów`,
+        }),
+        rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Odrzucono wydatki w ${doneCount} z ${count} raportu`,
+            other: `Odrzucono wydatki w ${doneCount} z ${count} raportów`,
+        }),
+        deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Usunięto ${doneCount} z ${count} raportu`,
+            other: `Usunięto ${doneCount} z ${count} raportów`,
+        }),
+        deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Usunięto wydatki w ${doneCount} z ${count} raportu`,
+            other: `Usunięto wydatki w ${doneCount} z ${count} raportów`,
+        }),
+        noReportsTitle: 'Brak pasujących raportów',
+        noReportsBody: 'Żaden z wybranych raportów nie wymagał tej akcji.',
+        viewFailedReports: 'Wyświetl raporty',
+        failedTitle: 'Coś poszło nie tak',
+        failedBody: 'Nie udało się rozpocząć tej akcji. Spróbuj ponownie później.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się zatwierdzić 1 raportu.',
+            other: `Nie udało się zatwierdzić ${count} raportów.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się przesłać 1 raportu.',
+            other: `Nie udało się przesłać ${count} raportów.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się oznaczyć 1 raportu jako opłaconego.',
+            other: `Nie udało się oznaczyć ${count} raportów jako opłaconych.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się wstrzymać wydatków w 1 raporcie.',
+            other: `Nie udało się wstrzymać wydatków w ${count} raportach.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się usunąć blokady wydatków w 1 raporcie.',
+            other: `Nie udało się usunąć blokady wydatków w ${count} raportach.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się odrzucić wydatków w 1 raporcie.',
+            other: `Nie udało się odrzucić wydatków w ${count} raportach.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się usunąć 1 raportu.',
+            other: `Nie udało się usunąć ${count} raportów.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się usunąć wydatków w 1 raporcie.',
+            other: `Nie udało się usunąć wydatków w ${count} raportach.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Odnów swoją subskrypcję na 12-miesięczny okres, od ${startDate} do ${endDate}.`,

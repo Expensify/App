@@ -68,6 +68,9 @@ const ONYXKEYS = {
     PERSISTED_REQUESTS: 'networkRequestQueue',
     PERSISTED_ONGOING_REQUESTS: 'networkOngoingRequestQueue',
 
+    /** Comment edits saved while their attachment was still uploading, replayed once it syncs */
+    DEFERRED_ATTACHMENT_EDITS: 'deferredAttachmentEdits',
+
     /** Stores current date */
     CURRENT_DATE: 'currentDate',
 
@@ -969,6 +972,7 @@ const ONYXKEYS = {
         DOMAIN: 'domain_',
         DOWNLOAD: 'download_',
         EXPORT_DOWNLOAD: 'nvp_exportDownload_',
+        BULK_ACTION: 'nvp_bulkAction_',
         POLICY: 'policy_',
         POLICY_DRAFTS: 'policyDrafts_',
         POLICY_JOIN_MEMBER: 'policyJoinMember_',
@@ -1632,6 +1636,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN]: OnyxTypes.Domain;
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
     [ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD]: OnyxTypes.ExportDownload;
+    [ONYXKEYS.COLLECTION.BULK_ACTION]: OnyxTypes.BulkAction;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.RULE]: OnyxTypes.Rule;
@@ -1751,6 +1756,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
     [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
+    [ONYXKEYS.DEFERRED_ATTACHMENT_EDITS]: OnyxTypes.DeferredAttachmentEdits;
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;

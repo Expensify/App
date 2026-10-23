@@ -607,6 +607,8 @@ const WRITE_COMMANDS = {
     UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_ACCOUNT: 'UpdateBusinessCentralNonreimbursableAccount',
     UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR: 'UpdateBusinessCentralDefaultVendor',
     UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD: 'UpdateBusinessCentralPaymentMethod',
+    UPDATE_BUSINESS_CENTRAL_EXPORT_TO_MULTIPLE_ACCOUNTS: 'UpdateBusinessCentralExportToMultipleAccounts',
+    UPDATE_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT: 'UpdateBusinessCentralCardProgramAccount',
     UPDATE_BUSINESS_CENTRAL_PROJECTS_MAPPING: 'UpdateBusinessCentralProjectsMapping',
     UPDATE_BUSINESS_CENTRAL_AUTO_SYNC: 'UpdateBusinessCentralAutoSync',
     UPDATE_BUSINESS_CENTRAL_ACCOUNTING_METHOD: 'UpdateBusinessCentralAccountingMethod',
@@ -653,9 +655,9 @@ const WRITE_COMMANDS = {
     UPDATE_ZOHO_BOOKS_BILL_PAYMENT_ACCOUNT: 'UpdateZohoBooksBillPaymentAccount',
     UPDATE_ZOHO_BOOKS_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateZohoBooksSyncExpensifyCardSettlements',
     UPDATE_ZOHO_BOOKS_SETTLEMENTS_ACCOUNT: 'UpdateZohoBooksSettlementsAccount',
-    UPDATE_ZOHO_BOOKS_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateZohoBooksSyncTravelInvoicingSettlements',
-    UPDATE_ZOHO_BOOKS_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateZohoBooksTravelInvoicingSettlementsAccount',
-    UPDATE_ZOHO_BOOKS_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateZohoBooksTravelInvoicingPayableAccount',
+    UPDATE_ZOHO_BOOKS_SYNC_TRAVEL_BILLING_SETTLEMENTS: 'UpdateZohoBooksSyncTravelBillingSettlements',
+    UPDATE_ZOHO_BOOKS_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT: 'UpdateZohoBooksTravelBillingSettlementsAccount',
+    UPDATE_ZOHO_BOOKS_TRAVEL_BILLING_PAYABLE_ACCOUNT: 'UpdateZohoBooksTravelBillingPayableAccount',
 
     SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
@@ -798,6 +800,8 @@ const WRITE_COMMANDS = {
     DELETE_AGENT: 'DeleteAgent',
     SEND_EXPORT_FILE_FROM_CONCIERGE: 'SendExportFileFromConcierge',
     CLEAR_EXPORT_DOWNLOAD: 'ClearExportDownload',
+    SEND_BULK_ACTION_SUMMARY_FROM_CONCIERGE: 'SendBulkActionSummaryFromConcierge',
+    CLEAR_BULK_ACTION: 'ClearBulkAction',
     UPGRADE_SUBMIT: 'UpgradeSubmit',
     UPLOAD_USER_KYB_DOCS: 'UploadUserKYBDocs',
     JOIN_REPORT_VIA_SECURE_LINK: 'JoinReportViaSecureLink',
@@ -1377,6 +1381,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_ACCOUNT]: Parameters.UpdateBusinessCentralNonreimbursableAccountParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR]: Parameters.UpdateBusinessCentralDefaultVendorParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD]: Parameters.UpdateBusinessCentralPaymentMethodParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_TO_MULTIPLE_ACCOUNTS]: Parameters.UpdateBusinessCentralExportToMultipleAccountsParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT]: Parameters.UpdateBusinessCentralCardProgramAccountParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PROJECTS_MAPPING]: Parameters.UpdateBusinessCentralCustomerMappingParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_AUTO_SYNC]: Parameters.UpdateBusinessCentralAutoSyncParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_ACCOUNTING_METHOD]: Parameters.UpdateBusinessCentralAccountingMethodParams;
@@ -1424,9 +1430,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_BILL_PAYMENT_ACCOUNT]: Parameters.UpdateZohoBooksBillPaymentAccountParams;
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateZohoBooksSyncExpensifyCardSettlementsParams;
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SETTLEMENTS_ACCOUNT]: Parameters.UpdateZohoBooksSettlementsAccountParams;
-    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateZohoBooksSyncTravelInvoicingSettlementsParams;
-    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateZohoBooksTravelInvoicingSettlementsAccountParams;
-    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateZohoBooksTravelInvoicingPayableAccountParams;
+    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SYNC_TRAVEL_BILLING_SETTLEMENTS]: Parameters.UpdateZohoBooksSyncTravelBillingSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateZohoBooksTravelBillingSettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_TRAVEL_BILLING_PAYABLE_ACCOUNT]: Parameters.UpdateZohoBooksTravelBillingPayableAccountParams;
 
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     [WRITE_COMMANDS.DOWNGRADE_TO_TEAM]: Parameters.DowngradeToTeamParams;
@@ -1626,6 +1632,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_AGENT]: Parameters.DeleteAgentParams;
     [WRITE_COMMANDS.SEND_EXPORT_FILE_FROM_CONCIERGE]: Parameters.SendExportFileFromConciergeParams;
     [WRITE_COMMANDS.CLEAR_EXPORT_DOWNLOAD]: Parameters.ClearExportDownloadParams;
+    [WRITE_COMMANDS.SEND_BULK_ACTION_SUMMARY_FROM_CONCIERGE]: Parameters.SendBulkActionSummaryFromConciergeParams;
+    [WRITE_COMMANDS.CLEAR_BULK_ACTION]: Parameters.ClearBulkActionParams;
 };
 
 const READ_COMMANDS = {

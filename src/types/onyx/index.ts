@@ -24,6 +24,7 @@ import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
+import type BulkAction from './BulkAction';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
@@ -59,6 +60,7 @@ import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
+import type DeferredAttachmentEdits from './DeferredAttachmentEdits';
 import type {
     CardFeedErrorsDerivedValue,
     GuideAccountIDsDerivedValue,
@@ -294,6 +296,7 @@ export type {
     Domain,
     Download,
     ExportDownload,
+    BulkAction,
     GeneratedRule,
     DuplicateWorkspace,
     CopyPolicySettingsNVP,
@@ -392,6 +395,7 @@ export type {
     ReportActions,
     ReportActionsDraft,
     ReportActionsDrafts,
+    DeferredAttachmentEdits,
     ReportLastVisitTimes,
     ReportLoadingState,
     ReportMetadata,

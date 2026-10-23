@@ -142,6 +142,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Γίνεται επεξεργασία…',
         addCardTermsOfService: 'Όροι χρήσης Expensify',
         perPerson: 'ανά άτομο',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 διανυκτέρευση • ${nightlyRate} ανά διανυκτέρευση`,
+            other: `${count} διανυκτερεύσεις • ${nightlyRate} ανά διανυκτέρευση`,
+        }),
         phone: 'Τηλέφωνο',
         phoneNumber: 'Αριθμός τηλεφώνου',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -4043,6 +4047,7 @@ ${amount} για ${merchant} - ${date}`,
             removeDelegate: 'Κατάργηση εκπροσώπου διακοπών',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, ολοκληρώθηκε`,
     stepCounter: (step, total, text) => {
         let result = `Βήμα ${step}`;
         if (total) {
@@ -4151,11 +4156,14 @@ ${amount} για ${merchant} - ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Εισαγάγετε μια τιμή μεταξύ ${min} και ${max}`,
             tooFewItems: ({min}: {min: number}) => `Προσθέστε τουλάχιστον ${min}`,
             tooManyItems: ({max}: {max: number}) => `Προσθέστε το πολύ ${max}`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `Προσθήκη ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Αφαίρεση ${item};`,
         removeItemPrompt: ({name}: {name: string}) => `Θέλετε σίγουρα να αφαιρέσετε ${name};`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} με κατάληξη ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'Οι ερωτήσεις σε αυτή τη σελίδα άλλαξαν',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
@@ -6431,12 +6439,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
             settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
-            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
+            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
             travelInvoicingSettlementAccount: {
-                label: 'Λογαριασμός διακανονισμού τιμολόγησης ταξιδιών',
+                label: 'λογαριασμός εκκαθάρισης συγκεντρωτικής χρέωσης ταξιδιών',
                 description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.',
             },
-            travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων τιμολόγησης ταξιδιών'},
+            travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων ενοποιημένης χρέωσης ταξιδιών'},
         },
         type: {
             free: 'Δωρεάν',
@@ -9413,12 +9421,12 @@ ${reportName}`,
             },
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών Κάρτας Expensify',
             settlementAccount: {label: 'λογαριασμός εκκαθάρισης Κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Campfire.'},
-            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
+            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
             travelInvoicingSettlementAccount: {
-                label: 'Λογαριασμός διακανονισμού τιμολόγησης ταξιδιών',
+                label: 'λογαριασμός εκκαθάρισης συγκεντρωτικής χρέωσης ταξιδιών',
                 description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Campfire.',
             },
-            travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων για τιμολόγηση ταξιδιών'},
+            travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων ενοποιημένης χρέωσης ταξιδιών'},
             exportToMultipleAccounts: 'Ρύθμιση εξαγωγής σε πολλούς λογαριασμούς',
             cardProgramAccount: {
                 label: 'Λογαριασμός προγράμματος κάρτας',
@@ -9503,6 +9511,35 @@ ${reportName}`,
             companyCardAccount: {
                 label: 'Λογαριασμός εταιρικής κάρτας',
                 description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
+            },
+            exportToMultipleAccounts: 'Ρύθμιση εξαγωγής σε πολλούς λογαριασμούς',
+            cardProgramAccount: {
+                label: 'Λογαριασμός προγράμματος κάρτας',
+                description: 'Παρακάμψτε τον λογαριασμό χώρου εργασίας για αυτά τα προγράμματα καρτών.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτό το πρόγραμμα κάρτας.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Όλα τα προγράμματα χρησιμοποιούν τον προεπιλεγμένο λογαριασμό';
+                    }
+                    return {
+                        one: `${count} πρόγραμμα με προσαρμοσμένο λογαριασμό`,
+                        other: `${count} προγράμματα με προσαρμοσμένους λογαριασμούς`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Λογαριασμός ανά κάρτα',
+                description: 'Παρακάμψτε τον λογαριασμό προγράμματος για μεμονωμένες κάρτες.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού προγράμματος για αυτές τις κάρτες.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Όλες οι κάρτες χρησιμοποιούν λογαριασμούς προγράμματος';
+                    }
+                    return {
+                        one: `${count} κάρτα με προσαρμοσμένο λογαριασμό`,
+                        other: `${count} κάρτες με προσαρμοσμένους λογαριασμούς`,
+                    };
+                },
             },
             paymentMethod: {
                 label: 'Μέθοδος πληρωμής',
@@ -9919,6 +9956,8 @@ ${reportName}`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `ενημέρωσε το προεπιλεγμένο νόμισμα σε ${newCurrency} (προηγουμένως ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `ενημέρωσε τη συχνότητα αυτόματης αναφοράς σε «${newFrequency}» (προηγουμένως «${oldFrequency}»)`,
         updateApprovalMode: (newValue, oldValue) => `ενημέρωσε τη λειτουργία έγκρισης σε «${newValue}» (προηγουμένως «${oldValue}»)`,
+        archivedWorkspace: 'αρχειοθέτησε αυτόν τον χώρο εργασίας',
+        unarchivedWorkspace: 'ήταν η κατάργηση αρχειοθέτησης αυτού του χώρου εργασίας',
         upgradedWorkspace: 'αναβάθμισε αυτόν τον χώρο εργασίας στο πρόγραμμα Control',
         forcedCorporateUpgrade: `Αυτός ο χώρος εργασίας έχει αναβαθμιστεί στο πλάνο Control. Κάντε κλικ <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">εδώ</a> για περισσότερες πληροφορίες.`,
         downgradedWorkspace: 'υποβίβασε αυτόν τον χώρο εργασίας στο πρόγραμμα Collect',
@@ -10399,6 +10438,8 @@ ${reportName}`,
             topCategories: 'Κορυφαίες κατηγορίες',
             topMerchants: 'Κορυφαίοι έμποροι',
             violationsBySubmitter: 'Παραβάσεις από τον υποβάλλοντα',
+            travel: 'Ταξίδι',
+            trips: 'Ταξίδια',
         },
         resultsAreLimited: 'Τα αποτελέσματα αναζήτησης είναι περιορισμένα.',
         viewResults: 'Προβολή αποτελεσμάτων',
@@ -11851,6 +11892,8 @@ ${reportName}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Επιστράφηκαν ${amount} στις ${date}`,
             },
             billedTo: 'Χρέωση σε',
+            activity: 'Δραστηριότητα',
+            findActiveUser: 'Εύρεση ενεργού χρήστη',
             viewReceipt: 'Προβολή απόδειξης',
             viewInvoice: 'Προβολή τιμολογίου',
         },
@@ -12433,6 +12476,90 @@ ${reportName}`,
         companyPays: 'Η εταιρεία πληρώνει',
         employeePays: 'Ο εργαζόμενος πληρώνει',
         errorMessage: 'Δεν ήταν δυνατή η αλλαγή της προτίμησης χρέωσης μετατροπής νομίσματος. Παρακαλούμε δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
+    },
+    bulkAction: {
+        approvingTitle: 'Γίνεται έγκριση αναφορών...',
+        submittingTitle: 'Υποβολή αναφορών...',
+        payingTitle: 'Σημειώνονται οι αναφορές ως πληρωμένες...',
+        holdingTitle: 'Τα έξοδα τίθενται σε αναμονή...',
+        unholdingTitle: 'Αφαιρείται η κράτηση των εξόδων...',
+        rejectingTitle: 'Απόρριψη εξόδων...',
+        deletingTitle: 'Γίνεται διαγραφή αναφορών...',
+        deletingExpensesTitle: 'Γίνεται διαγραφή εξόδων...',
+        runningBody: 'Περιμένετε μερικά λεπτά ή αφήστε το Concierge να σας στείλει μήνυμα όταν ολοκληρωθεί.',
+        sendFromConcierge: 'Στείλτε μου μήνυμα όταν τελειώσει',
+        conciergeTitle: 'Βεβαίως!',
+        conciergeBody: 'Ο Concierge θα σας στείλει μήνυμα όταν ολοκληρωθεί.',
+        goToConcierge: 'Μετάβαση στο Concierge',
+        approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Εγκρίθηκαν ${doneCount} από ${count} αναφορά`,
+            other: `Εγκρίθηκαν ${doneCount} από ${count} αναφορές`,
+        }),
+        submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Υποβλήθηκαν ${doneCount} από ${count} αναφορά`,
+            other: `Υποβλήθηκαν ${doneCount} από ${count} αναφορές`,
+        }),
+        paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Σημειώθηκαν ως πληρωμένες ${doneCount} από ${count} αναφορά`,
+            other: `Σημειώθηκαν ως πληρωμένες ${doneCount} από ${count} αναφορές`,
+        }),
+        heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Τέθηκαν σε αναμονή έξοδα σε ${doneCount} από ${count} αναφορά`,
+            other: `Τέθηκαν σε αναμονή έξοδα σε ${doneCount} από ${count} αναφορές`,
+        }),
+        unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Αφαιρέθηκε η κράτηση εξόδων σε ${doneCount} από ${count} αναφορά`,
+            other: `Αφαιρέθηκε η κράτηση εξόδων σε ${doneCount} από ${count} αναφορές`,
+        }),
+        rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Απορρίφθηκαν έξοδα σε ${doneCount} από ${count} αναφορά`,
+            other: `Απορρίφθηκαν έξοδα σε ${doneCount} από ${count} αναφορές`,
+        }),
+        deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Διαγράφηκαν ${doneCount} από ${count} αναφορά`,
+            other: `Διαγράφηκαν ${doneCount} από ${count} αναφορές`,
+        }),
+        deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Διαγράφηκαν έξοδα σε ${doneCount} από ${count} αναφορά`,
+            other: `Διαγράφηκαν έξοδα σε ${doneCount} από ${count} αναφορές`,
+        }),
+        noReportsTitle: 'Δεν υπάρχουν αντιστοιχίες αναφορών',
+        noReportsBody: 'Καμία από τις αναφορές που επιλέξατε δεν χρειαζόταν αυτή την ενέργεια.',
+        viewFailedReports: 'Προβολή αναφορών',
+        failedTitle: 'Κάτι πήγε στραβά',
+        failedBody: 'Αυτή η ενέργεια δεν μπόρεσε να ξεκινήσει. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: '1 αναφορά δεν μπόρεσε να εγκριθεί.',
+            other: `${count} αναφορές δεν ήταν δυνατό να εγκριθούν.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: '1 αναφορά δεν μπόρεσε να υποβληθεί.',
+            other: `${count} αναφορές δεν ήταν δυνατό να υποβληθούν.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: '1 αναφορά δεν μπόρεσε να πληρωθεί.',
+            other: `${count} αναφορές δεν ήταν δυνατό να πληρωθούν.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: 'Τα έξοδα σε 1 αναφορά δεν ήταν δυνατό να τεθούν σε αναμονή.',
+            other: `Τα έξοδα σε ${count} αναφορές δεν ήταν δυνατό να τεθούν σε αναμονή.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: 'Τα έξοδα σε 1 αναφορά δεν ήταν δυνατό να αφαιρεθούν από την αναμονή.',
+            other: `Τα έξοδα σε ${count} αναφορές δεν ήταν δυνατό να αφαιρεθούν από την αναμονή.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: 'Τα έξοδα σε 1 αναφορά δεν ήταν δυνατό να απορριφθούν.',
+            other: `Τα έξοδα σε ${count} αναφορές δεν ήταν δυνατό να απορριφθούν.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: '1 αναφορά δεν μπόρεσε να διαγραφεί.',
+            other: `${count} αναφορές δεν ήταν δυνατό να διαγραφούν.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: 'Τα έξοδα σε 1 αναφορά δεν ήταν δυνατό να διαγραφούν.',
+            other: `Τα έξοδα σε ${count} αναφορές δεν ήταν δυνατό να διαγραφούν.`,
+        }),
     },
     emailIssuePage: {
         title: 'Πρόβλημα email',
