@@ -1,5 +1,7 @@
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 
+import Log from '@libs/Log';
+
 import {SUBMISSION_PATH} from '@pages/iou/request/step/confirmation/submission/utils/resolveSubmissionPath';
 import type {SubmitExpenseOrchestratorProps} from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
 import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
@@ -22,9 +24,24 @@ type ExpenseConfirmationProps = ConfirmationVariantProps & {
  * between these paths, so only the submitter is swapped and the orchestrator and list keep their state.
  */
 function ExpenseConfirmation({submissionPath, submissionParams, orchestratorProps, listProps}: ExpenseConfirmationProps) {
-    const submitterRef = useRef<SubmitExpenseOrchestratorProps['createTransaction']>(null);
+    const latestCreateTransaction = useRef<SubmitExpenseOrchestratorProps['createTransaction'] | null>(null);
 
-    const createTransaction: SubmitExpenseOrchestratorProps['createTransaction'] = (params) => submitterRef.current?.(params) ?? false;
+    // The orchestrator can call createTransaction after the RHP is dismissed and this page has unmounted,
+    // so keep the last submitter's function instead of letting React clear it to null.
+    const submitterRef = (submitterCreateTransaction: SubmitExpenseOrchestratorProps['createTransaction'] | null) => {
+        if (!submitterCreateTransaction) {
+            return;
+        }
+        latestCreateTransaction.current = submitterCreateTransaction;
+    };
+
+    const createTransaction: SubmitExpenseOrchestratorProps['createTransaction'] = (params) => {
+        if (!latestCreateTransaction.current) {
+            Log.warn('[ExpenseConfirmation] createTransaction called before any submitter was mounted - skipping submit');
+            return false;
+        }
+        return latestCreateTransaction.current(params);
+    };
 
     const submitterProps = {submissionParams, isSelfDMDestination: orchestratorProps.isSelfDMDestination, ref: submitterRef};
 
