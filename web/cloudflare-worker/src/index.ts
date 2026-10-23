@@ -1,6 +1,7 @@
 import type {DevelopmentOrigins} from './csp';
 
 import {getCSP, NONCE_PLACEHOLDER} from './csp';
+import getDevelopmentConfig from './developmentConfig';
 import {fetchDevelopmentResponse, isAPIRequest} from './fetchDevelopmentResponse';
 
 /** Content-hashed build output (`main-<16 hex>.bundle.js`, `main.<10 hex>.css`, ...), emitted at the root of `dist/`. */
@@ -197,11 +198,12 @@ export default {
         let served: ServedFile;
         let developmentOrigins: DevelopmentOrigins | undefined;
         if (isDevelopment) {
-            const assetResponse = await fetchDevelopmentResponse(request, env);
+            const {upstream, backendOrigins} = getDevelopmentConfig(env);
+            const assetResponse = await fetchDevelopmentResponse(request, upstream);
             if (assetResponse.status === 101 || isAPIRequest(url.pathname)) {
                 return assetResponse;
             }
-            developmentOrigins = {hmrOrigin: url.origin.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:'), backendOrigins: JSON.parse(env.DEV_CONNECT_ORIGINS) as string[]};
+            developmentOrigins = {hmrOrigin: url.origin.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:'), backendOrigins};
             served = {response: assetResponse, isBrotli: false};
         } else {
             served = await getAsset(env, request, url, isPrecompressed);

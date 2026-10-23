@@ -1,28 +1,10 @@
-/** Forward live requests without relying on Wrangler's implicit upstream host/port handling. */
-function getDevelopmentUpstream(env: DevelopmentEnv): URL {
-    const upstream = new URL(env.DEV_UPSTREAM);
-    if (
-        upstream.protocol !== 'http:' ||
-        upstream.hostname !== '127.0.0.1' ||
-        !upstream.port ||
-        upstream.pathname !== '/' ||
-        upstream.search ||
-        upstream.hash ||
-        upstream.username ||
-        upstream.password
-    ) {
-        throw new Error('DEV_UPSTREAM must be an HTTP loopback origin with an explicit port');
-    }
-    return upstream;
-}
-
 /** API and attachment responses must never enter the SPA fallback or HTML nonce/cache pipeline. */
 function isAPIRequest(pathname: string): boolean {
     return /^\/(?:api|staging|staging-secure|chat-attachments|receipts)(?:\/|$)/.test(pathname);
 }
 
-async function fetchDevelopmentResponse(request: Request, env: DevelopmentEnv): Promise<Response> {
-    const upstream = getDevelopmentUpstream(env);
+/** Forward live requests without relying on Wrangler's implicit upstream host/port handling. */
+async function fetchDevelopmentResponse(request: Request, upstream: URL): Promise<Response> {
     const publicURL = new URL(request.url);
     const url = new URL(request.url);
     url.protocol = upstream.protocol;
