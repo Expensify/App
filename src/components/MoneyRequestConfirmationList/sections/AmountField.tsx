@@ -19,7 +19,7 @@ import {
 } from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
+import {calculateAmount, isMovingTransactionFromTrackExpense, isP2PRecipient, isParticipantP2P} from '@libs/IOUUtils';
 import {isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
@@ -75,7 +75,7 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
     const {amountTrailingAction, shouldUseDropdownRows} = useExpenseFormLayout();
@@ -109,7 +109,7 @@ function AmountField({
     // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
     // error from, so a scan expense (where the amount is read off the receipt whenever the user leaves the field
     // blank) can't show a phantom required error under a field that is deliberately empty.
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually);
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually, isPolicyExpenseChat);
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
     const shouldShowAmountMissingError = shouldDisplayFieldError && amountIsMissing;
 
@@ -140,7 +140,10 @@ function AmountField({
     const shouldShowAutomaticHint = canEnterScanFieldsManually && !isAmountInputFocused && !hasAnyManuallyEnteredScanField(transactionSlice);
     // The hint and the buttons share the right-hand side, so the field shows one or the other.
     const shouldShowAmountButtons = !shouldShowAutomaticHint;
-    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
+    // The route report doesn't reflect a recipient picked from the confirmation page's "To" field, so a 1:1 recipient is
+    // read from the transaction participants: P2P chats don't support negative amounts.
+    const allowNegative =
+        shouldEnableNegative(report, policy, iouType, transactionSlice?.participants) && !isP2PRecipient(transactionSlice?.participants?.at(0), currentUserPersonalDetails.accountID);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
     // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
