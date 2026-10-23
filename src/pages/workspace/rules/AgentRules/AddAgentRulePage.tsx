@@ -74,11 +74,13 @@ function AddAgentRulePage({
     const [activeTab, setActiveTab] = useState<AgentRuleTab>(CONST.TAB.AGENT_RULE.SUGGESTIONS);
     const [activeTabPolicyID, setActiveTabPolicyID] = useState(policyID);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT);
+    const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
     const icons = useMemoizedLazyExpensifyIcons(['Feed', 'Pencil', 'Info']);
 
     const hasDraftPrompt = !!draftValues?.[INPUT_IDS.PROMPT]?.trim();
     const [didSelectSuggestion, setDidSelectSuggestion] = useState(false);
     const isDraftFromFallback = !!generationID && !didSelectSuggestion;
+    const fallbackExplanation = generatedRule?.generationID === generationID ? generatedRule?.explanation : undefined;
 
     // The draft can load after the first render. Open Write one time only, because the admin must still be able to go
     // to Suggestions.
@@ -254,7 +256,11 @@ function AddAgentRulePage({
                         <>
                             {isDraftFromFallback && (
                                 <Banner
-                                    text={translate('workspace.rules.agentRules.fallbackBanner')}
+                                    text={
+                                        fallbackExplanation
+                                            ? translate('workspace.rules.agentRules.fallbackBannerWithExplanation', fallbackExplanation)
+                                            : translate('workspace.rules.agentRules.fallbackBanner')
+                                    }
                                     icon={icons.Info}
                                     shouldShowIcon
                                     containerStyles={[styles.mh5, styles.mb3, styles.p4, styles.br3]}

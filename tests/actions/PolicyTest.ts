@@ -2769,6 +2769,64 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('getCashExpenseReimbursableMode', () => {
+        // The Rules page and the expense creation path both read `defaultReimbursable`. When they disagree
+        // about an ABSENT value the page advertises a rule that new expenses never apply, so these cases
+        // pin the absent value to "reimbursable" on both sides.
+        it('reads an absent defaultReimbursable as reimbursable when the field is not locked', () => {
+            // Given a workspace whose policy blob has no defaultReimbursable and no lock
+            const policy = {...createRandomPolicy(0), defaultReimbursable: undefined, disabledFields: {reimbursable: false}};
+
+            // When resolving the cash expense mode
+            const mode = Policy.getCashExpenseReimbursableMode(policy);
+
+            // Then it shows "reimbursable by default" rather than claiming the non-reimbursable rule is on
+            expect(mode).toBe(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT);
+        });
+
+        it('reads an absent defaultReimbursable as reimbursable when the field is locked', () => {
+            // Given a workspace with a locked reimbursable field but no stored defaultReimbursable
+            const policy = {...createRandomPolicy(0), defaultReimbursable: undefined, disabledFields: {reimbursable: true}};
+
+            // When resolving the cash expense mode
+            const mode = Policy.getCashExpenseReimbursableMode(policy);
+
+            // Then it shows "always reimbursable", matching the value new expenses are actually created with
+            expect(mode).toBe(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_REIMBURSABLE);
+        });
+
+        it('reports always non-reimbursable only when defaultReimbursable is explicitly false and locked', () => {
+            // Given a workspace explicitly set to "cash expenses are always non-reimbursable"
+            const policy = {...createRandomPolicy(0), defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+            // When resolving the cash expense mode
+            const mode = Policy.getCashExpenseReimbursableMode(policy);
+
+            // Then it shows the always non-reimbursable rule
+            expect(mode).toBe(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_NON_REIMBURSABLE);
+        });
+
+        it('reports non-reimbursable by default when defaultReimbursable is explicitly false and unlocked', () => {
+            // Given a workspace defaulting to non-reimbursable without locking the field
+            const policy = {...createRandomPolicy(0), defaultReimbursable: false, disabledFields: {reimbursable: false}};
+
+            // When resolving the cash expense mode
+            const mode = Policy.getCashExpenseReimbursableMode(policy);
+
+            // Then it shows the non-reimbursable default
+            expect(mode).toBe(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.NON_REIMBURSABLE_DEFAULT);
+        });
+
+        it('returns undefined when there is no policy', () => {
+            // Given no policy
+            // When resolving the cash expense mode
+            const mode = Policy.getCashExpenseReimbursableMode(undefined);
+
+            // Then there is no mode to show
+            expect(mode).toBeUndefined();
+        });
+    });
+
     describe('setPolicyReimbursableMode', () => {
         it('should update reimbursable mode to REIMBURSABLE_DEFAULT optimistically and succeed', async () => {
             // Given a workspace with default reimbursable as false and disabled as true
@@ -7456,6 +7514,22 @@ describe('actions/Policy', () => {
             // Then the custom field should be reverted
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.employeeList?.[employeeLogin]?.[CONST.CUSTOM_FIELD_KEYS[customFieldType]]).toBe(initialValue);
+        });
+
+        it('should not call the API when the member login is empty', async () => {
+            // Given a member page that could not find the member login, so it passes an empty login
+            const policyID = '1';
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+
+            // When updateMemberCustomField is called with that empty login
+            Policy.updateMemberCustomField(policyID, '', 'customField1', 'San Francisco', undefined);
+            await waitForBatchedUpdates();
+
+            // Then no request is sent, because the backend rejects an empty email, and no employee is written under an empty key
+            expect(apiWriteSpy).not.toHaveBeenCalled();
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['']).toBeUndefined();
+            apiWriteSpy.mockRestore();
         });
     });
 
