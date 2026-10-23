@@ -1,0 +1,32 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
+index 10cd91b..6f059bd 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
+@@ -3,6 +3,7 @@ package com.swmansion.rnscreens.gamma.tabs.appearance
+ import android.annotation.SuppressLint
+ import android.content.Context
+ import android.content.res.ColorStateList
++import android.graphics.Typeface
+ import android.graphics.drawable.StateListDrawable
+ import android.util.TypedValue
+ import android.view.MenuItem
+@@ -161,13 +162,18 @@ internal class TabsAppearanceApplicator(
+                 tabBarAppearance?.tabBarItemTitleLargeLabelFontSize?.takeIf { it > 0 }?.let { PixelUtil.toPixelFromSP(it) }
+                     ?: context.resources.getDimension(R.dimen.design_bottom_navigation_text_size)
+ 
++            // Both labels drop the 0.5sp letter tracking of Material's text appearance, which reads wider than the app's labels.
+             // Inactive
+             smallLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, smallFontSize)
+             smallLabel.typeface = fontFamily
++            smallLabel.letterSpacing = 0f
+ 
+             // Active
++            // Bold is set here rather than with `setItemTextAppearanceActiveBoldEnabled`, which re-applies Material's text size
++            // to this label alone, so Material lifts the selected item by the size difference between the two labels.
+             largeLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, largeFontSize)
+-            largeLabel.typeface = fontFamily
++            largeLabel.setTypeface(fontFamily, Typeface.BOLD)
++            largeLabel.letterSpacing = 0f
+         }
+     }
+ 

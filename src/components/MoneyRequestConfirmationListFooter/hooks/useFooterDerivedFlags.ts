@@ -5,7 +5,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
-import {isSubmitPolicy} from '@libs/PolicyUtils';
+import {canShowReimbursableToggleForPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getCurrency,
@@ -104,7 +104,7 @@ function useFooterDerivedFlags({
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) &&
         !!policy &&
-        (isManagedCardTransaction(transaction) || policy?.disabledFields?.reimbursable !== true) &&
+        (isManagedCardTransaction(transaction) || canShowReimbursableToggleForPolicy(policy, transaction?.reimbursable)) &&
         isCardTransactionReimbursableEditable(transaction) &&
         !isTypeInvoice;
     // Submit workspaces ship Categories/Distance enabled by default, so never route their fields to the upgrade gate.

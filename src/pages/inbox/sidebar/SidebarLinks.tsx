@@ -1,5 +1,6 @@
 import LHNEmptyState from '@components/LHNOptionsList/LHNEmptyState';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 
 import useOnyx from '@hooks/useOnyx';
@@ -31,7 +32,8 @@ type SidebarLinksProps = {
     /** Safe area insets required for mobile devices margins */
     insets: EdgeInsets;
 
-    optionListItems: Report[];
+    /** The ordered IDs of the reports to show in the LHN */
+    reportIDs: string[];
 
     /** Whether the full (unfiltered) LHN report set is empty. Used to distinguish an Onyx-cleared reload from a per-tab empty view. */
     hasReportData: boolean;
@@ -40,7 +42,7 @@ type SidebarLinksProps = {
     priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
 };
 
-function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT}: SidebarLinksProps) {
+function SidebarLinks({insets, reportIDs, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
@@ -81,7 +83,8 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
 
     const contentContainerStyles = StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]);
 
-    const shouldShowEmptyLHN = optionListItems.length === 0;
+    const shouldShowEmptyLHN = reportIDs.length === 0;
+    const {contentContainerStyle: emptyLHNStyle} = useTabRootScrollProps([styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper], {fillsVisibleArea: true});
 
     // Show the loading skeleton only while report data is loading AND the entire LHN report set is empty
     // (e.g. switching accounts/delegate sessions or re-authenticating after an Onyx clear, where openApp() repopulates reports).
@@ -93,14 +96,14 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
         <View style={[styles.flex1, styles.h100]}>
             <View style={[styles.pRelative, styles.flex1]}>
                 {shouldShowEmptyLHN ? (
-                    <View style={[styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper]}>
+                    <View style={emptyLHNStyle}>
                         <LHNEmptyState />
                     </View>
                 ) : (
                     <LHNOptionsList
                         style={styles.flex1}
                         contentContainerStyles={contentContainerStyles}
-                        data={optionListItems}
+                        data={reportIDs}
                         onSelectRow={showReportPage}
                         shouldDisableFocusOptions={shouldUseNarrowLayout}
                         optionMode={viewMode}

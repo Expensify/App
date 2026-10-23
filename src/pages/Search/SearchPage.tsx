@@ -6,6 +6,7 @@ import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/Playbac
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useHasFilterBars from '@hooks/useHasFilterBars';
+import useHasTabBeenShown from '@hooks/useHasTabBeenShown';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import {PaymentContextProvider} from '@hooks/usePaymentContext';
@@ -19,12 +20,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {searchInServer} from '@libs/actions/Report';
 import {clearFooterConversion, search} from '@libs/actions/Search';
+import {isStaleWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isQueryARefinement} from '@libs/SearchQueryRefinement';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 
@@ -51,7 +54,10 @@ function SearchPage({route}: SearchPageProps) {
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
-    useSearchPageSetup(currentSearchQueryJSON);
+    // Until Spend is first shown, it neither requests a search nor saves its default query over the latest search that the
+    // Spend tab reopens.
+    const hasSpendBeenShown = useHasTabBeenShown(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    useSearchPageSetup(hasSpendBeenShown ? currentSearchQueryJSON : undefined);
     useSeedMyExpensesSearch();
     useReleaseOptionListCaches();
 
@@ -101,7 +107,16 @@ function SearchPage({route}: SearchPageProps) {
     }, []);
 
     // Converted footer totals are ephemeral, session-scoped display data, so drop them when leaving Search.
-    useEffect(() => () => clearFooterConversion(), []);
+    // A cancelled wide submit pre-mount was never shown, so its unmount must not drop the totals of the visible Search.
+    useEffect(
+        () => () => {
+            if (isStaleWideTabPreMountRouteKey(route.key)) {
+                return;
+            }
+            clearFooterConversion();
+        },
+        [route.key],
+    );
 
     const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
 
