@@ -582,6 +582,9 @@ function cleanUpMoneyRequest({
             iouReport?.chatReportID,
             canUserPerformWriteAction,
             reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+            undefined,
+            undefined,
+            currentUserAccountID,
         )?.lastMessageText;
         const lastVisibleActionCreated = getLastVisibleAction(
             iouReport?.chatReportID,

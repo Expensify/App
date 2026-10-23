@@ -83,9 +83,17 @@ jest.mock('@hooks/useRootNavigationState', () => ({
             ],
         }),
 }));
+const mockClearFooterConversion = jest.fn<void, []>();
 jest.mock('@libs/actions/Search', () => ({
     ...jest.requireActual<typeof SearchActions>('@libs/actions/Search'),
     search: jest.fn(() => Promise.resolve(200)),
+    clearFooterConversion: () => mockClearFooterConversion(),
+}));
+
+const mockIsStaleWideTabPreMountRouteKey = jest.fn<boolean, [string | undefined]>(() => false);
+jest.mock('@libs/Navigation/helpers/wideTabPreMountRouteKey', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/Navigation/helpers/wideTabPreMountRouteKey'),
+    isStaleWideTabPreMountRouteKey: (key: string | undefined) => mockIsStaleWideTabPreMountRouteKey(key),
 }));
 
 const mockIsNavigationFocused = jest.fn(() => true);
@@ -112,6 +120,7 @@ jest.mock('@components/Search/SearchList/BaseSearchList', () => ({
 type WriteActionsRender = {
     filteredData: SearchData;
     applySelection: SearchSelectionActionsValue['applySelection'];
+    selectAllMatchingItems: SearchSelectionActionsValue['selectAllMatchingItems'];
 };
 type WriteActionsProviderProps = Parameters<typeof SearchWriteActionsProviderModule.default>[0];
 
@@ -122,8 +131,8 @@ jest.mock('@components/Search/SearchWriteActionsProvider', () => {
     const {useSearchSelectionActions} = jest.requireActual<typeof SearchContext>('@components/Search/SearchContext');
     const {default: SearchWriteActionsProvider} = jest.requireActual<typeof SearchWriteActionsProviderModule>('@components/Search/SearchWriteActionsProvider');
     function MockSearchWriteActionsProvider(props: WriteActionsProviderProps) {
-        const {applySelection} = useSearchSelectionActions();
-        mockRenderWriteActions({filteredData: props.filteredData, applySelection});
+        const {applySelection, selectAllMatchingItems} = useSearchSelectionActions();
+        mockRenderWriteActions({filteredData: props.filteredData, applySelection, selectAllMatchingItems});
         return createElement(SearchWriteActionsProvider, props);
     }
     return {__esModule: true, default: MockSearchWriteActionsProvider};
@@ -1035,6 +1044,56 @@ describe('SearchPageNarrow', () => {
             expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
         });
 
+        it('asks for its next page without totals', async () => {
+            // Given Drafts showing its first page, whose response carried the report count
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
+            await seedTodoSnapshot(true, {reportCount: CONST.SEARCH.RESULTS_PAGE_SIZE + 10});
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            mockSearch.mockClear();
+
+            // When the list reaches its end
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the next page is asked for without totals, since a later page with totals would start the counted reports over without page 1's
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+            expect(mockSearch.mock.calls.some(([params]) => !!params?.shouldCalculateTotals)).toBe(false);
+        });
+
+        it('asks for a fresh count when every match is selected past the first page', async () => {
+            // Given Drafts paged past its first page, whose response carried the report count
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
+            await seedTodoSnapshot(true, {reportCount: CONST.SEARCH.RESULTS_PAGE_SIZE + 10});
+            searchWritesLoadingState();
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await answerTodoPage(CONST.SEARCH.RESULTS_PAGE_SIZE, true);
+            mockSearch.mockClear();
+
+            // When every matching report is selected
+            await act(async () => {
+                lastWriteActionsRender()?.selectAllMatchingItems(true);
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the page on screen is asked for again with totals, so the count includes reports that left or joined since the first page
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, shouldCalculateTotals: true}));
+        });
+
         it('shows the next rows only once the server answers their page, and ignores ends meanwhile', async () => {
             const rowCount = CONST.SEARCH.RESULTS_PAGE_SIZE + 20;
             await seedTodoReports(rowCount);
@@ -1602,5 +1661,35 @@ describe('SearchPageNarrow', () => {
             // Then the rows stay at one page, because the missing snapshot's `hasMoreResults: false` is a default, not the server's answer
             expect(renderedRowKeys()).toHaveLength(CONST.SEARCH.RESULTS_PAGE_SIZE);
         });
+    });
+
+    it('clears the converted footer totals when the user leaves Search', async () => {
+        // Given a Search page the user has open
+        const page = renderPage();
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // When it unmounts because the user leaves Search
+        page.unmount();
+
+        // Then the converted footer totals are dropped, since they only apply to this visit
+        expect(mockClearFooterConversion).toHaveBeenCalled();
+    });
+
+    it('keeps the converted footer totals when a cancelled wide pre-mount of Search unmounts', async () => {
+        // Given a Search screen that was pre-mounted for a wide submit and then cancelled, so it was never shown
+        mockIsStaleWideTabPreMountRouteKey.mockReturnValue(true);
+        const page = renderPage();
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // When that hidden screen unmounts
+        page.unmount();
+        mockIsStaleWideTabPreMountRouteKey.mockReturnValue(false);
+
+        // Then the totals stay, because they belong to the Search the user can still see
+        expect(mockClearFooterConversion).not.toHaveBeenCalled();
     });
 });
