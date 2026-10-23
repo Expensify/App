@@ -1,4 +1,3 @@
-import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import type PrepareRequestPayload from '@libs/prepareRequestPayload/types';
 
 type MockFileCheckResult = {exists: boolean; error?: {message: string; code?: string}};
@@ -197,8 +196,7 @@ describe('prepareRequestPayload (native)', () => {
 
     it('should read every attachment of a message sent offline', async () => {
         // Given a message with two attachments queued while offline
-        const mockReadFileAsync = jest.mocked(readFileAsync);
-        mockReadFileAsync.mockImplementation((source, fileName) => Promise.resolve(new File([], fileName)));
+        mockReadFileAsync.mockImplementation((_source, fileName) => Promise.resolve(new File([], String(fileName))));
         const firstAttachment = {source: 'file:///tmp/first.jpg', uri: 'file:///tmp/first.jpg', name: 'first.jpg', type: 'image/jpeg'};
         const secondAttachment = {source: 'file:///tmp/second.jpg', uri: 'file:///tmp/second.jpg', name: 'second.jpg', type: 'image/jpeg'};
 
@@ -211,7 +209,7 @@ describe('prepareRequestPayload (native)', () => {
         expect(mockReadFileAsync).toHaveBeenCalledWith(secondAttachment.source, 'second.jpg', expect.any(Function), undefined, 'image/jpeg');
         expect(formData.has('file')).toBe(true);
         expect(formData.has('file_1')).toBe(true);
-        mockReadFileAsync.mockImplementation(() => Promise.resolve());
+        mockReadFileAsync.mockImplementation(() => Promise.resolve(null));
     });
 
     describe('a receipt sent as a file object without a source, as a request queued by an older app version sends it', () => {
