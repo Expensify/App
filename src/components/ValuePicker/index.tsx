@@ -15,6 +15,8 @@ import ValueSelectorModal from './ValueSelectorModal';
 function ValuePicker({
     value,
     label,
+    modalHeaderTitle,
+    shouldReadErrorWithLabel,
     items,
     placeholder = '',
     errorText = '',
@@ -62,11 +64,12 @@ function ValuePicker({
                         furtherDetails={furtherDetails}
                         brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={errorText}
+                        shouldReadErrorWithLabel={shouldReadErrorWithLabel}
                         forwardedFSClass={forwardedFSClass}
                     />
                     <ValueSelectorModal
                         isVisible={isPickerVisible}
-                        label={label}
+                        label={modalHeaderTitle ?? label}
                         selectedItem={selectedItem}
                         items={items}
                         onClose={hidePickerModal}

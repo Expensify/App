@@ -139,6 +139,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: '正在思考中…',
         addCardTermsOfService: 'Expensify 服务条款',
         perPerson: '每人',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 晚 • 每晚 ${nightlyRate}`,
+            other: `${count} 晚 • 每晚 ${nightlyRate}`,
+        }),
         phone: '电话',
         phoneNumber: '电话号码',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -3847,6 +3851,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             removeDelegate: '移除休假代理',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}，已完成`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `步骤 ${step}`;
         if (total) {
@@ -3950,11 +3955,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `请输入 ${min} 到 ${max} 之间的值`,
             tooFewItems: ({min}: {min: number}) => `至少添加 ${min} 项`,
             tooManyItems: ({max}: {max: number}) => `最多添加 ${max} 项`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}：${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}、${field}：${error}`,
         },
         addItem: ({item}: {item: string}) => `添加${item}`,
         removeItemTitle: ({item}: {item: string}) => `移除${item}？`,
         removeItemPrompt: ({name}: {name: string}) => `确定要移除${name}吗？`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `尾号为 ${ending} 的${label}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
+        questionsChanged: '此页面上的问题已更改',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符长度，由 6 个字母后接 2 或 5 个字母或数字组成。',
@@ -6077,9 +6085,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             fxExpenseAccount: {label: 'DualEntry 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 DualEntry 中将该成本作为一条日记账分录记入此科目。'},
             syncExpensifyCardSettlements: '同步 Expensify 卡结算',
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
-            syncTravelInvoicingSettlements: '同步旅行开票结算',
-            travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
-            travelInvoicingPayableAccount: {label: '差旅开票应付账户'},
+            syncTravelInvoicingSettlements: '同步合并差旅结算',
+            travelInvoicingSettlementAccount: {label: '合并差旅账单结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
+            travelInvoicingPayableAccount: {label: '合并差旅账单应付账户'},
         },
         type: {
             free: '免费',
@@ -8837,9 +8845,9 @@ ${reportName}`,
             billPaymentAccount: {label: '账单付款账户', description: '当 Expensify 将账单标记为已支付时，选择用于 Campfire 贷记的清算账户。'},
             syncExpensifyCardSettlements: '同步 Expensify 卡结算',
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 Campfire 中创建这笔付款。'},
-            syncTravelInvoicingSettlements: '同步差旅开票结算',
-            travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 Campfire 中创建这笔付款。'},
-            travelInvoicingPayableAccount: {label: '差旅开票应付账户'},
+            syncTravelInvoicingSettlements: '同步合并差旅结算',
+            travelInvoicingSettlementAccount: {label: '合并差旅账单结算账户', description: '选择您的结算账户，我们会在 Campfire 中创建这笔付款。'},
+            travelInvoicingPayableAccount: {label: '合并差旅账单应付账户'},
             exportToMultipleAccounts: '配置导出到多个账户',
             cardProgramAccount: {
                 label: '卡计划账户',
@@ -8924,6 +8932,35 @@ ${reportName}`,
             companyCardAccount: {
                 label: '公司卡账户',
                 description: '选择公司卡交易的导出位置。',
+            },
+            exportToMultipleAccounts: '配置导出到多个账户',
+            cardProgramAccount: {
+                label: '卡计划账户',
+                description: '为这些卡计划覆盖工作区账户。',
+                descriptionLevel2: '覆盖此卡计划的工作区账户。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return '所有方案使用默认账户';
+                    }
+                    return {
+                        one: `${count} 个自定义账户的项目`,
+                        other: `${count} 个具有自定义科目的项目`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: '按卡计费账户',
+                description: '为单张卡片覆盖默认项目账户。',
+                descriptionLevel2: '为这些卡片覆盖默认项目账户。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return '所有卡都使用项目账户';
+                    }
+                    return {
+                        one: `${count} 张带有自定义账户的卡`,
+                        other: `${count} 张带有自定义账户的卡`,
+                    };
+                },
             },
             paymentMethod: {
                 label: '付款方式',
@@ -9212,6 +9249,8 @@ ${reportName}`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `已将默认货币更新为 ${newCurrency}（之前为 ${oldCurrency}）`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `已将自动报表频率更新为“${newFrequency}”（此前为“${oldFrequency}”）`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `将审批模式更新为“${newValue}”（之前为“${oldValue}”）`,
+        archivedWorkspace: '已归档此工作区',
+        unarchivedWorkspace: '取消归档此工作区',
         upgradedWorkspace: '已将此工作区升级到 Control 方案',
         forcedCorporateUpgrade: `此工作区已升级为 Control 方案。点击<a href="${CONST.COLLECT_UPGRADE_HELP_URL}">此处</a>了解更多信息。`,
         downgradedWorkspace: '将此工作区降级为 Collect 方案',
@@ -10043,6 +10082,8 @@ ${reportName}`,
             topCategories: '热门类别',
             topMerchants: '热门商家',
             violationsBySubmitter: '提交人违规',
+            travel: '差旅',
+            trips: '行程',
         },
         mergeReports: {
             title: '合并报表',
@@ -11130,6 +11171,8 @@ ${reportName}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${date} 已退款 ${amount}`,
             },
             billedTo: '账单对象',
+            activity: '活动',
+            findActiveUser: '查找活跃用户',
             viewReceipt: '查看收据',
             viewInvoice: '查看发票',
         },
@@ -11681,6 +11724,90 @@ ${reportName}`,
         completedSteps: '我已完成以上步骤',
         errorTitle: '出现问题。请重试',
         errorPrompt: '好像出了点问题。请重试。如果问题仍然存在，请联系 Concierge。',
+    },
+    bulkAction: {
+        approvingTitle: '正在批准报表…',
+        submittingTitle: '正在提交报表…',
+        payingTitle: '正在将报表标记为已支付…',
+        holdingTitle: '正在暂挂报销费用…',
+        unholdingTitle: '正在解除报销费用的保留…',
+        rejectingTitle: '正在拒绝报销费用…',
+        deletingTitle: '正在删除报表…',
+        deletingExpensesTitle: '正在删除报销费用…',
+        runningBody: '请稍等几分钟，或者由 Concierge 在完成后发送消息通知你。',
+        sendFromConcierge: '完成后给我发消息',
+        conciergeTitle: '当然！',
+        conciergeBody: '完成后，Concierge 会给你发送消息。',
+        goToConcierge: '前往 Concierge',
+        approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `已批准 ${count} 份报表中的 ${doneCount} 份`,
+            other: `已批准 ${count} 份报表中的 ${doneCount} 份`,
+        }),
+        submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `已提交 ${count} 份报表中的 ${doneCount} 份`,
+            other: `已提交 ${count} 份报表中的 ${doneCount} 份`,
+        }),
+        paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `已将 ${count} 份报表中的 ${doneCount} 份标记为已支付`,
+            other: `已将 ${count} 份报表中的 ${doneCount} 份标记为已支付`,
+        }),
+        heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `已暂挂 ${count} 份报表中 ${doneCount} 份的报销费用`,
+            other: `已暂挂 ${count} 份报表中 ${doneCount} 份的报销费用`,
+        }),
+        unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `已解除 ${count} 份报表中 ${doneCount} 份的报销费用保留`,
+            other: `已解除 ${count} 份报表中 ${doneCount} 份的报销费用保留`,
+        }),
+        rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `已拒绝 ${count} 份报表中 ${doneCount} 份的报销费用`,
+            other: `已拒绝 ${count} 份报表中 ${doneCount} 份的报销费用`,
+        }),
+        deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `已删除 ${count} 份报表中的 ${doneCount} 份`,
+            other: `已删除 ${count} 份报表中的 ${doneCount} 份`,
+        }),
+        deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `已删除 ${count} 份报表中 ${doneCount} 份的报销费用`,
+            other: `已删除 ${count} 份报表中 ${doneCount} 份的报销费用`,
+        }),
+        noReportsTitle: '没有匹配的报表',
+        noReportsBody: '您选择的报表都不需要执行此操作。',
+        viewFailedReports: '查看报表',
+        failedTitle: '出现问题',
+        failedBody: '无法开始此操作。请稍后重试。',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: '1 份报表无法批准。',
+            other: `${count} 份报表无法批准。`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: '1 份报表无法提交。',
+            other: `${count} 份报表无法提交。`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: '1 份报表无法标记为已支付。',
+            other: `${count} 份报表无法标记为已支付。`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: '无法暂挂 1 份报表的报销费用。',
+            other: `无法暂挂 ${count} 份报表的报销费用。`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: '无法解除 1 份报表的报销费用保留。',
+            other: `无法解除 ${count} 份报表的报销费用保留。`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: '无法拒绝 1 份报表的报销费用。',
+            other: `无法拒绝 ${count} 份报表的报销费用。`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: '1 份报表无法删除。',
+            other: `${count} 份报表无法删除。`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: '无法删除 1 份报表的报销费用。',
+            other: `无法删除 ${count} 份报表的报销费用。`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `将您的订阅续订为 12 个月期限，自 ${startDate} 至 ${endDate}。`,
