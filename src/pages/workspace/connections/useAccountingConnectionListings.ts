@@ -54,6 +54,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         'DualEntrySquare',
         'CampfireSquare',
         'BusinessCentralSquare',
+        'ZohoBooksSquare',
     ]);
 
     if (!policyID) {
@@ -61,9 +62,13 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     }
 
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
+    const canUseZohoBooksIntegration = isBetaEnabled(CONST.BETAS.ZOHO_BOOKS) || !!policy?.connections?.zohoBooks;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS) {
+            return canUseZohoBooksIntegration;
         }
         return true;
     });

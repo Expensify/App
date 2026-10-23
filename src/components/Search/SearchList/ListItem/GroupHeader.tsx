@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useHorizontalScrollFollower} from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
@@ -74,7 +75,6 @@ type GroupHeaderProps = SearchListActionProps & {
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
     shouldSyncFocus?: boolean;
-    isFocused?: boolean;
     isFirstItem: boolean;
     isLastItem: boolean;
     visibleColumns?: SearchCustomColumnIds[];
@@ -96,7 +96,6 @@ function GroupHeader({
     onLongPressRow,
     onFocus,
     shouldSyncFocus,
-    isFocused,
     isFirstItem,
     isLastItem,
     lastPaymentMethod,
@@ -106,6 +105,7 @@ function GroupHeader({
     visibleColumns,
     windowWidth,
 }: GroupHeaderProps) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();

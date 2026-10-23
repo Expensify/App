@@ -32,7 +32,6 @@ function showSuccessAlert(translate: LocalizedTranslate, successMessage?: string
     Alert.alert(
         translate('fileDownload.success.title'),
         // successMessage can be an empty string and we want to default to `Localize.translate('fileDownload.success.message')`
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         successMessage || translate('fileDownload.success.message'),
         [
             {
@@ -159,6 +158,14 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
     const fileExtension = splitFileName.length > 1 ? splitFileName.pop() : '';
     return {fileName: splitFileName.join('.'), fileExtension: fileExtension ?? ''};
 };
+
+function getDownloadFileName(displayName: string, source: string): string {
+    const sourceExtension = splitExtensionFromFileName(getFileName(source)).fileExtension;
+    if (!displayName || !sourceExtension || displayName.toLowerCase().endsWith(`.${sourceExtension.toLowerCase()}`)) {
+        return displayName;
+    }
+    return `${displayName}.${sourceExtension}`;
+}
 
 /**
  * Returns the file name, reading it from the URI when the picker returns none, as the iOS document picker can.
@@ -780,7 +787,6 @@ const isValidReceiptExtension = (file: FileObject) => {
 };
 
 const hasHeicOrHeifExtension = (file: FileObject) => {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif');
 };
 
@@ -1012,6 +1018,7 @@ export {
     isUnknownMimeType,
     appendExtensionFromMimeType,
     getFileName,
+    getDownloadFileName,
     getFileNameWithFallback,
     getFileType,
     cleanFileName,
