@@ -52,9 +52,10 @@ function clearSearchCaches() {
 }
 
 /**
- * Serializes options into "<keyForList> <text> [flags] [alt: ...] [accID: ...]" lines to pin option ordering and content rather than rendering details.
+ * Serializes options into "<keyForList> <text> [flags] [alt: ...] [sub: ...] [accID: ...]" lines to pin option ordering and content rather than rendering details.
  * Flags are [selected], [disabled], [bold], [gbr], [rbr] and [archived], where [archived] surfaces private_isArchived, which drives ranking and the archived preview text.
  * Invited users include their login when different from text to distinguish email from phone invites.
+ * [sub: ...] is only emitted for rooms and workspace chats, because that is what search matches for them. Fields the SearchRouter never reads (participantsList, icons, policyID, ownerAccountID, item) are deliberately left out.
  */
 function createOptionSerializer() {
     function serializeOption(option: SearchOptionData | null | undefined, {isUserToInvite = false}: {isUserToInvite?: boolean} = {}): string | null {
@@ -71,8 +72,9 @@ function createOptionSerializer() {
         ].join('');
         const invitedLogin = isUserToInvite && option.login !== option.text ? ` ${option.login ?? ''}` : '';
         const altText = option.alternateText ? ` [alt: ${option.alternateText}]` : '';
+        const subtitle = (option.isChatRoom || option.isPolicyExpenseChat) && option.subtitle ? ` [sub: ${option.subtitle}]` : '';
         const accountID = option.accountID ? ` [accID: ${option.accountID}]` : '';
-        return `${option.keyForList ?? ''} ${option.text ?? ''}${flags}${altText}${accountID}${invitedLogin}`;
+        return `${option.keyForList ?? ''} ${option.text ?? ''}${flags}${altText}${subtitle}${accountID}${invitedLogin}`;
     }
 
     function serializeResult({options, hasMore}: OptionsResult | {options: Options; hasMore?: boolean}) {
