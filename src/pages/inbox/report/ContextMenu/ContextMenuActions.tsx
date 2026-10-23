@@ -270,7 +270,7 @@ import React from 'react';
 
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 
-import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import {handleHoldEducationalModal, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -390,6 +390,7 @@ type ContextMenuActionPayload = {
     encryptedAuthToken: string;
     iouTransaction: OnyxEntry<Transaction>;
     iouTransactionViolations: OnyxEntry<TransactionViolations>;
+    moneyRequestChatReport: OnyxEntry<ReportType>;
     bankAccountList: OnyxEntry<BankAccountList>;
     isOffline: boolean;
     conciergeReportID: string | undefined;
@@ -687,7 +688,14 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
-                    openReport({reportID: childReportID, introSelected, personalDetails, hasReportActions: !!childReportActions, currentUserAccountID, conciergeChat});
+                    openReport({
+                        reportID: childReportID,
+                        introSelected,
+                        personalDetails,
+                        hasReportActions: !!childReportActions,
+                        currentUserAccountID,
+                        conciergeChat,
+                    });
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 };
                 if (closePopover) {
@@ -702,7 +710,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     originalReportID ?? reportID,
                     reportAction,
                     originalReportActions ?? reportActions,
-                    Parser.htmlToMarkdown(getActionHtml(reportAction), {reportIDToName}),
+                    Parser.htmlToMarkdown(getActionHtml(reportAction), {
+                        reportIDToName,
+                    }),
                     isOffline,
                 );
             };
@@ -804,6 +814,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 iouTransaction,
                 moneyRequestPolicy,
                 iouTransactionViolations,
+                moneyRequestChatReport,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
                 isOffline,
@@ -818,37 +829,26 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
 
-            if (closePopover) {
-                hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(
-                        moneyRequestAction,
-                        iouTransaction,
-                        moneyRequestPolicy,
-                        isOffline,
-                        currentUserPersonalDetails?.login ?? '',
-                        currentUserPersonalDetails.accountID,
-                        iouTransactionViolations,
-                        isTrackIntentUser,
-                        delegateAccountID,
-                        rules,
-                    ),
+            const performHold = () =>
+                changeMoneyRequestHoldStatus(
+                    moneyRequestAction,
+                    iouTransaction,
+                    moneyRequestPolicy,
+                    isOffline,
+                    currentUserPersonalDetails?.login ?? '',
+                    currentUserPersonalDetails.accountID,
+                    iouTransactionViolations,
+                    isTrackIntentUser,
+                    delegateAccountID,
+                    rules,
                 );
+
+            if (closePopover) {
+                hideContextMenu(false, () => handleHoldEducationalModal(performHold, moneyRequestChatReport));
                 return;
             }
 
-            // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(
-                moneyRequestAction,
-                iouTransaction,
-                moneyRequestPolicy,
-                isOffline,
-                currentUserPersonalDetails?.login ?? '',
-                currentUserPersonalDetails.accountID,
-                iouTransactionViolations,
-                isTrackIntentUser,
-                delegateAccountID,
-                rules,
-            );
+            handleHoldEducationalModal(performHold, moneyRequestChatReport);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,
@@ -1308,7 +1308,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                         ),
                     );
                 } else if (isReimbursementQueuedAction(reportAction)) {
-                    Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber, report, shouldUseShortDisplayName: false}));
+                    Clipboard.setString(
+                        getReimbursementQueuedActionMessage({
+                            reportAction,
+                            translate,
+                            formatPhoneNumber,
+                            report,
+                            shouldUseShortDisplayName: false,
+                        }),
+                    );
                 } else if (isActionableMentionWhisper(reportAction)) {
                     const targetAccountIDs = getOriginalMessage(reportAction)?.inviteeAccountIDs;
                     const mentionWhisperMessage = getActionableMentionWhisperMessage(translate, reportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails));
@@ -1585,7 +1593,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
                     const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
                     const missingFields = getOriginalMessage(reportAction)?.missingFields;
-                    setClipboardMessage(translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction, currentUserAccountID), missingFields}));
+                    setClipboardMessage(
+                        translate('violations.smartscanFailed', {
+                            canEdit: wasActionTakenByCurrentUser(iouAction, currentUserAccountID),
+                            missingFields,
+                        }),
+                    );
                 } else if (content) {
                     setClipboardMessageWithCleanedMentions(content, reportIDToName);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
