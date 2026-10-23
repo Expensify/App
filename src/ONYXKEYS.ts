@@ -851,6 +851,9 @@ const ONYXKEYS = {
     /** Answers to sensitive DynamicForm fields, such as SSNs, carried between the pages of one visit to the form instead of saved to its draft */
     RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS: 'dynamicFormSensitiveAnswers',
 
+    /** The state of the Wise business onboarding's Submit, kept apart from the reimbursement account the workspace bank account flow shares */
+    RAM_ONLY_WISE_BUSINESS_ONBOARDING_SUBMIT: 'wiseBusinessOnboardingSubmit',
+
     /** Stores the information about the state of side panel */
     NVP_SIDE_PANEL: 'nvp_sidePanel',
 
@@ -2023,6 +2026,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
     [ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL]: OnyxTypes.CorpayPayModal;
     [ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS]: OnyxTypes.DynamicFormSensitiveAnswers;
+    [ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ONBOARDING_SUBMIT]: OnyxTypes.WiseBusinessOnboardingSubmit;
     [ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE]: boolean | undefined;
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;

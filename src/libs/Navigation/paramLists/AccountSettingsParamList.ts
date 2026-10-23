@@ -187,6 +187,17 @@ type AccountSettingsParamList = {
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO]: {
         bankAccountID: string;
     };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING]: {
+        bankAccountID: string;
+        subPage?: string;
+        action?: 'edit';
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: {
+        bankAccountID: string;
+
+        /** Inherited from Workspace Workflows when the onboarding started there */
+        policyID?: string;
+    };
     [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
         bankAccountID: string;
     };
