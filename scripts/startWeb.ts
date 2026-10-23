@@ -5,8 +5,9 @@ import concurrently from 'concurrently';
 // The Worker is a separately installed package that the App does not depend on, so it can only be reached by path.
 // eslint-disable-next-line import/no-relative-packages
 import {API_PROXY_PORT} from '../web/cloudflare-worker/src/developmentAPIProxy';
-import waitForPublicWebServer from './utils/waitForPublicWebServer';
+import checkWebServer from './utils/checkWebServer';
 import {assertWebPortAvailable, getDevelopmentConnectOrigins, getWebDevFlags, getWebDevPorts} from './utils/webDevConfig';
+import waitForWebServer from './waitForWebServer';
 
 async function startWeb() {
     // Bun loads .env automatically, preserving explicit shell overrides.
@@ -64,7 +65,8 @@ async function startWeb() {
     process.once('SIGTERM', stop);
     // Verify the browser-facing listener and certificate, not just the internal compiler's listener.
     const readiness = (async () => {
-        const isReady = await waitForPublicWebServer(origin, isWorkerEnabled, controller.signal, {
+        const isReady = await waitForWebServer((signal) => checkWebServer(origin, isWorkerEnabled, signal), controller.signal, {
+            slowAfter: 180_000,
             onSlow: () => console.warn(`Still waiting for ${origin}/. Check the dev server output. If it compiled, check that its certificate is trusted (npm run setup-https).`),
         });
         if (!isReady) {

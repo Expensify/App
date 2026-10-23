@@ -10,7 +10,6 @@ on:
       - 'scripts/waitForWebServer.ts'
       - 'scripts/utils/webDevConfig.ts'
       - 'scripts/utils/checkWebServer.ts'
-      - 'scripts/utils/waitForPublicWebServer.ts'
       - 'scripts/postInstall.sh'
       - 'scripts/installCloudflareWorker.ts'
       - 'config/rsbuild/**'

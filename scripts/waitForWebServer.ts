@@ -1,26 +1,47 @@
+type WaitForWebServerOptions = {
+    interval?: number;
+
+    /** How long startup can take before `onSlow` reports it. */
+    slowAfter?: number;
+    onSlow?: () => void;
+};
+
 /**
- * Gate dependent dev processes on an HTTP response, not a listening socket or a compiler log message. There is no default
- * deadline, because a failure here stops the session, and concurrently already stops this gate if Rsbuild exits.
+ * Gate dev processes on a usable HTTP response, not a listening socket or a compiler log message. Resolves false if the
+ * session stops first. There is no deadline: concurrently already stops the session if a required service exits, so a
+ * slow first compile is only reported.
  */
-async function waitForWebServer(origin: string, signal: AbortSignal, {timeout = Infinity, interval = 250} = {}): Promise<void> {
-    const deadline = Date.now() + timeout;
-    while (!signal.aborted && Date.now() < deadline) {
+async function waitForWebServer(
+    probe: (signal: AbortSignal) => Promise<boolean>,
+    signal: AbortSignal,
+    {interval = 250, slowAfter = Infinity, onSlow = () => {}}: WaitForWebServerOptions = {},
+): Promise<boolean> {
+    const slowAt = Date.now() + slowAfter;
+    let hasReportedSlow = false;
+    while (!signal.aborted) {
         try {
-            const response = await fetch(origin, {signal: AbortSignal.any([signal, AbortSignal.timeout(Math.min(2000, Math.max(1, deadline - Date.now())))]), redirect: 'manual'});
-            await response.body?.cancel();
-            if (response.status === 200) {
-                signal.throwIfAborted();
-                return;
+            if (await probe(signal)) {
+                return !signal.aborted;
             }
         } catch {
-            // The upstream may not have a listener yet, or may still be compiling its first response.
+            // The server may not have a listener yet, or may still be compiling its first response.
+        }
+        if (!hasReportedSlow && Date.now() > slowAt) {
+            hasReportedSlow = true;
+            onSlow();
         }
         if (!signal.aborted) {
-            await Bun.sleep(Math.min(interval, Math.max(0, deadline - Date.now())));
+            await Bun.sleep(interval);
         }
     }
-    signal.throwIfAborted();
-    throw new Error(`Timed out waiting for Rsbuild at ${origin}. Check its output above.`);
+    return false;
+}
+
+/** Whether the private Rsbuild listener can serve the Worker yet. */
+async function isRsbuildReady(origin: string, signal: AbortSignal): Promise<boolean> {
+    const response = await fetch(origin, {signal: AbortSignal.any([signal, AbortSignal.timeout(2000)]), redirect: 'manual'});
+    await response.body?.cancel();
+    return response.status === 200;
 }
 
 if (import.meta.main) {
@@ -33,11 +54,12 @@ if (import.meta.main) {
         if (!origin) {
             throw new Error('Missing Rsbuild readiness URL');
         }
-        await waitForWebServer(origin, controller.signal);
-    } catch (error) {
-        if (!controller.signal.aborted) {
-            console.error(error instanceof Error ? error.message : error);
+        // A non-zero exit keeps the shell from starting the Worker.
+        if (!(await waitForWebServer((signal) => isRsbuildReady(origin, signal), controller.signal))) {
+            process.exitCode = 1;
         }
+    } catch (error) {
+        console.error(error instanceof Error ? error.message : error);
         process.exitCode = 1;
     } finally {
         process.removeListener('SIGINT', stop);
@@ -46,3 +68,4 @@ if (import.meta.main) {
 }
 
 export default waitForWebServer;
+export {isRsbuildReady};
