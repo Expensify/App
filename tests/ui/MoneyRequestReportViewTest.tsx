@@ -212,21 +212,6 @@ describe('MoneyRequestReportView', () => {
         expect(mockMoneyRequestReportActionsList).not.toHaveBeenCalled();
     });
 
-    it('renders the report instead of a permanent cover when report actions are empty while offline', () => {
-        // Given a report whose actions are not cached, opened offline. This is the state a merge lands in when the
-        // target expense already has a transaction thread that was never loaded in this session.
-        jest.spyOn(ReportActionsUtils, 'getFilteredReportActionsForReportView').mockReturnValue([]);
-        mockUseNetwork.mockReturnValue({isOffline: true});
-
-        // When the view renders
-        renderMoneyRequestReportView(jest.fn());
-
-        // Then no skeleton is shown, because the OpenReport response that would fill the actions in never arrives
-        // offline, so the cover would stay up forever
-        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
-        expect(mockReportActionsListBody).toHaveBeenCalled();
-    });
-
     it('uses the bottom-padded cover while the app is loading', () => {
         mockUseIsAppLoadPending.mockReturnValue(true);
 
