@@ -60,7 +60,6 @@ function buildPolicy(employeeEmails: string[]): Policy {
         type: CONST.POLICY.TYPE.CORPORATE,
         owner: SUBMITTER_EMAIL,
         outputCurrency: CONST.CURRENCY.USD,
-        isPolicyExpenseChatEnabled: true,
         employeeList: Object.fromEntries(employeeEmails.map((email) => [email, {email, role: CONST.POLICY.ROLE.USER}])),
     };
     return policy;
