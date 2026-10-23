@@ -63,7 +63,7 @@ function accumulate(items: GroupedItem[], getDateRange: GetDateRange): GroupedIt
 
 /**
  * Turns per-period rows into running totals, where each point is the spend from the start of the range through that period.
- * The compared period accumulates the same way, and the Average line becomes an even-pace line that rises straight to the range total.
+ * The compared rows accumulate the same way, whether they are another period or the per-bucket Average snapshot, so each series rises to its own range total.
  */
 function applyRunningTotal({data, comparison, groupBy}: RunningTotalParams): RunningTotalResult {
     const {getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
@@ -77,19 +77,8 @@ function applyRunningTotal({data, comparison, groupBy}: RunningTotalParams): Run
         return {data: runningData};
     }
 
-    // Another period's rows accumulate from that period's own start, so point N of each line is each period's spend so far.
-    if (comparison.periods) {
-        return {data: runningData, comparison: {...comparison, data: accumulate(comparison.data, getDateRange)}};
-    }
-
-    // Average has no period to accumulate. Its even-pace line is N times the average period total, which reaches the range total at the last point.
-    const chronological = sortChronologically(data, getDateRange);
-    const periodCount = chronological.length;
-    const averageTotal = chronological.reduce((sum, item) => sum + (item.total ?? 0), 0) / periodCount;
-    const averagePercent = chronological.reduce((sum, item) => sum + (item.percentOfTotal ?? 0), 0) / periodCount;
-    const averageData = chronological.map((item, index) => ({...item, total: averageTotal * (index + 1), percentOfTotal: averagePercent * (index + 1)}) as GroupedItem);
-
-    return {data: runningData, comparison: {...comparison, data: averageData}};
+    // The compared rows carry a value per bucket, keyed like the current rows, so accumulating them makes point N of each line that series' spend so far.
+    return {data: runningData, comparison: {...comparison, data: accumulate(comparison.data, getDateRange)}};
 }
 
 export default applyRunningTotal;

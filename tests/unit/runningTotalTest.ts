@@ -99,16 +99,20 @@ describe('applyRunningTotal', () => {
         expect(points.map((p) => p.count)).toEqual([2, 5]);
     });
 
-    it('draws Average as an even-pace line rising straight to the range total', () => {
-        // Given three uneven months compared against Average, whose own snapshot values are ignored for the even pace
+    it('accumulates the Average snapshot like any compared series, pairing it by bucket key', () => {
+        // Given three uneven months compared against an Average snapshot carrying a value per bucket, keyed to the current rows
         const data = [monthGroup(2026, 1, 100000), monthGroup(2026, 2, 500000), monthGroup(2026, 3, 300000)];
-        const comparison: ChartComparison = {data: [monthGroup(2026, 1, 999999)], color: themeColors.green200, label: 'Average'};
+        const comparison: ChartComparison = {
+            data: [monthGroup(2026, 1, 200000), monthGroup(2026, 2, 200000), monthGroup(2026, 3, 200000)],
+            color: themeColors.green200,
+            label: 'Average',
+        };
 
         // When the points are turned into a running total
         const rows = runningRows(data, comparison);
 
-        // Then the Average line climbs by the average month (900000 / 3 = 300000 cents = 3000) and ends at the range total
-        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([3000, 6000, 9000]);
+        // Then the Average line accumulates its own snapshot bucket by bucket, pairing point for point with the current line
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2000, 4000, 6000]);
         expect(rows.at(-1)?.point.values[CHART_SERIES_KEY.PRIMARY]).toBe(9000);
     });
 
@@ -151,15 +155,15 @@ describe('applyRunningTotal', () => {
         ]);
     });
 
-    it('handles a single period, where the average line lands on the one point', () => {
-        // Given one month compared against Average, which cannot divide its even pace by zero
+    it('handles a single period, pairing the one Average point with the one current point', () => {
+        // Given one month compared against an Average snapshot of that same bucket
         const data = [monthGroup(2026, 1, 100000)];
         const comparison: ChartComparison = {data: [monthGroup(2026, 1, 100000)], color: themeColors.green200, label: 'Average'};
 
         // When the points are turned into a running total
         const rows = runningRows(data, comparison);
 
-        // Then the single running point is the month itself and the even-pace line lands on it
+        // Then the single running point pairs the month with its Average snapshot
         expect(rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 1000}]);
     });
 });
