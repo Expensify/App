@@ -1,11 +1,11 @@
-import {EditableCell, usePopoverEditState} from '@components/EditableCell';
-import Text from '@components/Text';
-import TravelMemberPickerModal, {useTravelMemberPickerPopoverHeight} from '@components/TravelMemberPickerModal';
-
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import type {TravelMemberAccessValue, TravelMemberOption} from '@libs/TravelMemberOptionUtils';
 
 import React from 'react';
+
+import {EditableCell, usePopoverEditState} from './EditableCell';
+import Text from './Text';
+import TravelMemberPickerModal, {useTravelMemberPickerPopoverHeight} from './TravelMemberPickerModal';
 
 type TravelMemberPickerCellProps = {
     value: TravelMemberAccessValue;
