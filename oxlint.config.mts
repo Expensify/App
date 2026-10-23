@@ -776,7 +776,9 @@ export default defineConfig({
                 'typescript/non-nullable-type-assertion-style': 'error',
                 'typescript/prefer-for-of': 'error',
                 'typescript/prefer-function-type': 'error',
-                'typescript/prefer-nullish-coalescing': ['error', {ignoreIfStatements: true, ignorePrimitives: {}, ignoreTernaryTests: true}],
+                // Mirrors main's narrowing (00035af3de3b): ignorePrimitives true reports `||` only when the left
+                // operand cannot be '' , 0 or false, so `||` and `??` are provably equivalent there.
+                'typescript/prefer-nullish-coalescing': ['error', {ignoreIfStatements: true, ignorePrimitives: true, ignoreTernaryTests: true}],
                 'typescript/prefer-string-starts-ends-with': 'error',
                 'no-implied-eval': 'off',
                 'no-new-func': 'off',
