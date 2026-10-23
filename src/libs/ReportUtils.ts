@@ -3491,27 +3491,36 @@ function canPayIOUFromReportAction(action: ReportAction, chatReport: OnyxEntry<R
     );
 }
 
-type GetIOUReportActionWithBadgeOptions = {
+type GetIOUReportActionWithBadgeParams = {
+    chatReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    reportMetadata?: OnyxEntry<ReportMetadata>;
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    chatReportActions: OnyxEntry<ReportActions>;
+    allViolations?: OnyxCollection<TransactionViolations>;
     allReports?: OnyxCollection<Report>;
     allReportActionsParam?: OnyxCollection<ReportActions>;
     isChatReportArchived?: boolean;
 };
 
-function getIOUReportActionWithBadge(
-    chatReport: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    reportMetadata: OnyxEntry<ReportMetadata>,
-    invoiceReceiverPolicy: OnyxEntry<Policy>,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    chatReportActions: OnyxEntry<ReportActions>,
-    allViolations: OnyxCollection<TransactionViolations> | undefined,
-    options?: GetIOUReportActionWithBadgeOptions,
-): {
+function getIOUReportActionWithBadge({
+    chatReport,
+    policy,
+    reportMetadata,
+    invoiceReceiverPolicy,
+    currentUserLogin,
+    currentUserAccountID,
+    chatReportActions,
+    allViolations,
+    allReports,
+    allReportActionsParam,
+    isChatReportArchived = false,
+}: GetIOUReportActionWithBadgeParams): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
 } {
-    const {allReports, allReportActionsParam, isChatReportArchived = false} = options ?? {};
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
     let earliestAction: ReportAction | undefined;
 
@@ -5110,21 +5119,19 @@ function getReasonAndReportActionThatRequiresAttention({
     const actionTypeForAssigneeToComplete = getActionTypeForAssigneeToComplete(optionOrReport, parentReportAction);
 
     // Compute IOU candidate upfront so we can compare timestamps with task candidate
-    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge(
-        optionOrReport,
+    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge({
+        chatReport: optionOrReport,
         policy,
-        optionReportMetadata,
+        reportMetadata: optionReportMetadata,
         invoiceReceiverPolicy,
         currentUserLogin,
         currentUserAccountID,
-        reportActions,
-        transactionViolations,
-        {
-            allReports: reports,
-            allReportActionsParam: allReportActionsParam ?? allReportActions,
-            isChatReportArchived: isReportArchived,
-        },
-    );
+        chatReportActions: reportActions,
+        allViolations: transactionViolations,
+        allReports: reports,
+        allReportActionsParam: allReportActionsParam ?? allReportActions,
+        isChatReportArchived: isReportArchived,
+    });
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
     const transactions = getReportTransactions(iouReportID);
@@ -5160,7 +5167,6 @@ function getReasonAndReportActionThatRequiresAttention({
                 currentUserAccountID,
                 reportActions,
                 transactionViolations,
-                isReportArchived,
             );
             return {
                 reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
@@ -15668,4 +15674,5 @@ export type {
     OptimisticReportAction,
     ActionErrorsByTransaction,
     LastAccessedReport,
+    GetIOUReportActionWithBadgeParams,
 };
