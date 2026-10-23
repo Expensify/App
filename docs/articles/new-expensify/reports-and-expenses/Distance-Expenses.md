@@ -154,7 +154,7 @@ If you are creating expenses on a Workspace:
 
 ### Distance rates that keep themselves current
 
-Workspace Admins can enable **Auto-update government rate** so the workspace's mileage rate stays current. When a supported government publishes a new rate, such as the IRS standard mileage rate, Expensify adds it to the workspace with the date it takes effect. Your Distance expenses then use the rate that matches the expense date, with no manual updates needed.
+On Control workspaces, Workspace Admins can enable **Auto-update government rate** so the workspace's mileage rate stays current. When a supported government publishes a new rate, such as the IRS standard mileage rate, Expensify adds it to the workspace with the date it takes effect. Your Distance expenses then use the rate that matches the expense date, with no manual updates needed.
 
 [Learn how to automatically update distance rates when government rates change](/articles/new-expensify/workspaces/Set-distance-rates#how-to-automatically-update-distance-rates-when-government-rates-change)
 
