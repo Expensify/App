@@ -374,6 +374,28 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/home-page?backTo=r/123')).toBe('/home?backTo=r/123');
     });
 
+    it('redirects the old Wallet global reimbursements intro path to its dynamic route', () => {
+        // Given a link to the intro page saved before it became a dynamic route, keyed by bank account ID
+        const oldRoute = '/settings/wallet/123/global-reimbursements';
+
+        // When the old link is resolved
+        const newRoute = getMatchingNewRoute(oldRoute);
+
+        // Then it lands on the dynamic suffix appended to Wallet, so back navigation still returns to Wallet
+        expect(newRoute).toBe('/settings/wallet/global-reimbursements/123');
+    });
+
+    it('does not redirect the dynamic global reimbursements intro route', () => {
+        // Given the new dynamic intro path, whose segment order differs from the old pattern
+        const newRoute = '/settings/wallet/global-reimbursements/123';
+
+        // When it is resolved against the old routes
+        const matchedRoute = getMatchingNewRoute(newRoute);
+
+        // Then nothing matches, so it is not rewritten in a loop
+        expect(matchedRoute).toBe(undefined);
+    });
+
     describe('redirects old enable-payments substeps to their new routes', () => {
         const enablePaymentsCases = [
             {oldRoute: '/settings/wallet/enable-payments/plaid', expectedRoute: '/settings/wallet/enable-payments/add-bank-account/plaid'},

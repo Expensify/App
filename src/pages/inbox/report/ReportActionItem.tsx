@@ -536,7 +536,7 @@ function ReportActionItem({
     const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
     const isWhisper = whisperedTo.length > 0 && getTransactionsWithReceipts(iouReportID).length === 0;
 
-    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesUtils(iouReport, transactionsOnIOUReport);
+    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesUtils(iouReport, !isEmptyObject(transactionsOnIOUReport));
     const isEmpty = !shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses;
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction, isAgentProcessingInThread) && !isOnSearch;
 

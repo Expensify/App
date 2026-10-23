@@ -26,7 +26,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: (key: string) => key,
+        translate: (key: string, ...params: string[]) => [key, ...params].join(' '),
     })),
 );
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
@@ -124,6 +124,7 @@ const POLICY_ID = 'policy1';
 const GENERATION_ID = '7654321';
 const PROMPT = 'Hold gift card expenses';
 const FALLBACK_BANNER = 'workspace.rules.agentRules.fallbackBanner';
+const EXPLANATION = 'Agent rules cannot stop a card charge. This holds the expense after it posts.';
 
 const mockedUsePolicy = jest.mocked(usePolicy);
 
@@ -134,6 +135,12 @@ function renderAddAgentRulePage(generationID?: string) {
         navigation: {},
     } as unknown as AddAgentRulePageProps;
     return render(<AddAgentRulePage {...props} />);
+}
+
+async function setAgentRuleAnswer(generationID: string) {
+    await act(async () => {
+        await Onyx.set(ONYXKEYS.GENERATED_RULE, {generationID, state: CONST.GENERATED_RULE.STATE.AGENT_RULE, agentRulePrompt: PROMPT, explanation: EXPLANATION});
+    });
 }
 
 async function setAgentRuleDraft(prompt: string) {
@@ -204,6 +211,32 @@ describe('AddAgentRulePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the banner tells the admin that agent rules act after the fact
+        expect(screen.getByText(FALLBACK_BANNER)).toBeOnTheScreen();
+    });
+
+    it('shows the explanation of the agent rule answer in the fallback banner', async () => {
+        // Given Concierge answered the description with an agent rule that differs from what the admin asked for
+        await setAgentRuleDraft(PROMPT);
+        await setAgentRuleAnswer(GENERATION_ID);
+
+        // When the page renders with the generationID of that answer
+        renderAddAgentRulePage(GENERATION_ID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the banner says how the agent rule differs, so the admin reviews the reworded rule before saving
+        expect(screen.getByText(`workspace.rules.agentRules.fallbackBannerWithExplanation ${EXPLANATION}`)).toBeOnTheScreen();
+    });
+
+    it('ignores the explanation of an answer to another description', async () => {
+        // Given the stored answer belongs to another description
+        await setAgentRuleDraft(PROMPT);
+        await setAgentRuleAnswer('1234567');
+
+        // When the page renders with the generationID of this description
+        renderAddAgentRulePage(GENERATION_ID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the banner has no explanation, because that explanation describes another rule
         expect(screen.getByText(FALLBACK_BANNER)).toBeOnTheScreen();
     });
 

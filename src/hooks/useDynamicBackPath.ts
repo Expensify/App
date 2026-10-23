@@ -1,4 +1,4 @@
-import removeDynamicRouteFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/removeDynamicRouteFromPath';
+import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import type {State} from '@libs/Navigation/types';
 
@@ -33,7 +33,7 @@ function useDynamicBackPath(dynamicRouteSuffix: DynamicRouteSuffix, isEnabled = 
         return ROUTES.HOME;
     }
 
-    return removeDynamicRouteFromPath(path, dynamicRouteSuffix) ?? (path.replaceAll(/^\/+/g, '') as Route);
+    return stripDynamicRouteSuffixFromPath(path, dynamicRouteSuffix);
 }
 
 export default useDynamicBackPath;

@@ -83,7 +83,8 @@ function SortableTableHeader({
                     const isSortable = shouldShowSorting && isColumnSortable;
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
-                    const isReimbursableOrBillableColumn = columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE;
+                    const isYesNoColumn =
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.HELD;
                     const isConversionAmountColumn =
                         columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED ||
                         columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED ||
@@ -91,7 +92,7 @@ function SortableTableHeader({
                         columnName === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED;
                     const textStyle = [
                         columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null,
-                        isReimbursableOrBillableColumn || isConversionAmountColumn ? styles.flexShrink1 : null,
+                        isYesNoColumn || isConversionAmountColumn ? styles.flexShrink1 : null,
                     ];
 
                     return (
