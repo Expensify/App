@@ -752,6 +752,7 @@ function getSuggestedSearchesVisibility(
         const isPayer = isPolicyPayer(policy, currentUserEmail);
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
+        const isPaymentsAdmin = policy.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
         const isExporter = policy.exporter === currentUserEmail;
 
         const isSubmittedTo =
@@ -772,10 +773,10 @@ function getSuggestedSearchesVisibility(
         const isPolicyEligibleForApproveSuggestion = isGroupPolicyEligible && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
-        const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && isPaymentEnabled;
+        const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
-        const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isPaymentEnabled && hasVBBA && hasReimburser;
+        const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
         const isEligibleForTopSpendersSuggestion = isPolicyEligibleForTopSpenders(policy, currentUserEmail);
         const isEligibleForTopCategoriesSuggestion = isPolicyEligibleForTopCategories(policy);
