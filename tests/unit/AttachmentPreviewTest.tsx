@@ -6,10 +6,12 @@ import MockText from '@components/Text';
 import React from 'react';
 import {View as MockView} from 'react-native';
 
-let mockEvent: {videoSource: string} | null = null;
+type MockSourceLoadEvent = {videoSource: string} | null;
+let mockEvent: MockSourceLoadEvent = null;
 const mockGenerateThumbnails = jest.fn(async () => [{uri: 'thumbnail'}]);
 const mockPlayer = {generateThumbnailsAsync: mockGenerateThumbnails};
-jest.mock('expo', () => ({useEvent: () => mockEvent}));
+const mockUseEvent = jest.fn<MockSourceLoadEvent, [typeof mockPlayer, 'sourceLoad', null]>(() => mockEvent);
+jest.mock('expo', () => ({useEvent: (...args: Parameters<typeof mockUseEvent>) => mockUseEvent(...args)}));
 jest.mock('expo-video', () => ({useVideoPlayer: () => mockPlayer}));
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => ({})}));
 jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: () => ({Play: 'play'})}));
@@ -23,6 +25,7 @@ jest.mock('@components/PDFThumbnail', () => ({__esModule: true, default: () => n
 beforeEach(() => {
     mockEvent = null;
     mockGenerateThumbnails.mockClear();
+    mockUseEvent.mockClear();
 });
 it('waits for sourceLoad before generating a video thumbnail', async () => {
     // Given a video player without an initial source event
@@ -33,6 +36,7 @@ it('waits for sourceLoad before generating a video thumbnail', async () => {
             onPress={jest.fn()}
         />,
     );
+    expect(mockUseEvent).toHaveBeenLastCalledWith(mockPlayer, 'sourceLoad', null);
     expect(screen.getByText('play icon')).toBeTruthy();
     expect(mockGenerateThumbnails).not.toHaveBeenCalled();
     // When sourceLoad supplies a video source
