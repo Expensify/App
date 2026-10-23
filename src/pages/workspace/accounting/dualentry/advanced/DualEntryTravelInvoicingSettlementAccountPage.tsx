@@ -63,7 +63,7 @@ function DualEntryTravelInvoicingSettlementAccountPage({policy}: WithPolicyConne
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.travelInvoicingSettlementAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.travelBillingSettlementAccount.description')}</Text>
         </View>
     );
 
@@ -92,7 +92,7 @@ function DualEntryTravelInvoicingSettlementAccountPage({policy}: WithPolicyConne
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={shouldBeBlocked}
             displayName="DualEntryTravelInvoicingSettlementAccountPage"
-            title="workspace.dualEntry.travelInvoicingSettlementAccount.label"
+            title="workspace.dualEntry.travelBillingSettlementAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             headerContent={headerContent}
