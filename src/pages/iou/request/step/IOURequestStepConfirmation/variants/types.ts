@@ -70,10 +70,10 @@ type ConfirmationVariantProps = {
     /** Everything the submission hooks read. Each variant picks only what its own hook needs. */
     submissionParams: ConfirmationSubmissionParams;
 
-    /** Orchestrator props; the variant supplies `createTransaction` from its own submission hook. */
+    /** Orchestrator props. The variant supplies `createTransaction` from its own submission hook. */
     orchestratorProps: Omit<SubmitExpenseOrchestratorProps, 'createTransaction' | 'children'>;
 
-    /** List props; `onConfirm` / `isConfirming` come from the orchestrator and `onSendMoney` only from the pay flow. */
+    /** List props. `onConfirm` and `isConfirming` come from the orchestrator, and `onSendMoney` only from the pay flow. */
     listProps: Omit<MoneyRequestConfirmationListProps, 'onConfirm' | 'isConfirming' | 'onSendMoney'>;
 };
 
