@@ -27,6 +27,7 @@ import {clearLinkPlaidBankAccountErrors, clearPlaid, linkPlaidToBankAccount} fro
 import {openPlaidBankLogin} from '@libs/actions/Plaid';
 import {hasBrokenPlaidConnection, isConnectedViaPlaid} from '@libs/BankAccountUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
+import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import Log from '@libs/Log';
 
 import Navigation from '@navigation/Navigation';
@@ -161,6 +162,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
                 onError={(error) => Log.hmmm('[LinkPlaidToBankAccount] PlaidLink error: ', error?.message)}
                 onEvent={() => {}}
                 onExit={() => Navigation.goBack(backPath)}
+                receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
             />
         );
     }
