@@ -1,4 +1,5 @@
-import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
+import {setPolicyTravelMemberAccessValue, setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
+import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -130,6 +131,32 @@ describe('actions/Policy/Travel', () => {
             expect(failedPolicy?.errorFields?.isCodingSyncEnabled).toBeTruthy();
             expect(failedPolicy?.errorFields?.autoAddTripName).toBeFalsy();
             expect(failedPolicy?.travelSettings?.autoAddTripName).toBe(true);
+        });
+    });
+
+    describe('setPolicyTravelMemberAccessValue', () => {
+        it('keeps the error from turning travel on when setting the travel role succeeds', async () => {
+            // Given a member with travel off
+            const memberEmail = 'member@example.com';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                employeeList: {[memberEmail]: {email: memberEmail, role: CONST.POLICY.ROLE.USER, canUseTravel: false}},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When an admin makes them a travel admin, which turns travel on and then sets the role, and only turning
+            // travel on fails
+            mockFetch.mockAPICommand(WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS, () => ({jsonCode: 400}));
+            setPolicyTravelMemberAccessValue(fakePolicy, [{email: memberEmail, accountID: 2}], CONST.TRAVEL.MEMBER_ROLE.ADMIN);
+            await waitForBatchedUpdates();
+
+            // Then the member keeps travel off with the error, marked as a failed update so dismissing it keeps them
+            // in the list, even though the role request succeeded
+            const employee = (await getPolicy(fakePolicy.id))?.employeeList?.[memberEmail];
+            expect(employee?.canUseTravel).toBe(false);
+            expect(employee?.travelRole).toBe(CONST.TRAVEL.MEMBER_ROLE.ADMIN);
+            expect(employee?.errors).toBeTruthy();
+            expect(employee?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
         });
     });
 });
