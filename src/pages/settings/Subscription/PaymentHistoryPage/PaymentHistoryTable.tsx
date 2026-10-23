@@ -6,7 +6,6 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
@@ -32,12 +31,8 @@ function PaymentHistoryTable() {
     const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const [purchases] = useOnyx(ONYXKEYS.PURCHASES);
-    const subscriptionPlan = useSubscriptionPlan();
     const isLoading = purchases === undefined;
     const rows = getPaymentHistoryRows(purchases);
-
-    // The Collect plan has no concept of active users, so it counts members instead.
-    const isCollectPlan = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
 
     return (
         <Section
@@ -67,7 +62,6 @@ function PaymentHistoryTable() {
                         row={row}
                         dateLabel={DateUtils.formatWithUTCTimeZone(row.created, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale) || row.created}
                         shouldShowDivider={index < rows.length - 1}
-                        isCollectPlan={isCollectPlan}
                     />
                 ))}
         </Section>
@@ -78,18 +72,15 @@ type PaymentHistoryTableRowProps = {
     row: PaymentHistoryRow;
     dateLabel: string;
     shouldShowDivider: boolean;
-
-    /** Whether the account is on the Collect plan, which counts members instead of active users */
-    isCollectPlan: boolean;
 };
 
-function PaymentHistoryTableRow({row, dateLabel, shouldShowDivider, isCollectPlan}: PaymentHistoryTableRowProps) {
+function PaymentHistoryTableRow({row, dateLabel, shouldShowDivider}: PaymentHistoryTableRowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const stateLabel = translate(getStateTranslationKey(row.state));
     const amountLabel = convertAmountToDisplayString(row.amount, row.currency);
     const activeUserLabel = row.activeUserCount
-        ? translate(isCollectPlan ? 'subscription.paymentHistory.members' : 'subscription.paymentHistory.activeUsers', {count: row.activeUserCount})
+        ? translate(row.countsMembers ? 'subscription.paymentHistory.members' : 'subscription.paymentHistory.activeUsers', {count: row.activeUserCount})
         : undefined;
     const taxLabel = row.showsTax ? translate('subscription.paymentHistory.inclTax') : undefined;
     const {success, error} = getBadgeAppearance(row.state);

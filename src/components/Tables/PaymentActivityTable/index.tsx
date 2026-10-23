@@ -2,7 +2,6 @@ import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableDat
 import Table, {composeTableListHeader} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -33,19 +32,18 @@ type PaymentActivityTableProps = {
     /** The active users billed for the month */
     activeUsers: PaymentActivityRowData[];
 
+    /** Whether the bill was on Collect 2025 pricing, which counts members instead of active users */
+    countsMembers: boolean;
+
     /** Page-level content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
 };
 
-function PaymentActivityTable({activeUsers, headerComponent}: PaymentActivityTableProps) {
+function PaymentActivityTable({activeUsers, countsMembers, headerComponent}: PaymentActivityTableProps) {
     const {translate, localeCompare} = useLocalize();
-    const subscriptionPlan = useSubscriptionPlan();
-
-    // The Collect plan has no concept of active users, so it counts members instead.
-    const isCollectPlan = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
 
     // The count always reflects every active user, not just the ones matching the search.
-    const activeUsersLabel = translate(isCollectPlan ? 'subscription.paymentHistory.members' : 'subscription.paymentHistory.activeUsers', {count: activeUsers.length});
+    const activeUsersLabel = translate(countsMembers ? 'subscription.paymentHistory.members' : 'subscription.paymentHistory.activeUsers', {count: activeUsers.length});
 
     const columns: Array<TableColumn<PaymentActivityTableColumnKey>> = [
         {
@@ -73,7 +71,7 @@ function PaymentActivityTable({activeUsers, headerComponent}: PaymentActivityTab
     const shouldShowSearchBar = activeUsers.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const tableHeaderComponent = composeTableListHeader(
         headerComponent,
-        shouldShowSearchBar ? <Table.FilterBar label={translate(isCollectPlan ? 'subscription.paymentHistory.findMember' : 'subscription.paymentHistory.findActiveUser')} /> : undefined,
+        shouldShowSearchBar ? <Table.FilterBar label={translate(countsMembers ? 'subscription.paymentHistory.findMember' : 'subscription.paymentHistory.findActiveUser')} /> : undefined,
     );
 
     return (
