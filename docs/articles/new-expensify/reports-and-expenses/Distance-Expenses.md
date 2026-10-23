@@ -178,7 +178,12 @@ Yes! When selecting the **Start** and **Stop** addresses, recently used location
 
 ## Why can't I select Manual or Odometer when creating a Distance expense?
 
-A Workspace Admin has enabled **Require GPS or map entry** on the workspace. Manual and odometer entry are turned off, so only **Map** and **GPS** appear. Distance expenses you track in Your space aren't affected.
+A workspace admin has turned off manual and odometer entry on the workspace, so only **Map** and **GPS** appear. This happens when either of these settings is on:
+
+- **Require GPS or map entry**
+- **Exclude commutes**, because commute exclusions are calculated from the trip's route
+
+Distance expenses you track in Your space aren't affected.
 
 [Learn how to require GPS or map entry for distance expenses](/articles/new-expensify/workspaces/Set-distance-rates#how-to-require-gps-or-map-entry-for-distance-expenses)
 

@@ -172,6 +172,8 @@ After you enable it:
 - If a member tries to create a manual or odometer distance expense on the workspace, Expensify shows a message that the workspace requires either map-based or GPS-tracked distance expenses.
 - Existing distance expenses are not changed, and members can still edit them.
 
+**Exclude commutes** also requires GPS or map entry, because commute exclusions are calculated from the trip's route. While **Exclude commutes** is set to anything other than **Do not exclude commute**, manual and odometer entry are disabled and **Require GPS or map entry** stays on and locked. To turn off **Require GPS or map entry**, first set **Exclude commutes** to **Do not exclude commute**.
+
 ---
 
 # FAQ
