@@ -86,7 +86,7 @@ describe('live development worker', () => {
                 '--var',
                 `DEV_UPSTREAM:http://127.0.0.1:${address.port}`,
                 '--var',
-                'DEV_CONNECT_ORIGINS:["https://www.expensify.com.dev","http://backend.test:8080"]',
+                'DEV_CONNECT_ORIGINS:["http://backend.test:8080"]',
             ],
             {cwd: path.resolve(import.meta.dirname, '..'), env: {...process.env, WRANGLER_SEND_METRICS: 'false'}},
         );
@@ -152,6 +152,16 @@ describe('live development worker', () => {
         assert.ok(csp.includes(origin.replace('http:', 'ws:')));
         assert.ok(csp.includes('https://www.expensify.com.dev'));
         assert.doesNotMatch(csp, /script-src[^;]*'unsafe-inline'|connect-src \*/);
+    });
+
+    test('adds only configured backends and the OldDot origin the app hardcodes', async () => {
+        // Given a backend from .env, and the app's hardcoded development OldDot URL (CONST.INTERNAL_DEV_EXPENSIFY_URL)
+        // When the Worker serves a page
+        const csp = (await server.fetch('/')).headers.get('Content-Security-Policy') ?? '';
+        // Then both are allowed, and unconfigured or server-side-only origins are not
+        assert.ok(csp.includes('http://backend.test:8080'));
+        assert.match(csp, /frame-src [^;]*https:\/\/www\.expensify\.com\.dev/);
+        assert.doesNotMatch(csp, /secure\.expensify\.com\.dev|localhost:9000/);
     });
 
     test('allows local backends to serve videos and the OldDot statement iframe', async () => {

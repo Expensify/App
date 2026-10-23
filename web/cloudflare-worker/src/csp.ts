@@ -18,8 +18,11 @@ type DevelopmentOrigins = {
     backendOrigins: string[];
 };
 
-/** The default local OldDot backend, which the app calls, plays videos from, and frames (e.g. wallet statements). */
-const DEFAULT_DEVELOPMENT_BACKEND_ORIGINS = ['https://www.expensify.com.dev', 'https://secure.expensify.com.dev'];
+/**
+ * The app hardcodes this development OldDot origin (CONST.INTERNAL_DEV_EXPENSIFY_URL) for links and the wallet statement
+ * iframe, so it is allowed even when no local backend is configured.
+ */
+const DEVELOPMENT_OLDDOT_ORIGIN = 'https://www.expensify.com.dev';
 
 /** Inline scripts allowed without a nonce. Tests check that every such script in `web/index.html` is listed. */
 const INLINE_SCRIPT_HASHES = [
@@ -185,12 +188,12 @@ const PRODUCTION_CSP = buildCSP({
 function getCSP(environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, developmentOrigins?: DevelopmentOrigins): string {
     let csp = environment === 'staging' ? STAGING_CSP : PRODUCTION_CSP;
     if (environment === 'development') {
-        const backendOrigins = [...new Set([...DEFAULT_DEVELOPMENT_BACKEND_ORIGINS, ...(developmentOrigins?.backendOrigins ?? [])])];
+        const backendOrigins = [...new Set([DEVELOPMENT_OLDDOT_ORIGIN, ...(developmentOrigins?.backendOrigins ?? [])])];
         csp = buildCSP({
             fontSrcHosts: ["'self'"],
             frameSrcHosts: backendOrigins,
             scriptSrcHashes: INLINE_SCRIPT_HASHES,
-            connectSrcHosts: [...backendOrigins, 'http://localhost:9000', ...(developmentOrigins ? [developmentOrigins.hmrOrigin] : [])],
+            connectSrcHosts: [...backendOrigins, ...(developmentOrigins ? [developmentOrigins.hmrOrigin] : [])],
             // 'self' covers attachments the Rsbuild proxy serves from the app origin.
             mediaSrcHosts: ["'self'", ...backendOrigins],
         });
