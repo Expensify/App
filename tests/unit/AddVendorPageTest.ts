@@ -105,6 +105,31 @@ describe('AddVendorPage', () => {
             const policy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
             expect(getVendorSelectionItems(policy, localeCompare)).toEqual([{name: 'Acme Xero', value: 'xc1'}]);
         });
+
+        it('excludes disabled vendors from the selection items', () => {
+            const policy = buildQBOPolicy([
+                {id: 'v-1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v-2', name: 'Globex', currency: 'USD'},
+            ]);
+            const policyVendors = {
+                'v-2': {externalID: 'v-2', name: 'Globex', enabled: false},
+            };
+            expect(getVendorSelectionItems(policy, localeCompare, policyVendors)).toEqual([{name: 'Acme Co', value: 'v-1'}]);
+        });
+
+        it('retains the currently-selected vendor even if disabled', () => {
+            const policy = buildQBOPolicy([
+                {id: 'v-1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v-2', name: 'Globex', currency: 'USD'},
+            ]);
+            const policyVendors = {
+                'v-2': {externalID: 'v-2', name: 'Globex', enabled: false},
+            };
+            expect(getVendorSelectionItems(policy, localeCompare, policyVendors, 'v-2')).toEqual([
+                {name: 'Acme Co', value: 'v-1'},
+                {name: 'Globex', value: 'v-2'},
+            ]);
+        });
     });
 
     describe('getSelectedVendorItem', () => {

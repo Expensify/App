@@ -314,6 +314,13 @@ describe('ImportedMerchantRulesPage', () => {
         it('returns an empty lookup when the vendor list has not loaded', () => {
             expect(buildImportedVendorLookup(buildQBOPolicyWithVendors(undefined)).size).toBe(0);
         });
+
+        it('excludes disabled vendors from the lookup', () => {
+            const policyVendors = {
+                'v-1': {externalID: 'v-1', name: 'Acme Co', enabled: false},
+            };
+            expect(buildImportedVendorLookup(policy, policyVendors).get('acme co')).toBeUndefined();
+        });
     });
 
     describe('willImportShortCircuitLocally', () => {
