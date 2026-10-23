@@ -143,6 +143,7 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/expensify-card/*': '/workspaces/$1/expensify-card/card-details/$2',
     '/workspace/confirmation/currency': '/workspaces/workspace/confirmation/currency',
     '/workspace/confirmation': '/workspaces/workspace/confirmation',
+    '/settings/wallet/*/global-reimbursements': '/settings/wallet/global-reimbursements/$1',
     '/settings/wallet/enable-payments/plaid*': '/settings/wallet/enable-payments/add-bank-account/plaid$1',
     '/settings/wallet/enable-payments/bank-account-confirmation*': '/settings/wallet/enable-payments/add-bank-account/confirmation$1',
     '/settings/wallet/enable-payments/legal-name*': '/settings/wallet/enable-payments/personal-info/legal-name$1',

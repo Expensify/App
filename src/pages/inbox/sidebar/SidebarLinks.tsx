@@ -32,7 +32,8 @@ type SidebarLinksProps = {
     /** Safe area insets required for mobile devices margins */
     insets: EdgeInsets;
 
-    optionListItems: Report[];
+    /** The ordered IDs of the reports to show in the LHN */
+    reportIDs: string[];
 
     /** Whether the full (unfiltered) LHN report set is empty. Used to distinguish an Onyx-cleared reload from a per-tab empty view. */
     hasReportData: boolean;
@@ -47,7 +48,7 @@ type SidebarLinksProps = {
     listHeaderComponent?: React.ReactNode;
 };
 
-function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT, listHeaderComponent}: SidebarLinksProps) {
+function SidebarLinks({insets, reportIDs, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT, listHeaderComponent}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
@@ -88,7 +89,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
 
     const contentContainerStyles = StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]);
 
-    const shouldShowEmptyLHN = optionListItems.length === 0;
+    const shouldShowEmptyLHN = reportIDs.length === 0;
     const {contentContainerStyle: emptyLHNStyle} = useTabRootScrollProps([styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper], {fillsVisibleArea: true});
 
     // Show the loading skeleton only while report data is loading AND the entire LHN report set is empty
@@ -124,7 +125,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
                     <LHNOptionsList
                         style={styles.flex1}
                         contentContainerStyles={contentContainerStyles}
-                        data={optionListItems}
+                        data={reportIDs}
                         onSelectRow={showReportPage}
                         shouldDisableFocusOptions={shouldUseNarrowLayout}
                         optionMode={viewMode}
