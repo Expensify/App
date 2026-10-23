@@ -148,8 +148,7 @@ function AmountField({
     const allowNegative =
         shouldEnableNegative(report, policy, iouType, transactionSlice?.participants) && !isP2PRecipient(transactionSlice?.participants?.at(0), currentUserPersonalDetails.accountID);
 
-    // Whether the screen should focus the amount the next time it gains focus: on mount, and on the way back from
-    // picking a participant. Coming back from any other field's page leaves focus on the row the user just edited.
+    // Focus the amount on mount and after picking a participant. Other pages leave focus on the row the user edited.
     const shouldFocusOnScreenFocusRef = useRef(true);
     useEffect(
         () =>
@@ -159,10 +158,8 @@ function AmountField({
         [navigation],
     );
 
-    // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
-    // instance, so autofocus does not run again. We re-focus when the screen regains focus from the participants page,
-    // so the amount input gains focus once the user selects a participant. The setTimeout defers focus past the RHP
-    // entry / back animation so the input reliably receives focus.
+    // `autoFocus` only runs on mount and the RHP often keeps this instance mounted, so focus again when the screen
+    // regains focus. The timeout waits out the RHP animation.
     useEffect(() => {
         if (!shouldAutoFocusOnMount || isAmountFieldDisabled || !isScreenFocused || !shouldFocusOnScreenFocusRef.current) {
             return;

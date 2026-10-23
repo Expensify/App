@@ -60,8 +60,7 @@ function DynamicIOURequestStepParticipants({route, navigation, transaction: init
         shouldExcludeWorkspaces: shouldExcludeWorkspacesParam,
         isFromConfirmation: isFromConfirmationParam,
     } = route.params;
-    // Opened from the confirmation's "To" row: a selection is written straight to the expense the confirmation shows,
-    // and the page returns to it instead of moving on to the next step.
+    // Opened from the confirmation's "To" row, so a pick is written to that expense and the page goes back to it.
     const isFromConfirmation = isFromConfirmationParam === 'true';
     // "Submit to my employer" with multiple submit-enabled workspaces passes isWorkspacesOnly=true to limit the picker to workspaces.
     const isWorkspacesOnlyFromRoute = isWorkspacesOnlyParam === 'true';
@@ -115,7 +114,7 @@ function DynamicIOURequestStepParticipants({route, navigation, transaction: init
         action,
         isSplitRequest,
         isMovingTransactionFromTrackExpense,
-        // The step's on-focus resets belong to the multi-step flow, not to an expense the confirmation already shows.
+        // The step's on-focus resets belong to the multi-step flow.
         isFocused: isFocused && !isFromConfirmation,
         isWorkspacesOnly,
         shouldExcludeWorkspaces,
@@ -188,9 +187,7 @@ function DynamicIOURequestStepParticipants({route, navigation, transaction: init
         const stackKey = navigation.getState().key;
         navigateBack();
 
-        // Going back doesn't carry the iouType the selection moved the expense to, so it is set on the confirmation
-        // afterwards. No route key is given, so the params land on whichever route the stack shows after going back,
-        // whether it popped to the confirmation or replaced this page with it.
+        // Going back doesn't carry the new iouType, so it is set on whichever route the stack shows afterwards.
         const nextIOUType = confirmationIOUTypeRef.current;
         if (!nextIOUType) {
             return;
@@ -205,11 +202,11 @@ function DynamicIOURequestStepParticipants({route, navigation, transaction: init
         returnToConfirmation();
     };
 
-    // The confirmation offers the selector as one to pick anyone from, so a SUBMIT or TRACK expense picks as CREATE.
+    // Anyone can be picked from the confirmation, so SUBMIT and TRACK pick as CREATE.
     const selectorIOUType = isFromConfirmation && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) ? CONST.IOU.TYPE.CREATE : iouType;
 
-    // From the confirmation a pick closes the page, so the list keeps the recipients it opened with. Showing the pick
-    // instead would reshape the list while the screen animates out, and FlashList crashes when its data shrinks then.
+    // FlashList crashes when its data shrinks while the page animates out, so from the confirmation the list keeps the
+    // recipients it opened with.
     const [participantsWhenOpened] = useState(participants);
     const shownParticipants = isFromConfirmation ? participantsWhenOpened : participants;
     const selectedParticipant = isSplitRequest ? undefined : shownParticipants?.find((participant) => participant.selected && !participant.isSender);

@@ -34,8 +34,8 @@ type UseParticipantPickerStateParams = {
 };
 
 /**
- * Owns the confirmation's "To" picker: the participants auto-assigned from the source report, and opening the
- * participants page, either from the "To" row or on its own when a manual expense has no one to go to.
+ * Owns the confirmation's "To" picker: assigning default participants and opening the participants page, from the
+ * "To" row or on its own for a manual expense with no recipient.
  */
 function useParticipantPickerState({transaction, iouType, action, reportID, reportDrafts, navigation, isManualRequest}: UseParticipantPickerStateParams) {
     const isFocused = useIsFocused();
@@ -64,11 +64,10 @@ function useParticipantPickerState({transaction, iouType, action, reportID, repo
         );
     };
 
-    // The picker opens on its own once per expense. Coming back from it without picking anyone leaves the expense
-    // without a recipient, and it must not open again then: the user dismissed it.
+    // Opens on its own once per expense, so coming back without a pick doesn't reopen it.
     const autoOpenedForTransactionIDRef = useRef<string | undefined>(undefined);
     useEffect(() => {
-        // The confirmation is also embedded in a tab of `IOURequestStartPage`, so only the focused tab may open it.
+        // The confirmation is also a tab of `IOURequestStartPage`, so only the focused tab opens it.
         if (!shouldAutoOpenParticipantPicker || !isFocused || autoOpenedForTransactionIDRef.current === activeTransactionID) {
             return;
         }

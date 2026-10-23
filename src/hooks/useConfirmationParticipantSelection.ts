@@ -34,20 +34,20 @@ type UseConfirmationParticipantSelectionParams = {
     /** The confirmation's route reportID */
     reportID: string;
 
-    /** The workspace the expense is on before the selection, used to tell whether the selection switches workspaces */
+    /** The expense's workspace before the selection, to tell whether the selection switches workspaces */
     policyID: string | undefined;
 
     isDistanceRequest: boolean;
 
     blockDistanceRequestIfNeeded: ReturnType<typeof useBlockDistanceRequest>;
 
-    /** Called when the selection moves the expense to another iouType, so the confirmation's route can follow */
+    /** Called when the selection moves the expense to another iouType */
     onIOUTypeChange: (iouType: IOUType) => void;
 };
 
 /**
- * What selecting a recipient from the confirmation's "To" row writes to the expense. Unlike the participants step of the
- * multi-step flow, it only touches the expense the confirmation shows and keeps the confirmation's route in place.
+ * What picking a recipient from the confirmation's "To" row writes to the expense. Unlike the participants step, it
+ * doesn't move the flow on.
  */
 function useConfirmationParticipantSelection({
     transaction,
@@ -82,22 +82,16 @@ function useConfirmationParticipantSelection({
         if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
             return false;
         }
-        // P2P chats don't support negative amounts. When a negative amount was entered before a participant
-        // was selected (e.g. "Submit it to someone" from a self DM), assigning it to a P2P participant would
-        // fail at submit, so keep the expense on the self DM (its default) instead of assigning the P2P
-        // participant, stopping the user at selection rather than at submit. This only applies while the
-        // expense is still on the self DM — a negative expense already bound to a policy expense chat (e.g.
-        // global create auto-assigned the default workspace) must stay on that workspace rather than being
-        // silently converted into a personal track expense.
+        // P2P chats don't support negative amounts, so a negative expense picked for a P2P recipient stays on the
+        // self DM instead of failing at submit. An expense already on a workspace chat keeps its workspace.
         const isTransactionOnPolicyExpenseChat = transaction?.participants?.some((participant) => participant?.isPolicyExpenseChat);
         const shouldKeepOnSelfDM = !!selectedParticipant?.isSelfDM || ((transaction?.amount ?? 0) < 0 && !isTransactionOnPolicyExpenseChat && isParticipantP2P(selectedParticipant));
         if (shouldKeepOnSelfDM) {
             setMoneyRequestParticipantsFromReport(transactionID, selfDMReport, currentUserPersonalDetails.accountID);
             setTransactionReport(transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
 
-            // The rate the expense picked up from a workspace does not exist outside it, so leaving it in place
-            // makes the Rate field read "Pending..." and the amount go blank once the expense is back on the self
-            // DM. Re-resolve the rate the self DM itself uses, the same way starting a track distance expense does.
+            // A workspace rate doesn't exist on the self DM and would leave the Rate field "Pending...", so use the
+            // self DM's own rate.
             if (isDistanceRequest) {
                 const selfDMRateID = DistanceRequestUtils.getCustomUnitRateID({
                     reportID: selfDMReport?.reportID,
@@ -122,19 +116,12 @@ function useConfirmationParticipantSelection({
             if (iouType !== CONST.IOU.TYPE.SPLIT && firstParticipant) {
                 const isPolicyExpenseChatParticipant = !!firstParticipant.isPolicyExpenseChat;
 
-                // A brand-new recipient picked by email has no chat yet (no reportID). Reusing the route's `reportID`
-                // (which points at the flow's origin report - e.g. the default workspace chat this distance flow was
-                // seeded with) leaves the expense bound to that workspace, so the backend rejects it with
-                // "There is a previously existing chat between these users." Generate a fresh optimistic reportID for
-                // P2P recipients, mirroring the legacy participants-step flow (useParticipantSubmission).
+                // A new recipient picked by email has no chat yet. The route's reportID points at the flow's origin
+                // report, which the backend rejects for them, so a new one is generated, like useParticipantSubmission does.
                 const participantReportID = firstParticipant.reportID || (isPolicyExpenseChatParticipant ? reportID : generateReportID());
                 setTransactionReport(transactionID, {reportID: participantReportID}, true);
 
-                // When switching from the auto-assigned default workspace to a P2P recipient we must also undo the
-                // workspace-specific defaults the distance step applied: reset the mileage rate to the P2P rate and
-                // clear the workspace's default category (and the category-derived tax). Otherwise the confirmation
-                // keeps the workspace "Default Rate"/category and the expense stays bound to that workspace. This
-                // mirrors what the legacy addParticipant/goToNextStep path does when a P2P recipient is selected.
+                // A P2P recipient drops the workspace's rate, category and tag, like useParticipantSubmission does.
                 if (!isPolicyExpenseChatParticipant) {
                     if (isDistanceRequest) {
                         const p2pRateID = DistanceRequestUtils.getCustomUnitRateID({
@@ -165,10 +152,8 @@ function useConfirmationParticipantSelection({
                         }
                     }
 
-                    // Switching to a different workspace: the previous workspace's category and tag no longer apply,
-                    // so reset them to the destination workspace's defaults. This mirrors the legacy participants-step
-                    // flow (useParticipantSubmission.goToNextStep), which resets both on every selection and passes no
-                    // policy so the previous workspace's category-derived tax is cleared along with the category.
+                    // The previous workspace's category and tag don't apply in the new one, so reset them. No policy is
+                    // passed, so the category's tax is cleared too.
                     if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
                         const defaultCategory = isDistanceRequest ? (getDistanceRateCustomUnit(workspacePolicy)?.defaultCategory ?? '') : '';
                         setMoneyRequestCategory(transactionID, defaultCategory, undefined, getCurrencyDecimals);

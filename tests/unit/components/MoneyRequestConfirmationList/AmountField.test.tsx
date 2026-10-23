@@ -315,8 +315,7 @@ describe('AmountField refocus on return', () => {
             jest.runAllTimers();
         });
 
-        // Then only coming back from the participants page focuses the amount, so a keyboard or screen-reader user
-        // returning from any other field stays on the row they just edited
+        // Then only the participants page refocuses the amount, and other pages leave focus on the edited row
         expect(mockFocusAmountInput).toHaveBeenCalledTimes(expectedFocusCalls);
     });
 });

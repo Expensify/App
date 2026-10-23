@@ -35,7 +35,7 @@ const POLICY_ID = '2';
 const ROUTE_KEY = 'Dynamic_Money_Request_Step_Participants--test';
 const STACK_KEY = 'MoneyRequestStack--test';
 type StepParticipantsNavigation = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS>['navigation'];
-// The page opened from the confirmation sits in the same stack as it, which is what going back shows again.
+// The participants page shares its stack with the confirmation.
 const navigation = createMock<StepParticipantsNavigation>({
     getState: () => createMock<ReturnType<StepParticipantsNavigation['getState']>>({key: STACK_KEY}),
 });
@@ -319,7 +319,7 @@ describe('DynamicIOURequestStepParticipants', () => {
             // Given the page opened from the confirmation of a SUBMIT expense
             await renderFromConfirmation();
 
-            // Then the selector picks as CREATE, the same way the confirmation's in-place picker did
+            // Then the selector picks as CREATE, like the old inline picker did
             expect(latestSelectorProps.iouType).toBe(CONST.IOU.TYPE.CREATE);
         });
 
@@ -342,8 +342,7 @@ describe('DynamicIOURequestStepParticipants', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then the selector still gets the recipients it opened with, since FlashList crashes when its data shrinks
-            // under a screen that is animating out
+            // Then the list keeps the recipients it opened with, since FlashList crashes when its data shrinks mid-animation
             expect(latestSelectorProps.participants).toBe(participantsBeforePick);
         });
 
@@ -364,8 +363,7 @@ describe('DynamicIOURequestStepParticipants', () => {
             // Then the page goes back to the confirmation only once, instead of moving on to the next step
             expect(Navigation.goBack).toHaveBeenCalledTimes(1);
 
-            // And whichever route the stack shows after going back follows the iouType the selection moved the expense
-            // to, so the switch survives a back that replaces this page instead of popping to the confirmation
+            // And the route shown after going back gets the new iouType
             expect(Navigation.setParams).toHaveBeenCalledWith({iouType: expectedIOUType}, undefined, STACK_KEY);
         });
     });
