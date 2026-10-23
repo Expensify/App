@@ -40,6 +40,5 @@ bun scripts/applyPatches.ts
 # nothing and exits 0. Use `npx tsc --build`, which walks the references, or `npm run typecheck`.
 ln -sfn ../typescript/bin/tsc "$ROOT_DIR/node_modules/.bin/tsc"
 
-# Keep the Worker independently installable for deploy CI, but include it in normal App setup.
-echo "Installing local Cloudflare Worker tooling"
-npm ci --prefix "$ROOT_DIR/web/cloudflare-worker" --include=dev
+# Keep the Worker independently installable for deploy CI, but include it in normal local App setup.
+bun scripts/installCloudflareWorker.ts

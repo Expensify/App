@@ -12,6 +12,7 @@ on:
       - 'scripts/utils/checkWebServer.ts'
       - 'scripts/utils/waitForPublicWebServer.ts'
       - 'scripts/postInstall.sh'
+      - 'scripts/installCloudflareWorker.ts'
       - 'config/rsbuild/**'
       - 'package.json'
       # The tests check its inline scripts against the CSP hashes.
