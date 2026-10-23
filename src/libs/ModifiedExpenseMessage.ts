@@ -18,15 +18,7 @@ import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import {formatList} from './Localize';
 import Log from './Log';
-import {
-    arePolicyRulesEnabled,
-    findVendorByID,
-    getCleanedTagName,
-    getCommaSeparatedTagNameWithSanitizedColons,
-    getSortedTagKeys,
-    isPolicyAdmin,
-    isXeroActiveMatchingSource,
-} from './PolicyUtils';
+import {arePolicyRulesEnabled, findVendorByID, getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isModifiedExpenseAction} from './ReportActionTypeGuards';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
@@ -169,7 +161,7 @@ function getForExpenseMovedFromSelfDM(
     // - A policy expense chat
     // - A 1:1 DM
     const reportName = isPolicyExpenseChat(rootParentReport)
-        ? getPolicyExpenseChatName({report: rootParentReport, translate})
+        ? getPolicyExpenseChatName({report: rootParentReport, translate, formatPhoneNumber})
         : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID, translate, formatPhoneNumber});
     const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true, policy});
     // If we can't determine either the report name or policy name, return the default message
@@ -324,17 +316,24 @@ function getForReportAction({
         return translate('iou.addedReceipt');
     }
 
-    const hasModifiedAmount =
-        isReportActionOriginalMessageAnObject && 'oldCurrency' in reportActionOriginalMessage && 'amount' in reportActionOriginalMessage && 'currency' in reportActionOriginalMessage;
+    if (isReportActionOriginalMessageAnObject && reportActionOriginalMessage.receiptRemoved) {
+        return translate('iou.removedReceipt');
+    }
+
+    // oldCurrency isn't required here: confirming a failed-scan placeholder amount (e.g. re-entering 0 to clear the
+    // scan error) has no real previous value, so neither the optimistic message nor the server's confirmed action
+    // include oldAmount/oldCurrency for it. Falling through to hasModifiedAmount=false would otherwise hide the
+    // amount entirely and render the generic "changed the expense" fallback instead of "set the amount to X".
+    const hasModifiedAmount = isReportActionOriginalMessageAnObject && 'amount' in reportActionOriginalMessage && 'currency' in reportActionOriginalMessage;
 
     const hasModifiedMerchant = isReportActionOriginalMessageAnObject && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
 
     if (hasModifiedAmount) {
-        const oldCurrency = reportActionOriginalMessage?.oldCurrency;
+        const currency = reportActionOriginalMessage?.currency;
+        const oldCurrency = reportActionOriginalMessage?.oldCurrency ?? currency;
         const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
         const oldAmount = convertToDisplayString(oldAmountValue, oldCurrency);
 
-        const currency = reportActionOriginalMessage?.currency;
         const amount = convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
 
         // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.
@@ -530,7 +529,7 @@ function getForReportAction({
             translate,
             resolveVendorName(reportActionOriginalMessage?.vendor),
             resolveVendorName(reportActionOriginalMessage?.oldVendor),
-            isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor'),
+            translate('common.vendor'),
             true,
             setFragments,
             removalFragments,
@@ -540,7 +539,7 @@ function getForReportAction({
 
     const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'newAttendees' in reportActionOriginalMessage;
     if (hasModifiedAttendees) {
-        const [oldAttendees, newAttendees] = getFormattedAttendees(reportActionOriginalMessage.oldAttendees, reportActionOriginalMessage.newAttendees);
+        const [oldAttendees, newAttendees] = getFormattedAttendees(formatPhoneNumber, reportActionOriginalMessage.oldAttendees, reportActionOriginalMessage.newAttendees);
         buildMessageFragmentForValue(translate, newAttendees, oldAttendees, translate('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 

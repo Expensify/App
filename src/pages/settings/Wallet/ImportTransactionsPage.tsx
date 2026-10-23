@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -14,6 +14,8 @@ import {setImportTransactionSettings} from '@libs/actions/ImportSpreadsheet';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,6 +54,8 @@ function ImportTransactionsPage() {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute());
     }, [cardDisplayName, currency, isReimbursable, flipAmountSign]);
 
+    const shouldShowCardDisplayNameError = shouldShowError && !cardDisplayName;
+
     return (
         <ScreenWrapper testID="ImportTransactionsPage">
             <HeaderWithBackButton
@@ -61,17 +65,22 @@ function ImportTransactionsPage() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
                 <View>
                     <Text style={[styles.textNormal, styles.mh5, styles.mb5]}>{translate('workspace.companyCards.importTransactions.description')}</Text>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={cardDisplayName || undefined}
-                        description={translate('workspace.companyCards.importTransactions.cardDisplayName')}
-                        style={styles.moneyRequestMenuItem}
-                        titleStyle={styles.flex1}
-                        onPress={navigateToCardNameSelection}
-                        rightLabel={translate('common.required')}
-                        brickRoadIndicator={shouldShowError && !cardDisplayName ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={shouldShowError && !cardDisplayName ? translate('common.error.fieldRequired') : ''}
-                    />
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(navigateToCardNameSelection)}>
+                        <MenuItemField.Row
+                            name={translate('workspace.companyCards.importTransactions.cardDisplayName')}
+                            value={cardDisplayName || undefined}
+                        >
+                            {shouldShowCardDisplayNameError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            {!cardDisplayName && !shouldShowCardDisplayNameError && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        {shouldShowCardDisplayNameError && (
+                            <MenuItem.HelpText
+                                isError
+                                message={translate('common.error.fieldRequired')}
+                            />
+                        )}
+                    </MenuItem.Root>
                     <MenuItemField
                         value={currency}
                         name={translate('workspace.companyCards.importTransactions.currency')}

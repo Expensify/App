@@ -7,8 +7,9 @@ import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, isHardVio
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, BetaOverrides, Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, BetaOverrides, Policy, PolicyCategories, PolicyTagLists, PolicyVendors, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {SageIntacctExportConfig} from '@src/types/onyx/Policy';
+import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
@@ -21,6 +22,10 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 const MOCK_CURRENT_USER_EMAIL = 'test@expensify.com';
 jest.mock('@libs/actions/Report', () => ({
     getCurrentUserEmail: jest.fn(() => MOCK_CURRENT_USER_EMAIL),
+}));
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    isHybridApp: jest.fn(() => false),
 }));
 
 const categoryOutOfPolicyViolation = {
@@ -114,13 +119,6 @@ const inactiveVendorViolation = {
     name: CONST.VIOLATIONS.INACTIVE_VENDOR,
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
-};
-
-const inactiveSupplierViolation = {
-    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
-    type: CONST.VIOLATION_TYPES.VIOLATION,
-    showInReview: true,
-    data: {isSupplierViolation: true},
 };
 
 const smartScanFailedViolation = {
@@ -3179,7 +3177,7 @@ describe('getViolationsOnyxData', () => {
 
         // Pass a `vendors` array to control the synced list, or `null` to simulate the list still
         // hydrating (`data.vendors` absent, so `isMatchingVendorListLoaded` returns false).
-        const policyWithQBOVendorFeature = (vendors: Array<{id: string; name: string; currency: string}> | null = [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]) =>
+        const policyWithQBOVendorFeature = (vendors: Array<{id: string; name: string; currency: string}> | null = [{id: 'vActive', name: 'Acme Co', currency: 'USD'}]) =>
             createMock<Policy>({
                 requiresTag: false,
                 requiresCategory: false,
@@ -3246,7 +3244,31 @@ describe('getViolationsOnyxData', () => {
 
         it('removes an existing violation when the vendor is restored in the policy list', () => {
             policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'vActive', wasManuallySet: true}};
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: true,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [inactiveVendorViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                policyVendors: {
+                    vActive: {
+                        externalID: 'vActive',
+                        name: 'Acme Co',
+                        enabled: true,
+                    },
+                },
+            });
+            expect(result.value).not.toContainEqual(inactiveVendorViolation);
+        });
+
+        it('preserves an existing violation when policyVendors is not provided even if the vendor is in the raw integration list', () => {
+            policy = policyWithQBOVendorFeature();
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'vActive', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 isVendorMatchingBetaEnabled: true,
                 ownerLogin: undefined,
@@ -3258,7 +3280,111 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
+            expect(result.value).toContainEqual(inactiveVendorViolation);
+        });
+
+        it('adds the violation when the vendor remains in the raw integration list but is disabled in policyVendors', () => {
+            const activeVendorID = 'vActive';
+            policy = policyWithQBOVendorFeature();
+            transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
+            const policyVendors: PolicyVendors = {
+                [activeVendorID]: {
+                    externalID: activeVendorID,
+                    name: 'Acme Co',
+                    enabled: false,
+                },
+            };
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: true,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                policyVendors,
+            });
+            expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
+        });
+
+        it('retains an existing violation through an optimistic update while the vendor remains disabled in policyVendors', () => {
+            const activeVendorID = 'vActive';
+            policy = policyWithQBOVendorFeature();
+            transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
+            const policyVendors: PolicyVendors = {
+                [activeVendorID]: {
+                    externalID: activeVendorID,
+                    name: 'Acme Co',
+                    enabled: false,
+                },
+            };
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: true,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [inactiveVendorViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                policyVendors,
+            });
+            expect(result.value).toContainEqual(inactiveVendorViolation);
+        });
+
+        it('removes an existing violation when the vendor is re-enabled in policyVendors', () => {
+            const activeVendorID = 'vActive';
+            policy = policyWithQBOVendorFeature();
+            transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
+            const policyVendors: PolicyVendors = {
+                [activeVendorID]: {
+                    externalID: activeVendorID,
+                    name: 'Acme Co',
+                    enabled: true,
+                },
+            };
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: true,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [inactiveVendorViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                policyVendors,
+            });
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
+        });
+
+        it('leaves the violation untouched when the active integration vendor list is not loaded yet even if policyVendors is present', () => {
+            const activeVendorID = 'vActive';
+            policy = policyWithQBOVendorFeature(null);
+            transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
+            const policyVendors: PolicyVendors = {
+                [activeVendorID]: {
+                    externalID: activeVendorID,
+                    name: 'Acme Co',
+                    enabled: false,
+                },
+            };
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: true,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [inactiveVendorViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                policyVendors,
+            });
+            expect(result.value).toContainEqual(inactiveVendorViolation);
         });
 
         it('removes an existing violation when the user clears the vendor while the feature is still active', () => {
@@ -3285,11 +3411,11 @@ describe('getViolationsOnyxData', () => {
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
-                        data: {vendors: [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]},
+                        data: {vendors: [{id: 'vActive', name: 'Acme Co', currency: 'USD'}]},
                     },
                 },
             });
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'vActive', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 isVendorMatchingBetaEnabled: true,
                 ownerLogin: undefined,
@@ -3363,7 +3489,7 @@ describe('getViolationsOnyxData', () => {
         it('preserves an existing violation while the QBO vendor list is still hydrating', () => {
             // Given the vendor list is still hydrating but an inactive-vendor violation already exists from a prior real check
             policy = policyWithQBOVendorFeature(null);
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'vActive', wasManuallySet: true}};
 
             // When violations are recomputed
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -3387,7 +3513,7 @@ describe('getViolationsOnyxData', () => {
             // hydrating. Intacct vendors carry the display name in `value`.
             const policyWithIntacctVendorFeature = (
                 nonReimbursable: SageIntacctExportConfig['nonReimbursable'] = CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE,
-                vendors: Array<{id: string; name: string; value: string}> | null = [{id: 'iv-active', name: 'V001', value: 'Acme Intacct'}],
+                vendors: Array<{id: string; name: string; value: string}> | null = [{id: 'ivActive', name: 'V001', value: 'Acme Intacct'}],
             ) =>
                 createMock<Policy>({
                     requiresTag: false,
@@ -3415,14 +3541,13 @@ describe('getViolationsOnyxData', () => {
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
                 });
-                // Intacct is not a supplier source, so the plain vendor violation (no isSupplierViolation flag) is expected.
                 expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
             });
 
             it('does not add the violation when the Intacct vendor is in the synced list', () => {
                 isBetaEnabledSpy.mockImplementation(() => false);
                 policy = policyWithIntacctVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'iv-active', wasManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'ivActive', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     isVendorMatchingBetaEnabled: false,
@@ -3494,12 +3619,12 @@ describe('getViolationsOnyxData', () => {
                     },
                 });
 
-            it('adds the violation with isSupplierViolation flag when the Xero supplier ID is not in the synced contacts list', () => {
-                // Xero is the active matching source — the violation must carry the isSupplierViolation
-                // flag so the render layer uses the "Supplier no longer valid" copy that matches the
-                // rest of the Xero UI (picker, default-supplier row).
+            it('adds the violation when the Xero supplier ID is not in the synced contacts list', () => {
+                // Given a Xero workspace and a transaction whose vendor is missing from the synced contacts
                 policy = policyWithXeroVendorFeature();
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
+
+                // When violations are recomputed
                 const result = ViolationsUtils.getViolationsOnyxData({
                     isVendorMatchingBetaEnabled: true,
                     ownerLogin: undefined,
@@ -3511,67 +3636,9 @@ describe('getViolationsOnyxData', () => {
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
                 });
-                expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
-            });
 
-            it('backfills isSupplierViolation on an existing server-fired violation when Xero is the active matching source', () => {
-                // The backend can fire `inactiveVendor` directly (e.g. after a supplier deletion +
-                // sync) — that violation has no `data.isSupplierViolation` flag, so the render
-                // layer would default to the "Vendor" wording even though the rest of the Xero UI
-                // shows "Supplier". The reconciliation pass must stamp the flag on existing
-                // violations so the copy matches.
-                policy = policyWithXeroVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
-                const result = ViolationsUtils.getViolationsOnyxData({
-                    isVendorMatchingBetaEnabled: true,
-                    ownerLogin: undefined,
-                    updatedTransaction: transaction,
-                    transactionViolations: [inactiveVendorViolation],
-                    policy,
-                    policyTagList: policyTags,
-                    policyCategories,
-                    hasDependentTags: false,
-                    isInvoiceTransaction: false,
-                });
-                expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
-                expect(result.value).not.toContainEqual(inactiveVendorViolation);
-            });
-
-            it('strips a stale isSupplierViolation flag when the active matching source switched back from Xero to QBO', () => {
-                // Dual-connected: QBO is in CC export mode (now the active matching source), Xero
-                // is also connected with supplier data. An existing violation still carries the
-                // supplier flag from when Xero was previously active. The reconciliation must
-                // strip the stale flag so the render layer renders "Vendor" copy that matches the
-                // QBO picker, not the stale "Supplier" wording.
-                const xeroPolicyContacts = {xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'}};
-                policy = createMock<Policy>({
-                    requiresTag: false,
-                    requiresCategory: false,
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                            data: {vendors: [{id: 'v-active', name: 'Acme QBO', currency: 'USD'}]},
-                        },
-                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
-                            config: {isConfigured: true},
-                            data: {contacts: xeroPolicyContacts},
-                        },
-                    },
-                });
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', wasManuallySet: true}};
-                const result = ViolationsUtils.getViolationsOnyxData({
-                    isVendorMatchingBetaEnabled: true,
-                    ownerLogin: undefined,
-                    updatedTransaction: transaction,
-                    transactionViolations: [inactiveSupplierViolation],
-                    policy,
-                    policyTagList: policyTags,
-                    policyCategories,
-                    hasDependentTags: false,
-                    isInvoiceTransaction: false,
-                });
-                expect(result.value).toContainEqual(inactiveVendorViolation);
-                expect(result.value).not.toContainEqual(inactiveSupplierViolation);
+                // Then the plain inactive vendor violation is added, the same as for every other integration
+                expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
             });
 
             it('removes an existing violation when the Xero supplier is restored in the contacts list', () => {
@@ -3587,6 +3654,13 @@ describe('getViolationsOnyxData', () => {
                     policyCategories,
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
+                    policyVendors: {
+                        xcActive: {
+                            externalID: 'xcActive',
+                            name: 'Acme Xero',
+                            enabled: true,
+                        },
+                    },
                 });
                 expect(result.value).not.toContainEqual(inactiveVendorViolation);
             });
@@ -3595,7 +3669,7 @@ describe('getViolationsOnyxData', () => {
                 // Integration-Server hasn't populated suppliers for the workspace yet. We don't
                 // know the supplier list, so we must not flag the existing transaction vendor as
                 // missing. Otherwise every matched transaction would falsely flag inactive between
-                // the beta flip and the first supplier sync.
+                // the Xero connection and the first supplier sync.
                 policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcAnything', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
@@ -3632,10 +3706,13 @@ describe('getViolationsOnyxData', () => {
                 expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
             });
 
-            it('does not add the violation when the vendorMatching beta is disabled, even with Xero connected', () => {
+            it('adds the violation when the vendorMatching beta is disabled but Xero is configured, because Xero (R3) is generally available', () => {
+                // Given a configured Xero workspace and a transaction whose supplier is missing from the synced contacts
                 isBetaEnabledSpy.mockImplementation(() => false);
                 policy = policyWithXeroVendorFeature();
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
+
+                // When violations are recomputed without the vendorMatching beta
                 const result = ViolationsUtils.getViolationsOnyxData({
                     isVendorMatchingBetaEnabled: false,
                     ownerLogin: undefined,
@@ -3647,7 +3724,41 @@ describe('getViolationsOnyxData', () => {
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
                 });
-                expect(result.value).not.toContainEqual(inactiveVendorViolation);
+
+                // Then the violation is added because Xero does not depend on the beta
+                expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
+            });
+
+            it('removes an existing violation when the Xero connection is not configured with the beta disabled', () => {
+                // Given a Xero connection in the middle of a tenant switch and a transaction that already carries the violation
+                isBetaEnabledSpy.mockImplementation(() => false);
+                policy = createMock<Policy>({
+                    requiresTag: false,
+                    requiresCategory: false,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            config: {isConfigured: false},
+                            data: {contacts: {xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'}}},
+                        },
+                    },
+                });
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
+
+                // When violations are recomputed without the vendorMatching beta
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    isVendorMatchingBetaEnabled: false,
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations: [inactiveVendorViolation],
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+
+                // Then the violation is cleared because general availability did not widen the configuration gate
+                expect(result.value).not.toEqual(expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.INACTIVE_VENDOR})]));
             });
 
             it('still fires for a missing QBO vendor when both QBO and Xero are connected but Xero contacts are unsynced (regression — dual-connection state)', () => {
@@ -3662,7 +3773,7 @@ describe('getViolationsOnyxData', () => {
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                            data: {vendors: [{id: 'v-active', name: 'Acme QBO', currency: 'USD'}]},
+                            data: {vendors: [{id: 'vActive', name: 'Acme QBO', currency: 'USD'}]},
                         },
                         [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
                             config: {},
@@ -3687,32 +3798,33 @@ describe('getViolationsOnyxData', () => {
         });
     });
 
-    // ViolationsUtils no longer resolves betas itself — the caller passes the resolved boolean in.
-    // These still go through the real Permissions.isBetaEnabled so the override precedence that
-    // produces that boolean stays covered. Xero is used because it is still gated behind the beta,
-    // unlike QBO which is generally available.
+    // ViolationsUtils takes the resolved beta as a boolean from its caller. These tests go through
+    // the real Permissions.isBetaEnabled so the override precedence that produces that boolean stays
+    // covered. Business Central is used because it is still gated behind the beta, unlike QBO which
+    // is generally available.
     describe('vendorMatching beta overrides', () => {
-        const policyWithXeroVendorFeature = () =>
+        const policyWithBusinessCentralVendorFeature = () =>
             createMock<Policy>({
                 requiresTag: false,
                 requiresCategory: false,
                 connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                         config: {isConfigured: true},
-                        data: {contacts: {xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'}}},
+                        data: {vendors: [{id: 'bcActive', name: 'Contoso Supplies'}]},
                     },
                 },
             });
 
-        const resolveVendorMatchingBeta = (betas: Beta[], betaOverrides: BetaOverrides) => Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, betas, undefined, betaOverrides);
+        const resolveVendorMatchingBeta = (betas: Beta[], betaOverrides: BetaOverrides) =>
+            Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, betas, undefined, betaOverrides, CONST.ENVIRONMENT.DEV);
 
-        const getViolationsForMissingSupplier = (isVendorMatchingBetaEnabled: boolean | undefined) =>
+        const getViolationsForMissingVendor = (isVendorMatchingBetaEnabled: boolean | undefined) =>
             ViolationsUtils.getViolationsOnyxData({
                 isVendorMatchingBetaEnabled,
                 ownerLogin: undefined,
-                updatedTransaction: {...transaction, comment: {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}}},
+                updatedTransaction: {...transaction, comment: {...transaction.comment, vendor: {externalID: 'bcMissing', wasManuallySet: true}}},
                 transactionViolations,
-                policy: policyWithXeroVendorFeature(),
+                policy: policyWithBusinessCentralVendorFeature(),
                 policyTagList: policyTags,
                 policyCategories,
                 hasDependentTags: false,
@@ -3723,9 +3835,9 @@ describe('getViolationsOnyxData', () => {
             ViolationsUtils.getViolationsOnyxData({
                 isVendorMatchingBetaEnabled,
                 ownerLogin: undefined,
-                updatedTransaction: {...transaction, comment: {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}}},
+                updatedTransaction: {...transaction, comment: {...transaction.comment, vendor: {externalID: 'bcMissing', wasManuallySet: true}}},
                 transactionViolations: [inactiveVendorViolation],
-                policy: policyWithXeroVendorFeature(),
+                policy: policyWithBusinessCentralVendorFeature(),
                 policyTagList: policyTags,
                 policyCategories,
                 hasDependentTags: false,
@@ -3743,11 +3855,11 @@ describe('getViolationsOnyxData', () => {
             await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.VENDOR_MATCHING]: true});
             await waitForBatchedUpdates();
 
-            // When violations are recomputed for a transaction whose supplier is missing
-            const result = getViolationsForMissingSupplier(resolveVendorMatchingBeta([], {[CONST.BETAS.VENDOR_MATCHING]: true}));
+            // When violations are recomputed for a transaction whose vendor is missing
+            const result = getViolationsForMissingVendor(resolveVendorMatchingBeta([], {[CONST.BETAS.VENDOR_MATCHING]: true}));
 
             // Then the override wins and the violation is added
-            expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+            expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
         });
 
         it('skips the violation when the beta is on for the account but pinned off locally', async () => {
@@ -3756,11 +3868,11 @@ describe('getViolationsOnyxData', () => {
             await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.VENDOR_MATCHING]: false});
             await waitForBatchedUpdates();
 
-            // When violations are recomputed for a transaction whose supplier is missing
-            const result = getViolationsForMissingSupplier(resolveVendorMatchingBeta([CONST.BETAS.VENDOR_MATCHING], {[CONST.BETAS.VENDOR_MATCHING]: false}));
+            // When violations are recomputed for a transaction whose vendor is missing
+            const result = getViolationsForMissingVendor(resolveVendorMatchingBeta([CONST.BETAS.VENDOR_MATCHING], {[CONST.BETAS.VENDOR_MATCHING]: false}));
 
             // Then the override wins and the violation is left out
-            expect(result.value).not.toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+            expect(result.value).not.toEqual(expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.INACTIVE_VENDOR})]));
         });
 
         it('leaves an existing violation alone while the account betas have not loaded yet, and clears it once they load with the beta off', () => {
@@ -4061,13 +4173,211 @@ const brokenCardConnectionReauthViolation: TransactionViolation = {
 };
 
 describe('getViolationTranslation', () => {
+    beforeEach(() => IntlStore.load(CONST.LOCALES.EN));
+
+    const createComparison = (left: string, operator: RuleFilterComparison['operator'], right: RuleFilterComparison['right']): RuleFilterComparison => ({left, operator, right});
+    const createAndFilter = (left: RuleFilterNode, right: RuleFilterNode): RuleFilterNode => ({left, operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, right});
+
+    const ruleViolationTestCases: Array<{description: string; filters: RuleFilterNode; expectedMessage: string}> = [
+        {
+            description: 'an uncategorized expense',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.CATEGORY_EMPTY_VALUE),
+            expectedMessage: 'Expense without a category',
+        },
+        {
+            description: 'an expense with either tag',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, ['Client', 'Internal']),
+            expectedMessage: 'Expense tagged Client or Internal',
+        },
+        {
+            description: 'any expense',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, '.'),
+            expectedMessage: 'Any expense',
+        },
+        {
+            description: 'a merchant that does not contain a value',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS, 'Personal'),
+            expectedMessage: 'Expense not from merchants containing Personal',
+        },
+        {
+            description: 'an amount at or above a limit',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, 1234),
+            expectedMessage: 'Expense $12.34 or more',
+        },
+        {
+            description: 'an amount within a range',
+            filters: createAndFilter(
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 10000),
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, 20000),
+            ),
+            expectedMessage: 'Expense over $100.00 under $200.00',
+        },
+        {
+            description: 'a merchant category code',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 5812),
+            expectedMessage: 'Expense at MCC 5812',
+        },
+        {
+            description: 'an expense without a receipt',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, CONST.SEARCH.HAS_VALUES.RECEIPT),
+            expectedMessage: 'Expense without a receipt',
+        },
+        {
+            description: 'an expense with an attachment',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.HAS_VALUES.ATTACHMENT),
+            expectedMessage: 'Expense with an attachment',
+        },
+        {
+            description: 'a vendor',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'vendor-office-depot'),
+            expectedMessage: 'Expense from vendor-office-depot',
+        },
+        {
+            description: 'one of several expense types',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, [
+                CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM,
+                CONST.SEARCH.TRANSACTION_TYPE.CASH,
+                CONST.SEARCH.TRANSACTION_TYPE.CARD,
+            ]),
+            expectedMessage: 'Per diem or cash or card expense',
+        },
+        {
+            description: 'a non-matching purchase currency',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, 'EUR'),
+            expectedMessage: 'Expense not paid in EUR',
+        },
+        {
+            description: 'a billable expense',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.BOOLEAN.YES),
+            expectedMessage: 'Billable expense',
+        },
+        {
+            description: 'a non-reimbursable expense',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, CONST.SEARCH.BOOLEAN.YES),
+            expectedMessage: 'Non-reimbursable expense',
+        },
+        {
+            description: 'a merchant without a receipt',
+            filters: createAndFilter(
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Uber'),
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, CONST.SEARCH.HAS_VALUES.RECEIPT),
+            ),
+            expectedMessage: 'Expense from Uber without a receipt',
+        },
+        {
+            description: 'a categorized, tagged expense above a limit',
+            filters: createAndFilter(
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Meals'),
+                createAndFilter(
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, 1234),
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Client'),
+                ),
+            ),
+            expectedMessage: 'Meals expense $12.34 or more tagged Client',
+        },
+        {
+            description: 'a billable travel expense from a merchant',
+            filters: createAndFilter(
+                createAndFilter(
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.BOOLEAN.YES),
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Travel'),
+                ),
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Airbnb'),
+            ),
+            expectedMessage: 'Billable Travel expense from Airbnb',
+        },
+        {
+            description: 'a tagged expense above a limit without a receipt',
+            filters: createAndFilter(
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Client'),
+                createAndFilter(
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, 10000),
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, CONST.SEARCH.HAS_VALUES.RECEIPT),
+                ),
+            ),
+            expectedMessage: 'Expense $100.00 or more tagged Client without a receipt',
+        },
+        {
+            description: 'a merchant expense above a limit without a receipt',
+            filters: createAndFilter(
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Airbnb'),
+                createAndFilter(
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, 25000),
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, CONST.SEARCH.HAS_VALUES.RECEIPT),
+                ),
+            ),
+            expectedMessage: 'Expense from Airbnb $250.00 or more without a receipt',
+        },
+    ];
+
+    it.each(ruleViolationTestCases)('should build a rule violation message for $description', ({filters, expectedMessage}) => {
+        // Given a rule violation that was generated from an Auth filter tree
+        const violation: TransactionViolation = {
+            name: CONST.VIOLATIONS.RULE_VIOLATION,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            data: {filters},
+        };
+
+        // When the client formats the violation for display
+        const message = ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation, translate: translateLocal, convertToDisplayString});
+
+        // Then it should preserve every rule criterion so members can understand why the expense violates the policy
+        expect(message).toBe(expectedMessage);
+    });
+
+    it('should resolve vendor filter IDs to policy vendor names', () => {
+        // Given a rule violation with a vendor filter stored as an external ID
+        const vendorExternalID = 'vendor-office-depot';
+        const violation: TransactionViolation = {
+            name: CONST.VIOLATIONS.RULE_VIOLATION,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            data: {filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, vendorExternalID)},
+        };
+        const policyVendors: PolicyVendors = {
+            [vendorExternalID]: {externalID: vendorExternalID, name: 'Office Depot', enabled: true},
+        };
+
+        // When the client formats the violation with the workspace vendors
+        const message = ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation, translate: translateLocal, convertToDisplayString, policyVendors});
+
+        // Then it should display the workspace vendor name instead of the external ID
+        expect(message).toBe('Expense from Office Depot');
+    });
+
+    it('should use the transaction currency for amount filters', () => {
+        // Given a rule violation whose data omits the transaction currency
+        const violation: TransactionViolation = {
+            name: CONST.VIOLATIONS.RULE_VIOLATION,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            data: {filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 10000)},
+        };
+
+        // When the client formats the violation for a EUR transaction
+        const message = ViolationsUtils.getViolationTranslation({
+            dateFnsLocale: undefined,
+            violation,
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionCurrency: CONST.CURRENCY.EUR,
+        });
+
+        // Then it should format the amount in the transaction currency rather than the USD fallback
+        expect(message).toBe('Expense over €100.00');
+    });
+
     it('should return the correct message for broken card connection violation', () => {
         const testPolicyID = 'test-policy-123';
         const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
         const brokenCardConnectionViolationExpected = translateLocal('violations.rter', true, true, false, undefined, CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION, companyCardPageURL);
-        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnectionViolation, translate: translateLocal, convertToDisplayString})).toBe(
-            brokenCardConnectionViolationExpected,
-        );
+        expect(
+            ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
+                violation: brokenCardConnectionViolation,
+                translate: translateLocal,
+                convertToDisplayString,
+                companyCardPageURL,
+            }),
+        ).toBe(brokenCardConnectionViolationExpected);
         const brokenCardConnection530ViolationExpected = translateLocal(
             'violations.rter',
             true,
@@ -4094,9 +4404,15 @@ describe('getViolationTranslation', () => {
             CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH,
             companyCardPageURL,
         );
-        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnectionReauthViolation, translate: translateLocal, convertToDisplayString})).toBe(
-            brokenCardConnectionReauthViolationExpected,
-        );
+        expect(
+            ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
+                violation: brokenCardConnectionReauthViolation,
+                translate: translateLocal,
+                convertToDisplayString,
+                companyCardPageURL,
+            }),
+        ).toBe(brokenCardConnectionReauthViolationExpected);
     });
 
     describe('per-night over limit messages', () => {
@@ -4384,7 +4700,7 @@ describe('hasVisibleViolationsForUser', () => {
         };
 
         // Mock shouldShowViolation to return true for missing category
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockReturnValue(true);
+        jest.spyOn(require('@src/libs/TransactionUtils/violations'), 'shouldShowViolation').mockReturnValue(true);
 
         const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(true);
@@ -4401,7 +4717,7 @@ describe('hasVisibleViolationsForUser', () => {
         };
 
         // Mock shouldShowViolation to return false for RECEIPT_NOT_SMART_SCANNED (hidden from submitter)
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+        jest.spyOn(require('@src/libs/TransactionUtils/violations'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
             if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
                 return false; // Hidden from submitter
             }
@@ -4423,7 +4739,7 @@ describe('hasVisibleViolationsForUser', () => {
             ],
         };
 
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+        jest.spyOn(require('@src/libs/TransactionUtils/violations'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
             if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
                 return false;
             }
@@ -4458,7 +4774,7 @@ describe('hasVisibleViolationsForUser', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${secondTransactionID}`]: [missingCategoryViolation],
         };
 
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+        jest.spyOn(require('@src/libs/TransactionUtils/violations'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
             if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
                 return false;
             }

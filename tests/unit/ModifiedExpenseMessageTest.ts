@@ -298,6 +298,52 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when a receipt is removed', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    transactionID: '1234',
+                    receiptRemoved: true,
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                expect(result).toEqual('removed a receipt');
+            });
+
+            it('takes precedence over the field fragments when other fields are also present', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction: {
+                        ...reportAction,
+                        originalMessage: {...reportAction.originalMessage, oldComment: 'old', newComment: 'new'},
+                    },
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                expect(result).toEqual('removed a receipt');
+            });
+        });
+
         describe('when the amount is changed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -384,6 +430,37 @@ describe('ModifiedExpenseMessage', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                     movedFromReportName: undefined,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when confirming a failed-scan placeholder amount (oldAmount and oldCurrency both absent)', () => {
+            // Matches the actual shape returned by the backend for this edit (see #98783): only amount/currency are
+            // persisted, oldAmount/oldCurrency are never included since there's no real previous value to report.
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('returns "set the amount" instead of falling back to the generic "changed the expense"', () => {
+                const expectedResult = 'set the amount to $0.00';
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    movedFromReportName: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1051,6 +1128,35 @@ describe('ModifiedExpenseMessage', () => {
                     formatPhoneNumber,
                     movedFromReportName: undefined,
                 });
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('uses the current currency for the old amount when oldCurrency is missing', () => {
+                const reportActionWithoutOldCurrency = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        oldMerchant: '1.00 km @ €0.70 / km',
+                        merchant: '10.00 km @ €0.70 / km',
+                        oldAmount: 70,
+                        amount: 700,
+                        currency: CONST.CURRENCY.EUR,
+                    },
+                };
+                const expectedResult = `changed the distance to ${reportActionWithoutOldCurrency.originalMessage.merchant} (previously ${reportActionWithoutOldCurrency.originalMessage.oldMerchant}), which updated the amount to €7.00 (previously €0.70)`;
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction: reportActionWithoutOldCurrency,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    movedFromReportName: undefined,
+                    formatPhoneNumber,
+                });
+
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -2826,10 +2932,9 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
-        describe('Xero supplier changes (R4)', () => {
+        describe('Xero vendor changes (R4)', () => {
             // Xero policy with two named supplier contacts. The resolver reads
-            // `connections.xero.data.contacts` (keyed Record), and the label switches to
-            // "supplier" instead of "vendor" because the policy is on Xero.
+            // `connections.xero.data.contacts` (keyed Record).
             const policyWithXeroSuppliers = createMock<Policy>({
                 id: 'p-1',
                 name: 'My Workspace',
@@ -2850,7 +2955,8 @@ describe('ModifiedExpenseMessage', () => {
                 },
             });
 
-            it('renders "set the supplier to X" for a Xero workspace when the supplier is set for the first time', () => {
+            it('renders "set the vendor to X" for a Xero workspace when the vendor is set for the first time', () => {
+                // Given a Xero expense whose vendor is set for the first time
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -2858,6 +2964,7 @@ describe('ModifiedExpenseMessage', () => {
                         vendor: {externalID: 'xcAcme', wasManuallySet: true},
                     },
                 };
+                // When the modified expense message is built
                 const result = getForReportAction({
                     convertToDisplayString,
                     translate: translateLocal,
@@ -2869,10 +2976,12 @@ describe('ModifiedExpenseMessage', () => {
                     formatPhoneNumber,
                     movedFromReportName: undefined,
                 });
-                expect(result).toEqual('set the supplier to "Acme Xero"');
+                // Then it says "vendor" like every other integration
+                expect(result).toEqual('set the vendor to "Acme Xero"');
             });
 
-            it('renders "changed the supplier to Y (previously X)" when the supplier is changed on a Xero workspace', () => {
+            it('renders "changed the vendor to Y (previously X)" when the vendor is changed on a Xero workspace', () => {
+                // Given a Xero expense whose vendor is changed from one contact to another
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -2881,6 +2990,7 @@ describe('ModifiedExpenseMessage', () => {
                         vendor: {externalID: 'xcOffice', wasManuallySet: true},
                     },
                 };
+                // When the modified expense message is built
                 const result = getForReportAction({
                     convertToDisplayString,
                     translate: translateLocal,
@@ -2892,10 +3002,12 @@ describe('ModifiedExpenseMessage', () => {
                     formatPhoneNumber,
                     movedFromReportName: undefined,
                 });
-                expect(result).toEqual('changed the supplier to "Office Supplies Xero" (previously "Acme Xero")');
+                // Then it says "vendor" like every other integration
+                expect(result).toEqual('changed the vendor to "Office Supplies Xero" (previously "Acme Xero")');
             });
 
-            it('falls back to rendering the externalID for a Xero supplier no longer in the contacts list', () => {
+            it('falls back to rendering the externalID for a Xero vendor no longer in the contacts list', () => {
+                // Given a Xero expense whose vendor was removed from the synced contacts
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -2903,6 +3015,7 @@ describe('ModifiedExpenseMessage', () => {
                         vendor: {externalID: 'xcDeleted', wasManuallySet: false},
                     },
                 };
+                // When the modified expense message is built
                 const result = getForReportAction({
                     convertToDisplayString,
                     translate: translateLocal,
@@ -2914,7 +3027,8 @@ describe('ModifiedExpenseMessage', () => {
                     formatPhoneNumber,
                     movedFromReportName: undefined,
                 });
-                expect(result).toEqual('set the supplier to "xcDeleted"');
+                // Then it shows the externalID under the "vendor" wording
+                expect(result).toEqual('set the vendor to "xcDeleted"');
             });
         });
     });

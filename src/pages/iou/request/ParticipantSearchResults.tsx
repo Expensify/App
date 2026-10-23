@@ -80,6 +80,9 @@ type ParticipantSearchResultsProps = {
     participants: Participant[] | typeof CONST.EMPTY_ARRAY;
     isWorkspacesOnly: boolean;
 
+    /** Whether owned workspace chats should be left out of the list */
+    shouldExcludeWorkspaces?: boolean;
+
     /** Whether this is a per diem expense request */
     isPerDiemRequest: boolean;
 
@@ -131,6 +134,7 @@ function ParticipantSearchResults({
     action,
     participants,
     isWorkspacesOnly,
+    shouldExcludeWorkspaces = false,
     isPerDiemRequest,
     isTimeRequest,
     isNative,
@@ -158,7 +162,7 @@ function ParticipantSearchResults({
         action !== CONST.IOU.ACTION.SUBMIT &&
         action !== CONST.IOU.ACTION.CATEGORIZE;
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
@@ -195,11 +199,14 @@ function ParticipantSearchResults({
 
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const activeAdminWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin);
+    const canUseWorkspaceChats = iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK;
+    const includeOwnedWorkspaceChats = !shouldExcludeWorkspaces && canUseWorkspaceChats;
 
     const getValidOptionsConfig = {
         selectedOptions: participants as Participant[],
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
+        includeOwnedWorkspaceChats,
+        excludeWorkspacesWithoutCreateExpensePermission: canUseWorkspaceChats,
         excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
         includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
         includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
@@ -214,6 +221,8 @@ function ParticipantSearchResults({
         preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
+        // Only boost the default workspace chat when workspace chats can be shown, so it doesn't take a slot in the recent-reports limit
+        activePolicyID: includeOwnedWorkspaceChats ? activePolicyID : undefined,
     };
 
     /**
@@ -286,6 +295,7 @@ function ParticipantSearchResults({
     const hasAvailableOptions = hasListOptions || !isEmptyObject(availableOptions.selfDMChat);
 
     const inputHelperText = getHeaderMessage(
+        translate,
         hasAvailableOptions,
         !!availableOptions?.userToInvite,
         debouncedSearchTerm.trim(),
@@ -318,6 +328,7 @@ function ParticipantSearchResults({
             translate,
             convertToDisplayString,
             dateFnsLocale,
+            formatPhoneNumber,
             getReportByID,
             rules,
             personalDetails,
@@ -394,7 +405,7 @@ function ParticipantSearchResults({
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
-                              {translate, dateFnsLocale, convertToDisplayString},
+                              {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                               currentUserAccountID,
                               rules,
                               reportAttributesDerived,
@@ -513,12 +524,14 @@ function ParticipantSearchResults({
         addSingleParticipant(option);
     };
 
+    // Android picks contacts with the system picker. Elsewhere, importing needs the contact permission, which is granted in the app's settings.
+    const importContacts = contactState?.pickContact ?? goToSettings;
     const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
     const importContactsButtonComponent = shouldShowImportContactsButton ? (
         <MenuItemNavigation
             title={translate('contact.importContacts')}
             icon={icons.UserPlus}
-            onPress={goToSettings}
+            onPress={importContacts}
             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_IMPORT_CONTACTS_ITEM}
         />
     ) : null;
@@ -529,6 +542,7 @@ function ParticipantSearchResults({
                 showImportContacts={contactState?.showImportUI ?? showImportContacts}
                 inputHelperText={translate('contact.importContactsTitle')}
                 isInSearch={false}
+                onPress={importContacts}
             />
         ) : undefined;
 
@@ -577,6 +591,7 @@ function ParticipantSearchResults({
                     showImportContacts={contactState?.showImportUI ?? showImportContacts}
                     inputHelperText={inputHelperText}
                     isInSearch
+                    onPress={importContacts}
                 />
             }
             footerContent={footerContent}

@@ -7,9 +7,8 @@ import type {ValueOf} from 'type-fest';
 
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
-    canMemberWrite,
+    canAdminPayReport,
     getManagerAccountID,
-    getReimbursementChoice,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -41,6 +40,7 @@ import {
     hasExportError as hasExportErrorUtil,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
+    hasSettledZeroReimbursableSpend,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -50,7 +50,7 @@ import {
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
     isOpenReport as isOpenReportUtils,
-    isPayBlockedByArchivedState,
+    isPayBlocked,
     isPayer,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
@@ -171,6 +171,13 @@ function isSubmitAction(
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
+    // Cheap report-level checks first so the transaction scans below only run for reports the user can approve
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+    if (!isCurrentUserManager || !isExpenseReportUtils(report) || !isProcessingReportUtils(report) || reportTransactions.length === 0) {
+        return false;
+    }
+
     if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
@@ -179,9 +186,9 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
 
-    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
-
-    if (isAnyReceiptBeingScanned) {
+    const isSubmitWorkspace = isSubmitPolicy(policy);
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (!isApprovalEnabled && !isSubmitWorkspace) {
         return false;
     }
 
@@ -190,28 +197,12 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
 
-    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === currentUserAccountID;
-    if (!isCurrentUserManager) {
-        return false;
-    }
-    const isExpenseReport = isExpenseReportUtils(report);
-    const isSubmitWorkspace = isSubmitPolicy(policy);
-    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-
-    if (!isExpenseReport || reportTransactions.length === 0) {
+    const isAnyReceiptBeingScanned = reportTransactions.some((transaction) => isScanning(transaction));
+    if (isAnyReceiptBeingScanned) {
         return false;
     }
 
-    if (!isApprovalEnabled && !isSubmitWorkspace) {
-        return false;
-    }
-
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
-
-    return isProcessingReportUtils(report);
+    return !reportTransactions.every((transaction) => isPending(transaction));
 }
 
 function isPrimaryPayAction({
@@ -230,21 +221,14 @@ function isPrimaryPayAction({
 }: IsPrimaryPayActionParams) {
     const isExpenseReport = isExpenseReportUtils(report);
 
-    if (isPayBlockedByArchivedState(report, policy, isArchivedReport(reportNameValuePairs) || !!isChatReportArchived)) {
+    if (isPayBlocked(report, policy, isArchivedReport(reportNameValuePairs) || !!isChatReportArchived)) {
         return false;
     }
     if (isExpenseReport && !isPaidGroupPolicy(policy)) {
         return false;
     }
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
-
-    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
-    const canPayReport =
-        isReportPayer ||
-        (canNonPayerAdminPay &&
-            isGroupPolicy(policy) &&
-            getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
-            canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+    const canPayReport = isReportPayer || (!!canNonPayerAdminPay && canAdminPayReport(policy, currentUserLogin));
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -257,14 +241,17 @@ function isPrimaryPayAction({
     const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
 
     const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
-    const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const spendBreakdown = getMoneyRequestSpendBreakdown(report);
+    const {reimbursableSpend, nonReimbursableSpend} = spendBreakdown;
 
     if (
         canPayReport &&
         isExpenseReport &&
         arePaymentsEnabled &&
         isReportFinished &&
-        (reimbursableSpend !== 0 || (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions)))
+        (reimbursableSpend !== 0 ||
+            ((nonReimbursableSpend !== 0 || hasSettledZeroReimbursableSpend(spendBreakdown, report, reportTransactions)) &&
+                !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions))))
     ) {
         return isSecondaryAction ?? !didExportFail;
     }
@@ -531,6 +518,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
+            canNonPayerAdminPay: true,
         }) && allExpensesHeld;
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID, rules);
 

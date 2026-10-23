@@ -1,11 +1,11 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
-import type {RejectModalAction} from '@components/MoneyReportHeaderEducationalModals';
 import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
 
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {changeMoneyRequestHoldStatus, isCurrentUserSubmitter, isDM} from '@libs/ReportUtils';
+import {isCurrentUserSubmitter, isDM} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,6 +14,8 @@ import ROUTES from '@src/ROUTES';
 import type {ValueOf} from 'type-fest';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+
+import type {RejectModalAction} from './useHoldRejectEducationalModal';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
@@ -45,6 +47,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const {iouTransactionID, requestParentReportAction} = useMoneyReportTransactionThread();
     const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -86,6 +89,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     changeMoneyRequestHoldStatus(
                         requestParentReportAction,
                         transaction,
+                        policy,
                         isOffline,
                         currentUserLogin ?? '',
                         currentUserAccountID,
@@ -119,6 +123,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                 changeMoneyRequestHoldStatus(
                     requestParentReportAction,
                     transaction,
+                    policy,
                     isOffline,
                     currentUserLogin ?? '',
                     currentUserAccountID,

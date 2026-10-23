@@ -5,6 +5,8 @@ import type {HoldMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -30,12 +32,13 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isProcessingReport,
 } from '@libs/ReportUtils';
-import {getAmount, isScanFailedTransactionMovedOnPayment} from '@libs/TransactionUtils';
+import {getAmount, isOnHold, isScanFailedTransactionMovedOnPayment} from '@libs/TransactionUtils';
 
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -46,47 +49,54 @@ import Onyx from 'react-native-onyx';
 
 import {getAllReports, getAllTransactions} from '.';
 
-type PutOnHoldOptions = {
-    rules: OnyxCollection<OnyxTypes.Rule>;
-    ancestors?: Ancestor[];
-};
-
 /**
  * Put expense on HOLD
  */
-function putOnHold(
-    transactionID: string,
-    comment: string,
-    initialReportID: string | undefined,
-    isOffline: boolean,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
-    isTrackIntentUser: boolean | undefined,
-    delegateAccountID: number | undefined,
-    {rules, ancestors = []}: PutOnHoldOptions,
-) {
-    const allTransactions = getAllTransactions();
-    const allReports = getAllReports();
-
+function putOnHold({
+    transactionID,
+    transaction,
+    comment,
+    initialReportID,
+    initialReport,
+    transactionReport,
+    isOffline,
+    currentUserLogin,
+    currentUserAccountID,
+    transactionViolations,
+    isTrackIntentUser,
+    delegateAccountID,
+    rules,
+    ancestors = [],
+}: {
+    transactionID: string;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    comment: string;
+    initialReportID: string | undefined;
+    initialReport: OnyxEntry<OnyxTypes.Report>;
+    transactionReport: OnyxEntry<OnyxTypes.Report>;
+    isOffline: boolean;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
+    isTrackIntentUser: boolean | undefined;
+    delegateAccountID: number | undefined;
+    rules: OnyxCollection<OnyxTypes.Rule>;
+    ancestors?: Ancestor[];
+}) {
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
     const createdReportAction = buildOptimisticHoldReportAction(delegateAccountID, currentTime);
     const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, delegateAccountID, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
     const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
     const updatedViolations = [...(transactionViolations ?? []), newViolation];
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const iouAction = getIOUActionForReportID(transaction?.reportID, transactionID);
-    let transactionThreadReport: OnyxTypes.Report;
+    let createdThread: OnyxTypes.Report | undefined;
 
     // If there is no existing transaction thread report, we should create one
     // This way we ensure every held request has a dedicated thread for comments
-    if (initialReportID) {
-        transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${initialReportID}`] ?? ({} as OnyxTypes.Report);
-    } else {
+    if (!initialReportID) {
         const moneyRequestReport = getReportOrDraftReport(transaction?.reportID);
-        transactionThreadReport = buildTransactionThread(iouAction, moneyRequestReport, currentUserAccountID, undefined, reportID);
+        createdThread = buildTransactionThread(iouAction, moneyRequestReport, currentUserAccountID, undefined, reportID);
     }
 
     const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserLogin});
@@ -132,17 +142,19 @@ function putOnHold(
         },
     ];
 
-    if (iouReport && iouReport.currency === transaction?.currency) {
-        const isExpenseReportLocal = isExpenseReport(iouReport);
+    if (transactionReport && transactionReport.currency === transaction?.currency) {
+        const isExpenseReportLocal = isExpenseReport(transactionReport);
         const coefficient = isExpenseReportLocal ? -1 : 1;
         const transactionAmount = getAmount(transaction, isExpenseReportLocal) * coefficient;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionReport.reportID}`,
             value: {
-                unheldTotal: (iouReport.unheldTotal ?? 0) - transactionAmount,
-                unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) - transactionAmount : iouReport.unheldNonReimbursableTotal,
-                unheldReimbursableTotal: transaction?.reimbursable ? getUnheldReimbursableTotal(iouReport) - transactionAmount : getUnheldReimbursableTotal(iouReport),
+                unheldTotal: (transactionReport.unheldTotal ?? 0) - transactionAmount,
+                unheldNonReimbursableTotal: !transaction?.reimbursable
+                    ? (transactionReport.unheldNonReimbursableTotal ?? 0) - transactionAmount
+                    : transactionReport.unheldNonReimbursableTotal,
+                unheldReimbursableTotal: transaction?.reimbursable ? getUnheldReimbursableTotal(transactionReport) - transactionAmount : getUnheldReimbursableTotal(transactionReport),
             },
         });
     }
@@ -208,7 +220,7 @@ function putOnHold(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                lastVisibleActionCreated: transactionThreadReport.lastVisibleActionCreated,
+                lastVisibleActionCreated: (createdThread ?? initialReport)?.lastVisibleActionCreated,
             },
         },
         {
@@ -219,15 +231,15 @@ function putOnHold(
     ];
 
     // If the transaction thread report wasn't created before, we create it optimistically
-    if (!initialReportID) {
-        transactionThreadReport.pendingFields = {
+    if (createdThread) {
+        createdThread.pendingFields = {
             createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: transactionThreadReport,
+                value: createdThread,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -247,13 +259,13 @@ function putOnHold(
             // We link the IOU action to the new transaction thread by setting childReportID optimistically
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.parentReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${createdThread.parentReportID}`,
                 value: {[iouAction?.reportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
             });
             // We reset the childReportID if the request fails
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.parentReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${createdThread.parentReportID}`,
                 value: {[iouAction?.reportActionID]: {childReportID: null, childType: null}},
             });
         }
@@ -292,10 +304,10 @@ function putOnHold(
         );
     }
 
-    if (iouReport) {
+    if (transactionReport) {
         const optimisticNextStep = buildOptimisticNextStep({
-            report: iouReport,
-            predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            report: transactionReport,
+            predictedNextStatus: transactionReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: true,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
@@ -305,7 +317,7 @@ function putOnHold(
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionReport.reportID}`,
             value: {
                 nextStep: optimisticNextStep,
                 pendingFields: {
@@ -316,7 +328,7 @@ function putOnHold(
 
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionReport.reportID}`,
             value: {
                 pendingFields: {
                     nextStep: null,
@@ -326,9 +338,9 @@ function putOnHold(
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionReport.reportID}`,
             value: {
-                nextStep: iouReport.nextStep ?? null,
+                nextStep: transactionReport.nextStep ?? null,
                 pendingFields: {
                     nextStep: null,
                 },
@@ -354,46 +366,93 @@ function putOnHold(
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, undefined, true));
 }
 
-function putTransactionsOnHold(
-    transactionsID: string[],
-    comment: string,
-    reportID: string,
-    isOffline: boolean,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
-    isTrackIntentUser: boolean | undefined,
-    delegateAccountID: number | undefined,
-    {rules, ancestors = []}: PutOnHoldOptions,
-) {
+function putTransactionsOnHold({
+    transactionsID,
+    allReports,
+    comment,
+    reportID,
+    isOffline,
+    currentUserLogin,
+    currentUserAccountID,
+    allTransactionViolations,
+    transactions,
+    isTrackIntentUser,
+    delegateAccountID,
+    rules,
+    ancestors = [],
+}: {
+    transactionsID: string[];
+    allReports: OnyxCollection<OnyxTypes.Report>;
+    comment: string;
+    reportID: string;
+    isOffline: boolean;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    transactions: OnyxTypes.Transaction[];
+    isTrackIntentUser: boolean | undefined;
+    delegateAccountID: number | undefined;
+    rules: OnyxCollection<OnyxTypes.Rule>;
+    ancestors?: Ancestor[];
+}) {
+    const transactionsByID = new Map(transactions.map((t) => [t.transactionID, t]));
+
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser, delegateAccountID, {rules, ancestors});
+        const transaction = transactionsByID.get(transactionID);
+
+        putOnHold({
+            transactionID,
+            transaction,
+            comment,
+            initialReportID: childReportID,
+            initialReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`],
+            transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+            isOffline,
+            currentUserLogin,
+            currentUserAccountID,
+            transactionViolations,
+            isTrackIntentUser,
+            delegateAccountID,
+            rules,
+            ancestors,
+        });
     }
 }
 
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(
-    transactionID: string,
-    reportID: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    isOffline: boolean,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
-    isTrackIntentUser: boolean | undefined,
-    delegateAccountID: number | undefined,
-    rules: OnyxCollection<OnyxTypes.Rule>,
-) {
-    const allTransactions = getAllTransactions();
+function unholdRequest({
+    transactionID,
+    transaction,
+    reportID,
+    policy,
+    isOffline,
+    currentUserLogin,
+    currentUserAccountID,
+    transactionViolations,
+    isTrackIntentUser,
+    delegateAccountID,
+    rules,
+}: {
+    transactionID: string;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    reportID: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    isOffline: boolean;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
+    isTrackIntentUser: boolean | undefined;
+    delegateAccountID: number | undefined;
+    rules: OnyxCollection<OnyxTypes.Rule>;
+}) {
     const allReports = getAllReports();
 
     const createdReportAction = buildOptimisticUnHoldReportAction(delegateAccountID);
     const updatedTransactionViolations = transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [];
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -576,7 +635,11 @@ function getHoldReportActionsAndTransactions(
     const holdTransactions: OnyxTypes.Transaction[] = [];
 
     for (const action of Object.values(iouReportActions)) {
-        const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+        if (!isMoneyRequestAction(action)) {
+            continue;
+        }
+
+        const transactionID = getOriginalMessage(action)?.IOUTransactionID;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
         if (!transaction) {
@@ -587,7 +650,7 @@ function getHoldReportActionsAndTransactions(
         const isScanFailed = shouldMoveScanFailedTransactions && isScanFailedTransactionMovedOnPayment(transaction, iouReport);
 
         if (isHeld || isScanFailed) {
-            holdReportActions.push(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>);
+            holdReportActions.push(action);
             holdTransactions.push(transaction);
         }
     }
@@ -796,8 +859,7 @@ function getReportFromHoldRequestsOnyxData({
     const optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[] = [];
 
     for (const holdReportAction of holdReportActions) {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        const originalMessage = getOriginalMessage(holdReportAction) as OnyxTypes.OriginalMessageIOU;
+        const originalMessage = getOriginalMessage(holdReportAction);
 
         deleteHoldReportActions[holdReportAction.reportActionID] = {
             message: [
@@ -1053,4 +1115,59 @@ function getReportFromHoldRequestsOnyxData({
     };
 }
 
-export {getReportFromHoldRequestsOnyxData, putOnHold, putTransactionsOnHold, unholdRequest};
+/**
+ * Takes the expense off hold when it is already on hold, otherwise opens the hold reason flow.
+ */
+function changeMoneyRequestHoldStatus(
+    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
+    iouTransaction: OnyxEntry<OnyxTypes.Transaction>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isOffline: boolean,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    isTrackIntentUser: boolean | undefined,
+    delegateAccountID: number | undefined,
+    rules: OnyxCollection<OnyxTypes.Rule>,
+): void {
+    if (!isMoneyRequestAction(reportAction)) {
+        return;
+    }
+    const moneyRequestReportID = reportAction?.reportID;
+
+    const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
+    if (!moneyRequestReportID || !moneyRequestReport) {
+        return;
+    }
+
+    const transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
+
+    if (!transactionID || !iouTransaction) {
+        Log.warn('Missing transactionID or iouTransaction during the change of the money request hold status');
+        return;
+    }
+
+    if (isOnHold(iouTransaction)) {
+        if (reportAction.childReportID) {
+            unholdRequest({
+                transactionID,
+                transaction: iouTransaction,
+                reportID: reportAction.childReportID,
+                policy,
+                isOffline,
+                currentUserLogin,
+                currentUserAccountID,
+                transactionViolations,
+                isTrackIntentUser,
+                delegateAccountID,
+                rules,
+            });
+        } else {
+            Log.warn('Missing reportAction.childReportID during money request unhold');
+        }
+    } else {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, reportAction.childReportID)));
+    }
+}
+
+export {changeMoneyRequestHoldStatus, getReportFromHoldRequestsOnyxData, putOnHold, putTransactionsOnHold, unholdRequest};

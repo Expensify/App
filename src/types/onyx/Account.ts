@@ -83,6 +83,9 @@ type Account = {
     /** Is this account having trouble receiving emails? */
     hasEmailDeliveryFailure?: boolean;
 
+    /** Whether an email unblock request is currently in flight */
+    isUnblockingEmail?: boolean;
+
     /** User recovery codes for setting up 2-FA */
     recoveryCodes?: string;
 
@@ -132,6 +135,9 @@ type Account = {
 
     /** Errors related to specific account fields */
     errorFields?: OnyxCommon.ErrorFields;
+
+    /** Pending account changes while requests are queued. */
+    pendingFields?: OnyxCommon.PendingFields<'exactOnlineWaitlist'>;
 
     /** Authentication success message */
     success?: string;

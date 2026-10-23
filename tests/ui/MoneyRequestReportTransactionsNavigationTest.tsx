@@ -198,6 +198,30 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         expect(setParamsSpy).not.toHaveBeenCalled();
     });
 
+    it("sends the sibling parent report's full policy snapshot marker when fetching that report", async () => {
+        // Given the sibling's parent report belongs to a policy whose full snapshot is already cached
+        const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, {reportID: IOU_REPORT_ID, policyID: 'policy1'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy1`, {lastModified: 123});
+        await waitForBatchedUpdates();
+
+        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        await waitForBatchedUpdates();
+
+        // When next is pressed before that report's actions are loaded
+        const nextButton = screen.getAllByLabelText(CONST.ROLE.BUTTON).at(1);
+        if (!nextButton) {
+            throw new Error('next arrow did not render');
+        }
+        fireEvent.press(nextButton);
+
+        // Then the fetch sends the marker so the server can leave out the policy collections the client already has
+        await waitFor(() => {
+            expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: IOU_REPORT_ID, fullPolicySnapshot: {policyID: 'policy1', lastModified: 123}}));
+        });
+    });
+
     it('abandons a staged press when the user has navigated elsewhere', async () => {
         jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
         const createThreadSpy = jest.spyOn(ReportActions, 'createTransactionThreadReport');
@@ -225,11 +249,10 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         expect(createThreadSpy).not.toHaveBeenCalled();
     });
 
-    it('still builds the thread optimistically when offline, rather than leaving the arrow dead', async () => {
+    it('resolves the sibling offline rather than leaving the arrow dead', async () => {
         mockIsOffline.value = true;
         const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
-        const createThreadSpy = jest.spyOn(ReportActions, 'createTransactionThreadReport');
-        jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+        const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
 
         render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
         await waitForBatchedUpdates();
@@ -241,9 +264,11 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         }
         fireEvent.press(nextButton);
 
-        // Offline there is nothing to fetch, so the press must fall through instead of being staged.
+        // Offline there is nothing to fetch, so the press must fall through instead of being staged. Without a
+        // cached IOU action there is no thread to resolve either, so the sibling's own report is the target: a
+        // thread minted from a missing parent action could not be built at all.
         await waitFor(() => {
-            expect(createThreadSpy).toHaveBeenCalled();
+            expect(setParamsSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: IOU_REPORT_ID, anchorTransactionID: SECOND_TRANSACTION_ID}));
         });
         expect(openReportSpy).not.toHaveBeenCalled();
     });
