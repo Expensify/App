@@ -32,6 +32,7 @@ import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentat
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
+import getTransactionFromTransactionListItem from '@libs/getTransactionFromTransactionListItem';
 import HttpUtils from '@libs/HttpUtils';
 import isTransactionGroupListItemType from '@libs/isTransactionGroupListItemType';
 import Log from '@libs/Log';
@@ -42,6 +43,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
+import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
@@ -291,6 +293,7 @@ type HandleActionButtonPressParams = {
     personalDetailsByLogins: PersonalDetailsByLogin;
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 function handleActionButtonPress({
@@ -335,6 +338,7 @@ function handleActionButtonPress({
     personalDetailsByLogins,
     conciergeChat,
     getCurrencyDecimals,
+    bankAccountList,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -389,6 +393,7 @@ function handleActionButtonPress({
                 conciergeChat,
                 getCurrencyDecimals,
                 rules,
+                bankAccountList,
                 iouReportTransactions: allReportTransactions,
             });
             return;
@@ -639,6 +644,7 @@ type GetPayActionCallbackParams = {
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    bankAccountList: OnyxEntry<BankAccountList>;
     iouReportTransactions: Transaction[];
 };
 
@@ -670,6 +676,7 @@ function getPayActionCallback({
     conciergeChat,
     getCurrencyDecimals,
     rules,
+    bankAccountList,
     iouReportTransactions,
 }: GetPayActionCallbackParams) {
     if (!item.reportID) {
@@ -683,9 +690,13 @@ function getPayActionCallback({
         return;
     }
 
+    const paymentPolicy = snapshotPolicy ?? policy;
+
     if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        const hasVBBA = !!snapshotPolicy?.achAccount?.bankAccountID;
-        if (!hasVBBA) {
+        // One-tap pay here always funds the payment from the workspace bank account, so it's only valid for someone the
+        // account is actually shared with. Anyone else has to pay from an account of their own, so open the report and let
+        // them pick it instead of silently paying with (and reporting) the workspace one.
+        if (!canAccessPolicyBankAccount(paymentPolicy, bankAccountList)) {
             goToItem();
             return;
         }
@@ -700,6 +711,7 @@ function getPayActionCallback({
     const chatReportPolicyForPayment = chatReportPolicy ?? getPolicyFromSearchSnapshot(chatReportForPayment.policyID, searchData, undefined);
 
     payMoneyRequest({
+        bankAccountList,
         paymentType: lastPolicyPaymentMethod,
         chatReport: chatReportForPayment,
         iouReport: snapshotReport,
@@ -708,14 +720,14 @@ function getPayActionCallback({
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',
         activePolicy,
-        policy: snapshotPolicy ?? policy,
+        policy: paymentPolicy,
         chatReportPolicy: chatReportPolicyForPayment,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
+        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
         delegateAccountID,
@@ -1085,6 +1097,19 @@ function openSearchCardFiltersPage() {
     ];
 
     read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
+}
+
+type ParseExpenseFiltersResult = {success: true; searchURL: string; humanReadableSummary: string} | {success: false; message: string};
+
+function parseExpenseFilters(nlQuery: string, policyID?: string): Promise<ParseExpenseFiltersResult | undefined> {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PARSE_EXPENSE_FILTERS, {nlQuery, policyID, today}).then((response) => {
+        if (response?.success === true && response.searchURL) {
+            return {success: true, searchURL: response.searchURL, humanReadableSummary: response.humanReadableSummary ?? ''} as const;
+        }
+        return {success: false, message: response?.message ?? ''} as const;
+    });
 }
 
 function openSearchCategoryFiltersPage() {
@@ -2683,11 +2708,10 @@ function setOptimisticDataForTransactionThreadPreview(
 
     // Set optimistic transaction
     if (!hasTransaction) {
-        const {formattedFrom, formattedMerchant, formattedTo, formattedTotal, date, ...restItem} = item;
         onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: restItem,
+            value: getTransactionFromTransactionListItem(item),
         });
     }
 
@@ -2700,6 +2724,7 @@ function setOptimisticDataForTransactionThreadPreview(
 }
 
 export {
+    parseExpenseFilters,
     saveSearch,
     seedMyExpensesSearch,
     search,
