@@ -91,13 +91,11 @@ import type {ConfirmationSubmissionParams, ConfirmationVariantProps} from './var
 import useConfirmationTransactionPager from './useConfirmationTransactionPager';
 import useParticipantPickerState from './useParticipantPickerState';
 import useSubmitDestinationPreMount from './useSubmitDestinationPreMount';
-import DistanceConfirmation from './variants/DistanceConfirmation';
+import ExpenseConfirmation from './variants/ExpenseConfirmation';
 import InvoiceConfirmation from './variants/InvoiceConfirmation';
 import PayConfirmation from './variants/PayConfirmation';
 import PerDiemConfirmation from './variants/PerDiemConfirmation';
-import RequestMoneyConfirmation from './variants/RequestMoneyConfirmation';
 import SplitConfirmation from './variants/SplitConfirmation';
-import TrackConfirmation from './variants/TrackConfirmation';
 
 function IOURequestStepConfirmationContent({
     report: reportReal,
@@ -695,18 +693,19 @@ function IOURequestStepConfirmationContent({
                         optimisticP2PDestinationReportID={optimisticP2PDestinationReportID}
                     />
                 );
-            case SUBMISSION_PATH.DISTANCE:
-                return <DistanceConfirmation {...variantProps} />;
             case SUBMISSION_PATH.SPLIT:
                 return <SplitConfirmation {...variantProps} />;
             case SUBMISSION_PATH.INVOICE:
                 return <InvoiceConfirmation {...variantProps} />;
             case SUBMISSION_PATH.PER_DIEM:
                 return <PerDiemConfirmation {...variantProps} />;
-            case SUBMISSION_PATH.TRACK:
-                return <TrackConfirmation {...variantProps} />;
             default:
-                return <RequestMoneyConfirmation {...variantProps} />;
+                return (
+                    <ExpenseConfirmation
+                        {...variantProps}
+                        submissionPath={submissionPath}
+                    />
+                );
         }
     };
     return (

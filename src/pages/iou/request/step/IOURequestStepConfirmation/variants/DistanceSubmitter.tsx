@@ -1,5 +1,3 @@
-import DistanceConfirmationList from '@components/MoneyRequestConfirmationList/variants/DistanceConfirmationList';
-
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 
 import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
@@ -7,16 +5,14 @@ import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@lib
 import useDistanceSubmission from '@pages/iou/request/step/confirmation/submission/useDistanceSubmission';
 import getTransactionTaxValues from '@pages/iou/request/step/confirmation/submission/utils/getTransactionTaxValues';
 import guardSubmission from '@pages/iou/request/step/confirmation/submission/utils/guardSubmission';
-import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
 
-import React from 'react';
+import {useImperativeHandle} from 'react';
 
-import type {ConfirmationVariantProps} from './types';
+import type {ExpenseSubmitterProps} from './types';
 
-/** Confirms a distance expense (map, manual, odometer or GPS), submitting through CreateDistanceRequest. */
-function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
+/** Submits a distance expense (map, manual, odometer or GPS) through CreateDistanceRequest. */
+function DistanceSubmitter({submissionParams, isSelfDMDestination, ref}: ExpenseSubmitterProps) {
     const {transaction, policy, participants, isManualDistanceRequest, isOdometerDistanceRequest, isPolicyExpenseChat, submitLock} = submissionParams;
-    const {isSelfDMDestination} = orchestratorProps;
 
     const transactionTaxValues = getTransactionTaxValues({transaction, policy, isPolicyExpenseChat, isDistanceRequest: true});
 
@@ -37,20 +33,9 @@ function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: 
 
     const createTransaction = guardSubmission(submitLock, distanceSubmission.createTransaction, blockDistanceRequestIfNeeded);
 
-    return (
-        <SubmitExpenseOrchestrator
-            {...orchestratorProps}
-            createTransaction={createTransaction}
-        >
-            {({onConfirm, isConfirming}) => (
-                <DistanceConfirmationList
-                    {...listProps}
-                    onConfirm={onConfirm}
-                    isConfirming={isConfirming}
-                />
-            )}
-        </SubmitExpenseOrchestrator>
-    );
+    useImperativeHandle(ref, () => createTransaction, [createTransaction]);
+
+    return null;
 }
 
-export default DistanceConfirmation;
+export default DistanceSubmitter;

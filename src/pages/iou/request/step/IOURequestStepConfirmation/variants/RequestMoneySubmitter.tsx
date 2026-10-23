@@ -1,5 +1,3 @@
-import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
-
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 
 import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
@@ -7,19 +5,18 @@ import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@lib
 import useRequestMoneySubmission from '@pages/iou/request/step/confirmation/submission/useRequestMoneySubmission';
 import getTransactionTaxValues from '@pages/iou/request/step/confirmation/submission/utils/getTransactionTaxValues';
 import guardSubmission from '@pages/iou/request/step/confirmation/submission/utils/guardSubmission';
-import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
 
 import CONST from '@src/CONST';
 
-import React from 'react';
+import {useImperativeHandle} from 'react';
 
-import type {ConfirmationVariantProps} from './types';
+import type {ExpenseSubmitterProps} from './types';
 
 /**
- * Confirms an expense submitted through RequestMoney: manual, scan and time expenses, plus the paths that fall
+ * Submits an expense through RequestMoney: manual, scan and time expenses, plus the paths that fall
  * through the others (e.g. a distance or per diem expense moved off a track expense).
  */
-function RequestMoneyConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
+function RequestMoneySubmitter({submissionParams, isSelfDMDestination, ref}: ExpenseSubmitterProps) {
     const {
         transaction,
         policy,
@@ -34,7 +31,6 @@ function RequestMoneyConfirmation({submissionParams, orchestratorProps, listProp
         isPolicyExpenseChat,
         submitLock,
     } = submissionParams;
-    const {isSelfDMDestination} = orchestratorProps;
 
     const transactionTaxValues = getTransactionTaxValues({
         transaction,
@@ -65,20 +61,9 @@ function RequestMoneyConfirmation({submissionParams, orchestratorProps, listProp
 
     const createTransaction = guardSubmission(submitLock, requestMoneySubmission.createTransaction, blockDistanceRequestIfNeeded);
 
-    return (
-        <SubmitExpenseOrchestrator
-            {...orchestratorProps}
-            createTransaction={createTransaction}
-        >
-            {({onConfirm, isConfirming}) => (
-                <MoneyRequestConfirmationList
-                    {...listProps}
-                    onConfirm={onConfirm}
-                    isConfirming={isConfirming}
-                />
-            )}
-        </SubmitExpenseOrchestrator>
-    );
+    useImperativeHandle(ref, () => createTransaction, [createTransaction]);
+
+    return null;
 }
 
-export default RequestMoneyConfirmation;
+export default RequestMoneySubmitter;

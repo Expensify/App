@@ -1,5 +1,3 @@
-import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
-
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 
 import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
@@ -7,19 +5,17 @@ import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@lib
 import useTrackExpenseSubmission from '@pages/iou/request/step/confirmation/submission/useTrackExpenseSubmission';
 import getTransactionTaxValues from '@pages/iou/request/step/confirmation/submission/utils/getTransactionTaxValues';
 import guardSubmission from '@pages/iou/request/step/confirmation/submission/utils/guardSubmission';
-import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
 
 import CONST from '@src/CONST';
 
-import React from 'react';
+import {useImperativeHandle} from 'react';
 
-import type {ConfirmationVariantProps} from './types';
+import type {ExpenseSubmitterProps} from './types';
 
-/** Confirms a tracked expense, submitting through TrackExpense. */
-function TrackConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
+/** Submits a tracked expense through TrackExpense. */
+function TrackSubmitter({submissionParams, isSelfDMDestination, ref}: ExpenseSubmitterProps) {
     const {transaction, policy, participants, iouType, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isTimeRequest, isUnreported, isPolicyExpenseChat, submitLock} =
         submissionParams;
-    const {isSelfDMDestination} = orchestratorProps;
 
     const transactionTaxValues = getTransactionTaxValues({
         transaction,
@@ -49,20 +45,9 @@ function TrackConfirmation({submissionParams, orchestratorProps, listProps}: Con
 
     const createTransaction = guardSubmission(submitLock, trackSubmission.createTransaction, blockDistanceRequestIfNeeded);
 
-    return (
-        <SubmitExpenseOrchestrator
-            {...orchestratorProps}
-            createTransaction={createTransaction}
-        >
-            {({onConfirm, isConfirming}) => (
-                <MoneyRequestConfirmationList
-                    {...listProps}
-                    onConfirm={onConfirm}
-                    isConfirming={isConfirming}
-                />
-            )}
-        </SubmitExpenseOrchestrator>
-    );
+    useImperativeHandle(ref, () => createTransaction, [createTransaction]);
+
+    return null;
 }
 
-export default TrackConfirmation;
+export default TrackSubmitter;
