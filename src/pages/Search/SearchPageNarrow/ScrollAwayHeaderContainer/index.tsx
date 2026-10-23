@@ -79,8 +79,7 @@ function continueMomentum(scroller: SearchListScroller, velocity: number): () =>
  * The narrow Search page's list area, which on mobile web in landscape also carries the page header so it scrolls away.
  *
  * The header and the list area share one outer scroller, so a drag starting anywhere on the header (title, type menu,
- * input, filter bars) scrolls the screen natively. The list area is exactly one viewport tall, so the outer scroller can
- * only travel the header's height. While any of the header is on screen the inner scrollers are locked (see
+ * input, filter bars) scrolls the screen natively. While any of the header is on screen the inner scrollers are locked (see
  * SearchListScrollLockContext), so a drag on the rows moves the outer scroller too and the header leaves first; once it
  * is gone they scroll on their own.
  *
@@ -140,15 +139,41 @@ function ScrollAwayHeaderContainer({isEnabled, header, children, ref}: ScrollAwa
         },
     }));
 
-    if (!isEnabled) {
-        return <View style={styles.flex1}>{children}</View>;
+    // The header leaves the scroller when disabled, so start from a fully shown header the next time it is enabled.
+    const [wasEnabled, setWasEnabled] = useState(isEnabled);
+    if (wasEnabled !== isEnabled) {
+        setWasEnabled(isEnabled);
+        if (!isEnabled) {
+            setIsHeaderHidden(false);
+        }
     }
+    useEffect(() => {
+        if (isEnabled) {
+            return;
+        }
+        cancelMomentumRef.current?.();
+        headerHeightRef.current = 0;
+        isHeaderHiddenRef.current = false;
+        outerScrollSampleRef.current = undefined;
+        isForwardingTouchRef.current = false;
+        outerScrollerRef.current?.scrollTo({y: 0, animated: false});
+    }, [isEnabled]);
 
     const onOuterScrollerLayout = (event: LayoutChangeEvent) => setOuterScrollerHeight(event.nativeEvent.layout.height);
 
     const onHeaderLayout = (event: LayoutChangeEvent) => {
         const headerHeight = event.nativeEvent.layout.height;
+        const isFirstLayout = headerHeightRef.current === 0;
         headerHeightRef.current = headerHeight;
+
+        // Enabled with the rows already scrolled, after rotating to landscape mid-list: start with the header hidden
+        const listOffset = listScrollerRef.current?.getOffset() ?? 0;
+        if (isFirstLayout && headerHeight > 0 && listOffset > 0) {
+            // List scrolls aren't reported while disabled, so catch up for onListScroll's reached-the-top check.
+            listOffsetRef.current = listOffset;
+            isHeaderHiddenRef.current = true;
+            setIsHeaderHidden(true);
+        }
 
         // The header can change height with no scroll to re-evaluate it, e.g. when selection mode swaps its contents.
         if (isHeaderHiddenRef.current) {
@@ -265,21 +290,26 @@ function ScrollAwayHeaderContainer({isEnabled, header, children, ref}: ScrollAwa
             onTouchMove={onOuterTouchMove}
             onTouchEnd={onOuterTouchEnd}
             onTouchCancel={onOuterTouchEnd}
-            onLayout={onOuterScrollerLayout}
+            // Measured only when enabled. When disabled the list area fills the scroller by flex, as a plain View would.
+            onLayout={isEnabled ? onOuterScrollerLayout : undefined}
+            contentContainerStyle={isEnabled ? undefined : styles.flexGrow1}
             onScroll={onOuterScroll}
             scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
         >
-            <View
-                style={styles.appBG}
-                onLayout={onHeaderLayout}
-            >
-                {header}
-            </View>
+            {isEnabled && (
+                <View
+                    style={styles.appBG}
+                    onLayout={onHeaderLayout}
+                >
+                    {header}
+                </View>
+            )}
             <SearchListScrollRegistrationContext.Provider value={registerListScroller}>
-                <SearchListScrollLockContext.Provider value={!isHeaderHidden}>
-                    <View style={StyleUtils.getHeight(outerScrollerHeight)}>{children}</View>
+                {/* Undefined when disabled: the inner scrollers then behave as if there were no outer scroller at all. */}
+                <SearchListScrollLockContext.Provider value={isEnabled ? !isHeaderHidden : undefined}>
+                    <View style={isEnabled ? StyleUtils.getHeight(outerScrollerHeight) : styles.flex1}>{children}</View>
                 </SearchListScrollLockContext.Provider>
             </SearchListScrollRegistrationContext.Provider>
         </ScrollView>

@@ -6,7 +6,11 @@ type ScrollAwayHeaderContainerHandle = {
 };
 
 type ScrollAwayHeaderContainerProps = {
-    /** Whether the header scrolls away with the list area. When false, only the list area is rendered, as a plain flex view. */
+    /**
+     * Whether the header scrolls away with the list area. When false, the list area fills the outer scroller by flex
+     * with no header above it, so there is nothing to scroll. The tree keeps its shape either way, so toggling this
+     * (e.g. on rotation) doesn't remount the list area.
+     */
     isEnabled: boolean;
 
     /** The page header that scrolls away. Not rendered while disabled, where the page pins its own header instead. */
