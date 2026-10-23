@@ -330,9 +330,9 @@ describe('InvoiceReportAvatar (connected)', () => {
         // When it renders
         renderAvatar();
 
-        // Then the workspace icon keeps that policyID, which seeds its default avatar color
+        // Then the workspace icon keeps that policyID, which seeds its default avatar color, while the invoice's policy still names and pictures the workspace
         expect(screen.getByTestId(expectedTestID)).toBeOnTheScreen();
-        expect(getRenderedIcons(expectedTestID).at(0)).toMatchObject({id: expectedID, type: CONST.ICON_TYPE_WORKSPACE});
+        expect(getRenderedIcons(expectedTestID).at(0)).toEqual({...WORKSPACE_ICON, id: expectedID});
     });
 
     it('should stand the unknown account in for the workspace of an invoice without a policyID', () => {

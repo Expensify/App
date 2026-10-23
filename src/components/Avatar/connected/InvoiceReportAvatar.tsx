@@ -56,8 +56,10 @@ function InvoiceReportAvatar({reportID, size, backdropColor, containerStyle, sub
     const [invoice] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportAvatarFieldsSelector});
     const invoiceRoomID = getNonEmptyStringOnyxID(invoice?.chatReportID);
     const [invoiceRoom] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, {selector: roomAvatarFieldsSelector});
-    // The invoice room carries the workspace, so it comes first. The invoice's own fields cover the gap while the room loads.
-    const workspaceIcon = useReportWorkspaceIcon(invoiceRoom ?? invoice);
+    // The invoice room carries the workspace, so it comes first. The invoice's own fields cover the gap while the room loads,
+    // and its policyID stands in for a room policyID that is missing or `_FAKE_`.
+    const roomPolicyID = invoiceRoom?.policyID === CONST.POLICY.ID_FAKE ? undefined : invoiceRoom?.policyID;
+    const workspaceIcon = useReportWorkspaceIcon(invoiceRoom ? {...invoiceRoom, policyID: roomPolicyID ?? invoice?.policyID} : invoice);
     const receiverIcon = useInvoiceReceiverIcon(invoiceRoom?.invoiceReceiver);
     const isArchived = useReportIsArchived(reportID);
 
