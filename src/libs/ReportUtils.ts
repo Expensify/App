@@ -15793,7 +15793,6 @@ export {
     getUploadingAttachmentHtmlFromComment,
     buildEditedCommentWithAttachment,
     getUploadingAttachmentLabelFromDraft,
-    getUploadingAttachmentSource,
     applyLabelToUploadingAttachmentHtml,
     parseMovedTransactionReportIDs,
 };
