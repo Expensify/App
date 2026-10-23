@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+import {markModalShown, shouldIgnoreEscapeRelease} from '@libs/escapeKeyPress';
 import getPlatform from '@libs/getPlatform';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
@@ -74,6 +75,10 @@ function ReanimatedModal({
     const styles = useThemeStyles();
 
     const onBackButtonPressHandler = useCallback(() => {
+        // Both Escape paths on web land here: our `keyup` listener and react-native-web's `Modal` `onRequestClose`.
+        if (shouldIgnoreEscapeRelease()) {
+            return false;
+        }
         if (shouldIgnoreBackHandlerDuringTransition && isTransitioning) {
             return false;
         }
@@ -127,6 +132,7 @@ function ReanimatedModal({
     useEffect(() => {
         if (isVisible && !isContainerOpen && !isTransitioning) {
             transitionHandleRef.current = TransitionTracker.startTransition();
+            markModalShown();
             onModalWillShow();
 
             // eslint-disable-next-line react-hooks/set-state-in-effect
