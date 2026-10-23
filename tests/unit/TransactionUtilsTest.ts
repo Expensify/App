@@ -5460,47 +5460,6 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('doesReportKeepExpensesAfterMerge', () => {
-        const DISCARDED_TRANSACTION_ID = '1';
-        const OTHER_TRANSACTION_ID = '2';
-
-        it('returns true when another expense stays on the report', () => {
-            // Given a report with the discarded expense and another active expense
-            const reportTransactions = [
-                {...createRandomTransaction(1), transactionID: DISCARDED_TRANSACTION_ID},
-                {...createRandomTransaction(2), transactionID: OTHER_TRANSACTION_ID},
-            ];
-
-            // When the merge discards one of them, Then the report still has the other one
-            expect(TransactionUtils.doesReportKeepExpensesAfterMerge(reportTransactions, new Set([DISCARDED_TRANSACTION_ID]))).toBe(true);
-        });
-
-        it('returns false when the merge discards the only expense on the report', () => {
-            // Given a report whose only expense is the one being discarded
-            const reportTransactions = [{...createRandomTransaction(1), transactionID: DISCARDED_TRANSACTION_ID}];
-
-            // When the merge discards it, Then the report has no expenses left, so going back to it would show "Not here"
-            expect(TransactionUtils.doesReportKeepExpensesAfterMerge(reportTransactions, new Set([DISCARDED_TRANSACTION_ID]))).toBe(false);
-        });
-
-        it('returns false when the only other expense is already pending deletion', () => {
-            // Given a report with the discarded expense and another expense that is already being deleted
-            const reportTransactions = [
-                {...createRandomTransaction(1), transactionID: DISCARDED_TRANSACTION_ID},
-                {...createRandomTransaction(2), transactionID: OTHER_TRANSACTION_ID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-            ];
-
-            // When the merge discards the first one, Then the pending delete doesn't count, so the report has no expenses left
-            expect(TransactionUtils.doesReportKeepExpensesAfterMerge(reportTransactions, new Set([DISCARDED_TRANSACTION_ID]))).toBe(false);
-        });
-
-        it('returns true when the report transactions are not loaded', () => {
-            // Given no transactions loaded for the report, so we can't tell whether it would be emptied
-            // When the merge runs, Then the report is treated as keeping expenses, so the app goes back to it as before
-            expect(TransactionUtils.doesReportKeepExpensesAfterMerge([], new Set([DISCARDED_TRANSACTION_ID]))).toBe(true);
-        });
-    });
-
     describe('buildNewTransactionAfterReviewingDuplicates', () => {
         it('preserves the kept transaction tax amount when the selected tax code matches the existing tax code', () => {
             const duplicatedTransaction = generateTransaction({
@@ -6286,6 +6245,18 @@ describe('hasAllManuallyEnteredScanFields', () => {
         expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, ...values}))).toBe(false);
         expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, ...values}))).toBe(false);
     });
+
+    it('does not need the merchant when the destination does not require one', () => {
+        // Given a Scan draft with the amount and date entered but no merchant
+        const transaction = generateScanDraft({isAmountSet: true, isCreatedSet: true});
+
+        // When it goes to a P2P chat or self DM, where the manual flow doesn't require a merchant either
+        const result = TransactionUtils.hasAllManuallyEnteredScanFields(transaction, false);
+
+        // Then it counts as complete, so it is submitted as entered instead of being scanned over
+        expect(result).toBe(true);
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(transaction, true)).toBe(false);
+    });
 });
 
 describe('isFailedScanAmountPlaceholder for zero-amount Scans', () => {
@@ -6377,6 +6348,29 @@ describe('hasAnyManuallyEnteredScanField / isPartiallyEnteredScanExpense', () =>
     it('holds no surface to the rule unless it actually offers the three fields', () => {
         // Splits, moved tracked expenses and test receipts carry the same flags without ever having shown them.
         expect(TransactionUtils.isPartiallyEnteredScanExpense(generateScanDraft({isAmountSet: true}), false)).toBe(false);
+    });
+
+    it('does not block a P2P Scan whose merchant is left blank', () => {
+        // Given a Scan draft with the amount and date entered but no merchant (#101147)
+        const transaction = generateScanDraft({isAmountSet: true, isCreatedSet: true});
+
+        // When the destination doesn't require a merchant
+        const result = TransactionUtils.isPartiallyEnteredScanExpense(transaction, true, false);
+
+        // Then the expense isn't partially filled, while a workspace chat still requires the merchant
+        expect(result).toBe(false);
+        expect(TransactionUtils.isPartiallyEnteredScanExpense(transaction, true, true)).toBe(true);
+    });
+
+    it('still requires the amount and date of a P2P Scan once one field is entered', () => {
+        // Given a Scan draft with only the merchant entered
+        const transaction = generateScanDraft({isMerchantSet: true});
+
+        // When the destination doesn't require a merchant
+        const result = TransactionUtils.isPartiallyEnteredScanExpense(transaction, true, false);
+
+        // Then the amount and date are still all-or-nothing
+        expect(result).toBe(true);
     });
 });
 

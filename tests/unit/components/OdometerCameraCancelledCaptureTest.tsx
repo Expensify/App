@@ -15,15 +15,7 @@ let mockRejectCapture: (error: unknown) => void = () => {};
 jest.mock('@hooks/useNativeCamera', () => ({
     __esModule: true,
     default: () => ({
-        camera: {
-            current: {
-                takePhoto: () =>
-                    new Promise((resolve, reject) => {
-                        mockResolveCapture = resolve;
-                        mockRejectCapture = reject;
-                    }),
-            },
-        },
+        camera: {current: {}},
         device: {id: 'back', hasFlash: true},
         cameraPermissionStatus: 'granted',
         flash: true,
@@ -73,7 +65,14 @@ jest.mock('@hooks/useLocalize', () => ({
     default: () => ({translate: (key: string) => key}),
 }));
 jest.mock('@hooks/useIsInLandscapeMode', () => ({__esModule: true, default: () => false}));
-jest.mock('react-native-vision-camera', () => ({useCameraFormat: () => undefined}));
+jest.mock('@hooks/useReceiptPhotoOutput', () => ({__esModule: true, default: () => ({photoOutput: {}, cameraAspectRatio: undefined, updatePhotoResolution: jest.fn()})}));
+jest.mock('@libs/cameraCapture', () => ({
+    capturePhotoToPath: () =>
+        new Promise((resolve, reject) => {
+            mockResolveCapture = resolve;
+            mockRejectCapture = reject;
+        }),
+}));
 jest.mock('react-native-blob-util', () => ({
     __esModule: true,
     default: {fs: {isDir: () => Promise.resolve(true), mkdir: () => Promise.resolve()}},

@@ -1469,6 +1469,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST,
             SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_ACCOUNT_CARD_LIST,
             SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_ACCOUNT_CARD_LIST,
+            SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_ACCOUNT_CARD_LIST,
         ],
         getRoute: (feed: CardFeedWithDomainID, cardID: string) => `edit/export/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
     },
@@ -3576,6 +3577,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/members/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/import` as const,
     },
+    WORKSPACE_MEMBERS_CHANGE_OFFICE_LOCATION: {
+        route: 'workspaces/:policyID/members/change-office-location',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/change-office-location` as const,
+    },
+    WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT: {
+        route: 'workspaces/:policyID/members/change-work-arrangement',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/change-work-arrangement` as const,
+    },
     WORKSPACE_MEMBERS_IMPORTED: {
         route: 'workspaces/:policyID/members/imported',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/imported` as const,
@@ -3891,6 +3900,10 @@ const ROUTES = {
     WORKSPACE_MEMBER_WORK_ARRANGEMENT: {
         route: 'workspaces/:policyID/members/:accountID/work-arrangement',
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/work-arrangement` as const,
+    },
+    WORKSPACE_MEMBER_OFFICE_LOCATION: {
+        route: 'workspaces/:policyID/members/:accountID/office-location',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/office-location` as const,
     },
     WORKSPACE_CUSTOM_FIELDS: {
         route: 'workspaces/:policyID/members/:accountID/:customFieldType',
@@ -5477,6 +5490,22 @@ const ROUTES = {
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD: {
         route: 'workspaces/:policyID/accounting/business-central/export/payment-method',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/payment-method` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/business-central/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/business-central/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/business-central/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/business-central/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/business-central/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/business-central/export/card-account/${encodeURIComponent(feed)}` as const,
     },
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED: {
         route: 'workspaces/:policyID/accounting/business-central/advanced',
