@@ -11,6 +11,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getNetSuiteCreditCardAccounts} from '@libs/NetSuiteUtils';
 import Parser from '@libs/Parser';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
@@ -55,7 +56,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
     const isCreditCardChargeExport = isNonReimbursableCreditCardChargeExport(config);
 
     const selectedPayableAccount = useMemo(() => payableList?.find(({id}) => id === config?.payableAcct), [payableList, config?.payableAcct]);
-    const selectedCreditCardAccount = useMemo(() => payableList?.find(({id}) => id === config?.creditCardAccount), [payableList, config?.creditCardAccount]);
+    const selectedCreditCardAccount = useMemo(() => getNetSuiteCreditCardAccounts(policy ?? undefined).find(({id}) => id === config?.creditCardAccount), [policy, config?.creditCardAccount]);
 
     const selectedReimbursablePayableAccount = useMemo(() => payableList?.find(({id}) => id === config?.reimbursablePayableAccount), [payableList, config?.reimbursablePayableAccount]);
 
