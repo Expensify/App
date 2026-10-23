@@ -59,7 +59,12 @@ function WorkspaceMemberTravelSettingPage({policy, personalDetails, route}: Work
 
     const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
     const member = {email: memberLogin, accountID};
-    const canChangeTravelSetting = isPolicyAdmin(policy) && isWorkspaceProvisionedForTravel(policy?.travelSettings) && !!policy?.employeeList?.[memberLogin];
+    // A member still being added has an optimistic accountID the server doesn't know yet
+    const canChangeTravelSetting =
+        isPolicyAdmin(policy) &&
+        isWorkspaceProvisionedForTravel(policy?.travelSettings) &&
+        !!policy?.employeeList?.[memberLogin] &&
+        policy.employeeList[memberLogin]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     const canUseTravel = canMemberUseTravel(policy, memberLogin);
     const travelRole = getTravelMemberRole(policy, memberLogin);
 

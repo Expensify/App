@@ -405,7 +405,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin ?? '', payerRole));
         const policyRoles = Object.values(CONST.POLICY.ROLE);
 
-        return filteredMembers.map(({policyEmployee, accountID, details}) => {
+        return filteredMembers.map(({policyEmployee, accountID, details, isAccountIDGenerated}) => {
             const isPendingDeleteOrError = canEditWorkspaceSettings && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
             const employeeRole = policyRoles.find((policyRole) => policyRole === policyEmployee.role);
             const role = policy?.owner === details.login ? ownerDisplayRole : employeeRole;
@@ -452,7 +452,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
                 travelAccessValue: shouldShowTravelColumn ? getTravelMemberAccessValue(policy, login) : undefined,
                 isTravelAccessStored: typeof policyEmployee.canUseTravel === 'boolean',
-                canEditTravelAccess: canChangeTravelAccess && !isSelectionModeActive && !isPendingDeleteOrError,
+                // A member still being added or without a loaded accountID would be sent to the server under an accountID it
+                // doesn't know
+                canEditTravelAccess:
+                    canChangeTravelAccess &&
+                    !isSelectionModeActive &&
+                    !isPendingDeleteOrError &&
+                    policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+                    !isAccountIDGenerated,
                 onChangeTravelAccess: (value) => setPolicyTravelMemberAccessValue(policy, [{email: login, accountID}], value),
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',

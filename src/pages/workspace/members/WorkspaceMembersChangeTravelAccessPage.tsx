@@ -71,9 +71,14 @@ function WorkspaceMembersChangeTravelAccessPage({policy, personalDetails, route}
     const hasSelectedMembers = isLoadingOnyxValue(selectionMetadata) || !!selectedAccountIDs?.length;
     const canChangeTravelAccess = isPolicyAdmin(policy) && isWorkspaceProvisionedForTravel(policy?.travelSettings);
 
+    // Members still being added have an optimistic accountID the server doesn't know yet, so they are left out. Members
+    // without a loaded accountID never reach the selection.
     const selectedMembers: TravelMemberAccessTarget[] = (selectedAccountIDs ?? []).flatMap((accountID) => {
         const email = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
-        return email ? [{email, accountID}] : [];
+        if (!email || policy?.employeeList?.[email]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            return [];
+        }
+        return [{email, accountID}];
     });
 
     const navigateBackToMembers = () => {
