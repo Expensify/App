@@ -10,9 +10,6 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 type TravelMembersSelection = {
-    /** The workspace the choice was made for */
-    policyID: string;
-
     /** Whether every workspace member gets travel */
     shouldEnableAllTravelMembers: boolean;
 
@@ -123,7 +120,8 @@ function setTravelProvisioningNextStep(nextStepRoute?: Route) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {nextStepRoute});
 }
 
-function setTravelProvisioningMembers({policyID, shouldEnableAllTravelMembers, travelMemberAccountIDs}: TravelMembersSelection) {
+/** Save who can book travel for the workspace being set up, so the choice only applies to that workspace. */
+function setTravelProvisioningMembers(policyID: string, {shouldEnableAllTravelMembers, travelMemberAccountIDs}: TravelMembersSelection) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {shouldEnableAllTravelMembers, travelMemberAccountIDs, travelMembersPolicyID: policyID});
 }
 

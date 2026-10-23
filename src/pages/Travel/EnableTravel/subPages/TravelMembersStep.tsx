@@ -104,7 +104,7 @@ function TravelMembersStep({onNext, policy, policyID}: EnableTravelSubPageProps)
         onConfirm: () => {
             const realAccountIDs = new Set(members.filter((member) => !member.isAccountIDGenerated).map((member) => member.accountID));
             const travelMemberAccountIDs = shouldEnableAllTravelMembers ? [] : selectedAccountIDs.filter((accountID) => realAccountIDs.has(accountID));
-            setTravelProvisioningMembers({policyID, shouldEnableAllTravelMembers, travelMemberAccountIDs});
+            setTravelProvisioningMembers(policyID, {shouldEnableAllTravelMembers, travelMemberAccountIDs});
             onNext();
         },
     };
