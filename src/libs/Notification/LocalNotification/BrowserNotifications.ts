@@ -9,6 +9,7 @@ import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import {format} from '@libs/NumberFormatUtils';
 import {getTextFromHtml} from '@libs/ReportActionMessageUtils';
+import {getMarkedReimbursedMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -161,15 +162,20 @@ export default {
             plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html) : '';
         }
         if (!plainTextMessage) {
-            const messages = Array.isArray(reportAction.message) ? reportAction.message : reportAction.message ? [reportAction.message] : [];
-            plainTextMessage = messages
-                .filter((m): m is NonNullable<typeof m> => m?.style === 'normal')
-                .map((m) => m.text ?? '')
-                .join(' ')
-                .trim();
+            if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+                plainTextMessage = getMarkedReimbursedMessage(translateLocal, reportAction);
+            } else {
+                const messages = Array.isArray(reportAction.message) ? reportAction.message : reportAction.message ? [reportAction.message] : [];
+                plainTextMessage = messages
+                    .filter((m): m is NonNullable<typeof m> => m?.style === 'normal')
+                    .map((m) => m.text ?? '')
+                    .join(' ')
+                    .trim();
+            }
         }
 
-        if (isRoomOrGroupChat) {
+        const isExpenseReport = ReportUtils.isExpenseReport(report);
+        if (isRoomOrGroupChat || isExpenseReport) {
             const roomName = getReportName(report, derivedReportName);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
