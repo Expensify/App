@@ -63,4 +63,17 @@ function wrapAttachmentAnchorsInBlocks(html: string, reportActionID: string | un
     });
 }
 
-export {getAnchorHref, isAttachmentAnchor, isAttachmentAnchorTag, isOwnAttachmentURL, wrapAttachmentAnchorsInBlocks};
+// The parser only reads an anchor as "[Attachment]" while it carries `data-expensify-source`, which the server drops on edit.
+function replaceAttachmentAnchorsWithText(html: string, reportActionID: string | undefined): string {
+    if (!html.includes('<a ')) {
+        return html;
+    }
+    return html.replaceAll(ANCHOR_TAG_REGEX, (match: string, attributes: string, label: string) => {
+        if (holdsMedia(label) || (!isAttachmentAnchorTag(attributes) && !isOwnAttachmentURL(getAnchorHref(attributes) ?? '', reportActionID))) {
+            return match;
+        }
+        return `${CONST.ATTACHMENT_MESSAGE_TEXT}${match.endsWith('<br />') ? '<br />' : ''}`;
+    });
+}
+
+export {getAnchorHref, isAttachmentAnchor, isAttachmentAnchorTag, isOwnAttachmentURL, replaceAttachmentAnchorsWithText, wrapAttachmentAnchorsInBlocks};

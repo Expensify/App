@@ -1,7 +1,6 @@
 /**
  * Readers for a report action's message: pull the message entry, its html/text, and the normalized original message.
  */
-import CONST from '@src/CONST';
 import type {OnyxInputOrEntry} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
@@ -9,6 +8,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 
 import type {PartialReportAction} from './ReportUtils';
 
+import {replaceAttachmentAnchorsWithText} from './AttachmentAnchorUtils';
 import Parser from './Parser';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 
@@ -42,20 +42,8 @@ function getReportActionText(reportAction: PartialReportAction): string {
     return text ? Parser.htmlToText(text) : '';
 }
 
-const ATTACHMENT_ID_TOKEN = ` ${CONST.ATTACHMENT_ID_ATTRIBUTE}="`;
-const ANCHOR_TAG_REGEX = /<a\s([^>]*)>[\s\S]*?<\/a>/gi;
-
-// The parser only turns an anchor into "[Attachment]" while it still carries `data-expensify-source`, which the server drops on edit.
-// The attachment ID survives the edit and is never set on a typed link, so it alone decides, not the URL.
-function replaceAttachmentAnchorsWithText(html: string): string {
-    if (!html.includes(ATTACHMENT_ID_TOKEN)) {
-        return html;
-    }
-    return html.replaceAll(ANCHOR_TAG_REGEX, (match: string, attributes: string) => (` ${attributes}`.includes(ATTACHMENT_ID_TOKEN) ? CONST.ATTACHMENT_MESSAGE_TEXT : match));
-}
-
-function getTextFromHtml(html?: string): string {
-    return html ? Parser.htmlToText(replaceAttachmentAnchorsWithText(html)) : '';
+function getTextFromHtml(html?: string, reportActionID?: string): string {
+    return html ? Parser.htmlToText(replaceAttachmentAnchorsWithText(html, reportActionID)) : '';
 }
 
 export {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml};
