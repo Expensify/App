@@ -1,4 +1,3 @@
-// Displays the expense amount with its payment status and editing feedback.
 import Icon from '@components/Icon';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
@@ -17,7 +16,10 @@ import EditableField from './EditableField';
 
 type AmountFieldProps = Pick<OfflineWithFeedbackProps, 'pendingAction'> &
     Pick<MenuItemProps, 'title' | 'description' | 'hintText' | 'errorText' | 'copyValue' | 'onPress'> & {
+        /** Enables the amount editor. Otherwise the value can only be copied. */
         canEdit?: boolean;
+
+        /** Adds a checkmark when the reimbursable expense has been paid. */
         shouldShowPaid?: boolean;
     };
 

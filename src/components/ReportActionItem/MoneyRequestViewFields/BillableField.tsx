@@ -1,4 +1,3 @@
-// Keeps billable policy violations next to the expense's billable control.
 import ViolationMessages from '@components/ViolationMessages';
 import type {ViolationMessagesProps} from '@components/ViolationMessages';
 

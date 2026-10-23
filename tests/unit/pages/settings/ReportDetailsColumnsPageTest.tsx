@@ -67,22 +67,45 @@ beforeEach(() => {
     });
 });
 
-it('filters unsupported saved columns, defaults invalid-only storage, and preserves save behavior', () => {
-    const mixedProps = renderColumns(['invalid', CONST.SEARCH.TABLE_COLUMNS.MERCHANT, 'foreign', CONST.SEARCH.TABLE_COLUMNS.DATE]);
-    expect(mixedProps.currentColumns).toEqual([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.DATE]);
-    const defaultProps = renderColumns(['invalid', 'foreign']);
-    expect([defaultProps.currentColumns, defaultProps.currentColumns.includes(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]).toEqual([defaultProps.defaultSelectedColumns, true]);
-    const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+it('ignores saved columns that are no longer supported', () => {
+    // Given a preference containing columns from another table or an older version of the app.
+    const savedColumns = ['invalid', CONST.SEARCH.TABLE_COLUMNS.MERCHANT, 'foreign', CONST.SEARCH.TABLE_COLUMNS.DATE];
+
+    // When the user opens their column preferences.
     const props = renderColumns(savedColumns);
-    expect([props.currentColumns, jest.mocked(setReportDetailsColumns).mock.calls.length]).toEqual([mockSavedColumns, 0]);
-    props.onSave(savedColumns);
-    props.onSave([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
-    expect(jest.mocked(setReportDetailsColumns)).toHaveBeenCalledWith([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT], mockSavedColumns);
-    expect(jest.mocked(Navigation.goBack)).toHaveBeenCalledTimes(2);
+
+    // Then supported columns keep their saved order without exposing unavailable choices.
+    expect(props.currentColumns).toEqual([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.DATE]);
 });
 
-it('uses the expense heading while saving the same report column preference', () => {
-    // Given the picker opened through an expense's Customize fields action.
+it('uses defaults when none of the saved columns are supported', () => {
+    // Given an old preference with no columns available in the current picker.
+    const savedColumns = ['invalid', 'foreign'];
+
+    // When the user opens their column preferences.
+    const props = renderColumns(savedColumns);
+
+    // Then the picker stays usable with the default selection, including the required field.
+    expect(props.currentColumns).toEqual(props.defaultSelectedColumns);
+    expect(props.currentColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+});
+
+it('saves the report column preference with its previous value for rollback', () => {
+    // Given a custom column order that must survive if the save request fails.
+    const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+    const props = renderColumns(savedColumns);
+    const selectedColumns = [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+
+    // When the user saves a different selection.
+    props.onSave(selectedColumns);
+
+    // Then the action receives the old preference and the picker closes after saving.
+    expect(setReportDetailsColumns).toHaveBeenCalledWith(selectedColumns, savedColumns);
+    expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+});
+
+it('saves customized expense fields to the report column preference', () => {
+    // Given an expense with previously customized fields.
     jest.mocked(useRoute).mockReturnValue({
         key: 'columns',
         name: SCREENS.REPORT_SETTINGS.FIELDS,
@@ -95,7 +118,7 @@ it('uses the expense heading while saving the same report column preference', ()
     const selectedColumns = [...savedColumns, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE];
     props.onSave(selectedColumns);
 
-    // Then the heading matches the entry point and the existing NVP action receives the new selection and rollback value.
+    // Then the report preference receives the selection and its previous value for rollback.
     expect(props.titleKey).toBe('search.customizeFields');
     expect(setReportDetailsColumns).toHaveBeenLastCalledWith(selectedColumns, savedColumns);
 });

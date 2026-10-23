@@ -1,4 +1,3 @@
-// Shares the offline layout of expense toggles while callers compose any supporting content.
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';

@@ -1,4 +1,3 @@
-// Displays the merchant and lets users look up the original card merchant when available.
 import Icon from '@components/Icon';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
@@ -23,7 +22,9 @@ import EditableField from './EditableField';
 
 type MerchantFieldProps = Pick<OfflineWithFeedbackProps, 'pendingAction'> &
     Pick<MenuItemProps, 'title' | 'errorText' | 'copyValue' | 'onPress'> & {
+        /** Enables the merchant editor. Otherwise the merchant can only be copied or searched. */
         canEdit: boolean;
+
         /** Original card merchant to search for. Omit while scanning or for non-card expenses. */
         googleSearchMerchant?: string;
     };

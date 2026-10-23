@@ -19,11 +19,22 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 type MoneyRequestViewAdditionalFieldProps = {
+    /** Report column to display outside the existing editable expense fields. */
     column: SearchColumnType;
+
+    /** Expense whose current values, including optimistic edits, supply the field. */
     transaction: Transaction;
+
+    /** Parent expense report supplying report-level values and the conversion currency. */
     report: OnyxEntry<Report>;
+
+    /** Workspace supplying tax configuration and the fallback conversion currency. */
     policy: OnyxEntry<Policy>;
+
+    /** Workspace categories used to resolve the expense's category GL code. */
     policyCategories: OnyxEntry<PolicyCategories>;
+
+    /** Workspace tag lists used to resolve GL codes in tag order. */
     policyTagLists: OnyxEntry<PolicyTagLists>;
 };
 

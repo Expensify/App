@@ -90,11 +90,11 @@ describe('customizing expense fields on native', () => {
         mockNativeList.mockClear();
     });
 
-    it('starts a drag on long press for selected fields, including the required amount, without toggling them', () => {
-        // Given the expense field picker with an amount that cannot be deselected and an unchecked category.
+    it('starts selected rows dragging without changing field selection', () => {
+        // Given a field picker with both selected and unselected fields.
         const onSave = renderFields();
 
-        // When the user holds each selected row and then an unchecked row.
+        // When the user tries to reorder fields through the row gesture.
         for (const column of [TOTAL_AMOUNT, MERCHANT, DATE, CATEGORY]) {
             fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${column}`), 'longPress');
         }
@@ -138,7 +138,7 @@ describe('customizing expense fields on native', () => {
     });
 
     it('allows hovering over unchecked fields and returns the dropped field to the end of the selected group', () => {
-        // Given selected fields followed by an unchecked category, as in the reported drag regression.
+        // Given an unchecked field after the selected fields, outside the valid drop positions.
         const onSave = renderFields();
         const list = mockNativeList.mock.calls.at(-1)?.at(0);
         if (!list) {
@@ -188,22 +188,33 @@ describe('customizing expense fields on native', () => {
         }
     });
 
-    it('saves the reordered fields and keeps the required amount selected', () => {
-        // Given the native picker after a user starts reordering its selected fields.
+    it('saves the reordered fields', () => {
+        // Given selected fields in an order the user wants to change.
         const onSave = renderFields();
         const list = mockNativeList.mock.calls.at(-1)?.at(0);
         if (!list) {
             throw new Error('Expected native expense fields');
         }
-        const reordered = [list.data.at(2), list.data.at(0), list.data.at(1), list.data.at(3)].filter((item): item is ColumnItem => !!item);
 
-        // When the drag finishes with date above amount and the required amount row is tapped before saving.
+        // When the user finishes reordering to match their preferred field order.
+        const reordered = [list.data.at(2), list.data.at(0), list.data.at(1)].filter((item): item is ColumnItem => !!item);
         act(() => list.onDragEnd?.({data: reordered}));
+        fireEvent.press(screen.getByText('common.save'));
+
+        // Then saving preserves the order chosen by the user.
+        expect(onSave).toHaveBeenCalledWith([DATE, TOTAL_AMOUNT, MERCHANT]);
+    });
+
+    it('keeps required fields selected', () => {
+        // Given a required field that must stay visible in the expense details.
+        const onSave = renderFields();
+
+        // When the user tries to turn off that field.
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${TOTAL_AMOUNT}`));
         fireEvent.press(screen.getByText('common.save'));
 
-        // Then the chosen order reaches the shared preferences and the required field cannot be turned off.
-        expect(onSave).toHaveBeenCalledWith([DATE, TOTAL_AMOUNT, MERCHANT]);
+        // Then saving retains the field because it cannot be deselected.
+        expect(onSave).toHaveBeenCalledWith([TOTAL_AMOUNT, MERCHANT, DATE]);
     });
 
     it('reorders selected fields through screen reader actions', () => {

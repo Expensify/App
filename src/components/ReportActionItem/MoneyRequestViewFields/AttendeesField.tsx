@@ -1,4 +1,3 @@
-// Displays expense attendees and their per-person amount.
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
@@ -18,9 +17,14 @@ type AttendeesFieldProps = Pick<OfflineWithFeedbackProps, 'pendingAction'> &
     Pick<MenuItemProps, 'onPress' | 'errorText' | 'copyValue'> & {
         /** Attendees enriched with their personal details and sorted for display. */
         attendees: AttendeeWithAccountID[] | undefined;
+
         /** Plain text summary used by assistive technology. */
         title: string;
+
+        /** Localized amount per person. An empty string omits it from the field label. */
         formattedPerAttendeeAmount: string;
+
+        /** Enables attendee editing. Otherwise all attendee pills remain visible for copying. */
         canEdit: boolean;
     };
 

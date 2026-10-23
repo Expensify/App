@@ -31,9 +31,10 @@ import Text from './Text';
 import TextLink from './TextLink';
 
 type ColumnsSettingsListProps = {
-    /** Heading for the surface sharing the column preferences */
+    /** The translation key for the title. Defaults to the search columns heading. */
     titleKey?: TranslationPaths;
 
+    /** All columns available for selection, excluding the separate group columns. */
     allColumns: SearchCustomColumnIds[];
 
     /** The default set of selected columns when no customization has been applied */

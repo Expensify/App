@@ -1171,7 +1171,7 @@ function MoneyRequestView({
     const previousTagLength = getLengthOfTag(previousTag ?? '');
     const currentTagLength = getLengthOfTag(currentTransactionTag ?? '');
 
-    // actualAttendees is already sorted by enrichAndSortAttendees above; pass without localeCompare to preserve that order while formatting phone-login attendees.
+    // Keep the order from enrichAndSortAttendees while formatting phone numbers for display.
     const getAttendeesTitle = Array.isArray(actualAttendees) ? getAttendeesListDisplayString(actualAttendees, formatPhoneNumber) : '';
     const attendeesCopyValue = getAttendeesTitle || undefined;
 

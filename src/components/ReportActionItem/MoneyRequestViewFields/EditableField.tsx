@@ -1,4 +1,3 @@
-// Keeps an expense field's offline state and validation feedback together.
 import MenuItem from '@components/MenuItem';
 import type {MenuItemRootProps} from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -16,14 +15,28 @@ import React from 'react';
 type EditableFieldProps = PropsWithChildren<
     Pick<OfflineWithFeedbackProps, 'pendingAction'> &
         Pick<MenuItemRootProps, 'onPress' | 'accessibilityLabel'> & {
+            /** Localized label that also acts as the placeholder when the expense value is empty. */
             name: string;
+
+            /** Plain text value. Omitted when valueComponent supplies custom content. */
             value?: string;
+
+            /** Allows native text selection independently of whether the editor is available. */
             isValueSelectable?: boolean;
-            /** Defaults to 2; use 0 to display the full value. */
+
+            /** Defaults to 2. Use 0 to display the full value. */
             numberOfLinesValue?: number;
+
+            /** Validation feedback shown below the field and marked by an error indicator. */
             error?: ReactNode;
+
+            /** Replaces the plain text value with rich content such as attendee pills. */
             valueComponent?: ReactNode;
+
+            /** Supporting information displayed between the value row and any footer or error. */
             hintText?: ReactNode;
+
+            /** Additional controls below the value row, such as the original merchant search link. */
             footer?: ReactNode;
         }
 >;

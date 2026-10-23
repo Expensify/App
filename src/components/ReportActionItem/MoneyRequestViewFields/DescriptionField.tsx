@@ -1,4 +1,3 @@
-// Preserves rich expense descriptions alongside their offline and validation feedback.
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
@@ -14,6 +13,7 @@ import EditableField from './EditableField';
 
 type DescriptionFieldProps = Pick<OfflineWithFeedbackProps, 'pendingAction'> &
     Pick<MenuItemProps, 'title' | 'errorText' | 'copyValue' | 'onPress'> & {
+        /** Enables the description editor. Otherwise its rendered HTML can only be copied. */
         canEdit: boolean;
     };
 

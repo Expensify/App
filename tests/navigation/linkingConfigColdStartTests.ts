@@ -18,7 +18,7 @@ describe('linking configuration on a cold start', () => {
         // When a saved link is opened or the browser is refreshed.
         const state = parsePath(path, linkingConfig.config);
 
-        // Then the shared picker can determine its mode without a query parameter.
+        // Then refreshing the page preserves the intended field picker.
         expect(state).toBeDefined();
         if (!state) {
             throw new Error('The report configuration route must resolve');
