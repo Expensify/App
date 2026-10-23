@@ -23,8 +23,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
 
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -42,7 +40,7 @@ import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDash
 
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
-import INSIGHTS_DASHBOARD_SPECS, {getAccessibleDashboards, getVisibleCharts} from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
 import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
@@ -189,7 +187,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     );
 }
 
-function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
+function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -201,8 +199,6 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
     const {isBetaEnabled} = usePermissions();
-    const accessibleDashboards = getAccessibleDashboards(policies, login, isBetaEnabled);
-    const isAccessible = accessibleDashboards.includes(dashboardID);
 
     const isCompareEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE);
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
@@ -212,7 +208,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const hash = query?.hash;
 
     const requestDashboard = () => {
-        if (!query || hash === undefined || isOffline || !isAccessible) {
+        if (!query || hash === undefined || isOffline) {
             return;
         }
         getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes);
@@ -228,7 +224,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         }
         onRequestConditionsChanged();
         // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. Group by and the eligible charts are listed because the hash leaves them out
-    }, [dashboardID, hash, filters.groupBy, eligibleGraphKeys, isCompareEnabled, isFocused, isOffline, isAccessible]);
+    }, [dashboardID, hash, filters.groupBy, eligibleGraphKeys, isCompareEnabled, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
@@ -248,10 +244,6 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     }));
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts);
-
-    if (isResolved && !isLoadingOnyxValue(policiesMetadata) && !isAccessible) {
-        return <NotFoundPage />;
-    }
 
     const tabSelector =
         accessibleDashboards.length > 1 ? (

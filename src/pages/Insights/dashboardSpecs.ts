@@ -104,14 +104,9 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     },
 };
 
-/** Returns the workspaces the dashboard is scoped to. No selected workspaces means every workspace is in scope. */
-function getPoliciesInScope(policies: OnyxCollection<Policy>, policyIDs: string[]): Policy[] {
-    return Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
-}
-
-/** Returns the charts that at least one workspace in scope is eligible for. */
+/** Returns the charts that at least one workspace in scope is eligible for. No selected workspaces means every workspace is in scope. */
 function getVisibleCharts(charts: InsightsChartSpec[], policies: OnyxCollection<Policy>, policyIDs: string[], login: string | undefined): InsightsChartSpec[] {
-    const policiesInScope = getPoliciesInScope(policies, policyIDs);
+    const policiesInScope = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
     return charts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => isPolicyEligible(policy, login)));
 }
 

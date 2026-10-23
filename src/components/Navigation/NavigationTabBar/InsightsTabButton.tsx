@@ -1,10 +1,7 @@
 import {PressableWithFeedback} from '@components/Pressable';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
@@ -13,10 +10,11 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import navigationRef from '@navigation/navigationRef';
 
-import {getAccessibleDashboards} from '@pages/Insights/dashboardSpecs';
+import useAccessibleDashboards from '@pages/Insights/useAccessibleDashboards';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {InsightsDashboardID} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {ValueOf} from 'type-fest';
 
@@ -35,9 +33,7 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['PieChart']);
-    const {login} = useCurrentUserPersonalDetails();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {isBetaEnabled} = usePermissions();
+    const [accessibleDashboards = getEmptyArray<InsightsDashboardID>()] = useAccessibleDashboards();
     const isSelected = selectedTab === NAVIGATION_TABS.INSIGHTS;
 
     const navigateToInsights = () => {
@@ -47,7 +43,7 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
         clearSelectedText();
         interceptAnonymousUser(() => {
             const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
-            Navigation.navigate(getInsightsTabRoute(rootState, getAccessibleDashboards(policies, login, isBetaEnabled)));
+            Navigation.navigate(getInsightsTabRoute(rootState, accessibleDashboards));
         });
     };
 
