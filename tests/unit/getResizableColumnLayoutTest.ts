@@ -1,3 +1,4 @@
+import {SCROLL_EXTENT_FLOOR_VARIABLE} from '@components/Table/columnResize/columnWidthExpressions';
 import getFrozenColumnWidths from '@components/Table/columnResize/getFrozenColumnWidths';
 import getResizableColumnLayout, {getAvailableColumnsWidth} from '@components/Table/columnResize/getResizableColumnLayout';
 import type {ResizableColumn} from '@components/Table/columnResize/resolveDraggedColumnWidths';
@@ -17,6 +18,23 @@ function column(
 }
 
 describe('getResizableColumnLayout', () => {
+    it('keeps the scroll extent at least as wide as the floor a drag sets', () => {
+        // Given a table scrolled right, where shrinking a column mid-drag would shrink the extent under the scroll position
+        const columns = [column('name'), column('role')];
+
+        // When the layout is built
+        const {scrollWidth} = getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths: {name: 400, role: 400},
+            resizedColumnKeys: [],
+            tableWidth: 600,
+            rowChromeWidths,
+        });
+
+        // Then the extent is floored by the drag's variable too, so the filter bar pinned inside the scroller stays put
+        expect(scrollWidth).toContain(`var(${SCROLL_EXTENT_FLOOR_VARIABLE}, 0px)`);
+    });
+
     it('keeps the last column from shrinking while the row fills the table exactly', () => {
         // Given three 200px columns filling a 600px table
         const columns = [column('name'), column('email'), column('role')];

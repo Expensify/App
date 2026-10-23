@@ -44,6 +44,7 @@ import {
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDeletedOfficeLocationMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getHumanAgentAccountIDFromReportAction,
     getHumanAgentFirstName,
@@ -102,6 +103,8 @@ type TakeControlAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONT
 type TakeControlOriginalMessageFixture = NonNullable<TakeControlAction['originalMessage']>;
 
 type ConciergeAutoSelectDistanceRateAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE>;
+
+type AddCustomUnitRateAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE>;
 
 type LegacyReportActionFields = {
     message?: string;
@@ -1432,6 +1435,55 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getLastVisibleMessage', () => {
+        const REPORT_ID = '90301';
+        const WHISPER_TARGET_ACCOUNT_ID = 111;
+
+        const comment: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
+            created: '2026-12-01 10:00:00.000',
+            reportActionID: 'visibleMessageComment',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            originalMessage: {html: 'Older comment'},
+        };
+
+        /** Newer than `comment`, and only the whispered-to account can see it. */
+        const whisper: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
+            created: '2026-12-01 12:00:00.000',
+            reportActionID: 'visibleMessageWhisper',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+            originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+        });
+
+        it('should take the message from the whisper when the user is the one it targets', () => {
+            // Given a report whose newest action is a whisper aimed at the user
+            // When the last visible message is resolved for that user
+            const result = ReportActionsUtils.getLastVisibleMessage(REPORT_ID, true, {}, undefined, undefined, WHISPER_TARGET_ACCOUNT_ID);
+
+            // Then the whisper supplies the message
+            expect(result.lastMessageText).toBe('changed the amount');
+        });
+
+        it('should skip the whisper and fall back to the older comment when it targets somebody else', () => {
+            // Given the same report, seen by an account the whisper does not target
+            // When the last visible message is resolved for that account
+            const result = ReportActionsUtils.getLastVisibleMessage(REPORT_ID, true, {}, undefined, undefined, WHISPER_TARGET_ACCOUNT_ID + 1);
+
+            // Then the whisper is invisible and the older comment supplies the message
+            expect(result.lastMessageText).toBe('Older comment');
+        });
+    });
+
     describe('getExportIntegrationActionFragments', () => {
         function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[], reimbursableUrls: string[] = []): ExportedToIntegrationAction {
             const action: ExportedToIntegrationAction = {
@@ -1785,7 +1837,134 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getWorkspaceCustomUnitRateAddedMessage', () => {
+        function buildAddCustomUnitRateAction(originalMessage: AddCustomUnitRateAction['originalMessage']): AddCustomUnitRateAction {
+            return {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE,
+                reportActionID: 'add-custom-unit-rate-1',
+                created: '2026-09-01 12:00:00.000',
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: '', html: ''}],
+                originalMessage,
+            };
+        }
+
+        const fuelBandRateMessage = {
+            customUnitName: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            rateName: 'Cars & Vans (Petrol/Hybrid) - Up to 1400cc',
+            rate: 55,
+            currency: CONST.CURRENCY.GBP,
+            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            startDate: '2026-09-01',
+        };
+
+        it('should append the reclaimable tax amount and tax rate name when the log has tax details', () => {
+            // Given an added rate log for a UK fuel-band rate, whose reclaimable share is the 14p fuel rate out of the 55p rate
+            const action = buildAddCustomUnitRateAction({...fuelBandRateMessage, taxClaimablePercentage: 14 / 55, taxRateName: 'Standard VAT (20%)'});
+
+            // When building the message
+            const message = ReportActionsUtils.getWorkspaceCustomUnitRateAddedMessage(translateLocal, undefined, action);
+
+            // Then it should show the reclaimable amount per mile, rate × taxClaimablePercentage, under the tax rate name
+            expect(message).toBe(
+                'added "Cars & Vans (Petrol/Hybrid) - Up to 1400cc" rate of £0.55/mile, valid from September 1, 2026, with £0.14/mile tax reclaimable under "Standard VAT (20%)"',
+            );
+        });
+
+        it('should show a zero reclaimable amount when the reclaimable share is zero', () => {
+            // Given an added rate log for a fuel band with no reclaimable fuel cost
+            const action = buildAddCustomUnitRateAction({
+                ...fuelBandRateMessage,
+                rateName: 'Cars & Vans (Electric) - Home charged',
+                taxClaimablePercentage: 0,
+                taxRateName: 'Standard VAT (20%)',
+            });
+
+            // When building the message
+            const message = ReportActionsUtils.getWorkspaceCustomUnitRateAddedMessage(translateLocal, undefined, action);
+
+            // Then the tax details should still be shown, because the log carries them
+            expect(message).toBe(
+                'added "Cars & Vans (Electric) - Home charged" rate of £0.55/mile, valid from September 1, 2026, with £0.00/mile tax reclaimable under "Standard VAT (20%)"',
+            );
+        });
+
+        it('should not append tax details when the log has no tax rate name', () => {
+            // Given an added rate log with a reclaimable share but no tax rate name
+            const action = buildAddCustomUnitRateAction({...fuelBandRateMessage, taxClaimablePercentage: 14 / 55});
+
+            // When building the message
+            const message = ReportActionsUtils.getWorkspaceCustomUnitRateAddedMessage(translateLocal, undefined, action);
+
+            // Then it should render the same text as a log without tax details
+            expect(message).toBe('added "Cars & Vans (Petrol/Hybrid) - Up to 1400cc" rate of £0.55/mile, valid from September 1, 2026');
+        });
+    });
+
     describe('getMessageOfOldDotReportAction', () => {
+        it('should return the removed field message when a field with a value is cleared', () => {
+            // Given a field change whose new value is empty while the old value was set, which is what clearing a text field sends
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: 'Apollo', newValue: ''},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was removed and shows the old value, instead of `changed Project to ""`
+            expect(message).toBe('removed Project (previously "Apollo")');
+        });
+
+        it('should return the cleared field message when a field without a saved value is cleared', () => {
+            // Given a field change where both values are empty, which is what clearing a field that only showed its default can send
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: '', newValue: ''},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was removed, instead of `set Project to ""`
+            expect(message).toBe('removed Project');
+        });
+
+        it('should return the set field message when a field without a value is filled in', () => {
+            // Given a field change whose old value is empty
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: '', newValue: 'Apollo'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was set, because there is no previous value to show
+            expect(message).toBe('set Project to "Apollo"');
+        });
+
+        it('should return the changed field message when a field value is replaced', () => {
+            // Given a field change where both the old and the new value are set
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: 'Apollo', newValue: 'Gemini'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it shows both the new and the previous value
+            expect(message).toBe('changed Project to "Gemini" (previously "Apollo")');
+        });
+
         it('should return the ACH bounce message with return reason when provided', () => {
             const returnReason = 'R03 - No Account/Unable to Locate Account';
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
@@ -5099,6 +5278,41 @@ describe('ReportActionsUtils', () => {
             // When the change log is rendered
             // Then it reads the same as the message Auth stores for it
             expect(getDeletedOfficeLocationMessage(translateLocal, action)).toBe('removed the office location "New Jersey Office"');
+        });
+
+        it.each([
+            [
+                'an office assigned to a member who followed the primary office',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+                `changed Bob Smith's office location to "New Jersey Office" (previously the primary office)`,
+            ],
+            [
+                'a member moved from the company address to an office',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: 'OFFICE1', officeName: 'Headquarters', oldOfficeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, oldOfficeName: ''},
+                `changed Bob Smith's office location to "Headquarters" (previously the company address)`,
+            ],
+            [
+                'a cleared assignment',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: '', officeName: '', oldOfficeID: 'OFFICE1', oldOfficeName: 'Headquarters'},
+                `changed Bob Smith's office location to the primary office (previously "Headquarters")`,
+            ],
+            [
+                'a member without a name moved off an office that was removed since',
+                {email: 'bob@smith.com', officeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, officeName: '', oldOfficeID: 'OFFICE9', oldOfficeName: ''},
+                `changed bob@smith.com's office location to the company address (previously the primary office)`,
+            ],
+        ])('describes %s', (_description, originalMessage, expected) => {
+            // Given a member whose office assignment changed
+            const action: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {accountID: 1, ...originalMessage},
+            };
+
+            // When the change log is rendered
+            // Then it reads the same as the message Auth stores for it
+            expect(getUpdatedEmployeeOfficeLocationMessage(translateLocal, action)).toBe(expected);
         });
     });
 

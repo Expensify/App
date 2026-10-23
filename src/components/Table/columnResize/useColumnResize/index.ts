@@ -3,6 +3,7 @@
  * resets it. Widths live in CSS custom properties so React doesn't render mid-drag, and the layout is saved to Onyx once
  * the column settles.
  */
+import {SCROLL_EXTENT_FLOOR_VARIABLE, TABLE_COLUMN_SCROLLER_SELECTOR} from '@components/Table/columnResize/columnWidthExpressions';
 import getDraggedColumnWidth from '@components/Table/columnResize/getDraggedColumnWidth';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -111,6 +112,7 @@ function useColumnResize({
     const endDrag = (drag: Drag) => {
         resetDrag();
         hideIndicator();
+        scopeElementRef.current?.style.removeProperty(SCROLL_EXTENT_FLOOR_VARIABLE);
 
         const width = readColumnWidth(drag.columnKey) ?? drag.startWidth;
 
@@ -193,6 +195,12 @@ function useColumnResize({
         // A click on another edge isn't a double-click, so the waiting one fits now, before this press reads its width.
         if (pendingFitColumnKey && !isSecondClick) {
             fitColumnToContent(pendingFitColumnKey);
+        }
+
+        // Shrinking a column while scrolled right would otherwise drag the pinned filter bar along with the columns.
+        const scroller = event.currentTarget.closest<HTMLElement>(TABLE_COLUMN_SCROLLER_SELECTOR);
+        if (scroller) {
+            scopeElementRef.current?.style.setProperty(SCROLL_EXTENT_FLOOR_VARIABLE, `${scroller.scrollLeft + scroller.clientWidth}px`);
         }
 
         dragRef.current = {
