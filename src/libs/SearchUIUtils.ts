@@ -145,6 +145,7 @@ import {
     isPolicyPayer,
     isPreferredExporter,
     isSubmitPolicy,
+    isWorkspaceProvisionedForTravel,
 } from './PolicyUtils';
 import {
     getIOUActionForReportID,
@@ -734,6 +735,7 @@ function getSuggestedSearchesVisibility(
     let shouldShowViolationsBySubmitterSuggestion = false;
     let hasEligibleGroupPolicies = false;
     let shouldShowSpendOverTimeSuggestion = false;
+    let shouldShowTripsSuggestion = false;
 
     const hasCardFeed = Object.values(cardFeedsByPolicy ?? {}).some((feeds) => feeds.length > 0);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
@@ -801,6 +803,8 @@ function getSuggestedSearchesVisibility(
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!policy.role;
         shouldShowSpendOverTimeSuggestion ||= isPolicyEligibleForSpendOverTime(policy, currentUserEmail);
+        // Only workspaces set up in Spotnana count, isTravelEnabled is just the feature switch
+        shouldShowTripsSuggestion ||= isWorkspaceProvisionedForTravel(policy.travelSettings);
     }
 
     return {
@@ -820,6 +824,7 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: shouldShowTopMerchantsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: shouldShowViolationsBySubmitterSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: shouldShowSpendOverTimeSuggestion,
+            [CONST.SEARCH.SEARCH_KEYS.TRIPS]: shouldShowTripsSuggestion,
         },
         hasEligibleGroupPolicies,
         shouldShowExpensifyCard: shouldShowExpensifyCardSuggestion,
@@ -4782,6 +4787,8 @@ const SPEND_INSIGHT_KEYS = [
 
 const insightsPageMenuKeys = new Set<SearchKey>([...SPEND_INSIGHT_KEYS, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]);
 
+const travelApprovalMenuKeys = new Set<SearchKey>([CONST.SEARCH.SEARCH_KEYS.TRIPS]);
+
 type TypeMenuSectionsParams = {
     currentUserEmail: string | undefined;
     currentUserAccountID: number | undefined;
@@ -4884,6 +4891,22 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
         if (expenseReportsSection.menuItems.length > 0) {
             typeMenuSections.push(expenseReportsSection);
+        }
+    }
+
+    // Travel section
+    {
+        const travelSection: SearchTypeMenuSection = {
+            translationPath: 'search.tabs.travel',
+            menuItems: [],
+        };
+
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.TRIPS]) {
+            travelSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TRIPS]);
+        }
+
+        if (travelSection.menuItems.length > 0) {
+            typeMenuSections.push(travelSection);
         }
     }
 
@@ -4994,14 +5017,23 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     return typeMenuSections;
 }
 
-function omitInsightsPageMenuItems(sections: SearchTypeMenuSection[]): SearchTypeMenuSection[] {
+function omitMenuItems(sections: SearchTypeMenuSection[], keysToOmit: ReadonlySet<SearchKey>): SearchTypeMenuSection[] {
     return sections.flatMap((section) => {
-        const menuItems = section.menuItems.filter((item) => !insightsPageMenuKeys.has(item.key));
+        const menuItems = section.menuItems.filter((item) => !keysToOmit.has(item.key));
         if (menuItems.length === section.menuItems.length) {
             return section;
         }
         return menuItems.length > 0 ? {...section, menuItems} : [];
     });
+}
+
+function omitInsightsPageMenuItems(sections: SearchTypeMenuSection[]): SearchTypeMenuSection[] {
+    return omitMenuItems(sections, insightsPageMenuKeys);
+}
+
+/** Removes the Travel items for users without the TravelApproval beta */
+function omitTravelApprovalMenuItems(sections: SearchTypeMenuSection[]): SearchTypeMenuSection[] {
+    return omitMenuItems(sections, travelApprovalMenuKeys);
 }
 
 /**
@@ -7476,6 +7508,7 @@ export {
     getPrimaryAction,
     createTypeMenuSections,
     omitInsightsPageMenuItems,
+    omitTravelApprovalMenuItems,
     SPEND_INSIGHT_KEYS,
     formatBadgeText,
     getSectionBadgeText,

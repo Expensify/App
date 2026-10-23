@@ -90,6 +90,7 @@ import {
     getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
+    getPolicyWorkArrangementMessage,
     getReimbursedMessage,
     getReimburserUpdateMessage,
     getRemovedCardFeedMessage,
@@ -118,6 +119,7 @@ import {
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdatedDefaultTitleMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdatedMemberWorkArrangementMessage,
@@ -1353,6 +1355,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     }
                 } else if (isRejectedAction(reportAction)) {
                     Clipboard.setString(translate('iou.rejectedThisReport'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ARCHIVE_POLICY) {
+                    Clipboard.setString(translate('workspaceActions.archivedWorkspace'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNARCHIVE_POLICY) {
+                    Clipboard.setString(translate('workspaceActions.unarchivedWorkspace'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
                     const displayMessage = translate('workspaceActions.upgradedWorkspace');
                     Clipboard.setString(displayMessage);
@@ -1495,6 +1501,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedDefaultTitleMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING)) {
                     setClipboardMessage(getUpdatedAutoHarvestingMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT)) {
+                    setClipboardMessage(getPolicyWorkArrangementMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT)) {
                     setClipboardMessage(getUpdatedMemberWorkArrangementMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION)) {
@@ -1503,6 +1511,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedOfficeLocationMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION)) {
                     setClipboardMessage(getDeletedOfficeLocationMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION)) {
+                    setClipboardMessage(getUpdatedEmployeeOfficeLocationMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION)) {
                     setClipboardMessage(getUpdatedIndividualBudgetNotificationMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SHARED_BUDGET_NOTIFICATION)) {

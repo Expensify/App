@@ -256,6 +256,7 @@ import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
 export type {
@@ -419,6 +420,7 @@ export type {
     TransactionViolations,
     TravelSettings,
     WorkspaceTravelSettings,
+    WorkspaceMembersSelectedForBulkEdit,
     UserLocation,
     UserMetadata,
     UserWallet,
