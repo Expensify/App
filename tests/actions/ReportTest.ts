@@ -10944,7 +10944,7 @@ describe('actions/Report', () => {
                 },
             };
 
-            // When an admin opens it with the owner's self DM
+            // When the current user opens it with the owner's self DM
             const result = Report.createTransactionThreadReport({
                 introSelected: TEST_INTRO_SELECTED,
                 conciergeChat: undefined,
@@ -10957,30 +10957,54 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then the thread hangs off the owner's self DM, the IOU action is available to render it, and no self DM is faked for the admin
+            // Then the thread hangs off the owner's IOU action, which is stored locally so the expense can render, and no optimistic self DM report is written for the owner's ID
             expect(result?.parentReportID).toBe(ownerSelfDMReportID);
             expect(result?.parentReportActionID).toBe(reportAction.reportActionID);
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-            const ownerSelfDMActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
-                const connection = Onyx.connectWithoutView({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ownerSelfDMReportID}`,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
+            const ownerSelfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ownerSelfDMReportID}`);
             expect(ownerSelfDMActions?.[reportAction.reportActionID]?.actorAccountID).toBe(TEST_USER_ACCOUNT_ID + 1);
-            const ownerSelfDM = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
-                const connection = Onyx.connectWithoutView({
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${ownerSelfDMReportID}`,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
+            expect(ownerSelfDMActions?.[reportAction.reportActionID]?.childReportID).toBe(result?.reportID);
+            const ownerSelfDM = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${ownerSelfDMReportID}`);
             expect(ownerSelfDM?.chatType).toBeUndefined();
+        });
+
+        it("should drop the dead thread from the owner's IOU action when creating it in another user's self DM fails", async () => {
+            // Given an unreported expense action from another user's self DM, and a server that rejects the thread
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            global.fetch = mockFetch;
+            const ownerSelfDMReportID = '603';
+            const transaction = {...createRandomTransaction(603), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(603),
+                reportActionID: 'owner-action-603',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: TEST_USER_ACCOUNT_ID + 1,
+                childReportID: undefined,
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: transaction.transactionID,
+                },
+            };
+            mockFetch.fail?.();
+
+            // When the current user opens it and OpenReport fails
+            Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                iouReportAction: reportAction,
+                transaction,
+                selfDMReportID: ownerSelfDMReportID,
+            });
+            await waitForBatchedUpdates();
+            await waitForNetworkPromises();
+            await waitForBatchedUpdates();
+
+            // Then the action no longer points at the failed thread, because nothing from the server repairs another user's self DM and the next open has to retry
+            const ownerSelfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ownerSelfDMReportID}`);
+            expect(ownerSelfDMActions?.[reportAction.reportActionID]?.childReportID).toBeUndefined();
         });
 
         it('should return an optimistic transaction thread report when given a valid report and action', async () => {

@@ -366,6 +366,9 @@ type OpenReportActionParams = {
     /** The optimistic selfDM report when it exists on the server but was filtered out from OpenApp response (e.g., no actions yet) */
     optimisticSelfDMReport?: Report;
 
+    /** The parent IOU action from another member's self DM, which the current user does not have locally */
+    parentReportAction?: ReportAction;
+
     currentUserLogin?: string;
     currentUserAccountID: number;
 
@@ -1714,6 +1717,7 @@ function openReport(params: OpenReportActionParams) {
         parentReportID,
         shouldAddPendingFields = true,
         optimisticSelfDMReport,
+        parentReportAction,
         currentUserLogin,
         currentUserAccountID,
         isSelfTourViewed,
@@ -2119,12 +2123,13 @@ function openReport(params: OpenReportActionParams) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
+                value: {[parentReportActionID]: {...parentReportAction, childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
             });
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childType: ''}},
+                // Nothing from the server repairs another member's self DM, so drop the dead thread to let the next open retry
+                value: {[parentReportActionID]: parentReportAction ? {childReportID: null, childType: ''} : {childType: ''}},
             });
         }
     }
@@ -2474,7 +2479,7 @@ type CreateTransactionThreadReportParams = {
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
     delegateAccountID?: number;
 
-    /** The self DM holding the expense, when it belongs to another member */
+    /** The self DM holding the expense, used instead of the current user's when set */
     selfDMReportID?: string;
 };
 
@@ -2499,23 +2504,25 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     const shouldUseSelfDM = isTrackExpense || isUnreportedTransaction;
     const isOwnedByCurrentUser = iouReportAction?.actorAccountID === currentUserAccountID;
     if (shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID) {
-        Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user');
+        Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user', {
+            transactionID: transaction?.transactionID,
+            reportActionID: iouReportAction?.reportActionID,
+        });
         return;
     }
 
     const selfDMReportID = shouldUseSelfDM ? (params.selfDMReportID ?? findSelfDMReportID()) : undefined;
 
     let optimisticSelfDMReport: Report | undefined;
+    let parentReportAction: ReportAction | undefined;
     let reportToUse = iouReport;
     if (selfDMReportID) {
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
 
-        // Another member's self DM is never in the viewer's Onyx, and the thread only needs its ID as the parent
+        // The viewer doesn't have another member's self DM loaded, and the thread only needs its ID as the parent
         if (!reportToUse && !isOwnedByCurrentUser) {
             reportToUse = {reportID: selfDMReportID};
-            if (iouReportAction?.reportActionID) {
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {[iouReportAction.reportActionID]: iouReportAction});
-            }
+            parentReportAction = iouReportAction ?? undefined;
         }
 
         // selfDMReportID may be set but the report is filtered out.
@@ -2564,6 +2571,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         parentReportID: selfDMReportID,
         shouldAddPendingFields,
         optimisticSelfDMReport,
+        parentReportAction,
         currentUserLogin,
         currentUserAccountID,
         isSelfTourViewed,
