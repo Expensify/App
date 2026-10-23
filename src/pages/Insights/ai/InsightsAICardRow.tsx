@@ -23,6 +23,7 @@ type InsightsAICardRowProps = {
     isLoading: boolean;
 };
 
+/** Shows the AI insights in a sideways-scrolling row, with placeholders while the dashboard loads. */
 function InsightsAICardRow({insights, isLoading}: InsightsAICardRowProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
