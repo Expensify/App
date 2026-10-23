@@ -46,4 +46,3 @@ function openAfterTouchFrame<T>(open: () => T | PromiseLike<T>): Promise<T> {
 }
 
 export {getHoldMenuAmounts, openAfterTouchFrame};
-export type {HoldMenuAmounts};
