@@ -9,6 +9,10 @@ import removeDynamicRouteFromPath from './dynamicRoutesUtils/removeDynamicRouteF
  * Used when reporting a card hands the user a replacement card.
  */
 function getCardDetailsPathForCard(cardDetailsPath: Route, cardID: string): Route {
+    if (!cardID) {
+        return cardDetailsPath;
+    }
+
     // Domains' static `settings/card/:cardID` ends the same way as the dynamic card suffix, so it is rebuilt the same way.
     const basePath = removeDynamicRouteFromPath(cardDetailsPath, DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.path);
     if (!basePath) {

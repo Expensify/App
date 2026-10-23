@@ -16,4 +16,15 @@ describe('getCardDetailsPathForCard', () => {
         // Then it keeps the page it was opened from
         expect(path).toBe(expected);
     });
+
+    it('keeps the card page while there is no replacement card yet', () => {
+        // Given the card page under the replace card code page, before any replacement card exists
+        const cardDetailsPath = createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute('111'), ROUTES.HOME);
+
+        // When it is pointed at the still-empty replacement card ID
+        const path = getCardDetailsPathForCard(cardDetailsPath, '');
+
+        // Then it returns the same card page instead of throwing on an empty card suffix
+        expect(path).toBe('home/card/111');
+    });
 });
