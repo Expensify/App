@@ -48,6 +48,7 @@ import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
+import getSelectedTransactionOwnerAccountID from '@libs/getSelectedTransactionOwnerAccountID';
 import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -2587,15 +2588,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (!transactionEntry) {
                 continue;
             }
-            // Unreported expenses have no report to read the owner from, and imported card expenses also have no money
-            // request action in the snapshot. The cardholder owns them, so read the owner from the card when we have it.
-            const isUnreported = !transactionEntry.reportID || transactionEntry.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            const cardID = isUnreported ? (transactionEntry.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])?.cardID : undefined;
-            const cardholderAccountID = cardID ? (cardList?.[cardID]?.accountID ?? nonPersonalAndWorkspaceCards?.[cardID]?.accountID) : undefined;
-            const ownerAccountID =
-                transactionEntry.ownerAccountID ??
-                cardholderAccountID ??
-                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
+            const ownerAccountID = getSelectedTransactionOwnerAccountID(id, transactionEntry, {cardList, nonPersonalAndWorkspaceCards, allReports, allTransactions});
             if (typeof ownerAccountID === 'number') {
                 moveOwnerAccountIDs.add(ownerAccountID);
             } else {
