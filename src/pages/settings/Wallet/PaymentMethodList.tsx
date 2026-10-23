@@ -119,7 +119,7 @@ type PaymentMethodListProps = {
     /** What to do when a menu item is pressed */
     onPress: PaymentMethodPressHandler | CardPressHandler;
 
-    /** The policy invoice's transfer bank accountID */
+    /** The policy invoice's default bank accountID. When it's passed, the Default badge follows it instead of the Wallet default, and 0 means no account gets the badge. */
     invoiceTransferBankAccountID?: number;
 
     /** Whether the bank accounts should be displayed in private and business sections */
@@ -689,7 +689,7 @@ function PaymentMethodList({
                 item={item}
                 shouldShowDefaultBadge={shouldShowDefaultBadge(
                     filteredPaymentMethodsWithoutStrings,
-                    invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
+                    invoiceTransferBankAccountID !== undefined ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
                     shouldHideDefaultBadge,
                 )}
                 listItemStyle={listItemStyle}
