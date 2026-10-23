@@ -78,7 +78,6 @@ import {getIOURequestPolicyID, setMoneyRequestParticipantsFromReport} from '@use
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 
 import CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -90,7 +89,7 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
-import type {IOURequestStepConfirmationProps, StepConfirmationParams} from './types';
+import type IOURequestStepConfirmationProps from './types';
 
 import useConfirmationTransactionPager from './useConfirmationTransactionPager';
 import useParticipantPickerState from './useParticipantPickerState';
@@ -108,7 +107,8 @@ function IOURequestStepConfirmationContent({
     const {convertToDisplayString} = useCurrencyListActions();
     const params = route.params;
     const {iouType, reportID, transactionID: initialTransactionID, action, backToReport, backTo} = params;
-    const participantsAutoAssignedFromRoute = route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION ? (params as StepConfirmationParams).participantsAutoAssigned : undefined;
+    const participantsAutoAssignedFromRoute =
+        route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION && 'participantsAutoAssigned' in route.params ? route.params.participantsAutoAssigned : undefined;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -618,11 +618,15 @@ function IOURequestStepConfirmationContent({
      */
     const setReceiptOnDrop = (files: FileObject[]) => {
         const file = files.at(0);
+        const receiptFile = file;
         if (!file) {
             return;
         }
-        const source = URL.createObjectURL(file as Blob);
-        setMoneyRequestReceipt(currentTransactionID, source, file.name ?? '', true, file.type);
+        if (!(file instanceof Blob)) {
+            return;
+        }
+        const source = URL.createObjectURL(file);
+        setMoneyRequestReceipt(currentTransactionID, source, receiptFile?.name ?? '', true, file.type);
     };
 
     const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptOnDrop);
@@ -770,46 +774,50 @@ function IOURequestStepConfirmationContent({
                             isFromFloatingActionButtonOnTransaction={!!transaction?.isFromFloatingActionButton}
                             revealPreMountDestination={revealPreMountDestination}
                         >
-                            {({onConfirm, isConfirming}) => (
-                                <MoneyRequestConfirmationList
-                                    transaction={transaction}
-                                    selectedParticipants={participants}
-                                    isParticipantPickerVisible={isParticipantPickerVisible}
-                                    onOpenParticipantPicker={openParticipantPicker}
-                                    onToggleBillable={setBillable}
-                                    onConfirm={onConfirm}
-                                    onSendMoney={handleSendMoney}
-                                    showRemoveExpenseConfirmModal={() => {
-                                        confirmRemoveCurrentTransaction();
-                                    }}
-                                    receiptOptions={{
-                                        receiptPath,
-                                        receiptFilename,
-                                        shouldDisplayReceipt:
-                                            !isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest,
-                                        isLoadingReceipt: isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs),
-                                        isReceiptEditable: true,
-                                    }}
-                                    iouType={iouType as Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>}
-                                    reportID={reportID}
-                                    isPolicyExpenseChat={isPolicyExpenseChat}
-                                    policyID={policyID}
-                                    isOdometerDistanceRequest={isOdometerDistanceRequest}
-                                    receiptStitchError={stitchError}
-                                    isPerDiemRequest={isPerDiemRequest}
-                                    shouldShowSmartScanFields={shouldShowSmartScanFields}
-                                    canEnterScanFieldsManually={canEnterScanFieldsManually}
-                                    partiallyManuallyFilledScanID={partiallyManuallyFilledScanID}
-                                    onSwitchToTransaction={setCurrentTransactionID}
-                                    action={action}
-                                    isConfirmed={isConfirmed}
-                                    isConfirming={isConfirming}
-                                    onToggleReimbursable={setReimbursable}
-                                    expensesNumber={transactions.length}
-                                    isTimeRequest={isTimeRequest}
-                                    shouldHideToSection={shouldHideToSection}
-                                />
-                            )}
+                            {({onConfirm, isConfirming}) =>
+                                // Both public exports exclude legacy types before this canonical list mounts.
+                                iouType !== CONST.IOU.TYPE.REQUEST &&
+                                iouType !== CONST.IOU.TYPE.SEND && (
+                                    <MoneyRequestConfirmationList
+                                        transaction={transaction}
+                                        selectedParticipants={participants}
+                                        isParticipantPickerVisible={isParticipantPickerVisible}
+                                        onOpenParticipantPicker={openParticipantPicker}
+                                        onToggleBillable={setBillable}
+                                        onConfirm={onConfirm}
+                                        onSendMoney={handleSendMoney}
+                                        showRemoveExpenseConfirmModal={() => {
+                                            confirmRemoveCurrentTransaction();
+                                        }}
+                                        receiptOptions={{
+                                            receiptPath,
+                                            receiptFilename,
+                                            shouldDisplayReceipt:
+                                                !isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest,
+                                            isLoadingReceipt: isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs),
+                                            isReceiptEditable: true,
+                                        }}
+                                        iouType={iouType}
+                                        reportID={reportID}
+                                        isPolicyExpenseChat={isPolicyExpenseChat}
+                                        policyID={policyID}
+                                        isOdometerDistanceRequest={isOdometerDistanceRequest}
+                                        receiptStitchError={stitchError}
+                                        isPerDiemRequest={isPerDiemRequest}
+                                        shouldShowSmartScanFields={shouldShowSmartScanFields}
+                                        canEnterScanFieldsManually={canEnterScanFieldsManually}
+                                        partiallyManuallyFilledScanID={partiallyManuallyFilledScanID}
+                                        onSwitchToTransaction={setCurrentTransactionID}
+                                        action={action}
+                                        isConfirmed={isConfirmed}
+                                        isConfirming={isConfirming}
+                                        onToggleReimbursable={setReimbursable}
+                                        expensesNumber={transactions.length}
+                                        isTimeRequest={isTimeRequest}
+                                        shouldHideToSection={shouldHideToSection}
+                                    />
+                                )
+                            }
                         </SubmitExpenseOrchestrator>
                         <ParticipantPicker
                             participants={participants}
