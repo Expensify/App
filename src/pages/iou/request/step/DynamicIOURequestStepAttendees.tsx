@@ -10,6 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 
 import {setMoneyRequestAttendees} from '@libs/actions/IOU/MoneyRequest';
@@ -56,6 +57,7 @@ function DynamicIOURequestStepAttendees({
     const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
     const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, reportOwnerAsAttendee));
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const parentReportTransactions = useReportTransactions(parentReport?.reportID);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -91,6 +93,7 @@ function DynamicIOURequestStepAttendees({
                     transactionID,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportTransactions: parentReportTransactions,
                     iouReportOwnerLogin,
                     attendees,
                     policy,
@@ -122,6 +125,7 @@ function DynamicIOURequestStepAttendees({
         transactionID,
         report,
         parentReport,
+        parentReportTransactions,
         iouReportOwnerLogin,
         policy,
         policyTags,

@@ -123,6 +123,9 @@ type GetIouParamsInput = {
     transactionID: string;
     transaction: OnyxEntry<Transaction>;
     parentReport: OnyxEntry<Report>;
+
+    /** All transactions on parentReport, used to recompute the report's violations after the edit. */
+    parentReportTransactions: Transaction[];
     parentReportAction: OnyxEntry<ReportAction>;
     transactionThreadReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
@@ -180,6 +183,7 @@ function getIouParamsForTransaction({
     transactionID,
     transaction,
     parentReport,
+    parentReportTransactions,
     parentReportAction,
     transactionThreadReport,
     policy,
@@ -232,6 +236,7 @@ function getIouParamsForTransaction({
         transactionID,
         transactionThreadReport: resolvedTransactionThreadReport,
         parentReport,
+        iouReportTransactions: parentReportTransactions,
         iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, personalDetailsList),
         policy,
         policyForTrackExpense,

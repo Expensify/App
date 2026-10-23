@@ -28,6 +28,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useSelfDMReport from '@hooks/useSelfDMReport';
@@ -134,6 +135,7 @@ function IOURequestStepDistanceOdometer({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const parentReportTransactions = useReportTransactions(parentReport?.reportID);
     const [iouReportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(parentReport?.ownerAccountID));
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const policy = usePolicy(report?.policyID);
@@ -444,6 +446,7 @@ function IOURequestStepDistanceOdometer({
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportTransactions: parentReportTransactions,
                     iouReportOwnerLogin,
                     distance: calculatedDistance,
                     odometerStart: start,

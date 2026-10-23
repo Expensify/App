@@ -26,6 +26,7 @@ import usePreMountDestination from '@hooks/usePreMountDestination';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useWaypointItems from '@hooks/useWaypointItems';
@@ -108,6 +109,7 @@ function DynamicIOURequestStepDistance({
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const parentReportTransactions = useReportTransactions(parentReport?.reportID);
     const iouReportOwnerLoginSelector = useMemo(() => personalDetailsLoginSelector(parentReport?.ownerAccountID), [parentReport?.ownerAccountID]);
     const [iouReportOwnerLogin] = useAllPersonalDetails(iouReportOwnerLoginSelector);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
@@ -595,6 +597,7 @@ function DynamicIOURequestStepDistance({
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportTransactions: parentReportTransactions,
                     iouReportOwnerLogin,
                     waypoints,
                     recentWaypoints,
@@ -654,6 +657,7 @@ function DynamicIOURequestStepDistance({
         currentTransaction,
         policy,
         parentReport,
+        parentReportTransactions,
         iouReportOwnerLogin,
         recentWaypoints,
         policyTags,
@@ -743,6 +747,7 @@ function DynamicIOURequestStepDistance({
             transaction,
             transactionThreadReport: report,
             parentReport,
+            iouReportTransactions: parentReportTransactions,
             iouReportOwnerLogin,
             waypoints,
             ...(isRouteSelectionOnlyChange ? {} : {distance: distanceAsFloat}),
@@ -790,6 +795,7 @@ function DynamicIOURequestStepDistance({
         waypoints,
         report,
         parentReport,
+        parentReportTransactions,
         iouReportOwnerLogin,
         policy,
         policyTags,

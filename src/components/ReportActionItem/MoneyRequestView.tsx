@@ -38,6 +38,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
@@ -231,6 +232,7 @@ function MoneyRequestView({
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
     const [parentReportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     const parentReport = parentReportFromOnyx ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+    const parentReportTransactions = useReportTransactions(parentReport?.reportID);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
@@ -734,6 +736,7 @@ function MoneyRequestView({
             transaction,
             transactionThreadReport,
             parentReport,
+            iouReportTransactions: parentReportTransactions,
             iouReportOwnerLogin,
             value: newBillable,
             policy,
@@ -763,6 +766,7 @@ function MoneyRequestView({
             transaction,
             transactionThreadReport,
             parentReport,
+            iouReportTransactions: parentReportTransactions,
             iouReportOwnerLogin,
             value: newReimbursable,
             policy,
@@ -915,6 +919,7 @@ function MoneyRequestView({
                 transaction,
                 transactionThreadReport,
                 parentReport,
+                iouReportTransactions: parentReportTransactions,
                 iouReportOwnerLogin,
                 taxCode: '',
                 taxValue: '',
@@ -957,6 +962,7 @@ function MoneyRequestView({
                 transaction,
                 transactionThreadReport,
                 parentReport,
+                iouReportTransactions: parentReportTransactions,
                 iouReportOwnerLogin,
                 category: '',
                 policy,
@@ -1000,6 +1006,7 @@ function MoneyRequestView({
                 transaction,
                 transactionThreadReport,
                 parentReport,
+                iouReportTransactions: parentReportTransactions,
                 iouReportOwnerLogin,
                 tag: updatedTag,
                 tagListIndex,

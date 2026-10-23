@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 
 import {setMoneyRequestCurrency, setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
@@ -76,6 +77,7 @@ function DynamicIOURequestStepTaxAmountPage({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const parentReportTransactions = useReportTransactions(parentReport?.reportID);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -140,6 +142,7 @@ function DynamicIOURequestStepTaxAmountPage({
                 transactionID,
                 transactionThreadReport: report,
                 parentReport,
+                iouReportTransactions: parentReportTransactions,
                 iouReportOwnerLogin,
                 taxAmount: taxAmountInSmallestCurrencyUnits,
                 policy,
