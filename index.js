@@ -26,3 +26,10 @@ if (!process.env.EXPO_OS && __DEV__) {
 
 AppRegistry.registerComponent(Config.APP_NAME, () => App);
 additionalAppSetup();
+
+if (__DEV__) {
+    // Appduct registers the tools an agent or test runner calls instead of tapping. Dev-only:
+    // @appduct/web resolves to an inert entry outside the development export condition, and this
+    // guarded require keeps the module out of a production bundle graph.
+    require('./src/appduct').registerAppductTools();
+}
