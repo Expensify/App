@@ -11690,7 +11690,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Se desideri evitare attività e addebiti futuri, devi <a href="${workspacesListRoute}">eliminare il tuo spazio di lavoro (o i tuoi spazi di lavoro)</a>. Tieni presente che, quando elimini il tuo spazio di lavoro (o i tuoi spazi di lavoro), ti verrà addebitata qualsiasi attività in sospeso sostenuta durante il mese di calendario in corso.`,
                 preventFutureActivityWithArchive: (workspacesListRoute: string) =>
-                    `Se desideri evitare attività e addebiti futuri, devi <a href="${workspacesListRoute}">archiviare tutti i tuoi spazi di lavoro a pagamento</a>. Tieni presente che, quando archivi il tuo spazio di lavoro (o i tuoi spazi di lavoro), ti verrà addebitata qualsiasi attività in sospeso sostenuta durante il mese di calendario in corso.`,
+                    `Se vuoi evitare attività e addebiti futuri, devi <a href="${workspacesListRoute}">archiviare tutti i tuoi workspace a pagamento</a>. Tieni presente che, quando archivi i tuoi workspace, ti verrà addebitata qualsiasi attività in sospeso generata durante l’attuale mese di calendario.`,
             },
             requestSubmitted: {
                 title: 'Richiesta inviata',
