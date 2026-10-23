@@ -9,6 +9,10 @@ import {fileURLToPath} from 'url';
 
 import type Environment from './types.ts';
 
+// The Worker is a separately installed package that the App does not depend on, so it can only be reached by path.
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+// eslint-disable-next-line import/no-relative-packages
+import NONCE_PLACEHOLDER from '../../web/cloudflare-worker/src/noncePlaceholder.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import getCommonConfiguration from './rsbuild.common.ts';
 
@@ -63,7 +67,7 @@ export default defineConfig(async ({command}) => {
             assetPrefix: '/',
             lazyCompilation: false,
         },
-        security: isWorkerEnabled ? {nonce: 'nonce-random-value'} : common.security,
+        security: isWorkerEnabled ? {nonce: NONCE_PLACEHOLDER} : common.security,
         source: {
             ...common.source,
             define: {

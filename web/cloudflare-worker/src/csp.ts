@@ -1,5 +1,4 @@
-/** Placeholder in the CSP and in `web/index.html` script tags that the Worker replaces with a per-request nonce. */
-const NONCE_PLACEHOLDER = 'nonce-random-value';
+import NONCE_PLACEHOLDER from './noncePlaceholder';
 
 type CSPOptions = {
     fontSrcHosts?: string[];
