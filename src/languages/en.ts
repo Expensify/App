@@ -6287,6 +6287,7 @@ const translations = {
             exportDescription: 'Configure how Expensify data exports to Rillet.',
             exportReimbursable: {
                 label: 'Export reimbursable expenses as',
+                description: "We'll create an itemized vendor bill or reimbursement for each Expensify report. If the period is closed, we'll post to the next open period.",
                 values: {
                     VENDOR_BILL: {
                         label: 'Vendor bills',
