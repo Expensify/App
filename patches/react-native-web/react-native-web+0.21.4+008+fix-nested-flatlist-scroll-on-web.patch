@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
-index df40877..1b8a228 100644
+index d2c56d4..edbaaad 100644
 --- a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
 +++ b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
-@@ -702,30 +702,41 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -715,30 +715,41 @@ class VirtualizedList extends StateSafePureComponent {
  
      // REACT-NATIVE-WEB patch to preserve during future RN merges: Support inverted wheel scroller.
      // For issue https://github.com/necolas/react-native-web/issues/995
