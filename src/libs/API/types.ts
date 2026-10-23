@@ -655,9 +655,9 @@ const WRITE_COMMANDS = {
     UPDATE_ZOHO_BOOKS_BILL_PAYMENT_ACCOUNT: 'UpdateZohoBooksBillPaymentAccount',
     UPDATE_ZOHO_BOOKS_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateZohoBooksSyncExpensifyCardSettlements',
     UPDATE_ZOHO_BOOKS_SETTLEMENTS_ACCOUNT: 'UpdateZohoBooksSettlementsAccount',
-    UPDATE_ZOHO_BOOKS_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateZohoBooksSyncTravelInvoicingSettlements',
-    UPDATE_ZOHO_BOOKS_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateZohoBooksTravelInvoicingSettlementsAccount',
-    UPDATE_ZOHO_BOOKS_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateZohoBooksTravelInvoicingPayableAccount',
+    UPDATE_ZOHO_BOOKS_SYNC_TRAVEL_BILLING_SETTLEMENTS: 'UpdateZohoBooksSyncTravelBillingSettlements',
+    UPDATE_ZOHO_BOOKS_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT: 'UpdateZohoBooksTravelBillingSettlementsAccount',
+    UPDATE_ZOHO_BOOKS_TRAVEL_BILLING_PAYABLE_ACCOUNT: 'UpdateZohoBooksTravelBillingPayableAccount',
 
     SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
@@ -1428,9 +1428,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_BILL_PAYMENT_ACCOUNT]: Parameters.UpdateZohoBooksBillPaymentAccountParams;
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateZohoBooksSyncExpensifyCardSettlementsParams;
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SETTLEMENTS_ACCOUNT]: Parameters.UpdateZohoBooksSettlementsAccountParams;
-    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateZohoBooksSyncTravelInvoicingSettlementsParams;
-    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateZohoBooksTravelInvoicingSettlementsAccountParams;
-    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateZohoBooksTravelInvoicingPayableAccountParams;
+    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SYNC_TRAVEL_BILLING_SETTLEMENTS]: Parameters.UpdateZohoBooksSyncTravelBillingSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateZohoBooksTravelBillingSettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_TRAVEL_BILLING_PAYABLE_ACCOUNT]: Parameters.UpdateZohoBooksTravelBillingPayableAccountParams;
 
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     [WRITE_COMMANDS.DOWNGRADE_TO_TEAM]: Parameters.DowngradeToTeamParams;
