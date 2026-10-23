@@ -16,7 +16,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
-import type PolicyData from '@hooks/usePolicyData/types';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -50,17 +49,18 @@ type VendorBulkActionsProps = {
     policyID: string;
     selectedVendorKeys: string[];
     policyVendors?: OnyxEntry<PolicyVendors>;
-    policyData: PolicyData;
-    isVendorMatchingBetaEnabled: boolean;
     defaultVendorID?: string;
     onClearSelection: () => void;
 };
 
-function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, policyData, isVendorMatchingBetaEnabled, defaultVendorID, onClearSelection}: VendorBulkActionsProps) {
+function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection}: VendorBulkActionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
+    const policyData = usePolicyData(policyID);
+    const {isBetaEnabled} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
 
     const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
     const disabledVendors = selectedVendorKeys.filter((id) => !policyVendors?.[id]?.enabled);
@@ -261,8 +261,6 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                             policyID={policyID}
                             selectedVendorKeys={selectedVendorKeys}
                             policyVendors={policyVendors}
-                            policyData={policyData}
-                            isVendorMatchingBetaEnabled={isVendorMatchingBetaEnabled}
                             defaultVendorID={defaultVendorID}
                             onClearSelection={clearTableSelection}
                         />
@@ -274,8 +272,6 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                             policyID={policyID}
                             selectedVendorKeys={selectedVendorKeys}
                             policyVendors={policyVendors}
-                            policyData={policyData}
-                            isVendorMatchingBetaEnabled={isVendorMatchingBetaEnabled}
                             defaultVendorID={defaultVendorID}
                             onClearSelection={clearTableSelection}
                         />
