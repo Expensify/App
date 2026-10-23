@@ -160,7 +160,7 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef} = useActionListContext();
+    const {scrollOffsetRef, getListRef} = useActionListContext();
     const {windowHeight} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
@@ -238,6 +238,7 @@ function useReportActionsScroll({
             scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
         },
         actionBadgeTargetIndex,
+        recomputeViewableItems: () => getListRef()?.current?.recomputeViewableItems(),
         shouldBeAlignedToTop,
     });
 
