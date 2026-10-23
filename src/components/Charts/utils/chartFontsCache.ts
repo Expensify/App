@@ -45,6 +45,7 @@ function resolveChartFontAsset(source: DataModule | string): string {
         return resolved.uri;
     }
 
+    // Malformed interop (e.g. a nested default) is typed as MetroAsset but has no `uri`.
     if ('uri' in asset && typeof asset.uri === 'string') {
         return asset.uri;
     }

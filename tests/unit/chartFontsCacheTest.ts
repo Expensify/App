@@ -341,29 +341,23 @@ describe('chartFontsCache', () => {
         expect(mockLogHmmm).toHaveBeenCalledWith('Chart font asset failed to load', {assetKey: 'EXP_NEUE_BOLD', error: 'Unsupported chart font asset source'});
     });
 
-    it.each([
-        {source: 42, resolution: {uri: '', width: 0, height: 0, scale: 1}},
-        {source: {__esModule: true, default: 42}, resolution: {uri: '', width: 0, height: 0, scale: 1}},
-    ] satisfies Array<{source: DataModule; resolution: ReturnType<typeof Image.resolveAssetSource>}>)(
-        'isolates unresolved native asset $source with source $resolution',
-        async ({source, resolution}) => {
-            // Given a bare or wrapped registry ID has no usable native URI.
-            setupSuccessfulFontLoading();
-            MOCK_CHART_FONT_ASSETS.EXP_NEUE_BOLD = source;
-            mockResolveAssetSource.mockReturnValue(resolution);
+    it.each([{source: 42}, {source: {__esModule: true, default: 42}}] satisfies Array<{source: DataModule}>)('isolates unresolved native asset $source', async ({source}) => {
+        // Given a bare or wrapped registry ID has no usable native URI.
+        setupSuccessfulFontLoading();
+        MOCK_CHART_FONT_ASSETS.EXP_NEUE_BOLD = source;
+        mockResolveAssetSource.mockReturnValue({uri: '', width: 0, height: 0, scale: 1});
 
-            // When native resolution fails before Skia can read the affected primary asset.
-            const fonts = await loadChartFontsOnce();
+        // When native resolution fails before Skia can read the affected primary asset.
+        const fonts = await loadChartFontsOnce();
 
-            // Then the failed key is logged and the other primary and supplemental loads complete.
-            expect(mockResolveAssetSource).toHaveBeenCalledTimes(1);
-            expect(mockResolveAssetSource).toHaveBeenCalledWith(42);
-            expect(mockFromURI).toHaveBeenCalledTimes(TOTAL_FONT_COUNT - 1);
-            expect(fonts.typefaces.EXP_NEUE_BOLD).toBeNull();
-            expect(fonts.typefaces.EXP_NEUE).not.toBeNull();
-            expect(mockLogHmmm).toHaveBeenCalledWith('Chart font asset failed to load', {assetKey: 'EXP_NEUE_BOLD', error: 'Chart font asset could not be resolved'});
-        },
-    );
+        // Then the failed key is logged and the other primary and supplemental loads complete.
+        expect(mockResolveAssetSource).toHaveBeenCalledTimes(1);
+        expect(mockResolveAssetSource).toHaveBeenCalledWith(42);
+        expect(mockFromURI).toHaveBeenCalledTimes(TOTAL_FONT_COUNT - 1);
+        expect(fonts.typefaces.EXP_NEUE_BOLD).toBeNull();
+        expect(fonts.typefaces.EXP_NEUE).not.toBeNull();
+        expect(mockLogHmmm).toHaveBeenCalledWith('Chart font asset failed to load', {assetKey: 'EXP_NEUE_BOLD', error: 'Chart font asset could not be resolved'});
+    });
 
     it('retries emoji-only success and caches a later usable primary result', async () => {
         // Given only emoji succeeds in the first request, so no usable font manager exists.
