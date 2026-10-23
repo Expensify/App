@@ -4226,6 +4226,8 @@ const CONST = {
 
     RILLET_ACCOUNT_SUBTYPE: {
         CREDIT_CARD: 'Credit Card',
+        ACCOUNTS_PAYABLE: 'Accounts Payable',
+        OTHER_LONG_TERM_LIABILITY: 'Other Long Term Liability',
     },
 
     DUALENTRY_CONFIG: {
