@@ -149,7 +149,7 @@ export default function () {
     // Perform any other platform-specific setup
     platformSetup();
 
-    // CI pre-start PoC: register appduct tools (web dev builds only; inert elsewhere).
+    // CI pre-start: register the app-state tools (dev builds only; inert elsewhere).
     registerAppductTools();
 
     addUtilsToWindow();

@@ -35,7 +35,9 @@ module.exports = {
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: [
-        '<rootDir>/node_modules/(?!.*(react-native|expo|react-navigation|uuid|@shopify\/flash-list).*/)',
+        // @appduct ships ESM only (every entry, including the inert ones), so the
+        // transformer has to reach it like the react-navigation packages above.
+        '<rootDir>/node_modules/(?!.*(react-native|expo|react-navigation|uuid|@appduct|@shopify\/flash-list).*/)',
         // Prevent Babel from transforming worklets in this file so they are treated as normal functions, otherwise FormatSelectionUtilsTest won't run.
         '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js',
     ],
