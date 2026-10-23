@@ -36,6 +36,10 @@ function getReportChatType(report: OnyxEntry<Report>) {
     return report?.chatType;
 }
 
+function getReportType(report: OnyxEntry<Report>) {
+    return report?.type;
+}
+
 function getReportPolicyID(report: OnyxEntry<Report>) {
     return report?.policyID;
 }
@@ -352,7 +356,6 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         // Coerce placeholder `0` to `undefined`. The backend ships `managerID: 0` on chat reports
         // without a manager, and a later push removes the key entirely; treating both as
         // `undefined` keeps the projection stable through that reconciliation.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         managerID: report.managerID || undefined,
         supportTicketCalendarLink: report.supportTicketCalendarLink,
         ownerAccountID: report.ownerAccountID,
@@ -430,6 +433,7 @@ const reportsByIDsSelector =
 export {
     getArchiveReason,
     getReportChatType,
+    getReportType,
     groupChatAvatarReportSelector,
     getReportOwnerAccountID,
     getReportParentReportID,

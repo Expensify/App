@@ -4,6 +4,7 @@ import Composer from '@components/Composer';
 import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -289,6 +290,7 @@ function ComposerWithSuggestions({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const reportIDToName = useReportIDToNameMap();
+    const accountIDToName = useAccountIDToNameMap();
 
     const commentRef = useRef(initialText);
 
@@ -616,7 +618,7 @@ function ComposerWithSuggestions({
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? '', {reportIDToName}), isOffline);
+                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? '', {reportIDToName, accountIDToName}), isOffline);
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -667,6 +669,7 @@ function ComposerWithSuggestions({
             reportID,
             reportActions,
             reportIDToName,
+            accountIDToName,
             updateComment,
             setCurrentEditMessageSelection,
             isOffline,
@@ -953,18 +956,15 @@ function ComposerWithSuggestions({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useImperativeHandle(
-        ref,
-        (): ComposerWithSuggestionsRef => ({
-            focus,
-            replaceSelectionWithText,
-            getCurrentText,
-            clearWorklet,
-            resetHeight,
-            blur: () => composerRef.current?.blur(),
-            isFocused: () => composerRef.current?.isFocused() ?? false,
-        }),
-    );
+    useImperativeHandle(ref, (): ComposerWithSuggestionsRef => ({
+        focus,
+        replaceSelectionWithText,
+        getCurrentText,
+        clearWorklet,
+        resetHeight,
+        blur: () => composerRef.current?.blur(),
+        isFocused: () => composerRef.current?.isFocused() ?? false,
+    }));
 
     const onClear = useCallback(
         (textOnClear: string) => {

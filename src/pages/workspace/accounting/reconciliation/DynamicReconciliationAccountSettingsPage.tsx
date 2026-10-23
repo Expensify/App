@@ -215,8 +215,8 @@ function TravelBillingDynamicReconciliation({policyID, workspaceAccountID, domai
             connectionName={connectionName}
             connectionBankAccounts={connectionBankAccounts}
             goBack={goBack}
-            description={translate('workspace.accounting.chooseReconciliationAccount.chooseTravelInvoicingBankAccount')}
-            html={translate('workspace.accounting.chooseReconciliationAccount.travelInvoicingSettlementAccountReconciliation', settlementAccountEnding)}
+            description={translate('workspace.accounting.chooseReconciliationAccount.chooseTravelBillingBankAccount')}
+            html={translate('workspace.accounting.chooseReconciliationAccount.travelBillingSettlementAccountReconciliation', settlementAccountEnding)}
             selectedBankAccountID={travelBillingReconciliationBankAccountID}
             onSelectBankAccount={selectBankAccount}
         />

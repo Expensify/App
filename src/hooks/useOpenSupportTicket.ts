@@ -21,7 +21,7 @@ function useOpenSupportTicket() {
                     return;
                 }
 
-                Growl.error(translate('supportTicket.noSupportRepAvailable'));
+                Growl.error({bodyText: translate('supportTicket.noSupportRepAvailable')});
                 Navigation.goBack(undefined, {afterTransition: () => openConciergeAnywhere({forceConcierge: true})});
             })
             .catch(() => undefined);

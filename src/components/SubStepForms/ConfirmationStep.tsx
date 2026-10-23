@@ -7,6 +7,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import type {SubPageProps} from '@hooks/useSubPage/types';
@@ -17,6 +18,7 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 
 import CONST from '@src/CONST';
 
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type SummaryItem = {
@@ -46,6 +48,9 @@ type SummaryItem = {
 
     /** The test ID of the row */
     testID?: string;
+
+    /** Read by screen readers instead of the description and title */
+    accessibilityLabel?: string;
 };
 
 /** A row for one entry of a repeated group, such as an owner, led by an avatar */
@@ -69,8 +74,20 @@ type SummaryAvatarRow = {
     onPress: () => void;
 };
 
-/** One row of a group: an answer, or an entry of a repeated group */
-type SummaryGroupRow = SummaryItem | SummaryAvatarRow;
+/** The name of a repeated group, such as "Owners", shown above its entries since their rows don't carry it */
+type SummaryLabelRow = {
+    /** Tells the row apart from an answer row */
+    kind: 'label';
+
+    /** Unique key of the row */
+    id: string;
+
+    /** The group's name */
+    title: string;
+};
+
+/** One row of a group: an answer, an entry of a repeated group, or the name of a repeated group */
+type SummaryGroupRow = SummaryItem | SummaryAvatarRow | SummaryLabelRow;
 
 /** Answers under one heading. Used instead of `summaryItems` when the confirmation is split by section. */
 type SummaryGroup = {
@@ -108,6 +125,12 @@ type ConfirmationStepProps = SubPageProps &
         error?: string;
 
         shouldApplySafeAreaPaddingBottom?: boolean;
+
+        /** Whether screen readers treat the page title as a heading */
+        shouldMarkTitleAsHeading?: boolean;
+
+        /** Whether screen readers hear that Confirm is in progress, and hear the error after each Confirm press */
+        shouldAnnounceSubmitState?: boolean;
     };
 
 function ConfirmationStep({
@@ -121,14 +144,43 @@ function ConfirmationStep({
     error,
     onNext,
     shouldApplySafeAreaPaddingBottom = true,
+    shouldMarkTitleAsHeading = false,
+    shouldAnnounceSubmitState = false,
     forwardedFSClass,
 }: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
+    const [wasLoading, setWasLoading] = useState(!!isLoading);
+    const [finishedSubmitCount, setFinishedSubmitCount] = useState(0);
+    if (shouldAnnounceSubmitState && wasLoading !== !!isLoading) {
+        setWasLoading(!!isLoading);
+        if (!isLoading) {
+            setFinishedSubmitCount((count) => count + 1);
+        }
+    }
+
+    // VoiceOver ignores the error's live region, and a repeated error leaves the page unchanged, so each submission that ends in an error announces it
+    useAccessibilityAnnouncement(error, shouldAnnounceSubmitState && !!error, {
+        shouldAnnounceOnNative: true,
+        shouldAnnounceOnWeb: finishedSubmitCount > 1,
+        announcementKey: finishedSubmitCount,
+    });
 
     const renderRow = (row: SummaryGroupRow) => {
+        if ('kind' in row && row.kind === 'label') {
+            return (
+                <Text
+                    key={row.id}
+                    style={[styles.textLabelSupporting, styles.ph5, styles.mt3, styles.mb1]}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                    aria-level={4}
+                >
+                    {row.title}
+                </Text>
+            );
+        }
         if ('kind' in row) {
             // MenuItemAvatarNavigation takes no FullStory class, so the mask goes on a View around it
             return (
@@ -147,7 +199,7 @@ function ConfirmationStep({
                 </View>
             );
         }
-        const {id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID} = row;
+        const {id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID, accessibilityLabel} = row;
         return (
             <MenuItemWithTopDescription
                 key={id}
@@ -159,6 +211,7 @@ function ConfirmationStep({
                 interactive={interactive}
                 brickRoadIndicator={brickRoadIndicator}
                 errorText={errorText}
+                accessibilityLabel={accessibilityLabel}
                 forwardedFSClass={forwardedFSClass}
             />
         );
@@ -169,7 +222,13 @@ function ConfirmationStep({
             style={styles.flex1}
             contentContainerStyle={[styles.flexGrow1, shouldApplySafeAreaPaddingBottom && {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
+            <Text
+                style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}
+                accessibilityRole={shouldMarkTitleAsHeading ? CONST.ROLE.HEADER : undefined}
+                aria-level={shouldMarkTitleAsHeading ? 2 : undefined}
+            >
+                {pageTitle}
+            </Text>
             {!!pageSubtitle && <Text style={[styles.textSupporting, styles.ph5, styles.mb5]}>{pageSubtitle}</Text>}
             {summaryItems.map(renderRow)}
 
@@ -180,6 +239,7 @@ function ConfirmationStep({
                         <Text
                             style={[styles.textNormalThemeText, styles.textLineHeightNormal, styles.textStrong, styles.ph5, styles.mt4, styles.mb1]}
                             accessibilityRole={CONST.ROLE.HEADER}
+                            aria-level={3}
                         >
                             {group.name}
                         </Text>
@@ -206,6 +266,7 @@ function ConfirmationStep({
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={isLoading}
+                    accessibilityState={shouldAnnounceSubmitState ? {busy: !!isLoading} : undefined}
                     style={[styles.w100]}
                     onPress={onNext}
                 >
