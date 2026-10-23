@@ -316,10 +316,14 @@ describe('ImportedMerchantRulesPage', () => {
         });
 
         it('excludes disabled vendors from the lookup', () => {
+            const policyWithDisabledVendor = buildQBOPolicyWithVendors([
+                {id: 'v1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v2', name: 'Globex', currency: 'USD'},
+            ]);
             const policyVendors = {
-                'v-1': {externalID: 'v-1', name: 'Acme Co', enabled: false},
+                v1: {externalID: 'v1', name: 'Acme Co', enabled: false},
             };
-            expect(buildImportedVendorLookup(policy, policyVendors).get('acme co')).toBeUndefined();
+            expect(buildImportedVendorLookup(policyWithDisabledVendor, policyVendors).get('acme co')).toBeUndefined();
         });
     });
 

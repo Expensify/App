@@ -108,26 +108,26 @@ describe('AddVendorPage', () => {
 
         it('excludes disabled vendors from the selection items', () => {
             const policy = buildQBOPolicy([
-                {id: 'v-1', name: 'Acme Co', currency: 'USD'},
-                {id: 'v-2', name: 'Globex', currency: 'USD'},
+                {id: 'v1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v2', name: 'Globex', currency: 'USD'},
             ]);
             const policyVendors = {
-                'v-2': {externalID: 'v-2', name: 'Globex', enabled: false},
+                v2: {externalID: 'v2', name: 'Globex', enabled: false},
             };
-            expect(getVendorSelectionItems(policy, localeCompare, policyVendors)).toEqual([{name: 'Acme Co', value: 'v-1'}]);
+            expect(getVendorSelectionItems(policy, localeCompare, policyVendors)).toEqual([{name: 'Acme Co', value: 'v1'}]);
         });
 
         it('retains the currently-selected vendor even if disabled', () => {
             const policy = buildQBOPolicy([
-                {id: 'v-1', name: 'Acme Co', currency: 'USD'},
-                {id: 'v-2', name: 'Globex', currency: 'USD'},
+                {id: 'v1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v2', name: 'Globex', currency: 'USD'},
             ]);
             const policyVendors = {
-                'v-2': {externalID: 'v-2', name: 'Globex', enabled: false},
+                v2: {externalID: 'v2', name: 'Globex', enabled: false},
             };
-            expect(getVendorSelectionItems(policy, localeCompare, policyVendors, 'v-2')).toEqual([
-                {name: 'Acme Co', value: 'v-1'},
-                {name: 'Globex', value: 'v-2'},
+            expect(getVendorSelectionItems(policy, localeCompare, policyVendors, 'v2')).toEqual([
+                {name: 'Acme Co', value: 'v1'},
+                {name: 'Globex', value: 'v2'},
             ]);
         });
     });
