@@ -154,6 +154,7 @@ describe('EnableTravelContent', () => {
         const policy: Policy = {
             ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
             id: POLICY_ID,
+            role: CONST.POLICY.ROLE.ADMIN,
             outputCurrency: 'GBP',
             travelSettings: {},
             address: undefined,
@@ -165,8 +166,8 @@ describe('EnableTravelContent', () => {
         renderContent(policy, {validated: true, primaryLogin: ADMIN_DOMAIN_A_EMAIL}, {});
         await waitForBatchedUpdatesWithAct();
 
-        // legal name, domain selector, workspace address, tax ID, terms (verify account is a pre-stepper gate, not a numbered step)
-        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(5);
+        // legal name, domain selector, workspace address, tax ID, who can book travel, terms (verify account is a pre-stepper gate, not a numbered step)
+        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(6);
     });
 
     it('freezes the step count across remounts within the same flow session, even after an earlier step is completed', async () => {
