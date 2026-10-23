@@ -1,7 +1,9 @@
-// tsgolint's no-deprecated skips the signature check on self-closing JSX (`<X />`), so a component
-// deprecated only through its signature, like `MenuItem` wrapped in `Object.assign`, goes unreported.
-// jsPlugins get no types, so the options list the components. Delete this rule once tsgolint reports
-// these itself, or the findings will double.
+/**
+ * Flags `<MenuItem />` and other self-closing tags of components that are deprecated through their
+ * call signature. tsgolint's no-deprecated skips the signature check on self-closing JSX, so it misses
+ * these. JS plugins don't get type info, so the components are listed by hand in the rule options in
+ * oxlint.config.mts. Delete this rule once tsgolint catches these itself, or every finding shows up twice.
+ */
 
 import fs from 'node:fs';
 import path from 'node:path';

@@ -1,3 +1,9 @@
+/**
+ * oxlint runs next to ESLint for now (`npm run lint -- --linter=oxlint` and the non-blocking
+ * oxlint.yml workflow), so this file copies config/eslint/eslint.config.mjs rule by rule.
+ * If you change a rule there, change it here too. ESLint rules oxlint can't run natively come from
+ * the JS plugins in config/oxlint/plugins.
+ */
 /* eslint-disable @typescript-eslint/naming-convention -- the rule names in this file are quoted object keys */
 /* eslint-disable import/no-extraneous-dependencies -- oxlint is a devDependency; this file only runs while linting */
 import {defineConfig} from 'oxlint';

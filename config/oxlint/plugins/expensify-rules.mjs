@@ -1,3 +1,8 @@
+/**
+ * Loads every rule from eslint-plugin-expensify and eslint-plugin-local-rules into oxlint, under the
+ * `rulesdir` name ESLint uses. Two rules change: no-inline-useOnyx-selector stays quiet in files React
+ * Compiler memoizes, and prefer-locale-compare-from-context is swapped for a copy that needs no type info.
+ */
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
 import path from 'node:path';

@@ -1,5 +1,9 @@
-// An `eslint-disable-next-line @typescript-eslint/naming-convention` does not suppress
-// `hosted/naming-convention`, so this drops the reports ESLint would have suppressed under its own id.
+/**
+ * oxlint runs some ESLint rules as JS plugins under a new name. For example,
+ * `@typescript-eslint/naming-convention` becomes `hosted/naming-convention`. oxlint doesn't know the
+ * two are the same rule, so an existing `eslint-disable-next-line @typescript-eslint/naming-convention`
+ * comment wouldn't hide its report. The wrappers here read those comments and drop what ESLint would hide.
+ */
 
 const JUSTIFICATION = /\s-{2,}\s/;
 const KINDS = ['eslint-disable-next-line', 'eslint-disable-line', 'eslint-disable', 'eslint-enable'];

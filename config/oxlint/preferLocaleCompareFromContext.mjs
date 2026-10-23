@@ -1,6 +1,9 @@
-// oxlint's JS plugins get no type information, so this drops the `isString(getTypeAtLocation(...))`
-// receiver check of ESLint's rulesdir/prefer-locale-compare-from-context. Only String.prototype has
-// `localeCompare`; an object defining its own is the one divergence.
+/**
+ * oxlint version of rulesdir/prefer-locale-compare-from-context. The ESLint rule uses type info to check
+ * that `localeCompare` is called on a string. oxlint's JS plugins don't get type info, so this copy
+ * skips that check. Only strings have `localeCompare`, so the one difference is an object with its own
+ * `localeCompare`, which this copy also reports.
+ */
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';

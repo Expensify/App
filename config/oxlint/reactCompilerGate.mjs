@@ -1,5 +1,8 @@
-// oxlint has no processors and cannot filter a native Rust rule's diagnostics, so this replicates
-// ESLint's react-compiler-compat processor by wrapping `context.report` in a JS plugin.
+/**
+ * In files React Compiler already memoizes, lint shouldn't tell people to add useCallback or useMemo.
+ * For ESLint, scripts/lint's ReactCompilerFilter drops those reports. oxlint has no processors and
+ * can't filter its native rules, so here the JS plugin rule itself is wrapped and drops them.
+ */
 import path from 'node:path';
 
 import {didBothCompilersMemoizeFile} from '../reactCompiler/checkBoth.mjs';

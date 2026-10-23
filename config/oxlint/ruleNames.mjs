@@ -1,4 +1,8 @@
-// Plain `.mjs`: oxlint's JS plugin runtime cannot load TypeScript.
+/**
+ * oxlint and ESLint name some rules differently. This maps between the two, so oxlint findings show up
+ * under ESLint's rule IDs and hosted-rules.mjs knows which ESLint plugin each hosted rule comes from.
+ * It's plain `.mjs` because oxlint's JS plugins can't load TypeScript.
+ */
 const OXLINT_RULE_RENAMES = {
     'no-object-constructor': 'no-new-object',
     'no-new-native-nonconstructor': 'no-new-symbol',

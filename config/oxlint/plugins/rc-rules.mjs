@@ -1,3 +1,7 @@
+/**
+ * The React Compiler rules from eslint-plugin-react-hooks (react-hooks/refs, react-hooks/purity, ...),
+ * rebuilt for oxlint under the `rc` name. They all share one compile per file, done in reactCompilerRust.mjs.
+ */
 import {withEslintDirectiveIDs} from '../eslintDirectives.mjs';
 import {RULE_BY_CATEGORY, reactCompilerDiagnostics} from '../reactCompilerRust.mjs';
 

@@ -1,3 +1,8 @@
+/**
+ * Runs oxc's Rust port of React Compiler on a file and turns what it finds into the same react-hooks/*
+ * reports eslint-plugin-react-hooks gives. plugins/rc-rules.mjs reports them. We use the Rust port
+ * because the JavaScript compiler in eslint-plugin-react-hooks would take up most of the oxlint run.
+ */
 import path from 'node:path';
 import {transformSync} from 'oxc-transform-react';
 

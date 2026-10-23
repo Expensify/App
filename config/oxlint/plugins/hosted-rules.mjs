@@ -1,3 +1,9 @@
+/**
+ * Runs rules from ESLint plugins (react, import, jsdoc, storybook, react-hooks, typescript-eslint)
+ * inside oxlint, using the plugins' own code. Each one is here because oxlint has no native version or
+ * its native one reports differently. oxlint reserves most of these plugin names for its own ports,
+ * so all of them load under `hosted`.
+ */
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
