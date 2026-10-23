@@ -10,6 +10,7 @@ import InsightsGroupCurrencyControl from '@pages/Insights/controls/InsightsGroup
 import InsightsPageControls from '@pages/Insights/controls/InsightsPageControls';
 import InsightsWorkspaceControl from '@pages/Insights/controls/InsightsWorkspaceControl';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {getInsightsGroupByOptions} from '@pages/Insights/insightsGroupByUtils';
 
 import CONST from '@src/CONST';
@@ -124,7 +125,6 @@ describe('Insights controls', () => {
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
-                shouldShowRunningTotal={false}
                 onChange={onChange}
             />,
         );
@@ -135,8 +135,8 @@ describe('Insights controls', () => {
         fireEvent.press(screen.getByText(APPLY));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the chart is asked to regroup by quarter, leaving running total off
-        expect(onChange).toHaveBeenCalledWith({groupBy: CONST.SEARCH.GROUP_BY.QUARTER, shouldShowRunningTotal: false});
+        // Then the chart is asked to regroup by quarter
+        expect(onChange).toHaveBeenCalledWith({groupBy: CONST.SEARCH.GROUP_BY.QUARTER});
     });
 
     it('resets the grouping to month', async () => {
@@ -146,7 +146,6 @@ describe('Insights controls', () => {
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.QUARTER}
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
-                shouldShowRunningTotal={false}
                 onChange={onChange}
             />,
         );
@@ -157,7 +156,7 @@ describe('Insights controls', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the chart goes back to the default monthly buckets with running total off
-        expect(onChange).toHaveBeenCalledWith({groupBy: CONST.SEARCH.GROUP_BY.MONTH, shouldShowRunningTotal: false});
+        expect(onChange).toHaveBeenCalledWith({groupBy: CONST.SEARCH.GROUP_BY.MONTH});
     });
 
     it('only offers the groupings that fit the date range', async () => {
@@ -167,7 +166,6 @@ describe('Insights controls', () => {
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.WEEK}
                 options={getInsightsGroupByOptions(date)}
-                shouldShowRunningTotal={false}
                 onChange={jest.fn()}
             />,
         );
@@ -189,7 +187,6 @@ describe('Insights controls', () => {
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.DAY}
                 options={getInsightsGroupByOptions(date)}
-                shouldShowRunningTotal={false}
                 onChange={onChange}
             />,
         );
@@ -200,17 +197,16 @@ describe('Insights controls', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then month is saved, so it comes back once the date range fits it
-        expect(onChange).toHaveBeenCalledWith({groupBy: CONST.SEARCH.GROUP_BY.MONTH, shouldShowRunningTotal: false});
+        expect(onChange).toHaveBeenCalledWith({groupBy: CONST.SEARCH.GROUP_BY.MONTH});
     });
 
-    it('turns on running total without losing the time bucket', async () => {
-        // Given the headline chart grouped by month with running total off
+    it('selects running total as the grouping', async () => {
+        // Given the headline chart grouped by month
         const onChange = jest.fn();
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
-                shouldShowRunningTotal={false}
                 onChange={onChange}
             />,
         );
@@ -221,17 +217,16 @@ describe('Insights controls', () => {
         fireEvent.press(screen.getByText(APPLY));
         await waitForBatchedUpdatesWithAct();
 
-        // Then running total is turned on and the time bucket is left untouched, so turning it back off returns to it
-        expect(onChange).toHaveBeenCalledWith({shouldShowRunningTotal: true});
+        // Then running total becomes the grouping, so it rides the saved query like every other grouping
+        expect(onChange).toHaveBeenCalledWith({groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY});
     });
 
     it('labels the pill Running total when it is the selection', async () => {
-        // Given the headline chart with running total on
+        // Given the headline chart with running total as the grouping
         renderWithProviders(
             <InsightsGroupByDropdown
-                groupBy={CONST.SEARCH.GROUP_BY.MONTH}
+                groupBy={INSIGHTS_RUNNING_TOTAL_GROUP_BY}
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
-                shouldShowRunningTotal
                 onChange={jest.fn()}
             />,
         );

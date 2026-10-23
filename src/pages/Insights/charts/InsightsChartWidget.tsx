@@ -22,7 +22,8 @@ import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
+import {getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
@@ -93,7 +94,7 @@ function InsightsChartWidget({
 
     const groupByOptions = getInsightsGroupByOptions(filters.date);
     const canRunningTotal = isRunningTotalAvailable(filters.date);
-    const isRunningTotal = !!filters.shouldShowRunningTotal && view === CONST.SEARCH.VIEW.LINE;
+    const isRunningTotal = filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && view === CONST.SEARCH.VIEW.LINE;
 
     const downloadCSV = () => {
         if (!queryJSON || state !== INSIGHTS_CHART_STATE.READY) {
@@ -107,9 +108,8 @@ function InsightsChartWidget({
     const groupByControl =
         onGroupByChange && (groupByOptions.length > 1 || canRunningTotal) ? (
             <InsightsGroupByDropdown
-                groupBy={getFittingGroupBy(filters.groupBy, groupByOptions)}
+                groupBy={filters.groupBy}
                 options={groupByOptions}
-                shouldShowRunningTotal={!!filters.shouldShowRunningTotal}
                 onChange={onGroupByChange}
             />
         ) : null;

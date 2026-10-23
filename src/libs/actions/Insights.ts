@@ -73,9 +73,8 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
     );
 }
 
-function setInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryString, shouldShowRunningTotal = false) {
-    // Running total rides alongside the query rather than inside it, so switching it on and off never changes the query the backend answers.
-    Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {[searchKey]: {query, shouldShowRunningTotal}});
+function setInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryString) {
+    Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {[searchKey]: {query}});
 }
 
 /** Stores the dashboard's filters locally and on the server, for changes that don't trigger a GetInsights call to save them */

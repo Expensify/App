@@ -9,6 +9,7 @@ import {getSuggestedSearches, getSuggestedSearchesVisibility, SPEND_INSIGHT_KEYS
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
@@ -65,7 +66,7 @@ function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: bo
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
     const configs = getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email).map((chart) => buildInsightConfigFromChart(chart, filters));
-    return {configs, isResolved: areFiltersResolved, shouldShowRunningTotal: !!filters.shouldShowRunningTotal};
+    return {configs, isResolved: areFiltersResolved, shouldShowRunningTotal: filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY};
 }
 
 export default useHomeInsightConfigs;
