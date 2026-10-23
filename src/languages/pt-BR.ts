@@ -2495,7 +2495,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Tem certeza de que deseja mesclar as contas?',
-            lossOfUnsubmittedData: (login: string) => `A fusão das suas contas é irreversível e resultará na perda de quaisquer despesas não enviadas para <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `A fusão das suas contas é irreversível. Todas as despesas e relatórios de <strong>${login}</strong>, incluindo rascunhos e despesas não lançadas, serão transferidos para a conta que você está mantendo.`,
             enterSecurityCode: (login: string) => `Para continuar, digite o código de segurança enviado para <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Código de segurança incorreto ou inválido. Tente novamente ou solicite um novo código.',

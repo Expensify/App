@@ -2417,7 +2417,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
-            lossOfUnsubmittedData: (login) => `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login) =>
+                `Fusionar tus cuentas es irreversible. Todos los gastos e informes de <strong>${login}</strong>, incluidos los borradores y los gastos no reportados, se moverán a la cuenta que conservas.`,
             enterSecurityCode: (login: string) => `Para continuar, introduce el código de seguridad enviado a <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Código de seguridad incorrecto o no válido. Inténtalo de nuevo o solicita un código nuevo.',
