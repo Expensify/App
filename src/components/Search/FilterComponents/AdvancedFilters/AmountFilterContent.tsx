@@ -1,7 +1,6 @@
-import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import Button from '@components/Button';
-import CurrencyPicker from '@components/CurrencyPicker';
 import ScrollView from '@components/ScrollView';
+import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterInput';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -13,7 +12,7 @@ import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {formatAmountFilterValue, getAmountFilterInputValue, supportsAmountFilterCurrency} from '@libs/SearchAmountFilterUtils';
+import {formatAmountFilterValue, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -53,7 +52,6 @@ type AmountInputProps = {
 
 function AmountInput({ref, baseFilterKey, modifier, value, label, autoFocus}: AmountInputProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const initialValue = getAmountFilterInputValue(value);
     const [amount, setAmount] = useState(initialValue.amount);
     const [currency, setCurrency] = useState(initialValue.currency);
@@ -75,28 +73,16 @@ function AmountInput({ref, baseFilterKey, modifier, value, label, autoFocus}: Am
     }, [didScreenTransitionEnd, autoFocus]);
 
     return (
-        <>
-            <AmountWithoutCurrencyInput
-                ref={inputRef}
-                containerStyles={[styles.ph4, styles.mv2]}
-                defaultValue={initialValue.amount}
-                onInputChange={setAmount}
-                label={label}
-                accessibilityLabel={label}
-                role={CONST.ROLE.PRESENTATION}
-                inputMode={CONST.INPUT_MODE.DECIMAL}
-                shouldAllowNegative
-            />
-            {supportsAmountFilterCurrency(baseFilterKey) && (
-                <CurrencyPicker
-                    label={translate('common.currency')}
-                    accessibilityLabel={`${label}, ${translate('common.currency')}`}
-                    value={currency}
-                    onInputChange={setCurrency}
-                    shouldAllowEmptySelection
-                />
-            )}
-        </>
+        <AmountFilterInput
+            ref={inputRef}
+            baseFilterKey={baseFilterKey}
+            containerStyles={[styles.ph4, styles.mv2]}
+            amount={amount}
+            currency={currency}
+            onAmountChange={setAmount}
+            onCurrencyChange={setCurrency}
+            label={label}
+        />
     );
 }
 
@@ -143,47 +129,25 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
 
     return (
         <View style={[styles.flexRow, styles.gap1, styles.ph4, styles.mv2]}>
-            <View style={styles.flex1}>
-                <AmountWithoutCurrencyInput
-                    ref={inputRef}
-                    defaultValue={initialGreaterThan.amount}
-                    onInputChange={setGreaterThanAmount}
-                    label={greaterThanLabel}
-                    accessibilityLabel={greaterThanLabel}
-                    role={CONST.ROLE.PRESENTATION}
-                    inputMode={CONST.INPUT_MODE.DECIMAL}
-                    shouldAllowNegative
-                />
-                {supportsAmountFilterCurrency(baseFilterKey) && (
-                    <CurrencyPicker
-                        label={translate('common.currency')}
-                        accessibilityLabel={`${greaterThanLabel}, ${translate('common.currency')}`}
-                        value={greaterThanCurrency}
-                        onInputChange={setGreaterThanCurrency}
-                        shouldAllowEmptySelection
-                    />
-                )}
-            </View>
-            <View style={styles.flex1}>
-                <AmountWithoutCurrencyInput
-                    defaultValue={initialLessThan.amount}
-                    onInputChange={setLessThanAmount}
-                    label={lessThanLabel}
-                    accessibilityLabel={lessThanLabel}
-                    role={CONST.ROLE.PRESENTATION}
-                    inputMode={CONST.INPUT_MODE.DECIMAL}
-                    shouldAllowNegative
-                />
-                {supportsAmountFilterCurrency(baseFilterKey) && (
-                    <CurrencyPicker
-                        label={translate('common.currency')}
-                        accessibilityLabel={`${lessThanLabel}, ${translate('common.currency')}`}
-                        value={lessThanCurrency}
-                        onInputChange={setLessThanCurrency}
-                        shouldAllowEmptySelection
-                    />
-                )}
-            </View>
+            <AmountFilterInput
+                ref={inputRef}
+                baseFilterKey={baseFilterKey}
+                containerStyles={styles.flex1}
+                amount={greaterThanAmount}
+                currency={greaterThanCurrency}
+                onAmountChange={setGreaterThanAmount}
+                onCurrencyChange={setGreaterThanCurrency}
+                label={greaterThanLabel}
+            />
+            <AmountFilterInput
+                baseFilterKey={baseFilterKey}
+                containerStyles={styles.flex1}
+                amount={lessThanAmount}
+                currency={lessThanCurrency}
+                onAmountChange={setLessThanAmount}
+                onCurrencyChange={setLessThanCurrency}
+                label={lessThanLabel}
+            />
         </View>
     );
 }

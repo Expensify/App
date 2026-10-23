@@ -1,13 +1,12 @@
-import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
-import CurrencyPicker from '@components/CurrencyPicker';
 import MenuItem from '@components/MenuItem';
+import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterInput';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {formatAmountFilterValue, getAmountFilterDisplayValue, getAmountFilterInputValue, supportsAmountFilterCurrency} from '@libs/SearchAmountFilterUtils';
+import {formatAmountFilterValue, getAmountFilterDisplayValue, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -30,14 +29,13 @@ type AmountInputProps = {
     title: string;
     value: string;
     name: string;
-    shouldShowCurrencyPicker: boolean;
+    baseFilterKey: SearchAmountFilterKeys;
     onSave: (value: string) => void;
     onBackButtonPress: () => void;
 };
 
-function AmountInput({title, value, name, shouldShowCurrencyPicker, onSave, onBackButtonPress}: AmountInputProps) {
+function AmountInput({title, value, name, baseFilterKey, onSave, onBackButtonPress}: AmountInputProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const initialValue = getAmountFilterInputValue(value);
     const [amount, setAmount] = useState(initialValue.amount);
     const [currency, setCurrency] = useState(initialValue.currency);
@@ -50,27 +48,17 @@ function AmountInput({title, value, name, shouldShowCurrencyPicker, onSave, onBa
             onBackButtonPress={onBackButtonPress}
             shouldSubmitOnEnter
         >
-            <AmountWithoutCurrencyInput
+            <AmountFilterInput
+                baseFilterKey={baseFilterKey}
                 containerStyles={[styles.ph4, styles.mb2]}
-                defaultValue={initialValue.amount}
-                onInputChange={setAmount}
+                amount={amount}
+                currency={currency}
+                onAmountChange={setAmount}
+                onCurrencyChange={setCurrency}
                 label={title}
-                accessibilityLabel={title}
                 name={name}
-                role={CONST.ROLE.PRESENTATION}
-                inputMode={CONST.INPUT_MODE.DECIMAL}
-                shouldAllowNegative
                 autoFocus
             />
-            {shouldShowCurrencyPicker && (
-                <CurrencyPicker
-                    label={translate('common.currency')}
-                    accessibilityLabel={`${title}, ${translate('common.currency')}`}
-                    value={currency}
-                    onInputChange={setCurrency}
-                    shouldAllowEmptySelection
-                />
-            )}
         </BasePopup>
     );
 }
@@ -121,7 +109,7 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
                 title={title[selectedModifier]}
                 value={amountValues[selectedModifier] ?? ''}
                 name={`${baseFilterKey}${selectedModifier}`}
-                shouldShowCurrencyPicker={supportsAmountFilterCurrency(baseFilterKey)}
+                baseFilterKey={baseFilterKey}
                 onBackButtonPress={goBack}
                 onSave={save}
             />

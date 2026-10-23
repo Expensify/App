@@ -1,6 +1,7 @@
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -25,9 +26,20 @@ type CurrencyPickerProps = {
     onInputChange?: (value: string, key?: string) => void;
 
     excludeCurrencies?: string[];
+
+    /** Whether the picker includes an option to clear the selected currency. */
+    shouldAllowEmptySelection?: boolean;
 };
 
-function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerText, value, excludeCurrencies, onInputChange = () => {}}: CurrencyPickerProps) {
+function IOURequestStepCurrencyModal({
+    isPickerVisible,
+    hidePickerModal,
+    headerText,
+    value,
+    excludeCurrencies,
+    shouldAllowEmptySelection = false,
+    onInputChange = () => {},
+}: CurrencyPickerProps) {
     const {translate} = useLocalize();
     const [recentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const styles = useThemeStyles();
@@ -60,6 +72,20 @@ function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerTe
                     shouldShowBackButton
                     onBackButtonPress={hidePickerModal}
                 />
+                {shouldAllowEmptySelection && (
+                    <MenuItem.Root
+                        onPress={() => {
+                            onInputChange('');
+                            hidePickerModal();
+                        }}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('common.none')}</MenuItem.Title>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                )}
                 <CurrencySelectionList
                     recentlyUsedCurrencies={recentlyUsedCurrencies ?? []}
                     initiallySelectedCurrencyCode={value}
