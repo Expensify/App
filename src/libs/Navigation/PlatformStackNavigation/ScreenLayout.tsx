@@ -13,6 +13,13 @@ import React, {useLayoutEffect, useRef} from 'react';
 
 import type {PlatformSpecificNavigationOptions, PlatformStackNavigationOptions} from './types';
 
+const NAVIGATORS_WITH_OWN_HORIZONTAL_SAFE_AREA = new Set<string>([
+    NAVIGATORS.TAB_NAVIGATOR,
+    NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR,
+    NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR,
+    NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR,
+]);
+
 // The only navigation capability ScreenLayout actually needs, regardless of which navigator (stack, bottom-tabs, ...)
 // it's used with. Keeping this minimal means passing a real (properly-typed) navigation prop into it - e.g. from
 // bottomTabScreenLayoutWrapper below - needs no unsafe cast, since every navigator's `addListener` structurally satisfies it.
@@ -33,9 +40,10 @@ function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBa
     );
 
     // Root screens keep out of the horizontal safe area, and the screens nested in them sit inside it already. The tab
-    // navigator places its own, because the native tab bar may sit in the inset.
+    // navigator places its own, because the native tab bar may sit in the inset, and the centered modals span the window
+    // so that their backdrop covers the inset too.
     const isRootScreen = !transitionAwareNavigation.getParent();
-    if (!isRootScreen || rest.route.name === NAVIGATORS.TAB_NAVIGATOR) {
+    if (!isRootScreen || NAVIGATORS_WITH_OWN_HORIZONTAL_SAFE_AREA.has(rest.route.name)) {
         return screen;
     }
     return <HorizontalSafeArea>{screen}</HorizontalSafeArea>;
