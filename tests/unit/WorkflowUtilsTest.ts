@@ -2562,7 +2562,8 @@ describe('WorkflowUtils', () => {
 
                 /**
                  * The approvers a report from `submitterEmail` goes through, taking the first matching rule at every step
-                 * the way the backend does.
+                 * the way the backend does. The backend cuts a looping chain short, so a repeated approver throws instead
+                 * of passing as a shorter chain.
                  */
                 const routeReport = (workflow: ApprovalWorkflow, submitterEmail: string, reportTotal: number): string[] => {
                     const rulesCollection: OnyxCollection<Rule> = Object.fromEntries(
@@ -2570,7 +2571,10 @@ describe('WorkflowUtils', () => {
                     );
                     const approverEmails: string[] = [];
                     let nextApproverEmail = getForwardsToFromRules(policy, {submitterEmail, reportTotal}, rulesCollection)?.forwardsTo;
-                    while (nextApproverEmail && !approverEmails.includes(nextApproverEmail)) {
+                    while (nextApproverEmail) {
+                        if (approverEmails.includes(nextApproverEmail)) {
+                            throw new Error(`Approval loop at ${nextApproverEmail}`);
+                        }
                         approverEmails.push(nextApproverEmail);
                         nextApproverEmail = getForwardsToFromRules(policy, {submitterEmail, currentApproverEmail: nextApproverEmail, reportTotal}, rulesCollection)?.forwardsTo;
                     }

@@ -1433,6 +1433,8 @@ function buildApproverChainFromRules({submitter, rules, employees, personalDetai
         const isCircularReference = seenEmails.has(email);
         const employee: PolicyEmployee | undefined = employees[email];
         const hop = resolveApprovalHop(submitter, rules, email);
+
+        // Nothing covers this step, so fall back to the legacy employeeList fields for it.
         const forwardsTo = hop ? hop.nextEmail : employee?.forwardsTo;
         const overLimitForwardsTo = hop ? hop.overLimitEmail : employee?.overLimitForwardsTo;
 
