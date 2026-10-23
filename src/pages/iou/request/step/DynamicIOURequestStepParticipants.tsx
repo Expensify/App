@@ -185,18 +185,17 @@ function DynamicIOURequestStepParticipants({route, navigation, transaction: init
             return;
         }
         hasReturnedToConfirmationRef.current = true;
-        const state = navigation.getState();
-        const index = state.routes.findIndex((stackRoute) => stackRoute.key === route.key);
-        const confirmationRoute = index > 0 ? state.routes.at(index - 1) : undefined;
+        const stackKey = navigation.getState().key;
         navigateBack();
 
-        // Going back restores the confirmation's params from its path, so the iouType the selection moved the expense to
-        // is set on it afterwards.
+        // Going back doesn't carry the iouType the selection moved the expense to, so it is set on the confirmation
+        // afterwards. No route key is given, so the params land on whichever route the stack shows after going back,
+        // whether it popped to the confirmation or replaced this page with it.
         const nextIOUType = confirmationIOUTypeRef.current;
-        if (!nextIOUType || !confirmationRoute) {
+        if (!nextIOUType) {
             return;
         }
-        Navigation.setParams({iouType: nextIOUType}, confirmationRoute.key, state.key);
+        Navigation.setParams({iouType: nextIOUType}, undefined, stackKey);
     };
 
     const addParticipantFromConfirmation = (participantsList: Participant[], selectedPolicy?: OnyxEntry<Policy>) => {

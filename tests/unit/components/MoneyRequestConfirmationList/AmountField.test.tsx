@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
@@ -6,29 +6,39 @@ import AmountField from '@components/MoneyRequestConfirmationList/sections/Amoun
 import {setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
+import SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
+const mockFocusAmountInput = jest.fn();
+let mockIsScreenFocused = true;
+let mockCanUseTouchScreen = true;
+let mockCurrentRouteName: string | undefined;
+let mockOnScreenBlur: (() => void) | undefined;
 jest.mock('@components/NumberWithSymbolForm', () => {
     const {Pressable, Text} =
         jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: 'button'}>>>('react-native');
-    return ({onInputChange, errorText}: {onInputChange: (amount: string) => void; errorText?: string}) => (
-        <>
-            {!!errorText && <Text>{errorText}</Text>}
-            <Pressable
-                accessibilityRole="button"
-                onPress={() => onInputChange('0')}
-            >
-                <Text>Enter zero</Text>
-            </Pressable>
-            <Pressable
-                accessibilityRole="button"
-                onPress={() => onInputChange('1')}
-            >
-                <Text>Enter one</Text>
-            </Pressable>
-        </>
-    );
+    const {useImperativeHandle} = jest.requireActual<typeof React>('react');
+    return ({onInputChange, errorText, ref}: {onInputChange: (amount: string) => void; errorText?: string; ref?: React.Ref<{focus: () => void}>}) => {
+        useImperativeHandle(ref, () => ({focus: mockFocusAmountInput}));
+        return (
+            <>
+                {!!errorText && <Text>{errorText}</Text>}
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onInputChange('0')}
+                >
+                    <Text>Enter zero</Text>
+                </Pressable>
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onInputChange('1')}
+                >
+                    <Text>Enter one</Text>
+                </Pressable>
+            </>
+        );
+    };
 });
 jest.mock('@pages/iou/request/step/IOURequestStepCurrencyModal', () => {
     const {Pressable, Text} =
@@ -51,14 +61,21 @@ let mockTransactionSlice: {transactionID: string; amount: number; currency: stri
 jest.mock('@components/MoneyRequestConfirmationList/sections/useTransactionSelector', () => () => mockTransactionSlice);
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
-    useIsFocused: () => true,
+    useIsFocused: () => mockIsScreenFocused,
+    useNavigation: () => ({
+        addListener: (_event: string, callback: () => void) => {
+            mockOnScreenBlur = callback;
+            return () => {};
+        },
+    }),
 }));
+jest.mock('@libs/Navigation/navigationRef', () => ({getCurrentRoute: () => (mockCurrentRouteName ? {name: mockCurrentRouteName} : undefined)}));
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: 1}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: () => ({getCurrencyDecimals: () => 2, getCurrencySymbol: () => '$'})}));
-jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => true}));
+jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => mockCanUseTouchScreen}));
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     getMoneyRequestParticipantsFromReport: () => [],
     setMoneyRequestAmount: jest.fn(),
@@ -245,5 +262,61 @@ describe('AmountField currency change', () => {
         // Then the entered amount is saved together with the new currency, since the amount is the user's own
         expect(setMoneyRequestAmount).toHaveBeenCalledWith('1', 1000, 'EUR');
         expect(setMoneyRequestCurrency).not.toHaveBeenCalled();
+    });
+});
+
+describe('AmountField refocus on return', () => {
+    beforeEach(() => {
+        jest.useFakeTimers();
+        jest.clearAllMocks();
+        mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false};
+        mockIsScreenFocused = true;
+        mockCanUseTouchScreen = false;
+        mockCurrentRouteName = undefined;
+    });
+
+    afterEach(() => {
+        mockCanUseTouchScreen = true;
+        jest.useRealTimers();
+    });
+
+    it.each([
+        ['focuses the amount again after picking a participant', SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS, 1],
+        ["leaves focus on the edited row after another field's page", SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY, 0],
+    ])('%s', (_description, leftForScreen, expectedFocusCalls) => {
+        // Given a manual expense on a device without a touch screen, whose amount took focus when the confirmation opened
+        const renderAmountField = () => (
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+            >
+                <AmountField {...amountFieldProps} />
+            </ConfirmationFieldsProvider>
+        );
+        const {rerender} = render(renderAmountField());
+        act(() => {
+            jest.runAllTimers();
+        });
+        expect(mockFocusAmountInput).toHaveBeenCalledTimes(1);
+        mockFocusAmountInput.mockClear();
+
+        // When the user leaves the confirmation for another page and comes back to it
+        mockCurrentRouteName = leftForScreen;
+        mockIsScreenFocused = false;
+        act(() => {
+            mockOnScreenBlur?.();
+        });
+        rerender(renderAmountField());
+        mockIsScreenFocused = true;
+        rerender(renderAmountField());
+        act(() => {
+            jest.runAllTimers();
+        });
+
+        // Then only coming back from the participants page focuses the amount, so a keyboard or screen-reader user
+        // returning from any other field stays on the row they just edited
+        expect(mockFocusAmountInput).toHaveBeenCalledTimes(expectedFocusCalls);
     });
 });

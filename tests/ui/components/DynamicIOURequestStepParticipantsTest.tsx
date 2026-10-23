@@ -15,7 +15,7 @@ import DynamicIOURequestStepParticipants from '@pages/iou/request/step/DynamicIO
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
 
 import React from 'react';
@@ -33,20 +33,11 @@ const SELF_DM_REPORT_ID = '1';
 const TRANSACTION_ID = '1';
 const POLICY_ID = '2';
 const ROUTE_KEY = 'Dynamic_Money_Request_Step_Participants--test';
-const CONFIRMATION_ROUTE_KEY = 'Money_Request_Step_Confirmation--test';
 const STACK_KEY = 'MoneyRequestStack--test';
 type StepParticipantsNavigation = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS>['navigation'];
-// The page opened from the confirmation sits right above it in the same stack.
+// The page opened from the confirmation sits in the same stack as it, which is what going back shows again.
 const navigation = createMock<StepParticipantsNavigation>({
-    getState: () =>
-        createMock<ReturnType<StepParticipantsNavigation['getState']>>({
-            key: STACK_KEY,
-            index: 1,
-            routes: [
-                {key: CONFIRMATION_ROUTE_KEY, name: SCREENS.MONEY_REQUEST.STEP_CONFIRMATION},
-                {key: ROUTE_KEY, name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS},
-            ],
-        }),
+    getState: () => createMock<ReturnType<StepParticipantsNavigation['getState']>>({key: STACK_KEY}),
 });
 
 type CapturedSelectorProps = {
@@ -373,8 +364,9 @@ describe('DynamicIOURequestStepParticipants', () => {
             // Then the page goes back to the confirmation only once, instead of moving on to the next step
             expect(Navigation.goBack).toHaveBeenCalledTimes(1);
 
-            // And the confirmation underneath follows the iouType the selection moved the expense to
-            expect(Navigation.setParams).toHaveBeenCalledWith({iouType: expectedIOUType}, CONFIRMATION_ROUTE_KEY, STACK_KEY);
+            // And whichever route the stack shows after going back follows the iouType the selection moved the expense
+            // to, so the switch survives a back that replaces this page instead of popping to the confirmation
+            expect(Navigation.setParams).toHaveBeenCalledWith({iouType: expectedIOUType}, undefined, STACK_KEY);
         });
     });
 });

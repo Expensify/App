@@ -22,6 +22,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isP2PRecipient, isParticipantP2P} from '@libs/IOUUtils';
 import {isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {shouldEnableNegative} from '@libs/ReportUtils';
 import {calculateTaxAmount, getTaxCode, getTaxValue, hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 
@@ -33,11 +34,12 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -75,6 +77,7 @@ function AmountField({
     setFormError,
 }: AmountFieldProps) {
     const isScreenFocused = useIsFocused();
+    const navigation = useNavigation();
     const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
@@ -145,12 +148,23 @@ function AmountField({
     const allowNegative =
         shouldEnableNegative(report, policy, iouType, transactionSlice?.participants) && !isP2PRecipient(transactionSlice?.participants?.at(0), currentUserPersonalDetails.accountID);
 
+    // Whether the screen should focus the amount the next time it gains focus: on mount, and on the way back from
+    // picking a participant. Coming back from any other field's page leaves focus on the row the user just edited.
+    const shouldFocusOnScreenFocusRef = useRef(true);
+    useEffect(
+        () =>
+            navigation.addListener('blur', () => {
+                shouldFocusOnScreenFocusRef.current = navigationRef.getCurrentRoute()?.name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS;
+            }),
+        [navigation],
+    );
+
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
-    // instance, so autofocus does not run again. We re-focus whenever the screen regains focus, e.g. once the user
-    // comes back from picking a participant. The setTimeout defers focus past the RHP entry / back animation so the
-    // input reliably receives focus.
+    // instance, so autofocus does not run again. We re-focus when the screen regains focus from the participants page,
+    // so the amount input gains focus once the user selects a participant. The setTimeout defers focus past the RHP
+    // entry / back animation so the input reliably receives focus.
     useEffect(() => {
-        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || !isScreenFocused) {
+        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || !isScreenFocused || !shouldFocusOnScreenFocusRef.current) {
             return;
         }
 
