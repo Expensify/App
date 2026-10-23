@@ -11515,7 +11515,7 @@ ${reportName}`,
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `今後のアクティビティや請求を防ぎたい場合は、<a href="${workspacesListRoute}">ワークスペースを削除</a>する必要があります。ワークスペースを削除すると、当月中に発生した未精算のアクティビティについて請求が行われることにご注意ください。`,
                 preventFutureActivityWithArchive: (workspacesListRoute: string) =>
-                    `今後のアクティビティや請求を防ぎたい場合は、<a href="${workspacesListRoute}">すべての有料ワークスペースをアーカイブする</a>必要があります。今月中に請求対象のアクティビティがあるワークスペースは、アーカイブしても、その月末の請求に含まれます。`,
+                    `今後のアクティビティや請求を防ぐには、<a href="${workspacesListRoute}">すべての有料ワークスペースをアーカイブしてください</a>。今月中に課金対象のアクティビティがあるアーカイブ済みワークスペースは、引き続きご請求に含まれます。`,
             },
             requestSubmitted: {
                 title: 'リクエストを送信しました',

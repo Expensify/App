@@ -11924,7 +11924,7 @@ ${reportName}`,
                 preventFutureActivity: (workspacesListRoute) =>
                     `Si quieres evitar actividad y cargos futuros, debes <a href="${workspacesListRoute}">eliminar tu(s) espacio(s) de trabajo.</a> Ten en cuenta que cuando elimines tu(s) espacio(s) de trabajo, se te cobrará cualquier actividad pendienteque se haya incurrido durante el mes en curso.`,
                 preventFutureActivityWithArchive: (workspacesListRoute: string) =>
-                    `Si quieres evitar actividad y cargos futuros, debes <a href="${workspacesListRoute}">archivar todos tus espacios de trabajo de pago</a>. Los espacios de trabajo con actividad facturable durante el mes actual seguirán incluyéndose en tu factura al final del mes, incluso si los archivas.`,
+                    `Para evitar actividad y cargos futuros, <a href="${workspacesListRoute}">archiva todos tus espacios de trabajo de pago</a>. Los espacios de trabajo archivados con actividad facturable durante el mes en curso seguirán incluidos en tu factura.`,
             },
             requestSubmitted: {
                 title: 'Solicitud enviada',

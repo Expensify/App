@@ -11642,7 +11642,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Se você quiser evitar atividades e cobranças futuras, você deve <a href="${workspacesListRoute}">excluir seu(s) workspace(s)</a>. Observe que, ao excluir seu(s) workspace(s), será cobrado qualquer valor pendente referente à atividade ocorrida durante o mês calendário atual.`,
                 preventFutureActivityWithArchive: (workspacesListRoute: string) =>
-                    `Se quiser evitar atividades e cobranças futuras, você deve <a href="${workspacesListRoute}">arquivar todos os seus espaços de trabalho pagos</a>. Espaços de trabalho com atividade faturável durante o mês atual ainda serão incluídos na sua fatura ao final do mês, mesmo que você os arquive.`,
+                    `Para evitar atividades e cobranças futuras, <a href="${workspacesListRoute}">arquive todos os seus espaços de trabalho pagos</a>. Espaços de trabalho arquivados com atividade faturável durante o mês atual ainda serão incluídos na sua fatura.`,
             },
             requestSubmitted: {
                 title: 'Solicitação enviada',
