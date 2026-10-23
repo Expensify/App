@@ -73,6 +73,7 @@ function InsightsDashboardContent({state, aiInsights, isLoadingAIInsights, headl
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
     const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY;
@@ -148,10 +149,12 @@ function InsightsDashboardContent({state, aiInsights, isLoadingAIInsights, headl
                 addBottomSafeAreaPadding
             >
                 <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
-                    <InsightsAICardRow
-                        cards={aiInsights}
-                        isLoading={isLoadingAIInsights}
-                    />
+                    {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
+                        <InsightsAICardRow
+                            cards={aiInsights}
+                            isLoading={isLoadingAIInsights}
+                        />
+                    )}
                     <InsightsChartWidget
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
