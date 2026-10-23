@@ -145,6 +145,8 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     },
 };
 
+const optionsPerScreen: Partial<Record<string, PlatformStackNavigationOptions>> = OPTIONS_PER_SCREEN;
+
 /**
  * Create a modal stack navigator with an array of sub-screens.
  *
@@ -164,7 +166,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
         const getScreenOptions = useCallback<typeof screenOptions>(
             ({route: optionRoute}) => {
                 // Extend common options if they are defined for the screen.
-                const screenOverride = ObjectUtils.typedEntries(OPTIONS_PER_SCREEN).find(([name]) => name === optionRoute.name)?.[1];
+                const screenOverride = optionsPerScreen[optionRoute.name];
                 if (screenOverride) {
                     return {...screenOptions({route: optionRoute}), ...screenOverride};
                 }

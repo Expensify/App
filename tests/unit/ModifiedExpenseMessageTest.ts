@@ -125,7 +125,7 @@ describe('ModifiedExpenseMessage', () => {
         });
 
         it('keeps explicitly undefined fragments while omitted fields produce no fragment', () => {
-            // Given every supported optional value present with undefined, except the separately throwing tag
+            // Given the other optional values present with undefined to distinguish presence from omission
             const originalMessage = createMock<OriginalMessageModifiedExpense>({
                 personalRulesModifiedFields: {
                     reportName: undefined,
@@ -150,8 +150,8 @@ describe('ModifiedExpenseMessage', () => {
             expect(emptyResult).toBe('');
         });
 
-        it('preserves present empty strings and the TypeError for present undefined tag', () => {
-            // Given empty optional strings and a distinct undefined tag compatibility case
+        it('preserves present empty strings and renders a present undefined tag as empty', () => {
+            // Given empty optional strings and an undefined tag that must remain a visible fragment
             const emptyMessage = createMock<OriginalMessageModifiedExpense>({
                 personalRulesModifiedFields: {reportName: '', merchant: '', category: '', tag: '', comment: '', description: ''},
             });
@@ -159,12 +159,30 @@ describe('ModifiedExpenseMessage', () => {
 
             // When the real formatter is invoked for each producer outcome
             const emptyResult = formatRulesAction(emptyMessage);
+            const undefinedResult = formatRulesAction(undefinedTag);
 
-            // Then empty fields remain fragments and undefined tag still fails at list processing
+            // Then present empty and undefined tags render without dropping their list position
             expect(emptyResult).toBe(
                 `moved this expense to report "", set the merchant to "", category to "", tag to "", description to "", and description to "" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`,
             );
-            expect(() => formatRulesAction(undefinedTag)).toThrow(TypeError);
+            expect(undefinedResult).toBe(`set the merchant to "Cafe" and tag to "" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`);
+        });
+
+        it('renders a backend null tag as an empty fragment through the real decoder', () => {
+            // Given a backend null tag even though the declared producer contract only admits strings
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({
+                personalRulesModifiedFields: {
+                    merchant: 'Cafe',
+                    // @ts-expect-error -- Cover backend null compatibility without widening the declared tag type.
+                    tag: null,
+                },
+            });
+
+            // When the report action formatter sends the nullish fallback through the real tag decoder
+            const result = formatRulesAction(originalMessage);
+
+            // Then the report action renders the empty tag in its original position instead of crashing
+            expect(result).toBe(`set the merchant to "Cafe" and tag to "" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`);
         });
 
         it.each([true, false])('preserves full policy messages and route precedence for admin access %s', (isAdminAccessAllowed) => {

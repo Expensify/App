@@ -245,11 +245,7 @@ function getRulesModifiedMessage(
             return translate('iou.rulesModifiedFields.common', key, getDecodedCategoryName(value ?? ''), isFirst);
         }
         if (key === 'tag') {
-            if (value === undefined) {
-                // Preserve the TypeError from getTagArrayFromName attempting replaceAll on undefined.
-                throw new TypeError('Cannot decode an undefined tag');
-            }
-            return translate('iou.rulesModifiedFields.common', key, getCommaSeparatedTagNameWithSanitizedColons(value), isFirst);
+            return translate('iou.rulesModifiedFields.common', key, getCommaSeparatedTagNameWithSanitizedColons(value ?? ''), isFirst);
         }
         // The backend saves description as comment, so display it with the description label.
         if (key === 'comment') {

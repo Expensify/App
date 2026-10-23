@@ -142,6 +142,31 @@ describe('maskOnyxState', () => {
         }
     });
 
+    it.each([false, true])('observes live private key membership when masking is %s', (isMaskingEnabled) => {
+        // Given a session with an export rule whose removal membership can change after module initialization
+        const wasRemoved = onyxKeysToRemove.has(ONYXKEYS.SESSION);
+        const input = {[ONYXKEYS.SESSION]: mockSession, [ONYXKEYS.CURRENT_DATE]: '2024-01-01'};
+
+        try {
+            onyxKeysToRemove.delete(ONYXKEYS.SESSION);
+            expect(maskOnyxState(input, isMaskingEnabled)).toHaveProperty(ONYXKEYS.SESSION);
+
+            // When the existing exported set adds the session before another export
+            onyxKeysToRemove.add(ONYXKEYS.SESSION);
+            const result = maskOnyxState(input, isMaskingEnabled);
+
+            // Then removal uses current membership before the session rule or optional fragile masking
+            expect(result).not.toHaveProperty(ONYXKEYS.SESSION);
+            expect(result[ONYXKEYS.CURRENT_DATE]).toBe(input[ONYXKEYS.CURRENT_DATE]);
+        } finally {
+            if (wasRemoved) {
+                onyxKeysToRemove.add(ONYXKEYS.SESSION);
+            } else {
+                onyxKeysToRemove.delete(ONYXKEYS.SESSION);
+            }
+        }
+    });
+
     it.each([false, true])('removes sensitive dynamic form answers entirely when masking is %s', (isMaskingEnabled) => {
         // Given the per-form sensitive values written by saveSensitiveAnswers instead of persisted drafts
         const sensitiveAnswers: DynamicFormSensitiveAnswers = {[ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM]: {ssn: 'private-social-security-number'}};
