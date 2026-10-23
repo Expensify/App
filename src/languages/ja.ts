@@ -139,6 +139,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: '考えています…',
         addCardTermsOfService: 'Expensify 利用規約',
         perPerson: '1人あたり',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 泊 • 1泊あたり ${nightlyRate}`,
+            other: `${count} 泊 • 1泊あたり ${nightlyRate}`,
+        }),
         phone: '電話',
         phoneNumber: '電話番号',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -3943,6 +3947,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             removeDelegate: '休暇代理人を削除',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}、完了`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `ステップ ${step}`;
         if (total) {
@@ -4047,11 +4052,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             outOfRange: ({min, max}: {min: number; max: number}) => `${min}から${max}の間の値を入力してください`,
             tooFewItems: ({min}: {min: number}) => `${min}件以上追加してください`,
             tooManyItems: ({max}: {max: number}) => `${max}件以内で追加してください`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}：${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}、${field}：${error}`,
         },
         addItem: ({item}: {item: string}) => `${item}を追加`,
         removeItemTitle: ({item}: {item: string}) => `${item}を削除しますか？`,
         removeItemPrompt: ({name}: {name: string}) => `本当に${name}を削除しますか？`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `末尾が ${ending} の${label}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
+        questionsChanged: 'このページの質問が変更されました',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',
@@ -6218,9 +6226,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             syncExpensifyCardSettlements: 'Expensify カードの清算を同期',
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
-            syncTravelInvoicingSettlements: '出張請求の精算を同期する',
-            travelInvoicingSettlementAccount: {label: '出張請求の精算勘定', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
-            travelInvoicingPayableAccount: {label: '旅行請求書の買掛金勘定'},
+            syncTravelInvoicingSettlements: '一括旅行請求の精算を同期',
+            travelInvoicingSettlementAccount: {label: '統合トラベル請求の決済口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
+            travelInvoicingPayableAccount: {label: '統合トラベル請求買掛金勘定'},
         },
         type: {
             free: '無料',
@@ -7245,6 +7253,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 optionNoRegularWorkspaceHelp: 'メンバーは在宅勤務、または決まったオフィスがなく拠点間を移動しているため、通勤規程は適用されません。',
                 futureOnlyNote: '変更は今後の走行距離計算にのみ適用されます。既存の走行距離経費は再計算されません。',
             },
+            officeLocation: 'オフィス所在地',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
+            changeOfficeLocation: 'オフィスの所在地を変更',
+            changeWorkArrangement: '勤務形態を変更',
             changeRole: 'ロールを変更',
         },
         card: {
@@ -9066,9 +9078,9 @@ ${reportName}`,
             billPaymentAccount: {label: '支払口座', description: 'Expensify が請求書を支払済みとしてマークしたときに、Campfire クレジット用のクリアリング勘定科目を選択します。'},
             syncExpensifyCardSettlements: 'Expensify カード清算を同期する',
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算に使う口座を選択してください。選択された口座で、Campfire に支払いを作成します。'},
-            syncTravelInvoicingSettlements: '出張請求の精算を同期',
-            travelInvoicingSettlementAccount: {label: '出張請求精算口座', description: '精算に使う口座を選択してください。選択された口座で、Campfire に支払いを作成します。'},
-            travelInvoicingPayableAccount: {label: '旅行請求買掛金勘定'},
+            syncTravelInvoicingSettlements: '一括旅行請求の精算を同期',
+            travelInvoicingSettlementAccount: {label: '統合トラベル請求の決済口座', description: '精算に使う口座を選択してください。選択された口座で、Campfire に支払いを作成します。'},
+            travelInvoicingPayableAccount: {label: '統合トラベル請求買掛金勘定'},
             exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
             cardProgramAccount: {
                 label: 'カードプログラム口座',
@@ -9153,6 +9165,35 @@ ${reportName}`,
             companyCardAccount: {
                 label: '会社カード口座',
                 description: '会社カード取引のエクスポート先を選択してください。',
+            },
+            exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペースアカウントを上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'すべてのプログラムはデフォルトアカウントを使用します';
+                    }
+                    return {
+                        one: `カスタム勘定科目を使用するプログラム：${count} 件`,
+                        other: `${count} 件のプログラム（カスタムアカウントあり）`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'カード単位の口座',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    return {
+                        one: `カスタム口座付きカード ${count} 枚`,
+                        other: `カスタム口座のあるカードが ${count} 枚`,
+                    };
+                },
             },
             paymentMethod: {
                 label: '支払方法',
@@ -9445,6 +9486,8 @@ ${reportName}`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `デフォルト通貨を${newCurrency}（以前は${oldCurrency}）に更新しました`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `自動レポート頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `承認モードを「${newValue}」（以前は「${oldValue}」）に更新しました`,
+        archivedWorkspace: 'このワークスペースをアーカイブしました',
+        unarchivedWorkspace: 'このワークスペースをアーカイブ解除しました',
         upgradedWorkspace: 'このワークスペースを Control プランにアップグレードしました',
         forcedCorporateUpgrade: `このワークスペースは Control プランにアップグレードされました。詳しくは<a href="${CONST.COLLECT_UPGRADE_HELP_URL}">こちら</a>をクリックしてください。`,
         downgradedWorkspace: 'このワークスペースを Collect プランにダウングレードしました',
@@ -9688,6 +9731,11 @@ ${reportName}`,
             setAsPrimary: ({name}: {name: string}) => `オフィス所在地「${name}」を主勤務地に設定します`,
             setCompanyAddressAsPrimary: '会社の住所を主要に設定',
             removed: ({name}: {name: string}) => `オフィス所在地「${name}」を削除しました`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `${displayName}さんのオフィス所在地を${officeLocation}（以前は${previousOfficeLocation}）に変更しました`,
+            quotedName: ({name}: {name: string}) => `「${name}」`,
+            companyAddress: '会社の住所',
+            primaryOffice: '主なオフィス',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `デフォルトの勤務形態を${arrangement}に設定します`,
@@ -10295,6 +10343,8 @@ ${reportName}`,
             topCategories: '上位カテゴリ',
             topMerchants: '上位加盟店',
             violationsBySubmitter: '申請者による違反',
+            travel: '出張',
+            trips: '出張',
         },
         mergeReports: {
             title: 'レポートをマージする',
@@ -10352,8 +10402,6 @@ ${reportName}`,
             category: 'カテゴリ',
             tag: 'タグ',
         },
-        switchToTableView: 'テーブル表示に切り替え',
-        switchToExpenseView: '経費表示に切り替え',
     },
     report: {
         newReport: {
@@ -11408,6 +11456,8 @@ ${reportName}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${date} に ${amount} を返金`,
             },
             billedTo: '請求先',
+            activity: 'アクティビティ',
+            findActiveUser: 'アクティブユーザーを検索',
             viewReceipt: '領収書を表示',
             viewInvoice: '請求書を表示',
         },
