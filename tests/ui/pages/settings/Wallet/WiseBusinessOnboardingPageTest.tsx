@@ -16,9 +16,11 @@ import {saveDraftAnswers} from '@userActions/DynamicForm';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {WiseBusinessOnboardingForm} from '@src/types/form';
 import type {BankAccount, PrivatePersonalDetails} from '@src/types/onyx';
 
 import type ReactNative from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -52,7 +54,7 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => {
     const reactNative = jest.requireActual<typeof ReactNative>('react-native');
     return {__esModule: true, default: () => <reactNative.View testID="NotFoundPage" />};
 });
-jest.mock('@userActions/DynamicForm', () => ({saveDraftAnswers: jest.fn()}));
+jest.mock('@userActions/DynamicForm', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/DynamicForm'), saveDraftAnswers: jest.fn()}));
 jest.mock('@userActions/BankAccounts', () => ({openReimbursementAccountPage: jest.fn()}));
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/1'));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
@@ -88,6 +90,18 @@ const PRIVATE_PERSONAL_DETAILS: PrivatePersonalDetails = {
 };
 
 const {saveDraftAnswers: saveDraftAnswersToOnyx} = jest.requireActual<{saveDraftAnswers: typeof saveDraftAnswers}>('@userActions/DynamicForm');
+
+function readDraft() {
+    return new Promise<OnyxEntry<WiseBusinessOnboardingForm>>((resolve) => {
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT,
+            callback: (value) => {
+                Onyx.disconnect(connection);
+                resolve(value);
+            },
+        });
+    });
+}
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
@@ -279,6 +293,56 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(prefill).toMatchObject({addressCountry: CONST.COUNTRY.US});
         expect(prefill).not.toHaveProperty('companyName');
         expect(prefill).not.toHaveProperty('companyType');
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('starts the draft over when it was started for another bank account', async () => {
+        // Given a draft with answers the user gave for another bank account, and a sensitive answer from that visit
+        await Onyx.multiSet({
+            [ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT]: {
+                bankAccountID: '2',
+                companyName: 'Other Business LLC',
+                companyType: CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY,
+                companyRole: 'OWNER',
+                description: 'Sells furniture',
+            },
+            [ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS]: {[ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM]: {ssnLast4: '1234'}},
+        });
+
+        // When the visit opens for this bank account
+        await renderPage();
+
+        // Then the draft holds only this account's prefill, since the other business's answers do not apply to this one
+        const draft = await readDraft();
+        expect(draft).toMatchObject({
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            companyName: 'Boulder Development Inc.',
+            companyType: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION,
+        });
+        expect(draft).not.toHaveProperty('companyRole');
+        expect(draft).not.toHaveProperty('description');
+        const sensitiveAnswers = await new Promise<OnyxEntry<Record<string, unknown>>>((resolve) => {
+            const connection = Onyx.connectWithoutView({
+                key: ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve(value);
+                },
+            });
+        });
+        expect(sensitiveAnswers?.[ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM]).toBeFalsy();
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('keeps the draft started for this bank account', async () => {
+        // Given a draft the user started for this bank account
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(BANK_ACCOUNT_ID), companyRole: 'OWNER'});
+
+        // When the visit opens again
+        await renderPage();
+
+        // Then the user's answer stays next to the prefill
+        expect(await readDraft()).toMatchObject({bankAccountID: String(BANK_ACCOUNT_ID), companyRole: 'OWNER', companyName: 'Boulder Development Inc.'});
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
     });
 

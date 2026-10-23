@@ -89,6 +89,17 @@ describe('Wise US onboarding form', () => {
         expect(country).toBe(`allCountries.${CONST.COUNTRY.US}`);
     });
 
+    it('shows an industry category by its translated name', () => {
+        // Given an industry category answer, stored as Wise's key
+        const values = {industryCategories: ['SOFTWARE_DEVELOPMENT_PUBLISHING']};
+
+        // When the confirmation row shows it
+        const category = formatDynamicFieldValue(getBusinessField('industryCategories'), values, translateLocal);
+
+        // Then the row shows the translated name, which the test translations give as its path, instead of a name made from the key
+        expect(category).toBe('walletPage.wiseOnboarding.business.industryCategoryOptions.SOFTWARE_DEVELOPMENT_PUBLISHING');
+    });
+
     it('lists the read-only rows on the confirmation page without a way to edit them', () => {
         // Given the bank account details and the admin's answers
         const values = {companyName: 'Boulder Development Inc.', companyTaxID: '123456789', addressCountry: CONST.COUNTRY.US, ...EDITABLE_ANSWERS};

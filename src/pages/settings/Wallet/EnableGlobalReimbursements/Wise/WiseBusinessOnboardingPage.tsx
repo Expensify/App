@@ -18,7 +18,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import {openReimbursementAccountPage} from '@userActions/BankAccounts';
-import {saveDraftAnswers} from '@userActions/DynamicForm';
+import {clearDraftAnswers, clearSensitiveAnswers, saveDraftAnswers} from '@userActions/DynamicForm';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,10 +93,27 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const isWaitingForBankAccount = !bankAccount && !!isLoadingPaymentMethods;
     const isLoading =
         isLoadingOnyxValue(bankAccountListMetadata, privatePersonalDetailsMetadata, draftMetadata, businessAccountMetadata) || isWaitingForBankAccount || isWaitingForBusinessAccount;
+
+    // The draft holds the answers for one bank account, so a visit for another account starts it over
+    const draftBankAccountID = String(bankAccountID);
+    const isDraftForOtherAccount = !isLoading && !isPrefillDone && !!draft && draft.bankAccountID !== draftBankAccountID;
+    useEffect(() => {
+        if (!isDraftForOtherAccount) {
+            return;
+        }
+        clearDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
+        clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
+    }, [isDraftForOtherAccount]);
+
     const missingPrefill =
-        isLoading || isPrefillDone ? {} : getMissingPrefill(getWiseBusinessOnboardingPrefill(bankAccountID, businessAccount?.data, privatePersonalDetails), toDynamicFormValues(draft));
+        isLoading || isPrefillDone || isDraftForOtherAccount
+            ? {}
+            : getMissingPrefill(
+                  {...getWiseBusinessOnboardingPrefill(bankAccountID, businessAccount?.data, privatePersonalDetails), bankAccountID: draftBankAccountID},
+                  toDynamicFormValues(draft),
+              );
     const isPrefillPending = Object.keys(missingPrefill).length > 0;
-    if (!isLoading && !isPrefillDone && !isPrefillPending) {
+    if (!isLoading && !isPrefillDone && !isDraftForOtherAccount && !isPrefillPending) {
         setIsPrefillDone(true);
     }
 
