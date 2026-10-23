@@ -14,6 +14,8 @@ const isPerfTestRun = process.argv.some((arg) => /perf-(test|local)|__perf__/.te
 const shardMatch = process.argv.map((arg) => /^--shard=(\d+)\/\d+$/.exec(arg)).find(Boolean);
 const emitsUntestedFiles = !shardMatch || shardMatch[1] === '1';
 
+// Baseline arm of the jest coverage measurement - coverage options below are untouched on purpose.
+// This comment exists so the PR contains a `**.js` file and the Jest workflow's paths filter fires.
 module.exports = {
     preset: 'jest-expo',
     resolver: '<rootDir>/jest/resolver.ts',
