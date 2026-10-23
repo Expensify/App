@@ -139,6 +139,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Es wird nachgedacht...',
         addCardTermsOfService: 'Expensify-Nutzungsbedingungen',
         perPerson: 'pro Person',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 Nacht • ${nightlyRate} pro Nacht`,
+            other: `${count} Nächte • ${nightlyRate} pro Nacht`,
+        }),
         phone: 'Telefon',
         phoneNumber: 'Telefonnummer',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -3994,6 +3998,7 @@ ${amount} für ${merchant} – ${date}`,
             removeDelegate: 'Urlaubsvertretung entfernen',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, abgeschlossen`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Schritt ${step}`;
         if (total) {
@@ -4101,11 +4106,14 @@ ${amount} für ${merchant} – ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Gib einen Wert zwischen ${min} und ${max} ein`,
             tooFewItems: ({min}: {min: number}) => `Füge mindestens ${min} hinzu`,
             tooManyItems: ({max}: {max: number}) => `Füge höchstens ${max} hinzu`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `${item} hinzufügen`,
         removeItemTitle: ({item}: {item: string}) => `${item} entfernen?`,
         removeItemPrompt: ({name}: {name: string}) => `Möchtest du ${name} wirklich entfernen?`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} mit der Endung ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'Die Fragen auf dieser Seite haben sich geändert',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
@@ -6328,12 +6336,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             },
             syncExpensifyCardSettlements: 'Expensify Karten-Abrechnungen synchronisieren',
             settlementAccount: {label: 'Expensify Karte Verrechnungskonto', description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in DualEntry.'},
-            syncTravelInvoicingSettlements: 'Abstimmungen der Reiseabrechnungen synchronisieren',
+            syncTravelInvoicingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
             travelInvoicingSettlementAccount: {
-                label: 'Reisekostenabrechnungs-Verrechnungskonto',
+                label: 'Abrechnungskonto für konsolidierte Reiseabrechnung',
                 description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in DualEntry.',
             },
-            travelInvoicingPayableAccount: {label: 'Verbindlichkeitenkonto für Reiseabrechnungen'},
+            travelInvoicingPayableAccount: {label: 'Verbindlichkeitskonto für konsolidierte Reisekostenabrechnung'},
         },
         type: {
             free: 'Kostenlos',
@@ -7111,6 +7119,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             tagRules: 'Tag-Regeln',
             approverDescription: 'Genehmiger',
             importTags: 'Tags importieren',
+            appendCustomTagList: 'Benutzerdefinierte Tag-Liste anhängen',
             importTagsSupportingText: 'Kategorisiere deine Ausgaben mit einem oder mehreren Tags.',
             configureMultiLevelTags: 'Konfiguriere deine Liste von Tags für mehrstufiges Tagging.',
             importMultiLevelTagsSupportingText: `Hier ist eine Vorschau deiner Tags. Wenn alles gut aussieht, klicke unten, um sie zu importieren.`,
@@ -7378,6 +7387,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     'Das Mitglied arbeitet von zu Hause aus oder reist zwischen verschiedenen Standorten ohne festes Büro, daher gelten die Pendelregelungen nicht.',
                 futureOnlyNote: 'Änderungen gelten nur für zukünftige Kilometerberechnungen. Bestehende Kilometerabrechnungen werden nicht neu berechnet.',
             },
+            officeLocation: 'Bürostandort',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Bürostandort ändern',
+            changeWorkArrangement: 'Arbeitsvereinbarung ändern',
             changeRole: 'Rolle ändern',
         },
         card: {
@@ -9244,12 +9257,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie das Verrechnungskonto „Campfire-Guthaben“, wenn Expensify eine Rechnung als bezahlt markiert.'},
             syncExpensifyCardSettlements: 'Expensify Karte-Abrechnungen synchronisieren',
             settlementAccount: {label: 'Verrechnungskonto der Expensify Karte', description: 'Wählen Sie Ihr Verrechnungskonto aus, und wir erstellen die Zahlung in Campfire.'},
-            syncTravelInvoicingSettlements: 'Reiseabrechnungs-Ausgleiche synchronisieren',
+            syncTravelInvoicingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
             travelInvoicingSettlementAccount: {
-                label: 'Abrechnungskonto für Reiseabrechnungen',
+                label: 'Abrechnungskonto für konsolidierte Reiseabrechnung',
                 description: 'Wählen Sie Ihr Verrechnungskonto aus, und wir erstellen die Zahlung in Campfire.',
             },
-            travelInvoicingPayableAccount: {label: 'Verbindlichkeitskonto für Reiseabrechnungen'},
+            travelInvoicingPayableAccount: {label: 'Verbindlichkeitskonto für konsolidierte Reisekostenabrechnung'},
             exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
             cardProgramAccount: {
                 label: 'Kartenprogramm-Konto',
@@ -9334,6 +9347,35 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             companyCardAccount: {
                 label: 'Firmenkartenkonto',
                 description: 'Wählen Sie aus, wohin Firmenkartentransaktionen exportiert werden.',
+            },
+            exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
+            cardProgramAccount: {
+                label: 'Kartenprogramm-Konto',
+                description: 'Überschreiben Sie das Arbeitsbereichskonto für diese Kartenprogramme.',
+                descriptionLevel2: 'Überschreiben Sie das Workspace-Konto für dieses Kartenprogramm.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Alle Programme verwenden das Standardkonto';
+                    }
+                    return {
+                        one: `${count} Programm mit benutzerdefiniertem Konto`,
+                        other: `${count} Programme mit benutzerdefinierten Konten`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Konto pro Karte',
+                description: 'Programm-Konto für einzelne Karten überschreiben.',
+                descriptionLevel2: 'Programm-Konto für diese Karten überschreiben.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Alle Karten verwenden Programmkonten';
+                    }
+                    return {
+                        one: `${count} Karte mit benutzerdefiniertem Konto`,
+                        other: `${count} Karten mit benutzerdefinierten Konten`,
+                    };
+                },
             },
             paymentMethod: {
                 label: 'Zahlungsform',
@@ -9634,6 +9676,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `Standardwährung auf ${newCurrency} aktualisiert (zuvor ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `die automatische Berichtshäufigkeit auf „${newFrequency}“ aktualisiert (zuvor „${oldFrequency}“)`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `hat den Genehmigungsmodus auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`,
+        archivedWorkspace: 'diesen Workspace archiviert',
+        unarchivedWorkspace: 'hat diesen Workspace aus dem Archiv genommen',
         upgradedWorkspace: 'hat diesen Workspace auf den Control-Tarif hochgestuft',
         forcedCorporateUpgrade: `Dieser Workspace wurde auf den Control-Tarif hochgestuft. Klicken Sie <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">hier</a> für weitere Informationen.`,
         downgradedWorkspace: 'hat diesen Workspace auf den Collect-Tarif heruntergestuft',
@@ -9880,6 +9924,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             setAsPrimary: ({name}: {name: string}) => `Legen Sie den Bürositz „${name}“ als primär fest`,
             setCompanyAddressAsPrimary: 'Firmenadresse als primär festlegen',
             removed: ({name}: {name: string}) => `hat den Bürostandort „${name}“ entfernt`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `hat den Bürostandort von ${displayName} in ${officeLocation} geändert (zuvor ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `„${name}“`,
+            companyAddress: 'die Firmenadresse',
+            primaryOffice: 'das Hauptbüro',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `Standard-Arbeitsmodell auf ${arrangement} festlegen`,
@@ -10567,8 +10616,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             category: 'Kategorie',
             tag: 'Tag',
         },
-        switchToTableView: 'Zur Tabellenansicht wechseln',
-        switchToExpenseView: 'Zur Ausgabenansicht wechseln',
     },
     report: {
         newReport: {
@@ -11638,6 +11685,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} erstattet am ${date}`,
             },
             billedTo: 'Abgerechnet an',
+            activity: 'Aktivität',
+            findActiveUser: 'Aktiven Benutzer suchen',
             viewReceipt: 'Beleg anzeigen',
             viewInvoice: 'Rechnung anzeigen',
         },
