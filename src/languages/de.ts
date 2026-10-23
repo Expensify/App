@@ -139,6 +139,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Es wird nachgedacht...',
         addCardTermsOfService: 'Expensify-Nutzungsbedingungen',
         perPerson: 'pro Person',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 Nacht • ${nightlyRate} pro Nacht`,
+            other: `${count} Nächte • ${nightlyRate} pro Nacht`,
+        }),
         phone: 'Telefon',
         phoneNumber: 'Telefonnummer',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -9344,6 +9348,35 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 label: 'Firmenkartenkonto',
                 description: 'Wählen Sie aus, wohin Firmenkartentransaktionen exportiert werden.',
             },
+            exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
+            cardProgramAccount: {
+                label: 'Kartenprogramm-Konto',
+                description: 'Überschreiben Sie das Arbeitsbereichskonto für diese Kartenprogramme.',
+                descriptionLevel2: 'Überschreiben Sie das Workspace-Konto für dieses Kartenprogramm.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Alle Programme verwenden das Standardkonto';
+                    }
+                    return {
+                        one: `${count} Programm mit benutzerdefiniertem Konto`,
+                        other: `${count} Programme mit benutzerdefinierten Konten`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Konto pro Karte',
+                description: 'Programm-Konto für einzelne Karten überschreiben.',
+                descriptionLevel2: 'Programm-Konto für diese Karten überschreiben.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Alle Karten verwenden Programmkonten';
+                    }
+                    return {
+                        one: `${count} Karte mit benutzerdefiniertem Konto`,
+                        other: `${count} Karten mit benutzerdefinierten Konten`,
+                    };
+                },
+            },
             paymentMethod: {
                 label: 'Zahlungsform',
                 description: 'Wählen Sie eine Zahlungsform für Einkaufsrechnungen, damit Dynamics 365 Business Central sie mit Ihrer Bank abgleichen kann.',
@@ -9643,6 +9676,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `Standardwährung auf ${newCurrency} aktualisiert (zuvor ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `die automatische Berichtshäufigkeit auf „${newFrequency}“ aktualisiert (zuvor „${oldFrequency}“)`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `hat den Genehmigungsmodus auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`,
+        archivedWorkspace: 'diesen Workspace archiviert',
+        unarchivedWorkspace: 'hat diesen Workspace aus dem Archiv genommen',
         upgradedWorkspace: 'hat diesen Workspace auf den Control-Tarif hochgestuft',
         forcedCorporateUpgrade: `Dieser Workspace wurde auf den Control-Tarif hochgestuft. Klicken Sie <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">hier</a> für weitere Informationen.`,
         downgradedWorkspace: 'hat diesen Workspace auf den Collect-Tarif heruntergestuft',
@@ -10513,6 +10548,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             topCategories: 'Topkategorien',
             topMerchants: 'Top-Händler',
             violationsBySubmitter: 'Verstöße durch Einreichende',
+            travel: 'Reisen',
+            trips: 'Reisen',
         },
         mergeReports: {
             title: 'Berichte zusammenführen',
@@ -11639,6 +11676,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} erstattet am ${date}`,
             },
             billedTo: 'Abgerechnet an',
+            activity: 'Aktivität',
+            findActiveUser: 'Aktiven Benutzer suchen',
             viewReceipt: 'Beleg anzeigen',
             viewInvoice: 'Rechnung anzeigen',
         },

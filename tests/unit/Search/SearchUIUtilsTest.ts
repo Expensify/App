@@ -46,6 +46,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchTask} from '@src/types/onyx/SearchResults';
+import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
@@ -10429,6 +10430,86 @@ describe('SearchUIUtils', () => {
             expect(approveItem).toBeDefined();
             expect(payItem).toBeDefined();
             expect(exportItem).toBeDefined();
+        });
+
+        describe('Travel section', () => {
+            const createSectionsForPolicy = (travelSettings: WorkspaceTravelSettings | undefined) =>
+                SearchUIUtils.createTypeMenuSections({
+                    currentUserEmail: adminEmail,
+                    currentUserAccountID: adminAccountID,
+                    cardFeedsByPolicy: {},
+                    defaultCardFeed: undefined,
+                    policies: {
+                        policy1: {
+                            ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                            isTravelEnabled: true,
+                            travelSettings,
+                        },
+                    },
+                    savedSearches: {},
+                    isOffline: false,
+                    defaultExpensifyCard: undefined,
+                    draftTransactionIDs: [],
+                    isTrackIntentUser: false,
+                });
+
+            it('should show the Travel section with Trips when a workspace is set up for Expensify Travel', () => {
+                // Given a workspace that is set up in Spotnana
+                const sections = createSectionsForPolicy({spotnanaCompanyID: 'spotnana-company-1', hasAcceptedTerms: true});
+
+                // When looking for the Travel section in the Spend menu
+                const travelSection = sections.find((section) => section.translationPath === 'search.tabs.travel');
+
+                // Then it holds only the Trips search, which is a trip search
+                expect(travelSection?.menuItems).toHaveLength(1);
+                expect(travelSection?.menuItems.at(0)).toStrictEqual(
+                    expect.objectContaining({
+                        key: CONST.SEARCH.SEARCH_KEYS.TRIPS,
+                        translationPath: 'search.tabs.trips',
+                        type: CONST.SEARCH.DATA_TYPES.TRIP,
+                        icon: 'Plane',
+                    }),
+                );
+            });
+
+            it('should show the Travel section when the travel domain is linked even without a Spotnana company', () => {
+                // Given a workspace provisioned through its travel domain only, since either ID means it's set up for travel
+                const sections = createSectionsForPolicy({associatedTravelDomainAccountID: '123'});
+
+                // When looking for the Travel section in the Spend menu
+                const travelSection = sections.find((section) => section.translationPath === 'search.tabs.travel');
+
+                // Then the Travel section shows
+                expect(travelSection).toBeDefined();
+            });
+
+            it('should not show the Travel section when travel is only switched on but the workspace is not set up', () => {
+                // Given a workspace with the travel feature switched on but not provisioned in Spotnana, since isTravelEnabled is only the feature switch
+                const sections = createSectionsForPolicy(undefined);
+
+                // When looking for the Trips search in the Spend menu
+                const menuKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
+
+                // Then there is no Travel section and no Trips search
+                expect(sections.find((section) => section.translationPath === 'search.tabs.travel')).toBeUndefined();
+                expect(menuKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.TRIPS);
+            });
+
+            it('should remove the Travel section for users without the TravelApproval beta', () => {
+                // Given a user in a workspace set up for travel
+                const sections = createSectionsForPolicy({spotnanaCompanyID: 'spotnana-company-1'});
+                expect(sections.find((section) => section.translationPath === 'search.tabs.travel')).toBeDefined();
+
+                // When the menu drops the items behind the TravelApproval beta, as it does when the beta is off
+                const menuSections = SearchUIUtils.omitTravelApprovalMenuItems(sections);
+                const menuKeys = menuSections.flatMap((section) => section.menuItems.map((item) => item.key));
+
+                // Then the empty Travel section is removed and the other sections stay as they are
+                expect(menuSections.find((section) => section.translationPath === 'search.tabs.travel')).toBeUndefined();
+                expect(menuKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.TRIPS);
+                expect(menuSections).toHaveLength(sections.length - 1);
+                expect(menuKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            });
         });
     });
 

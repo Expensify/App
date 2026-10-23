@@ -143,6 +143,12 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Myślę…',
         addCardTermsOfService: 'Regulamin Expensify',
         perPerson: 'na osobę',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 noc • ${nightlyRate} za noc`,
+            few: `${count} noce • ${nightlyRate} za noc`,
+            many: `${count} nocy • ${nightlyRate} za noc`,
+            other: `${count} nocy • ${nightlyRate} za noc`,
+        }),
         phone: 'Telefon',
         phoneNumber: 'Numer telefonu',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -9284,6 +9290,39 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 label: 'Konto karty firmowej',
                 description: 'Wybierz, dokąd eksportować transakcje kartą firmową.',
             },
+            exportToMultipleAccounts: 'Skonfiguruj eksport do wielu kont',
+            cardProgramAccount: {
+                label: 'Konto programu kartowego',
+                description: 'Zastąp konto przestrzeni roboczej dla tych programów kart.',
+                descriptionLevel2: 'Zastąp konto przestrzeni roboczej dla tego programu kart.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Wszystkie programy używają domyślnego konta';
+                    }
+                    return {
+                        one: `${count} program z niestandardowym kontem`,
+                        few: `${count} programy z niestandardowymi kontami`,
+                        many: `${count} programów z niestandardowymi kontami`,
+                        other: `${count} programu z niestandardowymi kontami`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Konto przypisane do karty',
+                description: 'Zastąp konto programu dla poszczególnych kart.',
+                descriptionLevel2: 'Zastąp konto programu dla tych kart.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Wszystkie karty korzystają z kont programu';
+                    }
+                    return {
+                        one: `${count} karta z niestandardowym kontem`,
+                        few: `${count} karty z niestandardowymi kontami`,
+                        many: `${count} kart z niestandardowymi kontami`,
+                        other: `${count} karty z niestandardowymi kontami`,
+                    };
+                },
+            },
             paymentMethod: {
                 label: 'Metoda płatności',
                 description: 'Wybierz metodę płatności dla faktur zakupu, aby Dynamics 365 Business Central mógł uzgodnić je z Twoim bankiem.',
@@ -9580,6 +9619,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `zaktualizowano częstotliwość automatycznego raportowania na „${newFrequency}” (poprzednio „${oldFrequency}”)`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `zaktualizowano tryb zatwierdzania na „${newValue}” (wcześniej „${oldValue}”)`,
+        archivedWorkspace: 'zarchiwizował(-a) ten workspace',
+        unarchivedWorkspace: 'przywrócono to miejsce pracy z archiwum',
         upgradedWorkspace: 'zaktualizowano ten workspace do planu Control',
         forcedCorporateUpgrade: `Ta przestrzeń robocza została zaktualizowana do planu Control. Kliknij <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">tutaj</a>, aby uzyskać więcej informacji.`,
         downgradedWorkspace: 'zmniejszono plan tego workspace’u do Collect',
@@ -10454,6 +10495,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             topCategories: 'Najpopularniejsze kategorie',
             topMerchants: 'Najważniejsi sprzedawcy',
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
+            travel: 'Podróże',
+            trips: 'Podróże',
         },
         mergeReports: {
             title: 'Połącz raporty',
@@ -11577,6 +11620,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Zwrócono ${amount} ${date}`,
             },
             billedTo: 'Obciążono',
+            activity: 'Aktywność',
+            findActiveUser: 'Znajdź aktywnego użytkownika',
             viewReceipt: 'Wyświetl paragon',
             viewInvoice: 'Wyświetl fakturę',
         },

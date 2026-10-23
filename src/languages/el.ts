@@ -142,6 +142,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Γίνεται επεξεργασία…',
         addCardTermsOfService: 'Όροι χρήσης Expensify',
         perPerson: 'ανά άτομο',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 διανυκτέρευση • ${nightlyRate} ανά διανυκτέρευση`,
+            other: `${count} διανυκτερεύσεις • ${nightlyRate} ανά διανυκτέρευση`,
+        }),
         phone: 'Τηλέφωνο',
         phoneNumber: 'Αριθμός τηλεφώνου',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -9508,6 +9512,35 @@ ${reportName}`,
                 label: 'Λογαριασμός εταιρικής κάρτας',
                 description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
             },
+            exportToMultipleAccounts: 'Ρύθμιση εξαγωγής σε πολλούς λογαριασμούς',
+            cardProgramAccount: {
+                label: 'Λογαριασμός προγράμματος κάρτας',
+                description: 'Παρακάμψτε τον λογαριασμό χώρου εργασίας για αυτά τα προγράμματα καρτών.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτό το πρόγραμμα κάρτας.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Όλα τα προγράμματα χρησιμοποιούν τον προεπιλεγμένο λογαριασμό';
+                    }
+                    return {
+                        one: `${count} πρόγραμμα με προσαρμοσμένο λογαριασμό`,
+                        other: `${count} προγράμματα με προσαρμοσμένους λογαριασμούς`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Λογαριασμός ανά κάρτα',
+                description: 'Παρακάμψτε τον λογαριασμό προγράμματος για μεμονωμένες κάρτες.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού προγράμματος για αυτές τις κάρτες.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Όλες οι κάρτες χρησιμοποιούν λογαριασμούς προγράμματος';
+                    }
+                    return {
+                        one: `${count} κάρτα με προσαρμοσμένο λογαριασμό`,
+                        other: `${count} κάρτες με προσαρμοσμένους λογαριασμούς`,
+                    };
+                },
+            },
             paymentMethod: {
                 label: 'Μέθοδος πληρωμής',
                 description: 'Επιλέξτε μια μέθοδο πληρωμής για τα τιμολόγια αγοράς, ώστε το Dynamics 365 Business Central να μπορεί να τα συμφωνήσει με την τράπεζά σας.',
@@ -9923,6 +9956,8 @@ ${reportName}`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `ενημέρωσε το προεπιλεγμένο νόμισμα σε ${newCurrency} (προηγουμένως ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `ενημέρωσε τη συχνότητα αυτόματης αναφοράς σε «${newFrequency}» (προηγουμένως «${oldFrequency}»)`,
         updateApprovalMode: (newValue, oldValue) => `ενημέρωσε τη λειτουργία έγκρισης σε «${newValue}» (προηγουμένως «${oldValue}»)`,
+        archivedWorkspace: 'αρχειοθέτησε αυτόν τον χώρο εργασίας',
+        unarchivedWorkspace: 'ήταν η κατάργηση αρχειοθέτησης αυτού του χώρου εργασίας',
         upgradedWorkspace: 'αναβάθμισε αυτόν τον χώρο εργασίας στο πρόγραμμα Control',
         forcedCorporateUpgrade: `Αυτός ο χώρος εργασίας έχει αναβαθμιστεί στο πλάνο Control. Κάντε κλικ <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">εδώ</a> για περισσότερες πληροφορίες.`,
         downgradedWorkspace: 'υποβίβασε αυτόν τον χώρο εργασίας στο πρόγραμμα Collect',
@@ -10403,6 +10438,8 @@ ${reportName}`,
             topCategories: 'Κορυφαίες κατηγορίες',
             topMerchants: 'Κορυφαίοι έμποροι',
             violationsBySubmitter: 'Παραβάσεις από τον υποβάλλοντα',
+            travel: 'Ταξίδι',
+            trips: 'Ταξίδια',
         },
         resultsAreLimited: 'Τα αποτελέσματα αναζήτησης είναι περιορισμένα.',
         viewResults: 'Προβολή αποτελεσμάτων',
@@ -11855,6 +11892,8 @@ ${reportName}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Επιστράφηκαν ${amount} στις ${date}`,
             },
             billedTo: 'Χρέωση σε',
+            activity: 'Δραστηριότητα',
+            findActiveUser: 'Εύρεση ενεργού χρήστη',
             viewReceipt: 'Προβολή απόδειξης',
             viewInvoice: 'Προβολή τιμολογίου',
         },

@@ -139,6 +139,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: '正在思考中…',
         addCardTermsOfService: 'Expensify 服务条款',
         perPerson: '每人',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 晚 • 每晚 ${nightlyRate}`,
+            other: `${count} 晚 • 每晚 ${nightlyRate}`,
+        }),
         phone: '电话',
         phoneNumber: '电话号码',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -8921,6 +8925,35 @@ ${reportName}`,
                 label: '公司卡账户',
                 description: '选择公司卡交易的导出位置。',
             },
+            exportToMultipleAccounts: '配置导出到多个账户',
+            cardProgramAccount: {
+                label: '卡计划账户',
+                description: '为这些卡计划覆盖工作区账户。',
+                descriptionLevel2: '覆盖此卡计划的工作区账户。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return '所有方案使用默认账户';
+                    }
+                    return {
+                        one: `${count} 个自定义账户的项目`,
+                        other: `${count} 个具有自定义科目的项目`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: '按卡计费账户',
+                description: '为单张卡片覆盖默认项目账户。',
+                descriptionLevel2: '为这些卡片覆盖默认项目账户。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return '所有卡都使用项目账户';
+                    }
+                    return {
+                        one: `${count} 张带有自定义账户的卡`,
+                        other: `${count} 张带有自定义账户的卡`,
+                    };
+                },
+            },
             paymentMethod: {
                 label: '付款方式',
                 description: '为采购发票选择付款方式，以便 Dynamics 365 Business Central 将其与您的银行进行对账。',
@@ -9208,6 +9241,8 @@ ${reportName}`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `已将默认货币更新为 ${newCurrency}（之前为 ${oldCurrency}）`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `已将自动报表频率更新为“${newFrequency}”（此前为“${oldFrequency}”）`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `将审批模式更新为“${newValue}”（之前为“${oldValue}”）`,
+        archivedWorkspace: '已归档此工作区',
+        unarchivedWorkspace: '取消归档此工作区',
         upgradedWorkspace: '已将此工作区升级到 Control 方案',
         forcedCorporateUpgrade: `此工作区已升级为 Control 方案。点击<a href="${CONST.COLLECT_UPGRADE_HELP_URL}">此处</a>了解更多信息。`,
         downgradedWorkspace: '将此工作区降级为 Collect 方案',
@@ -10039,6 +10074,8 @@ ${reportName}`,
             topCategories: '热门类别',
             topMerchants: '热门商家',
             violationsBySubmitter: '提交人违规',
+            travel: '差旅',
+            trips: '行程',
         },
         mergeReports: {
             title: '合并报表',
@@ -11126,6 +11163,8 @@ ${reportName}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${date} 已退款 ${amount}`,
             },
             billedTo: '账单对象',
+            activity: '活动',
+            findActiveUser: '查找活跃用户',
             viewReceipt: '查看收据',
             viewInvoice: '查看发票',
         },
