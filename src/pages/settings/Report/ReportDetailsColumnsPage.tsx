@@ -26,7 +26,7 @@ import arraysEqual from '@src/utils/arraysEqual';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 /**
  * Default selected columns for the report details table.
@@ -44,7 +44,7 @@ const REPORT_DETAILS_DEFAULT_COLUMNS: SearchCustomColumnIds[] = [
 
 const ALL_REPORT_DETAILS_CUSTOM_COLUMNS = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS).filter(isReportDetailsCustomColumn);
 const EXPENSE_DEFAULT_FIELDS = getMoneyRequestViewFields().filter(isReportDetailsCustomColumn);
-const ALL_EXPENSE_FIELDS = [...new Set([...EXPENSE_DEFAULT_FIELDS, ...ALL_REPORT_DETAILS_CUSTOM_COLUMNS])].filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
+const ALL_EXPENSE_FIELDS = getMoneyRequestViewFields([...EXPENSE_DEFAULT_FIELDS, ...ALL_REPORT_DETAILS_CUSTOM_COLUMNS], true).filter(isReportDetailsCustomColumn);
 
 function ReportDetailsColumnsPage() {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.COLUMNS | typeof SCREENS.REPORT_SETTINGS.FIELDS>>();
@@ -76,36 +76,25 @@ function ReportDetailsColumnsPage() {
     // pass the final value on first render.
     const isLoading = !reportTransactions;
 
-    // When no custom columns are saved, compute which columns getColumnsToShow would
-    // return for this report so data-driven columns (e.g. Exchange rate, Original amount,
-    // Tax rate, Tax amount) appear pre-selected when they have data on the table.
-    const effectiveColumns = useMemo(() => {
-        const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
-        if (savedColumns.length > 0) {
-            return isExpenseView ? getMoneyRequestViewFields(savedColumns, true).filter(isReportDetailsCustomColumn) : savedColumns;
-        }
-
-        if (!reportTransactions?.length) {
-            return isExpenseView ? EXPENSE_DEFAULT_FIELDS : REPORT_DETAILS_DEFAULT_COLUMNS;
-        }
-
-        const visibleColumns = getColumnsToShow({
-            currentAccountID: currentUserDetails?.accountID,
-            data: reportTransactions,
-            report,
-            isExpenseReportView: true,
-            isExpenseReportViewFromIOUReport: isIOUReport(report),
-            shouldShowBillableColumn: isBillableEnabledOnPolicy(policy),
-            shouldShowReimbursableColumn: hasNonReimbursableTransactions(reportTransactions),
-            reportCurrency: report?.currency,
-            isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
-        });
-
-        // The untouched expense editor has its own field order. Opening and saving the picker
-        // without changes must not hide its editors or overwrite the shared table preference.
-        const columns = isExpenseView ? getMoneyRequestViewFields(visibleColumns) : visibleColumns;
-        return columns.filter(isReportDetailsCustomColumn);
-    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy, isExpenseView]);
+    const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn).filter((column) => isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+    let tableColumns = savedColumns;
+    if (!tableColumns.length) {
+        tableColumns = reportTransactions?.length
+            ? getColumnsToShow({
+                  currentAccountID: currentUserDetails?.accountID,
+                  data: reportTransactions,
+                  report,
+                  isExpenseReportView: true,
+                  isExpenseReportViewFromIOUReport: isIOUReport(report),
+                  shouldShowBillableColumn: isBillableEnabledOnPolicy(policy),
+                  shouldShowReimbursableColumn: hasNonReimbursableTransactions(reportTransactions),
+                  reportCurrency: report?.currency,
+                  isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
+                  isVendorColumnAvailable,
+              }).filter(isReportDetailsCustomColumn)
+            : REPORT_DETAILS_DEFAULT_COLUMNS;
+    }
+    const effectiveColumns = isExpenseView ? getMoneyRequestViewFields(savedColumns, savedColumns.length > 0).filter(isReportDetailsCustomColumn) : tableColumns;
 
     const allColumns = (isExpenseView ? ALL_EXPENSE_FIELDS : ALL_REPORT_DETAILS_CUSTOM_COLUMNS).filter(isColumnAvailable);
     const currentColumns = effectiveColumns.filter(isColumnAvailable);
@@ -117,12 +106,12 @@ function ReportDetailsColumnsPage() {
         if (!arraysEqual(selectedColumnIds, currentColumns)) {
             const columnsToSave = [...selectedColumnIds];
             if (isExpenseView) {
-                // Receipts have a separate panel in the expense view. Editing fields must not
-                // change whether or where the receipt column appears in the report table.
-                const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
-                const receiptIndex = savedColumns.length ? savedColumns.indexOf(CONST.SEARCH.TABLE_COLUMNS.RECEIPT) : 0;
-                if (receiptIndex !== -1) {
-                    columnsToSave.splice(Math.min(receiptIndex, columnsToSave.length), 0, CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
+                // The shared preference also contains table-only columns, which cannot be changed in this picker.
+                for (const [index, column] of tableColumns.entries()) {
+                    if (allColumns.includes(column)) {
+                        continue;
+                    }
+                    columnsToSave.splice(Math.min(index, columnsToSave.length), 0, column);
                 }
             }
             setReportDetailsColumns(columnsToSave, reportDetailsColumns);

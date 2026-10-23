@@ -268,8 +268,8 @@ describe('MoneyRequestView edit fields', () => {
         return transaction;
     };
 
-    it('does not treat the fallback report owner as an enabled attendee on Collect', async () => {
-        // Given a Collect workspace with no explicit attendees and a selected total-per-attendee column.
+    it('omits redundant per-attendee totals on Collect', async () => {
+        // Given an older table preference that includes a redundant per-attendee total.
         const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
         await setupTestData();
         await act(async () => {
@@ -280,15 +280,15 @@ describe('MoneyRequestView edit fields', () => {
         renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the selected field stays empty, matching the report table's policy restriction.
-        expect(screen.getByTestId('menu-item-title-iou.totalPerAttendee')).toHaveTextContent(/^$/);
+        // Then the expense view does not repeat information already provided by the Attendees field.
+        expect(screen.queryByTestId('menu-item-title-iou.totalPerAttendee')).not.toBeOnTheScreen();
     });
 
     it.each([
         [CONST.SEARCH.TABLE_COLUMNS.BILLABLE, 'common.billable', false, {disabledFields: {defaultBillable: true}}],
         [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, 'common.reimbursable', false, {disabledFields: {reimbursable: true}, defaultReimbursable: false}],
         [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, 'common.reimbursable', true, {disabledFields: {reimbursable: true}, defaultReimbursable: true}],
-    ] as const)('shows selected %s as read-only when its control is hidden (%s, value %s)', async (column, label, value, policy) => {
+    ] as const)('keeps selected %s hidden when workspace settings prohibit its control (%s, value %s)', async (column, label, value, policy) => {
         // Given an explicitly selected column whose control is hidden by the workspace settings.
         const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
         await setupTestData();
@@ -301,9 +301,9 @@ describe('MoneyRequestView edit fields', () => {
         renderMoneyRequestView(threadReport, policy);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the value remains visible without exposing a control prohibited by the workspace.
-        expect(screen.getByTestId(`menu-item-${label}`)).toHaveTextContent('readonly');
-        expect(screen.getByTestId(`menu-item-title-${label}`)).toHaveTextContent(value ? 'common.yes' : 'common.no');
+        // Then choosing a column cannot override the workspace's field visibility rules.
+        expect(screen.queryByTestId(`menu-item-${label}`)).not.toBeOnTheScreen();
+        expect(screen.queryByTestId(`menu-item-title-${label}`)).not.toBeOnTheScreen();
         expect(screen.queryAllByRole('switch')).toHaveLength(0);
 
         // When the field is deselected, or the account returns to its untouched preferences.
@@ -336,6 +336,114 @@ describe('MoneyRequestView edit fields', () => {
         // Then customization preserves the existing switch instead of replacing it with a read-only row.
         expect(screen.getByRole('switch', {name: controlLabel})).toBeOnTheScreen();
         expect(screen.queryByTestId(`menu-item-${label}`)).not.toBeOnTheScreen();
+    });
+
+    it.each([
+        [CONST.SEARCH.TABLE_COLUMNS.BILLABLE, 'common.billable', true, {disabledFields: {defaultBillable: true}}],
+        [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, 'Iou.reimbursable', false, {disabledFields: {reimbursable: true}, defaultReimbursable: true}],
+        [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, 'Iou.reimbursable', true, {disabledFields: {reimbursable: true}, defaultReimbursable: false}],
+    ] as const)('keeps %s correctable when its value differs from the workspace setting', async (column, controlLabel, value, policy) => {
+        // Given an existing expense whose value must remain correctable despite the workspace restriction.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {[column]: value});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, column]);
+        });
+
+        // When the restricted field is selected in the shared preference.
+        renderMoneyRequestView(threadReport, policy);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the existing control remains available so the expense is not stuck with its old value.
+        expect(screen.getByRole('switch', {name: controlLabel})).toBeOnTheScreen();
+    });
+
+    it('keeps required fields available after customization', async () => {
+        // Given a report requiring a Category and Tag even though neither column was selected.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {Travel: {name: 'Travel', enabled: true}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                Location: {name: 'Location', orderWeight: 0, required: true, tags: {Berlin: {name: 'Berlin', enabled: true}}},
+            });
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+        });
+
+        // When the expense opens with the customized preference.
+        renderMoneyRequestView(threadReport, {areCategoriesEnabled: true, areTagsEnabled: true, requiresCategory: true, requiresTag: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the mandatory editors remain reachable so the expense can satisfy the workspace requirements.
+        expect(screen.getByLabelText(fieldLabel('common.category'))).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-Location')).toHaveTextContent('editable');
+        expect(screen.queryByTestId('menu-item-common.merchant')).not.toBeOnTheScreen();
+    });
+
+    it('shows a violation on a field omitted from the saved columns', async () => {
+        // Given a saved layout hiding Description on an expense with a missing-description violation.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {name: CONST.VIOLATIONS.MISSING_COMMENT, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+            ]);
+        });
+
+        // When the expense opens, the display preference must still allow the violation to be fixed.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Description editor and its error are visible without enabling unrelated fields.
+        expect(screen.getByTestId('menu-item-common.description')).toHaveTextContent('editable');
+        expect(screen.getByTestId('menu-item-error-common.description')).toHaveTextContent('violations.missingComment.');
+        expect(screen.queryByTestId('menu-item-common.merchant')).not.toBeOnTheScreen();
+    });
+
+    it('keeps the default expense fields when a sibling has accounting data', async () => {
+        // Given untouched preferences and another expense whose accounting values enable extra table columns.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        const transaction = await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {currency: CONST.CURRENCY.USD});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}sibling_mrv_test`, {
+                ...transaction,
+                transactionID: 'sibling_mrv_test',
+                currency: 'EUR',
+                currencyConversionRate: '1.25',
+                mcc: '5812',
+            });
+        });
+
+        // When the current expense opens without an explicit field selection.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then sibling data cannot add empty accounting fields to the existing expense layout.
+        expect(screen.getByTestId('menu-item-common.description')).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-common.exchangeRate')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-common.mcc')).not.toBeOnTheScreen();
+    });
+
+    it('falls back to default fields when the only saved column is unavailable', async () => {
+        // Given a Vendor preference saved on a different workspace where vendor matching was available.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.VENDOR]);
+        });
+
+        // When the expense opens on a workspace without the vendor feature.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the stale preference cannot hide the expense's standard editors.
+        expect(screen.getByTestId('menu-item-common.description')).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+        expect(screen.queryByLabelText(fieldLabel('common.vendor'))).not.toBeOnTheScreen();
     });
 
     it('renders the shared report fields in order and reacts to preference changes', async () => {

@@ -35,7 +35,6 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
@@ -76,7 +75,6 @@ import {
     isPerDiemEnabled,
     isPolicyAccessible,
     isTaxTrackingEnabled,
-    isPolicyTaxEnabled,
     resolveCurrentTaxCode,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -97,7 +95,7 @@ import {
     isTrackExpenseReportNew,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {getColumnsToShow, isReportDetailsCustomColumn} from '@libs/SearchUIUtils';
+import {isReportDetailsCustomColumn} from '@libs/SearchUIUtils';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
@@ -133,7 +131,6 @@ import {
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
     isTimeRequest as isTimeRequestTransactionUtils,
-    isTransactionPendingDelete,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
 } from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
@@ -308,11 +305,6 @@ function MoneyRequestView({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isP2PDistanceRequest = isCustomUnitRateIDForP2P(transaction);
     const moneyRequestReport = parentReport;
-    const parentReportTransactions = useReportTransactions(moneyRequestReport?.reportID);
-    // Exclude transactions pending deletion so the report is recognized as single-expense immediately after deleting one of its expenses,
-    // instead of waiting for the optimistic delete to be removed from Onyx (https://github.com/Expensify/App/issues/91058).
-    // While offline the deleted expense is still rendered, so keep counting it to stay consistent with the visible transaction list.
-    const visibleParentReportTransactions = parentReportTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(transactionThreadReport, moneyRequestReport, parentReportAction);
@@ -1266,22 +1258,36 @@ function MoneyRequestView({
 
     // Merge/duplicate previews and personal requests retain their existing editing layout.
     const shouldUseReportFields = isExpenseReport(parentReport) && !isFromMergeTransaction && !isFromReviewDuplicates;
-    const savedColumns = shouldUseReportFields ? (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn) : [];
-    const tableColumns = shouldUseReportFields
-        ? getColumnsToShow({
-              currentAccountID: currentUserAccountIDParam,
-              data: visibleParentReportTransactions,
-              report: parentReport,
-              visibleColumns: savedColumns,
-              isExpenseReportView: true,
-              shouldShowBillableColumn: isBillableEnabledOnPolicy(policy),
-              shouldShowReimbursableColumn: visibleParentReportTransactions.some((item) => !getReimbursable(item)),
-              reportCurrency: parentReport?.currency,
-              isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
-              isVendorColumnAvailable: hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)),
-          })
+    const savedColumns = shouldUseReportFields
+        ? (reportDetailsColumns ?? [])
+              .filter(isReportDetailsCustomColumn)
+              .filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR || hasVendorFeature(policy, isVendorMatchingBetaEnabled ?? false))
         : [];
-    const fieldsToShow = getMoneyRequestViewFields(tableColumns, savedColumns.length > 0);
+    const requiredFields: SearchColumnType[] = [];
+    const fieldViolations: Array<[SearchColumnType, ViolationField]> = [
+        [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, 'comment'],
+        [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, 'merchant'],
+        [CONST.SEARCH.TABLE_COLUMNS.DATE, 'date'],
+        [CONST.SEARCH.TABLE_COLUMNS.CATEGORY, 'category'],
+        [CONST.SEARCH.TABLE_COLUMNS.VENDOR, 'vendor'],
+        [CONST.SEARCH.TABLE_COLUMNS.TAG, 'tag'],
+        [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, 'tax'],
+        [CONST.SEARCH.TABLE_COLUMNS.ATTENDEES, 'attendees'],
+        [CONST.SEARCH.TABLE_COLUMNS.BILLABLE, 'billable'],
+    ];
+    for (const [column, field] of fieldViolations) {
+        if (getErrorForField(field)) {
+            requiredFields.push(column);
+        }
+    }
+    if (policy?.requiresCategory) {
+        requiredFields.push(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
+    }
+    if (policy?.requiresTag || policyTagLists.some((tag) => tag.required)) {
+        requiredFields.push(CONST.SEARCH.TABLE_COLUMNS.TAG);
+    }
+    // A display preference must not prevent users from seeing or fixing a required expense field.
+    const fieldsToShow = [...new Set([...getMoneyRequestViewFields(savedColumns, savedColumns.length > 0), ...requiredFields])];
 
     const editOrSplitAmount = () => {
         if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
@@ -1560,9 +1566,6 @@ function MoneyRequestView({
                     )
                 );
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
-                if (!shouldShowReimbursable && savedColumns.includes(column)) {
-                    break;
-                }
                 return (
                     shouldShowReimbursable && (
                         <MoneyRequestToggleField
@@ -1575,9 +1578,6 @@ function MoneyRequestView({
                     )
                 );
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
-                if (!shouldShowBillable && savedColumns.includes(column)) {
-                    break;
-                }
                 return (
                     shouldShowBillable && (
                         <MoneyRequestBillableField
@@ -1608,7 +1608,6 @@ function MoneyRequestView({
                 policy={policy}
                 policyCategories={policyCategories}
                 policyTagLists={policyTagList}
-                attendeeCount={transactionAttendees?.length ?? 0}
             />
         );
     };

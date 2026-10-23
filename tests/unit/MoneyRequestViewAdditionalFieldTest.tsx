@@ -5,7 +5,7 @@ import MoneyRequestViewAdditionalField from '@components/ReportActionItem/MoneyR
 import type {SearchColumnType} from '@components/Search/types';
 
 import CONST from '@src/CONST';
-import type {Policy, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 
 import React from 'react';
 
@@ -13,120 +13,216 @@ import createMock from '../utils/createMock';
 
 jest.mock('@components/MenuItem/presets/MenuItemField', () => jest.fn(() => null));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
-jest.mock('@hooks/useCurrencyList', () => ({
-    useCurrencyListActions: () => ({convertToDisplayString: (amount: number, currency: string) => `${currency}:${amount}`}),
-}));
 
-const attendeesEnabledPolicy = createMock<Policy>({id: 'policy-1', type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true});
+type FieldOptions = {
+    policy?: Policy;
+    policyCategories?: PolicyCategories;
+    policyTagLists?: PolicyTagLists;
+    report?: Report;
+};
 
-function renderField(
-    column: SearchColumnType,
-    overrides: Partial<Transaction> = {},
-    {policy, attendeeCount}: {policy: Policy | undefined; attendeeCount: number} = {policy: attendeesEnabledPolicy, attendeeCount: 2},
-) {
+function renderField(column: SearchColumnType, overrides: Partial<Transaction> = {}, {policy, policyCategories, policyTagLists, report}: FieldOptions = {}) {
     render(
         <MoneyRequestViewAdditionalField
             column={column}
-            transaction={{transactionID: '1', reportID: '2', amount: -1000, currency: 'EUR', created: '2026-09-01', merchant: 'Merchant', ...overrides}}
-            report={{reportID: '2', type: CONST.REPORT.TYPE.EXPENSE, currency: 'USD', submitterPayrollID: 'payroll-123'}}
+            transaction={{
+                transactionID: '1',
+                reportID: '2',
+                amount: -1000,
+                currency: 'EUR',
+                created: '2026-09-01',
+                merchant: 'Merchant',
+                ...overrides,
+            }}
+            report={
+                report ?? {
+                    reportID: '2',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: 'USD',
+                }
+            }
             policy={policy}
-            policyCategories={undefined}
-            policyTagLists={undefined}
-            attendeeCount={attendeeCount}
+            policyCategories={policyCategories}
+            policyTagLists={policyTagLists}
         />,
     );
     return jest.mocked(MenuItemField).mock.calls.at(-1)?.at(0);
 }
 
 describe('additional expense field values', () => {
-    it.each([
-        ['Collect', createMock<Policy>({id: 'policy-1', type: CONST.POLICY.TYPE.TEAM}), 1],
-        ['Control with tracking disabled', {...attendeesEnabledPolicy, isAttendeeTrackingEnabled: false}, 2],
-        ['missing policy', undefined, 1],
-        ['no attendees', attendeesEnabledPolicy, 0],
-    ] as const)('leaves total per attendee empty for %s', (_scenario, policy, attendeeCount) => {
-        // Given a policy or attendee count for which the report table leaves the cell empty.
-        const options = {policy, attendeeCount};
-
-        // When the selected field is displayed for a known amount or a receipt still scanning.
-        for (const transaction of [{}, {amount: 0, merchant: '', receipt: {receiptID: 123, state: CONST.IOU.RECEIPT_STATE.SCANNING}}]) {
-            const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, transaction, options);
-
-            // Then neither an amount nor a scanning placeholder is shown or offered for copying.
-            expect(field).toEqual(expect.objectContaining({value: '', isValueSelectable: false}));
-        }
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
     it.each([
-        [undefined, 'EUR:1000'],
-        [-1250, 'USD:1250'],
-        [0, 'USD:0'],
-        [1250, 'USD:-1250'],
-    ])('shows the correct total and currency for converted amount %s', (convertedAmount, expected) => {
-        // Given an offline expense, a converted expense, a zero total, or a refund.
-        const transaction = {convertedAmount};
+        CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+        CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+        CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
+        CONST.SEARCH.TABLE_COLUMNS.POSTED,
+        CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
+        CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
+    ])('does not create a second field for %s', (column) => {
+        // Given a table column whose information belongs to an existing expense editor.
+        // When the column reaches the additional field renderer.
+        renderField(column);
 
-        // When its Total column is displayed as a field.
-        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TOTAL, transaction);
+        // Then the existing editor remains responsible for its details and workspace visibility rules.
+        expect(MenuItemField).not.toHaveBeenCalled();
+    });
 
-        // Then missing conversion falls back to the transaction currency while zero and refund signs are preserved.
+    it.each([
+        [1234, '1234'],
+        ['5678', '5678'],
+        [CONST.DEFAULT_NUMBER_ID, ''],
+        [String(CONST.DEFAULT_NUMBER_ID), ''],
+        [undefined, ''],
+    ])('uses the report table MCC format for %s', (mcc, expected) => {
+        // Given a transaction that may have a merchant category code or the backend's missing value.
+        const transaction = {mcc};
+
+        // When MCC is selected for the expense view.
+        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.MCC, transaction);
+
+        // Then a valid code can be copied and a missing code stays empty.
+        expect(field).toEqual(
+            expect.objectContaining({
+                value: expected,
+                isValueSelectable: !!expected,
+            }),
+        );
+    });
+
+    it('resolves category and tag GL codes in the workspace tag order', () => {
+        // Given codes with backend quotes and tag lists stored in a different order from their hierarchy.
+        const glCodeKey = 'GL Code';
+        const transaction = {
+            category: 'Meals',
+            tag: 'Sales:North',
+        };
+        const options = {
+            policyCategories: {
+                Meals: {name: 'Meals', enabled: true, [glCodeKey]: '"200"'},
+            },
+            policyTagLists: {
+                Regions: {
+                    name: 'Regions',
+                    required: false,
+                    orderWeight: 1,
+                    tags: {North: {name: 'North', enabled: true, [glCodeKey]: '"400"'}},
+                },
+                Departments: {
+                    name: 'Departments',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {Sales: {name: 'Sales', enabled: true, [glCodeKey]: '"300"'}},
+                },
+            },
+        };
+
+        // When the selected accounting fields are rendered for the expense's category and tags.
+        const categoryField = renderField(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE, transaction, options);
+        const tagField = renderField(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE, transaction, options);
+
+        // Then the codes follow the workspace hierarchy without backend quote characters.
+        expect(categoryField?.value).toBe('200');
+        expect(tagField?.value).toBe('300, 400');
+    });
+
+    it.each([
+        [{currencyConversionRate: '1.234567'}, '1.2346 EUR/USD'],
+        [{currencyConversionRate: '1.5'}, '1.5000 EUR/USD'],
+        [{currencyConversionRate: '1'}, ''],
+        [{currency: 'USD', currencyConversionRate: '1.5'}, ''],
+    ])('uses report conversion formatting for %j', (transaction, expected) => {
+        // Given a foreign expense with a rate, or an expense that needs no conversion in this report.
+        // When the Exchange rate field is rendered.
+        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, transaction);
+
+        // Then the displayed rate matches the table and domestic expenses do not offer an empty value for copying.
+        expect(field).toEqual(
+            expect.objectContaining({
+                value: expected,
+                isValueSelectable: !!expected,
+            }),
+        );
+    });
+
+    it.each([
+        [CONST.IOU.REQUEST_TYPE.MANUAL, 'customTax'],
+        [CONST.IOU.REQUEST_TYPE.PER_DIEM, ''],
+        [CONST.IOU.REQUEST_TYPE.TIME, ''],
+    ])('shows a customized tax code only for an eligible %s expense', (iouRequestType, expected) => {
+        // Given a workspace with a customized tax code and an expense type that may not support tax.
+        const policy = createMock<Policy>({
+            taxRates: {
+                taxes: {
+                    customTax: {
+                        name: 'Tax',
+                        value: '10%',
+                        previousTaxCode: 'oldTax',
+                    },
+                },
+            },
+        });
+
+        // When the expense's Tax code field is rendered.
+        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TAX_CODE, {taxCode: 'customTax', iouRequestType}, {policy});
+
+        // Then only eligible expenses display the code, matching the report table.
+        expect(field).toEqual(
+            expect.objectContaining({
+                value: expected,
+                isValueSelectable: !!expected,
+            }),
+        );
+    });
+
+    it('leaves tax codes empty when the workspace has not customized them', () => {
+        // Given a workspace tax whose backend identifier is not a code entered by a user.
+        const policy = createMock<Policy>({
+            taxRates: {taxes: {defaultTax: {name: 'Tax', value: '10%'}}},
+        });
+
+        // When the expense's Tax code field is rendered.
+        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TAX_CODE, {taxCode: 'defaultTax'}, {policy});
+
+        // Then the internal tax identifier is not displayed or offered for copying.
+        expect(field).toEqual(expect.objectContaining({value: '', isValueSelectable: false}));
+    });
+
+    it.each([
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID, 'user-123'],
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID, 'payroll-123'],
+        [CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS, 'order-123'],
+    ])('reads %s from the parent report', (column, expected) => {
+        // Given a report-level field while viewing an individual expense.
+        const report = {
+            reportID: '2',
+            submitterUserID: 'user-123',
+            submitterPayrollID: 'payroll-123',
+            orderDealNumbers: 'order-123',
+        };
+
+        // When the selected field is rendered.
+        const field = renderField(column, {}, {report});
+
+        // Then the report value remains available for copying without an expense editor.
         expect(field).toEqual(expect.objectContaining({value: expected, isValueSelectable: true}));
     });
 
-    it('displays the original purchase currency separately from the report currency', () => {
-        // Given a card purchase in GBP that was converted to EUR and belongs to a USD report.
-        const transaction = {originalAmount: -800, originalCurrency: 'GBP', convertedAmount: -1250};
+    it('shows the withdrawal identifier from the expense', () => {
+        // Given a reimbursed expense associated with a withdrawal.
+        const transaction = {withdrawalID: 'withdrawal-123'};
 
-        // When the original purchase amount is selected.
-        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, transaction);
+        // When Withdrawal ID is selected.
+        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID, transaction);
 
-        // Then the field retains the actual purchase amount and currency.
-        expect(field?.value).toBe('GBP:800');
-    });
-
-    it('uses the modified expense amount when dividing the total among attendees', () => {
-        // Given an expense whose amount was edited optimistically before the server responds.
-        const transaction = {modifiedAmount: -1800};
-
-        // When total per attendee is displayed for two attendees.
-        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, transaction);
-
-        // Then the field agrees with the updated expense amount.
-        expect(field?.value).toBe('EUR:900');
-    });
-
-    it.each([CONST.IOU.RECEIPT_STATE.SCAN_READY, CONST.IOU.RECEIPT_STATE.SCANNING])('shows the scanning status instead of a per-attendee amount for %s receipts', (state) => {
-        // Given a receipt with no extracted merchant or amount yet.
-        const transaction = {amount: 0, merchant: '', receipt: {receiptID: 123, state}};
-
-        // When total per attendee is selected while SmartScan is processing the receipt.
-        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, transaction);
-
-        // Then the field matches the table's scanning status instead of presenting a zero expense.
-        expect(field?.value).toBe('iou.receiptStatusTitle');
-    });
-
-    it.each([
-        [{amount: -1800, merchant: 'Merchant', receipt: {receiptID: 123, state: CONST.IOU.RECEIPT_STATE.OPEN}}, 'EUR:900'],
-        [{amount: 0, merchant: '', modifiedAmount: -2400, receipt: {receiptID: 123, state: CONST.IOU.RECEIPT_STATE.SCANNING}}, 'EUR:1200'],
-        [{amount: 0}, 'EUR:0'],
-    ])('displays the per-attendee amount once it is known (%j)', (transaction, expected) => {
-        // Given a completed scan, a manual correction during scanning, or a legitimate zero amount.
-        // When total per attendee is displayed.
-        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, transaction);
-
-        // Then the scanning placeholder does not hide a known amount.
-        expect(field?.value).toBe(expected);
-    });
-
-    it('reads payroll information from the parent report', () => {
-        // Given a selected report-level field while viewing an individual expense.
-        const column = CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID;
-
-        // When the expense field is rendered.
-        const field = renderField(column);
-
-        // Then the value comes from the parent report and remains read-only.
-        expect(field).toEqual(expect.objectContaining({value: 'payroll-123', isValueSelectable: true}));
+        // Then the user can copy the identifier to reconcile the expense.
+        expect(field).toEqual(
+            expect.objectContaining({
+                value: 'withdrawal-123',
+                isValueSelectable: true,
+            }),
+        );
     });
 });

@@ -3,19 +3,29 @@ import getMoneyRequestViewFields from '@libs/getMoneyRequestViewFields';
 import CONST from '@src/CONST';
 
 describe('getMoneyRequestViewFields', () => {
-    it('keeps the default editor and adds automatically visible report data without duplicates', () => {
-        // Given a report with conversion data but no saved column preference.
-        const columns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+    it('preserves the default editors when another expense adds report columns', () => {
+        // Given a report where other expenses have accounting or conversion information, without a saved preference.
+        const columns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MCC, CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
 
         // When its table columns are shown as expense fields.
         const fields = getMoneyRequestViewFields(columns);
 
-        // Then existing editors remain accessible and the missing conversion information appears once.
-        expect(fields).toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
-        expect(fields).toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
-        expect(fields.at(0)).toBe(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
-        expect(fields.at(-1)).toBe(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE);
-        expect(fields.filter((column) => column === CONST.SEARCH.TABLE_COLUMNS.DATE)).toHaveLength(1);
+        // Then existing editors keep their order without adding empty rows for this expense.
+        expect(fields).toEqual([
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+            CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+            CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+            CONST.SEARCH.TABLE_COLUMNS.TAG,
+            CONST.SEARCH.TABLE_COLUMNS.CARD,
+            CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
+            CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
+            CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
+            CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
+            CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
+        ]);
     });
 
     it('honors custom order without treating the receipt panel and table controls as fields', () => {
@@ -45,5 +55,25 @@ describe('getMoneyRequestViewFields', () => {
 
         // Then the expense still has its amount editor and the requested accounting field.
         expect(fields).toEqual([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE]);
+    });
+
+    it('omits columns whose values already appear in an expense editor', () => {
+        // Given a report table that selects both expense editors and their supporting values as separate columns.
+        const columns = [
+            CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
+            CONST.SEARCH.TABLE_COLUMNS.POSTED,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+        ];
+
+        // When the saved table columns are displayed in the expense view.
+        const fields = getMoneyRequestViewFields(columns, true);
+
+        // Then each editor appears once because Amount, Attendees and Date already include those details.
+        expect(fields).toEqual([CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES]);
     });
 });

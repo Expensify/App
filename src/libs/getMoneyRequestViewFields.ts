@@ -21,15 +21,24 @@ const DEFAULT_FIELDS: SearchColumnType[] = [
     CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
 ];
 
+const EXCLUDED_FIELDS = new Set<SearchColumnType>([
+    CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+    CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+    CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
+    CONST.SEARCH.TABLE_COLUMNS.POSTED,
+]);
+
 /**
- * Receipts keep their own panel.
- * Table controls do not become expense fields.
+ * Maps report columns to expense editors. The receipt has its own panel, and Amount, Attendees and Date
+ * already display their supporting table values.
  */
 function getMoneyRequestViewFields(tableColumns: SearchColumnType[] = [], hasCustomColumns = false): SearchColumnType[] {
-    const fields = tableColumns.filter((column) => isReportDetailsCustomColumn(column) && column !== CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
     if (!hasCustomColumns) {
-        return [...new Set([...DEFAULT_FIELDS, ...fields])];
+        return [...DEFAULT_FIELDS];
     }
+
+    const fields = tableColumns.filter((column) => isReportDetailsCustomColumn(column) && !EXCLUDED_FIELDS.has(column));
 
     // Amount is required even if an older or malformed preference omits it.
     return fields.includes(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT) ? [...new Set(fields)] : [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, ...new Set(fields)];

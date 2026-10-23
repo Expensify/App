@@ -168,21 +168,24 @@ describe('customizing expense fields on native', () => {
     });
 
     it('moves a newly selected field into the draggable area and returns a deselected field to the fixed area', () => {
-        // Given an unchecked category outside the native drag area.
+        // Given an unselected field that cannot be reordered until it is selected.
         renderFields();
 
-        // When it is selected and the merchant field is then deselected.
+        // When the user changes which fields should be available for reordering.
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${CATEGORY}`));
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${MERCHANT}`));
 
-        // Then only the currently selected fields are native drop targets, while merchant remains available to select again.
+        // Then selected fields remain together and the deselected field follows them.
         expect(
             mockNativeList.mock.calls
                 .at(-1)
                 ?.at(0)
                 ?.data.map((item) => item.value),
         ).toEqual([TOTAL_AMOUNT, DATE, CATEGORY]);
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${MERCHANT}`)).toBeOnTheScreen();
+        const rows = screen.getAllByTestId(new RegExp(`^${CONST.BASE_LIST_ITEM_TEST_ID}`));
+        for (const [index, column] of [TOTAL_AMOUNT, DATE, CATEGORY, MERCHANT].entries()) {
+            expect(rows.at(index)).toHaveProp('testID', `${CONST.BASE_LIST_ITEM_TEST_ID}${column}`);
+        }
     });
 
     it('saves the reordered fields and keeps the required amount selected', () => {
