@@ -23,15 +23,15 @@ function TabBarShapeProbe({isTabBarShown}: TabBarShapeProbeProps) {
     const setIsTabBarVertical = useContext(TabBarShapeContext);
     const {bottom: windowBottomInset} = useSafeAreaInsets();
     const isFocused = useIsFocused();
-    const [tabScreenBottomInset, setTabScreenBottomInset] = useState<number>();
+    const [tabScreenInsetsReading, setTabScreenInsetsReading] = useState<{bottom: number; wasTabBarShown: boolean}>();
 
     useEffect(() => {
-        // A hidden bar adds nothing to the safe area whatever its shape, so the shape is only read while the bar shows.
-        if (!isFocused || !isTabBarShown || tabScreenBottomInset === undefined) {
+        // A hidden bar adds nothing to the safe area whatever its shape, so only a reading taken while the bar shows tells it.
+        if (!isFocused || !isTabBarShown || !tabScreenInsetsReading?.wasTabBarShown) {
             return;
         }
-        setIsTabBarVertical(tabScreenBottomInset === windowBottomInset);
-    }, [isFocused, isTabBarShown, setIsTabBarVertical, tabScreenBottomInset, windowBottomInset]);
+        setIsTabBarVertical(tabScreenInsetsReading.bottom === windowBottomInset);
+    }, [isFocused, isTabBarShown, setIsTabBarVertical, tabScreenInsetsReading?.wasTabBarShown, tabScreenInsetsReading?.bottom, windowBottomInset]);
 
     return (
         // The Android SafeAreaListener ignores pointerEvents, so the View is what lets touches through to the tab screen.
@@ -39,7 +39,7 @@ function TabBarShapeProbe({isTabBarShown}: TabBarShapeProbeProps) {
             style={styles.fullScreen}
             pointerEvents="none"
         >
-            <SafeAreaListener onChange={({insets}) => setTabScreenBottomInset(insets.bottom)} />
+            <SafeAreaListener onChange={({insets}) => setTabScreenInsetsReading({bottom: insets.bottom, wasTabBarShown: isTabBarShown})} />
         </View>
     );
 }
