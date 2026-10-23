@@ -576,90 +576,6 @@ describe('ReportAlternateTextUtils', () => {
                 expect(formattedMessage).toBe('$1.00 for A A A');
             });
         });
-        describe('linkedTransaction', () => {
-            const groupChat: Report = {
-                ...createRandomReport(0, undefined),
-                reportID: 'linked-transaction-group-chat',
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-            };
-
-            const buildSplitTransaction = (transactionID: string, merchant: string): Transaction => ({
-                ...createRandomTransaction(Number(transactionID)),
-                transactionID,
-                reportID: CONST.REPORT.SPLIT_REPORT_ID,
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-                merchant,
-                modifiedMerchant: '',
-                receipt: {},
-                comment: {comment: ''},
-            });
-
-            const buildSplitAction = (transactionID: string): ReportAction => ({
-                ...createRandomReportAction(Number(transactionID)),
-                reportID: groupChat.reportID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                message: [{type: 'COMMENT', text: ''}],
-                originalMessage: {
-                    IOUTransactionID: transactionID,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-                    amount: 1000,
-                    currency: CONST.CURRENCY.USD,
-                    comment: '',
-                    participantAccountIDs: [CURRENT_USER_ACCOUNT_ID],
-                },
-            });
-
-            const getSplitLastMessage = (splitAction: ReportAction, linkedTransaction: Transaction) =>
-                getLastMessageTextForReport({
-                    rules: undefined,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    personalDetails: undefined,
-                    translate: translateLocal,
-                    report: groupChat,
-                    lastActorDetails: null,
-                    isReportArchived: false,
-                    lastAction: splitAction,
-                    currentUserLogin: CURRENT_USER_LOGIN,
-                    formatPhoneNumber,
-                    linkedTransaction,
-                });
-
-            const getExpectedSplitMessage = (merchant: string) =>
-                formatReportLastMessageText(Parser.htmlToText(translateLocal('iou.didSplitAmount', convertToDisplayString(1000, CONST.CURRENCY.USD), merchant)));
-
-            it('uses the passed transaction when it belongs to the rendered split action', async () => {
-                // Given a group chat whose last action is a split, and the split transaction is only available from the caller, not from Onyx
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChat.reportID}`, groupChat);
-                await waitForBatchedUpdates();
-                const splitAction = buildSplitAction('720001');
-
-                // When the last message is built with that action's transaction passed in
-                const lastMessage = getSplitLastMessage(splitAction, buildSplitTransaction('720001', 'Lunch'));
-
-                // Then the preview comes from the passed transaction
-                expect(lastMessage).toBe(getExpectedSplitMessage('Lunch'));
-            });
-
-            it('ignores a passed transaction that belongs to a different action', async () => {
-                // Given a split action whose transaction is in Onyx, and a caller passing the transaction of another action,
-                // e.g. when the rendered action fell back from the caller's last action to the parent's
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChat.reportID}`, groupChat);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}720002`, buildSplitTransaction('720002', 'Dinner'));
-                await waitForBatchedUpdates();
-                const splitAction = buildSplitAction('720002');
-
-                // When the last message is built with the mismatched transaction
-                const lastMessage = getSplitLastMessage(splitAction, buildSplitTransaction('720003', 'Wrong merchant'));
-
-                // Then the preview uses the rendered action's own transaction instead of the mismatched one
-                expect(lastMessage).toBe(getExpectedSplitMessage('Dinner'));
-            });
-        });
         describe('canonical money request preview fallback', () => {
             it('should preserve the minus sign when formatting negative expense previews', async () => {
                 const report: Report = {
@@ -1202,7 +1118,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: movedTransactionAction,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1236,7 +1152,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: submittedAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                 });
@@ -1270,7 +1186,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: approvedAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                 });
@@ -1306,7 +1222,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: forwardedAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                 });
@@ -1339,7 +1255,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: forwardedAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                 });
@@ -1370,7 +1286,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: corporateForceUpgradeAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                 });
@@ -1400,7 +1316,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1429,7 +1345,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1463,7 +1379,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1493,6 +1409,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 conciergeReportID: undefined,
                 formatPhoneNumber,
@@ -1521,6 +1438,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 conciergeReportID: undefined,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
@@ -1549,6 +1467,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 conciergeReportID: undefined,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
@@ -1581,7 +1500,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1610,7 +1529,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1639,7 +1558,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1671,7 +1590,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1703,7 +1622,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1749,7 +1668,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1780,7 +1699,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1849,7 +1768,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1878,7 +1797,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1907,6 +1826,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1935,6 +1855,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1963,6 +1884,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1995,6 +1917,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -2027,6 +1950,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -2058,6 +1982,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -2090,6 +2015,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -2118,7 +2044,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: takeControlAction,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -2147,7 +2073,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: rerouteAction,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -2176,7 +2102,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: movedAction,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -2209,7 +2135,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -2244,7 +2170,6 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -2415,7 +2340,6 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -2466,6 +2390,7 @@ describe('ReportAlternateTextUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
+                    lastAction: submittedAction,
                     policy,
                     reportMetadata,
 
@@ -2509,7 +2434,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: dewSubmitFailedAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                 });
@@ -2547,7 +2472,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: dewSubmitFailedAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                 });
@@ -2593,7 +2518,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy,
                     isReportArchived: true,
-
+                    lastAction: closedAction,
                     currentUserLogin: '',
                     formatPhoneNumber,
                 });
@@ -2638,7 +2563,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy,
                     isReportArchived: true,
-
+                    lastAction: closedAction,
                     currentUserLogin: '',
                     formatPhoneNumber,
                 });
@@ -2679,7 +2604,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: true,
-
+                    lastAction: closedAction,
                     currentUserLogin: '',
                     formatPhoneNumber,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2719,6 +2644,7 @@ describe('ReportAlternateTextUtils', () => {
                     policy: undefined,
                     personalDetails: undefined,
                     isReportArchived: false,
+                    lastAction: changelogAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                 });
@@ -2756,6 +2682,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
+                    lastAction: changelogAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                 });
@@ -2793,6 +2720,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
+                    lastAction: action,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                 });
@@ -2829,6 +2757,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
+                    lastAction: action,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                 });
