@@ -57,7 +57,6 @@ function DynamicQuickbooksDesktopPreferredExporterConfigurationPage({policy}: Wi
                     text: exporter.email,
                     keyForList: exporter.email,
                     // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: (currentExporter || policy?.owner) === exporter.email,
                 });
                 return options;
