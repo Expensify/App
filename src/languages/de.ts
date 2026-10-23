@@ -12250,6 +12250,90 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         errorTitle: 'Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut',
         errorPrompt: 'Anscheinend hat etwas nicht funktioniert. Bitte versuchen Sie es erneut. Wenn das Problem weiterhin besteht, wenden Sie sich bitte an Concierge.',
     },
+    bulkAction: {
+        approvingTitle: 'Berichte werden genehmigt …',
+        submittingTitle: 'Berichte werden eingereicht …',
+        payingTitle: 'Berichte werden als bezahlt markiert …',
+        holdingTitle: 'Ausgaben werden zurückgehalten …',
+        unholdingTitle: 'Zurückhalten von Ausgaben wird aufgehoben …',
+        rejectingTitle: 'Ausgaben werden abgelehnt …',
+        deletingTitle: 'Berichte werden gelöscht …',
+        deletingExpensesTitle: 'Ausgaben werden gelöscht …',
+        runningBody: 'Warten Sie ein paar Minuten, oder Concierge kann Sie benachrichtigen, wenn es fertig ist.',
+        sendFromConcierge: 'Mir eine Nachricht senden, wenn es fertig ist',
+        conciergeTitle: 'Auf jeden Fall!',
+        conciergeBody: 'Concierge wird Ihnen eine Nachricht senden, sobald es fertig ist.',
+        goToConcierge: 'Zu Concierge',
+        approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} von ${count} Bericht genehmigt`,
+            other: `${doneCount} von ${count} Berichte genehmigt`,
+        }),
+        submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} von ${count} Bericht eingereicht`,
+            other: `${doneCount} von ${count} Berichte eingereicht`,
+        }),
+        paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} von ${count} Bericht als bezahlt markiert`,
+            other: `${doneCount} von ${count} Berichte als bezahlt markiert`,
+        }),
+        heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Ausgaben in ${doneCount} von ${count} Bericht zurückgehalten`,
+            other: `Ausgaben in ${doneCount} von ${count} Berichten zurückgehalten`,
+        }),
+        unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Zurückhalten von Ausgaben in ${doneCount} von ${count} Bericht aufgehoben`,
+            other: `Zurückhalten von Ausgaben in ${doneCount} von ${count} Berichten aufgehoben`,
+        }),
+        rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Ausgaben in ${doneCount} von ${count} Bericht abgelehnt`,
+            other: `Ausgaben in ${doneCount} von ${count} Berichten abgelehnt`,
+        }),
+        deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} von ${count} Bericht gelöscht`,
+            other: `${doneCount} von ${count} Berichte gelöscht`,
+        }),
+        deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Ausgaben in ${doneCount} von ${count} Bericht gelöscht`,
+            other: `Ausgaben in ${doneCount} von ${count} Berichten gelöscht`,
+        }),
+        noReportsTitle: 'Keine übereinstimmenden Berichte',
+        noReportsBody: 'Keiner der von Ihnen ausgewählten Berichte benötigte diese Aktion.',
+        viewFailedReports: 'Berichte anzeigen',
+        failedTitle: 'Es ist ein Fehler aufgetreten',
+        failedBody: 'Diese Aktion konnte nicht gestartet werden. Bitte versuchen Sie es später noch einmal.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: '1 Bericht konnte nicht genehmigt werden.',
+            other: `${count} Berichte konnten nicht genehmigt werden.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: '1 Bericht konnte nicht eingereicht werden.',
+            other: `${count} Berichte konnten nicht eingereicht werden.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: '1 Bericht konnte nicht bezahlt werden.',
+            other: `${count} Berichte konnten nicht bezahlt werden.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: 'Ausgaben in 1 Bericht konnten nicht zurückgehalten werden.',
+            other: `Ausgaben in ${count} Berichten konnten nicht zurückgehalten werden.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: 'Das Zurückhalten von Ausgaben in 1 Bericht konnte nicht aufgehoben werden.',
+            other: `Das Zurückhalten von Ausgaben in ${count} Berichten konnte nicht aufgehoben werden.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: 'Ausgaben in 1 Bericht konnten nicht abgelehnt werden.',
+            other: `Ausgaben in ${count} Berichten konnten nicht abgelehnt werden.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: '1 Bericht konnte nicht gelöscht werden.',
+            other: `${count} Berichte konnten nicht gelöscht werden.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: 'Ausgaben in 1 Bericht konnten nicht gelöscht werden.',
+            other: `Ausgaben in ${count} Berichten konnten nicht gelöscht werden.`,
+        }),
+    },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) =>
             `Verlängern Sie Ihr Abonnement für einen Zeitraum von 12 Monaten, von ${startDate} bis ${endDate}.`,

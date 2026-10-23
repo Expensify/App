@@ -12280,6 +12280,90 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         errorTitle: 'Une erreur s’est produite. Veuillez réessayer.',
         errorPrompt: "Il semble que quelque chose n'ait pas fonctionné. Veuillez réessayer. Si le problème persiste, veuillez contacter Concierge.",
     },
+    bulkAction: {
+        approvingTitle: 'Approbation des notes de frais...',
+        submittingTitle: 'Soumission des notes de frais...',
+        payingTitle: 'Marquage des notes de frais comme payées...',
+        holdingTitle: 'Mise en attente des dépenses...',
+        unholdingTitle: 'Suppression de la mise en attente des dépenses...',
+        rejectingTitle: 'Rejet des dépenses...',
+        deletingTitle: 'Suppression des notes de frais...',
+        deletingExpensesTitle: 'Suppression des dépenses...',
+        runningBody: 'Patientez quelques minutes, ou laissez Concierge vous envoyer un message lorsque ce sera terminé.',
+        sendFromConcierge: 'Envoyez-moi un message quand ce sera fait',
+        conciergeTitle: 'Bien sûr !',
+        conciergeBody: 'Concierge vous enverra un message lorsque ce sera terminé.',
+        goToConcierge: 'Aller à Concierge',
+        approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Approuvé ${doneCount} sur ${count} note de frais`,
+            other: `Approuvé ${doneCount} sur ${count} notes de frais`,
+        }),
+        submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Soumis ${doneCount} sur ${count} note de frais`,
+            other: `Soumis ${doneCount} sur ${count} notes de frais`,
+        }),
+        paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Marqué ${doneCount} sur ${count} note de frais comme payé`,
+            other: `Marqué ${doneCount} sur ${count} notes de frais comme payé`,
+        }),
+        heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Dépenses mises en attente pour ${doneCount} sur ${count} note de frais`,
+            other: `Dépenses mises en attente pour ${doneCount} sur ${count} notes de frais`,
+        }),
+        unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Mise en attente supprimée pour ${doneCount} sur ${count} note de frais`,
+            other: `Mise en attente supprimée pour ${doneCount} sur ${count} notes de frais`,
+        }),
+        rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Dépenses rejetées pour ${doneCount} sur ${count} note de frais`,
+            other: `Dépenses rejetées pour ${doneCount} sur ${count} notes de frais`,
+        }),
+        deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Supprimé ${doneCount} sur ${count} note de frais`,
+            other: `Supprimé ${doneCount} sur ${count} notes de frais`,
+        }),
+        deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Dépenses supprimées pour ${doneCount} sur ${count} note de frais`,
+            other: `Dépenses supprimées pour ${doneCount} sur ${count} notes de frais`,
+        }),
+        noReportsTitle: 'Aucune note de frais correspondante',
+        noReportsBody: 'Aucune des notes de frais que vous avez sélectionnées n’avait besoin de cette action.',
+        viewFailedReports: 'Afficher les notes de frais',
+        failedTitle: 'Un problème est survenu',
+        failedBody: 'Cette action n’a pas pu être démarrée. Veuillez réessayer plus tard.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: "1 note de frais n'a pas pu être approuvée.",
+            other: `${count} notes de frais n'ont pas pu être approuvées.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: "1 note de frais n'a pas pu être soumise.",
+            other: `${count} notes de frais n'ont pas pu être soumises.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: "1 note de frais n'a pas pu être payée.",
+            other: `${count} notes de frais n'ont pas pu être payées.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: "Les dépenses de 1 note de frais n'ont pas pu être mises en attente.",
+            other: `Les dépenses de ${count} notes de frais n'ont pas pu être mises en attente.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: "Les dépenses de 1 note de frais n'ont pas pu être retirées de l'attente.",
+            other: `Les dépenses de ${count} notes de frais n'ont pas pu être retirées de l'attente.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: "Les dépenses de 1 note de frais n'ont pas pu être rejetées.",
+            other: `Les dépenses de ${count} notes de frais n'ont pas pu être rejetées.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: "1 note de frais n'a pas pu être supprimée.",
+            other: `${count} notes de frais n'ont pas pu être supprimées.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: "Les dépenses de 1 note de frais n'ont pas pu être supprimées.",
+            other: `Les dépenses de ${count} notes de frais n'ont pas pu être supprimées.`,
+        }),
+    },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renouvelez votre abonnement pour une durée de 12 mois, du ${startDate} au ${endDate}.`,
         title: 'Renouvelez votre abonnement Expensify',
