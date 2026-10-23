@@ -1,6 +1,8 @@
 /** Readiness probes must time out or cancel without blocking the development launcher. */
 import {afterEach, describe, expect, mock, spyOn, test} from 'bun:test';
 
+import {getCACertificates} from 'node:tls';
+
 import checkWebServer from '../../scripts/utils/checkWebServer';
 
 describe('public web server readiness', () => {
@@ -13,12 +15,12 @@ describe('public web server readiness', () => {
             const get = spyOn(globalThis, 'fetch').mockRejectedValue(error);
             const signal = new AbortController().signal;
             // When the launcher probes the public origin
-            const isReady = await checkWebServer('https://dev.new.expensify.com:8082', 'test CA', true, signal);
-            // Then it can retry without disabling TLS verification
+            const isReady = await checkWebServer('https://dev.new.expensify.com:8082', true, signal);
+            // Then it can retry, verifying TLS against the OS trust store that `npm run setup-https` adds the mkcert CA to
             expect(isReady).toBe(false);
             const [url, init] = get.mock.calls.at(0) ?? [];
             expect(url).toBe('https://dev.new.expensify.com:8082');
-            expect(init).toMatchObject({tls: {ca: 'test CA'}});
+            expect(init).toMatchObject({tls: {ca: getCACertificates('system')}});
             expect(init?.signal).toBeInstanceOf(AbortSignal);
         },
     );
@@ -34,7 +36,7 @@ describe('public web server readiness', () => {
         );
         spyOn(globalThis, 'fetch').mockImplementation(waitingFetch);
         const controller = new AbortController();
-        const result = checkWebServer('https://dev.new.expensify.com:8082', 'test CA', true, controller.signal);
+        const result = checkWebServer('https://dev.new.expensify.com:8082', true, controller.signal);
         // When the session is stopped
         controller.abort();
         // Then readiness finishes without waiting for the timeout
@@ -50,7 +52,7 @@ describe('public web server readiness', () => {
         });
         try {
             // When the launcher probes it without an external cancellation
-            const result = checkWebServer(server.url.href, 'test CA', false, new AbortController().signal);
+            const result = checkWebServer(server.url.href, false, new AbortController().signal);
             // Then the built-in request timeout releases the probe rather than hanging startup
             await expect(result).resolves.toBe(false);
         } finally {
@@ -72,7 +74,7 @@ describe('public web server readiness', () => {
         const response = new Response('app shell', {status, headers});
         spyOn(globalThis, 'fetch').mockResolvedValue(response);
         // When the listener returns its response
-        const isServerReady = await checkWebServer('https://dev.new.expensify.com:8082', 'test CA', isWorkerEnabled, new AbortController().signal);
+        const isServerReady = await checkWebServer('https://dev.new.expensify.com:8082', isWorkerEnabled, new AbortController().signal);
         // Then only a successful response with the expected Worker headers can open the browser
         expect(isServerReady).toBe(isReady);
         expect(response.bodyUsed).toBe(true);

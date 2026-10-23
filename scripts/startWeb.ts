@@ -27,8 +27,6 @@ async function startWeb() {
     Bun.env.USE_WEB_PROXY = String(isProxyEnabled);
     const root = process.cwd();
     const workerDir = `${root}/web/cloudflare-worker`;
-    const caRoot = (await $`mkcert -CAROOT`.text()).trim();
-    const ca = await Bun.file(`${caRoot}/rootCA.pem`).text();
     // concurrently accepts command strings, so escape its dynamic paths and JSON bindings.
     const commands = [
         ...(isProxyEnabled ? [{name: 'api', command: 'npm run web-proxy'}] : []),
@@ -66,7 +64,7 @@ async function startWeb() {
         const deadline = Date.now() + 180_000;
         while (!controller.signal.aborted) {
             try {
-                const isReady = await checkWebServer(origin, ca, isWorkerEnabled, controller.signal);
+                const isReady = await checkWebServer(origin, isWorkerEnabled, controller.signal);
                 if (isReady) {
                     console.log(`Web app ready at ${origin}/ (${isWorkerEnabled ? 'Cloudflare Worker' : 'direct Rsbuild'})`);
                     if (shouldOpenBrowser && !controller.signal.aborted) {
