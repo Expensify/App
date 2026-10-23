@@ -24,7 +24,6 @@ function ZohoBooksImportPage({policy}: WithPolicyConnectionsProps) {
     const zohoBooksConfig = policy?.connections?.zohoBooks?.config;
     const zohoBooksData = policy?.connections?.zohoBooks?.data;
     const enableNewCategories = zohoBooksConfig?.enableNewCategories ?? false;
-    console.log('zohoBooksData', zohoBooksData);
     const hasReportingTags = !!zohoBooksData?.reportingTags?.length;
     const hasTaxRates = !!zohoBooksData?.taxRates?.length;
     const syncTaxRates = zohoBooksConfig?.coding?.syncTaxRates ?? false;
