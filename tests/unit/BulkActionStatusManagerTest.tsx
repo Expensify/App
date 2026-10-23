@@ -106,6 +106,7 @@ describe('BulkActionStatusManager', () => {
 
         // When the user opens those reports
         expect(screen.getByText('bulkAction.approvedTitle')).toBeTruthy();
+        expect(screen.getByText('bulkAction.notApprovedBody')).toBeTruthy();
         fireEvent.press(screen.getByText('bulkAction.viewFailedReports'));
 
         // Then Search opens on exactly those reports and the record is cleared
