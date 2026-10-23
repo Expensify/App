@@ -27,6 +27,7 @@ import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {getStableReportSelector} from '@selectors/Report';
 import {getReportActionByIDSelector} from '@selectors/ReportAction';
 import React, {use} from 'react';
 
@@ -81,9 +82,9 @@ function IOUReportAvatar({reportID, size, backdropColor, containerStyle, horizon
     // On Search, the snapshot can hold an account missing from the live list. Fall back to the live list while the snapshot loads.
     const personalDetails = personalDetailsFromSnapshot ?? use(PersonalDetailsContext);
 
-    // The sender lookup reads whole rows, so these two subscribe without a selector.
+    // The sender lookup reads the whole IOU report row, so it subscribes without a selector.
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`, {selector: getStableReportSelector});
     const parentReportActionID = iouReport?.parentReportActionID;
     const reportPreviewSelector = (reportActions: OnyxEntry<ReportActions>) => getReportActionByIDSelector(reportActions, parentReportActionID);
     const [action] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? iouReport?.chatReportID)}`, {selector: reportPreviewSelector});
