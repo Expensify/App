@@ -3,14 +3,14 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import getPlatform from '@libs/getPlatform';
+import {getHoldMenuAmounts, openAfterTouchFrame} from '@libs/HoldMenuUtils';
 import {getTotalAmountForIOUReportPreviewButton, isEveryReportTransactionSelected} from '@libs/MoneyRequestReportUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
-import {canIOUBePaid as canIOUBePaidAction, getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, hasUpdatedTotal, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {canIOUBePaid as canIOUBePaidAction, hasUpdatedTotal, shouldShowMarkAsDone} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -107,37 +107,23 @@ function useSelectionModeReportActions({
     const canAllowSettlement = hasUpdatedTotal(report, policy);
 
     const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton, transactions, convertToDisplayString);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
 
     const openHoldMenu = (requestType: ActionHandledType, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: () => void) => {
-        const open = () =>
+        openAfterTouchFrame(() =>
             showHoldMenu({
                 reportID: report?.reportID,
                 chatReportID: chatReport?.reportID,
                 requestType,
                 paymentType,
                 methodID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-                nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
-                fullAmount,
-                hasNonHeldExpenses: !hasOnlyHeldExpenses,
-                transactionCount: transactions.length,
+                ...getHoldMenuAmounts(report, shouldShowPayButton, transactions, convertToDisplayString),
                 onConfirm: () => {
                     onConfirm?.();
                     clearSelectedTransactions(true);
                     turnOffMobileSelectionMode();
                 },
-            });
-
-        // On iOS, defer by one frame so the current touch animation finishes before the modal opens
-        if (getPlatform() === CONST.PLATFORM.IOS) {
-            requestAnimationFrame(() => {
-                open();
-            });
-            return;
-        }
-
-        open();
+            }),
+        );
     };
 
     // Submit/approve via shared useLifecycleActions (no animations on mobile, skipAnimation=true)

@@ -16,18 +16,11 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
-import getPlatform from '@libs/getPlatform';
+import {getHoldMenuAmounts, openAfterTouchFrame} from '@libs/HoldMenuUtils';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {
-    getNonHeldAndFullAmount,
-    getReportOrDraftReport,
-    hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
-    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
-    hasUpdatedTotal,
-    isInvoiceReport as isInvoiceReportUtils,
-} from '@libs/ReportUtils';
+import {getReportOrDraftReport, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtils} from '@libs/ReportUtils';
 
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 
@@ -85,35 +78,21 @@ function PayActionButton() {
 
     const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction, transactions, convertToDisplayString);
 
-    // Only the pay flow opens this menu; approve surfaces its partial/full choice in the approve dropdown instead.
+    // Only the pay flow opens this menu. Approve surfaces its partial/full choice in the approve dropdown instead.
     const openHoldMenu = (paymentType: PaymentMethodType, methodID?: number) => {
         if (!iouReport) {
             return;
         }
-        const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
-        const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldShowPayButton, transactions, convertToDisplayString);
-        const open = () =>
+        openAfterTouchFrame(() =>
             showHoldMenu({
                 reportID: iouReportID,
                 chatReportID,
                 paymentType,
                 methodID,
-                nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
-                fullAmount,
-                hasNonHeldExpenses: !hasOnlyHeldExpenses,
-                transactionCount: transactions.length,
+                ...getHoldMenuAmounts(iouReport, shouldShowPayButton, transactions, convertToDisplayString),
                 onConfirm: startAnimation,
-            });
-
-        // On iOS, defer by one frame so the current touch animation finishes before the modal opens
-        if (getPlatform() === CONST.PLATFORM.IOS) {
-            requestAnimationFrame(() => {
-                open();
-            });
-            return;
-        }
-
-        open();
+            }),
+        );
     };
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
