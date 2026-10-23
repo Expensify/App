@@ -11654,7 +11654,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Als je toekomstige activiteit en kosten wilt voorkomen, moet je je <a href="${workspacesListRoute}">werkruimte(s) verwijderen</a>. Let op: wanneer je je werkruimte(s) verwijdert, worden eventuele openstaande activiteiten die in de huidige kalendermaand hebben plaatsgevonden alsnog in rekening gebracht.`,
                 preventFutureActivityWithArchive: (workspacesListRoute: string) =>
-                    `Als je toekomstige activiteit en kosten wilt voorkomen, moet je <a href="${workspacesListRoute}">al je betaalde werkruimtes archiveren</a>. Houd er rekening mee dat wanneer je je werkruimte(s) archiveert, je wordt belast voor alle openstaande activiteit die heeft plaatsgevonden in de huidige kalendermaand.`,
+                    `Als je toekomstige activiteit en kosten wilt voorkomen, moet je <a href="${workspacesListRoute}">al je betaalde werkruimtes archiveren</a>. Werkruimtes met factureerbare activiteit in de huidige maand worden nog steeds in je factuur aan het eind van de maand opgenomen, zelfs als je ze archiveert.`,
             },
             requestSubmitted: {
                 title: 'Aanvraag ingediend',

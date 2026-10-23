@@ -11681,7 +11681,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Jeśli chcesz zapobiec przyszłej aktywności i obciążeniom, musisz <a href="${workspacesListRoute}">usunąć swoje przestrzenie robocze</a>. Pamiętaj, że po usunięciu przestrzeni roboczych zostaniesz obciążony za wszelką nierozliczoną aktywność z bieżącego miesiąca kalendarzowego.`,
                 preventFutureActivityWithArchive: (workspacesListRoute: string) =>
-                    `Jeśli chcesz zapobiec przyszłej aktywności i obciążeniom, musisz <a href="${workspacesListRoute}">zarchiwizować wszystkie swoje płatne przestrzenie robocze</a>. Pamiętaj, że po zarchiwizowaniu przestrzeni roboczych zostaniesz obciążony za wszelką nierozliczoną aktywność poniesioną w bieżącym miesiącu kalendarzowym.`,
+                    `Jeśli chcesz zapobiec przyszłej aktywności i obciążeniom, musisz <a href="${workspacesListRoute}">zarchiwizować wszystkie swoje płatne przestrzenie robocze</a>. Przestrzenie robocze z rozliczaną aktywnością w bieżącym miesiącu nadal zostaną uwzględnione na Twoim rachunku na koniec miesiąca, nawet jeśli je zarchiwizujesz.`,
             },
             requestSubmitted: {
                 title: 'Wniosek wysłany',
