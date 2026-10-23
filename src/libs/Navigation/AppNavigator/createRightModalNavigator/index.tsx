@@ -1,5 +1,5 @@
 import usePreserveNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
+import createJSStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createJSStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
 import type {CustomEffectsHookProps, PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -18,7 +18,7 @@ function RightModalNavigatorEffects(props: CustomEffectsHookProps) {
     return <></>;
 }
 
-const RightModalNavigatorComponent = createPlatformStackNavigatorComponent(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, {
+const RightModalNavigatorComponent = createJSStackNavigatorComponent(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, {
     createRouter: RightModalRouter,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     Effects: RightModalNavigatorEffects,

@@ -23,6 +23,8 @@ import React, {createContext, useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 
+import isSidePanelReportSupported from './isSidePanelReportSupported';
+
 type SidePanelStateContextProps = {
     isSidePanelTransitionEnded: boolean;
     isSidePanelHiddenOrLargeScreen: boolean;
@@ -72,7 +74,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, isSidePanelHiddenOrLargeScreen, sidePanelNVP} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
-    const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
+    const shouldApplySidePanelOffset = isSidePanelReportSupported && isExtraLargeScreenWidth && !shouldHideSidePanel;
     const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sidePanelWidth : 0));
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
     const sidePanelWidthRef = useRef(sidePanelWidth);

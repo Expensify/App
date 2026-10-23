@@ -7,6 +7,8 @@ import spacing from '@styles/utils/spacing';
 
 import CONST from '@src/CONST';
 
+import {Platform} from 'react-native';
+
 const componentsSpacing = {
     flatListStyle: [spacing.mhn4],
     wrapperStyle: spacing.p4,
@@ -38,10 +40,15 @@ const desktopStyle = (currentWrapperWidth: number, transactionsCount: number) =>
     const transactionPreviewWidth = currentWrapperWidth - CAROUSEL_ONE_SIDE_PADDING - getPeek(transactionsCount < 2);
     const spaceForTransactions = Math.max(transactionsCount, 1);
     const carouselExactMaxWidth = Math.min(minimalWrapperWidth + (TRANSACTION_WIDTH_WIDE + CAROUSEL_GAP) * (spaceForTransactions - 1), CAROUSEL_MAX_WIDTH_WIDE);
+    const carouselContentWidth = 2 * CAROUSEL_ONE_SIDE_PADDING + TRANSACTION_WIDTH_WIDE * spaceForTransactions + CAROUSEL_GAP * (spaceForTransactions - 1);
     return {
         transactionPreviewCarouselStyle: {width: currentWrapperWidth > minimalWrapperWidth || currentWrapperWidth === 0 ? TRANSACTION_WIDTH_WIDE : transactionPreviewWidth},
-        transactionPreviewStandaloneStyle: {width: `min(100%, ${TRANSACTION_WIDTH_WIDE}px)`, maxWidth: `min(100%, ${TRANSACTION_WIDTH_WIDE}px)`},
-        componentStyle: [{maxWidth: `min(${carouselExactMaxWidth}px, 100%)`}, {width: currentWrapperWidth > minimalWrapperWidth ? 'min-content' : '100%'}],
+        transactionPreviewStandaloneStyle: {width: TRANSACTION_WIDTH_WIDE, maxWidth: '100%'},
+        componentStyle: Platform.select<MoneyRequestReportPreviewStyleType['componentStyle']>({
+            web: [{maxWidth: `min(${carouselExactMaxWidth}px, 100%)`}, {width: currentWrapperWidth > minimalWrapperWidth ? 'min-content' : '100%'}],
+            // Yoga cannot resolve CSS min-content or min(). Size native previews to their cards, bounded by the available space.
+            default: [{width: Math.min(carouselContentWidth, CAROUSEL_MAX_WIDTH_WIDE), maxWidth: '100%'}],
+        }),
         expenseCountVisible: transactionPreviewWidth >= TRANSACTION_WIDTH_WIDE,
     };
 };

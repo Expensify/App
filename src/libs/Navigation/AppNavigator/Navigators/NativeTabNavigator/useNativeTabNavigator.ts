@@ -84,10 +84,10 @@ function useNativeTabNavigator() {
     };
 
     useEffect(() => {
-        if (!shouldUseNarrowLayout || !parentNavigation) {
+        if (!parentNavigation) {
             return;
         }
-        parentNavigation.setOptions({gestureEnabled: !isFocusedRouteTabRoot});
+        parentNavigation.setOptions({gestureEnabled: shouldUseNarrowLayout && !isFocusedRouteTabRoot});
     }, [isFocusedRouteTabRoot, shouldUseNarrowLayout, parentNavigation]);
 
     useEffect(() => {

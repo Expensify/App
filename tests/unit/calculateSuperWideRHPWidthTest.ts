@@ -2,21 +2,6 @@ import calculateMaxSidePanelRHPShrink from '@libs/Navigation/helpers/calculateMa
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
 
-// jest-expo resolves bare specifiers to index.native.ts (defaultPlatform 'ios'), so the web index.ts is loaded explicitly, same pattern as dismissOnboardingModalBeforeExitTest.
-// requireActual hands back an untyped module, which is what each no-unsafe-return below is silencing.
-jest.mock('@libs/Navigation/helpers/calculateSuperWideRHPWidth', () =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    jest.requireActual('@libs/Navigation/helpers/calculateSuperWideRHPWidth/index.ts'),
-);
-jest.mock('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth', () =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    jest.requireActual('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth/index.ts'),
-);
-jest.mock('@libs/Navigation/helpers/calculateMaxSidePanelRHPShrink', () =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    jest.requireActual('@libs/Navigation/helpers/calculateMaxSidePanelRHPShrink/index.ts'),
-);
-
 // Widths are pinned to concrete pixels so a change to any of the underlying variables forces a visible update here.
 describe('calculateSuperWideRHPWidth', () => {
     it('leaves the configured 360px left margin on a wide window', () => {
@@ -39,11 +24,11 @@ describe('calculateSuperWideRHPWidth', () => {
         const superWideRHPWidth = calculateSuperWideRHPWidth(windowWidth);
 
         // Then the wide RHP floor wins over the raw 900 - 360 = 540, so the sheet is never narrower than the layout it shows.
-        // The floor is the window less the floating card's 12px margin and 2px of border, which is what keeps the card's left edge on-screen.
-        expect(superWideRHPWidth).toBe(886);
+        // The floor leaves a floating gutter on both sides as well as space for the border.
+        expect(superWideRHPWidth).toBe(874);
     });
 
-    it('keeps the floating card fully on-screen on every wide layout width', () => {
+    it('keeps a floating gutter on both sides on every wide layout width', () => {
         // Given every window width between the narrow layout breakpoint and where the Side Panel starts docking
         const windowWidths = Array.from({length: 500}, (_, index) => 801 + index);
 
@@ -52,9 +37,18 @@ describe('calculateSuperWideRHPWidth', () => {
             [calculateWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)].map((cardWidth) => windowWidth - 12 - 2 - cardWidth),
         );
 
-        // Then no width pushes it off the left of the window, which is what regressed at 801-811 when only part of the inset was charged.
-        expect(cardLeftEdges.filter((cardLeftEdge) => cardLeftEdge < 0)).toEqual([]);
-        expect(cardLeftEdges.at(0)).toBe(0);
+        // Then the widest cards retain the same 12px gutter as their top, bottom, and right edges.
+        expect(cardLeftEdges.filter((cardLeftEdge) => cardLeftEdge < 12)).toEqual([]);
+        expect(cardLeftEdges.at(0)).toBe(12);
+    });
+
+    it.each([720, 780])('retains gutters when safe-area insets leave only %i points in a wide navigator', (windowWidth) => {
+        // Given the outer device width selects wide layout but horizontal safe-area insets reduce the navigator's actual width
+        // When the receipt and report calculate their widths inside that smaller navigator
+        const widths = [calculateWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)];
+
+        // Then the responsive minimum cannot push either card outside its floating left gutter
+        expect(widths).toEqual([windowWidth - 26, windowWidth - 26]);
     });
 
     it('pins the exact window width where the wide RHP floor takes over', () => {
@@ -95,17 +89,15 @@ describe('calculateSuperWideRHPWidth', () => {
     });
 
     describe('regression: native platforms (https://github.com/Expensify/App/issues/99035)', () => {
-        it('reports no spare room so the Side Panel shrink stays a number', () => {
-            // Given native, where the super wide RHP does not exist and the web width helpers it builds on are no-ops
-            const calculateMaxSidePanelRHPShrinkNative = jest.requireActual<{default: (windowWidth: number) => number}>(
-                '@libs/Navigation/helpers/calculateMaxSidePanelRHPShrink/index.native.ts',
-            ).default;
+        it('calculates finite spare room with the shared native width helpers', () => {
+            // Given native, where wide RHPs now use the same width calculations as web
+            const windowWidth = 1440;
 
             // When the Side Panel asks how much of the sheet it may take
-            const shrink = calculateMaxSidePanelRHPShrinkNative(1440);
+            const shrink = calculateMaxSidePanelRHPShrink(windowWidth);
 
-            // Then it is 0 rather than NaN, because the shrink feeds an animated inputRange and NaN there takes the whole RHP down on iOS.
-            expect(shrink).toBe(0);
+            // Then the shrink is finite and preserves enough room for both panes instead of feeding NaN into an animated inputRange.
+            expect(shrink).toBe(155);
         });
     });
 });

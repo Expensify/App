@@ -24691,7 +24691,6 @@ var require_CONST = __commonJS({
         REPLACE_CARD: "replace_card",
         SHIP_CARD: "ship_card",
         REPORT_CARD_FRAUD: "report_card_fraud",
-        APPROVE_DIGITAL_WALLET: "approve_digital_wallet",
         ISSUE_CARD: "issue_card",
         UPDATE_CARD: "update_card",
         UPDATE_PERSONAL_DETAILS: "update_personal_details",
@@ -43404,117 +43403,6 @@ var require_str = __commonJS({
       }
       return parameter;
     }
-    function compare(strA, strB) {
-      if (strA < strB) {
-        return -1;
-      }
-      if (strA > strB) {
-        return 1;
-      }
-      return 0;
-    }
-    function caseInsensitiveCompare(strA, strB) {
-      const lowerCaseStrA = strA.toLocaleLowerCase();
-      const lowerCaseStrB = strB.toLocaleLowerCase();
-      return compare(lowerCaseStrA, lowerCaseStrB);
-    }
-    function contains(haystack, needle) {
-      return haystack.indexOf(needle) !== -1;
-    }
-    function cutAfter(str2, substr) {
-      const index = str2.indexOf(substr);
-      if (index !== -1) {
-        return str2.substring(0, index);
-      }
-      return str2;
-    }
-    function cutBefore(str2, substr) {
-      const index = str2.indexOf(substr);
-      if (index !== -1) {
-        return str2.substring(index + substr.length);
-      }
-      return str2;
-    }
-    function extractEmailDomain(email) {
-      return cutBefore(email, "@");
-    }
-    function getExtension(url) {
-      var _a3, _b;
-      if (typeof url !== "string") {
-        Log_1.default.warn("Str.getExtension: url is not a string", { url });
-        return void 0;
-      }
-      return (_b = (_a3 = url.split(".").pop()) === null || _a3 === void 0 ? void 0 : _a3.split("?")[0]) === null || _b === void 0 ? void 0 : _b.toLowerCase();
-    }
-    function getRawByteSize(inputChar) {
-      const onlyChar = String(inputChar);
-      const c = onlyChar.charCodeAt(0);
-      if (c < 1 << 7) {
-        return 1;
-      }
-      if (c < 1 << 11) {
-        return 2;
-      }
-      if (c < 1 << 16) {
-        return 3;
-      }
-      if (c < 1 << 21) {
-        return 4;
-      }
-      if (c < 1 << 26) {
-        return 5;
-      }
-      if (c < 1 << 31) {
-        return 6;
-      }
-      return Number.NaN;
-    }
-    function htmlDecode(s) {
-      return HtmlEntities.decode(s);
-    }
-    function htmlEncode(s) {
-      return HtmlEntities.encode(s);
-    }
-    function isTypeOf(obj, type) {
-      return Object.prototype.toString.call(obj) === `[object ${type}]`;
-    }
-    function isNumber(obj) {
-      return isTypeOf(obj, "Number");
-    }
-    function isString(obj) {
-      return isTypeOf(obj, "String");
-    }
-    function isUndefined(obj) {
-      return obj === void 0;
-    }
-    function isValidE164Phone(phone) {
-      return Constants.CONST.SMS.E164_REGEX.test(phone);
-    }
-    function isValidEmail(str2) {
-      if (!str2 || typeof str2 !== "string") {
-        return false;
-      }
-      const unicodeVersion = punycode_1.default.toUnicode(str2);
-      if (String(unicodeVersion).match(Constants.CONST.REG_EXP.EMOJI_RULE)) {
-        return false;
-      }
-      return !!String(str2).match(Constants.CONST.REG_EXP.EMAIL);
-    }
-    function maskFirstNCharacters(str2, num, mask) {
-      if (!isString(str2) || !isString(mask) || str2.length === 0 || !isNumber(num)) {
-        return str2;
-      }
-      return str2.substring(0, num).replaceAll(/./g, mask) + str2.substring(num);
-    }
-    function removeSMSDomain(text) {
-      return text.replaceAll(REMOVE_SMS_DOMAIN_PATTERN, "");
-    }
-    function removeTrailingComma(str2) {
-      return str2.trim().replaceAll(/(,$)/g, "");
-    }
-    function startsWith(haystack, needle) {
-      return isString(haystack) && isString(needle) && haystack.substring(0, needle.length) === needle;
-    }
     var Str6 = {
       /**
        * Return true if the string is ending with the provided suffix
@@ -43572,14 +43460,18 @@ var require_str = __commonJS({
        * @param s The string to decode.
        * @returns The decoded string.
        */
-      htmlDecode,
+      htmlDecode(s) {
+        return HtmlEntities.decode(s);
+      },
       /**
        * HTML encodes the given string.
        *
        * @param s The string to encode.
        * @return string @p s HTML encoded.
        */
-      htmlEncode,
+      htmlEncode(s) {
+        return HtmlEntities.encode(s);
+      },
       /**
        * Decodes the given HTML encoded string.
        *
@@ -43621,7 +43513,7 @@ var require_str = __commonJS({
        * @returns True when first === second, ignoring HTML encoding
        */
       htmlEncodingInsensitiveEquals(first, second) {
-        return first === second || htmlDecode(first) === second || htmlEncode(first) === second;
+        return first === second || this.htmlDecode(first) === second || this.htmlEncode(first) === second;
       },
       /**
        * Creates an ID that can be used as an HTML attribute from @p str.
@@ -43704,14 +43596,36 @@ var require_str = __commonJS({
        * one.
        * @returns Byte size of the character
        */
-      getRawByteSize,
+      getRawByteSize(inputChar) {
+        const onlyChar = String(inputChar);
+        const c = onlyChar.charCodeAt(0);
+        if (c < 1 << 7) {
+          return 1;
+        }
+        if (c < 1 << 11) {
+          return 2;
+        }
+        if (c < 1 << 16) {
+          return 3;
+        }
+        if (c < 1 << 21) {
+          return 4;
+        }
+        if (c < 1 << 26) {
+          return 5;
+        }
+        if (c < 1 << 31) {
+          return 6;
+        }
+        return Number.NaN;
+      },
       /**
        * Gets the length of a string in bytes, including non-ASCII characters
        * @returns The number of bytes used by string
        */
       getByteLength(input) {
         const stringInput = String(input);
-        const byteLength = Array.from(stringInput).reduce((acc, char) => acc + getRawByteSize(char), 0);
+        const byteLength = Array.from(stringInput).reduce((acc, char) => acc + this.getRawByteSize(char), 0);
         return byteLength;
       },
       /**
@@ -43723,7 +43637,7 @@ var require_str = __commonJS({
         const stringInput = String(input);
         let totalByteLength = 0;
         for (let i = 0; i < stringInput.length; i++) {
-          const charByteSize = getRawByteSize(stringInput[i]);
+          const charByteSize = this.getRawByteSize(stringInput[i]);
           if (charByteSize + totalByteLength > maxSize) {
             return `${stringInput.substr(0, i - 3)}...`;
           }
@@ -43738,7 +43652,9 @@ var require_str = __commonJS({
        * @param needle  The case-sensitive string to search for
        * @returns True if the haystack starts with the needle.
        */
-      startsWith,
+      startsWith(haystack, needle) {
+        return this.isString(haystack) && this.isString(needle) && haystack.substring(0, needle.length) === needle;
+      },
       /**
        * Gets the textual value of the given string.
        *
@@ -43746,7 +43662,7 @@ var require_str = __commonJS({
        * @returns The text from within the HTML string.
        */
       stripHTML(str2) {
-        if (!isString(str2)) {
+        if (!this.isString(str2)) {
           return "";
         }
         return str2.replaceAll(/<[^>]*>?/gm, "");
@@ -43769,7 +43685,13 @@ var require_str = __commonJS({
        * @param substr The substring to search for.
        * @returns The cut/trimmed string.
        */
-      cutAfter,
+      cutAfter(str2, substr) {
+        const index = str2.indexOf(substr);
+        if (index !== -1) {
+          return str2.substring(0, index);
+        }
+        return str2;
+      },
       /**
        * Returns a string containing all the characters str from after the first
        * occurrence of substr to the end of the string.
@@ -43779,7 +43701,13 @@ var require_str = __commonJS({
        * @param substr The substring to search for.
        * @returns The cut/trimmed string.
        */
-      cutBefore,
+      cutBefore(str2, substr) {
+        const index = str2.indexOf(substr);
+        if (index !== -1) {
+          return str2.substring(index + substr.length);
+        }
+        return str2;
+      },
       /**
        * Checks that the string is a domain name (e.g. example.com)
        *
@@ -43806,7 +43734,16 @@ var require_str = __commonJS({
        *
        * @returns True if the string is an email
        */
-      isValidEmail,
+      isValidEmail(str2) {
+        if (!str2 || typeof str2 !== "string") {
+          return false;
+        }
+        const unicodeVersion = punycode_1.default.toUnicode(str2);
+        if (String(unicodeVersion).match(Constants.CONST.REG_EXP.EMOJI_RULE)) {
+          return false;
+        }
+        return !!String(str2).match(Constants.CONST.REG_EXP.EMAIL);
+      },
       /**
        * Checks if the string is an valid email address formed during comment markdown formation.
        *
@@ -43824,7 +43761,9 @@ var require_str = __commonJS({
        *
        * @returns string with the trailing comma removed
        */
-      removeTrailingComma,
+      removeTrailingComma(str2) {
+        return str2.trim().replaceAll(/(,$)/g, "");
+      },
       /**
        * Checks that the string is a list of coma separated email addresss.
        *
@@ -43833,12 +43772,12 @@ var require_str = __commonJS({
        * @returns True if all emails are valid or if input is empty
        */
       areValidEmails(str2) {
-        const string = removeTrailingComma(str2);
+        const string = this.removeTrailingComma(str2);
         if (string === "") {
           return true;
         }
         const emails = string.split(",");
-        const result = emails.every((email) => isValidEmail(email.trim()));
+        const result = emails.every((email) => this.isValidEmail(email.trim()));
         return result;
       },
       /**
@@ -43855,7 +43794,9 @@ var require_str = __commonJS({
        *
        * @returns The domain name in the email address.
        */
-      extractEmailDomain,
+      extractEmailDomain(email) {
+        return this.cutBefore(email, "@");
+      },
       /**
        * Tries to extract the company name from the given email address
        * (e.g. "yelp" for "joe@yelp.co.uk").
@@ -43865,7 +43806,7 @@ var require_str = __commonJS({
        * @returns The company name in the email address or null.
        */
       extractCompanyNameFromEmailDomain(email) {
-        const domain = extractEmailDomain(email);
+        const domain = this.extractEmailDomain(email);
         if (!domain) {
           return null;
         }
@@ -43884,7 +43825,7 @@ var require_str = __commonJS({
        * @returns The local part in the email address.
        */
       extractEmailLocalPart(email) {
-        return cutAfter(email, "@");
+        return this.cutAfter(email, "@");
       },
       /**
        * Sanitize phone number to return only numbers. Return null if non valid phone number.
@@ -43942,13 +43883,13 @@ var require_str = __commonJS({
        * @returns true if the length is in the range, false otherwise
        */
       isOfLength(str2, minimumLength, maximumLength) {
-        if (!isString(str2)) {
+        if (!this.isString(str2)) {
           return false;
         }
         if (str2.length < minimumLength) {
           return false;
         }
-        if (!isUndefined(maximumLength) && str2.length > maximumLength) {
+        if (!this.isUndefined(maximumLength) && str2.length > maximumLength) {
           return false;
         }
         return true;
@@ -44001,7 +43942,9 @@ var require_str = __commonJS({
        *
        * @returns Returns true if the haystack contains the needle
        */
-      contains,
+      contains(haystack, needle) {
+        return haystack.indexOf(needle) !== -1;
+      },
       /**
        * Returns true if the haystack contains the needle, ignoring case
        *
@@ -44011,7 +43954,7 @@ var require_str = __commonJS({
        * @returns Returns true if the haystack contains the needle, ignoring case
        */
       caseInsensitiveContains(haystack, needle) {
-        return contains(haystack.toLowerCase(), needle.toLowerCase());
+        return this.contains(haystack.toLowerCase(), needle.toLowerCase());
       },
       /**
        * Case insensitive compare function
@@ -44023,7 +43966,11 @@ var require_str = __commonJS({
        *                   1 if first string > second string
        *                   0 if first string = second string
        */
-      caseInsensitiveCompare,
+      caseInsensitiveCompare(strA, strB) {
+        const lowerCaseStrA = strA.toLocaleLowerCase();
+        const lowerCaseStrB = strB.toLocaleLowerCase();
+        return this.compare(lowerCaseStrA, lowerCaseStrB);
+      },
       /**
        * Case insensitive equals
        *
@@ -44032,7 +43979,7 @@ var require_str = __commonJS({
        * @returns true when first == second except for case
        */
       caseInsensitiveEquals(strA, strB) {
-        return caseInsensitiveCompare(strA, strB) === 0;
+        return this.caseInsensitiveCompare(strA, strB) === 0;
       },
       /**
        * Compare function
@@ -44044,7 +43991,15 @@ var require_str = __commonJS({
        *                   1 if first string > second string
        *                   0 if first string = second string
        */
-      compare,
+      compare(strA, strB) {
+        if (strA < strB) {
+          return -1;
+        }
+        if (strA > strB) {
+          return 1;
+        }
+        return 0;
+      },
       /**
        * Check if a file extension is supported by SmartReports
        */
@@ -44063,37 +44018,45 @@ var require_str = __commonJS({
         const accountNumber = String(num);
         const len = accountNumber.length;
         if (len < 6 || len > 20) {
-          return maskFirstNCharacters(accountNumber, len, "X");
+          return this.maskFirstNCharacters(accountNumber, len, "X");
         }
         if (len < 14) {
-          return maskFirstNCharacters(accountNumber, len - 4, "X");
+          return this.maskFirstNCharacters(accountNumber, len - 4, "X");
         }
         const first = accountNumber.substr(0, 6);
         const last = accountNumber.substr(7);
-        const masked = maskFirstNCharacters(last, len - 11, "X");
+        const masked = this.maskFirstNCharacters(last, len - 11, "X");
         return `${first}${masked}`;
       },
       /**
        * Checks if something is a string
        * Stolen from underscore
        */
-      isString,
+      isString(obj) {
+        return this.isTypeOf(obj, "String");
+      },
       /**
        * Checks if something is a number
        * Stolen from underscore
        * @param obj
        */
-      isNumber,
+      isNumber(obj) {
+        return this.isTypeOf(obj, "Number");
+      },
       /**
        * Checks if something is a certain type
        * Stolen from underscore
        */
-      isTypeOf,
+      isTypeOf(obj, type) {
+        return Object.prototype.toString.call(obj) === `[object ${type}]`;
+      },
       /**
        * Checks to see if something is undefined
        * Stolen from underscore
        */
-      isUndefined,
+      isUndefined(obj) {
+        return obj === void 0;
+      },
       /**
        * Replace first N characters of the string with maskChar
        * eg: maskFirstNCharacters( '1234567890', 6, 'X' ) yields XXXXXX7890
@@ -44102,7 +44065,12 @@ var require_str = __commonJS({
        * @param mask String we want replace the first N chars with
        * @returns Masked string
        */
-      maskFirstNCharacters,
+      maskFirstNCharacters(str2, num, mask) {
+        if (!this.isString(str2) || !this.isString(mask) || str2.length === 0 || !this.isNumber(num)) {
+          return str2;
+        }
+        return str2.substring(0, num).replaceAll(/./g, mask) + str2.substring(num);
+      },
       /**
        * Trim a string
        */
@@ -44114,7 +44082,7 @@ var require_str = __commonJS({
        * @param percentageString The percentage as a string
        */
       percentageStringToNumber(percentageString) {
-        return Number(cutAfter(percentageString, "%"));
+        return Number(this.cutAfter(percentageString, "%"));
       },
       /**
        * Remove all the spaces from a string
@@ -44158,7 +44126,7 @@ var require_str = __commonJS({
        * Converts a value to boolean, case-insensitive.
        */
       toBool(value) {
-        if (isString(value)) {
+        if (this.isString(value)) {
           return value.toLowerCase() === "true";
         }
         return !!value;
@@ -44208,7 +44176,9 @@ var require_str = __commonJS({
       /**
        * Check for whether a phone number is valid according to E.164 standard.
        */
-      isValidE164Phone,
+      isValidE164Phone(phone) {
+        return Constants.CONST.SMS.E164_REGEX.test(phone);
+      },
       /**
        * Check for whether a phone number is valid in different formats/standards. For example:
        * significant: 4404589784
@@ -44234,12 +44204,14 @@ var require_str = __commonJS({
       /**
        * Returns text without our SMS domain
        */
-      removeSMSDomain,
+      removeSMSDomain(text) {
+        return text.replaceAll(REMOVE_SMS_DOMAIN_PATTERN, "");
+      },
       /**
        * Returns true if the text is a valid E.164 phone number with our SMS domain removed
        */
       isSMSLogin(text) {
-        return isValidE164Phone(removeSMSDomain(text));
+        return this.isValidE164Phone(this.removeSMSDomain(text));
       },
       /**
        * This method will return all matches of a single regex like preg_match_all() in PHP. This is not a common part of
@@ -44292,7 +44264,7 @@ var require_str = __commonJS({
           return url;
         }
         const website = match2[3] ? match2[2] : `${defaultScheme}://${match2[2]}`;
-        return website.toLowerCase() + cutBefore(match2[1], match2[2]);
+        return website.toLowerCase() + this.cutBefore(match2[1], match2[2]);
       },
       /**
        * Checks if parameter is a string or function
@@ -44304,7 +44276,14 @@ var require_str = __commonJS({
        * Get file extension for a given url with or
        * without query parameters
        */
-      getExtension,
+      getExtension(url) {
+        var _a3, _b;
+        if (typeof url !== "string") {
+          Log_1.default.warn("Str.getExtension: url is not a string", { url });
+          return void 0;
+        }
+        return (_b = (_a3 = url.split(".").pop()) === null || _a3 === void 0 ? void 0 : _a3.split("?")[0]) === null || _b === void 0 ? void 0 : _b.toLowerCase();
+      },
       /**
        * Takes in a URL and checks if the file extension is PDF
        *
@@ -44312,7 +44291,7 @@ var require_str = __commonJS({
        * @returns Whether file path is PDF or not
        */
       isPDF(url) {
-        return getExtension(url) === "pdf";
+        return this.getExtension(url) === "pdf";
       },
       /**
        * Takes in a URL and checks if the file extension is an image
@@ -44323,7 +44302,7 @@ var require_str = __commonJS({
        * https://reactnative.dev/docs/image#source
        */
       isImage(url) {
-        const extension = getExtension(url);
+        const extension = this.getExtension(url);
         if (!extension) {
           return false;
         }
@@ -44339,7 +44318,7 @@ var require_str = __commonJS({
        * https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Video_codecs
        */
       isVideo(url) {
-        const extension = getExtension(url);
+        const extension = this.getExtension(url);
         if (!extension) {
           return false;
         }
@@ -44352,7 +44331,7 @@ var require_str = __commonJS({
        * @returns True if is a domain account email, otherwise false.
        */
       isDomainEmail(email) {
-        return startsWith(email, "+@");
+        return this.startsWith(email, "+@");
       },
       /**
        * Find the minimum indentation of any line in the string,
@@ -45490,17 +45469,13 @@ ${g2}
           },
           {
             name: "anchor",
-            regex: /(\]\()?<(a)[^><]*href\s*=\s*(['"])(.*?)\3(?:".*?"|'.*?'|[^'"><])*>([\s\S]*?)<\/\2>(?![^<]*(<\/pre>|<\/code>))/gi,
-            replacement: (_extras, _match, g1, _g2, _g3, g4, g5) => {
-              const incompleteLinkStart = g1 !== null && g1 !== void 0 ? g1 : "";
-              const email = g4.startsWith("mailto:") ? g4.slice(7) : "";
-              if (email === g5) {
-                return `${incompleteLinkStart}${email}`;
+            regex: /<(a)[^><]*href\s*=\s*(['"])(.*?)\2(?:".*?"|'.*?'|[^'"><])*>([\s\S]*?)<\/\1>(?![^<]*(<\/pre>|<\/code>))/gi,
+            replacement: (_extras, _match, _g1, _g2, g3, g4) => {
+              const email = g3.startsWith("mailto:") ? g3.slice(7) : "";
+              if (email === g4) {
+                return email;
               }
-              if (incompleteLinkStart && (g4 === g5 || g4 === `https://${g5}`)) {
-                return `${incompleteLinkStart}${g5}`;
-              }
-              return `${incompleteLinkStart}[${g5}](${email || g4})`;
+              return `[${g4}](${email || g3})`;
             }
           },
           {

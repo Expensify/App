@@ -28,6 +28,7 @@ import type {ParamListBase} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {
     useSearchSidebarCollapse,
@@ -109,7 +110,10 @@ function SearchSidebar({state}: SearchSidebarProps) {
         <Animated.View style={layoutSpacerStyle}>
             <Hoverable onHoverOut={endPeek}>
                 <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
-                    <View style={styles.flex1}>
+                    <SafeAreaView
+                        style={styles.flex1}
+                        edges={['top']}
+                    >
                         <TopBar
                             shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
                             breadcrumbLabel={translate('common.spend')}
@@ -124,7 +128,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
                                 <SearchTypeMenuWide />
                             </View>
                         </Hoverable>
-                    </View>
+                    </SafeAreaView>
                 </Animated.View>
             </Hoverable>
         </Animated.View>

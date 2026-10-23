@@ -13,7 +13,7 @@ type TransactionPreviewCarouselStyle = {
 };
 
 type TransactionPreviewStandaloneStyle = {
-    [key in keyof TransactionPreviewStyleType]: string;
+    [key in keyof TransactionPreviewStyleType]: number | string;
 };
 
 type MoneyRequestReportPreviewStyleType = {

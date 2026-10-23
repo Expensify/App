@@ -83,10 +83,15 @@ export default async function cjsInlineRequiresLoader(source, inputSourceMap) {
         // The node_modules rule passes `sourcemap: false` to skip maps entirely.
         const sourceMaps = options.sourcemap !== undefined ? options.sourcemap : !!this.sourceMap;
 
-        // App source only needs block-scoping (Hermes shares one binding across loop iterations).
+        // Lower optional chains before inlining imports: Rspack drops ?. from require('x').value?.method(),
+        // which crashes React Navigation when InteractionManager is unavailable on newer RN versions.
+        // Block-scoping is needed because Hermes shares one binding across loop iterations.
         // node_modules also ship async generators, which Hermes cannot parse, so the node_modules
         // rule opts into lowering those too. Everything else modern Hermes handles natively.
-        const envInclude = options.hermesLowering ? ['transform-block-scoping', 'transform-async-to-generator', 'transform-async-generator-functions'] : ['transform-block-scoping'];
+        const envInclude = ['transform-block-scoping', 'transform-optional-chaining'];
+        if (options.hermesLowering) {
+            envInclude.push('transform-async-to-generator', 'transform-async-generator-functions');
+        }
 
         const swcResult = await rspack.experiments.swc.transform(source, {
             filename: this.resourcePath,

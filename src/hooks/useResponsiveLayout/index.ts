@@ -10,10 +10,11 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 
 import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
-import {useContext, useMemo} from 'react';
-import {Dimensions} from 'react-native';
+import {useContext} from 'react';
 
 import type ResponsiveLayoutResult from './types';
+
+import getResponsiveLayoutConstraints from './getResponsiveLayoutConstraints';
 
 /**
  * Hook to determine if we are on mobile devices or in the Modal Navigator. It also provides booleans for our breakpoints
@@ -35,11 +36,9 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
 
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
-    // When the soft keyboard opens on mWeb, the window height changes. Use static screen height instead to get real screenHeight.
-    const screenHeight = Dimensions.get('screen').height;
-    const isExtraSmallScreenHeight = screenHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
-    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint || isInLandscapeMode;
-    const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint && !isInLandscapeMode;
+    const {isExtraSmallScreenHeight, shouldUseNarrowLayoutForLandscape} = getResponsiveLayoutConstraints(windowHeight, isInLandscapeMode);
+    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint || shouldUseNarrowLayoutForLandscape;
+    const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint && !shouldUseNarrowLayoutForLandscape;
     const onboardingIsMediumOrLargerScreenWidth = !isInLandscapeMode && windowWidth > variables.mobileResponsiveWidthBreakpoint;
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
     const isExtraLargeScreenWidth = windowWidth > variables.sidePanelResponsiveWidthBreakpoint;
@@ -60,7 +59,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const navigator = useContext(NavigationContext);
     const currentNavigator = navigator ?? navigationContainerRef;
 
-    const isDisplayedInNarrowModalNavigator = useMemo(() => !!currentNavigator?.getParent?.(NAVIGATORS.RIGHT_MODAL_NAVIGATOR as unknown as undefined), [currentNavigator]);
+    const isDisplayedInNarrowModalNavigator = !!currentNavigator?.getParent?.(NAVIGATORS.RIGHT_MODAL_NAVIGATOR as unknown as undefined);
 
     // The component calling this hook is in a "narrow pane modal" if:
     const isInNarrowPaneModal =
