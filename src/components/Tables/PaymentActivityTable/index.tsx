@@ -2,6 +2,7 @@ import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableDat
 import Table, {composeTableListHeader} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -38,9 +39,13 @@ type PaymentActivityTableProps = {
 
 function PaymentActivityTable({activeUsers, headerComponent}: PaymentActivityTableProps) {
     const {translate, localeCompare} = useLocalize();
+    const subscriptionPlan = useSubscriptionPlan();
+
+    // The Collect plan has no concept of active users, so it counts members instead.
+    const isCollectPlan = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
 
     // The count always reflects every active user, not just the ones matching the search.
-    const activeUsersLabel = translate('subscription.paymentHistory.activeUsers', {count: activeUsers.length});
+    const activeUsersLabel = translate(isCollectPlan ? 'subscription.paymentHistory.members' : 'subscription.paymentHistory.activeUsers', {count: activeUsers.length});
 
     const columns: Array<TableColumn<PaymentActivityTableColumnKey>> = [
         {
@@ -68,7 +73,7 @@ function PaymentActivityTable({activeUsers, headerComponent}: PaymentActivityTab
     const shouldShowSearchBar = activeUsers.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const tableHeaderComponent = composeTableListHeader(
         headerComponent,
-        shouldShowSearchBar ? <Table.FilterBar label={translate('subscription.paymentHistory.findActiveUser')} /> : undefined,
+        shouldShowSearchBar ? <Table.FilterBar label={translate(isCollectPlan ? 'subscription.paymentHistory.findMember' : 'subscription.paymentHistory.findActiveUser')} /> : undefined,
     );
 
     return (
