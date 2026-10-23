@@ -7877,6 +7877,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Γίνεται συγχρονισμός δεδομένων Campfire';
                         case 'campfireSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Γίνεται συγχρονισμός δεδομένων Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Zoho Books';
                         case 'campfireSyncImportData':

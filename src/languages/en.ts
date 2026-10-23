@@ -8195,6 +8195,8 @@ const translations = {
                             return 'Syncing Campfire data';
                         case 'campfireSyncConnection':
                             return 'Initializing connection to Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Syncing Zoho Books data';
                         case 'zohoBooksSyncConnection':
                             return 'Initializing connection to Zoho Books';
                         case 'campfireSyncImportData':

@@ -7748,6 +7748,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                             return 'Campfire-Daten werden synchronisiert';
                         case 'campfireSyncConnection':
                             return 'Verbindung zu Campfire wird initialisiert';
+                        case 'zohoBooksSyncTitle':
+                            return 'Zoho Books-Daten werden synchronisiert';
                         case 'zohoBooksSyncConnection':
                             return 'Verbindung zu Zoho Books wird initialisiert';
                         case 'campfireSyncImportData':

@@ -7545,6 +7545,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Sincronizando datos de Campfire';
                         case 'campfireSyncConnection':
                             return 'Iniciando conexión con Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Sincronizando datos de Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Iniciando conexión con Zoho Books';
                         case 'campfireSyncImportData':

@@ -7690,6 +7690,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                             return 'Sincronizando dados do Campfire';
                         case 'campfireSyncConnection':
                             return 'Inicializando conexão com o Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Sincronizando dados do Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Inicializando conexão com o Zoho Books';
                         case 'campfireSyncImportData':
