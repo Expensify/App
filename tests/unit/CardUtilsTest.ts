@@ -1,5 +1,3 @@
-import {describe} from '@jest/globals';
-
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';

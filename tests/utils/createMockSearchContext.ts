@@ -31,27 +31,21 @@ function createMockSearchContext(): {state: SearchStateContextValue; actions: Se
     };
 
     const actions: SearchActionsContextValue = {
-        setLastSearchType: jest.fn<ReturnType<SearchActionsContextValue['setLastSearchType']>, Parameters<SearchActionsContextValue['setLastSearchType']>>(),
-        setCurrentSelectedTransactionReportID: jest.fn<
-            ReturnType<SearchActionsContextValue['setCurrentSelectedTransactionReportID']>,
-            Parameters<SearchActionsContextValue['setCurrentSelectedTransactionReportID']>
-        >(),
-        setSelectedTransactions: jest.fn<void, []>(),
-        getSelectedTransactions: jest.fn<ReturnType<SearchActionsContextValue['getSelectedTransactions']>, []>(() => ({})),
+        setLastSearchType: jest.fn(),
+        setCurrentSelectedTransactionReportID: jest.fn(),
+        setSelectedTransactions: jest.fn(),
+        getSelectedTransactions: jest.fn(() => ({})),
         getExcludedTransactions: () => ({}),
         getAreAllMatchingItemsSelected: () => false,
-        applySelection: jest.fn<ReturnType<SearchActionsContextValue['applySelection']>, Parameters<SearchActionsContextValue['applySelection']>>(),
-        setSelectedReports: jest.fn<ReturnType<SearchActionsContextValue['setSelectedReports']>, Parameters<SearchActionsContextValue['setSelectedReports']>>(),
-        removeTransaction: jest.fn<ReturnType<SearchActionsContextValue['removeTransaction']>, Parameters<SearchActionsContextValue['removeTransaction']>>(),
-        clearSelectedTransactions: jest.fn<void, []>(),
-        setShouldShowFiltersBarLoading: jest.fn<
-            ReturnType<SearchActionsContextValue['setShouldShowFiltersBarLoading']>,
-            Parameters<SearchActionsContextValue['setShouldShowFiltersBarLoading']>
-        >(),
-        selectAllMatchingItems: jest.fn<ReturnType<SearchActionsContextValue['selectAllMatchingItems']>, Parameters<SearchActionsContextValue['selectAllMatchingItems']>>(),
-        setShouldResetSearchQuery: jest.fn<ReturnType<SearchActionsContextValue['setShouldResetSearchQuery']>, Parameters<SearchActionsContextValue['setShouldResetSearchQuery']>>(),
-        setSortedReportIDs: jest.fn<ReturnType<SearchActionsContextValue['setSortedReportIDs']>, Parameters<SearchActionsContextValue['setSortedReportIDs']>>(),
-        getSearchKeyForQuery: jest.fn<ReturnType<SearchActionsContextValue['getSearchKeyForQuery']>, Parameters<SearchActionsContextValue['getSearchKeyForQuery']>>(),
+        applySelection: jest.fn(),
+        setSelectedReports: jest.fn(),
+        removeTransaction: jest.fn(),
+        clearSelectedTransactions: jest.fn(),
+        setShouldShowFiltersBarLoading: jest.fn(),
+        selectAllMatchingItems: jest.fn(),
+        setShouldResetSearchQuery: jest.fn(),
+        setSortedReportIDs: jest.fn(),
+        getSearchKeyForQuery: jest.fn(),
     };
 
     return {state, actions};

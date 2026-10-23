@@ -3,6 +3,7 @@ import {screen, userEvent} from '@testing-library/react-native';
 
 import type CardListItemHeader from '@components/Search/SearchList/ListItem/CardListItemHeader';
 import type {TransactionGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {SearchColumnType} from '@components/Search/types';
 
 import CONST from '@src/CONST';
 
@@ -14,7 +15,7 @@ type SearchGroupHeaderCases<T extends TransactionGroupListItemType> = {
     createItem: () => T;
     createColumnItem?: () => T;
     renderHeader: (item: T, props: Partial<SearchGroupHeaderProps>, onCheckboxPress?: (item: T) => void) => ReturnType<typeof render>;
-    identifyingColumn: NonNullable<SearchGroupHeaderProps['columns']>[number];
+    identifyingColumn: SearchColumnType;
     identifyingText: string;
     cellText: RegExp;
 };
