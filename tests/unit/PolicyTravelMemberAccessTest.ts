@@ -4,11 +4,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {canMemberUseTravel, getTravelMemberRole, isMemberTravelAccessTurnedOff} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyEmployee} from '@src/types/onyx';
-import type {OnyxData} from '@src/types/onyx/Request';
-
-import type {OnyxKey} from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 
@@ -26,10 +22,9 @@ function buildPolicy(employee: PolicyEmployee): Policy {
     };
 }
 
-function getEmployeeUpdate(call: number, dataKey: 'optimisticData' | 'successData' | 'failureData'): Record<string, unknown> | undefined {
-    const options = mockWrite.mock.calls.at(call)?.[2] as OnyxData<OnyxKey> | undefined;
-    const value = options?.[dataKey]?.at(0)?.value as {employeeList?: Record<string, Record<string, unknown>>} | undefined;
-    return value?.employeeList?.[MEMBER.email];
+/** Matches Onyx data whose first update merges the given fields into the test member's employeeList entry. */
+function withEmployeeUpdate(dataKey: 'optimisticData' | 'successData' | 'failureData', employeeUpdate: unknown) {
+    return expect.objectContaining({[dataKey]: [expect.objectContaining({value: {employeeList: {[MEMBER.email]: employeeUpdate}}})]});
 }
 
 describe('Policy travel member access', () => {
@@ -56,9 +51,8 @@ describe('Policy travel member access', () => {
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
                 {policyID: 'policy-1', employeeAccountIDList: String(MEMBER.accountID), enabled: false},
-                expect.anything(),
+                withEmployeeUpdate('optimisticData', {canUseTravel: false, pendingFields: {canUseTravel: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}),
             );
-            expect(getEmployeeUpdate(0, 'optimisticData')).toEqual({canUseTravel: false, pendingFields: {canUseTravel: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}});
         });
 
         it('restores the stored value and marks the member as a failed update on failure', () => {
@@ -68,10 +62,21 @@ describe('Policy travel member access', () => {
 
             // Then a failure restores off and marks the member as a failed update, so dismissing the error keeps them in
             // the list, and a success clears both
-            const failureUpdate = getEmployeeUpdate(0, 'failureData');
-            expect(failureUpdate).toMatchObject({canUseTravel: false, pendingFields: {canUseTravel: null}, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
-            expect(failureUpdate?.errors).toBeTruthy();
-            expect(getEmployeeUpdate(0, 'successData')).toEqual({pendingFields: {canUseTravel: null}, pendingAction: null, errors: null});
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
+                expect.anything(),
+                withEmployeeUpdate('failureData', {
+                    canUseTravel: false,
+                    pendingFields: {canUseTravel: null},
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    errors: expect.any(Object) as unknown,
+                }),
+            );
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
+                expect.anything(),
+                withEmployeeUpdate('successData', {pendingFields: {canUseTravel: null}, pendingAction: null, errors: null}),
+            );
         });
     });
 
@@ -85,9 +90,8 @@ describe('Policy travel member access', () => {
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ROLE,
                 {policyID: 'policy-1', employeeAccountIDList: String(MEMBER.accountID), travelRole: CONST.TRAVEL.MEMBER_ROLE.TRAVELER},
-                expect.anything(),
+                withEmployeeUpdate('failureData', expect.objectContaining({travelRole: null, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE})),
             );
-            expect(getEmployeeUpdate(0, 'failureData')).toMatchObject({travelRole: null, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
         });
 
         it('does nothing when the stored role already matches', () => {
