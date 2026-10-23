@@ -9,6 +9,7 @@ import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -19,27 +20,21 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ExpenseReportListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './types';
+import type {ExpenseReportListItemType} from './types';
 
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
-function UserInfoAndActionButtonRow({
-    item,
-    shouldShowUserInfo,
-    containerStyles,
-    stateNum,
-    statusNum,
-    isSelected,
-    shouldAllowStatusTextSelection = false,
-}: {
-    item: TransactionReportGroupListItemType | TransactionListItemType | ExpenseReportListItemType;
+type UserInfoAndActionButtonRowProps = {
+    item: Pick<ExpenseReportListItemType, 'from' | 'to' | 'formattedFrom'> & Partial<Pick<Report, 'reportID'>>;
     shouldShowUserInfo: boolean;
     containerStyles?: StyleProp<ViewStyle>;
     stateNum: ExpenseReportListItemType['stateNum'];
     statusNum: ExpenseReportListItemType['statusNum'];
     isSelected?: boolean;
     shouldAllowStatusTextSelection?: boolean;
-}) {
+};
+
+function UserInfoAndActionButtonRow({item, shouldShowUserInfo, containerStyles, stateNum, statusNum, isSelected, shouldAllowStatusTextSelection = false}: UserInfoAndActionButtonRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
