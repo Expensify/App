@@ -71,7 +71,11 @@ export default function WorkspaceMembersTableRow({
     const roleLabel = translate('workspace.common.roleName', item.role);
     const bankAccountLabel =
         !shouldUseNarrowTableLayout && shouldShowBankAccountColumn && item.bankAccountLastFour ? `${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}` : '';
-    const accessibilityLabel = [item.name, item.email, bankAccountLabel, roleLabel].filter(Boolean).join(', ');
+    const travelLabel =
+        shouldShowTravelColumn && item.travelAccessValue
+            ? `${translate('workspace.moreFeatures.travel.members.travel')}: ${getTravelMemberAccessName(translate, item.travelAccessValue)}`
+            : '';
+    const accessibilityLabel = [item.name, item.email, bankAccountLabel, roleLabel, travelLabel].filter(Boolean).join(', ');
     const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;
 
     return (
