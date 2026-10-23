@@ -1540,6 +1540,7 @@ function Search({
                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                 shouldShowSorting
                 groupBy={validGroupBy}
+                // Trip rows share the expense report layout (Total without flex), so the header aligns the same way
                 isExpenseReportView={isExpenseReportType || shouldReturnTripRooms}
                 isActionColumnWide={isActionColumnWide}
             />
