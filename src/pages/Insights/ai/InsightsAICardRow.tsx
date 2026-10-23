@@ -32,8 +32,7 @@ function InsightsAICardRow({cards, isLoading}: InsightsAICardRowProps) {
         return null;
     }
 
-    // Keyed by position because cards have no ID and their text can repeat
-    const renderItem = (content: ReactNode, index: number) => (
+    const renderWithDivider = (content: ReactNode, index: number) => (
         <Fragment key={index}>
             {index > 0 && <View style={[styles.borderLeft, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]} />}
             {content}
@@ -48,8 +47,8 @@ function InsightsAICardRow({cards, isLoading}: InsightsAICardRowProps) {
             contentContainerStyle={pageGutter}
         >
             {isLoading
-                ? Array.from({length: SKELETON_CARD_COUNT}, (item, index) => renderItem(<InsightsAICardSkeleton />, index))
-                : cards?.map((card, index) => renderItem(<InsightsAICard card={card} />, index))}
+                ? Array.from({length: SKELETON_CARD_COUNT}, (item, index) => renderWithDivider(<InsightsAICardSkeleton />, index))
+                : cards?.map((card, index) => renderWithDivider(<InsightsAICard card={card} />, index))}
         </ScrollView>
     );
 }
