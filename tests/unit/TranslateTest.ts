@@ -38,8 +38,7 @@ describe('TranslateTest', () => {
             {
                 key: 'preventFutureActivityWithArchive',
                 action: 'archive all your paid workspaces',
-                billingWarning:
-                    'Workspaces with billable activity during the current month will still be included in your bill at the end of the month, even if you archive them.',
+                billingWarning: 'Archived workspaces with billable activity during the current month will still be included in your bill.',
             },
         ] as const)('preserves the workspace link and billing warning for $key', ({key, action, billingWarning}) => {
             // Given the Workspaces destination shared by the archive and delete cancellation instructions

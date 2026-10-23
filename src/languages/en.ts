@@ -12006,7 +12006,7 @@ const translations = {
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `If you'd like to prevent future activity and charges, you must <a href="${workspacesListRoute}">delete your workspace(s)</a>. Note that when you delete your workspace(s), you'll be charged for any outstanding activity that was incurred during the current calendar month.`,
                 preventFutureActivityWithArchive: (workspacesListRoute: string) =>
-                    `If you'd like to prevent future activity and charges, you must <a href="${workspacesListRoute}">archive all your paid workspaces</a>. Workspaces with billable activity during the current month will still be included in your bill at the end of the month, even if you archive them.`,
+                    `To prevent future activity and charges, <a href="${workspacesListRoute}">archive all your paid workspaces</a>. Archived workspaces with billable activity during the current month will still be included in your bill.`,
             },
             requestSubmitted: {
                 title: 'Request submitted',
