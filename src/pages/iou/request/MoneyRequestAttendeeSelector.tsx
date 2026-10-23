@@ -70,7 +70,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     // accountID derived from their login (generateAccountID is deterministic), so they can be tracked by accountID like everyone else.
     const initialSelectedOptions = attendees.map((attendee) => {
         // Use || to fall back to displayName for name-only attendees (empty email)
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const login = attendee.email || attendee.displayName;
         const personalDetail = attendeesPersonalDetails[attendee.email ?? ''];
         const accountID = personalDetail?.accountID ?? generateAccountID(login);
@@ -119,7 +118,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 return {
                     email: option.login ?? '',
                     // Use || to fall back for name-only attendees
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     displayName: option.text || option.login || '',
                     avatarUrl: icon,
                 };

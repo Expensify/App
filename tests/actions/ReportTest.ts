@@ -4061,15 +4061,19 @@ describe('actions/Report', () => {
     describe('updateDescription', () => {
         const currentUserAccountID = 1;
         it('should not call UpdateRoomDescription API if the description is not changed', async () => {
+            // Given a room whose stored description has a heading and mentions another room by reportID
             global.fetch = TestHelper.createGlobalFetchMock();
             const report: OnyxTypes.Report = {
                 ...createRandomReport(1, undefined),
-                description: '<h1>test</h1>',
+                description: '<h1>test <mention-report reportID="123"/></h1>',
             };
-            Report.updateDescription(report, '# test', currentUserAccountID);
+
+            // When the user saves the same description, with the reportID-to-name map used to seed the input
+            Report.updateDescription(report, '# test #room', currentUserAccountID, {'123': '#room'}, {});
 
             await waitForBatchedUpdates();
 
+            // Then the stored description resolves to the same markdown, so no API request is made
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION, 0);
         });
 
@@ -4084,7 +4088,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             mockFetch?.fail?.();
-            Report.updateDescription(report, '# test1', currentUserAccountID);
+            Report.updateDescription(report, '# test1', currentUserAccountID, {}, {});
 
             await waitForBatchedUpdates();
             let updateReport: OnyxEntry<OnyxTypes.Report>;
@@ -6401,6 +6405,19 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('shareReport', () => {
+        it('sends the recipient and the permissions the API expects', () => {
+            // Given a recipient entered as a phone number
+            const phoneNumber = '+15005550006';
+
+            // When the report is shared with them
+            Report.shareReport('1', phoneNumber);
+
+            // Then the request names them by their SMS login and gives read and write access
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SHARE_REPORT, {reportID: '1', shareToEmail: `${phoneNumber}${CONST.SMS.DOMAIN}`, permissions: 'read, write'});
+        });
+    });
+
     describe('openReport with introSelected', () => {
         it('should call OpenReport API with introSelected parameter', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();
@@ -7794,6 +7811,43 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
+        });
+
+        it('should bump the explained action reply count so the parent shows the Replies link', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const EXISTING_CHILD_REPORT = {...createRandomReport(2, undefined), parentReportID: PARENT_REPORT.reportID, parentReportActionID: '1'};
+            const REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+                childReportID: EXISTING_CHILD_REPORT.reportID,
+                childVisibleActionCount: 0,
+                childCommenterCount: 0,
+            };
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT.reportID}`, {[REPORT_ACTION.reportActionID]: REPORT_ACTION});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${EXISTING_CHILD_REPORT.reportID}`, EXISTING_CHILD_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.explain({
+                childReport: EXISTING_CHILD_REPORT,
+                originalReport: PARENT_REPORT,
+                reportAction: REPORT_ACTION,
+                translate: TestHelper.translateLocal,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: INTRO_SELECTED,
+                conciergeChat: undefined,
+                isSelfTourViewed: undefined,
+                delegateAccountID: undefined,
+                participantsPersonalDetails: undefined,
+                timezone: CONST.DEFAULT_TIME_ZONE,
+            });
+            await waitForBatchedUpdates();
+
+            const parentActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT.reportID}`);
+            expect(parentActions?.[REPORT_ACTION.reportActionID]?.childVisibleActionCount).toBe(1);
+            expect(parentActions?.[REPORT_ACTION.reportActionID]?.childCommenterCount).toBe(1);
         });
 
         it('should work with new explain thread scenario', async () => {

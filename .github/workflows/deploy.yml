@@ -769,17 +769,12 @@ jobs:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
           HOST: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
-      - name: Verify deploy
-        run: |
-          APP_VERSION=$(jq -r .version < package.json)
-          ./.github/scripts/verifyDeploy.sh "$HOST" "$APP_VERSION"
-        env:
-          HOST: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
+      # The host is verified by webDeployWorker, which deploys after this job.
 
   webDeployTestStaging:
     name: Deploy Web to test-staging.new.expensify.com
-    needs: [prep, webBuild]
-    if: ${{ needs.webBuild.result == 'success' && needs.prep.outputs.DEPLOY_ENV == 'staging' }}
+    needs: [prep, webBuild, buildStorybook]
+    if: ${{ always() && needs.webBuild.result == 'success' && needs.prep.outputs.DEPLOY_ENV == 'staging' }}
     # Trial hosting for the web build, so a failure here must not fail the staging deploy.
     continue-on-error: true
     runs-on: blacksmith-2vcpu-ubuntu-2404
@@ -807,6 +802,14 @@ jobs:
       - name: Extract web build
         run: tar -xzf "${{ needs.webBuild.outputs.TAR_FILENAME }}"
 
+      - name: Download storybook docs artifact
+        continue-on-error: true
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: storybook-docs-artifact
+          path: ./dist/docs
+
       - name: Install Cloudflare Worker dependencies
         working-directory: web/cloudflare-worker
         run: npm ci
@@ -822,7 +825,86 @@ jobs:
       - name: Verify deploy
         run: |
           APP_VERSION=$(jq -r .version < package.json)
-          ./.github/scripts/verifyDeploy.sh https://test-staging.new.expensify.com "$APP_VERSION"
+          ./.github/scripts/verifyDeploy.sh "$HOST" "$APP_VERSION"
+        env:
+          HOST: https://test-staging.new.expensify.com
+
+  webDeployWorker:
+    name: Deploy Web to the Cloudflare Worker
+    # After webDeploy, so the S3 copy of this build is in place before the Worker's version check.
+    needs: [prep, webBuild, buildStorybook, webDeploy]
+    if: ${{ always() && needs.webBuild.result == 'success' }}
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+        with:
+          ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
+
+      - name: Setup Node
+        # v6.1.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: web/cloudflare-worker/package-lock.json
+
+      - name: Download web build artifact
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: web-build-tar-gz-artifact
+          path: ./
+
+      - name: Extract web build
+        run: tar -xzf "${{ needs.webBuild.outputs.TAR_FILENAME }}"
+
+      # The Workers serve these to tabs still running this build after later deploys.
+      - name: Upload web build to the previous builds bucket
+        continue-on-error: true
+        run: |
+          if [[ -z "$AWS_ACCESS_KEY_ID" ]]; then
+            echo "::warning::CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID is not set, so this build is not available to future deploys."
+            exit 0
+          fi
+          aws configure set default.s3.preferred_transfer_client classic
+          # Re-uploads every file, so files that stay the same across builds don't hit the bucket's 60-day expiry while still in use.
+          aws s3 cp dist "s3://new-expensify-web-assets-$DEPLOY_ENV/" --recursive \
+            --endpoint-url "https://$CLOUDFLARE_ACCOUNT_ID.r2.cloudflarestorage.com" \
+            --no-progress \
+            --exclude '*.map'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_WEB_ASSETS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Download storybook docs artifact
+        continue-on-error: true
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: storybook-docs-artifact
+          path: ./dist/docs
+
+      - name: Install Cloudflare Worker dependencies
+        working-directory: web/cloudflare-worker
+        run: npm ci
+
+      - name: Deploy to Cloudflare Workers
+        working-directory: web/cloudflare-worker
+        run: npx wrangler deploy --env "$DEPLOY_ENV"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: false
+
+      - name: Verify deploy
+        run: |
+          APP_VERSION=$(jq -r .version < package.json)
+          ./.github/scripts/verifyDeploy.sh "$HOST" "$APP_VERSION"
+        env:
+          HOST: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
   buildStorybook:
     name: Build storybook docs
@@ -871,6 +953,7 @@ jobs:
         iosSubmit,
         webBuild,
         webDeploy,
+        webDeployWorker,
         victoryChartRendererBuild,
       ]
     steps:
@@ -886,7 +969,7 @@ jobs:
     name: Post a Slack message when the deploy is cancelled manually
     runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ cancelled() }}
-    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy]
+    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy, webDeployWorker]
     steps:
       - name: Check whether a newer deploy run exists
         id: check
@@ -925,7 +1008,7 @@ jobs:
       ANDROID_RESULT: ${{ steps.platformResults.outputs.ANDROID_RESULT }}
       IOS_RESULT: ${{ steps.platformResults.outputs.IOS_RESULT }}
       WEB_RESULT: ${{ steps.platformResults.outputs.WEB_RESULT }}
-    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy, victoryChartRendererBuild]
+    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy, webDeployWorker, victoryChartRendererBuild]
     if: ${{ always() }}
     steps:
       # Determine effective result for each platform
@@ -960,9 +1043,11 @@ jobs:
             echo "IOS_RESULT=${{ needs.iosUploadTestflight.result }}" >> "$GITHUB_OUTPUT"
           fi
 
-          # Web: propagate build failure even when deploy is skipped
+          # Web: propagate build failure even when deploy is skipped. Web is only deployed once its Worker is too.
           if [ "${{ needs.webBuild.result }}" == "failure" ]; then
             echo "WEB_RESULT=failure" >> "$GITHUB_OUTPUT"
+          elif [ "${{ needs.webDeployWorker.result }}" != "success" ]; then
+            echo "WEB_RESULT=${{ needs.webDeployWorker.result }}" >> "$GITHUB_OUTPUT"
           else
             echo "WEB_RESULT=${{ needs.webDeploy.result }}" >> "$GITHUB_OUTPUT"
           fi
