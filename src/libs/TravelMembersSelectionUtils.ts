@@ -1,9 +1,9 @@
-import type {TravelMembersSelection} from '@libs/actions/Travel';
-
 import CONST from '@src/CONST';
 import type {TravelProvisioning} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import type {TravelMembersSelection} from './actions/Travel';
 
 type TravelMemberCandidate = {
     accountID: number;
