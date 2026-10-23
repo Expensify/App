@@ -25,6 +25,7 @@ function HighlightableExpenseFieldRow({shouldHighlight = false, ...props}: Highl
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight,
+        highlightKey: undefined,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.appBG,
         borderRadius: variables.componentBorderRadiusNormal,

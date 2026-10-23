@@ -100,9 +100,6 @@ type MoneyRequestReportTransactionListProps = {
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
-    /** Whether the report table is visible — gates the new-row highlight (background on wide, on-close on narrow) */
-    isReportVisible?: boolean;
-
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
 
@@ -173,7 +170,6 @@ function MoneyRequestReportTransactionList({
     report,
     transactions,
     newTransactions,
-    isReportVisible = true,
     reportActions,
     hasPendingDeletionTransaction = false,
     policy,
@@ -341,7 +337,7 @@ function MoneyRequestReportTransactionList({
                     <MoneyRequestReportTransactionItem
                         transaction={transaction}
                         violations={violationsByTransactionID.get(transaction.transactionID) ?? EMPTY_VIOLATIONS}
-                        shouldBeHighlighted={isReportVisible && highlightedTransactionIDs.has(transaction.transactionID)}
+                        shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
                         columns={columnsToShow}
                         report={report}
                         policy={policy}
@@ -461,7 +457,7 @@ function MoneyRequestReportTransactionList({
                 renderReportAction={renderReportAction}
                 reportActionsExtraData={reportActionsExtraData}
                 linkedReportActionID={linkedReportActionID}
-                newTransactionID={isReportVisible ? newTransactions.at(0)?.transactionID : undefined}
+                newTransactionID={newTransactions.at(0)?.transactionID}
                 listRef={listRef}
                 onLastItemIndexChange={onLastItemIndexChange}
                 accessibilityLabel={accessibilityLabel}

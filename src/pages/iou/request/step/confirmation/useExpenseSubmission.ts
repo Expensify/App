@@ -342,7 +342,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         distanceDraftData,
         delegateAccountID,
         participantsPolicyTags,
-        reportTransactions,
     });
 
     const perDiemSubmission = usePerDiemSubmission({

@@ -6,11 +6,12 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type * as SearchContext from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
-import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
+import type {SearchListItem, TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import type * as SearchWriteActionsProviderModule from '@components/Search/SearchWriteActionsProvider';
 import type {SearchData, SearchSelectionActionsValue, SelectedTransactionInfo} from '@components/Search/types';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
+import type * as WideRHPContextProviderModule from '@components/WideRHPContextProvider';
 
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,6 +20,8 @@ import {clearPageRequestedSearch, consumePageRequestedSearch, markPageRequestedS
 import type * as SearchActions from '@libs/actions/Search';
 import registerMiddlewares from '@libs/Middleware/register';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -102,7 +105,29 @@ jest.mock('@react-navigation/core', () => ({
     useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: mockIsNavigationFocused})),
 }));
 
-type ListProps = {onEndReached?: () => void; onViewableItemsChanged?: () => void; onSelectRow?: (item: SearchListItem) => void; ListFooterComponent?: unknown};
+type ListProps = {
+    onEndReached?: () => void;
+    onViewableItemsChanged?: () => void;
+    onSelectRow?: (item: SearchListItem, transactionPreviewData?: SearchActions.TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    ListFooterComponent?: unknown;
+};
+
+const mockOpenInternalRouteInNewTab = jest.fn((_route: string, event?: ModifiedMouseEvent) => !!event?.ctrlKey);
+jest.mock('@libs/Navigation/helpers/openInternalRouteInNewTab', () => ({
+    __esModule: true,
+    default: (route: string, event?: ModifiedMouseEvent) => mockOpenInternalRouteInNewTab(route, event),
+    isModifiedMousePress: (event?: ModifiedMouseEvent) => !!event?.ctrlKey,
+}));
+
+const mockMarkReportRHPWidth = jest.fn();
+jest.mock('@components/WideRHPContextProvider', () => {
+    const actual = jest.requireActual<typeof WideRHPContextProviderModule>('@components/WideRHPContextProvider');
+    return {
+        ...actual,
+        __esModule: true,
+        useWideRHPActions: () => ({...actual.useWideRHPActions(), markReportRHPWidth: mockMarkReportRHPWidth}),
+    };
+});
 
 // Captures the list's handlers, since FlashList never lays out in tests.
 const listProps: ListProps = {};
@@ -1263,6 +1288,80 @@ describe('SearchPageNarrow', () => {
             });
 
             expect(await getOnyxValue(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY)).toEqual(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+        });
+
+        describe('the panel width a row press marks for the screen it opens', () => {
+            // A report with several expenses opens in a super-wide panel, and an expense opens its thread in a wide one.
+            const reportRow = createMock<TransactionReportGroupListItemType>({
+                keyForList: 'todo_1',
+                reportID: 'todo_1',
+                groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                transactions: [{transactionID: 'expense_1'}, {transactionID: 'expense_2'}],
+            });
+            const expenseRow = createMock<TransactionListItemType>({keyForList: 'expense_1', transactionID: 'expense_1', reportID: 'todo_1', reportAction: {childReportID: 'thread_1'}});
+            const rows = [
+                {rowName: 'a report with several expenses', row: reportRow, openedReportID: 'todo_1', width: 'super-wide'},
+                {rowName: 'an expense', row: expenseRow, openedReportID: 'thread_1', width: 'wide'},
+            ];
+            const ctrlClick: ModifiedMouseEvent = {ctrlKey: true, button: 0};
+            let navigateSpy: jest.SpyInstance;
+
+            beforeEach(() => {
+                navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            });
+
+            afterEach(() => {
+                navigateSpy.mockRestore();
+            });
+
+            async function renderToDoList() {
+                await seedTodoReports(1);
+                await seedTodoSnapshot(false);
+                renderPage(TODO_QUERY);
+                await act(async () => {
+                    jest.advanceTimersByTime(0);
+                });
+            }
+
+            /** The press navigates in an animation frame, and this suite runs on real timers, so the frame runs at once. */
+            async function pressRow(row: TransactionReportGroupListItemType | TransactionListItemType, event?: ModifiedMouseEvent) {
+                const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
+                    callback(0);
+                    return 0;
+                });
+                try {
+                    await act(async () => {
+                        listProps.onSelectRow?.(row, undefined, event);
+                    });
+                } finally {
+                    requestAnimationFrameSpy.mockRestore();
+                }
+            }
+
+            it.each(rows)('marks the panel width when $rowName opens in place', async ({row, openedReportID, width}) => {
+                // Given the Search list
+                await renderToDoList();
+
+                // When the row is pressed and opens in this tab
+                await pressRow(row);
+
+                // Then the width is marked for the screen that opens
+                expect(mockMarkReportRHPWidth).toHaveBeenCalledWith(openedReportID, width);
+                expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(openedReportID));
+            });
+
+            it.each(rows)('does not mark a panel width when $rowName opens in a new tab', async ({row}) => {
+                // Given the Search list
+                await renderToDoList();
+
+                // When the row is ctrl-clicked, which opens it in a new browser tab
+                await pressRow(row, ctrlClick);
+
+                // Then no width is marked and this tab stays put, since this tab never mounts the screen the width is for
+                expect(mockOpenInternalRouteInNewTab).toHaveBeenCalledWith(expect.any(String), ctrlClick);
+                expect(mockMarkReportRHPWidth).not.toHaveBeenCalled();
+                expect(navigateSpy).not.toHaveBeenCalled();
+            });
         });
 
         it('holds a page reached offline and requests it once back online', async () => {

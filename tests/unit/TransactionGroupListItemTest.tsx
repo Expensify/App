@@ -12,8 +12,11 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
+import type * as WideRHPContextProviderModule from '@components/WideRHPContextProvider';
 
 import registerMiddlewares from '@libs/Middleware/register';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import Navigation from '@libs/Navigation/Navigation';
 import type * as SearchKeyUtils from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
@@ -87,6 +90,23 @@ jest.mock('@react-navigation/core', () => ({
 jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
 
 jest.mock('@hooks/useResponsiveLayout');
+
+// Jest loads the native version, which never opens a tab. These answer from the event as the web version does.
+jest.mock('@libs/Navigation/helpers/openInternalRouteInNewTab', () => ({
+    __esModule: true,
+    default: (_route: unknown, event?: ModifiedMouseEvent) => !!event?.ctrlKey,
+    isModifiedMousePress: (event?: ModifiedMouseEvent) => !!event?.ctrlKey,
+}));
+
+const mockMarkReportRHPWidth = jest.fn();
+jest.mock('@components/WideRHPContextProvider', () => {
+    const actual = jest.requireActual<typeof WideRHPContextProviderModule>('@components/WideRHPContextProvider');
+    return {
+        ...actual,
+        __esModule: true,
+        useWideRHPActions: () => ({...actual.useWideRHPActions(), markReportRHPWidth: mockMarkReportRHPWidth}),
+    };
+});
 
 jest.mock('@hooks/usePaymentContext', () => {
     const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../utils/mockUsePaymentContext');
@@ -470,6 +490,66 @@ describe('TransactionGroupListItem', () => {
 
         expect(getVisibleTransactionRowsCount()).toBe(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
         expect(screen.getByText('Show more')).toBeTruthy();
+    });
+
+    describe('the panel width an expense row press marks for the screen it opens', () => {
+        const THREAD_REPORT_ID = 'thread_2';
+        // An expense with a thread opens that thread in a wide panel. The item carries no report, so it is not treated as the only expense of a report, which would open the report instead.
+        const reportWithThreadedExpense: TransactionReportGroupListItemType = {
+            ...mockNonEmptyReport,
+            transactions: [
+                {
+                    ...mockTransaction,
+                    transactionID: '2',
+                    reportID: mockNonEmptyReport.reportID,
+                    keyForList: '2',
+                    reportAction: {reportActionID: '2454187434077044187', actionName: CONST.REPORT.ACTIONS.TYPE.IOU, created: '2025-09-20', childReportID: THREAD_REPORT_ID},
+                },
+            ],
+        };
+        let navigateSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            navigateSpy.mockRestore();
+        });
+
+        async function pressExpenseRow(event?: ModifiedMouseEvent) {
+            render(
+                <TransactionGroupListItem
+                    {...defaultProps}
+                    item={reportWithThreadedExpense}
+                />,
+                {wrapper: TestWrapper},
+            );
+            await waitForBatchedUpdatesWithAct();
+            await expand();
+            fireEvent.press(screen.getByTestId('transaction-item-row'), event);
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        it('marks a wide panel for the expense thread when the row opens in place', async () => {
+            // Given an expanded report group
+            // When an expense row is pressed and opens in this tab
+            await pressExpenseRow();
+
+            // Then the width is marked for the thread screen about to mount
+            expect(mockMarkReportRHPWidth).toHaveBeenCalledWith(THREAD_REPORT_ID, 'wide');
+            expect(navigateSpy).toHaveBeenCalled();
+        });
+
+        it('does not mark a panel width when the row opens in a new tab', async () => {
+            // Given an expanded report group
+            // When an expense row is ctrl-clicked, which opens it in a new browser tab
+            await pressExpenseRow({ctrlKey: true, button: 0});
+
+            // Then no width is marked, since this tab never mounts the screen the width is for
+            expect(navigateSpy).not.toHaveBeenCalled();
+            expect(mockMarkReportRHPWidth).not.toHaveBeenCalled();
+        });
     });
 });
 

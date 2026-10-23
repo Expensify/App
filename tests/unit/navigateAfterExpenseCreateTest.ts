@@ -19,6 +19,7 @@ let mockSetPendingSubmitFollowUpAction: jest.MockedFunction<typeof setPendingSub
 const mockGetCurrentSearchQueryJSON = jest.fn<ReturnType<typeof getCurrentSearchQueryJSON>, Parameters<typeof getCurrentSearchQueryJSON>>();
 const mockGetCurrentRoute = jest.fn<{params?: Record<string, unknown>} | undefined, []>();
 const mockGetFocusedReportId = jest.fn<string | undefined, []>();
+const mockFlagNewTransactionForChatPreview = jest.fn<void, unknown[]>();
 
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => () => mockIsReportTopmostSplitNavigator());
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute());
@@ -39,6 +40,10 @@ jest.mock('@libs/SearchQueryUtils', () => ({
 }));
 jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
     setActiveTransactionIDs: jest.fn(() => Promise.resolve()),
+}));
+jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/IOU/PendingNewTransactions'),
+    flagNewTransactionForChatPreview: (...args: unknown[]) => mockFlagNewTransactionForChatPreview(...args),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -74,6 +79,7 @@ describe('navigateAfterExpenseCreate', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockGetIsNarrowLayout.mockReturnValue(false);
         mockIsReportTopmostSplitNavigator.mockReturnValue(false);
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
         mockIsReportOpenInRHP.mockReturnValue(false);
@@ -89,10 +95,36 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: false,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
         expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('flags the new expense for the chat preview when the user is taken to its chat', () => {
+        // Given an expense created from a chat, whose preview should highlight it
+        const params = {activeReportID: 'chat-123', transactionID: 'txn-1', isFromGlobalCreate: false, hasMultipleTransactions: false, shouldFlagNewTransactionForChatPreview: true};
+
+        // When the flow finishes
+        navigateAfterExpenseCreate(params);
+
+        // Then the chat gets the flag for that expense, so its preview highlights the new card
+        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'chat-123'});
+        expect(mockFlagNewTransactionForChatPreview).toHaveBeenCalledWith({chatReportID: 'chat-123', transactionID: 'txn-1'});
+    });
+
+    it('does not flag the chat preview when the expense opens in Search instead of its chat', () => {
+        // Given an expense created from global create away from the inbox, which lands in Search
+        mockGetIsNarrowLayout.mockReturnValue(true);
+        const params = {activeReportID: 'chat-123', transactionID: 'txn-1', isFromGlobalCreate: true, hasMultipleTransactions: false, shouldFlagNewTransactionForChatPreview: true};
+
+        // When the flow finishes
+        navigateAfterExpenseCreate(params);
+
+        // Then no chat preview is flagged, since the user is not taken to the chat
+        expect(Navigation.navigate).toHaveBeenCalled();
+        expect(mockFlagNewTransactionForChatPreview).not.toHaveBeenCalled();
     });
 
     it('should dismiss to report when user is on inbox tab', () => {
@@ -103,6 +135,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
@@ -120,6 +153,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
             isLookingAroundUser: true,
             isSelfDMDestination: true,
         });
@@ -141,6 +175,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
             isLookingAroundUser: false,
             isSelfDMDestination: false,
         });
@@ -159,6 +194,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
             isLookingAroundUser: true,
             isSelfDMDestination: false,
         });
@@ -171,6 +207,7 @@ describe('navigateAfterExpenseCreate', () => {
             activeReportID: 'report-123',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
@@ -184,6 +221,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(mockSetPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
@@ -198,6 +236,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense', searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
@@ -212,6 +251,7 @@ describe('navigateAfterExpenseCreate', () => {
             isFromGlobalCreate: true,
             isInvoice: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:invoice'}), {forceReplace: true});
@@ -226,6 +266,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(Navigation.clearFullscreenPreInsertedFlag).toHaveBeenCalled();

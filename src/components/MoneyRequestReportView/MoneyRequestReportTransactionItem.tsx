@@ -355,7 +355,7 @@ function MoneyRequestReportTransactionItemWithInlineEdit(props: Omit<MoneyReques
 }
 
 function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionItemProps) {
-    const {shouldBeHighlighted} = props;
+    const {shouldBeHighlighted, transaction} = props;
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     // Mirrors the layout check inside TransactionItemRow so the narrow body never pays for useTransactionInlineEdit.
@@ -365,6 +365,7 @@ function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionI
     // component-type swap caused by browser resize.
     const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: shouldBeHighlighted,
+        highlightKey: transaction?.transactionID,
         borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
         shouldApplyOtherStyles: !shouldUseNarrowLayout,
     });
