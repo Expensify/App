@@ -195,6 +195,23 @@ describe('getAdminExpensifyCardFeedEntries', () => {
         expect(currentEntries.map((entry) => entry.fundID)).toEqual([feedFundID]);
     });
 
+    it('hides a travel feed that was turned off', () => {
+        // Given a travel feed that keeps its settlement account after Consolidated Travel Billing is turned off
+        const travelSettings = (isEnabled: boolean): OnyxCollection<ExpensifyCardSettings> => ({
+            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${feedFundID}`]: {
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {paymentBankAccountID: 23242, isEnabled},
+            },
+        });
+
+        // When the travel feeds are listed for the off and on states
+        const disabledEntries = getAdminExpensifyCardFeedEntries(travelSettings(false), adminPolicyForFund, {}, currentUserAccountID, [CONST.TRAVEL.PROGRAM_TRAVEL_US]);
+        const enabledEntries = getAdminExpensifyCardFeedEntries(travelSettings(true), adminPolicyForFund, {}, currentUserAccountID, [CONST.TRAVEL.PROGRAM_TRAVEL_US]);
+
+        // Then only the enabled feed is offered, because linking a disabled one would leave the toggle off
+        expect(disabledEntries).toHaveLength(0);
+        expect(enabledEntries.map((entry) => entry.fundID)).toEqual([feedFundID]);
+    });
+
     it('hides a feed when the user is neither a domain admin nor a workspace admin for the fund', () => {
         const nonAdminPolicy = createPolicyCollection([createAdminPolicy({id: workspacePolicyID, policyAccountID: 9999})]);
 
