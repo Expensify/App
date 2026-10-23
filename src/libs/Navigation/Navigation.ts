@@ -1292,12 +1292,12 @@ function preMountFullscreenOnWide(route: Route, outermostFullScreen: NavigationP
 }
 
 /**
- * Pre-inserts a fullscreen route (e.g. Search) underneath the currently open RHP on narrow layout.
- * The route renders behind the fullscreen RHP so that when the user later submits,
- * we can simply dismiss the RHP to reveal the already-mounted screen.
+ * Mounts the submit destination (e.g. Search) ahead of the submit, while the RHP is still open.
+ * On narrow layout the route goes underneath the fullscreen RHP, so a later submit can simply dismiss the RHP to reveal
+ * the already-mounted screen. On wide layout the destination is visible next to the RHP, so it is pre-mounted hidden
+ * instead (see preMountFullscreenOnWide).
  *
- * This is the mobile counterpart of revealRouteBeforeDismissingModal; the difference
- * is that the insert happens eagerly (on confirmation screen mount) rather than at
+ * Unlike revealRouteBeforeDismissingModal, this runs eagerly (on confirmation screen mount) rather than at
  * submission time, giving React time to mount the destination component tree while
  * the user is still filling in details.
  */
