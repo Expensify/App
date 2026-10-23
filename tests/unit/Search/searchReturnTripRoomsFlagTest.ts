@@ -31,6 +31,16 @@ function getLastRequestJsonQuery(): unknown {
     return parsedJsonQuery;
 }
 
+/** Holds the next request open until the test resolves it. */
+function holdNextRequest() {
+    let resolveRequest: () => void = () => {};
+    const requestPromise = new Promise<{jsonCode: number}>((resolve) => {
+        resolveRequest = () => resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+    });
+    mockedMakeRequestWithSideEffects.mockImplementationOnce(() => requestPromise);
+    return resolveRequest;
+}
+
 // The backend only returns one row per trip room when a trip search sends shouldReturnTripRooms, and keeps
 // type:trip an expense search otherwise, so these tests pin down when the flag is sent.
 describe('search shouldReturnTripRooms flag', () => {
@@ -65,5 +75,26 @@ describe('search shouldReturnTripRooms flag', () => {
 
         // Then the flag isn't sent
         expect(getLastRequestJsonQuery()).not.toHaveProperty('shouldReturnTripRooms');
+    });
+    it('re-fires a trip rooms search that collides with an in-flight travel expense search', async () => {
+        // Given a trip search without the flag still waiting for its response, e.g. fired before the beta loaded
+        const queryJSON = getQueryJSON('type:trip');
+        const resolveExpenseRequest = holdNextRequest();
+        const expenseSearch = search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.TRIPS, offset: 0, isLoading: false});
+
+        // When the same trip search is fired for trip rooms, which shares the hash and the offset
+        search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.TRIPS, offset: 0, isLoading: false, shouldReturnTripRooms: true});
+
+        // Then it waits behind the in-flight request instead of being dropped
+        await Promise.resolve();
+        expect(mockedMakeRequestWithSideEffects.mock.calls).toHaveLength(1);
+
+        // When the travel expense request finishes
+        resolveExpenseRequest();
+        await expenseSearch;
+
+        // Then trip rooms are asked for afterward, so they are what lands on the snapshot
+        expect(mockedMakeRequestWithSideEffects.mock.calls).toHaveLength(2);
+        expect(getLastRequestJsonQuery()).toEqual(expect.objectContaining({shouldReturnTripRooms: true}));
     });
 });

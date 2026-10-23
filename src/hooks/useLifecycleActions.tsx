@@ -53,6 +53,7 @@ import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useStrictPolicyRules from './useStrictPolicyRules';
 import useThemeStyles from './useThemeStyles';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
@@ -140,6 +141,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {currentSearchResults} = useSearchResultsContext();
     const {selectedTransactionIDs} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
@@ -333,6 +335,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 shouldCalculateTotals,
                 isOffline,
                 isLoading: !!currentSearchResults?.search?.isLoading,
+                shouldReturnTripRooms,
             });
             if (skipAnimation) {
                 clearSelectedTransactions(true);
