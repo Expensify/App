@@ -4279,6 +4279,7 @@ export type {
     RilletCoding,
     RilletConnectionsConfig,
     RilletExport,
+    RilletExportReimbursable,
     RilletBankAccount,
     RilletAutoSync,
     RilletSync,
