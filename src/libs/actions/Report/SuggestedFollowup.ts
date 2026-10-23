@@ -88,6 +88,7 @@ function resolveSuggestedFollowup(
 
     // If there's a pre-generated response, queue it for delayed display.
     const optimisticConciergeReportActionID = rand64();
+    const questionReportActionID = rand64();
 
     // Use the full delay as createdOffset so the Concierge response timestamp is
     // strictly after the user's comment — a 1ms offset was not enough to guarantee
@@ -114,6 +115,7 @@ function resolveSuggestedFollowup(
         currentUserAccountID,
         shouldPlaySound: false,
         isInSidePanel: false,
+        reportActionID: questionReportActionID,
         pregeneratedResponseParams: {
             optimisticConciergeReportActionID,
             optimisticConciergeCreated: optimisticConciergeAction.reportAction.created,
@@ -123,7 +125,7 @@ function resolveSuggestedFollowup(
         conciergeReportID,
     });
 
-    addOptimisticConciergeActionWithDelay(reportID, optimisticConciergeAction);
+    addOptimisticConciergeActionWithDelay(reportID, optimisticConciergeAction, questionReportActionID);
 }
 
 /**
@@ -132,13 +134,14 @@ function resolveSuggestedFollowup(
  * handles the actual delay and moves the action to REPORT_ACTIONS
  * when the time arrives, with proper lifecycle cleanup.
  */
-function addOptimisticConciergeActionWithDelay(reportID: string, optimisticConciergeAction: OptimisticReportAction) {
+function addOptimisticConciergeActionWithDelay(reportID: string, optimisticConciergeAction: OptimisticReportAction, questionReportActionID?: string) {
     // The "Concierge is thinking..." indicator is driven by the server-owned
     // agentZeroProcessingIndicator NVP, so this client-local delayed response
     // must not also write REPORT_USER_IS_TYPING for Concierge.
     Onyx.set(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, {
         reportAction: optimisticConciergeAction.reportAction,
         displayAfter: Date.now() + CONCIERGE_RESPONSE_DELAY_MS,
+        questionReportActionID,
     });
 }
 
@@ -177,7 +180,7 @@ function hidePendingFollowupList(reportID: string | undefined, hidden: boolean |
  * Applies a pending concierge response by moving it to REPORT_ACTIONS
  * and clearing the pending state.
  */
-function applyPendingConciergeAction(reportID: string | undefined, reportAction: ReportAction) {
+function applyPendingConciergeAction(reportID: string | undefined, reportAction: ReportAction, questionReportActionID?: string) {
     Onyx.update([
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -194,6 +197,7 @@ function applyPendingConciergeAction(reportID: string | undefined, reportAction:
             key: `${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`,
             value: {
                 reportActionID: reportAction.reportActionID,
+                questionReportActionID,
                 createdAt: Date.now(),
             },
         },
