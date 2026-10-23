@@ -8203,7 +8203,7 @@ describe('SearchUIUtils', () => {
                 });
                 const item = sections.find((s) => s.keyForList === rptFilterReportID);
 
-                // Then the second marking is still recognised as received: Paid keeps the first date and Paid by stays blank
+                // Then the second marking is still recognized as received: Paid keeps the first date and Paid by stays blank
                 expect(item?.paid).toBe(firstReceivedAt);
                 expect(item?.paidByAccountID).toBeUndefined();
             });
