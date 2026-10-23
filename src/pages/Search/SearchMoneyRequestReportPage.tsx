@@ -18,7 +18,6 @@ import usePrevious from '@hooks/usePrevious';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -26,7 +25,7 @@ import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {getAllNonDeletedTransactions, shouldUseMultiExpenseReportLayout} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -53,6 +52,7 @@ import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import React, {useEffect, useMemo, useRef} from 'react';
 
 type SearchMoneyRequestPageProps =
@@ -76,6 +76,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {currentSearchResults: snapshot} = useSearchResultsContext();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    // Search results for reports with several expenses aren't copied into Onyx, so the first open reads the policy from the search snapshot
+    const reportPolicyID = report?.policyID ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`]?.policyID;
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(reportPolicyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
 
@@ -127,7 +132,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(report?.reportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -186,9 +190,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         return {snapshotTransaction: transaction, snapshotViolations: violations};
     }, [snapshot?.data, allReportTransactions, reportIDFromRoute]);
 
-    // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP.
-    // A single-expense report in the table view also uses the Super Wide RHP.
-    const shouldShowSuperWideRHP = shouldUseMultiExpenseReportLayout(visibleTransactions.length, shouldUseTableViewForSingleExpense);
+    // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
+    const shouldShowSuperWideRHP = visibleTransactions.length > 1;
 
     useRHPWidth(shouldShowSuperWideRHP ? 'super-wide' : 'wide');
 
@@ -217,6 +220,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                 iouReport: report,
                 iouReportAction: iouAction,
                 personalDetails,
+                fullPolicySnapshotLastModified,
             });
             return;
         }
@@ -230,6 +234,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             currentUserAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            fullPolicySnapshot: reportPolicyID && fullPolicySnapshotLastModified ? {policyID: reportPolicyID, lastModified: fullPolicySnapshotLastModified} : undefined,
         });
         isInitialMountRef.current = false;
 
@@ -303,10 +308,12 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             transaction,
             transactionViolations: violations,
             personalDetails,
+            fullPolicySnapshotLastModified,
         });
     }, [
         allReportTransactions,
         allReportViolations,
+        fullPolicySnapshotLastModified,
         introSelected,
         guidedSetupAndTourStatus?.isSelfTourViewed,
         guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,

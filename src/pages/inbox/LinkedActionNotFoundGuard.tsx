@@ -30,16 +30,17 @@ function LinkedActionNotFoundGuard({children}: LinkedActionNotFoundGuardProps) {
     const routeParams = route.params as {reportActionID?: string} | undefined;
     const reportActionIDFromRoute = routeParams?.reportActionID;
 
+    // Render the gate next to children, not around them, so changing the linked action doesn't remount the report
+    // and lose its state (e.g. composer text). It comes after children so its effects run after theirs.
     return (
         <>
-            {/* Reset the link checks without remounting the report list and composer. */}
+            {children}
             {!!reportActionIDFromRoute && (
                 <LinkedActionNotFoundGate
                     key={reportActionIDFromRoute}
                     reportActionIDFromRoute={reportActionIDFromRoute}
                 />
             )}
-            {children}
         </>
     );
 }

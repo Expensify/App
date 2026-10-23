@@ -212,6 +212,26 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(result.current.isScrollToBottomEnabled).toBe(false);
     });
 
+    it('shows the cached newest window when sending offline from a linked action', () => {
+        // Given an older linked action while offline.
+        const params = buildParams({isOffline: true, linkedReportActionID: '2'});
+        const action = getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: params});
+
+        // When the current user sends a comment, release the old pagination anchor without a request.
+        act(() => newActionHandler?.(true, action, 'local'));
+        expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(true);
+        expect(mockNavigationSetParams.mock.calls).toEqual([[{reportActionID: ''}]]);
+        expect(mockOpenReport).not.toHaveBeenCalled();
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+
+        // Then scroll only after the chronological list contains the sent comment, and release the override afterwards.
+        rerender({...params, linkedReportActionID: '', treatAsNoPaginationAnchor: true, hasNewestReportAction: true, renderedVisibleReportActions: [action]});
+        expect(result.current.isScrollToBottomEnabled).toBe(true);
+        act(() => result.current.completeLiveTailPruneAfterScrollToBottom());
+        expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(false);
+    });
+
     it('threads the conciergeChat report through to the catch-up openReport call', () => {
         const conciergeChat = {reportID: 'concierge-live-tail-1'};
         renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({conciergeChat})});
