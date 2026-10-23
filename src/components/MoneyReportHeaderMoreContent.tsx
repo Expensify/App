@@ -1,4 +1,5 @@
 import useOnyx from '@hooks/useOnyx';
+import useStackedHeaderRowPadding from '@hooks/useStackedHeaderRowPadding';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -98,12 +99,13 @@ function MoneyReportHeaderMoreContentBody({
     shouldRenderActionsInRow,
 }: MoneyReportHeaderMoreContentBodyProps) {
     const styles = useThemeStyles();
+    const stackedRowBottomPadding = useStackedHeaderRowPadding();
 
     const reportID = moneyRequestReport?.reportID;
     const {iouTransactionID} = useMoneyReportTransactionThread();
 
     return (
-        <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
+        <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, stackedRowBottomPadding]}>
             <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
                 {shouldShowNextStep && <MoneyReportHeaderNextStep reportID={reportID} />}
                 <MoneyReportHeaderStatusBarSection

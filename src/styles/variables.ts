@@ -44,6 +44,7 @@ export default {
     debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderNarrowHeight: getValueUsingPixelRatio(64, 100),
+    contentHeaderCompactHeight: getValueUsingPixelRatio(48, 66),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeXSmall: getValueUsingPixelRatio(20, 24),
