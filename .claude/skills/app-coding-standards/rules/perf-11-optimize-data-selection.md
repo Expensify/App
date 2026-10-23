@@ -7,12 +7,14 @@ title: Optimize data selection and handling
 
 ### Reasoning
 
-`useOnyx` supports an optional `selector` to narrow data before it reaches the component. Selectors control both **what** data the component receives and **how** Onyx detects changes:
+`useOnyx` supports an optional `selector` to narrow data before it reaches the component. Onyx notifies subscribers per key: a write to a collection member notifies that member's subscribers and the collection's subscribers, and unchanged members keep their references. Selectors control both **what** data the component receives and **how** Onyx detects changes:
 
 - **With a selector**: Onyx runs `deepEqual` on the selector output to decide whether to re-render. This guards against unnecessary re-renders when unrelated data changes, but the comparison cost scales with the size of the output.
-- **Without a selector**: Onyx uses `shallowEqual` on raw references, which is much cheaper. However, the component will re-render whenever **any** part of the subscribed data changes, since there is no narrowing to filter out irrelevant updates.
+- **Without a selector**: Onyx compares by reference only, which is free. However, the component re-renders on **every** write to the key, even when the new value has the same contents. For a collection key, that means every write to any member.
 
 This means selectors are a double-edged sword. A well-written selector that returns a primitive or a small object is highly effective — it skips re-renders when unrelated data changes, and `deepEqual` on a small value is trivial. But a poorly-written selector that returns a large object, a full collection, or a non-plain type like `Set`/`Map` makes things worse — it forces an expensive `deepEqual` on every Onyx update with no re-render savings.
+
+**Prefer a member key:** when the component needs one or a few members of a collection and knows their IDs, subscribe to `${ONYXKEYS.COLLECTION.X}${id}` instead of the collection. It needs no selector and wakes only for that member. In list rows this is required, see [PERF-22](perf-22-row-single-member-subscriptions.md).
 
 **When to use a selector:**
 - To pick a few fields from a single Onyx key (reduces re-renders from unrelated field changes)
@@ -94,7 +96,10 @@ function UserProfile({userId}) {
     return <Text>{user?.name}</Text>;
 }
 
-// GOOD: No selector on collection — shallowEqual is cheap, transform inline
+// GOOD: The member is known, so read it by key instead of selecting it from the collection
+const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
+// GOOD: The component needs every policy. No selector: the reference check is free, transform inline
 const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 const mappedPolicies = Object.fromEntries(
     Object.entries(policies ?? {}).map(([key, policy]) => [
@@ -140,6 +145,7 @@ Flag ONLY when ANY of these are true:
 - The selector meaningfully reduces a large dataset to a small result (e.g., a primitive or a few items) by iterating over the subscribed collection itself — the `deepEqual` cost on a small result is negligible
 - The `useOnyx` call is on a single-item key (not a collection), and the selector picks specific fields
 - The data structure is static or the function requires the entire object for valid operations
+- The code is a list row subscribing to a whole collection (`ONYXKEYS.COLLECTION.*`) or a derived map with an entry per record. Report [PERF-22](perf-22-row-single-member-subscriptions.md) instead. A row reading any other broad key, such as `BANK_ACCOUNT_LIST`, is still in scope here
 
 **Search Patterns** (hints for reviewers):
 - `useOnyx`

@@ -5,6 +5,8 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 type DatePickerBaseProps = ForwardedFSClassProps & {
     /** The selected date as a `yyyy-MM-dd` string, read with DateUtils.parseCalendarDate. `onInputChange` is called with the picked date in the same format. */
     value?: string;
@@ -63,6 +65,13 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * @default false
          */
         shouldDismissKeyboardBeforeShow?: boolean;
+
+        /**
+         * Style for the view that wraps the input and anchors the calendar. It carries a vertical margin by default,
+         * which a caller laying the field out itself can override, for example to line the input up with a plain
+         * `TextInput` beside it.
+         */
+        wrapperStyle?: StyleProp<ViewStyle>;
 
         /**
          * Reports whether the calendar is open. Opening the picker blurs the input, so this is the signal for "the
@@ -126,6 +135,13 @@ type DatePickerProps = {
      * Used by inline editing flows that require background dimming.
      */
     shouldEnableMonthYearBackdropInNarrowPane?: boolean;
+
+    /**
+     * Whether to measure the calendar's rendered height instead of assuming `POPOVER_DATE_MIN_HEIGHT`, which only covers
+     * a 5-row month: months that need a sixth week row reach `POPOVER_DATE_MAX_HEIGHT` instead. Needed where the popover
+     * can open above its anchor, or its top edge clips in those months.
+     */
+    shouldMeasureContentHeight?: boolean;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
 export type {DateInputWithPickerProps, DatePickerProps};

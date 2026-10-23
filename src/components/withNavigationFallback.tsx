@@ -2,7 +2,7 @@ import Log from '@libs/Log';
 
 import type {NavigationProp} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import type {ComponentType} from 'react';
+import type {ComponentType, FunctionComponent} from 'react';
 
 import {NavigationContext} from '@react-navigation/core';
 import React, {useContext} from 'react';
@@ -66,7 +66,7 @@ function WithNavigationFallbackImpl<TProps extends Record<string, unknown>>({Wra
     );
 }
 
-export default function <TProps extends Record<string, unknown>>(WrappedComponent: ComponentType<TProps>): ComponentType<TProps> {
+export default function <TProps extends Record<string, unknown>>(WrappedComponent: ComponentType<TProps>): FunctionComponent<TProps> {
     function WithNavigationFallback(props: TProps) {
         return (
             <WithNavigationFallbackImpl

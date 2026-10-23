@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
@@ -171,13 +171,12 @@ function AddCardToDigitalWalletPage({
                     title={translate('addCardToDigitalWallet.title', {walletName})}
                     onBackButtonPress={goBackToEntryPoint}
                 />
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     heading={translate(isSuccess ? 'addCardToDigitalWallet.successHeading' : 'addCardToDigitalWallet.deniedHeading')}
                     description={translate(isSuccess ? 'addCardToDigitalWallet.successDescription' : 'addCardToDigitalWallet.deniedDescription', {walletName})}
                     illustration={isSuccess ? illustrations.ThumbsUpStars : illustrations.CardDenied}
                     illustrationStyle={styles.digitalWalletResultIllustration}
                     descriptionStyle={styles.textSupporting}
-                    shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={goBackToEntryPoint}
                 />

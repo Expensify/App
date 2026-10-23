@@ -5,6 +5,7 @@ import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@component
 import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
 import MenuItemSecondaryInteractionContext, {useMenuItemSecondaryInteractionRegistry} from '@components/MenuItem/MenuItemSecondaryInteractionContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import type Text from '@components/Text';
 
 import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,6 +16,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import getPlatform from '@libs/getPlatform';
+import mergeRefs from '@libs/mergeRefs';
 
 import variables from '@styles/variables';
 
@@ -22,7 +24,7 @@ import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
-import type {ComponentRef, PropsWithChildren} from 'react';
+import type {ComponentRef, PropsWithChildren, Ref} from 'react';
 import type {AccessibilityState, GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -54,9 +56,30 @@ type MenuItemRootProps = PropsWithChildren &
 
         /** Accessibility state for the row, e.g. `{expanded}`. Lands on the pressable, which is what a screen reader focuses. */
         accessibilityState?: AccessibilityState;
+
+        /**
+         * Whether the row is one element for screen readers. Turn it off for a row without `onPress` whose
+         * buttons must stay reachable, since an accessible parent hides its children on iOS.
+         */
+        shouldBeAccessible?: boolean;
+
+        /** The pressable row, for a caller that moves focus to it */
+        ref?: Ref<ComponentRef<typeof View>>;
     };
 
-function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, style, shouldAllowTextSelection = false, accessibilityState}: MenuItemRootProps) {
+function MenuItemRoot({
+    children,
+    onPress,
+    isDisabled = false,
+    sentryLabel,
+    testID,
+    accessibilityLabel,
+    style,
+    shouldAllowTextSelection = false,
+    accessibilityState,
+    shouldBeAccessible = true,
+    ref,
+}: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
@@ -147,12 +170,12 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                             ] as StyleProp<ViewStyle>
                         }
                         disabled={isDisabled}
-                        ref={pressableRef}
+                        ref={mergeRefs<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof Text> | undefined>(pressableRef, ref)}
                         role={isInteractive ? CONST.ROLE.BUTTON : undefined}
                         accessibilityLabel={rowAccessibilityLabel}
                         accessibilityHint={accessibilityHint}
                         accessibilityState={accessibilityState}
-                        accessible
+                        accessible={shouldBeAccessible}
                         tabIndex={isInteractive ? 0 : -1}
                         sentryLabel={sentryLabel}
                         testID={testID}
