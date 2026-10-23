@@ -1,7 +1,4 @@
-/** API and attachment responses must never enter the SPA fallback or HTML nonce/cache pipeline. */
-function isAPIRequest(pathname: string): boolean {
-    return /^\/(?:api|staging|staging-secure|chat-attachments|receipts)(?:\/|$)/.test(pathname);
-}
+import {isAPIRequest} from './developmentAPIProxy';
 
 /** Forward live requests without relying on Wrangler's implicit upstream host/port handling. */
 async function fetchDevelopmentResponse(request: Request, upstream: URL): Promise<Response> {
@@ -38,4 +35,4 @@ async function fetchDevelopmentResponse(request: Request, upstream: URL): Promis
     return response;
 }
 
-export {fetchDevelopmentResponse, isAPIRequest};
+export default fetchDevelopmentResponse;

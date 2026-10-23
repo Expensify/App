@@ -2,6 +2,9 @@
 import {$} from 'bun';
 import concurrently from 'concurrently';
 
+// The Worker is a separately installed package that the App does not depend on, so it can only be reached by path.
+// eslint-disable-next-line import/no-relative-packages
+import {API_PROXY_PORT} from '../web/cloudflare-worker/src/developmentAPIProxy';
 import waitForPublicWebServer from './utils/waitForPublicWebServer';
 import {assertWebPortAvailable, getDevelopmentConnectOrigins, getWebDevFlags, getWebDevPorts} from './utils/webDevConfig';
 
@@ -10,7 +13,7 @@ async function startWeb() {
     const {isWorkerEnabled, isProxyEnabled, shouldOpenBrowser} = getWebDevFlags(Bun.env);
     const {publicPort, internalPort} = getWebDevPorts(Bun.env, isWorkerEnabled);
     if (isProxyEnabled) {
-        assertWebPortAvailable(9000, '::');
+        assertWebPortAvailable(API_PROXY_PORT, '::');
     }
     for (const file of ['key.pem', 'certificate.pem']) {
         if (!(await Bun.file(`config/rsbuild/${file}`).exists())) {

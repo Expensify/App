@@ -1,8 +1,9 @@
 import type {DevelopmentOrigins} from './csp';
 
 import {getCSP, NONCE_PLACEHOLDER} from './csp';
+import {isAPIRequest} from './developmentAPIProxy';
 import getDevelopmentConfig from './developmentConfig';
-import {fetchDevelopmentResponse, isAPIRequest} from './fetchDevelopmentResponse';
+import fetchDevelopmentResponse from './fetchDevelopmentResponse';
 
 /** Content-hashed build output (`main-<16 hex>.bundle.js`, `main.<10 hex>.css`, ...), emitted at the root of `dist/`. */
 const HASHED_ASSET_PATH = /^\/[^/]+(?:-[0-9a-f]{16}\.bundle\.js|\.[0-9a-f]{10}\.[a-z0-9]+)$/;
