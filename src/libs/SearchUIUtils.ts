@@ -2513,9 +2513,13 @@ function createAndOpenSearchTransactionThread({
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isUnreportedTransaction = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
-    const iouReportAction = getIOUActionForReportID(isUnreportedTransaction ? findSelfDMReportID() : item.reportID, item.transactionID);
+    // An unreported expense lives in its owner's self DM, which is not the viewer's when an admin opens a member's expense
+    const actionReportID = item.reportAction?.reportID ? String(item.reportAction.reportID) : undefined;
+    const ownerSelfDMReportID = actionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? actionReportID : undefined;
+    const selfDMReportID = isUnreportedTransaction ? (ownerSelfDMReportID ?? findSelfDMReportID()) : undefined;
+    const iouReportAction = getIOUActionForReportID(selfDMReportID ?? item.reportID, item.transactionID);
     const expenseOwnerAccountID = (iouReportAction ?? item.reportAction)?.actorAccountID;
-    if (isUnreportedTransaction && expenseOwnerAccountID !== currentUserAccountID) {
+    if (isUnreportedTransaction && expenseOwnerAccountID !== currentUserAccountID && !ownerSelfDMReportID) {
         return;
     }
 
@@ -2555,6 +2559,7 @@ function createAndOpenSearchTransactionThread({
             personalDetails,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
+            selfDMReportID,
         });
     }
 
