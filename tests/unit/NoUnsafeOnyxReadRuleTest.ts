@@ -60,6 +60,8 @@ const OUTSIDE_ALLOWED_PATH_ERRORS = [{messageId: 'noOnyxReadOutsideAllowedPath'}
 const OUTSIDE_COMPONENT_OR_HOOK_ERRORS = [{messageId: 'noOnyxReadOutsideComponentOrHook'}];
 const BY_REFERENCE_ERROR = {messageId: 'noOnyxReadByReference'};
 const BY_REFERENCE_ERRORS = [BY_REFERENCE_ERROR];
+const OBJECT_AS_VALUE_ERROR = {messageId: 'noOnyxObjectAsValue'};
+const OBJECT_AS_VALUE_ERRORS = [OBJECT_AS_VALUE_ERROR];
 
 // The rule resolves the repo root from its own location, so the allowed-path cases use the same root it will compare against
 function readRepoRoot(): string {
@@ -154,8 +156,6 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} function username() { return Onyx.get(ONYXKEYS.SESSION); }`,
             // A function returned from a factory is a value; only the call site decides
             `${ONYX_IMPORT} function Row() { const makeHandler = () => () => Onyx.get(ONYXKEYS.SESSION); useEffect(() => { emitter.on('change', makeHandler()); }, []); return <View />; }`,
-            // Calling the Onyx object itself is not a read
-            `${ONYX_IMPORT} const api = Onyx; function Row() { const value = api(ONYXKEYS.SESSION); return <View value={value} />; }`,
             // Given a useCallback callback that reads Onyx and returns a plain value, not JSX
             // When it is only passed as onPress
             // Then it is an event handler, so the read is allowed
@@ -353,7 +353,13 @@ describe('no-unsafe-onyx-read', () => {
                 code: `${ONYX_IMPORT} function Row() { const value = read(ONYXKEYS.SESSION); return <View value={value} />; } const read = Onyx.get;`,
                 errors: [{messageId: 'noOnyxReadInRender'}, BY_REFERENCE_ERROR],
             },
-            {code: `${ONYX_IMPORT} function Row() { const value = api.get(ONYXKEYS.SESSION); return <View value={value} />; } const api = Onyx;`, errors: RENDER_ERRORS},
+            {
+                // Given a render read through an Onyx alias declared after the component
+                // When the rule checks the call and the alias
+                // Then the alias resolves by binding, so the read is a render read, and the alias is a value use
+                code: `${ONYX_IMPORT} function Row() { const value = api.get(ONYXKEYS.SESSION); return <View value={value} />; } const api = Onyx;`,
+                errors: [...RENDER_ERRORS, OBJECT_AS_VALUE_ERROR],
+            },
             {
                 code: `${ONYX_IMPORT} let read = Onyx.get; function Row() { const value = read(ONYXKEYS.SESSION); return <View value={value} />; }`,
                 errors: [BY_REFERENCE_ERROR, {messageId: 'noOnyxReadInRender'}],
@@ -431,8 +437,27 @@ describe('no-unsafe-onyx-read', () => {
 
             {code: `${ONYX_IMPORT} Onyx.merge(key, value); const restored = Onyx.get(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
 
-            {code: `${ONYX_IMPORT} const api = Onyx; function Row() { const value = api.get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
-            {code: `${ONYX_IMPORT} const api = Onyx; const alias = api; function Row() { return <View value={alias.get(ONYXKEYS.SESSION)} />; }`, errors: RENDER_ERRORS},
+            {
+                // Given a render read through an alias of the Onyx object
+                // When the rule checks the alias and the call
+                // Then the alias line is a value use of the Onyx object, and the read through it is still tracked
+                code: `${ONYX_IMPORT} const api = Onyx; function Row() { const value = api.get(ONYXKEYS.SESSION); return <View value={value} />; }`,
+                errors: [OBJECT_AS_VALUE_ERROR, ...RENDER_ERRORS],
+            },
+            {
+                // Given a render read through an alias of an alias of the Onyx object
+                // When the rule checks the aliases and the call
+                // Then only the first alias uses the import as a value, and the read is still tracked through both
+                code: `${ONYX_IMPORT} const api = Onyx; const alias = api; function Row() { return <View value={alias.get(ONYXKEYS.SESSION)} />; }`,
+                errors: [OBJECT_AS_VALUE_ERROR, ...RENDER_ERRORS],
+            },
+            {
+                // Given an alias of the Onyx object called as a function
+                // When the rule checks the call and the alias
+                // Then calling the object is not a read, so only the alias is reported as a value use
+                code: `${ONYX_IMPORT} const api = Onyx; function Row() { const value = api(ONYXKEYS.SESSION); return <View value={value} />; }`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
 
             {code: `${ONYX_IMPORT} function Row() { Onyx.merge(key, value); const a = Onyx.get(ONYXKEYS.SESSION); return <View a={a} />; }`, errors: RENDER_ERRORS},
             {
@@ -477,7 +502,13 @@ describe('no-unsafe-onyx-read under the TypeScript parser', () => {
             {code: `${ONYX_IMPORT} function Row() { const value = Onyx!.get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
             // A cast on the callee is unwrapped like a cast on the object
             {code: `${ONYX_IMPORT} function Row() { const value = (Onyx.get as typeof Onyx.get)(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
-            {code: `${ONYX_IMPORT} const api = Onyx as typeof Onyx; function Row() { const value = api.get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {
+                // Given a render read through an alias of the Onyx object behind a cast
+                // When the rule unwraps the cast
+                // Then the alias is a value use, and the read through it is still a render read
+                code: `${ONYX_IMPORT} const api = Onyx as typeof Onyx; function Row() { const value = api.get(ONYXKEYS.SESSION); return <View value={value} />; }`,
+                errors: [OBJECT_AS_VALUE_ERROR, ...RENDER_ERRORS],
+            },
             {
                 code: `${ONYX_IMPORT} function Row() { const options = {selector: (data: unknown) => Onyx.get(ONYXKEYS.ACCOUNT)} as const; const [value] = useOnyx(key, options); return <View value={value} />; }`,
                 errors: RENDER_ERRORS,
@@ -864,36 +895,66 @@ describe('no-unsafe-onyx-read references that are not direct calls', () => {
             // When the parser drops the parentheses
             // Then the member is still the callee, so it is not a reference
             `${ONYX_IMPORT} export function submit(key) { return (Onyx.get)(key); }`,
-            // Given Onyx write methods passed around and destructured
-            // When the rule checks those references
+            // Given an Onyx write method passed around
+            // When the rule checks that reference
             // Then only get and multiGet are reads, so nothing is reported
-            `${ONYX_IMPORT} const write = Onyx.set; const {merge} = Onyx; export function submit(key, value) { Onyx.set(key, value); return [write, merge]; }`,
+            `${ONYX_IMPORT} const write = Onyx.set; export function submit(key, value) { Onyx.set(key, value); return write; }`,
             // Given a get method on an object that is not the Onyx import
             // When it is passed by reference
             // Then it is not tracked, so nothing is reported
             'const cache = {get: () => undefined}; export const read = cache.get; export const {get} = cache;',
+            {
+                // Given a write called through a quoted bracket key in a component handler
+                // When the rule resolves the key
+                // Then merge is a static name and not a read, so nothing is reported
+                code: `${ONYX_IMPORT} function Row() { const onPress = () => Onyx['merge'](ONYXKEYS.SESSION, {}); return <View onPress={onPress} />; }`,
+                filename: COMPONENT_FILE,
+            },
         ],
         invalid: [
             {
+                // Given an Onyx method picked by a variable key in a component handler
+                // When the rule checks the member access
+                // Then the key could name get or multiGet, which neither Onyx rule can see, so the reference is reported
+                code: `${ONYX_IMPORT} function Row({method}) { const onPress = () => Onyx[method](ONYXKEYS.SESSION); return <View onPress={onPress} />; }`,
+                filename: COMPONENT_FILE,
+                errors: BY_REFERENCE_ERRORS,
+            },
+            {
+                // Given the same variable key in src/libs
+                // When the rule checks the member access
+                // Then only the reference is reported, since the path check sees no resolved read call
+                code: `${ONYX_IMPORT} export function load(method) { return Onyx[method](ONYXKEYS.SESSION); }`,
+                filename: inRepo('src/libs/Foo.ts'),
+                errors: BY_REFERENCE_ERRORS,
+            },
+            {
+                // Given get named by a template literal with no expressions, at module scope
+                // When the rule resolves the key
+                // Then it is the static name get, so the call is a module-scope read like Onyx.get
+                code: `${ONYX_IMPORT} const initialValue = Onyx[\`get\`](ONYXKEYS.SESSION);`,
+                errors: MODULE_SCOPE_ERRORS,
+            },
+            {
                 // Given Onyx.get invoked through Function.prototype.call
                 // When the rule checks the member access
-                // Then the call site and key are hidden, so the reference is reported
+                // Then the call site and key are hidden, so the reference is reported, and passing Onyx as `this` is a value use
                 code: `${ONYX_IMPORT} export function submit(key) { return Onyx.get.call(Onyx, key); }`,
-                errors: BY_REFERENCE_ERRORS,
+                errors: [BY_REFERENCE_ERROR, OBJECT_AS_VALUE_ERROR],
             },
             {
                 // Given Onyx.multiGet invoked through Function.prototype.call
                 // When the rule checks the member access
-                // Then the call site and keys are hidden, so the reference is reported
+                // Then the call site and keys are hidden, so the reference is reported, and passing Onyx as `this` is a value use
                 code: `${ONYX_IMPORT} export function submit(keys) { return Onyx.multiGet.call(Onyx, keys); }`,
-                errors: BY_REFERENCE_ERRORS,
+                errors: [BY_REFERENCE_ERROR, OBJECT_AS_VALUE_ERROR],
             },
             {
                 // Given Onyx.get bound and then called
                 // When the rule checks the member access
-                // Then the bound function hides the call, so the reference is reported
+                // Then the bound function hides the call, so the reference is reported, and passing Onyx as `this` is a value use
                 code: `${ONYX_IMPORT} export function submit(key) { return Onyx.get.bind(Onyx)(key); }`,
-                errors: BY_REFERENCE_ERRORS,
+                errors: [BY_REFERENCE_ERROR, OBJECT_AS_VALUE_ERROR],
             },
             {
                 // Given Onyx.get passed as a map callback
@@ -926,9 +987,9 @@ describe('no-unsafe-onyx-read references that are not direct calls', () => {
             {
                 // Given Onyx imported under another default name
                 // When get is invoked through Function.prototype.call on that name
-                // Then the alias is resolved and the reference is reported
+                // Then the alias is resolved, the reference is reported, and passing O as `this` is a value use
                 code: "import O from 'react-native-onyx'; export function submit(key) { return O.get.call(O, key); }",
-                errors: BY_REFERENCE_ERRORS,
+                errors: [BY_REFERENCE_ERROR, OBJECT_AS_VALUE_ERROR],
             },
             {
                 // Given a let alias of Onyx.get that only an event handler calls
@@ -948,10 +1009,10 @@ describe('no-unsafe-onyx-read references that are not direct calls', () => {
             {
                 // Given Onyx.get passed by reference outside the allowed directories
                 // When the rule checks the member access
-                // Then the reference is reported before the path check, which only sees direct calls
+                // Then the reference is reported before the path check, which only sees direct calls, and passing Onyx as `this` is a value use
                 code: `${ONYX_IMPORT} export function submit(key) { return Onyx.get.call(Onyx, key); }`,
                 filename: inRepo('src/libs/Foo.ts'),
-                errors: BY_REFERENCE_ERRORS,
+                errors: [BY_REFERENCE_ERROR, OBJECT_AS_VALUE_ERROR],
             },
         ],
     });
@@ -974,6 +1035,286 @@ describe('no-unsafe-onyx-read references that are not direct calls', () => {
                 // Then the member is not a callee, so the reference is reported
                 code: `${ONYX_IMPORT} export const read = Onyx.get as typeof Onyx.get;`,
                 errors: BY_REFERENCE_ERRORS,
+            },
+        ],
+    });
+});
+
+describe('no-unsafe-onyx-read value uses of the Onyx object', () => {
+    const SPREAD_READ = `${ONYX_IMPORT} const api = {...Onyx}; export async function load(reportID) { await api.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`); }`;
+
+    ruleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            // Given the Onyx object exposed on window
+            // When the rule checks the assignment
+            // Then it is the dev console exposure in src/setup/addUtilsToWindow.ts, so nothing is reported
+            `${ONYX_IMPORT} window.Onyx = Onyx;`,
+            // Given the Onyx object exposed on globalThis
+            // When the rule checks the assignment
+            // Then it is the same dev console shape, so nothing is reported
+            `${ONYX_IMPORT} globalThis.Onyx = Onyx;`,
+            // Given the Onyx object exposed on window through a quoted bracket key
+            // When the rule resolves the property
+            // Then it is the same Onyx property, so nothing is reported
+            `${ONYX_IMPORT} window['Onyx'] = Onyx;`,
+            // Given a write called through optional chaining
+            // When the rule checks the Onyx reference
+            // Then it is a member access, not a value use
+            `${ONYX_IMPORT} export function save(key, value) { Onyx?.merge(key, value); }`,
+            // Given a parameter that shadows the import
+            // When the function returns it
+            // Then it is not the Onyx import, so nothing is reported
+            `${ONYX_IMPORT} export function identity(Onyx) { return Onyx; }`,
+            {
+                // Given the spread shape in a test suite
+                // When the rule checks the Onyx reference
+                // Then suites may handle the Onyx object freely, so nothing is reported
+                code: SPREAD_READ,
+                filename: inRepo('tests/unit/Foo.ts'),
+            },
+            {
+                // Given the spread of __mocks__/react-native-onyx.ts, which builds the Jest mock from the real library
+                // When the rule checks the Onyx reference
+                // Then module mocks are test infrastructure like suites, so nothing is reported
+                code: `${ONYX_IMPORT} const reactNativeOnyxMock = {...Onyx, connectWithoutView: () => 0}; export default reactNativeOnyxMock;`,
+                filename: inRepo('__mocks__/react-native-onyx.ts'),
+            },
+            {
+                // Given the spread shape in a Jest setup file
+                // When the rule checks the Onyx reference
+                // Then jest/ is test infrastructure too, so nothing is reported
+                code: SPREAD_READ,
+                filename: inRepo('jest/setupAfterEnv.ts'),
+            },
+            {
+                // Given the Onyx object re-exported under another name in a test suite
+                // When the rule checks the re-export
+                // Then suites may handle the Onyx object freely, so nothing is reported
+                code: "export {default as Store} from 'react-native-onyx'; export * as OnyxModule from 'react-native-onyx';",
+                filename: inRepo('tests/utils/Store.ts'),
+            },
+        ],
+        invalid: [
+            {
+                // Given the Onyx object spread into a local object in src/libs
+                // When a read goes through that copy
+                // Then the copy hides the read from both Onyx rules, so the spread is reported
+                code: SPREAD_READ,
+                filename: inRepo('src/libs/actions/Foo.ts'),
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given the same spread in an allowed directory
+                // When the rule checks the Onyx reference
+                // Then the value use is reported in every file, so the copy cannot hide a read in render
+                code: SPREAD_READ,
+                filename: inRepo('src/components/Foo.tsx'),
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given the Onyx object passed to a function
+                // When the rule checks the argument
+                // Then the callee could read through it out of sight, so it is reported
+                code: `${ONYX_IMPORT} register(Onyx);`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given a function that returns the Onyx object
+                // When the rule checks the return
+                // Then every caller could read through it, so it is reported
+                code: `${ONYX_IMPORT} export function getOnyx() { return Onyx; }`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given the Onyx object as the default export
+                // When the rule checks the export
+                // Then importers could read through it, so it is reported
+                code: `${ONYX_IMPORT} export default Onyx;`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given the Onyx object as an array element
+                // When the rule checks the array
+                // Then it is a value use and is reported
+                code: `${ONYX_IMPORT} export const libraries = [Onyx];`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given the Onyx object as an object property value
+                // When the rule checks the property
+                // Then it is a value use and is reported
+                code: `${ONYX_IMPORT} export const dependencies = {onyx: Onyx};`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given a write method destructured from the Onyx object
+                // When the rule checks the destructuring source
+                // Then destructuring is a value use, so it is reported even though merge is not a read
+                code: `${ONYX_IMPORT} const {merge} = Onyx; export function save(key, value) { merge(key, value); }`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given get destructured from the Onyx object
+                // When the rule checks the destructuring
+                // Then the property is already reported by reference, so the source is not reported a second time
+                code: `${ONYX_IMPORT} const {get} = Onyx; export function load(key) { return get(key); }`,
+                errors: BY_REFERENCE_ERRORS,
+            },
+            {
+                // Given get destructured next to a rest element that carries multiGet
+                // When the rule checks the destructuring
+                // Then the rest copy hides the multiGet read, so the source is reported as a value use as well as the get property
+                code: `${ONYX_IMPORT} const {get, ...rest} = Onyx; export function load(keys) { return rest.multiGet(keys); }`,
+                errors: [BY_REFERENCE_ERROR, OBJECT_AS_VALUE_ERROR],
+            },
+            {
+                // Given the Onyx object assigned to a plain variable rather than a member
+                // When the rule checks the assignment for the dev console shape
+                // Then the target is not a member of window or globalThis, so it is reported without the check crashing
+                code: `${ONYX_IMPORT} let api; api = Onyx;`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given the Onyx object assigned to a property of something other than window or globalThis
+                // When the rule checks the assignment
+                // Then only the dev console globals are exempt, so it is reported
+                code: `${ONYX_IMPORT} registry.Onyx = Onyx;`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given the Onyx object assigned to another property of window
+                // When the rule checks the assignment
+                // Then only window.Onyx is declared for the dev console, so it is reported
+                code: `${ONYX_IMPORT} window.foo = Onyx;`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given the Onyx object assigned to another property of globalThis
+                // When the rule checks the assignment
+                // Then only globalThis.Onyx is exempt, so it is reported
+                code: `${ONYX_IMPORT} globalThis.store = Onyx;`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given a read through the default member of a namespace import, at module scope
+                // When the rule resolves the callee
+                // Then Onyx.default is the Onyx object, so it is a module-scope read
+                code: "import * as Onyx from 'react-native-onyx'; const session = Onyx.default.get(ONYXKEYS.SESSION);",
+                errors: MODULE_SCOPE_ERRORS,
+            },
+            {
+                // Given the default member of a namespace import aliased and read through in a src/libs handler
+                // When the rule resolves the alias
+                // Then the read is reported by the path check, and the alias is a member access, not a value use
+                code: "import * as Onyx from 'react-native-onyx'; const api = Onyx.default; export function load() { return api.get(ONYXKEYS.SESSION); }",
+                filename: inRepo('src/libs/Foo.ts'),
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                // Given a namespace import of react-native-onyx
+                // When the namespace object is aliased
+                // Then it is tracked like the default import, so it is reported
+                code: "import * as OnyxModule from 'react-native-onyx'; const api = OnyxModule;",
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given a copy of the Onyx object assigned to window.Onyx
+                // When the rule checks the assignment for the dev console shape
+                // Then only the object itself on the right-hand side is exempt, so the spread is reported
+                code: `${ONYX_IMPORT} window.Onyx = {...Onyx};`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given the default export of react-native-onyx re-exported under another name in src/libs
+                // When the rule checks the re-export
+                // Then importers of Store could read through it out of sight, so it is reported
+                code: "export {default as Store} from 'react-native-onyx';",
+                filename: inRepo('src/libs/Store.ts'),
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given react-native-onyx re-exported as a namespace in src/libs
+                // When the rule checks the re-export
+                // Then Store.default is the Onyx object, so it is reported
+                code: "export * as Store from 'react-native-onyx';",
+                filename: inRepo('src/libs/Store.ts'),
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+        ],
+    });
+
+    tsRuleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            // Given the dev console exposure with a widening cast, as in src/setup/addUtilsToWindow.ts
+            // When the rule unwraps the cast
+            // Then the assignment target is window, so nothing is reported
+            `${ONYX_IMPORT} window.Onyx = Onyx as typeof Onyx & {log: () => void};`,
+            // Given the dev console exposure on a cast window, the usual way to add a property TS does not know about
+            // When the rule unwraps the cast on the assignment target
+            // Then the target is still window, so nothing is reported
+            `${ONYX_IMPORT} (window as any).Onyx = Onyx;`,
+            // Given the dev console exposure on a non-null window
+            // When the rule unwraps the assertion on the assignment target
+            // Then the target is still window, so nothing is reported
+            `${ONYX_IMPORT} window!.Onyx = Onyx;`,
+            // Given the Onyx object in a type query
+            // When the rule checks the reference
+            // Then a type reads nothing at runtime, so nothing is reported
+            `${ONYX_IMPORT} type OnyxApi = typeof Onyx; type Get = typeof Onyx.get;`,
+            // Given a type-only import of Onyx re-exported, which typescript-eslint marks as a type and a value reference
+            // When the rule checks the import
+            // Then there is no runtime object to pass around, so the import is skipped and nothing is reported
+            "import type Onyx from 'react-native-onyx'; export {Onyx};",
+            {
+                // Given a type-only re-export from react-native-onyx in src/libs
+                // When the rule checks the re-export
+                // Then a type reads nothing at runtime, so nothing is reported
+                code: "export type {OnyxEntry} from 'react-native-onyx';",
+                filename: inRepo('src/libs/Store.ts'),
+            },
+            {
+                // Given a runtime typeof check on the Onyx object in src/libs
+                // When the rule checks the reference
+                // Then typeof only inspects the object and hides no read, so nothing is reported
+                code: `${ONYX_IMPORT} export function hasOnyx() { if (typeof Onyx === 'object') { return true; } return false; }`,
+                filename: inRepo('src/libs/Foo.ts'),
+            },
+        ],
+        invalid: [
+            {
+                // Given the Onyx object spread through a cast
+                // When the rule unwraps the cast
+                // Then the spread is still a value use and is reported
+                code: `${ONYX_IMPORT} const api = {...(Onyx as typeof Onyx)};`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given the Onyx object as the default export
+                // When the rule checks the export, which typescript-eslint marks as a type and a value reference
+                // Then importers could read through it, so it is reported
+                code: `${ONYX_IMPORT} export default Onyx;`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given the Onyx object re-exported by name
+                // When the rule checks the export specifier
+                // Then importers could read through it, so it is reported
+                code: `${ONYX_IMPORT} export {Onyx};`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given the Onyx object re-exported as the default through a specifier
+                // When the rule checks the export specifier
+                // Then importers could read through it, so it is reported
+                code: `${ONYX_IMPORT} export {Onyx as default};`,
+                errors: OBJECT_AS_VALUE_ERRORS,
+            },
+            {
+                // Given the Onyx object assigned to window inside a function argument rather than directly
+                // When the rule checks the reference
+                // Then only the bare assignment shape is exempt, so it is reported
+                code: `${ONYX_IMPORT} Object.assign(window, {Onyx: Onyx as typeof Onyx});`,
+                errors: OBJECT_AS_VALUE_ERRORS,
             },
         ],
     });

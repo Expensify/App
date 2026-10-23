@@ -1,12 +1,26 @@
 // Node ESM needs the extension to load a rule's helper module
-// eslint-disable-next-line import/extensions
-import {createOnyxReadTracker, getCalleeName, getDeclaredVariable, getRepoRelativePath, getStaticName, matchesCalleeName, TYPE_ONLY_EXPRESSIONS} from './utils/onyxReadUtils.js';
+/* eslint-disable import/extensions */
+import {
+    createOnyxReadTracker,
+    getCalleeName,
+    getDeclaredVariable,
+    getRepoRelativePath,
+    getStaticName,
+    matchesCalleeName,
+    ONYX_MODULE,
+    TYPE_ONLY_EXPRESSIONS,
+    unwrapTypeOnlyExpressions,
+} from './utils/onyxReadUtils.js';
+/* eslint-enable import/extensions */
 
 const name = 'no-unsafe-onyx-read';
 
 const TESTS_DIRECTORY = 'tests/';
 
 const READ_ALLOWED_DIRECTORIES = ['src/components/', 'src/pages/', 'src/hooks/', TESTS_DIRECTORY];
+
+// Suites, Jest setup and the root __mocks__/ directory (not a nested one), where the Onyx object may be handled freely, as in the `...Onyx` of __mocks__/react-native-onyx.ts
+const TEST_INFRASTRUCTURE_DIRECTORIES = [TESTS_DIRECTORY, '__mocks__/', 'jest/'];
 
 const READ_ALLOWED_FILES = new Set([]);
 
@@ -62,6 +76,12 @@ const RENDER_TIME_HOOK_ARGUMENTS = new Map([
 
 const RENDER_TIME_OPTION_NAMES = new Set(['selector']);
 
+// Globals a dev-console exposure such as `window.Onyx = Onyx` assigns to
+const DEV_CONSOLE_GLOBALS = new Set(['window', 'globalThis']);
+
+// The one property react-native-onyx.d.ts declares on Window for that exposure
+const DEV_CONSOLE_PROPERTY = 'Onyx';
+
 const COMPONENT_WRAPPER_NAMES = new Set(['memo', 'forwardRef']);
 
 const SYNCHRONOUS_EXECUTOR_NAMES = new Set(['Promise']);
@@ -78,7 +98,7 @@ const meta = {
     type: 'problem',
     docs: {
         description:
-            'Disallow Onyx.get and Onyx.multiGet outside components, pages, hooks and tests, outside a component or hook body in those source directories, during render, inside effects or at module scope. no-onyx-get-snapshot-key checks which keys they read.',
+            'Disallow Onyx.get and Onyx.multiGet outside components, pages, hooks and tests, outside a component or hook body in those source directories, during render, inside effects or at module scope, and disallow using the Onyx object as a value instead of through its members. no-onyx-get-snapshot-key checks which keys they read.',
         recommended: 'error',
     },
     schema: [],
@@ -99,7 +119,9 @@ const meta = {
             'Call Onyx.get() and Onyx.multiGet() inside the component or hook that needs the value, or in a handler defined inside it. A module-level helper here can be imported from src/libs, which is where these reads are banned.\n\n' +
             'Take the value as a parameter instead.',
         noOnyxReadByReference:
-            'Call Onyx.get() and Onyx.multiGet() directly. A reference that is not a direct call (Onyx.get.call, Onyx.get.bind, keys.map(Onyx.get), const read = Onyx.get, const {get} = Onyx) hides the key from no-onyx-get-snapshot-key and the call site from this rule.',
+            'Call Onyx.get() and Onyx.multiGet() directly. A reference that is not a direct call (Onyx.get.call, Onyx.get.bind, keys.map(Onyx.get), const read = Onyx.get, const {get} = Onyx, Onyx[name]) hides the key from no-onyx-get-snapshot-key and the call site from this rule.',
+        noOnyxObjectAsValue:
+            'Use Onyx only through its members, such as Onyx.get() or Onyx.merge(). Passing, spreading, aliasing, returning or exporting the Onyx object can let reads escape this rule and the key check of no-onyx-get-snapshot-key, and makes them hard to follow. The only allowed value use is exposing it as window.Onyx or globalThis.Onyx for the dev console.',
     },
 };
 
@@ -660,11 +682,56 @@ function classifyPosition(ancestors, sourceCode, seen = new Set(), skipEffectChe
     return MODULE_SCOPE;
 }
 
+// The Onyx property of window or globalThis assigned the Onyx object, with any operator, such as `window.Onyx = Onyx`,
+// `window['Onyx'] = Onyx` or `(window as WindowWithOnyx).Onyx = Onyx as typeof Onyx & {...}`, which exposes the library
+// to the dev console. It is allowed in any file on purpose, since it is the dev console pattern rather than a way to hide a read.
+function isDevConsoleExposure(value) {
+    const assignment = value.parent;
+
+    if (assignment?.type !== 'AssignmentExpression' || assignment.right !== value || assignment.left.type !== 'MemberExpression') {
+        return false;
+    }
+
+    const target = unwrapTypeOnlyExpressions(assignment.left.object);
+
+    return target.type === 'Identifier' && DEV_CONSOLE_GLOBALS.has(target.name) && getStaticName(assignment.left.property, assignment.left.computed) === DEV_CONSOLE_PROPERTY;
+}
+
+// True when a reference to the Onyx import uses the object itself as a value instead of reading one of its members
+function isObjectValueUse(reference, getReferencedReadMethod) {
+    const identifier = reference.identifier;
+
+    // Type-only references, `typeof Onyx` and `typeof Onyx.get` read nothing at runtime. typescript-eslint marks an export
+    // as both a type and a value reference, so `export {Onyx}` is still checked; espree sets neither flag
+    if ((reference.isTypeReference && !reference.isValueReference) || identifier.parent?.type === 'TSTypeQuery' || identifier.parent?.type === 'TSQualifiedName') {
+        return false;
+    }
+
+    const value = getOutermostTypeOnlyWrapper(identifier);
+    const parent = value.parent;
+
+    // A runtime `typeof Onyx` only inspects the object
+    if ((parent?.type === 'MemberExpression' && parent.object === value) || (parent?.type === 'UnaryExpression' && parent.operator === 'typeof') || isDevConsoleExposure(value)) {
+        return false;
+    }
+
+    // `const {get} = Onyx` is already reported on the destructured property, but `...rest` still carries the other reads
+    return !(
+        parent?.type === 'VariableDeclarator' &&
+        parent.init === value &&
+        parent.id.type === 'ObjectPattern' &&
+        parent.id.properties.some((property) => getReferencedReadMethod(property)) &&
+        !parent.id.properties.some((property) => property.type === 'RestElement')
+    );
+}
+
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
     const filename = context.filename ?? context.getFilename();
     const shouldCheckComponentOrHookScope = requiresComponentOrHookScope(filename);
-    const {getCalledReadMethod, getReferencedReadMethod} = createOnyxReadTracker(sourceCode);
+    const {getCalledReadMethod, getReferencedReadMethod, isOnyxObjectExpression} = createOnyxReadTracker(sourceCode);
+    const relativePath = getRepoRelativePath(filename);
+    const shouldCheckObjectValueUses = !TEST_INFRASTRUCTURE_DIRECTORIES.some((directory) => relativePath?.startsWith(directory));
 
     // Reported in every file, since the path check below only sees direct calls
     function reportReference(node) {
@@ -677,6 +744,12 @@ function create(context) {
 
     return {
         MemberExpression(node) {
+            // `Onyx[method]` with a key no rule can resolve may name a read method
+            if (node.computed && getStaticName(node.property, true) === null && isOnyxObjectExpression(node.object, false)) {
+                context.report({node, messageId: 'noOnyxReadByReference'});
+                return;
+            }
+
             const callee = getOutermostTypeOnlyWrapper(node);
 
             if (callee.parent?.type === 'CallExpression' && callee.parent.callee === callee) {
@@ -686,6 +759,46 @@ function create(context) {
             reportReference(node);
         },
         'ObjectPattern > Property': reportReference,
+        // Through scope analysis, so a local that shadows the import is not reported
+        ImportDeclaration(node) {
+            if (!shouldCheckObjectValueUses || node.source.value !== ONYX_MODULE || node.importKind === 'type') {
+                return;
+            }
+
+            for (const variable of sourceCode.getDeclaredVariables(node)) {
+                const specifierType = variable.defs.at(0)?.node.type;
+
+                if (specifierType !== 'ImportDefaultSpecifier' && specifierType !== 'ImportNamespaceSpecifier') {
+                    continue;
+                }
+
+                for (const reference of variable.references) {
+                    if (isObjectValueUse(reference, getReferencedReadMethod)) {
+                        context.report({node: reference.identifier, messageId: 'noOnyxObjectAsValue'});
+                    }
+                }
+            }
+        },
+        // `export {default as Store} from 'react-native-onyx'` hands out the Onyx object under another name
+        ExportNamedDeclaration(node) {
+            if (!shouldCheckObjectValueUses || node.source?.value !== ONYX_MODULE || node.exportKind === 'type') {
+                return;
+            }
+
+            for (const specifier of node.specifiers) {
+                if (specifier.exportKind !== 'type' && getStaticName(specifier.local, false) === 'default') {
+                    context.report({node: specifier, messageId: 'noOnyxObjectAsValue'});
+                }
+            }
+        },
+        // So does `export * as Store from 'react-native-onyx'`, while a bare `export *` leaves the default export out
+        ExportAllDeclaration(node) {
+            if (!shouldCheckObjectValueUses || !node.exported || node.source.value !== ONYX_MODULE || node.exportKind === 'type') {
+                return;
+            }
+
+            context.report({node, messageId: 'noOnyxObjectAsValue'});
+        },
         CallExpression(node) {
             if (!getCalledReadMethod(node.callee)) {
                 return;

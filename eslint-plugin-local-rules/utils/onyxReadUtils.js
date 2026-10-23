@@ -39,7 +39,8 @@ function getStaticName(keyNode, computed) {
         return keyNode.value;
     }
 
-    return null;
+    // cspell:disable-next-line -- quasis is the ESTree name for the static chunks of a template literal
+    return keyNode.type === 'TemplateLiteral' && keyNode.expressions.length === 0 ? (keyNode.quasis.at(0)?.value.cooked ?? null) : null;
 }
 
 function getStaticPropertyName(memberExpression) {
@@ -249,8 +250,8 @@ function getKeyListElements(node, sourceCode, isAllowedCall, seen = new Set()) {
 /**
  * Resolves, on demand, whether a callee is `Onyx.get` or `Onyx.multiGet` from `react-native-onyx`, through any chain of
  * aliases in the file: `import O from 'react-native-onyx'`, `const api = Onyx`, `const {get: read} = Onyx`,
- * `const read = Onyx.get`, with TS casts unwrapped at every step. Resolution walks variable definitions instead of visitor
- * order, so an alias declared after its first use is still recognized. With `constOnly`, an alias bound by `let` or `var`
+ * `const read = Onyx.get`, `Onyx.default` on a namespace import, with TS casts unwrapped at every step. Resolution walks
+ * variable definitions instead of visitor order, so an alias declared after its first use is still recognized. With `constOnly`, an alias bound by `let` or `var`
  * does not count, which the Concierge proof needs since such a binding could be reassigned.
  */
 function createOnyxReadTracker(sourceCode) {
@@ -279,9 +280,25 @@ function createOnyxReadTracker(sourceCode) {
         return entry[key];
     }
 
-    // True when `identifier` is bound to the Onyx default or namespace import, directly or through aliases
-    function isOnyxObject(identifier, constOnly) {
+    /** The import specifier node `identifier` is bound to when it comes from a module `isSource` accepts, or null. */
+    function getImportSpecifier(identifier, isSource) {
         const variable = resolveVariable(identifier, sourceCode);
+
+        return !!variable && variable.defs.length === 1 && isImportFrom(variable.defs.at(0), isSource) ? variable.defs.at(0).node : null;
+    }
+
+    // True when `node` is the Onyx default or namespace import, an alias of it, or `Onyx.default` on a namespace import,
+    // with TS casts unwrapped
+    function isOnyxObjectExpression(node, constOnly) {
+        const current = unwrapTypeOnlyExpressions(node);
+
+        if (current?.type === 'MemberExpression') {
+            const namespace = unwrapTypeOnlyExpressions(current.object);
+
+            return getStaticPropertyName(current) === 'default' && namespace?.type === 'Identifier' && getImportSpecifier(namespace, isOnyxModuleSource)?.type === 'ImportNamespaceSpecifier';
+        }
+
+        const variable = current?.type === 'Identifier' ? resolveVariable(current, sourceCode) : null;
 
         if (!variable) {
             return false;
@@ -294,9 +311,8 @@ function createOnyxReadTracker(sourceCode) {
             }
 
             const definition = getSingleVariableDefinition(variable, constOnly);
-            const init = definition ? unwrapTypeOnlyExpressions(definition.node.init) : null;
 
-            return definition?.node.id.type === 'Identifier' && init?.type === 'Identifier' && isOnyxObject(init, constOnly);
+            return definition?.node.id.type === 'Identifier' && isOnyxObjectExpression(definition.node.init, constOnly);
         });
     }
 
@@ -309,9 +325,8 @@ function createOnyxReadTracker(sourceCode) {
         }
 
         const propertyName = getStaticPropertyName(member);
-        const object = unwrapTypeOnlyExpressions(member.object);
 
-        return READ_METHODS.has(propertyName) && object?.type === 'Identifier' && isOnyxObject(object, constOnly) ? propertyName : null;
+        return READ_METHODS.has(propertyName) && isOnyxObjectExpression(member.object, constOnly) ? propertyName : null;
     }
 
     // The read method an identifier is bound to through `const read = Onyx.get`, `const read2 = read` or `const {get: read} = Onyx`, or null
@@ -333,9 +348,7 @@ function createOnyxReadTracker(sourceCode) {
                 return value?.type === 'Identifier' ? getIdentifierReadMethod(value, constOnly) : getMemberReadMethod(value, constOnly);
             }
 
-            const source = unwrapTypeOnlyExpressions(init);
-
-            if (id.type !== 'ObjectPattern' || source?.type !== 'Identifier' || !isOnyxObject(source, constOnly)) {
+            if (id.type !== 'ObjectPattern' || !isOnyxObjectExpression(init, constOnly)) {
                 return null;
             }
 
@@ -367,20 +380,13 @@ function createOnyxReadTracker(sourceCode) {
         }
 
         const declarator = node.parent.parent;
-        const source = declarator?.type === 'VariableDeclarator' && declarator.id === node.parent ? unwrapTypeOnlyExpressions(declarator.init) : null;
+        const isFromOnyx = declarator?.type === 'VariableDeclarator' && declarator.id === node.parent && isOnyxObjectExpression(declarator.init, false);
         const keyName = getStaticName(node.key, node.computed);
 
-        return READ_METHODS.has(keyName) && source?.type === 'Identifier' && isOnyxObject(source, false) ? keyName : null;
+        return READ_METHODS.has(keyName) && isFromOnyx ? keyName : null;
     }
 
-    /** The import specifier node `identifier` is bound to when it comes from a module `isSource` accepts, or null. */
-    function getImportSpecifier(identifier, isSource) {
-        const variable = resolveVariable(identifier, sourceCode);
-
-        return !!variable && variable.defs.length === 1 && isImportFrom(variable.defs.at(0), isSource) ? variable.defs.at(0).node : null;
-    }
-
-    return {getCalledReadMethod, getReferencedReadMethod, getImportSpecifier};
+    return {getCalledReadMethod, getReferencedReadMethod, getImportSpecifier, isOnyxObjectExpression};
 }
 
 export {
