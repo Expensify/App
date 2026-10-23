@@ -3013,3 +3013,62 @@ describe('isExportAction and isPreferredExporter for todos filtering', () => {
         expect(isPreferredExporter(policy, CURRENT_USER_EMAIL)).toBe(true);
     });
 });
+
+describe('isExportAction cash-basis card-only carve-out', () => {
+    const buildCashQBOPolicy = () =>
+        createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {
+                        autoSync: {enabled: false},
+                        accountingMethod: 'CASH',
+                        export: {exporter: CURRENT_USER_EMAIL},
+                    },
+                },
+            },
+        });
+
+    const buildApprovedReport = (overrides: Partial<Report> = {}) =>
+        createMock<Report>({
+            reportID: '1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: false,
+            ...overrides,
+        });
+
+    beforeEach(() => {
+        jest.mocked(getValidConnectedIntegration).mockReturnValue(CONST.POLICY.CONNECTIONS.NAME.QBO);
+    });
+
+    it('returns true when every expense is non-reimbursable', () => {
+        const policy = buildCashQBOPolicy();
+        const report = buildApprovedReport();
+        const reportTransactions = [
+            createMock<Transaction>({transactionID: 't1', reportID: '1', reimbursable: false}),
+            createMock<Transaction>({transactionID: 't2', reportID: '1', reimbursable: false}),
+        ];
+
+        expect(isExportAction(report, CURRENT_USER_EMAIL, policy, [], {reportTransactions})).toBe(true);
+    });
+
+    it('returns false when at least one expense is reimbursable', () => {
+        const policy = buildCashQBOPolicy();
+        const report = buildApprovedReport();
+        const reportTransactions = [
+            createMock<Transaction>({transactionID: 't1', reportID: '1', reimbursable: false}),
+            createMock<Transaction>({transactionID: 't2', reportID: '1', reimbursable: true}),
+        ];
+
+        expect(isExportAction(report, CURRENT_USER_EMAIL, policy, [], {reportTransactions})).toBe(false);
+    });
+
+    it('falls back to report totals when transactions have not hydrated yet', () => {
+        const policy = buildCashQBOPolicy();
+        const report = buildApprovedReport({total: -500, nonReimbursableTotal: -500, reimbursableTotal: undefined});
+
+        expect(isExportAction(report, CURRENT_USER_EMAIL, policy, [], {})).toBe(true);
+    });
+});
