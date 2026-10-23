@@ -33,12 +33,13 @@ describe('Rsbuild startup gate', () => {
     test('cancels an in-flight request when the session stops', async () => {
         // Given a request that cannot yet return headers
         const controller = new AbortController();
+        const {promise: response, resolve: sendResponse} = Promise.withResolvers<Response>();
         const server = Bun.serve({
             port: 0,
             hostname: '127.0.0.1',
             fetch: () => {
                 controller.abort();
-                return new Promise<Response>(() => {});
+                return response;
             },
         });
         try {
@@ -46,6 +47,8 @@ describe('Rsbuild startup gate', () => {
             // Then readiness rejects promptly rather than starting a dependent process
             await expect(waitForWebServer(server.url.href, controller.signal)).rejects.toThrow();
         } finally {
+            // Bun cannot stop a server while a handler is still pending.
+            sendResponse(new Response('ready'));
             await server.stop(true);
         }
     });
