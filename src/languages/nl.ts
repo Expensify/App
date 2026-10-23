@@ -139,6 +139,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Bezig met nadenken...',
         addCardTermsOfService: 'Expensify-servicevoorwaarden',
         perPerson: 'per persoon',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 nacht • ${nightlyRate} per nacht`,
+            other: `${count} nachten • ${nightlyRate} per nacht`,
+        }),
         phone: 'Telefoon',
         phoneNumber: 'Telefoonnummer',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -3976,6 +3980,7 @@ ${amount} voor ${merchant} - ${date}`,
             removeDelegate: 'Vertegenwoordiger tijdens vakantie verwijderen',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, voltooid`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Stap ${step}`;
         if (total) {
@@ -4081,11 +4086,14 @@ ${amount} voor ${merchant} - ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Voer een waarde in tussen ${min} en ${max}`,
             tooFewItems: ({min}: {min: number}) => `Voeg er minimaal ${min} toe`,
             tooManyItems: ({max}: {max: number}) => `Voeg er maximaal ${max} toe`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `${item} toevoegen`,
         removeItemTitle: ({item}: {item: string}) => `${item} verwijderen?`,
         removeItemPrompt: ({name}: {name: string}) => `Weet je zeker dat je ${name} wilt verwijderen?`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} eindigend op ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'De vragen op deze pagina zijn gewijzigd',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens lang zijn, met 6 letters gevolgd door 2 of 5 letters of cijfers.',
@@ -6284,9 +6292,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             syncExpensifyCardSettlements: 'Expensify Kaart-afrekeningen synchroniseren',
             settlementAccount: {label: 'Rekening voor afwikkeling van Expensify Kaart', description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in DualEntry.'},
-            syncTravelInvoicingSettlements: 'Reisfacturatie-afrekeningen synchroniseren',
-            travelInvoicingSettlementAccount: {label: 'Verrekeningsrekening voor reisfacturatie', description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in DualEntry.'},
-            travelInvoicingPayableAccount: {label: 'Te betalen rekening voor reisfacturatie'},
+            syncTravelInvoicingSettlements: 'Geconsolideerde reisfactureringsafrekeningen synchroniseren',
+            travelInvoicingSettlementAccount: {
+                label: 'Rekening voor afwikkeling van geconsolideerde reisfacturatie',
+                description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in DualEntry.',
+            },
+            travelInvoicingPayableAccount: {label: 'Samengevoegde reisfacturatie te betalen rekening'},
         },
         type: {
             free: 'Gratis',
@@ -6456,6 +6467,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             startDateDescription: 'Kies je importstartdatum. We synchroniseren alle transacties vanaf deze datum.',
             editStartDateDescription:
                 'Kies een nieuwe startdatum voor transacties. We synchroniseren alle transacties vanaf die datum, met uitzondering van transacties die we al hebben geïmporteerd.',
+            bulkEditStartDateDescription:
+                'Kies een startdatum voor transacties voor alle geselecteerde kaarten. We synchroniseren transacties vanaf die datum, met uitzondering van transacties die we al hebben geïmporteerd.',
+            bulkStartDateUpdated: 'Startdatum voor transacties bijgewerkt',
             fromTheBeginning: 'Vanaf het begin',
             customStartDate: 'Aangepaste startdatum',
             customCloseDate: 'Aangepaste sluitingsdatum',
@@ -6797,6 +6811,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd.${exportPageLink ? ` Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.` : ''}`,
                 lastUpdated: 'Laatst bijgewerkt',
                 transactionStartDate: 'Begindatum transactie',
+                bulkUpdateTransactionStartDate: 'Begindatum transactie bijwerken',
                 updateCard: 'Kaart bijwerken',
                 unassignCard: 'Kaart loskoppelen',
                 unassignCards: 'Kaarten loskoppelen',
@@ -7009,6 +7024,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             emptySubtitle: 'Leveranciers verschijnen hier zodra je boekhoudkundige synchronisatie is voltooid.',
             findVendor: 'Leverancier zoeken',
             managedInAccountingSoftware: 'Leveranciers worden beheerd in je',
+            enableVendor: 'Leverancier inschakelen',
+            enableVendors: 'Leveranciers inschakelen',
+            disableVendor: 'Leverancier uitschakelen',
+            disableVendors: 'Leveranciers uitschakelen',
+            updateFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de leverancier, probeer het alsjeblieft opnieuw',
         },
         tags: {
             tagName: 'Tagnaam',
@@ -7052,6 +7072,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             tagRules: 'Tagregels',
             approverDescription: 'Fiatteur',
             importTags: 'Labels importeren',
+            appendCustomTagList: 'Aangepaste taglijst toevoegen',
             importTagsSupportingText: 'Codeer je onkosten met één type tag of met meerdere.',
             configureMultiLevelTags: 'Configureer je lijst met tags voor taggen op meerdere niveaus.',
             importMultiLevelTagsSupportingText: `Hier is een voorbeeldweergave van je tags. Als alles er goed uitziet, klik hieronder om ze te importeren.`,
@@ -7329,6 +7350,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 optionNoRegularWorkspaceHelp: 'Lid werkt thuis of reist tussen locaties zonder vaste kantoorlocatie, waardoor woon-werkregels niet van toepassing zijn.',
                 futureOnlyNote: 'Wijzigingen zijn alleen van toepassing op toekomstige kilometerberekeningen. Bestaande kilometerdeclaraties worden niet opnieuw berekend.',
             },
+            officeLocation: 'Kantoorlocatie',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Locatie kantoor wijzigen',
+            changeWorkArrangement: 'Werkregeling wijzigen',
             changeRole: 'Rol wijzigen',
         },
         card: {
@@ -9176,9 +9201,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             syncExpensifyCardSettlements: 'Expensify Kaartafrekeningen synchroniseren',
             settlementAccount: {label: 'Expensify Kaart-verrekeningsrekening', description: 'Kies je afrekenrekening en we maken de betaling aan in Campfire.'},
-            syncTravelInvoicingSettlements: 'Reisfacturering-afrekeningen synchroniseren',
-            travelInvoicingSettlementAccount: {label: 'Reisfacturatie-vereffeningsrekening', description: 'Kies je afrekenrekening en we maken de betaling aan in Campfire.'},
-            travelInvoicingPayableAccount: {label: 'Te betalen rekening voor reisinvoicing'},
+            syncTravelInvoicingSettlements: 'Geconsolideerde reisfactureringsafrekeningen synchroniseren',
+            travelInvoicingSettlementAccount: {
+                label: 'Rekening voor afwikkeling van geconsolideerde reisfacturatie',
+                description: 'Kies je afrekenrekening en we maken de betaling aan in Campfire.',
+            },
+            travelInvoicingPayableAccount: {label: 'Samengevoegde reisfacturatie te betalen rekening'},
             exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
             cardProgramAccount: {
                 label: 'Kaartprogramma-account',
@@ -9263,6 +9291,35 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             companyCardAccount: {
                 label: 'Bedrijfskaartrekening',
                 description: 'Kies waarheen transacties met bedrijfspassen worden geëxporteerd.',
+            },
+            exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
+            cardProgramAccount: {
+                label: 'Kaartprogramma-account',
+                description: 'Overschrijf de werkruimteaccount voor deze kaartprogramma’s.',
+                descriptionLevel2: 'Overschrijf de workspace-account voor dit kaartprogramma.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Alle programma’s gebruiken de standaardrekening';
+                    }
+                    return {
+                        one: `${count} programma met aangepaste rekening`,
+                        other: `${count} programma’s met aangepaste rekeningen`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Account per kaart',
+                description: 'Overschrijf de programmarekening voor individuele kaarten.',
+                descriptionLevel2: 'Overschrijf de programmarekening voor deze kaarten.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Alle kaarten gebruiken programmarekeningen';
+                    }
+                    return {
+                        one: `${count} kaart met aangepast account`,
+                        other: `${count} kaarten met aangepaste rekeningen`,
+                    };
+                },
             },
             paymentMethod: {
                 label: 'Betalingswijze',
@@ -9563,6 +9620,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `heeft de frequentie van automatisch rapporteren gewijzigd naar ‘${newFrequency}’ (voorheen ‘${oldFrequency}’)`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `heeft de goedkeuringsmodus gewijzigd naar ‘${newValue}’ (voorheen ‘${oldValue}’)`,
+        archivedWorkspace: 'heeft deze workspace gearchiveerd',
+        unarchivedWorkspace: 'heeft deze werkruimte gearchiveerd',
         upgradedWorkspace: 'heeft deze workspace geüpgraded naar het Control-abonnement',
         forcedCorporateUpgrade: `Deze werkruimte is geüpgraded naar het Control-abonnement. Klik <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">hier</a> voor meer informatie.`,
         downgradedWorkspace: 'heeft deze workspace teruggezet naar het Collect-abonnement',
@@ -9810,6 +9869,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             setAsPrimary: ({name}: {name: string}) => `stel de kantoorlocatie "${name}" in als primair`,
             setCompanyAddressAsPrimary: 'stel het bedrijfsadres in als primair',
             removed: ({name}: {name: string}) => `heeft de kantoorlocatie "${name}" verwijderd`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `heeft de kantoorlokatie van ${displayName} gewijzigd naar ${officeLocation} (voorheen ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `‘${name}’`,
+            companyAddress: 'het bedrijfsadres',
+            primaryOffice: 'het primaire kantoor',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `stel de standaard werkregeling in op ${arrangement}`,
@@ -10429,6 +10493,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             topCategories: 'Topcategorieën',
             topMerchants: 'Topverkopers',
             violationsBySubmitter: 'Overtredingen door indiener',
+            travel: 'Reizen',
+            trips: 'Reizen',
         },
         mergeReports: {
             title: 'Rapporten samenvoegen',
@@ -10486,8 +10552,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             category: 'Categorie',
             tag: 'Label',
         },
-        switchToTableView: 'Overschakelen naar tabelweergave',
-        switchToExpenseView: 'Overschakelen naar uitgavenweergave',
     },
     report: {
         newReport: {
@@ -11549,6 +11613,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} terugbetaald op ${date}`,
             },
             billedTo: 'Gefactureerd aan',
+            activity: 'Activiteit',
+            findActiveUser: 'Zoek een actieve gebruiker',
             viewReceipt: 'Bon bekijken',
             viewInvoice: 'Factuur bekijken',
         },
@@ -12123,6 +12189,90 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         completedSteps: 'Ik heb de bovenstaande stappen voltooid',
         errorTitle: 'Er is iets misgegaan. Probeer het opnieuw.',
         errorPrompt: 'Het lijkt erop dat er iets misging. Probeer het opnieuw. Als het probleem blijft bestaan, neem dan contact op met Concierge.',
+    },
+    bulkAction: {
+        approvingTitle: 'Rapporten goedkeuren...',
+        submittingTitle: 'Rapporten worden ingediend...',
+        payingTitle: 'Rapporten markeren als betaald...',
+        holdingTitle: 'Uitgaven vasthouden...',
+        unholdingTitle: 'Blokkering van uitgaven opheffen...',
+        rejectingTitle: 'Uitgaven afwijzen...',
+        deletingTitle: 'Rapporten verwijderen...',
+        deletingExpensesTitle: 'Uitgaven verwijderen...',
+        runningBody: 'Wacht een paar minuten, of laat Concierge je een bericht sturen zodra het klaar is.',
+        sendFromConcierge: 'Stuur me een bericht als het klaar is',
+        conciergeTitle: 'Zeker weten!',
+        conciergeBody: 'Concierge stuurt je een bericht zodra het klaar is.',
+        goToConcierge: 'Ga naar Concierge',
+        approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} van ${count} rapport goedgekeurd`,
+            other: `${doneCount} van ${count} rapporten goedgekeurd`,
+        }),
+        submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} van ${count} rapport ingediend`,
+            other: `${doneCount} van ${count} rapporten ingediend`,
+        }),
+        paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} van ${count} rapport als betaald gemarkeerd`,
+            other: `${doneCount} van ${count} rapporten als betaald gemarkeerd`,
+        }),
+        heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Uitgaven vastgehouden in ${doneCount} van ${count} rapport`,
+            other: `Uitgaven vastgehouden in ${doneCount} van ${count} rapporten`,
+        }),
+        unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Blokkering van uitgaven opgeheven in ${doneCount} van ${count} rapport`,
+            other: `Blokkering van uitgaven opgeheven in ${doneCount} van ${count} rapporten`,
+        }),
+        rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Uitgaven afgewezen in ${doneCount} van ${count} rapport`,
+            other: `Uitgaven afgewezen in ${doneCount} van ${count} rapporten`,
+        }),
+        deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} van ${count} rapport verwijderd`,
+            other: `${doneCount} van ${count} rapporten verwijderd`,
+        }),
+        deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Uitgaven verwijderd in ${doneCount} van ${count} rapport`,
+            other: `Uitgaven verwijderd in ${doneCount} van ${count} rapporten`,
+        }),
+        noReportsTitle: 'Geen overeenkomende rapporten',
+        noReportsBody: 'Geen van de rapporten die je hebt geselecteerd had deze actie nodig.',
+        viewFailedReports: 'Rapporten bekijken',
+        failedTitle: 'Er is iets misgegaan',
+        failedBody: 'Deze actie kon niet worden gestart. Probeer het later opnieuw.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: '1 rapport kon niet worden goedgekeurd.',
+            other: `${count} rapporten konden niet worden goedgekeurd.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: '1 rapport kon niet worden ingediend.',
+            other: `${count} rapporten konden niet worden ingediend.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: '1 rapport kon niet worden betaald.',
+            other: `${count} rapporten konden niet worden betaald.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: 'Uitgaven in 1 rapport konden niet worden vastgehouden.',
+            other: `Uitgaven in ${count} rapporten konden niet worden vastgehouden.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: 'De blokkering van uitgaven in 1 rapport kon niet worden opgeheven.',
+            other: `De blokkering van uitgaven in ${count} rapporten kon niet worden opgeheven.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: 'Uitgaven in 1 rapport konden niet worden afgewezen.',
+            other: `Uitgaven in ${count} rapporten konden niet worden afgewezen.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: '1 rapport kon niet worden verwijderd.',
+            other: `${count} rapporten konden niet worden verwijderd.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: 'Uitgaven in 1 rapport konden niet worden verwijderd.',
+            other: `Uitgaven in ${count} rapporten konden niet worden verwijderd.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Verleng je abonnement voor een periode van 12 maanden, van ${startDate} tot ${endDate}.`,

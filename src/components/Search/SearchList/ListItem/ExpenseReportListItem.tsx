@@ -7,6 +7,7 @@ import {
     useOpenReportSubmitToPopover,
     useSearchSubmitPopoverGuard,
 } from '@components/ReportSubmitToPopoverAnchor';
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
@@ -83,7 +84,6 @@ function ExpenseReportListItem<TItem extends ListItem>(props: ExpenseReportListI
 function ExpenseReportListItemInner<TItem extends ListItem>({
     item,
     isLoading,
-    isFocused,
     showTooltip,
     columns,
     canSelectMultiple,
@@ -99,6 +99,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
 }: ExpenseReportListItemProps<TItem>) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();

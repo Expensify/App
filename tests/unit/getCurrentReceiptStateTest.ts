@@ -27,7 +27,7 @@ describe('getCurrentReceiptState', () => {
         const item = buildTransaction();
 
         // When the receipt state is resolved
-        const result = getCurrentReceiptState({item, receiptFiles: {}, canEnterScanFieldsManually: true});
+        const result = getCurrentReceiptState({item, receiptFiles: {}, canEnterScanFieldsManually: true, isPolicyExpenseChat: true});
 
         // Then no state is set, since there is no receipt to submit
         expect(result).toBeUndefined();
@@ -38,7 +38,7 @@ describe('getCurrentReceiptState', () => {
         const item = buildTransaction({isAmountSet: true, isMerchantSet: true, isCreatedSet: true});
 
         // When the receipt state is resolved
-        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: false});
+        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: false, isPolicyExpenseChat: true});
 
         // Then no state is set, so the flags carried by the transaction are ignored
         expect(result).toBeUndefined();
@@ -49,7 +49,7 @@ describe('getCurrentReceiptState', () => {
         const item = buildTransaction();
 
         // When the receipt state is resolved
-        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: {...RECEIPT, isTestReceipt: true}}, canEnterScanFieldsManually: true});
+        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: {...RECEIPT, isTestReceipt: true}}, canEnterScanFieldsManually: true, isPolicyExpenseChat: true});
 
         // Then no state is set, because test receipts are not scanned
         expect(result).toBeUndefined();
@@ -60,7 +60,7 @@ describe('getCurrentReceiptState', () => {
         const item = buildTransaction();
 
         // When the receipt state is resolved
-        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: {...RECEIPT, isTestDriveReceipt: true}}, canEnterScanFieldsManually: true});
+        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: {...RECEIPT, isTestDriveReceipt: true}}, canEnterScanFieldsManually: true, isPolicyExpenseChat: true});
 
         // Then no state is set, because test drive receipts are not scanned
         expect(result).toBeUndefined();
@@ -71,7 +71,7 @@ describe('getCurrentReceiptState', () => {
         const item = buildTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
 
         // When the receipt state is resolved
-        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: true});
+        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: true, isPolicyExpenseChat: true});
 
         // Then no state is set, since only scan requests decide between scanning and manual entry
         expect(result).toBeUndefined();
@@ -82,7 +82,7 @@ describe('getCurrentReceiptState', () => {
         const item = buildTransaction();
 
         // When the receipt state is resolved
-        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: true});
+        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: true, isPolicyExpenseChat: true});
 
         // Then the receipt is sent to SmartScan
         expect(result).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
@@ -93,7 +93,7 @@ describe('getCurrentReceiptState', () => {
         const item = buildTransaction({isAmountSet: true});
 
         // When the receipt state is resolved
-        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: true});
+        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: true, isPolicyExpenseChat: true});
 
         // Then the receipt is still sent to SmartScan, because the fields are all-or-nothing
         expect(result).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
@@ -104,9 +104,20 @@ describe('getCurrentReceiptState', () => {
         const item = buildTransaction({isAmountSet: true, isMerchantSet: true, isCreatedSet: true});
 
         // When the receipt state is resolved
-        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: true});
+        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: true, isPolicyExpenseChat: true});
 
         // Then the expense is submitted as manual, so SmartScan never overwrites the entered values
+        expect(result).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
+    });
+
+    it('returns OPEN outside a workspace chat when amount and date are filled in without a merchant', () => {
+        // Given a scan transaction with a receipt where only amount and date were entered, outside a workspace chat
+        const item = buildTransaction({isAmountSet: true, isCreatedSet: true});
+
+        // When the receipt state is resolved
+        const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: true, isPolicyExpenseChat: false});
+
+        // Then the expense is submitted as manual, because the merchant is optional where it isn't required
         expect(result).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
     });
 });
