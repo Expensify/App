@@ -127,12 +127,12 @@ function useReportActionsNewActionLiveTail({
                     return;
                 }
 
+                // Release the old pagination anchor so offline sends appear without waiting for openReport.
                 if (isOffline && linkedReportActionID && action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     liveTailJumpRef.current = {stage: 'await_prune'};
                     setTreatAsNoPaginationAnchor(true);
                     navigation.setParams({reportActionID: ''});
                 }
-
                 const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     if (index > 0) {
