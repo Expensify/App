@@ -3,16 +3,15 @@ const name = 'no-onyx-loading-status';
 const meta = {
     type: 'problem',
     docs: {
-        description:
-            'Disallow `isLoadingOnyxValue` and reads of `status` from `useOnyx` results. Onyx is removing per-key loading status, so after `Onyx.init` finishes the status will always be `loaded`.',
+        description: 'Disallow `isLoadingOnyxValue` and reads of `status` from `useOnyx` results, because Onyx is dropping per-key loading status.',
         recommended: 'error',
     },
     schema: [],
     messages: {
         isLoadingOnyxValueUsage:
-            'Do not use `isLoadingOnyxValue`. Onyx is removing per-key loading status from `useOnyx`, so after startup this will always return `false`. Read the value directly and treat `undefined` as no data (https://github.com/Expensify/App/issues/104583).',
+            'Do not use `isLoadingOnyxValue`. Onyx is dropping per-key loading status from `useOnyx`. Read the value directly and treat `undefined` as no data (https://github.com/Expensify/App/issues/104583).',
         statusRead:
-            'Do not read `status` from a `useOnyx` result. Onyx is removing per-key loading status, so after startup it will always be `loaded`. Read the value directly and treat `undefined` as no data (https://github.com/Expensify/App/issues/104583).',
+            'Do not read `status` from a `useOnyx` result. Onyx is dropping per-key loading status. Read the value directly and treat `undefined` as no data (https://github.com/Expensify/App/issues/104583).',
     },
 };
 
