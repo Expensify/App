@@ -964,6 +964,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/import/RilletImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/export/RilletExportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_PREFERRED_EXPORTER]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/export/RilletPreferredExporterPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/export/RilletReimbursablePage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_REIMBURSEMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/export/RilletReimbursementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_GL_IMPACT_DATE]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/export/RilletGLImpactDatePage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_COMPANY_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/export/RilletCompanyCardAccountPage').default,

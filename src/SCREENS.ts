@@ -713,6 +713,8 @@ const SCREENS = {
             RILLET_IMPORT: 'Policy_Accounting_Rillet_Import',
             RILLET_EXPORT: 'Policy_Accounting_Rillet_Export',
             RILLET_PREFERRED_EXPORTER: 'Policy_Accounting_Rillet_Preferred_Exporter',
+            RILLET_REIMBURSABLE: 'Policy_Accounting_Rillet_Reimbursable',
+            RILLET_REIMBURSEMENT_ACCOUNT: 'Policy_Accounting_Rillet_Reimbursement_Account',
             RILLET_GL_IMPACT_DATE: 'Policy_Accounting_Rillet_GL_Impact_Date',
             RILLET_COMPANY_CARD_ACCOUNT: 'Policy_Accounting_Rillet_Company_Card_Account',
             RILLET_DEFAULT_COMPANY_CARD_VENDOR: 'Policy_Accounting_Rillet_Default_Company_Card_Vendor',

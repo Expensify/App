@@ -1037,6 +1037,12 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_PREFERRED_EXPORTER]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_REIMBURSABLE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_REIMBURSEMENT_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_GL_IMPACT_DATE]: {
         policyID: string;
     };

@@ -5229,6 +5229,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/rillet/export/preferred-exporter',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/preferred-exporter` as const,
     },
+    POLICY_ACCOUNTING_RILLET_REIMBURSABLE: {
+        route: 'workspaces/:policyID/accounting/rillet/export/reimbursable',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/reimbursable` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_REIMBURSEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/export/reimbursement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/reimbursement-account` as const,
+    },
     POLICY_ACCOUNTING_RILLET_GL_IMPACT_DATE: {
         route: 'workspaces/:policyID/accounting/rillet/export/gl-impact-date',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/gl-impact-date` as const,
