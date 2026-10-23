@@ -1,7 +1,12 @@
+import LocationPermissionModal from '@components/LocationPermissionModal';
+
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
+import {snapshotUserLocation} from '@libs/actions/UserLocation';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
+
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -9,10 +14,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
+import React, {useEffect} from 'react';
 
 import MultiScanGate from './components/MultiScanGate';
 import ScanEditReceipt from './components/ScanEditReceipt';
@@ -118,6 +126,40 @@ function ScanNewReceipt({report, action, iouType, reportID, transactionID, trans
 ScanNewReceipt.displayName = 'ScanNewReceipt';
 
 /**
+ * Asks for location permission when the scan screen opens, and caches the position once it is granted.
+ */
+function ScanLocationPrompt({gpsRequired}: {gpsRequired: boolean}) {
+    // Hidden tabs stay mounted and remount on tab switches, so without this the prompt would open over other tabs
+    const isFocused = useIsFocused();
+    const [shouldStartLocationPermissionFlow, shouldStartLocationPermissionFlowResult] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
+        selector: shouldStartLocationPermissionFlowSelector,
+    });
+    const isPromptCoolingDown = !isLoadingOnyxValue(shouldStartLocationPermissionFlowResult) && !shouldStartLocationPermissionFlow;
+
+    // The prompt flow skips users inside the prompt window, so onGrant never caches a position for someone who granted it in OS settings
+    useEffect(() => {
+        if (!isFocused || !gpsRequired || !isPromptCoolingDown) {
+            return;
+        }
+        snapshotUserLocation();
+    }, [isFocused, gpsRequired, isPromptCoolingDown]);
+
+    return (
+        <LocationPermissionModal
+            startPermissionFlow={isFocused && gpsRequired && !!shouldStartLocationPermissionFlow}
+            resetPermissionFlow={() => {}}
+            onGrant={snapshotUserLocation}
+            onDeny={(wasUserInitiated) => {
+                if (!wasUserInitiated) {
+                    return;
+                }
+                updateLastLocationPermissionPrompt();
+            }}
+        />
+    );
+}
+
+/**
  * ScanRouter — selects the appropriate scan variant based on route params and transaction state.
  *
  * Edit branch is a fast-path that subscribes to nothing extra. Non-edit branches go through MultiScanGate
@@ -140,6 +182,7 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
 
     return (
         <MultiScanGate>
+            <ScanLocationPrompt gpsRequired={transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT} />
             <ScanNewReceipt
                 report={report}
                 action={action}

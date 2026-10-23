@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {createTransactionThreadReport, openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
-import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {CAROUSEL_SOURCE, clearActiveTransactionIDsForSource, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getAllReportActions,
@@ -37,6 +37,7 @@ import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContex
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {fullPolicySnapshotLastModifiedSelector} from '@src/selectors/Policy';
 import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
@@ -121,6 +122,9 @@ function MoneyRequestReportPreview({
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
     const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
     const policy = usePolicy(policyID);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
@@ -261,12 +265,13 @@ function MoneyRequestReportPreview({
                         iouReport,
                         iouReportAction: transactionIOUAction,
                         personalDetails: personalDetailsList,
+                        fullPolicySnapshotLastModified,
                     })?.reportID;
                 }
             }
             return childReportID;
         },
-        [conciergeChat, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
+        [conciergeChat, currentUserAccountID, currentUserEmail, fullPolicySnapshotLastModified, introSelected, iouReport, personalDetailsList, policyID],
     );
 
     // `routeAtPress` is captured when the user pressed, not read live: a second press inside the cascade window
@@ -283,19 +288,23 @@ function MoneyRequestReportPreview({
                 .filter((pressedTransaction) => !isTransactionPendingDelete(pressedTransaction))
                 .map((pressedTransaction) => pressedTransaction.transactionID);
 
+            // This press owns the carousel it seeds. Without a source the list was unowned, so no screen could
+            // release it and every other writer was free to overwrite it while the expense was still open.
+            const carouselSource = CAROUSEL_SOURCE.reportPreview(iouReportID);
+
             if (isSmallScreenWidth && iouReportID) {
                 const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, `r/${iouReportID}`);
                 const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
                 if (!wasPressedFromReport) {
                     Navigation.navigate(reportRoute);
                 }
-                setActiveTransactionIDs(openableTransactionIDs);
+                setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource});
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
                 return;
             }
 
             if (isSmallScreenWidth) {
-                setActiveTransactionIDs(openableTransactionIDs);
+                setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource});
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
                 return;
             }
@@ -307,7 +316,7 @@ function MoneyRequestReportPreview({
                 if (!wasPressedFromReport) {
                     Navigation.navigate(reportRoute);
                 }
-                const seeded = setActiveTransactionIDs(openableTransactionIDs);
+                const seeded = setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource});
                 markReportRHPWidth(childReportID, 'wide');
                 const release = () => {
                     unmarkReportRHPWidth(childReportID);
@@ -317,7 +326,7 @@ function MoneyRequestReportPreview({
                         if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
                             return;
                         }
-                        clearActiveTransactionIDs();
+                        clearActiveTransactionIDsForSource(carouselSource);
                     });
                 };
                 const timer = setTimeout(() => {
@@ -332,7 +341,7 @@ function MoneyRequestReportPreview({
                 return;
             }
 
-            setActiveTransactionIDs(openableTransactionIDs).then(() => {
+            setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource}).then(() => {
                 markReportRHPWidth(childReportID, 'wide');
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
             });
@@ -367,13 +376,14 @@ function MoneyRequestReportPreview({
 
             const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
             const childReportID = resolveChildReportID(transaction);
+            const fullPolicySnapshot = policyID && fullPolicySnapshotLastModified ? {policyID, lastModified: fullPolicySnapshotLastModified} : undefined;
             if (childReportID) {
                 if (!isIOUActionLoaded && iouReportID) {
                     if (isOffline) {
                         openReportFromPreview();
                         return;
                     }
-                    openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                    openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
                 }
                 navigateToExpense(childReportID, routeAtPress);
                 return;
@@ -381,7 +391,7 @@ function MoneyRequestReportPreview({
 
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
-                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
                 return;
             }
 
@@ -390,12 +400,14 @@ function MoneyRequestReportPreview({
         [
             conciergeChat,
             currentUserAccountID,
+            fullPolicySnapshotLastModified,
             hasIOUReportActions,
             introSelected,
             iouReportID,
             isOffline,
             navigateToExpense,
             openReportFromPreview,
+            policyID,
             resolveChildReportID,
             transactions.length,
         ],

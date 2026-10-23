@@ -3,7 +3,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
-import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
+import type {ListItem as NewListItem, ListItemProps} from '@components/SelectionList/ListItem/types';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
@@ -35,6 +35,7 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
+import {cancelSearchRouterQuerySpan, markSearchRouterQueryCommitted} from '@libs/telemetry/searchRouterQuerySpans';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -47,9 +48,9 @@ import type {ForwardedRef, RefObject} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 
-import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListItem/SearchQueryListItem';
+import type {SearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
 
@@ -128,22 +129,38 @@ const setPerformanceTimersEnd = () => {
     endSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
 };
 
-function isSearchQueryListItem(listItem: UserListItemProps<AutocompleteListItem> | SearchQueryListItemProps): listItem is SearchQueryListItemProps {
-    return isSearchQueryItem(listItem.item);
-}
-
 function getAutocompleteDisplayText(filterKey: UserFriendlyKey, value: string) {
     return `${filterKey}:${value}`;
 }
 
-function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | SearchQueryListItemProps) {
+function SearchRouterItem({
+    item,
+    isFocused,
+    showTooltip,
+    isDisabled,
+    onSelectRow,
+    onDismissError,
+    shouldPreventEnterKeySubmit,
+    onFocus,
+    shouldSyncFocus,
+    shouldDisableHoverStyle,
+}: ListItemProps<AutocompleteListItem>) {
     const styles = useThemeStyles();
 
-    if (isSearchQueryListItem(props)) {
-        return <SearchQueryListItem {...props} />;
+    if (isSearchQueryItem(item)) {
+        return (
+            <SearchQueryListItem
+                item={item}
+                isFocused={isFocused}
+                showTooltip={showTooltip}
+                onSelectRow={onSelectRow}
+                onFocus={onFocus}
+                shouldSyncFocus={shouldSyncFocus}
+                shouldDisableHoverStyle={shouldDisableHoverStyle}
+            />
+        );
     }
 
-    const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, onFocus, shouldSyncFocus, wrapperStyle} = props;
     const fsClass = FS.getChatFSClass((item as SearchOption<Report> | undefined)?.item);
 
     return (
@@ -157,7 +174,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={wrapperStyle}
+            wrapperStyle={[styles.pr0, styles.pl0]}
             pressableStyle={[styles.br2, styles.ph3]}
             forwardedFSClass={fsClass}
             shouldHighlightSelectedItem
@@ -180,7 +197,7 @@ function SearchAutocompleteList({
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -194,12 +211,17 @@ function SearchAutocompleteList({
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const {activePolicyID} = useActivePolicyContext();
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -241,6 +263,7 @@ function SearchAutocompleteList({
     useEffect(() => {
         return () => {
             cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
+            cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.UNMOUNTED);
         };
     }, []);
 
@@ -263,6 +286,7 @@ function SearchAutocompleteList({
         return getSearchOptions({
             dateFnsLocale,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             options: listOptions,
             draftComments,
             isDefaultRoomsBetaEnabled,
@@ -282,8 +306,15 @@ function SearchAutocompleteList({
             currentUserEmail,
             policyCollection: policies,
             personalDetails,
+            reportAttributesDerived: reportAttributes,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
+            currentUserLogin: currentUserEmail,
+            localeCompare,
+            formatPhoneNumber,
             conciergeReportID,
+            allPolicyTags,
             isTrackIntentUser,
             translate,
             getReportByID,
@@ -300,14 +331,21 @@ function SearchAutocompleteList({
         currentUserAccountID,
         currentUserEmail,
         policies,
+        allPolicyTags,
         personalDetails,
+        reportAttributes,
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
+        localeCompare,
+        formatPhoneNumber,
         conciergeReportID,
         isTrackIntentUser,
         translate,
         getReportByID,
         dateFnsLocale,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         rules,
     ]);
 
@@ -351,6 +389,7 @@ function SearchAutocompleteList({
             translate,
             getReportByID,
             rules,
+            formatPhoneNumber,
         }).options;
         const optionsByReportID = new Map(options.recentReports.map((option) => [option.reportID, option]));
         return orderedReportIDs.map((reportID) => optionsByReportID.get(reportID)).filter((option): option is OptionData => !!option && !option.isSelfDM);
@@ -375,9 +414,35 @@ function SearchAutocompleteList({
         translate,
         getReportByID,
         rules,
+        formatPhoneNumber,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
+
+    const localResultCount = searchOptions.recentReports.length + searchOptions.personalDetails.length;
+    const hasCommittedListRef = useRef(false);
+    const committedListOptionsRef = useRef(listOptions);
+    // Commit the query span in a layout effect so the span's end time reflects when the list is laid out
+    // for this query before paint. The list's first commit after the loading skeleton is cancelled so open latency
+    // stays with ManualOpenSearchRouter. While the skeleton is shown, the list is not rendered, so the span keeps waiting for it.
+    // While options are still loading, searchOptions is the empty default list, so committing would record a bogus zero-result query.
+    // Cancel instead of waiting so Onyx cold-load time does not get folded into query latency.
+    useLayoutEffect(() => {
+        if (!isRecentSearchesDataLoaded) {
+            return;
+        }
+        const isListMountCommit = !hasCommittedListRef.current;
+        hasCommittedListRef.current = true;
+        // useFilteredOptions rebuilds listOptions on the first query after open or clear, and when an Onyx dependency changes.
+        // Later queries reuse it, so samples are only comparable when split by this.
+        const areOptionsRebuilt = committedListOptionsRef.current !== listOptions;
+        committedListOptionsRef.current = listOptions;
+        if (isLoadingOptions) {
+            cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.OPTIONS_NOT_READY);
+            return;
+        }
+        markSearchRouterQueryCommitted(autocompleteQueryValue, {localResultCount, areOptionsRebuilt}, isListMountCommit);
+    }, [autocompleteQueryValue, localResultCount, listOptions, isRecentSearchesDataLoaded, isLoadingOptions]);
     const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);
@@ -429,6 +494,7 @@ function SearchAutocompleteList({
         loginList,
         policies,
         visibleReportActionsData,
+        reportAttributesDerived: reportAttributes,
         currentUserAccountID,
         currentUserEmail,
         personalDetails,
@@ -912,7 +978,6 @@ function SearchAutocompleteList({
                 containerStyle: [styles.mh100],
                 listStyle: styles.overscrollBehaviorContain,
                 contentContainerStyle,
-                listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,
             }}
             shouldSingleExecuteRowSelect
@@ -938,5 +1003,4 @@ function SearchAutocompleteList({
 SearchAutocompleteList.displayName = 'SearchAutocompleteList';
 
 export default React.memo(SearchAutocompleteList);
-export {SearchRouterItem};
 export type {GetAdditionalSectionsCallback, SearchAutocompleteListProps};

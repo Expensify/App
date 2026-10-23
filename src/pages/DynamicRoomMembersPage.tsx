@@ -11,14 +11,17 @@ import type {TableHandle} from '@components/Table';
 import type {RoomMemberRowData, RoomMembersTableColumnKey} from '@components/Tables/RoomMembersTable';
 import RoomMembersTable from '@components/Tables/RoomMembersTable';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -36,7 +39,6 @@ import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtils, isRoomMemberProtectedByPolicyRole} from '@libs/PolicyUtils';
-import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportForHeader,
@@ -44,6 +46,7 @@ import {
     isChatThread,
     isDefaultRoom,
     isPolicyExpenseChat as isPolicyExpenseChatUtils,
+    isThreadMemberProtectedByParentReport,
     isUserCreatedPolicyRoom,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -71,8 +74,8 @@ type DynamicRoomMembersPageProps = WithReportOrNotFoundProps & PlatformStackScre
 function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBERS.path);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'RemoveMembers']);
-    const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
-    const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+    const reportAction = useParentReportAction(report);
+    const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
@@ -91,6 +94,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const reportForSubtitle = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
     const derivedSubtitleReportName = useDerivedReportNameByReportID(reportForSubtitle?.reportID);
     const subtitleReportName = getReportName(reportForSubtitle, derivedSubtitleReportName);
+    const accountIDToName = useMentionedAccountIDToNameMap(subtitleReportName);
 
     const {chatParticipants: participants, personalDetailsParticipants} = useMemo(
         () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
@@ -135,6 +139,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {pageGutter} = useLayoutSpacing();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
     const isLoading = !isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers;
@@ -221,7 +226,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 (isPolicyExpenseChat && isProtectedByPolicyRole) ||
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                details.accountID === report.ownerAccountID;
+                details.accountID === report.ownerAccountID ||
+                isThreadMemberProtectedByParentReport(parentReport, accountID);
 
             result.push({
                 keyForList: String(accountID),
@@ -248,6 +254,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         isPolicyExpenseChat,
         localeCompare,
         openRoomMemberDetails,
+        parentReport,
         participants,
         personalDetails,
         policy,
@@ -335,7 +342,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
-    const tableHeaderComponent = <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>;
+    const tableHeaderComponent = <View style={pageGutter}>{headerButtons}</View>;
 
     let subtitleKey: '' | TranslationPaths | undefined;
     if (!isEmptyObject(report)) {
@@ -355,7 +362,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(subtitleReportName) : subtitleReportName)}
+                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(subtitleReportName, {accountIDToName}) : subtitleReportName)}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();

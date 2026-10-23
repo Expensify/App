@@ -12,10 +12,9 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDefaultCardName} from '@libs/CardUtils';
-import {addErrorMessage} from '@libs/ErrorUtils';
+import {getCardNameError, getCardNameErrorMessage, getDefaultCardName} from '@libs/CardUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
-import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
+import StringUtils from '@libs/StringUtils';
 
 import {setIssueNewCardStepAndData} from '@userActions/Card';
 
@@ -45,7 +44,6 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
     const isEditing = issueNewCard?.isEditing;
     const data = issueNewCard?.data;
     const userName = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return formatPhoneNumber(personalDetail?.firstName || data?.assigneeEmail || '');
     });
     const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
@@ -54,13 +52,13 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
     const defaultCardTitle = !isVirtualCard ? getDefaultCardName(userName) : '';
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE], translate);
-        if (values.cardTitle) {
-            const {isValid, byteLength} = isValidInputLength(values.cardTitle, CONST.STANDARD_LENGTH_LIMIT);
-            if (!isValid) {
-                addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', byteLength, CONST.STANDARD_LENGTH_LIMIT));
-            }
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> = {};
+        const error = getCardNameError(values.cardTitle);
+
+        if (error) {
+            errors[INPUT_IDS.CARD_TITLE] = getCardNameErrorMessage(translate, error, values.cardTitle);
         }
+
         return errors;
     };
 
@@ -70,7 +68,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
                 setIssueNewCardStepAndData({
                     step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
                     data: {
-                        cardTitle: values.cardTitle,
+                        cardTitle: StringUtils.sanitizeName(values.cardTitle),
                     },
                     isEditing: false,
                     policyID,

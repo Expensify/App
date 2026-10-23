@@ -399,6 +399,7 @@ function getNavigationUrlOnMoneyRequestDelete(
  */
 type CleanUpMoneyRequestParams = {
     transactionID: string;
+    currentUserAccountID: number;
     reportAction: OnyxTypes.ReportAction;
     reportID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -415,6 +416,7 @@ type CleanUpMoneyRequestParams = {
 
 function cleanUpMoneyRequest({
     transactionID,
+    currentUserAccountID,
     reportAction,
     reportID,
     transactionThreadReport,
@@ -580,11 +582,17 @@ function cleanUpMoneyRequest({
             iouReport?.chatReportID,
             canUserPerformWriteAction,
             reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+            undefined,
+            undefined,
+            currentUserAccountID,
         )?.lastMessageText;
         const lastVisibleActionCreated = getLastVisibleAction(
             iouReport?.chatReportID,
             canUserPerformWriteAction,
             reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+            undefined,
+            undefined,
+            currentUserAccountID,
         )?.created;
 
         onyxUpdates.push(
@@ -607,7 +615,7 @@ function cleanUpMoneyRequest({
     }
 
     if (!shouldDeleteIOUReport) {
-        clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID, isOffline);
+        clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline});
     }
 
     // First, update the reportActions to ensure related actions are not displayed.
@@ -615,7 +623,7 @@ function cleanUpMoneyRequest({
         Navigation.goBack(urlToNavigateBack, {
             afterTransition: () => {
                 if (shouldDeleteIOUReport) {
-                    clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID, isOffline);
+                    clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline});
                 }
                 Onyx.update(onyxUpdates);
             },
@@ -741,7 +749,7 @@ function getCleanUpTransactionThreadReportOnyxData({
 
             canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatIOUReportArchived ?? isArchivedExpenseReport);
         }
-        const lastVisibleAction = getLastVisibleAction(iouReportID, canUserPerformWriteAction);
+        const lastVisibleAction = getLastVisibleAction(iouReportID, canUserPerformWriteAction, {}, undefined, undefined, currentUserAccountID);
 
         const {childVisibleActionCount, childCommenterCount, childLastVisibleActionCreated, childOldestFourAccountIDs} = updateOptimisticParentReportAction(
             reportPreviewAction,
@@ -958,7 +966,12 @@ function deleteMoneyRequest({
         }
 
         const optimisticReportActions = reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {};
-        const optimisticLastReportData = optimisticReportLastData(iouReport?.chatReportID ?? String(CONST.DEFAULT_NUMBER_ID), optimisticReportActions, canUserPerformWriteAction);
+        const optimisticLastReportData = optimisticReportLastData(
+            iouReport?.chatReportID ?? String(CONST.DEFAULT_NUMBER_ID),
+            currentUserAccountID,
+            optimisticReportActions,
+            canUserPerformWriteAction,
+        );
 
         if (chatReport) {
             optimisticData.push({

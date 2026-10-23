@@ -29,6 +29,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {scrollToRight} from '@libs/InputUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
@@ -41,6 +42,13 @@ import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
+import {
+    beginSearchRouterQuerySession,
+    cancelSearchRouterQuerySpan,
+    endSearchRouterQuerySession,
+    getSearchRouterQueryChangedAt,
+    startSearchRouterQuerySpan,
+} from '@libs/telemetry/searchRouterQuerySpans';
 
 import Navigation from '@navigation/Navigation';
 
@@ -59,6 +67,7 @@ import type {TextInputProps} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {pendingDeleteMemberAccountIDsSelector} from '@selectors/ReportMetaData';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -91,7 +100,7 @@ function searchForReportsAndUsersInServer(searchInput: string) {
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {setShouldResetSearchQuery, getSearchKeyForQuery} = useSearchQueryActions();
@@ -109,6 +118,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const personalDetails = usePersonalDetails();
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
@@ -173,21 +184,54 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     });
 
     const [textInputValue, setTextInputValue] = useState(initialQuery);
+    // When the autocomplete query last changed and whether the user typed that change, so the ManualSearchRouterQuery span can
+    // start at the keystroke and include the debounce delay. Tracked here rather than in useDebouncedState to keep that hook generic.
+    const queryChangedAtRef = useRef<number | undefined>(undefined);
+    const isQueryChangeTypedRef = useRef(true);
+    const lastAutocompleteQueryRef = useRef(initialQuery);
+    const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
+    // The router stays mounted while it closes through navigation (e.g. hardware back or swipe on native) and while a chat opened from it is on top
+    const isSearchRouterActive = !!isSearchRouterDisplayed || isSearchRouterScreen;
     // Debounced value gates expensive filtering in the autocomplete list
-    const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState(initialQuery, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    // startSearchRouterQuerySpan also marks the start of render_duration_ms, right before the query update that triggers filtering.
+    // If this debounce is removed, call it right before setAutocompleteQueryValue in onSearchQueryChange so before and after values stay comparable.
+    const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState(initialQuery, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME, {
+        onDebouncedValueChange: (value) => {
+            // A debounce that fires after the router was closed would measure the list render during the closing transition
+            if (!isSearchRouterActive) {
+                cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLOSED);
+                return;
+            }
+            startSearchRouterQuerySpan(value, queryChangedAtRef.current, isQueryChangeTypedRef.current);
+        },
+    });
     const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
 
     useEffect(() => {
         clearPendingRouterState();
     }, []);
+
+    useEffect(() => {
+        beginSearchRouterQuerySession();
+        return endSearchRouterQuerySession;
+    }, []);
+
+    useEffect(() => {
+        if (isSearchRouterActive) {
+            return;
+        }
+        cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLOSED);
+    }, [isSearchRouterActive]);
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>(initialSubstitutions);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
-    const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
     // Only watch for reports awaiting approval while the router is active as a popover or full-screen page.
-    const navigationSuggestions = useNavigationSuggestions(textInputValue, !!isSearchRouterDisplayed || isSearchRouterScreen);
+    const navigationSuggestions = useNavigationSuggestions(textInputValue, isSearchRouterActive);
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
+    const [contextualReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(contextualReport?.reportID)}`, {
+        selector: pendingDeleteMemberAccountIDsSelector,
+    });
     const [contextualReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`, {
         selector: privateIsArchivedSelector,
     });
@@ -226,9 +270,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return undefined;
             }
             let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
-            const reportForContextualSearchReport = reportForContextualSearch ? contextualReport : undefined;
-            const reportAction = getReportAction(reportForContextualSearchReport?.parentReportID, reportForContextualSearchReport?.parentReportActionID);
-            const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+            const reportAction = getReportAction(contextualReport?.parentReportID, contextualReport?.parentReportActionID);
+            const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             if (!reportForContextualSearch) {
                 if (!contextualReport || isHiddenForCurrentUser(contextualReport)) {
                     return undefined;
@@ -237,19 +280,25 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 const option = createOptionFromReport({
                     dateFnsLocale,
                     convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
                     report: contextualReport,
                     personalDetails,
                     privateIsArchived: contextualReportNVP,
                     rules,
                     policy: contextualReportPolicy,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    currentUserAccountID,
+                    currentUserLogin: currentUserPersonalDetails.login,
                     conciergeReportID,
                     reportAttributesDerived: reportAttributes,
                     config: {
                         showPersonalDetails: isOneOnOneChat(contextualReport),
                     },
                     isTrackIntentUser,
-                    currentUserAccountID,
+                    pendingDeleteMemberAccountIDs: contextualReportPendingDeleteMemberAccountIDs,
+                    formatPhoneNumber,
                 });
                 reportForContextualSearch = option;
             }
@@ -292,7 +341,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             singleIcon: expensifyIcons.MagnifyingGlass,
                             searchQuery: reportQueryValue,
                             autocompleteID,
-                            itemStyle: styles.activeComponentBG,
                             keyForList: 'contextualSearch',
                             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
                             roomType,
@@ -311,10 +359,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             isSearchRouterScreen,
             translate,
             expensifyIcons.MagnifyingGlass,
-            styles.activeComponentBG,
             contextualReport,
             personalDetails,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
+            currentUserPersonalDetails.login,
             contextualReportNVP,
             contextualReportPolicy,
             reportAttributes,
@@ -322,7 +372,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             dateFnsLocale,
             currentUserAccountID,
             convertToDisplayString,
+            formatPhoneNumber,
+            convertToDisplayStringWithoutCurrency,
             rules,
+            contextualReportPendingDeleteMemberAccountIDs,
         ],
     );
 
@@ -332,7 +385,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                   text: textInputValue,
                   singleIcon: expensifyIcons.MagnifyingGlass,
                   searchQuery: textInputValue,
-                  itemStyle: styles.activeComponentBG,
                   keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
                   searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
               },
@@ -343,7 +395,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             singleIcon: expensifyIcons.ConciergeAvatar,
                             shouldIconApplyFill: false,
                             searchQuery: textInputValue,
-                            itemStyle: styles.activeComponentBG,
                             keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
                             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
                         },
@@ -364,13 +415,24 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     }, [textInputValue]);
 
     const onSearchQueryChange = useCallback(
-        (userQuery: string, autoScrollToRight = false) => {
+        // `isTypedInput` is false when the query is set without typing in the input, such as by picking a suggestion
+        (userQuery: string, autoScrollToRight = false, inputEventTimeStamp?: number, isTypedInput = true) => {
             if (autoScrollToRight) {
                 shouldScrollRef.current = true;
             }
             const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
             const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
             setTextInputValue(updatedUserQuery);
+            // A same-value update does not restart the debounce timer, so it must not move the span start either.
+            if (updatedUserQuery !== lastAutocompleteQueryRef.current) {
+                // The list may still be evaluating the previous debounced query, and that measurement would now include this input.
+                cancelSearchRouterQuerySpan(
+                    updatedUserQuery.trim() ? CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.SUPERSEDED : CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLEARED,
+                );
+                lastAutocompleteQueryRef.current = updatedUserQuery;
+                queryChangedAtRef.current = getSearchRouterQueryChangedAt(inputEventTimeStamp, performance.now());
+                isQueryChangeTypedRef.current = isTypedInput;
+            }
             setAutocompleteQueryValue(updatedUserQuery);
 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
@@ -405,6 +467,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             );
 
             setTextInputValue('');
+            lastAutocompleteQueryRef.current = '';
             setAutocompleteQueryValue('');
         },
         [
@@ -446,7 +509,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
                     const searchQuery = getContextualSearchQuery(item, contextualPoliciesMap, contextualReportsMap);
                     const newSearchQuery = `${searchQuery}\u00A0`;
-                    onSearchQueryChange(newSearchQuery, true);
+                    onSearchQueryChange(newSearchQuery, true, undefined, false);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     const autocompleteKey = getContextualSearchAutocompleteKey(item, contextualPoliciesMap, contextualReportsMap);
@@ -459,7 +522,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
                     const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
                     const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
-                    onSearchQueryChange(newSearchQuery, true);
+                    onSearchQueryChange(newSearchQuery, true, undefined, false);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     updateAutocompleteSubstitutionsForSelection({

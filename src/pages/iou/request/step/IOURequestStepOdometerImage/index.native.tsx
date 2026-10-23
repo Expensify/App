@@ -9,16 +9,19 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
+import useReceiptPhotoOutput from '@hooks/useReceiptPhotoOutput';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
+import {capturePhotoToPath} from '@libs/cameraCapture';
 import {getMimeTypeFromUri} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {getOdometerImageUri} from '@libs/OdometerUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -29,7 +32,7 @@ import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/component
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
-import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
+import isCameraClosedError from '@pages/iou/request/step/IOURequestStepScan/isCameraClosedError';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -42,14 +45,12 @@ import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {LayoutRectangle} from 'react-native';
-import type {PhotoFile} from 'react-native-vision-camera';
 
 import React, {useRef} from 'react';
 import {Alert, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {RESULTS} from 'react-native-permissions';
 import {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
-import {useCameraFormat} from 'react-native-vision-camera';
 
 type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
 
@@ -57,6 +58,7 @@ function IOURequestStepOdometerImage({
     route: {
         params: {action, iouType, transactionID, reportID, backToReport, imageType, isEditingConfirmation},
     },
+    navigation,
     transaction,
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
@@ -93,6 +95,8 @@ function IOURequestStepOdometerImage({
         },
     });
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
+
+    const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput('balanced', isInLandscapeMode);
 
     const title = imageType === 'start' ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
     const snapPhotoText = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.snapPhotoStart') : translate('distance.odometer.snapPhotoEnd');
@@ -204,13 +208,15 @@ function IOURequestStepOdometerImage({
                 Log.warn('Error checking if the directory exists', error);
             })
             .then(() => {
-                camera?.current
-                    ?.takePhoto({
-                        flash: flash && hasFlash ? 'on' : 'off',
+                capturePhotoToPath(
+                    photoOutput,
+                    {
+                        flashMode: flash && hasFlash ? 'on' : 'off',
                         enableShutterSound: !isPlatformMuted,
-                        path,
-                    })
-                    .then((photo: PhotoFile) => {
+                    },
+                    `${path}/odometer_${Date.now()}_${rand64()}.jpg`,
+                )
+                    .then((photo) => {
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height)
                             .then(({file, filename, source}) =>
@@ -236,26 +242,29 @@ function IOURequestStepOdometerImage({
                             .catch((error: unknown) => {
                                 cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                                 isCapturingPhoto.current = false;
-                                showCameraAlert();
+                                if (navigation.isFocused()) {
+                                    showCameraAlert();
+                                }
                                 Log.warn('Error cropping photo', error instanceof Error ? error.message : String(error));
                             });
                     })
                     .catch((error: unknown) => {
                         cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                         isCapturingPhoto.current = false;
-                        showCameraAlert();
                         const errorMessage = error instanceof Error ? error.message : String(error);
-                        Log.warn('Error taking photo', errorMessage);
+                        const isScreenFocused = navigation.isFocused();
+                        // Leaving the screen closes the camera, which cancels a capture still in flight (e.g. a flash shot).
+                        if (!isScreenFocused && isCameraClosedError(error)) {
+                            Log.info('Photo capture cancelled by leaving the screen', false, {error: errorMessage});
+                        } else {
+                            Log.warn('Error taking photo', errorMessage);
+                        }
+                        if (isScreenFocused) {
+                            showCameraAlert();
+                        }
                     });
             });
     };
-
-    const format = useCameraFormat(device, [
-        {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
-        {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
-    ]);
-
-    const cameraAspectRatio = getCameraAspectRatio(format, isInLandscapeMode);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -293,7 +302,8 @@ function IOURequestStepOdometerImage({
                         <CameraViewport
                             camera={camera}
                             device={device}
-                            format={format}
+                            outputs={[photoOutput]}
+                            onConfigured={updatePhotoResolution}
                             cameraAspectRatio={cameraAspectRatio}
                             isInLandscapeMode={isInLandscapeMode}
                             shouldFillPortraitViewport={false}

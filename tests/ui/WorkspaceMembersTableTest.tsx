@@ -57,8 +57,8 @@ function renderTable(members: WorkspaceMemberRowData[], tableRef: React.RefObjec
                             selectedKeys={[]}
                             shouldShowCustomField1Column={false}
                             shouldShowCustomField2Column={false}
-                            shouldShowApproverColumn
-                            shouldUseOrdinalApproverLabel={false}
+                            shouldShowOfficeLocationColumn={false}
+                            shouldShowBankAccountColumn
                             onRowSelectionChange={jest.fn()}
                         />
                     </ScreenWrapperStatusContext.Provider>
@@ -85,64 +85,34 @@ describe('WorkspaceMembersTable', () => {
         });
     });
 
-    describe('approver sorting', () => {
-        it('sorts members by their approver, with unapproved members last in both directions, and ties broken by member name', async () => {
+    describe('bank account sorting', () => {
+        it('sorts members by their bank account last four, with members without one last in both directions', async () => {
+            // Given members where only some have a bank account, since the ones without must sort last
             const members: WorkspaceMemberRowData[] = [
-                buildMember({
-                    keyForList: 'walter',
-                    login: 'walter@example.com',
-                    email: 'walter@example.com',
-                    name: 'Walter',
-                    accountID: 1,
-                    approverAccountID: 10,
-                    approverDisplayName: 'Ann Manager',
-                }),
-                buildMember({
-                    keyForList: 'nina',
-                    login: 'nina@example.com',
-                    email: 'nina@example.com',
-                    name: 'Nina',
-                    accountID: 2,
-                    approverAccountID: 11,
-                    approverDisplayName: 'Zoe Manager',
-                }),
-                buildMember({keyForList: 'carol', login: 'carol@example.com', email: 'carol@example.com', name: 'Carol', accountID: 3}),
-                buildMember({keyForList: 'brian', login: 'brian@example.com', email: 'brian@example.com', name: 'Brian', accountID: 5}),
-                buildMember({
-                    keyForList: 'adam',
-                    login: 'adam@example.com',
-                    email: 'adam@example.com',
-                    name: 'Adam',
-                    accountID: 4,
-                    approverAccountID: 10,
-                    approverDisplayName: 'Ann Manager',
-                }),
+                buildMember({keyForList: 'nina', login: 'nina@example.com', email: 'nina@example.com', name: 'Nina', accountID: 1, bankAccountLastFour: '5382'}),
+                buildMember({keyForList: 'carol', login: 'carol@example.com', email: 'carol@example.com', name: 'Carol', accountID: 2}),
+                buildMember({keyForList: 'adam', login: 'adam@example.com', email: 'adam@example.com', name: 'Adam', accountID: 3, bankAccountLastFour: '1809'}),
+                buildMember({keyForList: 'brian', login: 'brian@example.com', email: 'brian@example.com', name: 'Brian', accountID: 4}),
             ];
 
             const tableRef = React.createRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>();
             renderTable(members, tableRef);
             await waitForBatchedUpdatesWithAct();
 
-            // The table renders a page title, so Table.tsx also renders a duplicate sticky header (hidden from
-            // assistive tech but still queryable) alongside the declared one, hence getAllByLabelText rather than
-            // getByLabelText. Either copy toggles the same shared sorting state.
-            const [approverHeader] = screen.getAllByLabelText(TestHelper.translateLocal('workflowsPage.approver'));
-            fireEvent.press(approverHeader);
+            // When the Bank account header is pressed, which sorts descending first
+            const [bankAccountHeader] = screen.getAllByLabelText(TestHelper.translateLocal('common.bankAccount'));
+            fireEvent.press(bankAccountHeader);
 
-            // Descending, because pressing a header flips whichever order the table was already in, and it starts
-            // on the member column ascending. Zoe's member comes first, then Ann's (the member-name tiebreak
-            // reverses too, since it reuses the same order-multiplied comparison: Walter before Adam). Brian and
-            // Carol have no approver, so they stay at the end and order by member name among themselves.
-            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'approver', order: 'desc'});
-            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Nina', 'Walter', 'Adam', 'Carol', 'Brian']);
+            // Then the last fours go high to low and the members without one stay at the bottom
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'bankAccount', order: 'desc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Nina', 'Adam', 'Carol', 'Brian']);
 
-            fireEvent.press(approverHeader);
+            // When the header is pressed again to flip the order
+            fireEvent.press(bankAccountHeader);
 
-            // Ascending: Ann's members first (tie broken by member name: Adam before Walter), then Zoe's member.
-            // Brian and Carol stay last rather than moving to the front, since members without an approver sort
-            // last in both directions.
-            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'approver', order: 'asc'});
-            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Adam', 'Walter', 'Nina', 'Brian', 'Carol']);
+            // Then the last fours go low to high and the members without one are still at the bottom
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'bankAccount', order: 'asc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Adam', 'Nina', 'Brian', 'Carol']);
         });
     });
 });

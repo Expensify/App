@@ -1,5 +1,4 @@
-import {canSubmitReport} from '@libs/actions/IOU/ReportWorkflow';
-import {canSubmitAndIsAwaitingForCurrentUser, shouldCurrentUserSubmitReport} from '@libs/ReportUtils';
+import {canSubmitAndIsAwaitingForCurrentUser, canSubmitReport, shouldCurrentUserSubmitReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -8,14 +7,7 @@ import type {Policy, Report, Transaction, TransactionViolations} from '@src/type
 import Onyx from 'react-native-onyx';
 
 import {createExpenseReport, createPolicyExpenseChat} from '../utils/collections/reports';
-import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
-    canSubmitReport: jest.fn(),
-}));
-
-const mockedCanSubmitReport = jest.mocked(canSubmitReport);
 
 const CURRENT_USER_ACCOUNT_ID = 5;
 const OTHER_USER_ACCOUNT_ID = 99;
@@ -94,16 +86,26 @@ describe('shouldCurrentUserSubmitReport', () => {
 
 describe('canSubmitAndIsAwaitingForCurrentUser', () => {
     const chatReport = createPolicyExpenseChat(1, true);
-    const iouReport: Report = {...createExpenseReport(2), ownerAccountID: CURRENT_USER_ACCOUNT_ID, managerID: OTHER_USER_ACCOUNT_ID};
-    const transaction = createRandomTransaction(1);
+    const iouReport: Report = {
+        ...createExpenseReport(2),
+        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        managerID: OTHER_USER_ACCOUNT_ID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+    };
+    const transaction: Transaction = {
+        transactionID: '1',
+        reportID: iouReport.reportID,
+        amount: 1000,
+        currency: CONST.CURRENCY.USD,
+        created: '2024-01-01 12:00:00.000',
+        merchant: 'Test merchant',
+        status: CONST.TRANSACTION.STATUS.POSTED,
+        reimbursable: true,
+    };
     const transactions: Transaction[] = [transaction];
 
-    beforeEach(() => {
-        mockedCanSubmitReport.mockReset();
-    });
-
     it('returns false when all transactions have AUTO_REPORTED_REJECTED_EXPENSE violation for the manager', () => {
-        mockedCanSubmitReport.mockReturnValue(true);
         const managerReport: Report = {...iouReport, managerID: CURRENT_USER_ACCOUNT_ID};
         const transactionViolations: Record<string, TransactionViolations> = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}],
@@ -112,32 +114,66 @@ describe('canSubmitAndIsAwaitingForCurrentUser', () => {
         expect(result).toBe(false);
     });
 
-    it('returns false when canSubmitReport returns false', () => {
-        mockedCanSubmitReport.mockReturnValue(false);
-        const result = canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
+    it('returns false when the report is not submittable', () => {
+        const submittedReport: Report = {...iouReport, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
+        const result = canSubmitAndIsAwaitingForCurrentUser(submittedReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
         expect(result).toBe(false);
     });
 
     it('returns false when report is not waiting for submission from current user', () => {
-        mockedCanSubmitReport.mockReturnValue(true);
-        const otherUserChatReport = createPolicyExpenseChat(1, false);
-        const iouReportOtherOwner: Report = {...createExpenseReport(2), ownerAccountID: OTHER_USER_ACCOUNT_ID};
-        const result = canSubmitAndIsAwaitingForCurrentUser(iouReportOtherOwner, otherUserChatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
+        const otherChatReport = createPolicyExpenseChat(1, false);
+        const result = canSubmitAndIsAwaitingForCurrentUser(iouReport, otherChatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
         expect(result).toBe(false);
     });
 
     it('returns true when all conditions are met', () => {
-        mockedCanSubmitReport.mockReturnValue(true);
         const result = canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
         expect(result).toBe(true);
     });
+});
 
-    it('forwards the passed iouReportOwnerLogin instead of looking it up in the personal details list', () => {
-        mockedCanSubmitReport.mockReturnValue(true);
-        canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, 'threaded.owner@test.com');
+describe('canSubmitReport reportOwnerLogin', () => {
+    const OWNER_LOGIN = 'threaded.owner@test.com';
+    const adminPolicy: Policy = {...basePolicy, role: CONST.POLICY.ROLE.ADMIN};
 
-        // The owner login is the 2nd argument of canSubmitReport. Nothing seeded PERSONAL_DETAILS_LIST for
-        // iouReport's owner, so the fallback could only have produced undefined here.
-        expect(mockedCanSubmitReport).toHaveBeenCalledWith(iouReport, 'threaded.owner@test.com', basePolicy, transactions, undefined, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+    beforeAll(async () => {
+        Onyx.init({keys: ONYXKEYS});
+        await Onyx.set(ONYXKEYS.SESSION, {email: 'user@test.com', accountID: CURRENT_USER_ACCOUNT_ID});
+        return waitForBatchedUpdates();
+    });
+
+    it('honors a violation dismissal attributed to the owner login only when the login is passed', () => {
+        // Given an open expense report owned by another user and viewed by a workspace admin. Its only expense has a
+        // NO_ROUTE violation, which blocks submission, and the owner dismissed it. For a viewer who isn't the submitter,
+        // a dismissal only counts when it matches the owner login.
+        const report: Report = {
+            ...createExpenseReport(3),
+            ownerAccountID: OTHER_USER_ACCOUNT_ID,
+            managerID: OTHER_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const transaction: Transaction = {
+            transactionID: '2',
+            reportID: report.reportID,
+            amount: 1000,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01 12:00:00.000',
+            merchant: 'Test merchant',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            reimbursable: true,
+            comment: {dismissedViolations: {[CONST.VIOLATIONS.NO_ROUTE]: {[OWNER_LOGIN]: '2024-01-02 12:00:00.000'}}},
+        };
+        const violations: Record<string, TransactionViolations> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [{name: CONST.VIOLATIONS.NO_ROUTE, type: 'violation'}],
+        };
+
+        // When we call canSubmitReport with and without the owner login
+        const withOwnerLogin = canSubmitReport(report, OWNER_LOGIN, adminPolicy, [transaction], violations, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const withoutOwnerLogin = canSubmitReport(report, undefined, adminPolicy, [transaction], violations, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+
+        // Then only the call with the login sees the dismissal, so only that call allows submitting
+        expect(withOwnerLogin).toBe(true);
+        expect(withoutOwnerLogin).toBe(false);
     });
 });

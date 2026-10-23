@@ -1,6 +1,7 @@
-import type {DetachReceiptParams, OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
+import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
+import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
@@ -115,9 +116,7 @@ function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persis
             // ReportFetchHandler when the screen mounts has no participants. Replacing would drop the
             // accountIDList, leaving the server with no way to resolve the optimistic reportID — Auth
             // returns NIL reportSummary and PHP throws "Report not found" (da7984df).
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const queuedHasParticipants = !!(request.data?.emailList || request.data?.accountIDList);
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const newHasParticipants = !!(parameters.emailList || parameters.accountIDList);
             if (queuedHasParticipants && !newHasParticipants) {
                 return {
@@ -275,12 +274,43 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
     };
 }
 
+/**
+ * The server reads the stored file's extension from the name it is uploaded under, and a download can only put back
+ * an extension the stored copy already has. So dropping it in a rename would leave the file with none for good.
+ */
+function keepExtension(currentName: string, newName: string): string {
+    if (splitExtensionFromFileName(newName).fileExtension) {
+        return newName;
+    }
+    const currentExtension = splitExtensionFromFileName(currentName).fileExtension;
+    return currentExtension ? `${newName}.${currentExtension}` : newName;
+}
+
+/**
+ * The server builds the stored attachment from the uploaded file, so a rename only survives if the queued file
+ * carries the new name. `File.name` is readonly on web, hence the rebuild; native picker results are plain objects.
+ */
+function renameQueuedAttachment(file: unknown, name: string): unknown {
+    if (typeof File !== 'undefined' && file instanceof File) {
+        // The constructor copies only the standard fields, so `uri` and `source` are put back: the native payload
+        // reads them to find the file on disk, and a share lands here as a File rather than a plain object.
+        const renamed = keepExtension(file.name, name);
+        return Object.assign(new File([file], renamed, {type: file.type, lastModified: file.lastModified}), {uri: file.uri, source: file.source});
+    }
+    if (typeof file !== 'object' || file === null) {
+        return file;
+    }
+    const currentName = 'name' in file && typeof file.name === 'string' ? file.name : '';
+    return {...file, name: keepExtension(currentName, name)};
+}
+
 function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     persistedRequests: Array<OnyxRequest<TKey>>,
     parameters: UpdateCommentParams,
     reportActionID: string,
     addCommentIndex: number,
     shouldRemoveQueuedAttachment = false,
+    renamedAttachmentLabel?: string,
 ): ConflictActionData {
     const indicesToDelete: number[] = [];
     for (const [index, request] of persistedRequests.entries()) {
@@ -300,6 +330,8 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
             delete currentAddComment.data.file;
             delete currentAddComment.data.attachmentID;
             currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
+        } else if (renamedAttachmentLabel && currentAddComment.data?.file) {
+            currentAddComment.data.file = renameQueuedAttachment(currentAddComment.data.file, renamedAttachmentLabel);
         }
 
         nextAction = {
@@ -351,24 +383,18 @@ function resolveEnableFeatureConflicts<TKey extends OnyxKey>(
     };
 }
 
-function resolveDetachReceiptConflicts<TKey extends OnyxKey>(
-    persistedRequests: Array<OnyxRequest<TKey>>,
-    parameters: DetachReceiptParams,
-    transactionThreadReportID?: string,
-): ConflictActionData {
-    const indicesToDelete: number[] = [];
-    for (const [index, request] of persistedRequests.entries()) {
-        if (request.command !== WRITE_COMMANDS.REPLACE_RECEIPT || request.data?.transactionID !== parameters.transactionID) {
-            continue;
+/**
+ * Removing the vacation delegate supersedes any change to it still waiting in the queue, e.g. a clear after date changed offline
+ * before the removal. Sending that change first would let its response bring the removed delegate back until the removal lands.
+ * Only the current user's own delegate is matched, so a domain admin's change for a member is left alone.
+ */
+function resolveVacationDelegateDeletionConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>): ConflictActionData {
+    const indicesToDelete = persistedRequests.reduce<number[]>((indices, request, index) => {
+        if (request.command === WRITE_COMMANDS.SET_VACATION_DELEGATE && !request.data?.domainAccountID) {
+            indices.push(index);
         }
-        indicesToDelete.push(index);
-    }
-
-    // In the case the transaction doesn't have the receipt, remove all the replace receipt requests will make the detach receipt request invalid
-    // So we should keep the last replace receipt request to ensure the detach receipt request is always valid
-    if (indicesToDelete.length >= 1) {
-        indicesToDelete.pop();
-    }
+        return indices;
+    }, []);
 
     if (indicesToDelete.length === 0) {
         return {
@@ -376,29 +402,6 @@ function resolveDetachReceiptConflicts<TKey extends OnyxKey>(
                 type: 'push',
             },
         };
-    }
-
-    // Each replace receipt request owns the optimistic action announcing its receipt, so we need to rollback the actions of the requests we drop.
-    if (transactionThreadReportID) {
-        const receiptAddedActionsToRollback: Record<string, null> = {};
-        for (const index of indicesToDelete) {
-            const reportActionID = persistedRequests.at(index)?.data?.reportActionID;
-            if (typeof reportActionID !== 'string') {
-                continue;
-            }
-            receiptAddedActionsToRollback[reportActionID] = null;
-        }
-
-        if (Object.keys(receiptAddedActionsToRollback).length > 0) {
-            const rollbackData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                    value: receiptAddedActionsToRollback,
-                },
-            ];
-            Onyx.update(rollbackData);
-        }
     }
 
     return {
@@ -424,7 +427,7 @@ export {
     createUpdateCommentMatcher,
     resolveEnableFeatureConflicts,
     enablePolicyFeatureCommand,
-    resolveDetachReceiptConflicts,
+    resolveVacationDelegateDeletionConflicts,
 };
 
 export type {EnablePolicyFeatureCommand, AnyRequestMatcher};
