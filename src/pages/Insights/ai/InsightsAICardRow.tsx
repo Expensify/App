@@ -4,7 +4,7 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {AIInsight} from '@src/types/onyx';
+import type {AIInsight, InsightsScope} from '@src/types/onyx';
 
 import type {ReactNode} from 'react';
 
@@ -19,12 +19,15 @@ const SKELETON_CARD_COUNT = 4;
 type InsightsAICardRowProps = {
     insights: AIInsight[] | undefined;
 
+    /** Dashboard filters the insights were written for, sent to Concierge when the user asks to explain. */
+    insightsScope: InsightsScope;
+
     /** Whether the dashboard has no response for the current filters yet */
     isLoading: boolean;
 };
 
 /** Shows the AI insights in a sideways-scrolling row, with placeholders while the dashboard loads. */
-function InsightsAICardRow({insights, isLoading}: InsightsAICardRowProps) {
+function InsightsAICardRow({insights, insightsScope, isLoading}: InsightsAICardRowProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {pageGutter, pageGutterEdgeToEdge} = useLayoutSpacing();
@@ -49,7 +52,15 @@ function InsightsAICardRow({insights, isLoading}: InsightsAICardRowProps) {
         >
             {isLoading
                 ? Array.from({length: SKELETON_CARD_COUNT}, (item, index) => renderWithDivider(<InsightsAICardSkeleton />, index))
-                : insights?.map((insight, index) => renderWithDivider(<InsightsAICard insight={insight} />, index))}
+                : insights?.map((insight, index) =>
+                      renderWithDivider(
+                          <InsightsAICard
+                              insight={insight}
+                              insightsScope={insightsScope}
+                          />,
+                          index,
+                      ),
+                  )}
         </ScrollView>
     );
 }

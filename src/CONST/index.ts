@@ -10089,6 +10089,7 @@ const CONST = {
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
+            AI_EXPLAIN: 'Insights-AIExplain',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',

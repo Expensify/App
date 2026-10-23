@@ -226,7 +226,7 @@ import type Session from './Session';
 import type ShareBankAccount from './ShareBankAccount';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
-import type {SidePanelContext} from './SidePanel';
+import type {InsightsScope, SidePanelContext} from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
 import type SuggestedAgent from './SuggestedAgent';
 import type SuggestedAgentRule from './SuggestedAgentRule';
@@ -511,6 +511,7 @@ export type {
     CorpayPayModal,
     SidePanel,
     SidePanelContext,
+    InsightsScope,
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
     LastSearchParams,

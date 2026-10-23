@@ -27,7 +27,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AIInsight, InsightsDashboardID} from '@src/types/onyx';
+import type {AIInsight, InsightsDashboardID, InsightsScope} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -51,6 +51,7 @@ import useInsightsFilters from './useInsightsFilters';
 type InsightsDashboardContentProps = {
     state: InsightsDashboardState;
     aiInsights: AIInsight[] | undefined;
+    insightsScope: InsightsScope;
     isLoadingAIInsights: boolean;
     headlineChart: InsightsDashboardChart;
 
@@ -67,7 +68,17 @@ type InsightsDashboardContentProps = {
     onGroupByChange: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsDashboardContent({state, aiInsights, isLoadingAIInsights, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({
+    state,
+    aiInsights,
+    insightsScope,
+    isLoadingAIInsights,
+    headlineChart,
+    supportingCharts,
+    filters,
+    onRetry,
+    onGroupByChange,
+}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
@@ -152,6 +163,7 @@ function InsightsDashboardContent({state, aiInsights, isLoadingAIInsights, headl
                     {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
                         <InsightsAICardRow
                             insights={aiInsights}
+                            insightsScope={insightsScope}
                             isLoading={isLoadingAIInsights}
                         />
                     )}
@@ -273,6 +285,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             <InsightsDashboardContent
                 state={state}
                 aiInsights={dashboard?.aiInsights}
+                insightsScope={{searchKey: INSIGHTS_DASHBOARD_SPECS[dashboardID].searchKey, policyIDs: filters.policyIDs, date: filters.date, groupCurrency: filters.groupCurrency}}
                 // Only a GetInsights response sets inputQuery. Offline no response is coming, so the row hides instead of loading forever
                 isLoadingAIInsights={!dashboard?.inputQuery && !isOffline}
                 headlineChart={headlineChart}
