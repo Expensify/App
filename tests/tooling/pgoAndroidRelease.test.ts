@@ -14,8 +14,8 @@ describe('PGO Android release processing', () => {
         // When the adapter forwards this build to Rock.
         const args = androidRockBuildArguments(pipeline.task, parameters);
         const forwarded = parseArgs(args.at(-1) ?? '');
-        // Then Rock cannot reuse a cached build or lose profile and upload-prevention arguments.
-        expect(args.slice(0, 7)).toEqual(['build:android', '--local', '--verbose', '--variant', 'release', '--tasks', 'packageRelease']);
+        // Then Rock cannot reuse a cached build or lose profile and upload-prevention arguments, and Gradle bundles OldDot's shared JS first because packaging alone skips it.
+        expect(args.slice(0, 7)).toEqual(['build:android', '--local', '--verbose', '--variant', 'release', '--tasks', 'buildGrunt,packageRelease']);
         expect(forwarded).toEqual(parameters);
         expect(forwarded).toContain('-PpgoSkipFullStory=true');
         expect(forwarded).toContain('fullstoryRelease');

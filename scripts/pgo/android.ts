@@ -290,7 +290,8 @@ function androidRockBuildArguments(task: string, gradleArguments: string[]): str
         '--variant',
         'release',
         '--tasks',
-        task.replace(/^:/, ''),
+        // Mobile-Expensify only runs buildGrunt, which bundles OldDot's shared JS into the APK assets, for install, assemble and bundle tasks.
+        `buildGrunt,${task.replace(/^:/, '')}`,
         '--extra-params',
         gradleArguments.map((argument) => JSON.stringify(argument)).join(' '),
     ];
