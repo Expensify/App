@@ -3,7 +3,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {LoginToAccountIDMapDerivedValue, PersonalDetailsList, PolicyCategories} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -48,12 +47,26 @@ function convertAttendeesToArray(rawAttendees: unknown): Attendee[] {
     return [];
 }
 
-/** Returns whether there are missing attendees for the given category */
+/**
+ * Counts the attendees other than the expense owner. The backend leaves out the report owner rather than the viewer, so this does the same.
+ * If the owner is unknown, assumes they're one of the attendees.
+ */
+function getAttendeesMinusOwnerCount(attendees: Attendee[], ownerLogin: string | null | undefined): number {
+    if (!ownerLogin) {
+        return Math.max(0, attendees.length - 1);
+    }
+    return attendees.filter((attendee) => attendee?.email !== ownerLogin).length;
+}
+
+/**
+ * Returns whether there are missing attendees for the given category.
+ * Pass the login of the expense's report owner, so the result doesn't depend on who is viewing the expense.
+ */
 function getIsMissingAttendeesViolation(
     policyCategories: PolicyCategories | undefined,
     category: string,
     iouAttendees: Attendee[] | string | undefined,
-    userPersonalDetails: CurrentUserPersonalDetails,
+    ownerLogin: string | undefined,
     isAttendeeTrackingEnabled = false,
     isControlPolicy = false,
 ) {
@@ -68,16 +81,8 @@ function getIsMissingAttendeesViolation(
         return false;
     }
 
-    const creatorLogin = userPersonalDetails.login ?? '';
-    const creatorEmail = userPersonalDetails.email ?? '';
     const attendees = convertAttendeesToArray(iouAttendees);
-    // Check both login and email since attendee objects may have identifier in either property
-    const attendeesMinusCreatorCount = attendees.filter((a) => {
-        const attendeeIdentifier = a?.email;
-        return attendeeIdentifier !== creatorLogin && attendeeIdentifier !== creatorEmail;
-    }).length;
-
-    if (attendees.length === 0 || attendeesMinusCreatorCount === 0) {
+    if (attendees.length === 0 || getAttendeesMinusOwnerCount(attendees, ownerLogin) === 0) {
         return true;
     }
 
@@ -94,7 +99,7 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
     policyCategories: PolicyCategories | undefined,
     category: string,
     attendees: Attendee[] | undefined,
-    userPersonalDetails: CurrentUserPersonalDetails,
+    ownerLogin: string | undefined,
     isAttendeeTrackingEnabled: boolean,
     isControlPolicy: boolean,
     isInvoice = false,
@@ -106,7 +111,7 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
 
     const hasMissingAttendeesViolation = violations.some((v) => v.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
     const shouldShowMissingAttendees =
-        isControlPolicy && getIsMissingAttendeesViolation(policyCategories ?? {}, category ?? '', attendees ?? [], userPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy);
+        isControlPolicy && getIsMissingAttendeesViolation(policyCategories ?? {}, category ?? '', attendees ?? [], ownerLogin, isAttendeeTrackingEnabled, isControlPolicy);
 
     if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
         // Add violation when it should show but isn't present from BE
@@ -160,4 +165,4 @@ function enrichAndSortAttendees(
     );
 }
 
-export {enrichAndSortAttendees, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation, convertAttendeesToArray};
+export {enrichAndSortAttendees, getAttendeesMinusOwnerCount, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation, convertAttendeesToArray};

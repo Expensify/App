@@ -206,14 +206,14 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                 policyCategories,
                 transaction.category ?? '',
                 getAttendees(transaction),
-                currentUserDetails,
+                submitterLogin ?? currentUserDetails.login,
                 isAttendeeTrackingEnabled(policyForViolations),
                 policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
                 isInvoice,
             );
             return violations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
         });
-    }, [reportItem, policyCategories, policyForViolations, reportForViolations, currentUserDetails, submitterLogin]);
+    }, [reportItem, policyCategories, policyForViolations, reportForViolations, currentUserDetails.email, currentUserDetails.accountID, currentUserDetails.login, submitterLogin]);
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
