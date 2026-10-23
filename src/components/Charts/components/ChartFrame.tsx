@@ -12,14 +12,14 @@ type ChartFrameProps = {
     isLoading?: boolean;
     hasData: boolean;
 
-    /** Must match the loaded chart's height, or the card jumps at the reveal. */
-    loadingHeight: number;
+    /** Must match the loaded chart's height, or the card jumps at the reveal. Receives the card's width, or null until the card has been measured. */
+    getLoadingHeight: (chartWidth: number | null) => number;
 
     /** Receives the card's width, or null until the card has been measured. */
     children: (chartWidth: number | null) => ReactNode;
 };
 
-function ChartFrame({isLoading = false, hasData, loadingHeight, children}: ChartFrameProps) {
+function ChartFrame({isLoading = false, hasData, getLoadingHeight, children}: ChartFrameProps) {
     // A chart that loads empty collapses at once, so it never starts the engine download or holds a spinner over nothing
     if (!isLoading && !hasData) {
         return null;
@@ -29,7 +29,7 @@ function ChartFrame({isLoading = false, hasData, loadingHeight, children}: Chart
         <ChartWidthBox>
             {(chartWidth) => (
                 <ChartReveal
-                    loadingHeight={loadingHeight}
+                    loadingHeight={getLoadingHeight(chartWidth)}
                     isCardMeasured={chartWidth !== null}
                 >
                     {children(chartWidth)}

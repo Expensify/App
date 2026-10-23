@@ -7117,12 +7117,12 @@ const staticStyles = (theme: ThemeColors) =>
         pieChartLegendSide: {
             width: VictoryTheme.pie.legendMinWidth,
             justifyContent: 'center',
-            rowGap: 12,
+            rowGap: VictoryTheme.pie.legendRowGap,
         },
         pieChartLegendBelow: {
             alignSelf: 'stretch',
             marginTop: VictoryTheme.pie.legendStackGap,
-            rowGap: 12,
+            rowGap: VictoryTheme.pie.legendRowGap,
         },
         pieChartLegendRow: {
             flexDirection: 'row',

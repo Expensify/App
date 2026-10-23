@@ -1,6 +1,6 @@
 import ChartFrame from '@components/Charts/components/ChartFrame';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
-import {getBarChartHeight} from '@components/Charts/utils/chartHeights';
+import {getBarChartLoadingHeight} from '@components/Charts/utils/chartHeights';
 
 import React from 'react';
 
@@ -13,7 +13,7 @@ function BarChart(props: BarChartProps) {
         <ChartFrame
             isLoading={props.isLoading}
             hasData={props.data.length > 0}
-            loadingHeight={getBarChartHeight(props.shouldShowLabels)}
+            getLoadingHeight={() => getBarChartLoadingHeight(props.shouldShowLabels, props.shouldWrapLabels)}
         >
             {(chartWidth) => (
                 <SkiaWebChart

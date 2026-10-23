@@ -3,6 +3,7 @@ import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import {CHART_GESTURE_TOUCH_ACTION, TOOLTIP_BAR_GAP, useChartLabelFormats, useTouchPinnedTooltip} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
 import {findSliceAtPosition, getPrimaryValue, processDataIntoSlices} from '@components/Charts/utils';
+import {hasRoomForSideLegend} from '@components/Charts/utils/chartHeights';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
@@ -65,7 +66,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
     const canvasHeight = CHART_CONTENT_MIN_HEIGHT;
 
     // Side by side when the legend keeps at least its minimum width next to a square donut. Otherwise stacked.
-    const isLegendSideBySide = shouldUseResponsiveLegend && shouldShowLegend && chartWidth - canvasHeight - VictoryTheme.pie.legendGap >= VictoryTheme.pie.legendMinWidth;
+    const isLegendSideBySide = shouldUseResponsiveLegend && shouldShowLegend && hasRoomForSideLegend(chartWidth);
     const donutWidth = isLegendSideBySide ? canvasHeight : chartWidth;
 
     const radius = Math.min(donutWidth, canvasHeight) / 2;

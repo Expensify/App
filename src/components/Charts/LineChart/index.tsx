@@ -13,7 +13,7 @@ function LineChart(props: LineChartProps) {
         <ChartFrame
             isLoading={props.isLoading}
             hasData={props.data.length > 0}
-            loadingHeight={getCartesianChartHeight()}
+            getLoadingHeight={() => getCartesianChartHeight()}
         >
             {(chartWidth) => (
                 <SkiaWebChart

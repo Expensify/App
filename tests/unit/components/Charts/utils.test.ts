@@ -23,16 +23,21 @@ import {
     rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
-import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
+import {getBarChartHeight, getBarChartLoadingHeight, getCartesianChartHeight, getPieChartLoadingHeight} from '@components/Charts/utils/chartHeights';
 import VictoryTheme, {
     CHART_CONTENT_MIN_HEIGHT,
     CHART_Y_SCALE_HEIGHT,
     DIAGONAL_ANGLE_RADIAN_THRESHOLD,
     LABEL_ROTATIONS,
+    MAX_BAR_LABEL_LINES,
     SIN_45,
     X_AXIS_LABEL_MIN_HEIGHT,
 } from '@components/Charts/VictoryTheme';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 
 const LINE_HEIGHT = 16;
 
@@ -784,6 +789,75 @@ describe('getCartesianChartHeight', () => {
 
         // Then the box makes room for the whole strip, since clipping the labels would be worse than a jump
         expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.axis.xAxisLabelGap + ROTATED_LABEL_HEIGHT);
+    });
+});
+
+describe('getBarChartLoadingHeight', () => {
+    // ExpensifyNeue's ascent plus descent at the 12px label size, (950 + 230) / 1000 of the em, which Skia measures for each label line
+    const SKIA_LABEL_LINE_HEIGHT = 14.16;
+
+    it('should give the loading box the height of a chart whose labels wrap', () => {
+        // Given a bar chart with wrapped labels, which keeps two lines of label space whatever the names are
+        const loadedHeight = getBarChartHeight(true, MAX_BAR_LABEL_LINES * SKIA_LABEL_LINE_HEIGHT);
+
+        // When the loading box is sized before the chart has measured anything
+        const loadingHeight = getBarChartLoadingHeight(true, true);
+
+        // Then both heights match, so the card does not jump when the chart replaces the spinner
+        expect(loadingHeight).toBeCloseTo(loadedHeight, 5);
+    });
+});
+
+describe('getPieChartLoadingHeight', () => {
+    // The narrowest card that fits the side legend: the 250px donut, the 24px gap and the 180px legend column
+    const SIDE_LEGEND_MIN_CARD_WIDTH = 454;
+
+    it('should reserve the donut height for a side legend once the card is measured', () => {
+        // Given a responsive legend in a card just wide enough for it to sit beside the donut, on the narrow layout
+        // When the loading box is sized from the measured card width
+        const height = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH, true, true, true);
+
+        // Then it keeps the donut's height, since five legend rows fit beside it, and the measured width wins over the layout
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT);
+    });
+
+    it('should reserve a full stacked legend under the donut when the card is too narrow for a side legend', () => {
+        // Given a responsive legend in a card 1px too narrow for the side legend, on the wide layout
+        // When the loading box is sized from the measured card width, before the slice count is known
+        const height = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH - 1, false, true, true);
+
+        // Then it reserves one row per slice Home can show, under the donut and the stack gap, since most cards fill the cap
+        const rowCount = CONST.SEARCH.TOP_SEARCH_LIMIT;
+        const legendHeight = rowCount * variables.fontSizeNormalHeight + (rowCount - 1) * VictoryTheme.pie.legendRowGap;
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.pie.legendStackGap + legendHeight);
+    });
+
+    it('should reserve only the donut when the legend is hidden', () => {
+        // Given a responsive pie with its legend turned off, in a card too narrow for a side legend
+        // When the loading box is sized
+        const height = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH - 1, true, false, true);
+
+        // Then it keeps the donut's height alone, since the chart draws no legend to stack
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT);
+    });
+
+    it('should assume a stacked legend on the narrow layout until the card is measured', () => {
+        // Given a responsive legend whose card has not reported its width yet, on the narrow layout, where phone cards are too narrow for a side legend
+        // When the loading box is sized before the width lands
+        const height = getPieChartLoadingHeight(null, true, true, true);
+
+        // Then it matches the stacked height a phone card measures into, so the box does not change when the width lands
+        const stackedHeight = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH - 1, true, true, true);
+        expect(height).toBe(stackedHeight);
+    });
+
+    it('should assume a side legend on the wide layout until the card is measured', () => {
+        // Given a responsive legend whose card has not reported its width yet, on the wide layout, where a typical desktop card fits a side legend
+        // When the loading box is sized before the width lands
+        const height = getPieChartLoadingHeight(null, false, true, true);
+
+        // Then it keeps the donut's height that a desktop card measures into, so the box does not change when the width lands
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT);
     });
 });
 
