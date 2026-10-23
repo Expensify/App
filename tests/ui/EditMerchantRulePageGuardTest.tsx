@@ -112,10 +112,12 @@ describe('EditMerchantRulePage route guard', () => {
     });
 
     afterEach(async () => {
-        readSpy.mockRestore();
+        // The editor is still mounted here because the testing library unmounts in an outer `afterEach`. Clearing the
+        // fetch flags makes it send `GetRules` again, so the spy has to stay in place until the clear is done.
         await act(async () => {
             await Onyx.clear();
         });
+        readSpy.mockRestore();
     });
 
     it('opens the editor for a rule this policy can edit', async () => {
