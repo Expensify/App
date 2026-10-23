@@ -1,7 +1,19 @@
-// ESLint core rules oxlint has no native version of (checked against oxlint 1.89.0). dot-notation and
-// no-return-await do have typed natives (typescript/dot-notation, typescript/return-await), but those are
-// off for JS files, so these copies cover JS. no-invalid-this is left out although ESLint enables it: it
-// calls sourceCode.getJSDocComment, which oxlint's bridge throws on as unsupported.
+/**
+ * ESLint core rules that oxlint 1.89.0 has no native version of. They run inside oxlint as a JS
+ * plugin under the `core/` prefix, using ESLint's own rule code, so each one behaves as it does
+ * under ESLint.
+ *
+ * This file only exposes the rules. Which files each one runs on is set in oxlint.config.mts, and
+ * the scopes there copy ESLint:
+ *
+ * - dot-notation, no-return-await, no-dupe-args: JS files only. On TS files ESLint turns these off
+ *   and runs the typed @typescript-eslint versions instead, which oxlint has natively.
+ * - lines-between-class-members: TS files only, as in ESLint.
+ * - no-restricted-syntax, no-octal, no-octal-escape, no-undef-init, strict: all files, as in ESLint.
+ *
+ * no-invalid-this is left out even though ESLint enables it. It calls sourceCode.getJSDocComment,
+ * which oxlint's plugin bridge does not support.
+ */
 import {builtinRules} from 'eslint/use-at-your-own-risk';
 
 import {withEslintDirectiveIdsFor} from '../eslintDirectives.mjs';
