@@ -25,12 +25,17 @@ function TabScreenInsetsReader({windowBottomInset, isTabBarShown}: {windowBottom
     return null;
 }
 
+type TabBarShapeProbeProps = {
+    /** Whether the native tab bar is shown, so its shape is only read while it adds to the safe area */
+    isTabBarShown: boolean;
+};
+
 /**
  * UIKit adds the area of the tab bar to the safe area of each tab screen, and a SafeAreaProvider measures the view it is
  * in, unlike the app root's, which measures the window. A bar along the bottom adds its height to the bottom inset; a bar
  * laid out as a column sits in the side inset and adds nothing.
  */
-function TabBarShapeProbe({isTabBarShown}: {isTabBarShown: boolean}) {
+function TabBarShapeProbe({isTabBarShown}: TabBarShapeProbeProps) {
     const styles = useThemeStyles();
     const {bottom: windowBottomInset} = useSafeAreaInsets();
 
