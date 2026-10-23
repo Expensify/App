@@ -96,7 +96,12 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const isOwnedByOther = selectedReport?.ownerAccountID !== currentUserPersonalDetails.accountID;
     const isOwnedByOtherOrHasPerDiem = isOwnedByOther || hasPerDiemTransactions;
     const targetExpensePolicyID = isOwnedByOtherOrHasPerDiem ? selectedReport?.policyID : undefined;
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, targetExpensePolicyID, hasUnreportedManagedCardTransactions);
+    const {policyForMovingExpensesID, shouldSelectPolicy, shouldNavigateToUpgradePath, arePoliciesLoaded} = usePolicyForMovingExpenses(
+        hasPerDiemTransactions,
+        undefined,
+        targetExpensePolicyID,
+        hasUnreportedManagedCardTransactions,
+    );
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
@@ -226,7 +231,27 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             handleCreateReport();
             return;
         }
-        if (!hasPerDiemTransactions && !hasUnreportedManagedCardTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (!arePoliciesLoaded) {
+            return;
+        }
+        if (shouldNavigateToUpgradePath && !hasUnreportedManagedCardTransactions) {
+            const firstTransactionID = transactionIDs.at(0);
+            if (firstTransactionID) {
+                Navigation.navigate(
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.EDIT,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: firstTransactionID,
+                            reportID: reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                        }),
+                    ),
+                );
+            }
+            return;
+        }
+        if (!hasUnreportedManagedCardTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {

@@ -24,6 +24,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
@@ -98,10 +99,15 @@ function DynamicIOURequestStepUpgrade({
     const createReportForCurrentUser = useCreateNewReport();
 
     // Hooks for bulk move functionality
-    const {selectedTransactions, areAllMatchingItemsSelected, excludedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, selectedTransactionIDs, areAllMatchingItemsSelected, excludedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchQueryJSON} = useSearchQueryContext();
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
+    const effectiveSelectedTransactionsKeys = useMemo(
+        () => (selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs),
+        [selectedTransactionsKeys, selectedTransactionIDs],
+    );
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -115,9 +121,15 @@ function DynamicIOURequestStepUpgrade({
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
-    const transactions = Object.values(selectedTransactions)
-        .map((transactionItem) => transactionItem.transaction)
-        .filter((item): item is Transaction => !!item);
+    const transactions = useMemo(
+        () =>
+            selectedTransactionsKeys.length
+                ? Object.values(selectedTransactions)
+                      .map((transactionItem) => transactionItem.transaction)
+                      .filter((item): item is Transaction => !!item)
+                : selectedTransactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((item): item is Transaction => !!item),
+        [selectedTransactionsKeys, selectedTransactions, selectedTransactionIDs, allTransactions],
+    );
 
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
@@ -145,7 +157,7 @@ function DynamicIOURequestStepUpgrade({
         const policyID = policyDataRef.current?.policyID;
 
         // Bulk move expenses
-        if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
+        if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && effectiveSelectedTransactionsKeys.includes(transactionID)) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
             const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, isTrackIntentUser, getCurrencyDecimals, rules);
@@ -163,7 +175,7 @@ function DynamicIOURequestStepUpgrade({
             // Move ALL selected transactions to the new report
             changeTransactionsReport({
                 isVendorMatchingBetaEnabled,
-                transactionIDs: selectedTransactionsKeys,
+                transactionIDs: effectiveSelectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
@@ -186,7 +198,8 @@ function DynamicIOURequestStepUpgrade({
                 ...allMatchingQueryParams,
             });
 
-            clearSelectedTransactions();
+            turnOffMobileSelectionMode();
+            clearSelectedTransactions(true);
 
             Navigation.dismissModal();
             return;
@@ -278,7 +291,7 @@ function DynamicIOURequestStepUpgrade({
         shouldSubmitExpense,
         transactionID,
         upgradePath,
-        selectedTransactionsKeys,
+        effectiveSelectedTransactionsKeys,
         clearSelectedTransactions,
         hasViolations,
         isASAPSubmitBetaEnabled,
