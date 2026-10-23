@@ -30,7 +30,7 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useWaypointItems from '@hooks/useWaypointItems';
 
-import {clearMoneyRequestDistance, setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequestDistance, clearReusedRoute, setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {init, stop} from '@libs/actions/MapboxToken';
@@ -717,6 +717,10 @@ function DynamicIOURequestStepDistance({
             // when this step was opened from confirmation.
             transactionWasSaved.current = true;
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
+            // A typed distance replaces the reused route's seeded one, so the draft must stop reading as a reused route.
+            if (currentTransaction?.isReusedRoute) {
+                clearReusedRoute(transactionID);
+            }
             suppressDiscardPrompt();
             navigateToNextStep();
             return;

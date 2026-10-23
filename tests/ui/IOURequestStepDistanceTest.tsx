@@ -84,6 +84,7 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     getMoneyRequestParticipantOptions: jest.fn(() => []),
     setMoneyRequestDistance: jest.fn(),
     clearMoneyRequestDistance: jest.fn(),
+    clearReusedRoute: jest.fn(),
 }));
 
 jest.mock('@libs/actions/MapboxToken', () => ({
@@ -602,6 +603,41 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
 
         // Then the distance is kept, because clearing it would leave the expense with no distance and a zero amount
         expect(clearMoneyRequestDistance).not.toHaveBeenCalled();
+    });
+
+    it('should stop treating the draft as a reused route once a distance is typed', async () => {
+        // Given a reused route draft, whose seeded quantity is not treated as typed when there is no route data
+        const {clearReusedRoute} = jest.requireMock<{clearReusedRoute: jest.Mock}>('@libs/actions/IOU/MoneyRequest');
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`,
+                createDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, isReusedRoute: true}),
+            );
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <DynamicIOURequestStepDistance
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When a distance is typed on the Manual tab and saved
+        const distanceInput = screen.getAllByLabelText(/common\.distance/).find((element) => 'value' in element.props)!;
+        fireEvent.changeText(distanceInput, '12');
+        fireEvent.press(screen.getAllByText('common.save').at(-1)!);
+
+        // Then the reused route flag is cleared, so the typed value still counts as typed and reaches the server
+        expect(clearReusedRoute).toHaveBeenCalledWith(TRANSACTION_ID);
     });
 
     it('should keep a manually entered distance when returning to confirmation', async () => {

@@ -36,10 +36,11 @@ function hasManualMapDistanceOverride(transaction: OnyxEntry<Transaction>): bool
         return false;
     }
 
-    // Offline the route is still pending, so a quantity can only have come from the Manual tab.
+    // Offline the route is still pending, so a quantity can only have come from the Manual tab, unless a reused route
+    // seeded it from the saved route, whose distance can be in another unit and must not be sent.
     const selectedRouteDistanceMeters = transaction?.routes?.[getSelectedRouteKey(transaction)]?.distance;
     if (!selectedRouteDistanceMeters && !transaction?.comment?.customUnit?.routeDistanceMeters) {
-        return true;
+        return !transaction?.isReusedRoute;
     }
 
     return getRouteDistanceMetersMatchingQuantity(transaction) === undefined;

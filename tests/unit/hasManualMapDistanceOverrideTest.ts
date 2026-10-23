@@ -76,15 +76,16 @@ describe('hasManualMapDistanceOverride', () => {
         expect(result).toBe(false);
     });
 
-    it('returns true for a distance typed after reusing a route offline', () => {
-        // Given a route reused offline and then a distance typed on the Manual tab, which leaves the reused flag in place
-        const transaction = {...buildMapTransaction({quantity: 5}), isReusedRoute: true};
+    it('returns false for a reused route whose saved data has no route distance', () => {
+        // Given a route reused offline from a miles expense into a km workspace, seeded as 138.73 with no route data
+        const transaction = {...buildMapTransaction({quantity: 138.73}), isReusedRoute: true};
 
         // When it is checked for an override
         const result = hasManualMapDistanceOverride(transaction);
 
-        // Then it is still an override, so the typed distance reaches the server
-        expect(result).toBe(true);
+        // Then it is not an override, because the seeded value can be in the source expense's unit and the server stored
+        // 138.73 km for a 164 km trip when it was sent
+        expect(result).toBe(false);
     });
 
     it('returns false when the quantity matches the selected alternate route', () => {
