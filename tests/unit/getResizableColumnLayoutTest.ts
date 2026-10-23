@@ -284,8 +284,28 @@ describe('getResizableColumnLayout', () => {
         expect(getTargetColumnWidth('arrow', 'fit')).toBeUndefined();
     });
 
-    it('resets only a resized column, to its content within its cap', () => {
-        // Given an overflowing row with a resized name column whose content is capped at 150px, and an email column nobody resized
+    it('resets a resized column to the width a fresh load gives it while another column stays resized', () => {
+        // Given a 600px table whose name and email columns need 400px each and can squeeze to 100px, where a fresh load
+        // squeezes them to 250px each, and both were resized: name dragged to 300px and email fitted to its 400px content
+        const columns = [column('name', {contentWidth: 400, minWidth: 100}), column('email', {contentWidth: 400, minWidth: 100}), column('role', {contentWidth: 100, minWidth: 100})];
+
+        // When the layout is built
+        const {getTargetColumnWidth} = getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths: {name: 300, email: 400, role: 100},
+            resizedColumnKeys: ['name', 'email'],
+            tableWidth: 600,
+            rowChromeWidths,
+        });
+
+        // Then resetting email squeezes it back to its fresh 250px rather than keeping the content width a fit gives,
+        // so a reset after a fit visibly changes the column and doesn't leave the row overflowing
+        expect(getTargetColumnWidth('email', 'fit')).toBe(400);
+        expect(getTargetColumnWidth('email', 'reset')).toBe(250);
+    });
+
+    it('resets a column to its fresh width within its cap, and only a column the user resized', () => {
+        // Given a row with a resized name column whose content is capped at 150px, and an email column nobody resized
         const columns = [column('name', {contentWidth: 400, maxWidth: 150}), column('email', {contentWidth: 120}), column('role')];
 
         // When the layout is built
@@ -297,7 +317,7 @@ describe('getResizableColumnLayout', () => {
             rowChromeWidths,
         });
 
-        // Then the name column goes back to the width content sizing gives it, cap included, and the email column has
+        // Then the name column goes back to its cap, which a fresh load never sizes past, and the email column has
         // nothing to reset, since the user never sized it
         expect(getTargetColumnWidth('name', 'reset')).toBe(150);
         expect(getTargetColumnWidth('email', 'reset')).toBeUndefined();

@@ -1,4 +1,6 @@
 /** Lays a resizable table's columns out as custom property expressions, so a drag repaints the header, rows and scroller without a render. */
+import calculateDynamicColumnWidths, {distributeEqualWidths} from '@components/Table/calculateDynamicColumnWidths';
+
 import CONST from '@src/CONST';
 
 import type {ResizableColumn} from './resolveDraggedColumnWidths';
@@ -65,7 +67,7 @@ type ResizableColumnLayout = {
 
     /**
      * `fit`: the column's content within the drag bounds, `undefined` when its edge doesn't drag.
-     * `reset`: its content within its cap and the drag bounds, `undefined` when the user never resized it.
+     * `reset`: the width a fresh load gives it, within the drag bounds, `undefined` when the user never resized it.
      */
     getTargetColumnWidth: (columnKey: string, target: ColumnWidthTarget) => number | undefined;
 };
@@ -73,6 +75,17 @@ type ResizableColumnLayout = {
 /** Table width minus selection column, gaps, margin and padding. Floored because tracks are whole px. */
 function getAvailableColumnsWidth(tableWidth: number, {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth}: RowChromeWidths): number {
     return Math.floor(tableWidth - rowMarginWidth - selectionColumnWidth - totalGapWidth - rowPaddingWidth);
+}
+
+/** Widths content sizing gives the columns before any resize, which is what a reset hands a column back to. */
+function getDefaultColumnWidths(columns: ResizableColumn[], availableColumnsWidth: number): Record<string, number> {
+    const contentSizedColumns = columns.filter((column) => column.declaredWidth === undefined);
+    const fixedColumnsWidth = columns.reduce((total, column) => total + (column.declaredWidth ?? 0), 0);
+    const availableWidth = availableColumnsWidth - fixedColumnsWidth;
+    const {widths} = calculateDynamicColumnWidths(contentSizedColumns, availableWidth);
+    const defaultWidths = widths.length > 0 ? widths : distributeEqualWidths(contentSizedColumns.length, availableWidth);
+
+    return Object.fromEntries(contentSizedColumns.map((column, index) => [column.key, defaultWidths.at(index) ?? 0]));
 }
 
 function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnKeys, tableWidth, rowChromeWidths}: GetResizableColumnLayoutParams): ResizableColumnLayout {
@@ -127,7 +140,11 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
             return isColumnResizable(column) ? getDragBoundedWidth(columnKey, column.contentWidth) : undefined;
         }
 
-        return resizedColumnKeys.includes(columnKey) ? getDragBoundedWidth(columnKey, Math.min(column.contentWidth, column.maxWidth)) : undefined;
+        if (!resizedColumnKeys.includes(columnKey)) {
+            return undefined;
+        }
+
+        return getDragBoundedWidth(columnKey, getDefaultColumnWidths(columns, availableColumnsWidth)[columnKey] ?? 0);
     };
 
     const getResizedColumnWidths = (columnKey: string, width: number) =>
