@@ -109,6 +109,7 @@ import type {AvatarSource} from './UserAvatarUtils';
 import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
+import {getAnchorHref, isAttachmentAnchorTag, isOwnAttachmentURL} from './AttachmentAnchorUtils';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
 import {buildOnboardingMessagesWithoutManageTeam} from './buildOnboardingMessages';
 import {isCardWithPotentialFraud} from './CardUtils';
@@ -305,6 +306,7 @@ import {
     isPending,
     isPerDiemRequest,
     isReceiptBeingScanned,
+    isReceiptScanBlockingEdit,
     isScanning,
     isScanningTransaction,
     isScanRequest as isScanRequestTransactionUtils,
@@ -1447,7 +1449,6 @@ function getPolicyName(params: GetPolicyNameParams): string {
 
     // Rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.policyName || parentReport?.oldPolicyName || noPolicyFound;
 
     return policyName;
@@ -1847,7 +1848,7 @@ function getBankAccountRoute(report: OnyxEntry<Report>, areInvoicesEnabled: bool
 
 /**
  * Check if personal detail of accountID is empty or optimistic data
- * TODO: Remove this function once callers pass personal details explicitly (https://github.com/Expensify/App/issues/66413)
+ * TODO: Remove this function in Phase B, once callers pass personal details explicitly. See https://github.com/Expensify/App/issues/66413.
  */
 function isOptimisticPersonalDetail(accountID: number): boolean {
     const personalDetail = getPersonalDetail(accountID);
@@ -1966,7 +1967,6 @@ function getReportNotificationPreference(report: OnyxEntry<Report>, currentUserA
     const participant = accountID ? report?.participants?.[accountID] : undefined;
 
     // Empty notification preference should return `hidden`
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return participant?.notificationPreference || CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
@@ -2159,8 +2159,10 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>, rules: OnyxColl
         return false;
     }
 
-    // TODO: Callers are threaded in PRs 4a through 4d. Remove this fallback in PR 28 once none of them pass undefined. See https://github.com/Expensify/App/issues/66413.
-    const resolvedOwnerLogin = reportOwnerLogin ?? getLoginByAccountID(report.ownerAccountID, getAllPersonalDetails());
+    // An optimistic personal detail carries an empty login, which would otherwise reach the approval lookup and match no employee.
+    const providedOwnerLogin = reportOwnerLogin === '' ? undefined : reportOwnerLogin;
+    // TODO: Callers are threaded in Parts 5 through 13. Remove this fallback in Part 13 once none of them pass undefined. See https://github.com/Expensify/App/issues/66413.
+    const resolvedOwnerLogin = providedOwnerLogin ?? getLoginByAccountID(report.ownerAccountID, getAllPersonalDetails());
     const submitsToAccountID = getSubmitToAccountID(policy, report, resolvedOwnerLogin, rules);
 
     return isProcessingReport(report) && submitsToAccountID === report.managerID && !hasReportBeenForwardedSinceLastSubmit(report);
@@ -2577,7 +2579,7 @@ function hasExpensifyGuidesEmails(accountIDs: number[], guideAccountIDs: GuideAc
         return accountIDs.some((accountID) => guideAccountIDs.includes(accountID));
     }
 
-    // TODO: Remove fallback once all callers pass guideAccountIDs (https://github.com/Expensify/App/issues/66413)
+    // TODO: Remove this fallback in Phase B, once all callers pass guideAccountIDs. See https://github.com/Expensify/App/issues/66413.
     return accountIDs.some((accountID) => Str.extractEmailDomain(getPersonalDetail(accountID)?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
@@ -2678,16 +2680,9 @@ function findLastAccessedReport(
 }
 
 /**
- * Whether the provided report has expenses
- */
-function hasExpenses(reportID?: string, transactions?: OnyxCollection<Transaction>): boolean {
-    return !!Object.values(transactions ?? deprecatedAllTransactions ?? {}).find((transaction) => transaction?.reportID === reportID);
-}
-
-/**
  * Whether the provided report is a closed expense report with no expenses
  */
-function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: OnyxCollection<Transaction>): boolean {
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, hasLinkedTransactions: boolean): boolean {
     if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
         return false;
     }
@@ -2707,7 +2702,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transact
         return false;
     }
 
-    return !hasExpenses(report.reportID, transactions);
+    return !hasLinkedTransactions;
 }
 
 /**
@@ -3157,7 +3152,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
     }
 
     if (isProcessingReport(moneyRequestReport) && isExpenseReport(moneyRequestReport)) {
-        // TODO: Pass reportOwnerLogin in PR 4b, once canAddOrDeleteTransactions takes it first.
+        // TODO: Pass reportOwnerLogin in Part 13, once canAddOrDeleteTransactions takes it first.
         // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
         return isAwaitingFirstLevelApproval(moneyRequestReport, rules, undefined);
     }
@@ -3223,7 +3218,13 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, rules: Onyx
  *
  * @returns True if the report is eligible for merging transactions, false otherwise
  */
-function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string, isAdmin: boolean, rules: OnyxCollection<Rule>, currentUserAccountID?: number): boolean {
+function isMoneyRequestReportEligibleForMerge(
+    reportOrReportID: Report | string,
+    isAdmin: boolean,
+    rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
+    currentUserAccountID?: number,
+): boolean {
     const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport(reportOrReportID) : reportOrReportID;
 
     if (!isMoneyRequestReport(report) || isIOUReport(report)) {
@@ -3238,9 +3239,7 @@ function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string,
     }
 
     if (isSubmitter) {
-        // TODO: Pass reportOwnerLogin in PR 4b, once isMoneyRequestReportEligibleForMerge takes it first.
-        // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-        return isOpenReport(report) || isAwaitingFirstLevelApproval(report, rules, undefined);
+        return isOpenReport(report) || isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin);
     }
 
     return isManager && isExpenseReport(report) && isProcessingReport(report);
@@ -3274,7 +3273,7 @@ function canSubmitAndIsAwaitingForCurrentUser(
         !hasAutoRejectedTransactionsForManager &&
         canSubmitReport(
             iouReport,
-            // TODO: Callers are threaded in PRs 4c and 23. Remove this fallback in PR 28 once none of them pass undefined. See https://github.com/Expensify/App/issues/66413.
+            // TODO: Callers are threaded in Parts 8 and 14. Remove this fallback in Part 14 once none of them pass undefined. See https://github.com/Expensify/App/issues/66413.
             iouReportOwnerLogin ?? getLoginByAccountID(iouReport?.ownerAccountID, getAllPersonalDetails()),
             policy,
             transactions,
@@ -3514,7 +3513,7 @@ function getBadgeFromIOUReport(
         allViolations,
         currentUserLogin,
         currentUserAccountID,
-        // TODO: Pass iouReportOwnerLogin in PR 23. canSubmitAndIsAwaitingForCurrentUser falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
+        // TODO: Pass iouReportOwnerLogin in Part 14. canSubmitAndIsAwaitingForCurrentUser falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
         undefined,
         iouReportActions,
     );
@@ -3667,7 +3666,7 @@ function hasOutstandingChildRequest(
                 allTransactionViolations,
                 currentUserEmailParam,
                 currentUserAccountIDParam,
-                // TODO: Resolve the owner login per iouReport in PR 4d. This loop visits a different iouReport on every iteration, so a single login param on
+                // TODO: Resolve the owner login per iouReport in Part 8. This loop visits a different iouReport on every iteration, so a single login param on
                 // hasOutstandingChildRequest cannot serve it and a precomputed map of accountID to login is needed instead.
                 // canSubmitAndIsAwaitingForCurrentUser falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
                 undefined,
@@ -3718,6 +3717,7 @@ function canDeleteMoneyRequestReport(
     reportActions: ReportAction[],
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     cardList: OnyxEntry<CardList>,
     isReportLevelDelete = false,
@@ -3769,9 +3769,7 @@ function canDeleteMoneyRequestReport(
     }
 
     if (isExpenseReport(report)) {
-        // TODO: Pass reportOwnerLogin in PR 4a, once canDeleteMoneyRequestReport takes it first.
-        // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-        if (!isOpenReport(report) && !(isProcessingReport(report) && isAwaitingFirstLevelApproval(report, rules, undefined))) {
+        if (!isOpenReport(report) && !(isProcessingReport(report) && isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin))) {
             return false;
         }
 
@@ -3798,6 +3796,8 @@ function canDeleteReportAction(
     childReportActions: OnyxCollection<ReportAction>,
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    // The full list is needed because the report being checked is resolved below, from the narrowed reportID.
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     cardList: OnyxEntry<CardList>,
 ): boolean {
     const report = getReportOrDraftReport(reportID);
@@ -3819,6 +3819,8 @@ function canDeleteReportAction(
 
         if (isActionOwner) {
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
+                // TODO: Pass reportOwnerLogin in Part 12, once canDeleteTransaction takes it first.
+                // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
                 return canDeleteTransaction(report, rules) && canCardTransactionBeDeleted;
             }
             if (isTrackExpenseAction(reportAction)) {
@@ -3835,6 +3837,7 @@ function canDeleteReportAction(
             Object.values(childReportActions ?? {}).filter((action): action is ReportAction => !!action),
             currentUserAccountID,
             rules,
+            getLoginByAccountID(report.ownerAccountID, personalDetails),
             policy,
             cardList,
             true,
@@ -4019,7 +4022,6 @@ function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, translate: Localized
     const iconFromCache = workSpaceIconsCache.get(cacheKey);
     const reportPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const policyAvatarURL = reportPolicy ? reportPolicy?.avatarURL : report?.policyAvatar;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyExpenseChatAvatarSource = policyAvatarURL || getDefaultWorkspaceAvatar(workspaceName);
 
     const isSameAvatarURL = iconFromCache?.icon?.source === policyExpenseChatAvatarSource;
@@ -4545,7 +4547,6 @@ function getIconsForGroupChat(
         return [];
     }
     const groupChatIcon = {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
         id: -1,
         type: CONST.ICON_TYPE_AVATAR,
@@ -4742,7 +4743,6 @@ function getDisplayNamesWithTooltips(
                     hiddenTranslation: hiddenText,
                     youTranslation: youText,
                 }) ||
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 user?.login ||
                 '';
             const avatar = user && 'avatar' in user ? user.avatar : undefined;
@@ -5528,7 +5528,7 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(policy);
     const isApproved = isReportApproved({report});
-    // TODO: Pass reportOwnerLogin in PR 4b, once isReportFieldDisabled takes it first.
+    // TODO: Pass reportOwnerLogin in Part 6, once isReportFieldDisabled takes it first.
     // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
     const isForwardedForSubmitter = isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, undefined);
     if (!isAdmin && (isReportSettled || isReportClosed || isApproved || isForwardedForSubmitter)) {
@@ -6162,7 +6162,7 @@ function canEditFieldOfMoneyRequest({
         return (
             !isClosedReport(moneyRequestReport) &&
             !isInvoiceReport(moneyRequestReport) &&
-            !isReceiptBeingScanned(transaction) &&
+            !isReceiptScanBlockingEdit(transaction) &&
             !isPerDiemRequest(transaction) &&
             (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequest(transaction)) &&
             canEditExpense &&
@@ -6311,7 +6311,7 @@ function canModifyHoldStatus(report: Report, reportAction: OnyxEntry<ReportActio
     }
 
     if (isActionOwner && !isAdmin) {
-        // TODO: Pass reportOwnerLogin in PR 4a, once canModifyHoldStatus takes it first.
+        // TODO: Pass reportOwnerLogin in Part 7, once canModifyHoldStatus takes it first.
         // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
         return isAwaitingFirstLevelApproval(report, rules, undefined);
     }
@@ -6834,24 +6834,25 @@ function getReportPreviewMessage(
  * avoids depending on the async-loaded locale bundles. For a localized preview shown in the UI, call
  * {@link getReportPreviewMessage} with the caller's `translate`.
  *
+ * This only covers report preview actions. The wording for IOU actions (split, track, scanning, and bank account
+ * payments) lives only in {@link getReportPreviewMessage}.
+ *
  * IMPORTANT: keep the English strings here in sync with the `iou.*` entries in `en.ts` and with the branching
- * in {@link getReportPreviewMessage}.
+ * in {@link getReportPreviewMessage} that applies to report preview actions.
  */
 function getReportPreviewReportActionMessage(
     // TODO: Remove the `Omit` and make `policy` required once all callers pass it, issue https://github.com/Expensify/App/issues/66415
-    params: Omit<GetReportPreviewMessageBaseParams, 'policy'> & {policy?: OnyxInputOrEntry<Policy>},
+    params: Omit<
+        GetReportPreviewMessageBaseParams,
+        'policy' | 'iouReportAction' | 'originalReportAction' | 'shouldConsiderScanningReceiptOrPendingRoute' | 'isPreviewMessageForParentChatReport' | 'isForListPreview'
+    > & {
+        policy?: OnyxInputOrEntry<Policy>;
+        iouReportAction?: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
+        originalReportAction?: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
+    },
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): string {
-    const {
-        reportOrID,
-        iouReportAction = null,
-        shouldConsiderScanningReceiptOrPendingRoute = false,
-        isPreviewMessageForParentChatReport = false,
-        policy,
-        isForListPreview = false,
-        bankAccountList,
-        personalDetails,
-    } = params;
+    const {reportOrID, iouReportAction = null, policy} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
@@ -6862,66 +6863,6 @@ function getReportPreviewReportActionMessage(
     }
 
     const allReportTransactions = getReportTransactions(report.reportID);
-    const transactionsWithReceipts = allReportTransactions.filter(hasReceiptTransactionUtils);
-    const numberOfScanningReceipts = transactionsWithReceipts.filter(isScanning).length;
-
-    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
-        // This covers group chats where the last action is a split expense action
-        const linkedTransaction = getLinkedTransaction(iouReportAction);
-        if (isEmptyObject(linkedTransaction)) {
-            return reportActionMessage;
-        }
-
-        if (!isEmptyObject(linkedTransaction)) {
-            if (isScanning(linkedTransaction)) {
-                return 'Receipt scanning...';
-            }
-
-            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
-                return 'Receipt missing details';
-            }
-
-            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-            const formattedAmount = convertToDisplayStringEnLocale(amount, getCurrency(linkedTransaction), getCurrencyDecimals) ?? '';
-            const comment = getMerchantOrDescription(linkedTransaction);
-            return `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
-        }
-    }
-
-    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && !isExpenseReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
-        // This covers group chats where the last action is a track expense action
-        const linkedTransaction = getLinkedTransaction(iouReportAction);
-        if (isEmptyObject(linkedTransaction)) {
-            const originalMessage = getOriginalMessage(iouReportAction);
-            const amount = originalMessage?.amount;
-            const currency = originalMessage?.currency;
-            const comment = originalMessage?.comment;
-
-            if (amount && currency) {
-                const formattedAmount = convertToDisplayStringEnLocale(amount, currency, getCurrencyDecimals);
-                return `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
-            }
-
-            return reportActionMessage;
-        }
-
-        if (!isEmptyObject(linkedTransaction)) {
-            if (isScanning(linkedTransaction)) {
-                return 'Receipt scanning...';
-            }
-
-            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
-                return 'Receipt missing details';
-            }
-
-            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-            const formattedAmount = convertToDisplayStringEnLocale(amount, getCurrency(linkedTransaction), getCurrencyDecimals) ?? '';
-
-            const merchantOrComment = getMerchantOrDescription(linkedTransaction);
-
-            return `tracking ${formattedAmount}${merchantOrComment ? ` for ${merchantOrComment}` : ''}`;
-        }
-    }
 
     const containsNonReimbursable = hasNonReimbursableTransactions(allReportTransactions);
     const {totalDisplaySpend: totalAmount} = getMoneyRequestSpendBreakdown(report);
@@ -6935,7 +6876,7 @@ function getReportPreviewReportActionMessage(
         ? policyName
         : getDisplayNameForParticipant({
               accountID: report.managerID,
-              shouldUseShortForm: !isPreviewMessageForParentChatReport,
+              shouldUseShortForm: true,
               formatPhoneNumber: formatPhoneNumberPhoneUtils,
               hiddenTranslation: 'Hidden',
           });
@@ -6948,97 +6889,24 @@ function getReportPreviewReportActionMessage(
         return `${payerName ?? ''} approved ${formattedAmount}`;
     }
 
-    let linkedTransaction;
-    if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction);
-    }
-
-    if (!isEmptyObject(linkedTransaction) && isScanning(linkedTransaction)) {
-        return numberOfScanningReceipts === 1 ? 'Receipt scanning...' : 'Receipts scanning...';
-    }
-
-    if (!isEmptyObject(linkedTransaction) && isFetchingWaypointsFromServer(linkedTransaction) && !getTransactionAmount(linkedTransaction)) {
-        return 'Pending...';
-    }
-
-    const originalMessage = !isEmptyObject(iouReportAction) && isMoneyRequestAction(iouReportAction) ? getOriginalMessage(iouReportAction) : undefined;
-
-    // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
-    if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
-        // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
-        let translatePhraseKey: TranslationPaths = 'iou.paidElsewhere';
-        if (isPreviewMessageForParentChatReport) {
-            translatePhraseKey = 'iou.payerPaidAmount';
-        } else if (
-            [CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY].some((paymentType) => paymentType === originalMessage?.paymentType) ||
-            !!reportActionMessage.match(/ (with Expensify|using Expensify)$/) ||
-            report.isWaitingOnBankAccount
-        ) {
-            translatePhraseKey = 'iou.paidWithExpensify';
-            // A paying admin can record `bankAccountID` on a workspace payment too, so the report type is what says
-            // whether this was an invoice, matching `getIOUReportActionDisplayMessage`.
-            const isFromInvoice = isInvoiceReport(report) && !!originalMessage?.bankAccountID;
-            if (originalMessage?.automaticAction) {
-                translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
-            }
-
-            if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-                translatePhraseKey = 'iou.businessBankAccount';
-            }
-
-            if (isFromInvoice) {
-                const currentBankAccount = getBankAccountFromID(originalMessage?.bankAccountID);
-                const last4Digits = currentBankAccount?.accountData?.accountNumber?.slice(-4) ?? '';
-                return originalMessage?.payAsBusiness ? `paid ${formattedAmount} with business account ${last4Digits}` : `paid ${formattedAmount} with personal account ${last4Digits}`;
-            }
-        }
-
-        const payerAccountID = iouReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? iouReportAction?.actorAccountID : report.managerID;
-        let actualPayerName =
-            report.managerID === deprecatedCurrentUserAccountID && !isForListPreview
+    // Show Paid preview message if it's settled
+    if (isSettled(report.reportID)) {
+        const payerDisplayName =
+            report.managerID === deprecatedCurrentUserAccountID
                 ? ''
                 : getDisplayNameForParticipant({
-                      accountID: payerAccountID,
+                      accountID: report.managerID,
                       shouldUseShortForm: true,
                       formatPhoneNumber: formatPhoneNumberPhoneUtils,
                       hiddenTranslation: 'Hidden',
                   });
+        const payerPrefix = payerDisplayName ? `${payerDisplayName} ` : '';
 
-        actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
-        const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
-        if (translatePhraseKey === 'iou.businessBankAccount') {
-            const last4Digits = getBankAccountLastFourDigits({
-                bankAccountID: originalMessage?.bankAccountID,
-                bankAccountList,
-                policy: reportPolicy,
-                accountNumber: originalMessage?.accountNumber,
-                payerAccountID,
-                reimburserAccountID: getPolicyReimburserAccountID(reportPolicy, personalDetails),
-            });
-
-            // This variant returns raw English to match the surrounding non-localized preview strings.
-            if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
-                const creditedAmountDisplay = convertToDisplayStringEnLocale(originalMessage.creditedAmount, originalMessage.creditedCurrency, getCurrencyDecimals);
-                return `paid ${creditedAmountDisplay} from account ${originalMessage.debitBankAccountLast4 ?? last4Digits} to account ${originalMessage.creditBankAccountLast4 ?? ''}`;
-            }
-            return `paid with bank account ${last4Digits}`;
+        // A settled report preview message can come in two formats "marked as paid" or "paid with wallet"
+        if (!!reportActionMessage.match(/ (with Expensify|using Expensify)$/) || report.isWaitingOnBankAccount) {
+            return `${payerPrefix}paid with wallet`;
         }
-        if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify') {
-            return `${payerDisplayName ? `${payerDisplayName} ` : ''}paid with Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`;
-        }
-        if (translatePhraseKey === 'iou.paidWithExpensify') {
-            return `${payerDisplayName ? `${payerDisplayName} ` : ''}paid with wallet`;
-        }
-        if (translatePhraseKey === 'iou.paidElsewhere') {
-            if (originalMessage?.isSubmitterMarkedPaymentReceived) {
-                return `${payerDisplayName ? `${payerDisplayName} ` : ''}received payment`;
-            }
-            const trimmedComment = originalMessage?.comment?.trim();
-            return `${payerDisplayName ? `${payerDisplayName} ` : ''}marked as paid${trimmedComment ? `, saying "${trimmedComment}"` : ''}`;
-        }
-        if (translatePhraseKey === 'iou.payerPaidAmount') {
-            return `${payerDisplayName ? `${payerDisplayName} ` : ''}paid ${formattedAmount}`;
-        }
+        return `${payerPrefix}marked as paid`;
     }
 
     if (report.isWaitingOnBankAccount) {
@@ -7052,46 +6920,11 @@ function getReportPreviewReportActionMessage(
         return `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`;
     }
 
-    const lastActorID = iouReportAction?.actorAccountID;
-    let amount = originalMessage?.amount;
-    let currency = originalMessage?.currency ? originalMessage?.currency : report.currency;
-
-    if (!isEmptyObject(linkedTransaction)) {
-        amount = getTransactionAmount(linkedTransaction, isExpenseReport(report));
-        currency = getCurrency(linkedTransaction);
-    }
-
-    if (isEmptyObject(linkedTransaction) && !isEmptyObject(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction);
-    }
-
-    let comment = !isEmptyObject(linkedTransaction) ? getMerchantOrDescription(linkedTransaction) : undefined;
-    if (!isEmptyObject(originalReportAction) && isReportPreviewAction(originalReportAction) && getNumberOfMoneyRequests(originalReportAction) !== 1) {
-        comment = undefined;
-    }
-
-    // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest expense
-    if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
-        const amountToDisplay = convertToDisplayStringEnLocale(Math.abs(amount), currency, getCurrencyDecimals);
-
-        // We only want to show the actor name in the preview if it's not the current user who took the action
-        const requestorName =
-            lastActorID && lastActorID !== deprecatedCurrentUserAccountID
-                ? getDisplayNameForParticipant({
-                      accountID: lastActorID,
-                      shouldUseShortForm: !isPreviewMessageForParentChatReport,
-                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                      hiddenTranslation: 'Hidden',
-                  })
-                : '';
-        return `${requestorName ? `${requestorName}: ` : ''}${amountToDisplay}${comment ? ` for ${comment}` : ''}`;
-    }
-
     if (containsNonReimbursable) {
         const ownerName = getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, hiddenTranslation: 'Hidden'}) ?? '';
         return `${ownerName} spent ${formattedAmount}`;
     }
-    return `${payerName ?? ''} owes ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
+    return `${payerName ?? ''} owes ${formattedAmount}`;
 }
 
 /**
@@ -7617,6 +7450,9 @@ function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: string): s
     return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
 }
 
+// ExpensiMark allows one level of brackets inside a link label, so a file named `report [Q1].csv` is one of these.
+const MARKDOWN_LABEL_PATTERN = '[^\\[\\]\\r\\n]*(?:\\[[^\\[\\]\\r\\n]*\\][^\\[\\]\\r\\n]*)*';
+
 /** Swaps each local attachment URI in a draft for its synced attachment, or drops them while the upload is pending. */
 function replaceLocalAttachmentReferences(
     draftMarkdown: string,
@@ -7624,7 +7460,8 @@ function replaceLocalAttachmentReferences(
     reportActionID: string,
     attachmentIDByLocalSource: Partial<Record<string, string>> = {},
 ): string {
-    const localAttachmentReferenceRegex = /\n*(?:!?\[[^\]]*\]\((?:blob:|file:|content:)[^)]*\)|!\((?:blob:|file:|content:)[^)]*\))/g;
+    const localAttachmentReferenceRegex = new RegExp(`\\n*(?:!?\\[${MARKDOWN_LABEL_PATTERN}\\]\\((?:blob:|file:|content:)[^)]*\\)|!\\((?:blob:|file:|content:)[^)]*\\))`, 'g');
+    const draftLabelRegex = new RegExp(`^\\n*!?\\[(${MARKDOWN_LABEL_PATTERN})\\]`);
     const localReferences = draftMarkdown.match(localAttachmentReferenceRegex) ?? [];
     if (localReferences.length === 0) {
         return draftMarkdown;
@@ -7655,7 +7492,8 @@ function replaceLocalAttachmentReferences(
     return draftMarkdown.replaceAll(localAttachmentReferenceRegex, (match) => {
         const localSource = match.match(/\(([^)]*)\)$/)?.at(1) ?? '';
         const attachmentID = attachmentIDByLocalSource[localSource];
-        const localFileName = match.match(/\[([^\]]+)\]/)?.at(1) ?? localSource.split('/').pop();
+        const draftLabel = match.match(draftLabelRegex)?.at(1);
+        const localFileName = draftLabel ?? localSource.split('/').pop();
         const positionTag = canMatchByPosition ? syncedAttachmentTags.at(localReferenceIndex) : undefined;
         const syncedAttachmentTag =
             (attachmentID ? findUnmatchedTag((tag) => tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) === attachmentID) : undefined) ??
@@ -7666,7 +7504,13 @@ function replaceLocalAttachmentReferences(
             return '';
         }
         matchedTags.add(syncedAttachmentTag);
-        return `${match.match(/^\n*/)?.at(0) ?? ''}${Parser.htmlToMarkdown(syncedAttachmentTag)}`;
+
+        // The synced tag carries the name the file was uploaded under, so a rename made during the upload loses to it.
+        const syncedAttachmentMarkdown = Parser.htmlToMarkdown(syncedAttachmentTag);
+        const labelledAttachmentMarkdown = draftLabel
+            ? syncedAttachmentMarkdown.replace(/^(!?)\[[^\]]*\]/, (_reference, imagePrefix: string) => `${imagePrefix}[${draftLabel}]`)
+            : syncedAttachmentMarkdown;
+        return `${match.match(/^\n*/)?.at(0) ?? ''}${labelledAttachmentMarkdown}`;
     });
 }
 
@@ -7692,8 +7536,15 @@ function getUploadingAttachmentTags(currentCommentHtml: string | undefined): str
 }
 
 /** The still-uploading attachment tags, re-appended to an edit's optimistic message so they stay on screen. */
-function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | undefined, removedAttachmentIDs: string[] = []): string | undefined {
-    const keptTags = getUploadingAttachmentTags(currentCommentHtml).filter((tag) => !removedAttachmentIDs.includes(tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) ?? ''));
+function getUploadingAttachmentHtmlFromComment(
+    currentCommentHtml: string | undefined,
+    removedAttachmentIDs: string[] = [],
+    labelByAttachmentID: Partial<Record<string, string>> = {},
+): string | undefined {
+    const keptTags = getUploadingAttachmentTags(currentCommentHtml)
+        .map((tag) => ({tag, attachmentID: tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) ?? ''}))
+        .filter(({attachmentID}) => !removedAttachmentIDs.includes(attachmentID))
+        .map(({tag, attachmentID}) => applyLabelToUploadingAttachmentHtml(tag, labelByAttachmentID[attachmentID]));
     return keptTags.length > 0 ? keptTags.join('<br />') : undefined;
 }
 
@@ -7707,6 +7558,139 @@ function getUploadingAttachmentIDsRemovedFromDraft(draftMarkdown: string, curren
         .filter((tag) => !draftMarkdown.includes(tag.match(optimisticSourceRegex)?.at(1) ?? ''))
         .map((tag) => tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) ?? '')
         .filter((attachmentID) => !!attachmentID);
+}
+
+/**
+ * The label a draft gives the still-uploading attachment, taken from the markdown reference the editor shows
+ * (`[label](blob:…)`). An image written without a label parses as `!(blob:…)`, which yields nothing to carry over.
+ */
+function getUploadingAttachmentLabelFromDraft(draftMarkdown: string, localSource: string): string | undefined {
+    const labelledReferenceRegex = new RegExp(`!?\\[(${MARKDOWN_LABEL_PATTERN})\\]\\(${Str.escapeForRegExp(localSource)}\\)`);
+    return draftMarkdown.match(labelledReferenceRegex)?.at(1) ?? undefined;
+}
+
+/**
+ * Applies the draft's label to the still-uploading attachment tag. `AnchorRenderer` shows the anchor's own text,
+ * so renaming the file in the editor is only kept if that text is carried over rather than the original filename.
+ */
+function applyLabelToUploadingAttachmentHtml(uploadingAttachmentHtml: string, label: string | undefined): string {
+    if (!label) {
+        return uploadingAttachmentHtml;
+    }
+
+    // The label is whatever the user typed in the editor, so it is encoded before it goes anywhere near the markup,
+    // and applied through a callback because a string replacement would expand `$&` and friends into the match.
+    const encodedLabel = Str.htmlEncode(label);
+
+    // `data-name` moves with the label so that the next edit compares against the name the comment currently shows,
+    // otherwise renaming back to the original name reads as "unchanged" and the queued file keeps the interim one.
+    const renamedHtml = uploadingAttachmentHtml.replace(
+        new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="[^"]*"`, 'i'),
+        () => `${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="${encodedLabel}"`,
+    );
+    if (renamedHtml.startsWith('<img')) {
+        return renamedHtml.replace(/alt="[^"]*"/i, () => `alt="${encodedLabel}"`);
+    }
+    return renamedHtml.replace(/>[\s\S]*?<\/(a|video)>$/i, (_match, tagName: string) => `>${encodedLabel}</${tagName}>`);
+}
+
+const uploadingAttachmentSourceRegex = new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`);
+
+function getUploadingAttachmentSource(currentCommentHtml: string | undefined): string | undefined {
+    return currentCommentHtml?.match(uploadingAttachmentSourceRegex)?.at(1);
+}
+
+/**
+ * The new labels a draft gives still-uploading attachments, keyed by attachment ID. The server names the stored attachment
+ * after the uploaded file, so a rename has to travel with the queued file as well as the optimistic markup.
+ */
+function getUploadingAttachmentLabelsRenamedInDraft(draftMarkdown: string, currentCommentHtml: string | undefined): Record<string, string> {
+    const currentLabelRegex = new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="([^"]*)"`, 'i');
+    const labelByAttachmentID: Record<string, string> = {};
+    for (const tag of getUploadingAttachmentTags(currentCommentHtml)) {
+        const attachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2);
+        const localSource = getUploadingAttachmentSource(tag);
+        const draftLabel = localSource ? getUploadingAttachmentLabelFromDraft(draftMarkdown, localSource) : undefined;
+
+        // `data-name` carries the encoded label the comment shows now, while the draft carries what the user typed.
+        if (attachmentID && draftLabel && draftLabel !== Str.htmlDecode(tag.match(currentLabelRegex)?.at(1) ?? '')) {
+            labelByAttachmentID[attachmentID] = draftLabel;
+        }
+    }
+    return labelByAttachmentID;
+}
+
+function hasAttachmentAnchorAttributes(html: string): boolean {
+    return html.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE) || html.includes(CONST.ATTACHMENT_ID_ATTRIBUTE);
+}
+
+/**
+ * The parser caches these attributes for images and videos but not for anchors, so an edited file attachment comes
+ * back as an ordinary link. The server keeps only the attachment ID, which is all a second edit has left to match on.
+ */
+function restoreAttachmentAnchorAttributes(newCommentHtml: string, originalCommentHtml: string | undefined): string {
+    if (!originalCommentHtml || !hasAttachmentAnchorAttributes(originalCommentHtml) || !newCommentHtml.includes('<a ')) {
+        return newCommentHtml;
+    }
+
+    const anchorTagRegex = /<a\s([^>]*)>/gi;
+    const attachmentAttributesByHref = new Map<string, string>();
+    for (const [, attributes] of originalCommentHtml.matchAll(anchorTagRegex)) {
+        if (!isAttachmentAnchorTag(attributes)) {
+            continue;
+        }
+        const href = getAnchorHref(attributes);
+        const attachmentAttributes = attributes.match(/data-[\w-]+="[^"]*"/gi)?.join(' ');
+        if (href && attachmentAttributes) {
+            attachmentAttributesByHref.set(href, attachmentAttributes);
+        }
+    }
+    if (attachmentAttributesByHref.size === 0) {
+        return newCommentHtml;
+    }
+
+    return newCommentHtml.replaceAll(anchorTagRegex, (match: string, attributes: string) => {
+        if (hasAttachmentAnchorAttributes(attributes)) {
+            return match;
+        }
+        const href = getAnchorHref(attributes);
+        const attachmentAttributes = href ? attachmentAttributesByHref.get(href) : undefined;
+        return attachmentAttributes ? `<a ${attributes} ${attachmentAttributes}>` : match;
+    });
+}
+
+const MARKDOWN_LINK_REGEX = new RegExp(`(!?)\\[(${MARKDOWN_LABEL_PATTERN})\\]\\(([^)]*)\\)`, 'g');
+
+/**
+ * A file name such as `my_report_v2.csv` reads as markdown emphasis when the edit is parsed, which leaves the anchor
+ * with `<em>` children and no plain label to show. The draft still holds the literal label, so it is put back.
+ */
+function restoreAttachmentAnchorLabels(newCommentHtml: string, draftMarkdown: string, reportActionID: string | undefined): string {
+    if (!newCommentHtml.includes('<a ')) {
+        return newCommentHtml;
+    }
+    const labelsBySourceID = new Map<string, string[]>();
+    for (const [, imagePrefix, label, url] of draftMarkdown.matchAll(MARKDOWN_LINK_REGEX)) {
+        const sourceID = url.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1);
+        if (imagePrefix || !sourceID || !label) {
+            continue;
+        }
+        labelsBySourceID.set(sourceID, [...(labelsBySourceID.get(sourceID) ?? []), label]);
+    }
+    if (labelsBySourceID.size === 0) {
+        return newCommentHtml;
+    }
+    return newCommentHtml.replaceAll(/(<a\s[^>]*>)([\s\S]*?)(<\/a>)/gi, (match: string, openTag: string, inner: string, closeTag: string) => {
+        const href = getAnchorHref(openTag);
+        const sourceID = href?.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1);
+        const label = sourceID ? labelsBySourceID.get(sourceID)?.shift() : undefined;
+
+        // Only a file card draws its name from the anchor's own text, so only there does markdown in the label have
+        // to be read literally. A link to another message's attachment stays a link, and `[*Download*](url)` means bold.
+        const rendersAsFileCard = isAttachmentAnchorTag(openTag) || isOwnAttachmentURL(href ?? '', reportActionID);
+        const hasOnlyEmphasisMarkup = /<[a-z]/i.test(inner) && /^(?:[^<]|<\/?(?:em|strong)>)*$/i.test(inner);
+        return label && rendersAsFileCard && hasOnlyEmphasisMarkup ? `${openTag}${Str.htmlEncode(label)}${closeTag}` : match;
+    });
 }
 
 function getReportDescription(report: OnyxEntry<Report>): string {
@@ -7939,7 +7923,6 @@ function buildOptimisticTaskCommentReportAction(
 
 function buildOptimisticSelfDMReport(created: string, reportID?: string): Report {
     return {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportID: reportID || generateReportID(),
         participants: {
             [deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID]: {
@@ -9621,7 +9604,7 @@ function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string
 /**
  * Returns the necessary reportAction onyx data to indicate that the room description has been updated
  */
-function buildOptimisticRoomDescriptionUpdatedReportAction(description: string): OptimisticRoomDescriptionUpdatedReportAction {
+function buildOptimisticRoomDescriptionUpdatedReportAction(description: string, accountIDToName?: Record<string, string>): OptimisticRoomDescriptionUpdatedReportAction {
     const now = DateUtils.getDBTime();
     return {
         reportActionID: rand64(),
@@ -9631,7 +9614,7 @@ function buildOptimisticRoomDescriptionUpdatedReportAction(description: string):
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: description ? `set the room description to: ${Parser.htmlToText(description)}` : 'cleared the room description',
+                text: description ? `set the room description to: ${Parser.htmlToText(description, {accountIDToName})}` : 'cleared the room description',
                 html: description ? `<muted-text>set the room description to: ${description}</muted-text>` : '<muted-text>cleared the room description</muted-text>',
             },
         ],
@@ -12288,7 +12271,6 @@ function getTaskAssigneeChatOnyxData({
     // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
     if (assigneeChatReportID !== parentReportID) {
         const assigneePersonalDetails = getPersonalDetail(assigneeAccountID);
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const displayname = assigneePersonalDetails?.displayName || assigneePersonalDetails?.login || '';
         optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(
             taskReportID,
@@ -13140,7 +13122,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, curr
  * Check if a report is forwarded or not
  */
 function isForwardedReport(report: OnyxEntry<Report>, rules: OnyxCollection<Rule>): boolean {
-    // TODO: Pass reportOwnerLogin in PR 4a, once isForwardedReport takes it first.
+    // TODO: Pass reportOwnerLogin in Part 9, once isForwardedReport takes it first.
     // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
     return isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, undefined);
 }
@@ -14196,7 +14178,7 @@ function getReportLastVisibleActionCreated(report: OnyxEntry<Report>, oneTransac
 function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): string {
     const message = Array.isArray(reportAction?.message) ? (reportAction?.message?.at(-1) ?? null) : (reportAction?.message ?? null);
     const html = message?.html ?? '';
-    const {sourceURL} = getAttachmentDetails(html);
+    const {sourceURL} = getAttachmentDetails(html, reportAction?.reportActionID);
     const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID) ?? [])[1];
     return sourceID;
 }
@@ -14215,6 +14197,7 @@ function getIntegrationIcon(
                   | 'RilletSquare'
                   | 'DualEntrySquare'
                   | 'CampfireSquare'
+                  | 'ZohoBooksSquare'
                   | 'BusinessCentralSquare'
                   | 'GustoSquare'
                   | 'IntuitSquare',
@@ -14253,6 +14236,9 @@ function getIntegrationIcon(
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE) {
         return expensifyIcons?.CampfireSquare;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS) {
+        return expensifyIcons?.ZohoBooksSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
         return expensifyIcons?.BusinessCentralSquare;
@@ -14335,7 +14321,6 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
             const originalMessage = getOriginalMessage(action);
             const label = originalMessage?.label;
             // It's possible for originalMessage?.markedManually to be `false`, but the report is still has a valid automatic export.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const isValidExport = originalMessage?.markedManually || (label && validExportLabels.has(label) && originalMessage?.type !== CONST.EXPORT_TEMPLATE);
             if (isValidExport && action.created > lastSuccessfulExportCreated) {
                 lastSuccessfulExportCreated = action.created;
@@ -15067,7 +15052,6 @@ function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPoli
     if (!report) {
         return false;
     }
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const hasAccessPolicyExpenseChat = isPolicyExpenseChat(report) && (report.isOwnPolicyExpenseChat || isPolicyAdminParam);
     return (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || hasAccessPolicyExpenseChat) && isPolicyEmployee && !isPolicyGuestParam;
 }
@@ -15313,6 +15297,8 @@ function canMergeReports(
     selectedReports: Array<OnyxEntry<Report>>,
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
+    // Every selected report shares an owner, because cross-account merges are rejected below.
+    reportOwnerLogin: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     policy: OnyxEntry<Policy>,
 ): boolean {
@@ -15360,7 +15346,7 @@ function canMergeReports(
         const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
         const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
         const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-        const isReportEligibleForMerge = isMoneyRequestReportEligibleForMerge(report, isAdmin, rules, currentUserAccountID);
+        const isReportEligibleForMerge = isMoneyRequestReportEligibleForMerge(report, isAdmin, rules, reportOwnerLogin, currentUserAccountID);
 
         if (!hasWriteAccess || !isReportEligibleForMerge) {
             return false;
@@ -15801,8 +15787,14 @@ export {
     canModifyHoldStatus,
     replaceLocalAttachmentReferences,
     getUploadingAttachmentIDsRemovedFromDraft,
+    getUploadingAttachmentLabelsRenamedInDraft,
+    restoreAttachmentAnchorAttributes,
+    restoreAttachmentAnchorLabels,
     getUploadingAttachmentHtmlFromComment,
     buildEditedCommentWithAttachment,
+    getUploadingAttachmentLabelFromDraft,
+    getUploadingAttachmentSource,
+    applyLabelToUploadingAttachmentHtml,
     parseMovedTransactionReportIDs,
 };
 

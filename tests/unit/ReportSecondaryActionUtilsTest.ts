@@ -176,118 +176,6 @@ describe('getSecondaryAction', () => {
         ).toEqual(result);
     });
 
-    it('includes TOGGLE_SINGLE_EXPENSE_VIEW right before VIEW_DETAILS on a report with one expense', () => {
-        // Given a report that holds exactly one expense
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-        const transaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [transaction],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then the option to switch views is offered, just before "View details"
-        const toggleIndex = result.indexOf(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
-        expect(toggleIndex).toBeGreaterThan(-1);
-        expect(result.at(toggleIndex + 1)).toBe(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
-    });
-
-    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on a report with more than one expense', () => {
-        // Given a report with two expenses, which always uses the table view
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-        const firstTransaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
-        const secondTransaction = createMock<Transaction>({transactionID: '2', reportID: REPORT_ID});
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [firstTransaction, secondTransaction],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then there's no option to switch views
-        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
-    });
-
-    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on an empty report', () => {
-        // Given a report with no expenses
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then there's no option to switch views
-        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
-    });
-
-    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on a "Pay someone" report', () => {
-        // Given a "Pay someone" report, whose one expense comes from a pay action with IOUDetails
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-        const transaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
-        const sentMoneyAction = createMock<ReportAction>({
-            reportActionID: '1',
-            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUTransactionID: '1', IOUDetails: {amount: 100, comment: '', currency: CONST.CURRENCY.USD}},
-        });
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [transaction],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            reportActions: [sentMoneyAction],
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then there's no option to switch views, because the report has no expense thread for a table row to open
-        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
-    });
-
     it('includes DOWNLOAD_RECEIPTS when at least one transaction has a receipt', () => {
         const report = createMock<Report>({});
         const policy = createMock<Policy>({});
@@ -6491,7 +6379,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [createMock<Report>({reportID: '1', type: CONST.REPORT.TYPE.EXPENSE})];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
         });
@@ -6505,7 +6393,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             ];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
         });
@@ -6519,7 +6407,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 {id: 'policy3', role: CONST.POLICY.ROLE.ADMIN},
             ]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
         });
@@ -6531,10 +6419,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined, undefined);
         });
 
         it('should return true for single transaction when report is eligible for merge', () => {
@@ -6544,10 +6432,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(true);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined, undefined);
         });
 
         it('should return true for two eligible transactions', () => {
@@ -6570,7 +6458,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(true);
         });
@@ -6595,7 +6483,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
         });
@@ -6605,7 +6493,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [createMock<Report>({reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'nonexistent'})];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             // Should return true because when policy is not found, function doesn't prevent merging
             // (since we have 1 transaction, it will return true after the policy check)
@@ -6619,10 +6507,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(true);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined, undefined);
         });
 
         it('should return false for non-admin user with ineligible reports', () => {
@@ -6632,10 +6520,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined, undefined);
         });
 
         it('should return false when one of multiple reports is not eligible', () => {
@@ -6653,12 +6541,12 @@ describe('getSecondaryTransactionThreadActions', () => {
                 .mockReturnValueOnce(true) // First report eligible
                 .mockReturnValueOnce(false); // Second report not eligible
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledTimes(2);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(1, reports.at(0), true, undefined);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(2, reports.at(1), false, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(1, reports.at(0), true, undefined, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(2, reports.at(1), false, undefined, undefined);
         });
 
         describe('preventing merge for transactions belonging to different users', () => {
@@ -6681,7 +6569,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports: Report[] = [];
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
                 expect(result).toBe(true);
             });
@@ -6704,7 +6592,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 ]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(true);
             });
@@ -6727,7 +6615,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 ]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(false);
             });
@@ -6747,7 +6635,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(true);
             });
@@ -6767,7 +6655,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(true);
             });
@@ -6787,7 +6675,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1'}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, MANAGER_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, MANAGER_ACCOUNT_ID);
 
                 expect(result).toBe(false);
             });
@@ -6807,7 +6695,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, MANAGER_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, MANAGER_ACCOUNT_ID);
 
                 expect(result).toBe(false);
             });
