@@ -67,7 +67,7 @@ const useReportPDFDownloadModal = () => {
     })();
 
     // reportPDFFilename is null while the backend is still generating, so the modal reports a dismissal at that point
-    // as a cancel (e.g. Submit via PDF retracts the submit); once it holds a filename or 'error' the submit has resolved.
+    // as a cancel (e.g. Submit via PDF retracts the submit). Once it holds a filename or 'error' the submit has resolved.
     const {showFileDownloadModal} = useFileDownloadModal({
         id: REPORT_PDF_DOWNLOAD_MODAL_ID,
         title: translate('reportDetailsPage.generatingPDF'),
