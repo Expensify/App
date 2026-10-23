@@ -17,6 +17,7 @@ import type {Merge} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import reconcileScanTransactionThreads from './IOU/reconcileScanTransactionThreads';
 import {getCurrentFlushPromise, queueOnyxUpdates} from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
@@ -109,10 +110,13 @@ function applyScanResponse<TKey extends OnyxKey>(request: Request<TKey>, respons
         const {reportID, actualReportID, previewActionID, chatReportID} = replacement;
         // Pending-state cleanup must precede deletion, otherwise it can recreate the obsolete preview/report.
         updates.push(
+            ...reconcileScanTransactionThreads(reportID, actualReportID, response.onyxData ?? []),
             {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, value: {[previewActionID]: null}},
             {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, value: null},
             {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, value: null},
-            {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: null},
+            // SET removes every optimistic report field. Only the replacement reference survives a reload;
+            // without reportID/type/parent fields this is not a report or a second preview.
+            {onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: {preexistingReportID: actualReportID}},
         );
         redirectReplacedReport(reportID, actualReportID);
     }

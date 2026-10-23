@@ -2,7 +2,6 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isRecord} from '@libs/ObjectUtils';
 
 import replaceReportIDInPath from './replaceReportIDInPath';
-import {registerReportReplacement, resolveReplacementReportID} from './reportReplacementMapping';
 
 type ReportRouteState = {
     key?: string;
@@ -34,13 +33,12 @@ function redirectRoutes(state: ReportRouteState, fromReportID: string, toReportI
 
 /** Remap every report route, including details and the screen underneath, before deleting an optimistic report. */
 function redirectReplacedReport(fromReportID: string, toReportID: string) {
-    registerReportReplacement(fromReportID, toReportID);
     if (!navigationRef.isReady() || fromReportID === toReportID) {
         return;
     }
     const state = navigationRef.getRootState();
     if (state) {
-        redirectRoutes(state, fromReportID, resolveReplacementReportID(toReportID));
+        redirectRoutes(state, fromReportID, toReportID);
     }
 }
 

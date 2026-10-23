@@ -214,10 +214,31 @@ describe('OnyxUpdatesTest', () => {
         const actualReportID = '300';
         const transactionID = '400';
         const previewActionID = '500';
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, {reportID: optimisticReportID});
+        const threadID = '600';
+        const iouActionID = '700';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            parentReportID: chatReportID,
+            parentReportActionID: previewActionID,
+        });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
             [previewActionID]: {reportActionID: previewActionID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`, {
+            [iouActionID]: {
+                reportActionID: iouActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: threadID,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: transactionID},
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadID}`, {
+            reportID: threadID,
+            parentReportID: optimisticReportID,
+            parentReportActionID: iouActionID,
+        });
+        await waitForBatchedUpdates();
 
         // When the successful scan response arrives before the remaining uploads finish
         await OnyxUpdates.apply({
@@ -243,7 +264,8 @@ describe('OnyxUpdatesTest', () => {
 
         // Then the receipt has moved and cleanup is already complete, without flushing the write queue
         expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`))?.reportID).toBe(actualReportID);
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`)).toBeFalsy();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${threadID}`)).toMatchObject({parentReportID: actualReportID, parentReportActionID: iouActionID});
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`)).toEqual({preexistingReportID: actualReportID});
         expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`))?.[previewActionID]).toBeFalsy();
         expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(20);
 
@@ -251,6 +273,7 @@ describe('OnyxUpdatesTest', () => {
         await flushQueue();
         await waitForBatchedUpdates();
         expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`))?.[previewActionID]).toBeFalsy();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`)).toEqual({preexistingReportID: actualReportID});
     });
 
     it('settles an old scan replacement without reverting newer live receipt state', async () => {
@@ -288,7 +311,7 @@ describe('OnyxUpdatesTest', () => {
         await waitForBatchedUpdates();
 
         // Then replacement cleanup completes but the receipt and update watermark never move backwards
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`)).toBeFalsy();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`)).toEqual({preexistingReportID: actualReportID});
         expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`))?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE);
         expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(30);
     });

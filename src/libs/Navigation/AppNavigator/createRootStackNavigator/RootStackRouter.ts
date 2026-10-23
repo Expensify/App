@@ -2,7 +2,6 @@ import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
-import remapReplacedReportIDs from '@libs/Navigation/helpers/remapReplacedReportIDs';
 import {getTabScreenParam} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 
@@ -192,7 +191,7 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, rawAction: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
-            const action = removeStalePreMountsFromResetAction(remapReplacedReportIDs(rawAction));
+            const action = removeStalePreMountsFromResetAction(rawAction);
 
             // Evaluate navigation guards FIRST
             const guardState = handleNavigationGuards(state, action, configOptions, stackRouter);
