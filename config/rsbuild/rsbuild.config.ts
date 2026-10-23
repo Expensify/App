@@ -17,6 +17,8 @@ import {API_PROXY_PATHS, API_PROXY_PORT} from '../../web/cloudflare-worker/src/d
 // eslint-disable-next-line import/no-relative-packages
 import NONCE_PLACEHOLDER from '../../web/cloudflare-worker/src/noncePlaceholder.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import getDevServerSettings from './getDevServerSettings.ts';
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import getCommonConfiguration from './rsbuild.common.ts';
 
 const filename = fileURLToPath(import.meta.url);
@@ -55,9 +57,7 @@ export default defineConfig(async ({command}) => {
         };
     }
 
-    const isWorkerEnabled = process.env.USE_CLOUDFLARE_WORKER === 'true';
-    const publicPort = process.env.WEB_PORT ? Number(process.env.WEB_PORT) : await portfinder.getPortPromise({port: BASE_PORT});
-    const port = isWorkerEnabled ? Number(process.env.WEB_INTERNAL_PORT) : publicPort;
+    const {isWorkerEnabled, publicPort, port, strictPort, open} = await getDevServerSettings(process.env, () => portfinder.getPortPromise({port: BASE_PORT}));
     // Check if the USE_WEB_PROXY variable has been provided and rewrite any requests to the local proxy server
     const proxy = process.env.USE_WEB_PROXY === 'false' ? undefined : [{pathFilter: API_PROXY_PATHS, target: `http://[::1]:${API_PROXY_PORT}`}];
 
@@ -83,11 +83,9 @@ export default defineConfig(async ({command}) => {
         server: {
             proxy,
             port,
-            strictPort: !!process.env.WEB_PORT,
+            strictPort,
             host: isWorkerEnabled ? '127.0.0.1' : 'dev.new.expensify.com',
-            // Rsbuild's --open flag defaults to the first entry's route, e.g. "/main" for our "main" entry key,
-            // which 404s since the app has no route by that name. Open the actual app root instead.
-            open: process.env.WEB_PORT ? false : '/',
+            open,
             https: isWorkerEnabled
                 ? undefined
                 : {

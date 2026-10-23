@@ -9,6 +9,53 @@ import checkWebServer from './utils/checkWebServer';
 import {assertWebPortAvailable, getDevelopmentConnectOrigins, getWebDevFlags, getWebDevPorts} from './utils/webDevConfig';
 import waitForWebServer from './waitForWebServer';
 
+type WebCommandSettings = {
+    root: string;
+    isWorkerEnabled: boolean;
+    isProxyEnabled: boolean;
+    publicPort: number;
+    internalPort: number;
+    connectOrigins: string[];
+};
+
+/** Each child gets the settings it needs in its own env, so the launcher's environment stays as the user set it. */
+function getWebCommands({root, isWorkerEnabled, isProxyEnabled, publicPort, internalPort, connectOrigins}: WebCommandSettings) {
+    const workerDir = `${root}/web/cloudflare-worker`;
+    // concurrently accepts command strings, so escape its dynamic paths and JSON bindings.
+    return [
+        ...(isProxyEnabled ? [{name: 'api', command: 'npm run web-proxy', env: {USE_WEB_PROXY: 'true'}}] : []),
+        {
+            name: 'rsbuild',
+            command: 'node node_modules/@rsbuild/core/bin/rsbuild.js dev --config config/rsbuild/rsbuild.config.ts',
+            // WEB_LAUNCHER tells Rsbuild these settings came from this launcher, not from a user's .env.
+            env: {
+                WEB_LAUNCHER: 'true',
+                WEB_PORT: String(publicPort),
+                WEB_INTERNAL_PORT: String(internalPort),
+                USE_CLOUDFLARE_WORKER: String(isWorkerEnabled),
+                USE_WEB_PROXY: String(isProxyEnabled),
+            },
+        },
+        ...(isWorkerEnabled
+            ? [
+                  {
+                      name: 'worker',
+                      cwd: workerDir,
+                      command: [
+                          `bun ../../scripts/waitForWebServer.ts http://127.0.0.1:${internalPort}/ &&`,
+                          'node node_modules/wrangler/bin/wrangler.js dev --local --config wrangler.dev.jsonc',
+                          `--ip 127.0.0.1 --port ${publicPort} --inspector-port 0 --local-protocol https`,
+                          `--https-key-path ${$.escape(`${root}/config/rsbuild/key.pem`)}`,
+                          `--https-cert-path ${$.escape(`${root}/config/rsbuild/certificate.pem`)}`,
+                          `--var ${$.escape(`DEV_UPSTREAM:http://127.0.0.1:${internalPort}`)}`,
+                          `--var ${$.escape(`DEV_CONNECT_ORIGINS:${JSON.stringify(connectOrigins)}`)}`,
+                      ].join(' '),
+                  },
+              ]
+            : []),
+    ];
+}
+
 async function startWeb() {
     // Bun loads .env automatically, preserving explicit shell overrides.
     const {isWorkerEnabled, isProxyEnabled, shouldOpenBrowser} = getWebDevFlags(Bun.env);
@@ -28,34 +75,7 @@ async function startWeb() {
         throw new Error('Missing Worker dependencies. Run npm install to finish App setup.');
     }
     const origin = `https://dev.new.expensify.com:${publicPort}`;
-    Bun.env.WEB_PORT = String(publicPort);
-    Bun.env.WEB_INTERNAL_PORT = String(internalPort);
-    Bun.env.USE_CLOUDFLARE_WORKER = String(isWorkerEnabled);
-    Bun.env.USE_WEB_PROXY = String(isProxyEnabled);
-    const root = process.cwd();
-    const workerDir = `${root}/web/cloudflare-worker`;
-    // concurrently accepts command strings, so escape its dynamic paths and JSON bindings.
-    const commands = [
-        ...(isProxyEnabled ? [{name: 'api', command: 'npm run web-proxy'}] : []),
-        {name: 'rsbuild', command: 'node node_modules/@rsbuild/core/bin/rsbuild.js dev --config config/rsbuild/rsbuild.config.ts'},
-        ...(isWorkerEnabled
-            ? [
-                  {
-                      name: 'worker',
-                      cwd: workerDir,
-                      command: [
-                          `bun ../../scripts/waitForWebServer.ts http://127.0.0.1:${internalPort}/ &&`,
-                          'node node_modules/wrangler/bin/wrangler.js dev --local --config wrangler.dev.jsonc',
-                          `--ip 127.0.0.1 --port ${publicPort} --inspector-port 0 --local-protocol https`,
-                          `--https-key-path ${$.escape(`${root}/config/rsbuild/key.pem`)}`,
-                          `--https-cert-path ${$.escape(`${root}/config/rsbuild/certificate.pem`)}`,
-                          `--var ${$.escape(`DEV_UPSTREAM:http://127.0.0.1:${internalPort}`)}`,
-                          `--var ${$.escape(`DEV_CONNECT_ORIGINS:${JSON.stringify(getDevelopmentConnectOrigins(Bun.env))}`)}`,
-                      ].join(' '),
-                  },
-              ]
-            : []),
-    ];
+    const commands = getWebCommands({root: process.cwd(), isWorkerEnabled, isProxyEnabled, publicPort, internalPort, connectOrigins: getDevelopmentConnectOrigins(Bun.env)});
     const controller = new AbortController();
     const {commands: children, result} = concurrently(commands, {killOthersOn: ['success', 'failure'], killTimeout: 3000});
     const stop = () => {
@@ -96,7 +116,11 @@ async function startWeb() {
     }
 }
 
-startWeb().catch((error: unknown) => {
-    console.error(error);
-    process.exitCode = 1;
-});
+if (import.meta.main) {
+    startWeb().catch((error: unknown) => {
+        console.error(error);
+        process.exitCode = 1;
+    });
+}
+
+export default getWebCommands;
