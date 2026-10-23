@@ -204,7 +204,7 @@ describe('IssueNewCard AssigneeStep', () => {
 
         // When the admin picks the same cardholder again
         act(() => {
-            mockedSelectionList.mock.lastCall?.[0]?.onSelectRow?.({login: 'user07@example.com', accountID: 7});
+            mockedSelectionList.mock.lastCall?.[0]?.onSelectRow?.({keyForList: 'user07@example.com', login: 'user07@example.com', accountID: 7});
         });
 
         // Then the address and phone number check are kept
@@ -213,7 +213,7 @@ describe('IssueNewCard AssigneeStep', () => {
 
         // When the admin picks a different cardholder
         act(() => {
-            mockedSelectionList.mock.lastCall?.[0]?.onSelectRow?.({login: 'user03@example.com', accountID: 3});
+            mockedSelectionList.mock.lastCall?.[0]?.onSelectRow?.({keyForList: 'user03@example.com', login: 'user03@example.com', accountID: 3});
         });
 
         // Then the address and phone number check, which were for user07, are cleared
@@ -243,7 +243,7 @@ describe('IssueNewCard AssigneeStep', () => {
 
         // When the admin picks someone who isn't a member yet
         act(() => {
-            mockedSelectionList.mock.lastCall?.[0]?.onSelectRow?.({login: 'new@example.com', accountID: 99});
+            mockedSelectionList.mock.lastCall?.[0]?.onSelectRow?.({keyForList: 'new@example.com', login: 'new@example.com', accountID: 99});
         });
 
         // Then the address and phone number check stay, since cancelling the invite keeps user07 as the cardholder
