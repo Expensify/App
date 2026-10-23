@@ -760,7 +760,7 @@ export default defineConfig({
                 'typescript/non-nullable-type-assertion-style': 'error',
                 'typescript/prefer-for-of': 'error',
                 'typescript/prefer-function-type': 'error',
-                'typescript/prefer-nullish-coalescing': ['error', {ignoreIfStatements: true, ignorePrimitives: {}, ignoreTernaryTests: true}],
+                'typescript/prefer-nullish-coalescing': ['error', {ignoreIfStatements: true, ignorePrimitives: true, ignoreTernaryTests: true}],
                 'typescript/prefer-string-starts-ends-with': 'error',
                 'no-implied-eval': 'off',
                 'no-new-func': 'off',
