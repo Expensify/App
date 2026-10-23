@@ -6,6 +6,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
 import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
@@ -54,7 +55,7 @@ function AmountInput({ref, baseFilterKey, modifier, value, label, autoFocus}: Am
     const styles = useThemeStyles();
     const initialValue = getAmountFilterInputValue(value);
     const [amount, setAmount] = useState(initialValue.amount);
-    const [currency, setCurrency] = useState(initialValue.currency);
+    const {currency, setCurrency} = useAmountFilterCurrency(baseFilterKey, value);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const inputRef = useRef<BaseTextInputRef>(null);
 
@@ -101,8 +102,8 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
     const initialLessThan = getAmountFilterInputValue(lessThanValue);
     const [greaterThanAmount, setGreaterThanAmount] = useState(initialGreaterThan.amount);
     const [lessThanAmount, setLessThanAmount] = useState(initialLessThan.amount);
-    const [greaterThanCurrency, setGreaterThanCurrency] = useState(initialGreaterThan.currency);
-    const [lessThanCurrency, setLessThanCurrency] = useState(initialLessThan.currency);
+    const {currency: greaterThanCurrency, setCurrency: setGreaterThanCurrency} = useAmountFilterCurrency(baseFilterKey, greaterThanValue);
+    const {currency: lessThanCurrency, setCurrency: setLessThanCurrency} = useAmountFilterCurrency(baseFilterKey, lessThanValue);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const inputRef = useRef<BaseTextInputRef>(null);
 

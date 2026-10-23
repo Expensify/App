@@ -2,6 +2,7 @@ import MenuItem from '@components/MenuItem';
 import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterInput';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 
+import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -38,7 +39,7 @@ function AmountInput({title, value, name, baseFilterKey, onSave, onBackButtonPre
     const styles = useThemeStyles();
     const initialValue = getAmountFilterInputValue(value);
     const [amount, setAmount] = useState(initialValue.amount);
-    const [currency, setCurrency] = useState(initialValue.currency);
+    const {currency, setCurrency} = useAmountFilterCurrency(baseFilterKey, value);
 
     return (
         <BasePopup
