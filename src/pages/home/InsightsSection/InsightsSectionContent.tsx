@@ -104,7 +104,7 @@ function InsightsSectionContent() {
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
                         shouldShowRunningTotal={showRunningTotal}
                         shouldShowSinglePointAsBar={isInsightsPageEnabled}
-                        shouldShowGroupLabels={!isInsightsPageEnabled}
+                        shouldUseResponsiveLabels
                         shouldDrillDownOnPress={!isInsightsPageEnabled}
                     />
                 </View>

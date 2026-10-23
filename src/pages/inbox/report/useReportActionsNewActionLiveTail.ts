@@ -54,6 +54,7 @@ type UseReportActionsNewActionLiveTailParams = {
     treatAsNoPaginationAnchor: boolean;
     prevIsLoadingInitialReportActions: boolean | undefined;
     reportLoadingState: RAMOnlyReportLoadingState;
+    fullPolicySnapshot?: OpenReportActionParams['fullPolicySnapshot'];
 };
 
 type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune';
@@ -85,6 +86,7 @@ function useReportActionsNewActionLiveTail({
     treatAsNoPaginationAnchor,
     prevIsLoadingInitialReportActions,
     reportLoadingState,
+    fullPolicySnapshot,
 }: UseReportActionsNewActionLiveTailParams) {
     const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isInSidePanel = useIsInSidePanel();
@@ -119,6 +121,7 @@ function useReportActionsNewActionLiveTail({
                             currentUserAccountID,
                             isSelfTourViewed,
                             hasCompletedGuidedSetupFlow,
+                            fullPolicySnapshot,
                         });
                     }
                     return;

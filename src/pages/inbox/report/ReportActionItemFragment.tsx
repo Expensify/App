@@ -122,6 +122,7 @@ function ReportActionItemFragment({
                         html={fragment?.html ?? ''}
                         addExtraMargin={!displayAsGroup}
                         styleAsDeleted={!!(isOffline && isPendingDelete)}
+                        isEdited={!!fragment?.isEdited}
                     />
                 );
             }

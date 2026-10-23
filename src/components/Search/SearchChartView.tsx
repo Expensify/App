@@ -47,6 +47,9 @@ type SearchChartViewProps = {
     /** Whether a bar chart labels its bars and a donut chart shows its legend. Line chart labels always show. */
     shouldShowGroupLabels?: boolean;
 
+    /** Whether labels adapt to a constrained width: bar labels wrap to two centered lines and the donut legend uses the responsive side-by-side/stacked layout. Used by the Home widget. */
+    shouldUseResponsiveLabels?: boolean;
+
     /** Whether pressing a bar, point or slice opens Search filtered to it */
     shouldDrillDownOnPress?: boolean;
 
@@ -77,6 +80,7 @@ function SearchChartView({
     data,
     isLoading,
     shouldShowGroupLabels = true,
+    shouldUseResponsiveLabels = false,
     shouldDrillDownOnPress = true,
     shouldShowSinglePointAsBar = false,
     comparison,
@@ -159,6 +163,7 @@ function SearchChartView({
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
                 shouldShowLabels={shouldShowGroupLabels}
+                shouldWrapLabels={shouldUseResponsiveLabels}
             />
         ),
         [CONST.SEARCH.VIEW.LINE]:
@@ -191,6 +196,7 @@ function SearchChartView({
                 valueUnit={unit.value}
                 valueUnitPosition={unitPosition}
                 shouldShowLegend={shouldShowGroupLabels}
+                shouldUseResponsiveLegend={shouldUseResponsiveLabels}
             />
         ),
     };
