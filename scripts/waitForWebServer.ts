@@ -1,5 +1,8 @@
-/** Gate dependent dev processes on an HTTP response, not a listening socket or a compiler log message. */
-async function waitForWebServer(origin: string, signal: AbortSignal, {timeout = 180_000, interval = 250} = {}): Promise<void> {
+/**
+ * Gate dependent dev processes on an HTTP response, not a listening socket or a compiler log message. There is no default
+ * deadline, because a failure here stops the session, and concurrently already stops this gate if Rsbuild exits.
+ */
+async function waitForWebServer(origin: string, signal: AbortSignal, {timeout = Infinity, interval = 250} = {}): Promise<void> {
     const deadline = Date.now() + timeout;
     while (!signal.aborted && Date.now() < deadline) {
         try {

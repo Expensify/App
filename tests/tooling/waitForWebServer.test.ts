@@ -1,5 +1,5 @@
 /** Startup dependencies should wait for usable HTTP responses and stop cleanly on failure or cancellation. */
-import {describe, expect, test} from 'bun:test';
+import {describe, expect, setSystemTime, test} from 'bun:test';
 
 import waitForWebServer from '../../scripts/waitForWebServer';
 
@@ -14,6 +14,30 @@ describe('Rsbuild startup gate', () => {
             // Then it returns only after a successful response
             expect(requests).toBe(3);
         } finally {
+            await server.stop(true);
+        }
+    });
+
+    test('waits through a slow first compile by default rather than stopping the session', async () => {
+        // Given an upstream whose first compile outlasts any fixed startup deadline
+        let requests = 0;
+        const server = Bun.serve({
+            port: 0,
+            hostname: '127.0.0.1',
+            fetch: () => {
+                if (++requests === 2) {
+                    setSystemTime(new Date(Date.now() + 10 * 60_000));
+                }
+                return new Response('compiling', {status: requests < 4 ? 503 : 200});
+            },
+        });
+        try {
+            // When the gate waits with its default settings
+            await waitForWebServer(server.url.href, new AbortController().signal, {interval: 5});
+            // Then it starts the Worker once Rsbuild responds
+            expect(requests).toBe(4);
+        } finally {
+            setSystemTime();
             await server.stop(true);
         }
     });

@@ -2,7 +2,7 @@
 import {$} from 'bun';
 import concurrently from 'concurrently';
 
-import checkWebServer from './utils/checkWebServer';
+import waitForPublicWebServer from './utils/waitForPublicWebServer';
 import {assertWebPortAvailable, getDevelopmentConnectOrigins, getWebDevFlags, getWebDevPorts} from './utils/webDevConfig';
 
 async function startWeb() {
@@ -61,29 +61,20 @@ async function startWeb() {
     process.once('SIGTERM', stop);
     // Verify the browser-facing listener and certificate, not just the internal compiler's listener.
     const readiness = (async () => {
-        const deadline = Date.now() + 180_000;
-        while (!controller.signal.aborted) {
-            try {
-                const isReady = await checkWebServer(origin, isWorkerEnabled, controller.signal);
-                if (isReady) {
-                    console.log(`Web app ready at ${origin}/ (${isWorkerEnabled ? 'Cloudflare Worker' : 'direct Rsbuild'})`);
-                    if (shouldOpenBrowser && !controller.signal.aborted) {
-                        const browserCommands: Partial<Record<NodeJS.Platform, string>> = {darwin: 'open', win32: 'cmd'};
-                        const command = browserCommands[process.platform] ?? 'xdg-open';
-                        const args = process.platform === 'win32' ? ['/c', 'start', '', `${origin}/`] : [`${origin}/`];
-                        $`${command} ${args}`.quiet().catch((error: unknown) => {
-                            console.error(`Open ${origin}/ in your browser:`, error);
-                        });
-                    }
-                    return;
-                }
-            } catch {
-                // The dev server can be between starting its listener and completing its first compilation.
-            }
-            if (Date.now() > deadline) {
-                throw new Error(`Timed out waiting for ${origin}. Check the dev server output.`);
-            }
-            await Bun.sleep(250);
+        const isReady = await waitForPublicWebServer(origin, isWorkerEnabled, controller.signal, {
+            onSlow: () => console.warn(`Still waiting for ${origin}/. Check the dev server output. If it compiled, check that its certificate is trusted (npm run setup-https).`),
+        });
+        if (!isReady) {
+            return;
+        }
+        console.log(`Web app ready at ${origin}/ (${isWorkerEnabled ? 'Cloudflare Worker' : 'direct Rsbuild'})`);
+        if (shouldOpenBrowser) {
+            const browserCommands: Partial<Record<NodeJS.Platform, string>> = {darwin: 'open', win32: 'cmd'};
+            const command = browserCommands[process.platform] ?? 'xdg-open';
+            const args = process.platform === 'win32' ? ['/c', 'start', '', `${origin}/`] : [`${origin}/`];
+            $`${command} ${args}`.quiet().catch((error: unknown) => {
+                console.error(`Open ${origin}/ in your browser:`, error);
+            });
         }
     })();
     try {
