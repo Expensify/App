@@ -1,3 +1,5 @@
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {ScreenLayoutProps} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
@@ -40,7 +42,10 @@ const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout 
 
 function TabNavigator() {
     const {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
-    const [isTabBarVertical, setIsTabBarVertical] = useState(false);
+    const {left: windowLeftInset, right: windowRightInset} = useSafeAreaInsets();
+    // A guess until TabBarShapeProbe measures the bar: a column sits in a side inset of its own, while a notched phone in
+    // landscape has the same inset on both sides and keeps its bar along the bottom.
+    const [isTabBarVertical, setIsTabBarVertical] = useState(() => windowLeftInset !== windowRightInset);
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, isAccountAvatarShown, dotColors, tabLabels});
     const renderTabScreenLayout = (props: ScreenLayoutProps) => (
         <>
