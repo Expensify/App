@@ -86,7 +86,7 @@ describe('live development worker', () => {
                 '--var',
                 `DEV_UPSTREAM:http://127.0.0.1:${address.port}`,
                 '--var',
-                'DEV_CONNECT_ORIGINS:["https://www.expensify.com.dev"]',
+                'DEV_CONNECT_ORIGINS:["https://www.expensify.com.dev","http://backend.test:8080"]',
             ],
             {cwd: path.resolve(import.meta.dirname, '..'), env: {...process.env, WRANGLER_SEND_METRICS: 'false'}},
         );
@@ -152,6 +152,23 @@ describe('live development worker', () => {
         assert.ok(csp.includes(origin.replace('http:', 'ws:')));
         assert.ok(csp.includes('https://www.expensify.com.dev'));
         assert.doesNotMatch(csp, /script-src[^;]*'unsafe-inline'|connect-src \*/);
+    });
+
+    test('allows local backends to serve videos and the OldDot statement iframe', async () => {
+        // Given proxied attachments, the default local OldDot and a configured backend
+        // When the Worker serves a page
+        const csp = (await server.fetch('/')).headers.get('Content-Security-Policy') ?? '';
+        const getSources = (directive: string) => new RegExp(`(?:^|; )${directive} ([^;]*)`).exec(csp)?.[1].split(' ') ?? [];
+        // Then videos load from the app origin and every local backend, which can also be framed
+        for (const source of ["'self'", 'https://www.expensify.com.dev', 'http://backend.test:8080']) {
+            assert.ok(getSources('media-src').includes(source), `media-src is missing ${source}`);
+        }
+        for (const source of ['https://www.expensify.com.dev', 'http://backend.test:8080']) {
+            assert.ok(getSources('frame-src').includes(source), `frame-src is missing ${source}`);
+        }
+        // And the HMR WebSocket stays a connect-only source
+        const hmrOrigin = origin.replace('http:', 'ws:');
+        assert.ok(!getSources('media-src').includes(hmrOrigin) && !getSources('frame-src').includes(hmrOrigin));
     });
 
     test('does not apply immutable caching to live bundles or mistake missing files for the shell', async () => {
@@ -226,8 +243,8 @@ describe('live development worker', () => {
             writeFileSync(
                 entryPath,
                 entry.replace(
-                    'setSecurityHeaders(headers, env.ENVIRONMENT, nonce, connectSrcHosts);',
-                    'setSecurityHeaders(headers, env.ENVIRONMENT, nonce, connectSrcHosts); headers.set("X-Reload-Proof", "entry");',
+                    'setSecurityHeaders(headers, env.ENVIRONMENT, nonce, developmentOrigins);',
+                    'setSecurityHeaders(headers, env.ENVIRONMENT, nonce, developmentOrigins); headers.set("X-Reload-Proof", "entry");',
                 ),
             );
             await waitForResponse((response) => response.headers.get('X-Reload-Proof') === 'entry');

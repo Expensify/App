@@ -6,7 +6,20 @@ type CSPOptions = {
     frameSrcHosts?: string[];
     scriptSrcHashes?: string[];
     connectSrcHosts?: string[];
+    mediaSrcHosts?: string[];
 };
+
+/** Origins only the live development Worker allows, beyond what the deployed CSP does. */
+type DevelopmentOrigins = {
+    /** The public Worker origin as a WebSocket origin, for Rsbuild HMR. */
+    hmrOrigin: string;
+
+    /** Local backends from `.env`, which serve API responses, attachments, and OldDot pages. */
+    backendOrigins: string[];
+};
+
+/** The default local OldDot backend, which the app calls, plays videos from, and frames (e.g. wallet statements). */
+const DEFAULT_DEVELOPMENT_BACKEND_ORIGINS = ['https://www.expensify.com.dev', 'https://secure.expensify.com.dev'];
 
 /** Inline scripts allowed without a nonce. Tests check that every such script in `web/index.html` is listed. */
 const INLINE_SCRIPT_HASHES = [
@@ -18,7 +31,7 @@ const INLINE_SCRIPT_HASHES = [
     'sha256-ZC4Ihfl+1sv3E25DQh090ITQKwffxiocyA9C1vaePKU=',
 ];
 
-function buildCSP({fontSrcHosts = [], frameSrcHosts = [], scriptSrcHashes = [], connectSrcHosts = []}: CSPOptions): string {
+function buildCSP({fontSrcHosts = [], frameSrcHosts = [], scriptSrcHashes = [], connectSrcHosts = [], mediaSrcHosts = []}: CSPOptions): string {
     const csp: Record<string, string[]> = {
         'default-src': ["'self'", 'https://assets.onfido.com'],
         'script-src': [
@@ -149,7 +162,7 @@ function buildCSP({fontSrcHosts = [], frameSrcHosts = [], scriptSrcHashes = [], 
         ],
         'worker-src': ["'self'", 'blob:'],
         'child-src': ["'self'", 'blob:'],
-        'media-src': ['blob:', 'https://assets.onfido.com', 'https://d2k5nsl2zxldvw.cloudfront.net', 'https://staging.expensify.com', 'https://www.expensify.com'],
+        'media-src': [...mediaSrcHosts, 'blob:', 'https://assets.onfido.com', 'https://d2k5nsl2zxldvw.cloudfront.net', 'https://staging.expensify.com', 'https://www.expensify.com'],
     };
 
     return Object.entries(csp)
@@ -169,16 +182,21 @@ const PRODUCTION_CSP = buildCSP({
     scriptSrcHashes: INLINE_SCRIPT_HASHES,
 });
 
-function getCSP(environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, connectSrcHosts: string[] = []): string {
+function getCSP(environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, developmentOrigins?: DevelopmentOrigins): string {
     let csp = environment === 'staging' ? STAGING_CSP : PRODUCTION_CSP;
     if (environment === 'development') {
+        const backendOrigins = [...new Set([...DEFAULT_DEVELOPMENT_BACKEND_ORIGINS, ...(developmentOrigins?.backendOrigins ?? [])])];
         csp = buildCSP({
             fontSrcHosts: ["'self'"],
+            frameSrcHosts: backendOrigins,
             scriptSrcHashes: INLINE_SCRIPT_HASHES,
-            connectSrcHosts: ['https://www.expensify.com.dev', 'https://secure.expensify.com.dev', 'http://localhost:9000', ...connectSrcHosts],
+            connectSrcHosts: [...backendOrigins, 'http://localhost:9000', ...(developmentOrigins ? [developmentOrigins.hmrOrigin] : [])],
+            // 'self' covers attachments the Rsbuild proxy serves from the app origin.
+            mediaSrcHosts: ["'self'", ...backendOrigins],
         });
     }
     return csp.replace(NONCE_PLACEHOLDER, `nonce-${nonce}`);
 }
 
 export {NONCE_PLACEHOLDER, getCSP};
+export type {DevelopmentOrigins};

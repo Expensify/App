@@ -1,3 +1,5 @@
+import type {DevelopmentOrigins} from './csp';
+
 import {getCSP, NONCE_PLACEHOLDER} from './csp';
 import {fetchDevelopmentResponse, isAPIRequest} from './fetchDevelopmentResponse';
 
@@ -85,9 +87,9 @@ function buildAssetRequest(request: Request, url: URL, pathSuffix = ''): Request
     return assetRequest;
 }
 
-function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, connectSrcHosts: string[] = []) {
+function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, developmentOrigins?: DevelopmentOrigins) {
     headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    headers.set('Content-Security-Policy', getCSP(environment, nonce, connectSrcHosts));
+    headers.set('Content-Security-Policy', getCSP(environment, nonce, developmentOrigins));
     headers.set('X-Frame-Options', 'SAMEORIGIN');
     headers.set('X-Content-Type-Options', 'nosniff');
     headers.set('Referrer-Policy', 'origin-when-cross-origin');
@@ -193,13 +195,13 @@ export default {
         const isPrecompressed = !isDevelopment && PRECOMPRESSED_PATH.test(url.pathname);
         // Cloudflare presents every request with `Accept-Encoding: br, gzip` and decodes the twin for clients without Brotli.
         let served: ServedFile;
-        let connectSrcHosts: string[] = [];
+        let developmentOrigins: DevelopmentOrigins | undefined;
         if (isDevelopment) {
             const assetResponse = await fetchDevelopmentResponse(request, env);
             if (assetResponse.status === 101 || isAPIRequest(url.pathname)) {
                 return assetResponse;
             }
-            connectSrcHosts = [url.origin.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:'), ...(JSON.parse(env.DEV_CONNECT_ORIGINS) as string[])];
+            developmentOrigins = {hmrOrigin: url.origin.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:'), backendOrigins: JSON.parse(env.DEV_CONNECT_ORIGINS) as string[]};
             served = {response: assetResponse, isBrotli: false};
         } else {
             served = await getAsset(env, request, url, isPrecompressed);
@@ -212,7 +214,7 @@ export default {
             if (!previousBuildFile) {
                 await served.response.body?.cancel();
                 const notFound = new Response('Not Found', {status: 404, headers: {'Content-Type': 'text/plain; charset=utf-8'}});
-                setSecurityHeaders(notFound.headers, env.ENVIRONMENT, nonce, connectSrcHosts);
+                setSecurityHeaders(notFound.headers, env.ENVIRONMENT, nonce, developmentOrigins);
                 return notFound;
             }
             await served.response.body?.cancel();
@@ -221,7 +223,7 @@ export default {
 
         const {response: file, isBrotli} = served;
         const headers = new Headers(file.headers);
-        setSecurityHeaders(headers, env.ENVIRONMENT, nonce, connectSrcHosts);
+        setSecurityHeaders(headers, env.ENVIRONMENT, nonce, developmentOrigins);
 
         if (isAASAPath) {
             headers.set('Content-Type', 'application/json');
