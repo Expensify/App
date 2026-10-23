@@ -8,6 +8,7 @@ type CaptureReceiptOptions = {
     isPlatformMuted: boolean | undefined;
     path: string;
     isInLandscapeMode: boolean;
+    isTorchOn?: boolean;
     onWillCapturePhoto?: () => void;
 };
 
