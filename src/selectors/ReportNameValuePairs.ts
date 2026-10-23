@@ -3,6 +3,8 @@ import type {ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {createOnyxSelector} from 'react-native-onyx';
+
 type AgentZeroProcessingIndicator = NonNullable<ReportNameValuePairs['agentZeroProcessingRequestIndicator']>;
 
 /** The slice of a report's name-value pairs needed to determine whether the report is archived. */
@@ -13,7 +15,7 @@ type ReportNameValuePairsArchivedState = Pick<ReportNameValuePairs, 'private_isA
  * archived state (e.g. to feed `markAllMessagesAsRead`) can subscribe through this selector so they don't
  * re-render whenever unrelated NVP fields (agent-zero indicators, calendly calls, etc.) change.
  */
-function reportNameValuePairsArchivedSelector(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): OnyxCollection<ReportNameValuePairsArchivedState> {
+const reportNameValuePairsArchivedSelector = createOnyxSelector((reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): OnyxCollection<ReportNameValuePairsArchivedState> => {
     if (!reportNameValuePairs) {
         return reportNameValuePairs;
     }
@@ -21,7 +23,7 @@ function reportNameValuePairsArchivedSelector(reportNameValuePairs: OnyxCollecti
         acc[key] = value ? {private_isArchived: value.private_isArchived} : value;
         return acc;
     }, {});
-}
+});
 
 function isAgentZeroProcessingIndicatorMap(indicator: AgentZeroProcessingIndicator): indicator is Record<string, string | null> {
     return typeof indicator === 'object' && indicator !== null && !Array.isArray(indicator);
