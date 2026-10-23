@@ -216,7 +216,7 @@ index 8e3db51..e66d406 100644
      const [renderId, setRenderId] = React.useState(0);
      const containerLayout = getChildContainerLayout();
      const fixedContainerSize = horizontal
-@@ -72,9 +136,160 @@ export const ViewHolderCollection = (props) => {
+@@ -72,9 +136,171 @@ export const ViewHolderCollection = (props) => {
      //     return `${index} => ${reactKey}`;
      //   })
      // );
@@ -232,6 +232,8 @@ index 8e3db51..e66d406 100644
 +    // re-rendering between `mousedown` and `click` (which makes the browser
 +    // drop the click).
 +    const lastInputModalityRef = useRef("pointer");
++    // Held for the whole drag. A sort that reorders row nodes mid-drag makes Chrome drop the highlight.
++    const isPointerDownRef = useRef(false);
 +    const [, bumpSortVersion] = useReducer((x) => x + 1, 0);
 +    const sortItems = useCallback(() => {
 +        const entries = renderEntriesRef.current;
@@ -243,7 +245,8 @@ index 8e3db51..e66d406 100644
 +        entries.sort(([, a], [, b]) => direction * (a.index - b.index));
 +        bumpSortVersion();
 +    }, [inverted]);
-+    const [schedulePendingSort, clearPendingSort] = useDeferredCallback(sortItems, SORT_DELAY_MS, isScrolling);
++    const shouldDeferSort = useCallback(() => isScrolling() || isPointerDownRef.current, [isScrolling]);
++    const [schedulePendingSort, clearPendingSort] = useDeferredCallback(sortItems, SORT_DELAY_MS, shouldDeferSort);
 +    const maybeDoSortOnFocus = useCallback(() => {
 +        clearPendingSort();
 +        if (isScrollingProgrammatically()) {
@@ -364,12 +367,20 @@ index 8e3db51..e66d406 100644
 +        };
 +        const onDocPointerDown = () => {
 +            lastInputModalityRef.current = "pointer";
++            isPointerDownRef.current = true;
++        };
++        const onDocPointerUp = () => {
++            isPointerDownRef.current = false;
 +        };
 +        document.addEventListener("keydown", onDocKeyDown, true);
 +        document.addEventListener("pointerdown", onDocPointerDown, true);
++        document.addEventListener("pointerup", onDocPointerUp, true);
++        document.addEventListener("pointercancel", onDocPointerUp, true);
 +        return () => {
 +            document.removeEventListener("keydown", onDocKeyDown, true);
 +            document.removeEventListener("pointerdown", onDocPointerDown, true);
++            document.removeEventListener("pointerup", onDocPointerUp, true);
++            document.removeEventListener("pointercancel", onDocPointerUp, true);
 +        };
 +    }, []);
 +    return (React.createElement(CompatView, { ref: containerRef, style: hasData && containerStyle }, containerLayout &&
