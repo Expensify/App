@@ -39,7 +39,6 @@ function CopyTextToClipboard({
     const icons = useMemoizedLazyExpensifyIcons(['Copy']);
 
     const copyToClipboard = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
         Clipboard.setString(urlToCopy || text || '');
     }, [text, urlToCopy]);
 

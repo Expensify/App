@@ -7,11 +7,20 @@ import type {CreateTrackExpenseParams} from '@userActions/IOU/types/CreateTrackE
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ReceiptRetryContext} from './types';
 
-import {buildRetryTransactionParams, isRetryableFlow, resolveParticipant} from './buildRetryPayload';
+import {buildRetryTransactionParams, isRetryableFlow, parseRetryParams, resolveParticipant} from './buildRetryPayload';
+
+function getRetryWhisperReportActionID(receiptError: ReceiptError): string | undefined {
+    const parsed = parseRetryParams(receiptError.retryParams);
+    if (!parsed || typeof parsed !== 'object' || !('actionableWhisperReportActionID' in parsed) || typeof parsed.actionableWhisperReportActionID !== 'string') {
+        return undefined;
+    }
+    return parsed.actionableWhisperReportActionID;
+}
 
 function canBuildTrackExpenseRetryPayload(context: ReceiptRetryContext): boolean {
     const {transaction, iouReport, receiptError, currentUserPersonalDetails} = context;
@@ -63,6 +72,7 @@ function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile
         currentReportActionID: iouActionID,
         existingTransactionThreadReportID: transactionThreadReportID,
         existingTransactionThreadCreatedReportActionID: Object.values(getAllReportActions(transactionThreadReportID)).find((action) => isCreatedAction(action))?.reportActionID,
+        existingActionableWhisperReportActionID: getRetryWhisperReportActionID(context.receiptError),
         existingTransaction: transaction,
         isASAPSubmitBetaEnabled,
         currentUser: {
