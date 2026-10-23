@@ -10,6 +10,7 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -96,6 +97,9 @@ type PopoverMenuItem = MenuItemProps & {
     shouldShowLoadingSpinnerIcon?: boolean;
 
     shouldCloseModalOnSelect?: boolean;
+
+    /** Tooltip shown on hover over the whole row, e.g. to explain why a toggle is locked */
+    switchTooltipText?: string;
 
     /** Whether selecting this item should avoid restoring focus to the popover before a follow-up modal opens on iOS */
     shouldSkipFocusRestore?: boolean;
@@ -596,6 +600,7 @@ function BasePopoverMenu({
             shouldShowLoadingSpinnerIcon,
             badgeText,
             addSeparatorBefore,
+            switchTooltipText,
             ...menuItemProps
         } = item;
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
@@ -603,56 +608,69 @@ function BasePopoverMenu({
         const reactKey = shouldIgnoreKeyForRendering ? `${item.text}_${menuIndex}` : (key ?? `${item.text}_${menuIndex}`);
         // In radio-button mode, suppress visual focus highlight until the user starts keyboard navigation.
         const isVisuallyFocused = focusedIndex === menuIndex && (!isRadioButtonMode || hasKeyBeenPressed);
+        const menuItemWithFeedback = (
+            <OfflineWithFeedback
+                pendingAction={item.pendingAction}
+                errors={item.errors}
+                onClose={item.onCloseError}
+                errorRowStyles={styles.ph5}
+            >
+                <FocusableMenuItem
+                    key={reactKey}
+                    pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
+                    title={text}
+                    onPress={(event) => selectItem(menuIndex, event)}
+                    focused={isVisuallyFocused}
+                    shouldSyncFocus={!isSearchInputFocused}
+                    shouldCheckActionAllowedOnPress={false}
+                    iconRight={item.rightIcon}
+                    shouldShowRightIcon={!!item.rightIcon}
+                    brickRoadIndicator={item.brickRoadIndicator}
+                    onFocus={() => {
+                        if (!shouldUpdateFocusedIndex) {
+                            return;
+                        }
+                        setFocusedIndex(menuIndex);
+                    }}
+                    badgeText={badgeText}
+                    badgeStyle={StyleSheet.flatten(badgeStyle)}
+                    wrapperStyle={[
+                        StyleUtils.getItemBackgroundColorStyle(
+                            !isRadioButtonMode && !!item.isSelected,
+                            isVisuallyFocused,
+                            item.disabled ?? false,
+                            theme.activeComponentBG,
+                            theme.hoverComponentBG,
+                        ),
+                        shouldUseScrollView && (!isSearchEnabled || menuIndex !== 0) && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
+                    ]}
+                    shouldRemoveHoverBackground={item.isSelected}
+                    titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
+                    icon={icon}
+                    role={CONST.ROLE.BUTTON}
+                    // Spread other props dynamically
+                    {...menuItemProps}
+                    shouldShowRadioButton={isRadioButtonMode}
+                    hasSubMenuItems={!!subMenuItems?.length}
+                    shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+                />
+            </OfflineWithFeedback>
+        );
         const renderedMenuItem = (
             <>
                 {/* Compact popovers need tighter divider spacing than full-page sections. */}
                 {addSeparatorBefore === true && menuIndex > 0 && <View style={[styles.sectionDividerLine, styles.mh4, styles.mv2]} />}
-                <OfflineWithFeedback
-                    pendingAction={item.pendingAction}
-                    errors={item.errors}
-                    onClose={item.onCloseError}
-                    errorRowStyles={styles.ph5}
-                >
-                    <FocusableMenuItem
-                        key={reactKey}
-                        pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
-                        title={text}
-                        onPress={(event) => selectItem(menuIndex, event)}
-                        focused={isVisuallyFocused}
-                        shouldSyncFocus={!isSearchInputFocused}
-                        shouldCheckActionAllowedOnPress={false}
-                        iconRight={item.rightIcon}
-                        shouldShowRightIcon={!!item.rightIcon}
-                        brickRoadIndicator={item.brickRoadIndicator}
-                        onFocus={() => {
-                            if (!shouldUpdateFocusedIndex) {
-                                return;
-                            }
-                            setFocusedIndex(menuIndex);
-                        }}
-                        badgeText={badgeText}
-                        badgeStyle={StyleSheet.flatten(badgeStyle)}
-                        wrapperStyle={[
-                            StyleUtils.getItemBackgroundColorStyle(
-                                !isRadioButtonMode && !!item.isSelected,
-                                isVisuallyFocused,
-                                item.disabled ?? false,
-                                theme.activeComponentBG,
-                                theme.hoverComponentBG,
-                            ),
-                            shouldUseScrollView && (!isSearchEnabled || menuIndex !== 0) && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
-                        ]}
-                        shouldRemoveHoverBackground={item.isSelected}
-                        titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
-                        icon={icon}
-                        role={CONST.ROLE.BUTTON}
-                        // Spread other props dynamically
-                        {...menuItemProps}
-                        shouldShowRadioButton={isRadioButtonMode}
-                        hasSubMenuItems={!!subMenuItems?.length}
-                        shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
-                    />
-                </OfflineWithFeedback>
+                {/* A tooltip (e.g. to explain why a toggle is locked) wraps the whole row so it shows on hover anywhere on the row. The View gives the tooltip a child that forwards a ref to measure. */}
+                {switchTooltipText ? (
+                    <Tooltip
+                        text={switchTooltipText}
+                        shouldTeleportPortalToModalLayer
+                    >
+                        <View>{menuItemWithFeedback}</View>
+                    </Tooltip>
+                ) : (
+                    menuItemWithFeedback
+                )}
             </>
         );
         if (!isSearchEnabled) {
