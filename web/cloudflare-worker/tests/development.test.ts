@@ -228,6 +228,11 @@ describe('live development worker', () => {
         const cspPath = path.join(tempDir, 'src/csp.ts');
         const entry = readFileSync(entryPath, 'utf8');
         const csp = readFileSync(cspPath, 'utf8');
+        // A missing target would otherwise leave the source unchanged, and fail later as a misleading reload timeout.
+        const replaceOnce = (source: string, target: string, replacement: string) => {
+            assert.ok(source.includes(target), `Reload test target is missing from the Worker source: ${target}`);
+            return source.replace(target, replacement);
+        };
         const waitForResponse = async (matches: (response: Response) => boolean) => {
             const deadline = Date.now() + 5000;
             while (Date.now() < deadline) {
@@ -244,13 +249,10 @@ describe('live development worker', () => {
             // When the entry point and an imported module change, without restarting Wrangler
             writeFileSync(
                 entryPath,
-                entry.replace(
-                    'setSecurityHeaders(headers, env.ENVIRONMENT, nonce, developmentOrigins);',
-                    'setSecurityHeaders(headers, env.ENVIRONMENT, nonce, developmentOrigins); headers.set("X-Reload-Proof", "entry");',
-                ),
+                replaceOnce(entry, "headers.set('X-Content-Type-Options', 'nosniff');", "headers.set('X-Content-Type-Options', 'nosniff'); headers.set('X-Reload-Proof', 'entry');"),
             );
             await waitForResponse((response) => response.headers.get('X-Reload-Proof') === 'entry');
-            writeFileSync(cspPath, csp.replace("'http://localhost:9000'", "'http://localhost:9000', 'https://module-reload.invalid'"));
+            writeFileSync(cspPath, replaceOnce(csp, "'worker-src': [", "'worker-src': ['https://module-reload.invalid', "));
             // Then both changes are served on subsequent requests, including the new CSP
             await waitForResponse((response) => response.headers.get('Content-Security-Policy')?.includes('https://module-reload.invalid') ?? false);
         } finally {
