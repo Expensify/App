@@ -44,6 +44,7 @@ import {
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDeletedOfficeLocationMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getHumanAgentAccountIDFromReportAction,
     getHumanAgentFirstName,
@@ -1431,6 +1432,55 @@ describe('ReportActionsUtils', () => {
 
             // When the whisper targets somebody else, it is invisible and the older comment wins
             expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID + 1)?.reportActionID).toBe(comment.reportActionID);
+        });
+    });
+
+    describe('getLastVisibleMessage', () => {
+        const REPORT_ID = '90301';
+        const WHISPER_TARGET_ACCOUNT_ID = 111;
+
+        const comment: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
+            created: '2026-12-01 10:00:00.000',
+            reportActionID: 'visibleMessageComment',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            originalMessage: {html: 'Older comment'},
+        };
+
+        /** Newer than `comment`, and only the whispered-to account can see it. */
+        const whisper: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
+            created: '2026-12-01 12:00:00.000',
+            reportActionID: 'visibleMessageWhisper',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+            originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+        });
+
+        it('should take the message from the whisper when the user is the one it targets', () => {
+            // Given a report whose newest action is a whisper aimed at the user
+            // When the last visible message is resolved for that user
+            const result = ReportActionsUtils.getLastVisibleMessage(REPORT_ID, true, {}, undefined, undefined, WHISPER_TARGET_ACCOUNT_ID);
+
+            // Then the whisper supplies the message
+            expect(result.lastMessageText).toBe('changed the amount');
+        });
+
+        it('should skip the whisper and fall back to the older comment when it targets somebody else', () => {
+            // Given the same report, seen by an account the whisper does not target
+            // When the last visible message is resolved for that account
+            const result = ReportActionsUtils.getLastVisibleMessage(REPORT_ID, true, {}, undefined, undefined, WHISPER_TARGET_ACCOUNT_ID + 1);
+
+            // Then the whisper is invisible and the older comment supplies the message
+            expect(result.lastMessageText).toBe('Older comment');
         });
     });
 
@@ -5228,6 +5278,41 @@ describe('ReportActionsUtils', () => {
             // When the change log is rendered
             // Then it reads the same as the message Auth stores for it
             expect(getDeletedOfficeLocationMessage(translateLocal, action)).toBe('removed the office location "New Jersey Office"');
+        });
+
+        it.each([
+            [
+                'an office assigned to a member who followed the primary office',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+                `changed Bob Smith's office location to "New Jersey Office" (previously the primary office)`,
+            ],
+            [
+                'a member moved from the company address to an office',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: 'OFFICE1', officeName: 'Headquarters', oldOfficeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, oldOfficeName: ''},
+                `changed Bob Smith's office location to "Headquarters" (previously the company address)`,
+            ],
+            [
+                'a cleared assignment',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: '', officeName: '', oldOfficeID: 'OFFICE1', oldOfficeName: 'Headquarters'},
+                `changed Bob Smith's office location to the primary office (previously "Headquarters")`,
+            ],
+            [
+                'a member without a name moved off an office that was removed since',
+                {email: 'bob@smith.com', officeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, officeName: '', oldOfficeID: 'OFFICE9', oldOfficeName: ''},
+                `changed bob@smith.com's office location to the company address (previously the primary office)`,
+            ],
+        ])('describes %s', (_description, originalMessage, expected) => {
+            // Given a member whose office assignment changed
+            const action: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {accountID: 1, ...originalMessage},
+            };
+
+            // When the change log is rendered
+            // Then it reads the same as the message Auth stores for it
+            expect(getUpdatedEmployeeOfficeLocationMessage(translateLocal, action)).toBe(expected);
         });
     });
 
