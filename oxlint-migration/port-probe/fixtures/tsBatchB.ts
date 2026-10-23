@@ -148,9 +148,21 @@ export function negateNumber(): number {
     return -plainNumber;
 }
 
-// prefer-nullish-coalescing with production's ignoreIfStatements/ignoreTernaryTests
+// prefer-nullish-coalescing with production's options: ignoreIfStatements, ignoreTernaryTests and
+// ignorePrimitives: true (Expensify/App#104537). It only reports `||` when the left side can never be '', 0 or false.
 declare const maybeLabel: string | undefined;
+declare const maybeShape: ConfigShape | undefined;
+declare const maybeCallback: (() => void) | undefined;
+declare const maybeCount: number | undefined;
+declare const maybeFlag: boolean | undefined;
+export const shapeOr = maybeShape || configValue;
+export const callbackOr = maybeCallback || typedCallback;
+// control: a string can be '', so `||` and `??` do not mean the same thing here.
 export const labelOr = maybeLabel || 'fallback';
+// control: a number can be 0.
+export const countOr = maybeCount || 1;
+// control: a boolean can be false.
+export const flagOr = maybeFlag || true;
 // control: the operator the rule asks for.
 export const labelNullish = maybeLabel ?? 'fallback';
 // control: ternary tests are ignored by the production option.

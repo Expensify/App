@@ -63,7 +63,7 @@ export default [
             '@typescript-eslint/prefer-for-of': 'error',
             '@typescript-eslint/prefer-function-type': 'error',
             '@typescript-eslint/prefer-namespace-keyword': 'error',
-            '@typescript-eslint/prefer-nullish-coalescing': ['error', {ignoreIfStatements: true, ignorePrimitives: {}, ignoreTernaryTests: true}],
+            '@typescript-eslint/prefer-nullish-coalescing': ['error', {ignoreIfStatements: true, ignorePrimitives: true, ignoreTernaryTests: true}],
             '@typescript-eslint/prefer-string-starts-ends-with': 'error',
             '@typescript-eslint/restrict-plus-operands': 'error',
             '@typescript-eslint/restrict-template-expressions': 'error',

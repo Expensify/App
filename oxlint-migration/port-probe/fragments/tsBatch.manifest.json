@@ -286,8 +286,8 @@
     "@typescript-eslint/prefer-nullish-coalescing": {
         "fixture": "fixtures/tsBatchB.ts",
         "oxlintRule": "typescript/prefer-nullish-coalescing",
-        "expected": 1,
-        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; production's ignorePrimitives:{} means string || still reports; ??, the ignored ternary, and the ignored if are controls"
+        "expected": 2,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch; with production's ignorePrimitives: true (Expensify/App#104537) only an object or a function on the left side reports; string, number and boolean left sides, ??, the ignored ternary and the ignored if are controls"
     },
     "@typescript-eslint/prefer-string-starts-ends-with": {
         "fixture": "fixtures/tsBatchA.ts",
