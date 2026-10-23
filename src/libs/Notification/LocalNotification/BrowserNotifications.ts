@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList, Report, ReportAction} from '@src/types/onyx';
+import type {Message} from '@src/types/onyx/ReportAction';
 
 import type {ImageSourcePropType} from 'react-native';
 
@@ -167,14 +168,9 @@ export default {
                 plainTextMessage = translate(IntlStore.getCurrentLocale(), 'iou.paidElsewhere', undefined, originalMessage?.message?.trim());
             } else {
                 const rawMessage = reportAction.message;
-                let messages: NonNullable<typeof rawMessage>[];
-                if (Array.isArray(rawMessage)) {
-                    messages = rawMessage;
-                } else {
-                    messages = rawMessage ? [rawMessage] : [];
-                }
+                const messages: Message[] = Array.isArray(rawMessage) ? rawMessage.filter((m): m is Message => m !== undefined) : [];
                 plainTextMessage = messages
-                    .filter((m): m is NonNullable<typeof m> => m?.style === 'normal')
+                    .filter((m) => m.style === 'normal')
                     .map((m) => m.text ?? '')
                     .join(' ')
                     .trim();
