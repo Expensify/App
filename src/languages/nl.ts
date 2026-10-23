@@ -12167,5 +12167,24 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         mobileClaimPrompt: 'Bezoek Expensify in je webbrowser om je verlengingskorting te claimen.',
     },
     bulkActionBar: {label: 'Bulkacties', clearSelection: 'Selectie wissen', loadingSelection: 'Selectie laden'},
+    reportHistoryPage: {
+        title: 'Rapportgeschiedenis',
+        created: 'rapport gemaakt',
+        submitted: 'ingediend',
+        approved: 'goedgekeurd',
+        paid: 'betaald',
+        toSubmit: 'indienen',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'automatisch indienen';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `automatisch in te dienen op de ${eta} van elke maand` : `om automatisch in te dienen ${eta}`;
+        },
+        toApprove: 'goedkeuren',
+        toPay: 'betalen',
+        minutesAgo: (count: number) => `${count}m geleden`,
+        hoursAgo: (count: number) => `${count} uur geleden`,
+        daysAgo: (count: number) => `${count}d geleden`,
+    },
 };
 export default translations;

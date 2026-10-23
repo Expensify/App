@@ -12509,5 +12509,24 @@ ${reportName}`,
         mobileClaimPrompt: 'Visita Expensify en tu navegador web para obtener tu descuento de renovación.',
     },
     bulkActionBar: {label: 'Acciones en bloque', clearSelection: 'Borrar selección', loadingSelection: 'Cargando selección'},
+    reportHistoryPage: {
+        title: 'Historial del informe',
+        created: 'creó el informe',
+        submitted: 'enviado',
+        approved: 'aprobado',
+        paid: 'pagado',
+        toSubmit: 'enviar',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'para enviar automáticamente';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `para enviar automáticamente el ${eta} de cada mes` : `para enviar automáticamente ${eta}`;
+        },
+        toApprove: 'aprobar',
+        toPay: 'pagar',
+        minutesAgo: (count: number) => `hace ${count} min`,
+        hoursAgo: (count: number) => `hace ${count} h`,
+        daysAgo: (count: number) => `hace ${count}d`,
+    },
 };
 export default translations;

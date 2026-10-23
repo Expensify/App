@@ -12487,5 +12487,24 @@ ${reportName}`,
         mobileClaimPrompt: 'Επισκεφθείτε το Expensify στον φυλλομετρητή σας για να διεκδικήσετε την έκπτωση ανανέωσης.',
     },
     bulkActionBar: {label: 'Μαζικές ενέργειες', clearSelection: 'Καθαρισμός επιλογής', loadingSelection: 'Φόρτωση επιλογής'},
+    reportHistoryPage: {
+        title: 'Ιστορικό αναφοράς',
+        created: 'δημιούργησε αναφορά',
+        submitted: 'υποβλήθηκε',
+        approved: 'εγκρίθηκε',
+        paid: 'πληρωμένο',
+        toSubmit: 'να υποβάλετε',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'για αυτόματη υποβολή';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `να υποβάλλεται αυτόματα στις ${eta} κάθε μήνα` : `για αυτόματη υποβολή ${eta}`;
+        },
+        toApprove: 'να εγκρίνετε',
+        toPay: 'να πληρώσετε',
+        minutesAgo: (count: number) => `${count}λ πριν`,
+        hoursAgo: (count: number) => `πριν από ${count} ώρες`,
+        daysAgo: (count: number) => `πριν από ${count}ημ.`,
+    },
 };
 export default translations;

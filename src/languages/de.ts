@@ -12248,5 +12248,24 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         mobileClaimPrompt: 'Besuchen Sie Expensify in Ihrem Webbrowser, um Ihren Verlängerungsrabatt zu erhalten.',
     },
     bulkActionBar: {label: 'Sammelaktionen', clearSelection: 'Auswahl aufheben', loadingSelection: 'Auswahl wird geladen'},
+    reportHistoryPage: {
+        title: 'Verlaufsbericht',
+        created: 'Bericht erstellt',
+        submitted: 'eingereicht',
+        approved: 'genehmigt',
+        paid: 'bezahlt',
+        toSubmit: 'senden',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'automatisch einreichen';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `um automatisch am ${eta} eines jeden Monats einzureichen` : `um ${eta} automatisch einzureichen`;
+        },
+        toApprove: 'genehmigen',
+        toPay: 'bezahlen',
+        minutesAgo: (count: number) => `vor ${count} Min.`,
+        hoursAgo: (count: number) => `vor ${count} Std.`,
+        daysAgo: (count: number) => `vor ${count} Tagen`,
+    },
 };
 export default translations;
