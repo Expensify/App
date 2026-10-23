@@ -12270,6 +12270,90 @@ const translations = {
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
     },
+    bulkAction: {
+        approvingTitle: 'Approving reports...',
+        submittingTitle: 'Submitting reports...',
+        payingTitle: 'Marking reports as paid...',
+        holdingTitle: 'Holding expenses...',
+        unholdingTitle: 'Unholding expenses...',
+        rejectingTitle: 'Rejecting expenses...',
+        deletingTitle: 'Deleting reports...',
+        deletingExpensesTitle: 'Deleting expenses...',
+        runningBody: "Wait a few minutes, or Concierge can message you when it's done.",
+        sendFromConcierge: "Message me when it's done",
+        conciergeTitle: 'You bet!',
+        conciergeBody: "Concierge will message you when it's done.",
+        goToConcierge: 'Go to Concierge',
+        approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Approved ${doneCount} of ${count} report`,
+            other: `Approved ${doneCount} of ${count} reports`,
+        }),
+        submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Submitted ${doneCount} of ${count} report`,
+            other: `Submitted ${doneCount} of ${count} reports`,
+        }),
+        paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Marked ${doneCount} of ${count} report as paid`,
+            other: `Marked ${doneCount} of ${count} reports as paid`,
+        }),
+        heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Held expenses on ${doneCount} of ${count} report`,
+            other: `Held expenses on ${doneCount} of ${count} reports`,
+        }),
+        unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Unheld expenses on ${doneCount} of ${count} report`,
+            other: `Unheld expenses on ${doneCount} of ${count} reports`,
+        }),
+        rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Rejected expenses on ${doneCount} of ${count} report`,
+            other: `Rejected expenses on ${doneCount} of ${count} reports`,
+        }),
+        deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Deleted ${doneCount} of ${count} report`,
+            other: `Deleted ${doneCount} of ${count} reports`,
+        }),
+        deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Deleted expenses on ${doneCount} of ${count} report`,
+            other: `Deleted expenses on ${doneCount} of ${count} reports`,
+        }),
+        noReportsTitle: 'No matching reports',
+        noReportsBody: 'None of the reports you selected needed this action.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be approved.",
+            other: `${count} reports couldn't be approved.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be submitted.",
+            other: `${count} reports couldn't be submitted.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be paid.",
+            other: `${count} reports couldn't be paid.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: "Expenses on 1 report couldn't be held.",
+            other: `Expenses on ${count} reports couldn't be held.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: "Expenses on 1 report couldn't be unheld.",
+            other: `Expenses on ${count} reports couldn't be unheld.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: "Expenses on 1 report couldn't be rejected.",
+            other: `Expenses on ${count} reports couldn't be rejected.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be deleted.",
+            other: `${count} reports couldn't be deleted.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: "Expenses on 1 report couldn't be deleted.",
+            other: `Expenses on ${count} reports couldn't be deleted.`,
+        }),
+        viewFailedReports: 'View reports',
+        failedTitle: 'Something went wrong',
+        failedBody: 'This action could not be started. Please try again later.',
+    },
     domain: {
         notVerified: 'Not verified',
         retry: 'Retry',
