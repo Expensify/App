@@ -35,7 +35,7 @@ const restrictedImportPaths = [
         // core rule accepts allowTypeImports instead.
         name: 'react-native-onyx/dist/OnyxUtils',
         message:
-            'OnyxUtils is not a sanctioned way to read Onyx data. Use useOnyx() from @hooks/useOnyx in render paths, or a short-lived Onyx.connectWithoutView for non-render logic. Type-only imports are still allowed.',
+            'OnyxUtils is not a sanctioned way to read Onyx data. Use useOnyx() from @hooks/useOnyx in render paths, or a short-lived Onyx connection without a view for non-render logic. Type-only imports are still allowed.',
         allowTypeImports: true,
     },
     {name: 'awesome-phonenumber', importNames: ['parsePhoneNumber'], message: "Please use '@libs/PhoneNumber' instead."},
