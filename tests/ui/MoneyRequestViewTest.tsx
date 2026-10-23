@@ -11,7 +11,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
 import type {StyleProp, TextStyle} from 'react-native';
@@ -389,8 +389,7 @@ describe('MoneyRequestView edit fields', () => {
         expect(screen.queryByTestId('menu-item-Location')).not.toBeOnTheScreen();
     });
 
-    it("shows another user's full unreported expense tag in a single row instead of the viewer's own workspace tag lists", async () => {
-        // Given an unreported self-DM expense with a three-level tag that was created by another user
+    const renderOtherUsersUnreportedExpenseWithTag = async (transactionOverrides: Partial<Transaction> = {}) => {
         const selfDMReportID = 'self_dm_mrv_tags';
         const otherUserAccountID = 20;
         const threadReport = {
@@ -425,9 +424,10 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 tag: 'Engineering:Berlin:Floor 2',
+                ...transactionOverrides,
             });
 
-            // And the viewer's own default workspace has a single, unrelated tag list
+            // The viewer's own default workspace has a single, unrelated tag list
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {areTagsEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
@@ -436,7 +436,6 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // When the viewer opens the expense
         render(
             <ComposeProviders components={[OnyxListItemProvider]}>
                 <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
@@ -450,6 +449,12 @@ describe('MoneyRequestView edit fields', () => {
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();
+    };
+
+    it("shows another user's full unreported expense tag in a single row instead of the viewer's own workspace tag lists", async () => {
+        // Given an unreported self-DM expense with a three-level tag that was created by another user
+        // When the viewer opens the expense
+        await renderOtherUsersUnreportedExpenseWithTag();
 
         // Then a single generic tag row shows every level of the expense's tag, since the viewer can't see the owner's tag list names
         await waitFor(() => {
@@ -457,6 +462,18 @@ describe('MoneyRequestView edit fields', () => {
         });
         expect(screen.getByText('Engineering, Berlin, Floor 2')).toBeOnTheScreen();
         expect(screen.queryByTestId('menu-item-Tag')).not.toBeOnTheScreen();
+    });
+
+    it("keeps the full tag row read-only when a domain admin views another user's unreported managed card expense", async () => {
+        // Given another user's unreported managed card expense, which a domain admin is allowed to edit
+        // When the domain admin opens the expense
+        await renderOtherUsersUnreportedExpenseWithTag({managedCard: true});
+
+        // Then the full tag row can't be pressed, because editing it would use the admin's own unrelated tag lists and could clear the owner's tag
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-common.tag')).toHaveTextContent('readonly');
+        });
+        expect(screen.getByText('Engineering, Berlin, Floor 2')).toBeOnTheScreen();
     });
 
     it('should show tax fields when tax tracking is disabled but transaction has tax data', async () => {
