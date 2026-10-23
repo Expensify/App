@@ -95,8 +95,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress,
                 <>
                     <MenuItemWithTopDescription
                         description={translate('cardPage.cardDetails.address')}
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        title={getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
+                        title={getFormattedAddress(privatePersonalDetails ?? defaultPrivatePersonalDetails)}
                         interactive={false}
                         copyable
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}

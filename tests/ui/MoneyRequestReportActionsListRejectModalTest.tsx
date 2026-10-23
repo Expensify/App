@@ -1,7 +1,9 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import type FeatureTrainingComponent from '@components/FeatureTraining';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,11 +13,15 @@ import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import type * as InFlightRequests from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import {ActionListContextProvider} from '@pages/inbox/ActionListContext';
 import type * as ReportActionIndexContexts from '@pages/inbox/report/ReportActionIndexContext';
+import type ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 
@@ -84,6 +90,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getDeepestFocusedScreen: jest.fn(() => undefined),
+    isTopmostRouteModalScreen: jest.fn(() => false),
     setParams: jest.fn(),
 }));
 
@@ -130,15 +137,16 @@ jest.mock('@components/MoneyRequestReportView/SearchMoneyRequestReportEmptyState
     return () => <View testID="MockSearchMoneyRequestReportEmptyState" />;
 });
 
-jest.mock('@components/HoldOrRejectEducationalModal', () => {
+// The content mock skips the illustrations but keeps the real confirm button, so the flow test still renders the real
+// FeatureTrainingModal tree on the global modal stack
+jest.mock('@components/HoldOrRejectEducationalModalContent', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    return (props: {onConfirm: () => void}) => (
+    const {default: FeatureTraining} = jest.requireActual<{default: typeof FeatureTrainingComponent}>('@components/FeatureTraining');
+    const {translateLocal: translate} = jest.requireActual<typeof TestHelper>('../utils/TestHelper');
+    return () => (
         <View testID="HoldOrRejectEducationalModal">
-            <View
-                testID="HoldOrRejectEducationalModal-confirm"
-                onTouchEnd={props.onConfirm}
-            />
+            <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
         </View>
     );
 });
@@ -285,7 +293,7 @@ const mockCommentReportAction: ReportAction = {
 
 const renderComponent = () => {
     return render(
-        <ComposeProviders components={[ActionListContextProvider, OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[ActionListContextProvider, OnyxListItemProvider, LocaleContextProvider, ModalProvider]}>
             <SearchContextProvider>
                 <ScreenWrapper testID="test">
                     <MoneyRequestReportActionsList />
@@ -373,6 +381,34 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         expect(mockOriginalRejectOnSelected).not.toHaveBeenCalled();
     });
 
+    it('should open bulk reject once the reject educational modal is confirmed', async () => {
+        // Given a user who has not dismissed the reject explanation yet
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION]: false,
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        // When they pick reject, which opens the educational modal on the global modal stack, and then confirm it
+        fireEvent.press(screen.getByTestId(`dropdown-option-${CONST.REPORT.SECONDARY_ACTIONS.REJECT}`));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.buttonConfirm')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the modal leaves the stack and the bulk reject flow opens
+        expect(screen.queryByTestId('HoldOrRejectEducationalModal')).toBeNull();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: FAKE_REPORT_ID}));
+    });
+
     it('should NOT show reject educational modal when explanation HAS been dismissed', async () => {
         await act(async () => {
             await Onyx.multiSet({
@@ -450,6 +486,61 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         expect(screen.getByTestId('MockSearchMoneyRequestReportEmptyState')).toBeTruthy();
         expect(screen.queryByTestId('MockMoneyRequestReportTransactionList')).toBeNull();
         expect(screen.queryByTestId('MockInitialReportActionsSkeleton')).toBeNull();
+    });
+
+    describe('feedback prompt under custom agent replies', () => {
+        const AGENT_ACCOUNT_ID = 99001;
+        const mockReportActionsListItemRenderer = jest.requireMock<jest.Mock<null, [React.ComponentProps<typeof ReportActionsListItemRenderer>]>>(
+            '@pages/inbox/report/ReportActionsListItemRenderer',
+        );
+        const agentReply: ReportAction = {
+            ...mockCommentReportAction,
+            reportActionID: 'AGENT_REPLY_001',
+            created: '2025-01-03 00:00:00',
+            actorAccountID: AGENT_ACCOUNT_ID,
+            message: [{type: 'COMMENT', html: 'Everything looks in order.', text: 'Everything looks in order.'}],
+            person: [{type: 'TEXT', style: 'strong', text: 'Receipt Checker'}],
+        };
+
+        const renderWithAgentReply = async (currentUserAccountID: number) => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {
+                        [mockReportAction.reportActionID]: mockReportAction,
+                        [agentReply.reportActionID]: agentReply,
+                    },
+                    [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[AGENT_ACCOUNT_ID]: {accountID: AGENT_ACCOUNT_ID, isCustomAgent: true}},
+                    [ONYXKEYS.SESSION]: {accountID: currentUserAccountID, email: FAKE_EMAIL} as Session,
+                });
+            });
+
+            renderComponent();
+            await waitForBatchedUpdatesWithAct();
+
+            return mockReportActionsListItemRenderer.mock.calls.findLast(([props]) => props.reportAction.reportActionID === agentReply.reportActionID)?.at(0);
+        };
+
+        it('marks the newest reply of a custom agent as the feedback target', async () => {
+            // Given an expense report where a custom agent replied last
+            // When the report opens for the expense owner
+            const agentReplyProps = await renderWithAgentReply(FAKE_ACCOUNT_ID);
+
+            // Then the agent's reply shows the feedback prompt, the same as a Concierge reply would
+            expect(agentReplyProps?.isLatestConciergeFeedbackAction).toBe(true);
+        });
+
+        it('does not ask the agent to rate its own reply when the agent account is open through Copilot', async () => {
+            // Given the same report, opened while signed in as the agent
+            // When the list renders
+            const agentReplyProps = await renderWithAgentReply(AGENT_ACCOUNT_ID);
+
+            // Then the agent's own reply shows no prompt, because an author cannot give feedback to itself
+            expect(agentReplyProps?.isLatestConciergeFeedbackAction).toBe(false);
+        });
     });
 
     it('shows cached empty behavior for an offline queued report load', async () => {

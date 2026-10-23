@@ -99,6 +99,30 @@ describe('MenuItem accessibility', () => {
         expect(await screen.findByLabelText(`${ROW_LABEL}. ${REVIEW_REQUIRED}`)).toBeOnTheScreen();
     });
 
+    it('reads an error line with the row name when asked, since the row hides the line from screen readers on native', async () => {
+        // Given a row with an error line under it, which asks to be read with the row's name
+        const error = 'Choose a country';
+        render(
+            <LocaleContextProvider>
+                <MenuItem.Root>
+                    <MenuItem.Row>
+                        <MenuItem.Content>
+                            <MenuItem.FieldName>{NAME}</MenuItem.FieldName>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                    <MenuItem.HelpText
+                        isError
+                        message={error}
+                        shouldReadErrorWithLabel
+                    />
+                </MenuItem.Root>
+            </LocaleContextProvider>,
+        );
+
+        // Then the error follows the name, so the user hears what is wrong when they reach the row
+        expect(await screen.findByLabelText(`${NAME}. ${error}`)).toBeOnTheScreen();
+    });
+
     describe('re-renders', () => {
         it('does not re-render the leaves when Root picks up their registrations', async () => {
             // Given a leaf-like probe that reads the accessibility context, in a row that derives its label

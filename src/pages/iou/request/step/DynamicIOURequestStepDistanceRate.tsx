@@ -140,7 +140,7 @@ function DynamicIOURequestStepDistanceRate({
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
-    const sortedRates = [...Object.values(rates)].sort((a, b) => localeCompare(a.name ?? '', b.name ?? ''));
+    const sortedRates = [...Object.values(rates)].sort((a, b) => DistanceRequestUtils.compareRatesByDisplayName(a, b, localeCompare));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -164,7 +164,7 @@ function DynamicIOURequestStepDistanceRate({
         const dateLabel = DistanceRequestUtils.getRateDateLabel(rate, translate, dateFnsLocale);
         const alternateText = [rate.name ? rateForDisplay : '', dateLabel].filter(Boolean).join(' • ');
         return {
-            text: rate.name ?? rateForDisplay,
+            text: DistanceRequestUtils.getRateDisplayName(rate) ?? rateForDisplay,
             alternateText,
             keyForList: rate.customUnitRateID ?? rateForDisplay,
             value: rate.customUnitRateID,
