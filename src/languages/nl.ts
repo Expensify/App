@@ -139,6 +139,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Bezig met nadenken...',
         addCardTermsOfService: 'Expensify-servicevoorwaarden',
         perPerson: 'per persoon',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 nacht • ${nightlyRate} per nacht`,
+            other: `${count} nachten • ${nightlyRate} per nacht`,
+        }),
         phone: 'Telefoon',
         phoneNumber: 'Telefoonnummer',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -3976,6 +3980,7 @@ ${amount} voor ${merchant} - ${date}`,
             removeDelegate: 'Vertegenwoordiger tijdens vakantie verwijderen',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, voltooid`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Stap ${step}`;
         if (total) {
@@ -4081,11 +4086,14 @@ ${amount} voor ${merchant} - ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Voer een waarde in tussen ${min} en ${max}`,
             tooFewItems: ({min}: {min: number}) => `Voeg er minimaal ${min} toe`,
             tooManyItems: ({max}: {max: number}) => `Voeg er maximaal ${max} toe`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `${item} toevoegen`,
         removeItemTitle: ({item}: {item: string}) => `${item} verwijderen?`,
         removeItemPrompt: ({name}: {name: string}) => `Weet je zeker dat je ${name} wilt verwijderen?`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} eindigend op ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'De vragen op deze pagina zijn gewijzigd',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens lang zijn, met 6 letters gevolgd door 2 of 5 letters of cijfers.',
@@ -9264,6 +9272,35 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 label: 'Bedrijfskaartrekening',
                 description: 'Kies waarheen transacties met bedrijfspassen worden geëxporteerd.',
             },
+            exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
+            cardProgramAccount: {
+                label: 'Kaartprogramma-account',
+                description: 'Overschrijf de werkruimteaccount voor deze kaartprogramma’s.',
+                descriptionLevel2: 'Overschrijf de workspace-account voor dit kaartprogramma.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Alle programma’s gebruiken de standaardrekening';
+                    }
+                    return {
+                        one: `${count} programma met aangepaste rekening`,
+                        other: `${count} programma’s met aangepaste rekeningen`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Account per kaart',
+                description: 'Overschrijf de programmarekening voor individuele kaarten.',
+                descriptionLevel2: 'Overschrijf de programmarekening voor deze kaarten.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Alle kaarten gebruiken programmarekeningen';
+                    }
+                    return {
+                        one: `${count} kaart met aangepast account`,
+                        other: `${count} kaarten met aangepaste rekeningen`,
+                    };
+                },
+            },
             paymentMethod: {
                 label: 'Betalingswijze',
                 description: 'Kies een betalingswijze voor inkoopfacturen, zodat Dynamics 365 Business Central ze kan afstemmen met je bank.',
@@ -9563,6 +9600,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `heeft de frequentie van automatisch rapporteren gewijzigd naar ‘${newFrequency}’ (voorheen ‘${oldFrequency}’)`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `heeft de goedkeuringsmodus gewijzigd naar ‘${newValue}’ (voorheen ‘${oldValue}’)`,
+        archivedWorkspace: 'heeft deze workspace gearchiveerd',
+        unarchivedWorkspace: 'heeft deze werkruimte gearchiveerd',
         upgradedWorkspace: 'heeft deze workspace geüpgraded naar het Control-abonnement',
         forcedCorporateUpgrade: `Deze werkruimte is geüpgraded naar het Control-abonnement. Klik <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">hier</a> voor meer informatie.`,
         downgradedWorkspace: 'heeft deze workspace teruggezet naar het Collect-abonnement',
@@ -10434,6 +10473,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             topCategories: 'Topcategorieën',
             topMerchants: 'Topverkopers',
             violationsBySubmitter: 'Overtredingen door indiener',
+            travel: 'Reizen',
+            trips: 'Reizen',
         },
         mergeReports: {
             title: 'Rapporten samenvoegen',
@@ -11552,6 +11593,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} terugbetaald op ${date}`,
             },
             billedTo: 'Gefactureerd aan',
+            activity: 'Activiteit',
+            findActiveUser: 'Zoek een actieve gebruiker',
             viewReceipt: 'Bon bekijken',
             viewInvoice: 'Factuur bekijken',
         },

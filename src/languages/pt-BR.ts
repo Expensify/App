@@ -139,6 +139,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Pensando...',
         addCardTermsOfService: 'Termos de Serviço da Expensify',
         perPerson: 'por pessoa',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `${count} noite • ${nightlyRate} por noite`,
+            other: `${count} noites • ${nightlyRate} por noite`,
+        }),
         phone: 'Telefone',
         phoneNumber: 'Número de telefone',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -3963,6 +3967,7 @@ ${amount} para ${merchant} - ${date}`,
             removeDelegate: 'Remover delegado de férias',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, concluído`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Etapa ${step}`;
         if (total) {
@@ -4068,11 +4073,14 @@ ${amount} para ${merchant} - ${date}`,
             outOfRange: ({min, max}: {min: number; max: number}) => `Insira um valor entre ${min} e ${max}`,
             tooFewItems: ({min}: {min: number}) => `Adicione pelo menos ${min}`,
             tooManyItems: ({max}: {max: number}) => `Adicione no máximo ${max}`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `Adicionar ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Remover ${item}?`,
         removeItemPrompt: ({name}: {name: string}) => `Tem certeza de que deseja remover ${name}?`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} com final ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'As perguntas desta página mudaram',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'O SWIFT/BIC deve ter 8 ou 11 caracteres, com 6 letras seguidas de 2 ou 5 letras ou números.',
@@ -9264,6 +9272,35 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 label: 'Conta de cartão corporativo',
                 description: 'Escolha para onde exportar as transações de cartão corporativo.',
             },
+            exportToMultipleAccounts: 'Configurar exportação para várias contas',
+            cardProgramAccount: {
+                label: 'Conta do programa de cartão',
+                description: 'Substituir a conta do workspace para estes programas de cartão.',
+                descriptionLevel2: 'Substituir a conta do workspace para este programa de cartão.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Todos os programas usam a conta padrão';
+                    }
+                    return {
+                        one: `${count} programa com conta personalizada`,
+                        other: `${count} programas com contas personalizadas`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Conta por cartão',
+                description: 'Substitua a conta do programa para cartões individuais.',
+                descriptionLevel2: 'Substituir a conta do programa para estes cartões.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Todos os cartões usam contas do programa';
+                    }
+                    return {
+                        one: `${count} cartão com conta personalizada`,
+                        other: `${count} cartões com contas personalizadas`,
+                    };
+                },
+            },
             paymentMethod: {
                 label: 'Forma de pagamento',
                 description: 'Escolha uma forma de pagamento para as faturas de compra para que o Dynamics 365 Business Central possa conciliá-las com seu banco.',
@@ -9558,6 +9595,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `atualizou a frequência de preenchimento automático para "${newFrequency}" (antes "${oldFrequency}")`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `atualizou o modo de aprovação para "${newValue}" (antes "${oldValue}")`,
+        archivedWorkspace: 'arquivou este workspace',
+        unarchivedWorkspace: 'desarquivou este workspace',
         upgradedWorkspace: 'atualizou este workspace para o plano Control',
         forcedCorporateUpgrade: `Este workspace foi atualizado para o plano Control. Clique <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">aqui</a> para mais informações.`,
         downgradedWorkspace: 'rebaixou este espaço de trabalho para o plano Collect',
@@ -10425,6 +10464,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             topCategories: 'Principais categorias',
             topMerchants: 'Principais estabelecimentos',
             violationsBySubmitter: 'Violações por quem enviou',
+            travel: 'Viagem',
+            trips: 'Viagens',
         },
         mergeReports: {
             title: 'Mesclar relatórios',
@@ -11539,6 +11580,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} reembolsado em ${date}`,
             },
             billedTo: 'Cobrado de',
+            activity: 'Atividade',
+            findActiveUser: 'Encontrar um usuário ativo',
             viewReceipt: 'Ver recibo',
             viewInvoice: 'Ver fatura',
         },
