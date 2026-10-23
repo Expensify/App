@@ -64,6 +64,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                             <ListItemComposed.UserAvatar
                                 accountID={accountID}
                                 fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                                accountEmail={item.login ?? undefined}
                             />
                         ) : (
                             <ListItemComposed.ReportAvatar

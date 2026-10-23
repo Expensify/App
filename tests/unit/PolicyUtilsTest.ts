@@ -17,6 +17,8 @@ import {
     canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
+    canCreateExpensesOnPolicy,
+    canRoleCreateExpenses,
     canSendInvoice,
     canSendInvoiceFromWorkspace,
     canShowReimbursableToggleForPolicy,
@@ -82,6 +84,7 @@ import {
     findPolicyTagAtLevel,
     findPolicyTagEntryByParentFilter,
     getTagGLCode,
+    escapeTagName,
     hasAnyTagGLCode,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -143,6 +146,7 @@ import {
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {getApprovalChain, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1470,21 +1474,21 @@ describe('PolicyUtils', () => {
                 expect(hasReadOnlyAllReportsAccess(policy, memberLogin)).toBe(false);
             });
 
-            it('allows auditors to read every policy feature but write only rooms', () => {
+            it('allows auditors to read every policy feature but write only rooms and expense creation', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
 
                 for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
                     expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
-                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.ROOMS);
+                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.ROOMS || feature === CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES);
                 }
             });
 
-            it('allows guests to read only the workspace overview', () => {
+            it('allows guests to read only the workspace overview but create expenses', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.GUEST);
 
                 for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
-                    expect(canMemberRead(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.OVERVIEW);
-                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
+                    expect(canMemberRead(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.OVERVIEW || feature === CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES);
+                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES);
                 }
             });
 
@@ -1505,6 +1509,53 @@ describe('PolicyUtils', () => {
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PEOPLE_ADMIN)).toBe(false);
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
+            });
+
+            it('allows People Admins to assign the approve-only role', () => {
+                const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
+
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(true);
+            });
+
+            it('gives approve-only members read-only access like members', () => {
+                const policy = buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY);
+
+                expect(canMemberRead(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
+                expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(false);
+            });
+
+            it('allows creating expenses only for roles with create-expenses write access', () => {
+                expect(canRoleCreateExpenses(CONST.POLICY.ROLE.USER)).toBe(true);
+                expect(canRoleCreateExpenses(CONST.POLICY.ROLE.ADMIN)).toBe(true);
+                expect(canRoleCreateExpenses(CONST.POLICY.ROLE.AUDITOR)).toBe(true);
+                expect(canRoleCreateExpenses(CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+            });
+
+            it('blocks expense creation when the policy role cannot be resolved', () => {
+                expect(canCreateExpensesOnPolicy(createMock<Policy>({role: undefined}))).toBe(false);
+                expect(canCreateExpensesOnPolicy(undefined)).toBe(false);
+            });
+
+            it('resolves the member role from employeeList when the policy role is missing', () => {
+                const legacyPolicy = createMock<Policy>({
+                    employeeList: {
+                        [memberLogin]: {role: CONST.POLICY.ROLE.USER},
+                    },
+                });
+
+                expect(canCreateExpensesOnPolicy(legacyPolicy)).toBe(false);
+                expect(canCreateExpensesOnPolicy(legacyPolicy, memberLogin)).toBe(true);
+            });
+
+            it('resolves the target member role from employeeList even when policy.role belongs to another user', () => {
+                const policyWithDifferentViewerRole = createMock<Policy>({
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [memberLogin]: {role: CONST.POLICY.ROLE.APPROVE_ONLY},
+                    },
+                });
+
+                expect(canCreateExpensesOnPolicy(policyWithDifferentViewerRole, memberLogin)).toBe(false);
             });
 
             it('allows Guest assignment only on Control workspaces', () => {
@@ -1922,6 +1973,22 @@ describe('PolicyUtils', () => {
             const {result} = renderHook(() => useDefaultFundID(policy.id));
 
             expect(result?.current).toBe(123234);
+        });
+    });
+
+    describe('getGroupPoliciesWhereReportCanBeCreated', () => {
+        it('excludes workspaces where the current user is approve-only', () => {
+            const approveOnlyPolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.APPROVE_ONLY, pendingAction: null});
+            const memberPolicy = createMock<Policy>({...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'member', role: CONST.POLICY.ROLE.USER, pendingAction: null});
+            const policies = createCollection<Policy>(
+                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                (index) => (index === 0 ? approveOnlyPolicy : memberPolicy),
+                2,
+            );
+
+            const result = getGroupPoliciesWhereReportCanBeCreated(policies, employeeEmail);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe(memberPolicy.id);
         });
     });
 
@@ -3267,6 +3334,24 @@ describe('PolicyUtils', () => {
             const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(false);
         });
+
+        it('returns false if the submitter is approve-only on the new policy', async () => {
+            const currentUserLogin = employeeEmail;
+
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.APPROVE_ONLY},
+                },
+                pendingAction: null,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            expect(result).toBe(false);
+        });
     });
 
     describe('tag', () => {
@@ -3917,6 +4002,44 @@ describe('PolicyUtils', () => {
 
                 // Then escaped colons are restored and HTML entities are decoded so the user sees the readable name
                 expect(result).toBe(expected);
+            });
+        });
+
+        describe('escapeTagName', () => {
+            it.each([
+                ['escapes a plain colon', 'Plain:Colon', 'Plain\\:Colon'],
+                ['keeps an already escaped colon unchanged', 'Parent\\: Child', 'Parent\\: Child'],
+                ['escapes consecutive colons', 'a::b', 'a\\:\\:b'],
+                ['returns a tag without colons unchanged', 'Engineering', 'Engineering'],
+            ])('%s', (_description, tag, expected) => {
+                // Given a tag name typed by the user
+                // When it is escaped before being saved
+                const result = escapeTagName(tag);
+
+                // Then only colons that are not already escaped get a backslash, matching the backend
+                expect(result).toBe(expected);
+            });
+
+            it('returns the same result when run twice', () => {
+                // Given a tag name that has already been escaped once, as happens when an existing tag is re-saved
+                const escapedOnce = escapeTagName('Parent: Child\\: Grandchild');
+
+                // When it is escaped again
+                const escapedTwice = escapeTagName(escapedOnce);
+
+                // Then no extra backslashes are added, so re-saving a tag cannot change it
+                expect(escapedTwice).toBe(escapedOnce);
+            });
+
+            it('keeps a tag with an already escaped colon as a single tag level', () => {
+                // Given a tag created with an already escaped colon
+                const escapedTag = escapeTagName('Parent\\: Child');
+
+                // When the saved tag is split into tag levels
+                const result = getTagArrayFromName(escapedTag);
+
+                // Then it stays one tag level instead of being split into `Parent\\` and ` Child`
+                expect(result).toEqual(['Parent\\: Child']);
             });
         });
 
