@@ -148,11 +148,14 @@ function NewChatConfirmPage() {
     );
 
     const selectedParticipants: ListItem[] = selectedOptions
-        .map((selectedOption: Participant) => {
+        .map((selectedOption: Participant, index) => {
             const accountID = selectedOption.accountID;
             const isAdmin = personalData.accountID === accountID;
             const section: ListItem = {
-                login: selectedOption?.login ?? '',
+                // Keep the draft's login so unselectOption can match the participant. Once a login created offline syncs,
+                // getParticipantsOption resolves it to the real account, whose login can differ (for example, a phone
+                // number saved without the SMS domain).
+                login: participants.at(index)?.login ?? '',
                 text: selectedOption?.text ?? '',
                 keyForList: selectedOption?.keyForList ?? '',
                 isSelected: !isAdmin,
