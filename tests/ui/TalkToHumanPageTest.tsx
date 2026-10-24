@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {render} from '@testing-library/react-native';
 
 import useNetwork from '@hooks/useNetwork';
 
@@ -9,98 +9,147 @@ import TalkToHumanPage from '@pages/settings/HelpPage/TalkToHumanPage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 
-import type React from 'react';
+import React from 'react';
 
 const mockOpenSupportTicketOrConcierge = jest.fn();
 const mockGetRootState = jest.fn<{routes: Array<{name: string}>}, []>();
+const mockGetNavigatorState = jest.fn<{routes: Array<{name: string}>}, []>();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
+    navigate: jest.fn(),
 }));
 jest.mock('@libs/Navigation/navigationRef', () => ({
     current: {getRootState: () => mockGetRootState()},
 }));
+jest.mock('@react-navigation/native', () => ({
+    useNavigation: () => ({getState: () => mockGetNavigatorState()}),
+}));
 jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@hooks/useOpenSupportTicket', () => () => ({openSupportTicketOrConcierge: mockOpenSupportTicketOrConcierge}));
-jest.mock('@pages/settings/HelpPage/HelpPage', () => () => jest.requireActual<typeof React>('react').createElement('Text', null, 'Help page'));
 jest.mock('@components/FullscreenLoadingIndicator', () => () => jest.requireActual<typeof React>('react').createElement('Text', null, 'Loading'));
 
 const mockUseNetwork = jest.mocked(useNetwork);
 const mockGoBack = jest.mocked(Navigation.goBack);
+const mockNavigate = jest.mocked(Navigation.navigate);
 
 function setRootRoutes(names: string[]) {
     mockGetRootState.mockReturnValue({routes: names.map((name) => ({name}))});
+}
+
+function setSettingsSplitRoutes(names: string[]) {
+    mockGetNavigatorState.mockReturnValue({routes: names.map((name) => ({name}))});
+}
+
+function getGoBackFallbackRoute() {
+    return mockGoBack.mock.calls.at(0)?.at(0);
 }
 
 describe('TalkToHumanPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
+        setSettingsSplitRoutes(['talkToHuman']);
     });
 
     it('goes back to the page the link was pressed on and opens the ticket after the transition', () => {
         // Given a link pressed in the app, which leaves a second full screen route under this one
         setRootRoutes([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.TAB_NAVIGATOR]);
 
+        // When the page opens
         render(<TalkToHumanPage />);
 
         // Then it leaves the loader without a fallback route
         expect(mockGoBack).toHaveBeenCalledTimes(1);
-        expect(mockGoBack.mock.calls.at(0)?.at(0)).toBeUndefined();
+        expect(getGoBackFallbackRoute()).toBeUndefined();
 
         // And the ticket is only requested once the transition has finished
         expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
-        const goBackOptions: {afterTransition?: () => void} | undefined = mockGoBack.mock.calls.at(0)?.at(1);
-        goBackOptions?.afterTransition?.();
+        const goBackOptions = mockGoBack.mock.calls.at(0)?.at(1);
+        if (typeof goBackOptions === 'object') {
+            goBackOptions.afterTransition?.();
+        }
         expect(mockOpenSupportTicketOrConcierge).toHaveBeenCalledTimes(1);
     });
 
-    it('falls back to the Help page for a direct link, where only one full screen route exists', () => {
+    it('falls back to the Help page for a direct link, where only the injected Settings sidebar sits behind it', () => {
+        // Given a cold load with one full screen route and the Settings sidebar added under this page
         setRootRoutes([NAVIGATORS.TAB_NAVIGATOR]);
+        setSettingsSplitRoutes(['settingsRoot', 'talkToHuman']);
 
+        // When the page opens
         render(<TalkToHumanPage />);
 
+        // Then it falls back to the Help page
         expect(mockGoBack).toHaveBeenCalledTimes(1);
-        expect(mockGoBack.mock.calls.at(0)?.at(0)).toBe(ROUTES.SETTINGS_HELP);
+        expect(getGoBackFallbackRoute()).toBe(ROUTES.SETTINGS_HELP);
     });
 
     it('does not count a side modal as a page to return to', () => {
+        // Given a direct link with a side modal open next to the only full screen route
         setRootRoutes([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR]);
+        setSettingsSplitRoutes(['settingsRoot', 'talkToHuman']);
 
+        // When the page opens
         render(<TalkToHumanPage />);
 
-        expect(mockGoBack.mock.calls.at(0)?.at(0)).toBe(ROUTES.SETTINGS_HELP);
+        // Then it still falls back to the Help page
+        expect(getGoBackFallbackRoute()).toBe(ROUTES.SETTINGS_HELP);
     });
 
-    it('shows the Help page and creates no ticket when the link is opened offline', () => {
+    it('goes back to the earlier Settings page when the link was pressed from another page in the same Settings split', () => {
+        // Given a single full screen route whose Settings split holds an earlier page under this one
+        setRootRoutes([NAVIGATORS.TAB_NAVIGATOR]);
+        setSettingsSplitRoutes(['settingsRoot', 'profile', 'talkToHuman']);
+
+        // When the page opens
+        render(<TalkToHumanPage />);
+
+        // Then it leaves the loader without a fallback route
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+        expect(getGoBackFallbackRoute()).toBeUndefined();
+    });
+
+    it('replaces itself with the Help page and creates no ticket when the link is opened offline', () => {
+        // Given the link opens while the device is offline
         mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
         setRootRoutes([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.TAB_NAVIGATOR]);
 
+        // When the page opens
         render(<TalkToHumanPage />);
 
-        expect(screen.getByText('Help page')).toBeOnTheScreen();
+        // Then the route is replaced by the Help page so that a ticket opened from there does not store this link as its back target
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HELP, {forceReplace: true});
         expect(mockGoBack).not.toHaveBeenCalled();
         expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
     });
 
-    it('keeps showing the Help page when the connection returns after an offline open', () => {
+    it('does nothing more when the connection returns after an offline open', () => {
+        // Given the link opened offline
         mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
         setRootRoutes([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.TAB_NAVIGATOR]);
         const {rerender} = render(<TalkToHumanPage />);
 
+        // When the connection comes back
         mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
         rerender(<TalkToHumanPage />);
 
-        expect(screen.getByText('Help page')).toBeOnTheScreen();
+        // Then no ticket is created and no other navigation happens
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockGoBack).not.toHaveBeenCalled();
+        expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
     });
 
     it('does not request a second ticket when it re-renders while mounted', () => {
+        // Given the page has already left the loader
         setRootRoutes([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.TAB_NAVIGATOR]);
         const {rerender} = render(<TalkToHumanPage />);
 
+        // When it re-renders
         rerender(<TalkToHumanPage />);
 
+        // Then it only went back once
         expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 });
