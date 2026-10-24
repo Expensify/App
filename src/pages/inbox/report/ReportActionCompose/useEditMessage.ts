@@ -62,17 +62,16 @@ function useEditMessage({
 
         clearAllReportActionDrafts();
 
-        // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (!shouldScrollToLastMessage) {
             return;
         }
 
+        // The list owns this request after the editor unmounts and waits for its layout commit.
         if (scrollToLastMessage) {
             scrollToLastMessage();
             return;
         }
-
-        reportScrollManager.scrollToIndex(0);
+        reportScrollManager.scrollToBottom();
     }
 
     /**

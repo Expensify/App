@@ -1,4 +1,7 @@
-import {render, screen, waitFor} from '@testing-library/react-native';
+import {act, render, screen, waitFor} from '@testing-library/react-native';
+
+import type {RenderActionSheetAwareScrollViewComponent} from '@components/ActionSheetAwareScrollView/types';
+import allowLegendListItemOverflow from '@components/LegendList/allowLegendListItemOverflow';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
@@ -9,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
+import type useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -17,6 +21,8 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 
+import {ActionListContext} from '@pages/inbox/ActionListContext';
+import type ActionListRefType from '@pages/inbox/ActionListTypes';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
@@ -26,14 +32,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
 import type * as ReactNavigation from '@react-navigation/native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 
+import {useRoute} from '@react-navigation/native';
 import React from 'react';
+import {Platform, StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockUseIsFocused = jest.fn().mockReturnValue(false);
+jest.unmock('@components/ActionSheetAwareScrollView');
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
     return {
@@ -61,6 +73,7 @@ jest.mock('@hooks/useParentReportAction', () => jest.fn());
 jest.mock('@hooks/useIsInSidePanel', () => jest.fn());
 jest.mock('@hooks/useSidePanelState', () => jest.fn());
 jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn());
+jest.mock('@components/LegendList/allowLegendListItemOverflow', () => jest.fn());
 jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
     useConciergeSessionState: jest.fn(),
     useConciergeSessionActions: jest.fn(),
@@ -71,6 +84,7 @@ jest.mock('@pages/inbox/ConciergeDraftContext', () => ({
 }));
 
 const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
+const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 const mockUseIsReportLoadPending = useIsReportLoadPending as jest.MockedFunction<typeof useIsReportLoadPending>;
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
 const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
@@ -84,9 +98,12 @@ const mockUseConciergeDraft = useConciergeDraft as jest.MockedFunction<typeof us
 const mockUseConciergeDraftActions = useConciergeDraftActions as jest.MockedFunction<typeof useConciergeDraftActions>;
 const mockUseConciergeSessionState = useConciergeSessionState as jest.MockedFunction<typeof useConciergeSessionState>;
 const mockUseConciergeSessionActions = useConciergeSessionActions as jest.MockedFunction<typeof useConciergeSessionActions>;
+const mockAllowLegendListItemOverflow = allowLegendListItemOverflow as jest.MockedFunction<typeof allowLegendListItemOverflow>;
 
-function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions = true) {
-    return selector === reportActionsListLoadingStateSelector ? {hasOnceLoadedReportActions, isLoadingInitialReportActions: false} : undefined;
+function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions = true, isLoadingInitialReportActions = false, isLoadingOlderReportActions = false) {
+    return selector === reportActionsListLoadingStateSelector
+        ? {hasOnceLoadedReportActions, isLoadingInitialReportActions, isLoadingOlderReportActions, hasLoadingOlderReportActionsError: false}
+        : undefined;
 }
 
 const defaultPaginatedReportActionsResult: ReturnType<typeof usePaginatedReportActions> = {
@@ -113,10 +130,12 @@ const defaultSidePanelState: ReturnType<typeof useSidePanelState> = {
 
 jest.mock('@hooks/useCopySelectionHelper', () => jest.fn());
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn());
+const mockLoadOlderChats = jest.fn();
 jest.mock('@hooks/useLoadReportActions', () =>
-    jest.fn(() => ({
-        loadOlderChats: jest.fn(),
+    jest.fn(({reportActions}: {reportActions: OnyxTypes.ReportAction[]}) => ({
+        loadOlderChats: mockLoadOlderChats,
         loadNewerChats: jest.fn(),
+        currentReportOldestActionID: reportActions.at(-1)?.reportActionID,
     })),
 );
 jest.mock('@hooks/usePrevious', () => jest.fn());
@@ -124,28 +143,63 @@ jest.mock('@hooks/usePrevious', () => jest.fn());
 const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.MockedFunction<typeof useCurrentUserPersonalDetails>;
 
 // We mount the public ReportActionsList (the skeleton guard + its content) and observe what the content
-// feeds the list via InvertedFlashList's `data`. The heavy scroll/marker hooks have their own unit tests,
+// feeds chronological data directly to LegendList. The heavy scroll/marker hooks have their own unit tests,
 // so they are stubbed here to isolate the skeleton logic. Because the guard only mounts the content when
 // the skeleton is not showing, these stubs double as a probe for dormancy: while a skeleton renders the
 // content is never mounted, so useMarkAsRead/useReportActionsScroll are never called.
-jest.mock('@components/FlashList/InvertedFlashList', () => jest.fn(() => null));
+const mockLegendListMount = jest.fn();
+const mockLegendListUnmount = jest.fn();
+const mockLegendScrollToEnd = jest.fn();
+const mockLegendPositionByKey = jest.fn(() => 1500);
+const mockLegendGetState = jest.fn(() => ({
+    positionByKey: mockLegendPositionByKey,
+    isAtEnd: false,
+    contentLength: 1000,
+    scrollLength: 500,
+    scroll: 500,
+}));
+const mockLegendGetScrollableNode = jest.fn(() => ({scrollTop: 0}));
+let mockShouldCallLegendListOnLoad = true;
+jest.mock('@legendapp/list/react-native', () => {
+    const reactModule = jest.requireActual<typeof React>('react');
+    const MockLegendListContent = reactModule.forwardRef<{scrollToEnd: typeof mockLegendScrollToEnd}, {onLoad?: () => void; onReady?: () => void}>(({onLoad, onReady}, ref) => {
+        reactModule.useImperativeHandle(ref, () => ({scrollToEnd: mockLegendScrollToEnd, getState: mockLegendGetState, getScrollableNode: mockLegendGetScrollableNode}), []);
+        reactModule.useEffect(() => {
+            mockLegendListMount();
+            if (mockShouldCallLegendListOnLoad) {
+                onLoad?.();
+                onReady?.();
+            }
+            return () => {
+                mockLegendListUnmount();
+            };
+        }, []);
+        return null;
+    });
+    return {
+        LegendList: jest.fn((props: {onLoad?: () => void; onReady?: () => void; ref?: React.Ref<{scrollToEnd: typeof mockLegendScrollToEnd}>}) =>
+            reactModule.createElement(MockLegendListContent, props),
+        ),
+    };
+});
 jest.mock('@hooks/useUnreadMarker', () => jest.fn(() => ({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1})));
 jest.mock('@hooks/useMarkAsRead', () => jest.fn(() => ({markNewestActionAsRead: jest.fn(), completeSkippedMarkAsRead: jest.fn()})));
 jest.mock('@hooks/useReportActionsScroll', () =>
     jest.fn(() => ({
         listRef: {current: null},
+        trackLinkedMessageScroll: jest.fn(),
         trackVerticalScrolling: jest.fn(),
         onViewableItemsChanged: jest.fn(),
         isFloatingMessageCounterVisible: false,
         isActionBadgeAboveViewport: false,
         scrollToBottomAndMarkReportAsRead: jest.fn(),
         scrollToActionBadgeTarget: jest.fn(),
-        flushPendingScrollToBottom: jest.fn(),
         shouldBeAlignedToTop: false,
-        shouldFocusToTopOnMount: false,
-        initialScrollKey: undefined,
-        shouldAutoscrollToBottom: false,
+        initialScrollIndex: undefined,
+        initialScrollIndexParams: undefined,
         onLoad: jest.fn(),
+        onItemSizeChanged: jest.fn(),
+        stopLinkedMessagePositioning: jest.fn(),
     })),
 );
 jest.mock('@pages/inbox/report/FloatingMessageCounter', () => jest.fn(() => null));
@@ -156,24 +210,51 @@ jest.mock('@pages/inbox/report/ReportActionsListPaddingView', () => {
 jest.mock('@pages/inbox/report/UserTypingEventListener', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => null));
 
-type MockInvertedFlashListProps = {
+type MockLegendListProps = {
+    alignItemsAtEnd?: boolean;
+    contentContainerStyle?: StyleProp<ViewStyle>;
     data?: OnyxTypes.ReportAction[];
+    drawDistance?: number;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    experimental_hideItemsUntilMeasured?: boolean;
     extraData?: unknown;
+    getItemType?: (item: OnyxTypes.ReportAction) => string;
+    initialScrollAtEnd?: boolean;
+    maintainScrollAtEnd?: {animated: boolean; on: {dataChange: boolean}} | false;
+    maintainScrollAtEndThreshold?: number;
+    maintainVisibleContentPosition?: boolean;
+    onLayout?: (event: LayoutChangeEvent) => void;
+    onLoad?: () => void;
+    onReady?: () => void;
+    onScrollBeginDrag?: () => void;
+    onStartReachedThreshold?: number;
+    onContentSizeChange?: (width: number, height: number) => void;
+    onViewableItemsChanged?: (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => void;
+    recycleItems?: boolean;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
-    onContentSizeChange?: () => void;
+    renderScrollComponent?: RenderActionSheetAwareScrollViewComponent;
+    scrollEventThrottle?: number;
+    onStartReached?: () => void;
+    onScroll?: (event: {
+        nativeEvent: {
+            contentOffset: {x: number; y: number};
+            contentSize: {height: number; width: number};
+            layoutMeasurement: {height: number; width: number};
+        };
+    }) => void;
 };
 
-const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
+const {LegendList: mockLegendList} = jest.requireMock<{LegendList: jest.MockedFunction<(props: MockLegendListProps) => null>}>('@legendapp/list/react-native');
 const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionItemCreated');
 
-/** Returns the report actions the body fed into the (mocked) inverted list on its latest render. */
-const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0)?.data;
-const getCapturedListProps = (): MockInvertedFlashListProps | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0);
+/** Returns the chronological report actions the body fed into the mocked LegendList on its latest render. */
+const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockLegendList.mock.calls.at(-1)?.at(0)?.data;
+const getCapturedListProps = (): MockLegendListProps | undefined => mockLegendList.mock.calls.at(-1)?.at(0);
 
 const getRenderedReportActionsListItemProps = (
     reportAction: OnyxTypes.ReportAction,
     index = 0,
-): {shouldDisableContextMenuForConciergeDraft?: boolean; isLatestConciergeFeedbackAction?: boolean} => {
+): {shouldDisableContextMenuForConciergeDraft?: boolean; isLatestConciergeFeedbackAction?: boolean; shouldDisplayNewMarker?: boolean} => {
     const renderedItem = getCapturedListProps()?.renderItem?.({item: reportAction, index});
 
     if (!React.isValidElement<{children: React.ReactNode}>(renderedItem)) {
@@ -192,9 +273,24 @@ const getRenderedReportActionsListItemProps = (
     return child.props;
 };
 
+const getShowHistoryPress = (action: OnyxTypes.ReportAction, index: number): (() => void) | undefined => {
+    const renderedItem = getCapturedListProps()?.renderItem?.({item: action, index});
+    if (!React.isValidElement<{children: React.ReactNode}>(renderedItem)) {
+        return undefined;
+    }
+    const historyButton = React.Children.toArray(renderedItem.props.children).find(
+        (child): child is React.ReactElement<{onPress: () => void}> => React.isValidElement<{onPress?: () => void}>(child) && typeof child.props.onPress === 'function',
+    );
+    return historyButton?.props.onPress;
+};
+
 const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
 const mockUseReportActionsScroll: jest.Mock = jest.requireMock('@hooks/useReportActionsScroll');
+const mockUseUnreadMarker: jest.Mock = jest.requireMock('@hooks/useUnreadMarker');
 const mockMarkOpenReportEnd: jest.Mock = jest.requireMock('@libs/telemetry/markOpenReportEnd');
+let mockHasOnceLoadedReportActions = true;
+let mockIsLoadingInitialReportActions = false;
+let mockIsLoadingOlderReportActions = false;
 
 jest.mock('@libs/actions/Report', () => ({
     updateLoadingInitialReportAction: jest.fn(),
@@ -236,6 +332,19 @@ const mockReportActions: OnyxTypes.ReportAction[] = [
         errors: {},
     },
 ];
+
+const olderMockReportAction: OnyxTypes.ReportAction = {
+    reportActionID: '0',
+    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+    created: '2022-12-31',
+    actorAccountID: 125,
+    message: [{type: 'COMMENT', html: 'Older message', text: 'Older message'}],
+    originalMessage: {},
+    shouldShow: true,
+    person: [{type: 'TEXT', style: 'strong', text: 'Older User'}],
+    pendingAction: null,
+    errors: {},
+};
 
 const renderReportActionsList = (props: {reportID?: string} = {}) => {
     const reportID = props.reportID ?? mockReport.reportID;
@@ -282,7 +391,14 @@ describe('ReportActionsList (body)', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockUseIsFocused.mockReturnValue(false);
+        mockHasOnceLoadedReportActions = true;
+        mockIsLoadingInitialReportActions = false;
+        mockIsLoadingOlderReportActions = false;
+        mockShouldCallLegendListOnLoad = true;
+        mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1});
         mockUseIsReportLoadPending.mockReturnValue(false);
+        mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {}});
 
         mockUseCurrentUserPersonalDetails.mockReturnValue({
             accountID: 100,
@@ -332,12 +448,887 @@ describe('ReportActionsList (body)', () => {
         mockUseConciergeSessionState.mockReturnValue({sessionStartTime: null, showFullHistory: false, hadMessagesAtSessionStart: false});
         mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
-        mockUseOnyx.mockImplementation(getMockOnyxValue);
+        mockUseOnyx.mockImplementation((key, options) => {
+            if (key.includes('reportLoadingState')) {
+                return [getMockReportLoadingState(options?.selector, mockHasOnceLoadedReportActions, mockIsLoadingInitialReportActions, mockIsLoadingOlderReportActions), {status: 'loaded'}];
+            }
+            return getMockOnyxValue(key, options);
+        });
     });
 
     afterEach(async () => {
         await waitForBatchedUpdatesWithAct();
         await Onyx.clear();
+    });
+
+    it('publishes measured positions and the scroll element through the action-list adapter', () => {
+        // Given a mounted LegendList with measured rows and its own scroll element.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const registerListRef = jest.fn<void, [ActionListRefType]>();
+        const contextValue = {scrollOffsetRef: {current: 0}, getScrollOffset: () => 0, getListRef: () => null, registerListRef};
+        render(
+            // The shared context intentionally combines stable refs with their accessors.
+            // eslint-disable-next-line rulesdir/context-provider-split-values
+            <ActionListContext.Provider value={contextValue}>
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    conciergeChat={undefined}
+                />
+            </ActionListContext.Provider>,
+        );
+
+        // When linked positioning reads the registered adapter rather than the raw LegendList ref.
+        const adapter = registerListRef.mock.calls.at(-1)?.at(0)?.current;
+        const position = adapter?.getState?.()?.positionByKey('linked-action');
+        const scrollElement = adapter?.getScrollableNode?.();
+
+        // Then measurement recovery and web input cancellation can reach the real list.
+        expect(position).toBe(1500);
+        expect(mockLegendPositionByKey).toHaveBeenCalledWith('linked-action');
+        expect(scrollElement).toEqual({scrollTop: 0});
+        expect(mockLegendGetScrollableNode).toHaveBeenCalledTimes(1);
+    });
+
+    it('corrects the initial end position after the latest row has been measured', async () => {
+        // Given a report opens at its latest action and the virtualized list finishes its initial placement.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+
+        // When the last row is taller than the estimate, its feedback controls must not remain below the viewport.
+        // Then the list makes one final end scroll after the layout is ready.
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+    });
+
+    it('keeps the native scroll-view throttle supplied by LegendList', () => {
+        // Given a report list using the action-sheet-aware native scroller.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const platform = jest.replaceProperty(Platform, 'OS', 'android');
+        try {
+            renderReportActionsList();
+            const listProps = getCapturedListProps();
+
+            // When LegendList requests native scroll events on every frame.
+            const scrollView = listProps?.renderScrollComponent?.({scrollEventThrottle: 0});
+
+            // Then the wrapper preserves them while LegendList separately throttles the app callback.
+            expect(scrollView?.props.scrollEventThrottle).toBe(0);
+            expect(listProps?.scrollEventThrottle).toBe(16);
+        } finally {
+            platform.restore();
+        }
+    });
+
+    it.each([800, 1000])('refreshes the newest-message offset without following successive viewport layouts at %i pixels', async (height) => {
+        // Given a reader 600 pixels from the end before the viewport grows.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const originalState = mockLegendGetState();
+        const scrollOffsetRef = {current: 600};
+        const contextValue = {scrollOffsetRef, getScrollOffset: () => scrollOffsetRef.current, getListRef: () => null, registerListRef: jest.fn()};
+        render(
+            // The shared context intentionally combines stable refs with their accessors.
+            // eslint-disable-next-line rulesdir/context-provider-split-values
+            <ActionListContext.Provider value={contextValue}>
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    conciergeChat={undefined}
+                />
+            </ActionListContext.Provider>,
+        );
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+        mockLegendScrollToEnd.mockClear();
+        const frames: FrameRequestCallback[] = [];
+        const requestFrame = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => frames.push(callback));
+        try {
+            act(() => {
+                const listProps = getCapturedListProps();
+                listProps?.onScrollBeginDrag?.();
+                listProps?.onScroll?.({
+                    nativeEvent: {
+                        contentOffset: {x: 0, y: 900},
+                        contentSize: {height: 2000, width: 300},
+                        layoutMeasurement: {height: 500, width: 300},
+                    },
+                });
+            });
+
+            // When successive layouts resize the viewport without new content or scroll events.
+            for (const viewportHeight of [height, height + 50]) {
+                mockLegendGetState.mockReturnValue({...originalState, contentLength: 2000, scrollLength: viewportHeight, scroll: 900});
+                act(() => getCapturedListProps()?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 300, height: viewportHeight}}})));
+
+                // Then a future incoming message uses the current pixel offset without resizing itself starting a scroll.
+                expect(scrollOffsetRef.current).toBe(2000 - viewportHeight - 900);
+                expect(frames).toHaveLength(0);
+            }
+            expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+            expect(getCapturedListProps()?.maintainScrollAtEnd).toBe(false);
+        } finally {
+            requestFrame.mockRestore();
+            mockLegendGetState.mockReturnValue(originalState);
+        }
+    });
+
+    it('keeps following the newest action when the keyboard shrinks the viewport', async () => {
+        // Given the reader is following the newest action before opening the keyboard.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const originalState = mockLegendGetState();
+        renderReportActionsList();
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+        mockLegendScrollToEnd.mockClear();
+        try {
+            // When the smaller viewport temporarily leaves the newest action 300 pixels below it.
+            mockLegendGetState.mockReturnValue({...originalState, contentLength: 1000, scrollLength: 200, scroll: 500});
+            act(() => getCapturedListProps()?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 200}}})));
+
+            // Then resizing keeps the existing end-following intent.
+            await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+        } finally {
+            mockLegendGetState.mockReturnValue(originalState);
+        }
+    });
+
+    it('keeps the latest message visible when its measured height grows after opening', async () => {
+        // Given the chat has opened at the end with a measured viewport.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+        mockLegendScrollToEnd.mockClear();
+        const listProps = getCapturedListProps();
+        act(() => {
+            listProps?.onScroll?.({
+                nativeEvent: {
+                    contentOffset: {x: 0, y: 500},
+                    contentSize: {height: 1000, width: 300},
+                    layoutMeasurement: {height: 500, width: 300},
+                },
+            });
+        });
+
+        // When a late feedback row makes the content taller without a user scroll.
+        act(() => {
+            listProps?.onScroll?.({
+                nativeEvent: {
+                    contentOffset: {x: 0, y: 500},
+                    contentSize: {height: 1025, width: 300},
+                    layoutMeasurement: {height: 500, width: 300},
+                },
+            });
+            listProps?.onContentSizeChange?.(300, 1025);
+        });
+
+        // Then the last 25 pixels are brought into view.
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+    });
+
+    it('follows content growth when the reader is 50 pixels above the newest action', async () => {
+        // Given a reader still within the existing 250-pixel follow distance.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+        mockLegendScrollToEnd.mockClear();
+        act(() => {
+            const listProps = getCapturedListProps();
+            listProps?.onScrollBeginDrag?.();
+            listProps?.onScroll?.({
+                nativeEvent: {
+                    contentOffset: {x: 0, y: 450},
+                    contentSize: {height: 1000, width: 300},
+                    layoutMeasurement: {height: 500, width: 300},
+                },
+            });
+        });
+
+        // When a new message or streamed text increases the content height.
+        act(() => getCapturedListProps()?.onContentSizeChange?.(300, 1025));
+
+        // Then it follows the new content even though the reader is more than 1% from the end.
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+    });
+
+    it('does not pull the chat back down when the reader has scrolled away', async () => {
+        // Given the chat opened at the end and the reader scrolled upward.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+        mockLegendScrollToEnd.mockClear();
+        const listProps = getCapturedListProps();
+        act(() => {
+            listProps?.onScroll?.({
+                nativeEvent: {
+                    contentOffset: {x: 0, y: 500},
+                    contentSize: {height: 1000, width: 300},
+                    layoutMeasurement: {height: 500, width: 300},
+                },
+            });
+            listProps?.onScroll?.({
+                nativeEvent: {
+                    contentOffset: {x: 0, y: 200},
+                    contentSize: {height: 1000, width: 300},
+                    layoutMeasurement: {height: 500, width: 300},
+                },
+            });
+            listProps?.onContentSizeChange?.(300, 1025);
+        });
+
+        // When content grows, the reader's position stays where they left it.
+        await act(
+            async () =>
+                new Promise<void>((resolve) => {
+                    setTimeout(resolve, 30);
+                }),
+        );
+        expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+    });
+
+    it('resumes resize following after scrolling from a linked action to the end', async () => {
+        // Given the chat opens at a linked action, which must keep its initial position.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
+        const defaultScrollState = mockUseReportActionsScroll() as ReturnType<typeof useReportActionsScroll>;
+        mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, initialScrollIndex: 0});
+        try {
+            renderReportActionsList();
+            expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+
+            // When the reader reaches the end and the latest row grows afterward.
+            act(() => {
+                const listProps = getCapturedListProps();
+                listProps?.onScroll?.({
+                    nativeEvent: {
+                        contentOffset: {x: 0, y: 500},
+                        contentSize: {height: 1000, width: 300},
+                        layoutMeasurement: {height: 500, width: 300},
+                    },
+                });
+                listProps?.onContentSizeChange?.(300, 1025);
+            });
+
+            // Then the latest content remains visible even though the route still contains a linked action.
+            await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+        } finally {
+            mockUseReportActionsScroll.mockImplementation(originalImplementation);
+        }
+    });
+
+    it.each([
+        {isAtEnd: true, shouldFollowEnd: true},
+        {isAtEnd: false, shouldFollowEnd: false},
+    ])('follows late row growth after opening at an unread marker only when it lands at the end ($isAtEnd)', async ({isAtEnd, shouldFollowEnd}) => {
+        // Given the chat opens at an unread marker, which LegendList clamps to the end when the marker is near the newest action.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
+        const defaultScrollState = mockUseReportActionsScroll() as ReturnType<typeof useReportActionsScroll>;
+        mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, initialScrollIndex: 1});
+        mockLegendGetState.mockReturnValue({...mockLegendGetState(), isAtEnd});
+        try {
+            renderReportActionsList();
+
+            // When rows above the viewport are measured after the list is ready and change the content height.
+            act(() => {
+                getCapturedListProps()?.onContentSizeChange?.(300, 1025);
+            });
+            await act(
+                async () =>
+                    new Promise<void>((resolve) => {
+                        setTimeout(resolve, 30);
+                    }),
+            );
+
+            // Then a list that landed at the end keeps the newest messages in view, and one showing older unread messages stays put.
+            if (shouldFollowEnd) {
+                expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false});
+            } else {
+                expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+            }
+        } finally {
+            mockUseReportActionsScroll.mockImplementation(originalImplementation);
+            mockLegendGetState.mockReturnValue({...mockLegendGetState(), isAtEnd: false});
+        }
+    });
+
+    it('cancels a queued end correction as soon as the reader starts dragging', async () => {
+        // Given removing the latest message has queued a layout correction at the end.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+        mockLegendScrollToEnd.mockClear();
+        const animationFrames: FrameRequestCallback[] = [];
+        const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+            animationFrames.push(callback);
+            return animationFrames.length;
+        });
+        try {
+            const listProps = getCapturedListProps();
+            // When the user touches the list before the next scroll metrics arrive.
+            act(() => {
+                listProps?.onContentSizeChange?.(300, 900);
+                listProps?.onScrollBeginDrag?.();
+                for (const callback of animationFrames) {
+                    callback(0);
+                }
+            });
+
+            // Then even a callback already dispatched by the frame scheduler respects the gesture.
+            expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+        } finally {
+            requestAnimationFrameSpy.mockRestore();
+        }
+    });
+
+    it('keeps linked positioning active through automatic scroll metrics until the reader drags', () => {
+        // Given a measured linked target can cause automatic scroll compensation before its preview settles.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+        const scrollHookResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as ReturnType<typeof useReportActionsScroll>;
+        const stopLinkedPositioning = scrollHookResult.stopLinkedMessagePositioning;
+        const listProps = getCapturedListProps();
+
+        // When layout compensation moves the list without a user gesture.
+        act(() => {
+            for (const offset of [200, 100]) {
+                listProps?.onScroll?.({
+                    nativeEvent: {
+                        contentOffset: {x: 0, y: offset},
+                        contentSize: {height: 2000, width: 300},
+                        layoutMeasurement: {height: 100, width: 300},
+                    },
+                });
+            }
+        });
+
+        // Then later preview measurements can still correct the target, until the reader takes over.
+        expect(stopLinkedPositioning).not.toHaveBeenCalled();
+        act(() => listProps?.onScrollBeginDrag?.());
+        expect(stopLinkedPositioning).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not duplicate the composer spacing inside the chronological list', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+
+        expect(StyleSheet.flatten(getCapturedListProps()?.contentContainerStyle)?.paddingBottom).toBe(0);
+    });
+
+    it('invalidates a recycled row when the unread marker changes on a wide layout', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: '2', unreadMarkerReportActionIndex: 0});
+        renderReportActionsList();
+
+        expect(getCapturedListProps()?.extraData).toEqual(expect.arrayContaining(['2']));
+        const markerAction = getCapturedVisibleActions()?.find((action) => action.reportActionID === '2');
+        if (!markerAction) {
+            throw new Error('Expected unread marker action fixture');
+        }
+        expect(getRenderedReportActionsListItemProps(markerAction, 1).shouldDisplayNewMarker).toBe(true);
+    });
+
+    it('does not follow the end of a page that still has newer actions to load', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: mockReportActions,
+            hasNewerActions: true,
+        });
+        renderReportActionsList();
+
+        expect(getCapturedListProps()?.maintainScrollAtEnd).toBe(false);
+        expect(getCapturedListProps()?.maintainVisibleContentPosition).toBe(true);
+    });
+
+    it('remounts the list when the initial report actions finish hydrating', async () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockHasOnceLoadedReportActions = false;
+        const view = renderReportActionsList();
+
+        expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+        expect(mockLegendListUnmount).not.toHaveBeenCalled();
+        mockLegendScrollToEnd.mockClear();
+
+        mockHasOnceLoadedReportActions = true;
+        // The mocked Onyx hook does not own state, so changing its return value cannot schedule the
+        // rerender that the real Onyx subscription causes. Change a prop to trigger that render.
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockLegendListMount).toHaveBeenCalledTimes(2);
+        expect(mockLegendListUnmount).toHaveBeenCalledTimes(1);
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+    });
+
+    it('keeps the initial viewport covered until the hydrated LegendList finishes rendering it', async () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseIsFocused.mockReturnValue(true);
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = true;
+        mockShouldCallLegendListOnLoad = false;
+        const view = renderReportActionsList();
+
+        expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+
+        act(() => {
+            getCapturedListProps()?.onReady?.();
+        });
+        expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+        expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: true});
+
+        mockHasOnceLoadedReportActions = true;
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+
+        act(() => {
+            getCapturedListProps()?.onReady?.();
+        });
+        expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+        expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: true});
+    });
+
+    it('resumes initial scroll tracking after layout and scrolling are ready', () => {
+        // Given a report with its action list ready to mount.
+        mockShouldCallLegendListOnLoad = false;
+        renderReportActionsList();
+        const scrollHookResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as {onLoad?: jest.Mock} | undefined;
+        const onLoad = scrollHookResult?.onLoad;
+        expect(onLoad).not.toHaveBeenCalled();
+
+        // When LegendList reports that layout and initial scrolling are complete.
+        act(() => getCapturedListProps()?.onReady?.());
+
+        // Then the scroll hook receives that event to finish initial positioning.
+        expect(onLoad).toHaveBeenCalledTimes(1);
+    });
+
+    it('covers a previously hydrated report until LegendList finishes its initial layout', () => {
+        // Given a report that was already loaded before this list mounted
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockShouldCallLegendListOnLoad = false;
+
+        // When the user opens the report again
+        renderReportActionsList();
+
+        // Then the cover hides LegendList's empty initial viewport until its actions are ready
+        expect(getCapturedVisibleActions()).toHaveLength(mockReportActions.length);
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+
+        act(() => getCapturedListProps()?.onLoad?.());
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+
+        act(() => getCapturedListProps()?.onReady?.());
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+    });
+
+    it('keeps the positioned list mounted when sending a message clears the linked action', async () => {
+        // Given a linked message has finished its initial positioning.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {reportActionID: '2'}});
+        const view = renderReportActionsList();
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+
+        // When the live-tail jump clears the link, a new mount would have to position again.
+        mockShouldCallLegendListOnLoad = false;
+        mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {reportActionID: ''}});
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the existing list stays visible without another initial skeleton.
+        expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+        expect(mockLegendListUnmount).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+    });
+
+    it.each(['2', 'another-action'])('positions a newly opened link after the previous link was cleared: %s', async (reportActionID) => {
+        // Given a positioned linked list is kept mounted when returning to its latest messages.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {reportActionID: '2'}});
+        const view = renderReportActionsList();
+        mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {reportActionID: ''}});
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+        expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+
+        // When the reader opens a link, even if it targets the same action again.
+        mockShouldCallLegendListOnLoad = false;
+        mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {reportActionID}});
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then fresh positioning is covered until the new list is ready.
+        expect(mockLegendListMount).toHaveBeenCalledTimes(2);
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+        act(() => getCapturedListProps()?.onReady?.());
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+    });
+
+    it('releases the initial viewport cover after a terminal OpenReport failure', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = false;
+        mockShouldCallLegendListOnLoad = false;
+        renderReportActionsList();
+
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+
+        act(() => {
+            getCapturedListProps()?.onReady?.();
+        });
+
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+    });
+
+    it('keeps the initial viewport covered while OpenReport is queued despite stale stored loading state', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = false;
+        mockUseIsReportLoadPending.mockReturnValue(true);
+        mockShouldCallLegendListOnLoad = false;
+        const view = renderReportActionsList();
+
+        act(() => {
+            getCapturedListProps()?.onReady?.();
+        });
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+
+        mockUseIsReportLoadPending.mockReturnValue(false);
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+    });
+
+    it('keeps the initial actions visible until the hydrated page is complete', async () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = true;
+        const groupingSpy = jest.spyOn(ReportActionsUtils, 'isConsecutiveActionMadeByPreviousActor');
+        const view = renderReportActionsList();
+
+        expect(getCapturedVisibleActions()).toHaveLength(mockReportActions.length);
+
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: [...mockReportActions, olderMockReportAction],
+        });
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getCapturedVisibleActions()).toHaveLength(mockReportActions.length);
+        expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === olderMockReportAction.reportActionID)).toBe(false);
+
+        const snapshotActions = getCapturedVisibleActions();
+        const oldestSnapshotAction = snapshotActions?.at(0);
+        if (!oldestSnapshotAction || !snapshotActions) {
+            throw new Error('Expected the initial action snapshot to remain visible');
+        }
+        getRenderedReportActionsListItemProps(oldestSnapshotAction);
+        expect(groupingSpy).toHaveBeenLastCalledWith(snapshotActions.toReversed(), snapshotActions.length - 1, false);
+        groupingSpy.mockRestore();
+
+        mockHasOnceLoadedReportActions = true;
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getCapturedVisibleActions()).toHaveLength(mockReportActions.length + 1);
+        expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === olderMockReportAction.reportActionID)).toBe(true);
+    });
+
+    it.each([
+        {isOffline: true, isLoadingInitialReportActions: true},
+        {isOffline: false, isLoadingInitialReportActions: false},
+    ])('keeps actions live after a first load cannot complete: %p', async ({isOffline, isLoadingInitialReportActions}) => {
+        // Given cached actions with no successful OpenReport response
+        mockUseNetwork.mockReturnValue({isOffline});
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = isLoadingInitialReportActions;
+        const view = renderReportActionsList();
+
+        // When an optimistic action is added while offline or after a terminal load failure
+        const existingAction = mockReportActions.at(1);
+        if (!existingAction) {
+            throw new Error('Expected a cached report action');
+        }
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: [
+                {
+                    ...existingAction,
+                    reportActionID: 'new-comment',
+                    created: '2023-01-03',
+                },
+                ...mockReportActions,
+            ],
+        });
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the new action appears without waiting for hydration
+        expect(getCapturedVisibleActions()?.at(-1)?.reportActionID).toBe('new-comment');
+    });
+
+    it('keeps offline additions visible when reconnecting during the initial load', async () => {
+        // Given a cached report whose initial request is still pending.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = true;
+        const view = renderReportActionsList();
+        const existingAction = mockReportActions.at(1);
+        if (!existingAction) {
+            throw new Error('Expected a cached report action');
+        }
+        const renderList = () =>
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    conciergeChat={undefined}
+                    onLayout={jest.fn()}
+                />,
+            );
+
+        // When an action is added offline and the connection returns before hydration.
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: [{...existingAction, reportActionID: 'offline-comment', created: '2023-01-03'}, ...mockReportActions],
+        });
+        renderList();
+        await waitForBatchedUpdatesWithAct();
+        expect(getCapturedVisibleActions()?.at(-1)?.reportActionID).toBe('offline-comment');
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderList();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the list does not revert to the earlier cached snapshot.
+        expect(getCapturedVisibleActions()?.at(-1)?.reportActionID).toBe('offline-comment');
+    });
+
+    it('keeps a hydrated list mounted when its RAM-only loading entry briefly regresses', async () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const view = renderReportActionsList();
+
+        expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+        expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = true;
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+        expect(mockLegendListUnmount).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+    });
+
+    it('limits the render buffer and enables item recycling', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+
+        const listProps = getCapturedListProps();
+
+        expect(listProps?.drawDistance).toBe(1500);
+        expect(listProps?.recycleItems).toBe(true);
+        expect(listProps?.experimental_hideItemsUntilMeasured).toBe(true);
+    });
+
+    it('allows visible report action menus to overflow their LegendList item containers', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+        const hiddenAction = mockReportActions.at(0);
+        const visibleAction = mockReportActions.at(1);
+        if (!hiddenAction || !visibleAction) {
+            throw new Error('Expected report action fixtures');
+        }
+
+        act(() => {
+            getCapturedListProps()?.onViewableItemsChanged?.({
+                changed: [
+                    {containerId: 1, index: 1, isViewable: true, item: visibleAction, key: '1'},
+                    {containerId: 0, index: 0, isViewable: false, item: hiddenAction, key: '0'},
+                ],
+                end: 1,
+                endBuffered: 1,
+                start: 0,
+                startBuffered: 0,
+                viewableItems: [],
+            });
+        });
+
+        expect(mockAllowLegendListItemOverflow).toHaveBeenCalledTimes(1);
+        expect(mockAllowLegendListItemOverflow).toHaveBeenCalledWith(expect.objectContaining({scrollToEnd: mockLegendScrollToEnd}), 1);
+    });
+
+    it('groups comments by layout characteristics for measurement estimates', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+
+        const getItemType = getCapturedListProps()?.getItemType;
+        const comment = mockReportActions.at(1);
+        if (!comment) {
+            throw new Error('Expected comment report action fixture');
+        }
+
+        expect(getItemType?.(comment)).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-short`);
+        expect(
+            getItemType?.({
+                ...comment,
+                reportActionID: 'medium-comment',
+                message: [{type: 'COMMENT', html: 'Medium comment', text: 'a'.repeat(320)}],
+            }),
+        ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-medium`);
+        expect(
+            getItemType?.({
+                ...comment,
+                reportActionID: 'long-comment',
+                message: [{type: 'COMMENT', html: 'Long comment', text: 'a'.repeat(1200)}],
+            }),
+        ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-long`);
+        expect(
+            getItemType?.({
+                ...comment,
+                reportActionID: 'extra-long-comment',
+                message: [{type: 'COMMENT', html: 'Extra long comment', text: 'a'.repeat(1201)}],
+            }),
+        ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-extra-long`);
+        expect(
+            getItemType?.({
+                ...comment,
+                reportActionID: 'attachment',
+                isAttachmentOnly: true,
+            }),
+        ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-attachment`);
+        expect(
+            getItemType?.({
+                ...comment,
+                reportActionID: 'link-preview',
+                linkMetadata: [{url: 'https://example.com'}],
+            }),
+        ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-link-preview-short`);
+    });
+
+    it('loads older pages when LegendList reaches the start and deduplicates the scroll fallback', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: mockReportActions,
+            hasOlderActions: true,
+        });
+        const view = renderReportActionsList();
+
+        const listProps = getCapturedListProps();
+        const createScrollEvent = (offset: number) => ({
+            nativeEvent: {
+                contentOffset: {x: 0, y: offset},
+                contentSize: {height: 1000, width: 300},
+                layoutMeasurement: {height: 500, width: 300},
+            },
+        });
+
+        act(() => {
+            listProps?.onStartReached?.();
+        });
+        expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
+        expect(listProps?.onStartReachedThreshold).toBe(0.75);
+
+        act(() => {
+            listProps?.onScroll?.(createScrollEvent(0));
+        });
+        expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
+
+        mockIsLoadingOlderReportActions = true;
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+            />,
+        );
+        mockIsLoadingOlderReportActions = false;
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+            />,
+        );
+
+        act(() => {
+            getCapturedListProps()?.onScroll?.(createScrollEvent(0));
+        });
+        expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
+
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: [...mockReportActions, olderMockReportAction],
+            hasOlderActions: true,
+        });
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+
+        act(() => {
+            getCapturedListProps()?.onScroll?.(createScrollEvent(0));
+        });
+        expect(mockLoadOlderChats).toHaveBeenCalledTimes(2);
     });
 
     describe('Concierge Feedback Prompt', () => {
@@ -850,6 +1841,66 @@ describe('ReportActionsList (body)', () => {
     });
 
     describe('Open-report telemetry', () => {
+        beforeEach(() => mockUseIsFocused.mockReturnValue(true));
+
+        it('ends the warm span when the positioned content replaces its cover', () => {
+            // Given cached messages whose initial list layout is still covered.
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockShouldCallLegendListOnLoad = false;
+            renderReportActionsList();
+            act(() => getCapturedListProps()?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 500}}})));
+            expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+            expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: true});
+
+            // When LegendList finishes positioning and the cover is removed.
+            act(() => getCapturedListProps()?.onReady?.());
+
+            // Then telemetry records visible content once, rather than the earlier hidden layout.
+            expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+            expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: true});
+            act(() => getCapturedListProps()?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 400}}})));
+            expect(mockMarkOpenReportEnd).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not wait for a background OpenReport request when reopening a hydrated report', () => {
+            // Given a report loaded earlier in this app session with a refresh still in flight.
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockHasOnceLoadedReportActions = true;
+            mockIsLoadingInitialReportActions = true;
+            mockUseIsReportLoadPending.mockReturnValue(true);
+            mockShouldCallLegendListOnLoad = false;
+            renderReportActionsList();
+
+            // When the cached list finishes positioning, before that request completes.
+            act(() => getCapturedListProps()?.onReady?.());
+
+            // Then the cover clears and visible-content telemetry ends immediately.
+            expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+            expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: true});
+        });
+
+        it('ends a new warm span when an already-positioned report regains focus', () => {
+            // Given a positioned report that remains mounted while another screen has focus.
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseIsFocused.mockReturnValue(false);
+            const view = renderReportActionsList();
+            expect(mockMarkOpenReportEnd).not.toHaveBeenCalled();
+
+            // When navigation returns without another list layout or OpenReport response.
+            mockUseIsFocused.mockReturnValue(true);
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    conciergeChat={undefined}
+                    onLayout={jest.fn()}
+                />,
+            );
+
+            // Then the visible cached content completes the new navigation span.
+            expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+            expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: true});
+        });
+
         it('fires markOpenReportEnd with warm:false while the initial skeleton shows', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
 
@@ -896,22 +1947,6 @@ describe('ReportActionsList (body)', () => {
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
             expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: false});
-        });
-    });
-
-    describe('Pending scroll-to-bottom', () => {
-        it('flushes a pending scroll-to-bottom when the list content size changes', () => {
-            // Given the list is rendered
-            mockUseNetwork.mockReturnValue({isOffline: false});
-            renderReportActionsList();
-
-            // When the list content size changes, as it does once FlashList lays out a newly sent comment. In an
-            // aligned-to-top report this is the only list event that follows, because onLayout does not fire.
-            getCapturedListProps()?.onContentSizeChange?.();
-
-            // Then the pending scroll-to-bottom is flushed, so the list lands on the new comment
-            const scrollHookResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as {flushPendingScrollToBottom: jest.Mock};
-            expect(scrollHookResult.flushPendingScrollToBottom).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -988,10 +2023,10 @@ describe('ReportActionsList (body)', () => {
 
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockInvertedFlashList).toHaveBeenCalled();
+            expect(mockLegendList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
             expect(passedActions?.length).toBeGreaterThanOrEqual(1);
-            expect(passedActions?.at(0)?.reportActionID).toBe(CONST.CONCIERGE_GREETING_ACTION_ID);
+            expect(passedActions?.some((action) => action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
         });
 
         it('should not show welcome state when not in side panel', () => {
@@ -1055,7 +2090,7 @@ describe('ReportActionsList (body)', () => {
             // Welcome should not be shown since user has sent a message
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
             // ReportActionsList should be rendered with filtered actions
-            expect(mockInvertedFlashList).toHaveBeenCalled();
+            expect(mockLegendList).toHaveBeenCalled();
         });
     });
 
@@ -1146,7 +2181,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [getMockReportLoadingState(options?.selector, hasOnceLoadedReportActions), {status: 'loaded'}];
+                    return [getMockReportLoadingState(options?.selector, hasOnceLoadedReportActions, !hasOnceLoadedReportActions), {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -1172,7 +2207,7 @@ describe('ReportActionsList (body)', () => {
 
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockInvertedFlashList).toHaveBeenCalled();
+            expect(mockLegendList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
             expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
@@ -1192,7 +2227,7 @@ describe('ReportActionsList (body)', () => {
 
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockInvertedFlashList).toHaveBeenCalled();
+            expect(mockLegendList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
             expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
@@ -1229,7 +2264,7 @@ describe('ReportActionsList (body)', () => {
 
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockInvertedFlashList).toHaveBeenCalled();
+            expect(mockLegendList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
             expect(passedActions?.some((a) => a.reportActionID === 'new-user-msg')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'open-task')).toBe(true);
@@ -1251,7 +2286,7 @@ describe('ReportActionsList (body)', () => {
 
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockInvertedFlashList).toHaveBeenCalled();
+            expect(mockLegendList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
             expect(passedActions?.some((a) => a.reportActionID === 'open-task')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
@@ -1269,10 +2304,226 @@ describe('ReportActionsList (body)', () => {
 
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockInvertedFlashList).toHaveBeenCalled();
+            expect(mockLegendList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(true);
+        });
+
+        it('keeps a short Concierge session at its visible tail when Show History reveals older actions', () => {
+            // Given a short session at its latest action, with history filtered out.
+            setupMainDMConciergeMocks();
+            let isShowingFullHistory = false;
+            mockUseConciergeSessionState.mockImplementation(() => ({sessionStartTime: SESSION_START, showFullHistory: isShowingFullHistory, hadMessagesAtSessionStart: false}));
+            mockUseConciergeSessionActions.mockReturnValue({
+                startSession: jest.fn(),
+                setShowFullHistory: (show: boolean) => {
+                    isShowingFullHistory = show;
+                },
+                setHadMessagesAtSessionStart: jest.fn(),
+            });
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: oldReportActions, hasOlderActions: false});
+            const animationFrames: FrameRequestCallback[] = [];
+            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+                animationFrames.push(callback);
+                return animationFrames.length;
+            });
+
+            try {
+                const view = renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+                const actions = getCapturedVisibleActions();
+                const createdIndex = actions?.findIndex((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ?? -1;
+                const createdAction = actions?.at(createdIndex);
+                if (!createdAction) {
+                    throw new Error('Expected the Concierge created action');
+                }
+
+                // When the reader reveals the older history.
+                act(() => getShowHistoryPress(createdAction, createdIndex)?.());
+                view.rerender(
+                    <ReportActionsList
+                        reportID={CONCIERGE_REPORT_ID}
+                        conciergeChat={undefined}
+                        onLayout={jest.fn()}
+                    />,
+                );
+                act(() => {
+                    for (const callback of animationFrames) {
+                        callback(0);
+                    }
+                });
+
+                // Then all actions are available while the latest session stays in view.
+                expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === 'old-user-msg')).toBe(true);
+                expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false});
+            } finally {
+                requestAnimationFrameSpy.mockRestore();
+            }
+        });
+
+        it.each([false, true])('only follows a delayed Show History page while the reader stays at the end (scrolls away: %s)', (scrollsAway) => {
+            // Given a Concierge session with more history to load after the initially revealed actions.
+            setupMainDMConciergeMocks();
+            let isShowingFullHistory = false;
+            mockUseConciergeSessionState.mockImplementation(() => ({sessionStartTime: SESSION_START, showFullHistory: isShowingFullHistory, hadMessagesAtSessionStart: false}));
+            mockUseConciergeSessionActions.mockReturnValue({
+                startSession: jest.fn(),
+                setShowFullHistory: (show: boolean) => {
+                    isShowingFullHistory = show;
+                },
+                setHadMessagesAtSessionStart: jest.fn(),
+            });
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: oldReportActions, hasOlderActions: true});
+            const animationFrames: FrameRequestCallback[] = [];
+            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+                animationFrames.push(callback);
+                return animationFrames.length;
+            });
+            const flushAnimationFrames = () => {
+                act(() => {
+                    for (const callback of animationFrames.splice(0)) {
+                        callback(0);
+                    }
+                });
+            };
+
+            try {
+                const view = renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+                const actions = getCapturedVisibleActions();
+                const createdIndex = actions?.findIndex((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ?? -1;
+                const createdAction = actions?.at(createdIndex);
+                if (!createdAction) {
+                    throw new Error('Expected the Concierge created action');
+                }
+
+                // When Show History reveals the loaded actions and an older page arrives afterward.
+                act(() => getShowHistoryPress(createdAction, createdIndex)?.());
+                view.rerender(
+                    <ReportActionsList
+                        reportID={CONCIERGE_REPORT_ID}
+                        conciergeChat={undefined}
+                        onLayout={jest.fn()}
+                    />,
+                );
+                flushAnimationFrames();
+                mockLegendScrollToEnd.mockClear();
+
+                if (scrollsAway) {
+                    act(() => {
+                        getCapturedListProps()?.onScroll?.({
+                            nativeEvent: {
+                                contentOffset: {x: 0, y: 500},
+                                contentSize: {height: 1000, width: 300},
+                                layoutMeasurement: {height: 500, width: 300},
+                            },
+                        });
+                        getCapturedListProps()?.onScroll?.({
+                            nativeEvent: {
+                                contentOffset: {x: 0, y: 200},
+                                contentSize: {height: 1000, width: 300},
+                                layoutMeasurement: {height: 500, width: 300},
+                            },
+                        });
+                    });
+                }
+
+                const oldUserAction = oldReportActions.at(1);
+                if (!oldUserAction) {
+                    throw new Error('Expected the older Concierge action');
+                }
+                const olderAction = {...oldUserAction, reportActionID: 'older-user-msg', created: '2022-06-15 10:00:00.000'};
+                mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: [...oldReportActions, olderAction], hasOlderActions: false});
+                view.rerender(
+                    <ReportActionsList
+                        reportID={CONCIERGE_REPORT_ID}
+                        conciergeChat={undefined}
+                        onLayout={jest.fn()}
+                    />,
+                );
+                flushAnimationFrames();
+
+                // Then loading the page respects the reader's choice to stay at the end or read history.
+                expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === 'older-user-msg')).toBe(true);
+                if (scrollsAway) {
+                    expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+                } else {
+                    expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false});
+                }
+            } finally {
+                requestAnimationFrameSpy.mockRestore();
+            }
+        });
+
+        it('does not pull a slightly scrolled Concierge chat to the bottom when Show History is pressed', () => {
+            // Given the reader is above the latest message but still within the generic action-visible threshold.
+            setupMainDMConciergeMocks();
+            let isShowingFullHistory = false;
+            mockUseConciergeSessionState.mockImplementation(() => ({sessionStartTime: SESSION_START, showFullHistory: isShowingFullHistory, hadMessagesAtSessionStart: false}));
+            mockUseConciergeSessionActions.mockReturnValue({
+                startSession: jest.fn(),
+                setShowFullHistory: (show: boolean) => {
+                    isShowingFullHistory = show;
+                },
+                setHadMessagesAtSessionStart: jest.fn(),
+            });
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: oldReportActions, hasOlderActions: false});
+            const animationFrames: FrameRequestCallback[] = [];
+            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+                animationFrames.push(callback);
+                return animationFrames.length;
+            });
+
+            try {
+                const view = renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+                act(() => {
+                    for (const callback of animationFrames.splice(0)) {
+                        callback(0);
+                    }
+                });
+                mockLegendScrollToEnd.mockClear();
+                act(() => {
+                    getCapturedListProps()?.onScroll?.({
+                        nativeEvent: {
+                            contentOffset: {x: 0, y: 500},
+                            contentSize: {height: 1000, width: 300},
+                            layoutMeasurement: {height: 500, width: 300},
+                        },
+                    });
+                    getCapturedListProps()?.onScroll?.({
+                        nativeEvent: {
+                            contentOffset: {x: 0, y: 400},
+                            contentSize: {height: 1000, width: 300},
+                            layoutMeasurement: {height: 500, width: 300},
+                        },
+                    });
+                });
+                const actions = getCapturedVisibleActions();
+                const createdIndex = actions?.findIndex((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ?? -1;
+                const createdAction = actions?.at(createdIndex);
+                if (!createdAction) {
+                    throw new Error('Expected the Concierge created action');
+                }
+
+                // When the reader reveals older history.
+                act(() => getShowHistoryPress(createdAction, createdIndex)?.());
+                view.rerender(
+                    <ReportActionsList
+                        reportID={CONCIERGE_REPORT_ID}
+                        conciergeChat={undefined}
+                        onLayout={jest.fn()}
+                    />,
+                );
+                act(() => {
+                    for (const callback of animationFrames.splice(0)) {
+                        callback(0);
+                    }
+                });
+
+                // Then the reader's offset is left to LegendList's visible-content preservation.
+                expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+            } finally {
+                requestAnimationFrameSpy.mockRestore();
+            }
         });
 
         it('should show all actions unfiltered when user sends a message in current session', () => {
@@ -1302,7 +2553,7 @@ describe('ReportActionsList (body)', () => {
 
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockInvertedFlashList).toHaveBeenCalled();
+            expect(mockLegendList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
             // After user sends a message, the greeting stays visible alongside session actions
             expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
@@ -1320,7 +2571,7 @@ describe('ReportActionsList (body)', () => {
 
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockInvertedFlashList).toHaveBeenCalled();
+            expect(mockLegendList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
             // With no session, old messages should not be shown
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
@@ -1366,7 +2617,7 @@ describe('ReportActionsList (body)', () => {
 
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockInvertedFlashList).toHaveBeenCalled();
+            expect(mockLegendList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
             // New user with no prior messages — onboarding messages pass through (no filtering)
             expect(passedActions?.some((a) => a.reportActionID === 'onboarding-msg')).toBe(true);
@@ -1389,9 +2640,10 @@ describe('ReportActionsList (body)', () => {
             expect(mockStartSession).toHaveBeenCalled();
         });
 
-        it('should render cached actions without a skeleton on refresh when hasOnceLoadedReportActions resets but actions are cached', () => {
+        it('should cover cached actions until the refreshed report finishes hydrating', () => {
             // Simulates a page refresh: hasOnceLoadedReportActions is RAM-only and resets to false,
-            // but report actions persist in Onyx cache. We should render them immediately (production behavior).
+            // but report actions persist in Onyx cache. Keep the cached list covered until OpenReport
+            // finishes so the final hydrated viewport is the first report content the user sees.
             setupMainDMConciergeMocks(SESSION_START, false, false);
 
             mockUsePaginatedReportActions.mockReturnValue({
@@ -1402,8 +2654,8 @@ describe('ReportActionsList (body)', () => {
 
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
-            expect(mockInvertedFlashList).toHaveBeenCalled();
+            expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+            expect(mockLegendList).toHaveBeenCalled();
         });
 
         it('should show a skeleton on a cold load when hasOnceLoadedReportActions is false and there are no cached actions', () => {
