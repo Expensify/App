@@ -58,13 +58,13 @@ function MoneyReportHeaderStatusBar({nextStep, onPress}: MoneyReportHeaderStatus
     }, [nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber]);
 
     const message = (
-        <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
+        <View style={onPress ? [styles.renderHTML, styles.dFlex, styles.flexShrink1] : [styles.dFlex, styles.flexRow, styles.flexShrink1]}>
             <RenderHTML html={messageContent} />
         </View>
     );
 
     const content = (
-        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
+        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, !onPress && styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
                 <Icon
                     src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? icons.Hourglass}
@@ -84,7 +84,7 @@ function MoneyReportHeaderStatusBar({nextStep, onPress}: MoneyReportHeaderStatus
     return (
         <PressableWithFeedback
             onPress={onPress}
-            wrapperStyle={styles.w100}
+            wrapperStyle={[styles.w100, styles.justifyContentCenter, styles.headerStatusBarContainer]}
             accessibilityLabel={translate('reportHistoryPage.title')}
             role={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_NEXT_STEP}
