@@ -1,4 +1,5 @@
-import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
+import DateUtils from '@libs/DateUtils';
+import {canReportActionTriggerUnreadMarker, isReportActionUnread, wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
@@ -54,6 +55,7 @@ type UseUnreadMarkerResult = {
 
 const lastReadTimeSelector = (report: OnyxTypes.Report | undefined) => report?.lastReadTime ?? '';
 const manuallyMarkedUnreadReportActionIDSelector = (report: OnyxTypes.Report | undefined) => report?.manuallyMarkedUnreadReportActionID ?? null;
+const manuallyMarkedUnreadTimeSelector = (metadata: OnyxTypes.ReportMetadata | undefined) => metadata?.manuallyMarkedUnreadTime ?? null;
 
 function useUnreadMarker({
     reportID,
@@ -78,8 +80,22 @@ function useUnreadMarker({
     const [manuallyMarkedUnreadReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         selector: manuallyMarkedUnreadReportActionIDSelector,
     });
+    const [manuallyMarkedUnreadTime] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
+        selector: manuallyMarkedUnreadTimeSelector,
+    });
 
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
+    const hasManualUnreadMark = !!manuallyMarkedUnreadReportActionID || !!manuallyMarkedUnreadTime;
+    const [hadManualUnreadMark, setHadManualUnreadMark] = useState(hasManualUnreadMark);
+    const [manualMarkerResetTime, setManualMarkerResetTime] = useState<string>();
+    if (hadManualUnreadMark !== hasManualUnreadMark) {
+        setHadManualUnreadMark(hasManualUnreadMark);
+        if (!hasManualUnreadMark) {
+            // A return visit consumes the manual anchor. History loaded after this reset is not a live arrival.
+            setUnreadMarkerTime(reportLastReadTime);
+            setManualMarkerResetTime(DateUtils.getDBTime());
+        }
+    }
 
     useEffect(() => {
         if (isAnonymousUser) {
@@ -110,7 +126,11 @@ function useUnreadMarker({
     let earliestReceivedOfflineMessageIndex: number | undefined;
     for (let i = sortedReportActions.length - 1; i >= 0; i--) {
         const message = sortedReportActions.at(i);
-        if (message && wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime, currentUserAccountID)) {
+        if (
+            message &&
+            canReportActionTriggerUnreadMarker(message, currentUserAccountID) &&
+            wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime, currentUserAccountID)
+        ) {
             earliestReceivedOfflineMessageIndex = i;
             break;
         }
@@ -120,7 +140,8 @@ function useUnreadMarker({
     let oldestUnreadReportActionMarker: [string, number] | undefined;
     if (oldestUnreadReportActionID && !hasOnceLoadedReportActions) {
         const visibleIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === oldestUnreadReportActionID);
-        if (visibleIndex >= 0) {
+        const visibleAction = visibleIndex >= 0 ? sortedVisibleReportActions.at(visibleIndex) : undefined;
+        if (visibleAction && isReportActionUnread(visibleAction, unreadMarkerTime) && canReportActionTriggerUnreadMarker(visibleAction, currentUserAccountID)) {
             oldestUnreadReportActionMarker = [oldestUnreadReportActionID, visibleIndex];
         }
     }
@@ -137,8 +158,9 @@ function useUnreadMarker({
         isAnonymousUser,
         prevUnreadMarkerReportActionID,
         manuallyMarkedUnreadReportActionID,
+        manuallyMarkedUnreadTime,
         hasWindowFocus: Visibility.hasFocus(),
-        newMessageBoundaryTime,
+        newMessageBoundaryTime: newMessageBoundaryTime ?? manualMarkerResetTime,
     });
     // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
     // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.

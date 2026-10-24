@@ -10568,7 +10568,9 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
     const reportLastReadTime = report.lastReadTime ?? '';
     const threadLastReadTime = oneTransactionThreadReport?.lastReadTime ?? '';
-    const lastReadTime = reportLastReadTime > threadLastReadTime ? reportLastReadTime : threadLastReadTime;
+    const isManuallyMarkedUnread = !!reportLastReadTime && getReportMetadata(report.reportID)?.manuallyMarkedUnreadTime === reportLastReadTime;
+    // A manual mark on the report takes precedence over the thread's read cursor and the last message's author.
+    const lastReadTime = isManuallyMarkedUnread || reportLastReadTime > threadLastReadTime ? reportLastReadTime : threadLastReadTime;
     const lastMentionedTime = report.lastMentionedTime ?? '';
 
     // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
@@ -10577,7 +10579,7 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     const drivingActorAccountID =
         (oneTransactionThreadReport?.lastVisibleActionCreated ?? '') > (report?.lastVisibleActionCreated ?? '') ? oneTransactionThreadReport?.lastActorAccountID : report?.lastActorAccountID;
 
-    if (isUnreadFromTimestamp && drivingActorAccountID === deprecatedCurrentUserAccountID && !(lastReadTime < lastMentionedTime)) {
+    if (isUnreadFromTimestamp && !isManuallyMarkedUnread && drivingActorAccountID === deprecatedCurrentUserAccountID && !(lastReadTime < lastMentionedTime)) {
         return false;
     }
 

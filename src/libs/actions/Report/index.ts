@@ -1742,7 +1742,8 @@ function openReport(params: OpenReportActionParams) {
 
     const participantLoginList = participants.map((p) => p.login).filter((login) => !!login);
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
-    const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
+    const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const existingReportName = existingReport?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
     let shouldClearManualUnreadMarker = false;
     if (!shouldKeepManualUnreadMarker) {
@@ -1751,15 +1752,17 @@ function openReport(params: OpenReportActionParams) {
         const didNavigateBackToReport = reportsNavigatedAwayFrom.has(reportID);
         reportsNavigatedAwayFrom.delete(reportID);
 
-        // A refresh resets the report screen's RAM-only `hasOnceLoadedReportActions`, which is how we detect one here.
-        // A genuine first open has no marker to clear, so this only affects a marker persisted from before the refresh.
+        // A refresh resets the report screen's RAM-only `hasOnceLoadedReportActions`. Preserve marks on unread
+        // reports so marking a different inbox row still shows the divider on its first open or after refreshing.
         const isFirstLoadAfterRefresh = !hasOnceLoadedReportActions;
-        shouldClearManualUnreadMarker = didNavigateBackToReport || isFirstLoadAfterRefresh;
+        const manuallyMarkedUnreadTime = getReportMetadata(reportID)?.manuallyMarkedUnreadTime;
+        const hasUnopenedManualUnreadMark = !!manuallyMarkedUnreadTime && manuallyMarkedUnreadTime === existingReport?.lastReadTime;
+        shouldClearManualUnreadMarker = (didNavigateBackToReport || isFirstLoadAfterRefresh) && !hasUnopenedManualUnreadMark;
     }
     const optimisticReport: Partial<Pick<Report, 'reportName' | 'manuallyMarkedUnreadReportActionID'>> = hasReportActions || !existingReportName ? {} : {reportName: existingReportName};
 
-    // A manual mark-as-unread keeps its marker anchored while the user stays in the report, and is cleared only on
-    // a return trip or a refresh. This is a client-side decision, so it goes in optimisticData to apply immediately
+    // A manual mark-as-unread keeps its marker anchored while the user stays in the report, and is cleared on
+    // a return trip or refresh after reading it. This is a client-side decision, so it goes in optimisticData to apply immediately
     // and offline. It is deliberately not restored in failureData — that would resurrect a marker already moved past.
     if (shouldClearManualUnreadMarker) {
         optimisticReport.manuallyMarkedUnreadReportActionID = null;
@@ -1791,6 +1794,14 @@ function openReport(params: OpenReportActionParams) {
             },
         },
     ];
+
+    if (shouldClearManualUnreadMarker) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {manuallyMarkedUnreadTime: null},
+        });
+    }
 
     // We need a report update for both:
     // 1) existing reports with a known name, and
@@ -3288,17 +3299,25 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
 
     const lastReadTime = getDBTimeWithSkew();
 
-    // Deliberately leaves `manuallyMarkedUnreadReportActionID` alone so an auto-read doesn't wipe a marker the
-    // user created. `openReport` clears it on a return trip or a refresh.
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    // Automatic reads preserve the divider for the current visit; explicit mark-as-read commands clear it.
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 lastReadTime,
+                ...(shouldResetUnreadMarker && {manuallyMarkedUnreadReportActionID: null}),
             },
         },
     ];
+
+    if (shouldResetUnreadMarker) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {manuallyMarkedUnreadTime: null},
+        });
+    }
 
     const parameters: ReadNewestActionParams = {
         reportID,
@@ -3346,19 +3365,8 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
 
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
-    const otherUserActionTime = latestReportActionFromOtherUsers?.created;
-
-    // Prefer the latest action from other users so the unread divider appears before their
-    // message, but cap it at lastVisibleActionCreated so isUnread() stays true (IOU reports
-    // can have action timestamps exceeding lastVisibleActionCreated).
-    let actionCreationTime: string;
-    if (reportAction?.created) {
-        actionCreationTime = reportAction.created;
-    } else if (otherUserActionTime && lastVisibleActionCreated && otherUserActionTime <= lastVisibleActionCreated) {
-        actionCreationTime = otherUserActionTime;
-    } else {
-        actionCreationTime = lastVisibleActionCreated || DateUtils.getDBTime(0);
-    }
+    // Report-level marks start at the last visible message, regardless of who sent it.
+    const actionCreationTime = reportAction?.created || lastVisibleActionCreated || DateUtils.getDBTime(0);
 
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
@@ -3370,13 +3378,31 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
             ? reportAction.actorAccountID
             : (latestReportActionFromOtherUsers?.actorAccountID ?? report?.lastActorAccountID);
 
+    const lastVisibleReportAction = ReportActionsUtils.getLastVisibleAction(
+        reportID,
+        true,
+        {},
+        {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions},
+        undefined,
+        currentUserAccountID,
+    );
+    const reportLevelAnchor = lastVisibleReportAction && lastVisibleReportAction.created >= actionCreationTime ? lastVisibleReportAction : undefined;
+    const manuallyMarkedUnreadReportAction = reportAction?.created ? reportAction : reportLevelAnchor;
+    const manuallyMarkedUnreadReportActionID = manuallyMarkedUnreadReportAction?.reportActionID;
+    // The server can recalculate the read cursor from the action ID, so only send it when it agrees with the report's boundary.
+    const reportActionID = manuallyMarkedUnreadReportAction?.created === actionCreationTime ? manuallyMarkedUnreadReportActionID : undefined;
     const reportValue = {
         lastReadTime,
-        manuallyMarkedUnreadReportActionID: reportAction?.reportActionID ?? null,
+        manuallyMarkedUnreadReportActionID: manuallyMarkedUnreadReportActionID ?? null,
         ...(lastActorAccountID && {lastActorAccountID}),
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {manuallyMarkedUnreadTime: lastReadTime},
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -3399,7 +3425,12 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {manuallyMarkedUnreadTime: getReportMetadata(reportID)?.manuallyMarkedUnreadTime ?? null},
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -3410,8 +3441,6 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
             },
         },
     ];
-
-    const reportActionID = reportAction?.reportActionID ?? latestReportActionFromOtherUsers?.reportActionID;
 
     const parameters: MarkAsUnreadParams = {
         reportID,

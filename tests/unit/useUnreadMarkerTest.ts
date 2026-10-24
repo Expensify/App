@@ -2,6 +2,8 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -18,6 +20,8 @@ const LAST_READ_TIME = '2023-01-01 10:00:00.000';
 let mockIsAnonymousUser = false;
 let mockLastReadTime: string = LAST_READ_TIME;
 let mockLastReadTimeByReportID: Record<string, string> = {};
+let mockManuallyMarkedUnreadReportActionID: string | null = null;
+let mockManuallyMarkedUnreadTime: string | null = null;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -29,10 +33,10 @@ jest.mock('@hooks/useIsAnonymousUser', () => ({
     default: () => mockIsAnonymousUser,
 }));
 
-// The hook subscribes to `${ONYXKEYS.COLLECTION.REPORT}${reportID}` twice with different selectors, so the mock
-// applies the passed selector to a fake report. The implementation is set in beforeEach so it can use ONYXKEYS
+// The hook subscribes to report data and metadata with different selectors, so the mock
+// applies the passed selector to fake data. The implementation is set in beforeEach so it can use ONYXKEYS
 // freely (a jest.mock factory cannot reference out-of-scope variables).
-type FakeReport = Pick<OnyxTypes.Report, 'lastReadTime' | 'manuallyMarkedUnreadReportActionID'>;
+type FakeReport = Pick<OnyxTypes.Report, 'lastReadTime' | 'manuallyMarkedUnreadReportActionID'> & Pick<OnyxTypes.ReportMetadata, 'manuallyMarkedUnreadTime'>;
 type UseOnyxOptions = {selector?: (value: FakeReport | undefined) => unknown};
 const mockUseOnyx = jest.fn<[unknown], [string, UseOnyxOptions?]>();
 jest.mock('@hooks/useOnyx', () => ({
@@ -69,9 +73,16 @@ describe('useUnreadMarker', () => {
         mockIsAnonymousUser = false;
         mockLastReadTime = LAST_READ_TIME;
         mockLastReadTimeByReportID = {};
+        mockManuallyMarkedUnreadReportActionID = null;
+        mockManuallyMarkedUnreadTime = null;
+        jest.restoreAllMocks();
         mockUseOnyx.mockImplementation((key, options) => {
             const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
-            const report: FakeReport = {lastReadTime: mockLastReadTimeByReportID[reportID] ?? mockLastReadTime};
+            const report: FakeReport = {
+                lastReadTime: mockLastReadTimeByReportID[reportID] ?? mockLastReadTime,
+                manuallyMarkedUnreadReportActionID: mockManuallyMarkedUnreadReportActionID,
+                manuallyMarkedUnreadTime: mockManuallyMarkedUnreadTime,
+            };
             return [options?.selector ? options.selector(report) : report];
         });
     });
@@ -91,16 +102,63 @@ describe('useUnreadMarker', () => {
         expect(result.current.unreadMarkerReportActionIndex).toBe(0);
     });
 
+    it('resolves a report-level unread mark when self-authored history finishes loading', () => {
+        // Given an inbox mark made before this chat's actions were loaded
+        mockManuallyMarkedUnreadTime = LAST_READ_TIME;
+        const action = makeAction('own-message', {actorAccountID: CURRENT_USER_ACCOUNT_ID});
+        const {result, rerender} = renderHook(
+            ({actions}: {actions: OnyxTypes.ReportAction[]}) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions: actions,
+                    sortedReportActions: actions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: actions.length > 0,
+                }),
+            {initialProps: {actions: [] as OnyxTypes.ReportAction[]}},
+        );
+
+        // When the chat's history arrives
+        rerender({actions: [action]});
+
+        // Then the explicit mark bypasses self-message auto-read suppression
+        expect(result.current.unreadMarkerReportActionID).toBe(action.reportActionID);
+        expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
     it('prefers the oldestUnread pagination anchor over the scan on first open when the scan finds nothing', () => {
-        const readAction = makeAction('a', {created: '2023-01-01 09:00:00.000'});
+        // Given an unread pagination anchor on a self-authored action that the automatic scan would skip
+        const unreadAction = makeAction('a', {actorAccountID: CURRENT_USER_ACCOUNT_ID});
+        // When rendering the initial slice before history has finished loading
         const {result} = renderUnreadMarker({
-            sortedVisibleReportActions: [readAction],
+            sortedVisibleReportActions: [unreadAction],
             oldestUnreadReportActionID: 'a',
             hasOnceLoadedReportActions: false,
         });
 
+        // Then the unread pagination anchor supplies the divider
         expect(result.current.unreadMarkerReportActionID).toBe('a');
         expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    it('clears a pagination marker when the report is explicitly marked as read', () => {
+        // Given an unread marker supplied by pagination before history finishes loading
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: [makeAction('a', {actorAccountID: CURRENT_USER_ACCOUNT_ID})],
+            oldestUnreadReportActionID: 'a',
+            hasOnceLoadedReportActions: false,
+        });
+        expect(result.current.unreadMarkerReportActionID).toBe('a');
+
+        // When the explicit read command advances the marker's watermark
+        act(() => {
+            DeviceEventEmitter.emit(`readNewestAction_${REPORT_ID}`, '2023-01-01 12:00:00.000');
+        });
+
+        // Then the stale pagination anchor cannot restore the divider
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 
     it('ignores the oldestUnread anchor once the report actions have loaded', () => {
@@ -109,6 +167,21 @@ describe('useUnreadMarker', () => {
             sortedVisibleReportActions: [readAction],
             oldestUnreadReportActionID: 'a',
             hasOnceLoadedReportActions: true,
+        });
+
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it('ignores a filtered oldestUnread pagination anchor', () => {
+        const exportAction = makeAction('export', {
+            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+        });
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: [exportAction],
+            oldestUnreadReportActionID: exportAction.reportActionID,
+            hasOnceLoadedReportActions: false,
         });
 
         expect(result.current.unreadMarkerReportActionID).toBeNull();
@@ -125,6 +198,169 @@ describe('useUnreadMarker', () => {
 
         expect(result.current.unreadMarkerReportActionID).toBeNull();
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it('moves the marker when an unreadAction event moves the read watermark backwards', () => {
+        mockLastReadTime = '2023-01-01 12:00:00.000';
+        const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        act(() => {
+            DeviceEventEmitter.emit(`unreadAction_${REPORT_ID}`, LAST_READ_TIME);
+        });
+
+        expect(result.current.unreadMarkerReportActionID).toBe('m1');
+    });
+
+    it('anchors an explicit manual unread mark on a filtered action', () => {
+        mockLastReadTime = '2023-01-01 12:00:00.000';
+        mockManuallyMarkedUnreadReportActionID = 'export';
+        const exportAction = makeAction('export', {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION});
+        const {result} = renderUnreadMarker({sortedVisibleReportActions: [exportAction]});
+
+        expect(result.current.unreadMarkerReportActionID).toBe('export');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    it('uses the return visit read cursor when a consumed manual anchor is cleared before newer history loads', () => {
+        // Given a manual divider retained during the visit even after the report was automatically read
+        mockManuallyMarkedUnreadReportActionID = 'marked';
+        const markedAction = makeAction('marked');
+        const {result, rerender} = renderHook(
+            (actions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions: actions,
+                    sortedReportActions: actions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: [markedAction]},
+        );
+        mockLastReadTime = '2023-01-01 12:00:00.000';
+        rerender([markedAction]);
+        expect(result.current.unreadMarkerReportActionID).toBe(markedAction.reportActionID);
+
+        // When returning clears that consumed anchor and pagination supplies the newer unread message afterward
+        mockManuallyMarkedUnreadReportActionID = null;
+        rerender([markedAction]);
+        const newAction = makeAction('newer', {created: '2023-01-01 13:00:00.000'});
+        rerender([newAction, markedAction]);
+
+        // Then the divider targets the newer history rather than the old anchor or treating history as read-on-arrival
+        expect(result.current.unreadMarkerReportActionID).toBe(newAction.reportActionID);
+        expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    it('keeps an existing divider across repeated renders after a filtered offline action arrives', () => {
+        jest.spyOn(ReportActionsUtils, 'wasMessageReceivedWhileOffline').mockImplementation((action) => action.reportActionID === 'export');
+        const olderUnread = makeAction('older-unread');
+        const {result, rerender} = renderHook(
+            (actions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions: actions,
+                    sortedReportActions: actions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: true,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: [olderUnread]},
+        );
+        expect(result.current.unreadMarkerReportActionID).toBe('older-unread');
+        const exportAction = makeAction('export', {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, created: '2023-01-01 12:00:00.000'});
+
+        rerender([exportAction, olderUnread]);
+        rerender([exportAction, olderUnread]);
+
+        expect(result.current.unreadMarkerReportActionID).toBe('older-unread');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(1);
+    });
+
+    it.each([
+        ['export', 'own'],
+        ['export', 'pending'],
+        ['export', 'live'],
+        ['reimbursement', 'own'],
+        ['reimbursement', 'pending'],
+        ['reimbursement', 'live'],
+    ])('does not transfer a filtered offline %s boundary to a subsequent %s message', (filteredType, incomingType) => {
+        jest.spyOn(ReportActionsUtils, 'wasMessageReceivedWhileOffline').mockImplementation((action) => action.reportActionID === 'filtered');
+        const readAction = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        const {result, rerender} = renderHook(
+            (actions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions: actions,
+                    sortedReportActions: actions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: [readAction]},
+        );
+        const filteredAction =
+            filteredType === 'export'
+                ? makeAction('filtered', {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, created: '2023-01-01 12:00:00.000'})
+                : makeAction('filtered', {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, created: '2023-01-01 12:00:00.000', originalMessage: {actionableForAccountIDs: [2]}});
+        rerender([filteredAction, readAction]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        const incomingAction = makeAction('incoming', {
+            created: '2023-01-01 13:00:00.000',
+            actorAccountID: incomingType === 'live' ? OTHER_USER_ACCOUNT_ID : CURRENT_USER_ACCOUNT_ID,
+            pendingAction: incomingType === 'pending' ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null,
+        });
+        rerender([incomingAction, filteredAction, readAction]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        rerender([incomingAction, filteredAction, readAction]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+    });
+
+    it('advances a filtered offline boundary to the oldest eligible action actually received offline', () => {
+        jest.spyOn(ReportActionsUtils, 'wasMessageReceivedWhileOffline').mockImplementation((action) => action.reportActionID !== 'read');
+        const readAction = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        const {result, rerender} = renderHook(
+            (actions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions: actions,
+                    sortedReportActions: actions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: [readAction]},
+        );
+        const filteredAction = makeAction('export', {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, created: '2023-01-01 12:00:00.000'});
+        const offlineAction = makeAction('offline-comment', {created: '2023-01-01 13:00:00.000'});
+        rerender([offlineAction, filteredAction, readAction]);
+
+        expect(result.current.unreadMarkerReportActionID).toBe('offline-comment');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    it('shows the marker for a new message received while scrolled up', () => {
+        const oldMessage = makeAction('old', {created: '2023-01-01 09:00:00.000'});
+        const {result, rerender} = renderHook(
+            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions,
+                    sortedReportActions: sortedVisibleReportActions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: true,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: [oldMessage]},
+        );
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        const incoming = makeAction('incoming');
+        rerender([incoming, oldMessage]);
+
+        expect(result.current.unreadMarkerReportActionID).toBe('incoming');
     });
 
     it('does not push the read watermark on a bulk history reveal without a session boundary (marker appears on the next render)', () => {

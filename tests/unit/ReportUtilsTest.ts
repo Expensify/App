@@ -11329,6 +11329,34 @@ describe('ReportUtils', () => {
     });
 
     describe('isUnread', () => {
+        it.each(['marked-action', null])('honors an explicit unread mark on a self-authored message (anchor: %s)', async (manuallyMarkedUnreadReportActionID) => {
+            // Given a manually marked report whose newer thread has already been read
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.999',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastActorAccountID: currentUserAccountID,
+                manuallyMarkedUnreadReportActionID,
+            };
+            const transactionThreadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '2',
+                lastReadTime: '2024-03-01 12:00:02.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {manuallyMarkedUnreadTime: report.lastReadTime});
+            await waitForBatchedUpdates();
+
+            // When deriving the inbox state, the explicit report mark takes precedence
+            // Then it is unread even if its action ID is not cached yet
+            expect(isUnread(report, transactionThreadReport, false, false)).toBe(true);
+
+            // When the report is read again, retaining a divider anchor must not keep the inbox unread
+            // Then its updated read cursor makes the report read
+            expect(isUnread({...report, lastReadTime: '2024-03-01 12:00:03.000'}, transactionThreadReport, false, false)).toBe(false);
+        });
+
         it('returns false when the newest visible action was sent by the current user in a one-transaction report', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),

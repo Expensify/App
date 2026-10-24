@@ -24,6 +24,8 @@ import {getOriginalMessage, getReportActionMessage, isActionOfType, isDeletedAct
 import playSound, {SOUNDS} from '@libs/Sound';
 import {appendParam} from '@libs/Url';
 
+import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+
 import toggleEmojiReaction from '@userActions/EmojiReactions';
 
 import CONST from '@src/CONST';
@@ -970,6 +972,219 @@ describe('actions/Report', () => {
             });
         waitForBatchedUpdates(); // flushing onyx.set as it will be batched
         return setPromise;
+    });
+
+    it.each([
+        [false, false, false],
+        [true, false, false],
+        [false, true, false],
+        [true, true, false],
+        [false, false, true],
+        [true, false, true],
+    ])(
+        'anchors report-level unread marks to the latest visible message (offline: %s, specific message: %s, export at boundary: %s)',
+        async (isOffline, markSpecificMessage, exportAtBoundary) => {
+            // Given a report whose latest visible export may be newer than its report-level unread boundary
+            const reportID = 'report-level-unread-export';
+            const submitterAccountID = 1;
+            const approverAccountID = 2;
+            const submitted = createMock<OnyxTypes.ReportAction>({
+                reportActionID: 'submitted',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                actorAccountID: submitterAccountID,
+                created: '2026-01-01 09:00:00.000',
+                message: [{type: 'COMMENT', text: 'submitted', html: 'submitted'}],
+            });
+            const approved = createMock<OnyxTypes.ReportAction>({
+                reportActionID: 'approved',
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                actorAccountID: approverAccountID,
+                created: '2026-01-01 10:00:00.000',
+                message: [{type: 'COMMENT', text: 'approved', html: 'approved'}],
+            });
+            const exported = createMock<OnyxTypes.ReportAction>({
+                reportActionID: 'exported',
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                actorAccountID: approverAccountID,
+                created: '2026-01-01 11:00:00.000',
+                message: [{type: 'COMMENT', text: 'marked this report as manually exported', html: 'marked this report as manually exported'}],
+                originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2026-01-01 11:00:00.000'},
+            });
+            const reportActions = {[submitted.reportActionID]: submitted, [approved.reportActionID]: approved, [exported.reportActionID]: exported};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                lastVisibleActionCreated: exportAtBoundary ? exported.created : approved.created,
+                lastReadTime: '2026-01-01 12:00:00.000',
+            });
+            await waitForBatchedUpdates();
+
+            const expectedAnchor = markSpecificMessage ? submitted : exported;
+            const reportLevelBoundary = exportAtBoundary ? exported : approved;
+            const expectedBoundary = markSpecificMessage ? submitted : reportLevelBoundary;
+            // When the report or a specific message is explicitly marked unread
+            Report.markCommentAsUnread(reportID, reportActions, markSpecificMessage ? submitted : createMock<OnyxTypes.ReportAction>({}), submitterAccountID, isOffline);
+            await waitForBatchedUpdates();
+
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            // Then the explicit marker targets the requested message while the cursor still makes the report unread
+            expect(report?.manuallyMarkedUnreadReportActionID).toBe(expectedAnchor.reportActionID);
+            expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(expectedBoundary.created, 1));
+            const scanParams = {
+                visibleReportActions: [exported, approved, submitted],
+                earliestReceivedOfflineMessageIndex: undefined,
+                currentUserAccountID: submitterAccountID,
+                prevSortedVisibleReportActionsObjects: reportActions,
+                unreadMarkerTime: report?.lastReadTime,
+                isScrolledOverThreshold: false,
+                isOffline,
+                isReversed: false,
+                manuallyMarkedUnreadReportActionID: report?.manuallyMarkedUnreadReportActionID,
+            };
+            expect(getUnreadMarkerReportAction(scanParams)).toEqual([expectedAnchor.reportActionID, [exported, approved, submitted].indexOf(expectedAnchor)]);
+            if (!markSpecificMessage && !exportAtBoundary) {
+                expect(getUnreadMarkerReportAction({...scanParams, manuallyMarkedUnreadReportActionID: null})).toEqual([approved.reportActionID, 1]);
+            }
+        },
+    );
+
+    it.each([
+        [false, false],
+        [false, true],
+        [true, false],
+        [true, true],
+    ])('marks a non-selected chat unread at its last self-authored message (cached: %s, offline: %s)', async (hasCachedActions, isOffline) => {
+        // Given a previously visited chat whose newest message was sent by the current user
+        global.fetch = TestHelper.createGlobalFetchMock();
+        const reportID = 'non-selected-unread';
+        const currentUserAccountID = 1;
+        await TestHelper.signInWithTestUser(currentUserAccountID, 'user@test.com');
+        const olderAction = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'older',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: 2,
+            created: '2026-01-01 09:00:00.000',
+            message: [{type: 'COMMENT', text: 'Older message', html: 'Older message'}],
+        });
+        const latestAction = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'latest',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: currentUserAccountID,
+            created: '2026-01-01 10:00:00.000',
+            message: [{type: 'COMMENT', text: 'Latest message', html: 'Latest message'}],
+        });
+        const reportActions = {[olderAction.reportActionID]: olderAction, [latestAction.reportActionID]: latestAction};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            lastMessageText: 'Latest message',
+            lastActorAccountID: currentUserAccountID,
+            lastVisibleActionCreated: latestAction.created,
+            lastReadTime: '2026-01-01 11:00:00.000',
+        });
+        await waitForBatchedUpdates();
+        Report.flagReportNavigatedAway(reportID);
+
+        // When it is marked unread from the inbox without selecting a specific message
+        Report.markCommentAsUnread(reportID, hasCachedActions ? reportActions : undefined, createMock<OnyxTypes.ReportAction>({}), currentUserAccountID, isOffline);
+        await waitForBatchedUpdates();
+        const markedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+
+        // Then the inbox is unread and only the latest message is after its read cursor
+        expect(ReportUtils.isUnread(markedReport, undefined, false, false)).toBe(true);
+        expect(markedReport?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(latestAction.created, 1));
+        expect(markedReport?.manuallyMarkedUnreadReportActionID ?? null).toBe(hasCachedActions ? latestAction.reportActionID : null);
+        const markedMetadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
+        expect(markedMetadata?.manuallyMarkedUnreadTime).toBe(markedReport?.lastReadTime);
+
+        // When that chat is opened, including a cold load without cached history
+        Report.openReport({
+            reportID,
+            conciergeChat: undefined,
+            introSelected: undefined,
+            hasReportActions: hasCachedActions,
+            hasOnceLoadedReportActions: hasCachedActions,
+            currentUserAccountID,
+        });
+        await waitForBatchedUpdates();
+        const openedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+
+        // Then the explicit mark survives opening and the divider resolves above the last message in either list order
+        expect(openedReport?.manuallyMarkedUnreadReportActionID).toBe(markedReport?.manuallyMarkedUnreadReportActionID);
+        for (const isReversed of [false, true]) {
+            expect(
+                getUnreadMarkerReportAction({
+                    visibleReportActions: isReversed ? [olderAction, latestAction] : [latestAction, olderAction],
+                    earliestReceivedOfflineMessageIndex: undefined,
+                    currentUserAccountID,
+                    prevSortedVisibleReportActionsObjects: {},
+                    unreadMarkerTime: markedReport?.lastReadTime,
+                    isScrolledOverThreshold: false,
+                    isOffline,
+                    isReversed,
+                    manuallyMarkedUnreadReportActionID: openedReport?.manuallyMarkedUnreadReportActionID,
+                    manuallyMarkedUnreadTime: markedMetadata?.manuallyMarkedUnreadTime,
+                }),
+            ).toEqual([latestAction.reportActionID, isReversed ? 1 : 0]);
+        }
+    });
+
+    it.each([
+        [true, true],
+        [true, false],
+        [false, true],
+        [false, false],
+    ])('only explicit mark-as-read clears manual markers while offline (explicit: %s, cached anchor: %s)', async (shouldResetUnreadMarker, hasCachedAnchor) => {
+        // Given a manual unread mark that must work without a server round trip
+        const reportID = 'explicit-mark-as-read';
+        const unreadTime = '2026-01-01 09:59:59.999';
+        const action = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'marked-action',
+            actorAccountID: 1,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2026-01-01 10:00:00.000',
+            message: [{type: 'COMMENT', text: 'Marked message', html: 'Marked message'}],
+        });
+        setHasRadio(false);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            lastReadTime: unreadTime,
+            manuallyMarkedUnreadReportActionID: hasCachedAnchor ? action.reportActionID : undefined,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {manuallyMarkedUnreadTime: unreadTime});
+        await waitForBatchedUpdates();
+
+        // When an explicit command or an automatic read advances the read cursor
+        Report.readNewestAction(reportID, true, shouldResetUnreadMarker);
+        await waitForBatchedUpdates();
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        const metadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
+
+        // Then explicit reads clear both markers; automatic reads preserve the divider for the current visit
+        if (shouldResetUnreadMarker) {
+            expect(report?.manuallyMarkedUnreadReportActionID).toBeFalsy();
+            expect(metadata?.manuallyMarkedUnreadTime).toBeFalsy();
+        } else {
+            expect(report?.manuallyMarkedUnreadReportActionID).toBe(hasCachedAnchor ? action.reportActionID : undefined);
+            expect(metadata?.manuallyMarkedUnreadTime).toBe(unreadTime);
+        }
+        expect(
+            getUnreadMarkerReportAction({
+                visibleReportActions: [action],
+                earliestReceivedOfflineMessageIndex: undefined,
+                currentUserAccountID: 1,
+                prevSortedVisibleReportActionsObjects: {[action.reportActionID]: action},
+                unreadMarkerTime: shouldResetUnreadMarker ? report?.lastReadTime : unreadTime,
+                isScrolledOverThreshold: false,
+                isOffline: true,
+                isReversed: false,
+                manuallyMarkedUnreadReportActionID: report?.manuallyMarkedUnreadReportActionID,
+                manuallyMarkedUnreadTime: metadata?.manuallyMarkedUnreadTime,
+            }),
+        ).toEqual(shouldResetUnreadMarker ? [null, -1] : [action.reportActionID, 0]);
+        setHasRadio(true);
+        await waitForBatchedUpdates();
     });
 
     it('Should properly update comment with links', async () => {
@@ -6720,6 +6935,106 @@ describe('actions/Report', () => {
     });
 
     describe('openReport with hasOnceLoadedReportActions', () => {
+        it.each([false, true])('expires a read manual anchor before reopening for a newer message (report-level mark: %s)', async (isReportLevelMark) => {
+            // Given a manual unread mark that has been opened and automatically read
+            const reportID = 'manual-anchor-new-arrival';
+            const markedAction = createMock<OnyxTypes.ReportAction>({
+                reportActionID: 'marked-message',
+                actorAccountID: 2,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-01-01 10:00:00.000',
+                message: [{type: 'COMMENT', text: 'Marked message', html: 'Marked message'}],
+            });
+            const reportActions = {[markedAction.reportActionID]: markedAction};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                lastReadTime: '2026-01-01 11:00:00.000',
+                lastVisibleActionCreated: markedAction.created,
+                lastActorAccountID: markedAction.actorAccountID,
+                lastMessageText: 'Marked message',
+            });
+            await waitForBatchedUpdates();
+            Report.markCommentAsUnread(reportID, reportActions, isReportLevelMark ? createMock<OnyxTypes.ReportAction>({}) : markedAction, 1, false);
+            await waitForBatchedUpdates();
+            Report.flagReportNavigatedAway(reportID);
+            const openParams = {reportID, conciergeChat: undefined, introSelected: undefined, hasReportActions: true, currentUserAccountID: 1};
+            Report.openReport(openParams);
+            await waitForBatchedUpdates();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.manuallyMarkedUnreadReportActionID).toBe(markedAction.reportActionID);
+            Report.readNewestAction(reportID, true);
+            await waitForBatchedUpdates();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.manuallyMarkedUnreadReportActionID).toBe(markedAction.reportActionID);
+
+            // When the user leaves, another message arrives, and the report is reopened
+            Report.flagReportNavigatedAway(reportID);
+            const newAction = {
+                ...markedAction,
+                reportActionID: 'new-message',
+                created: format(addSeconds(new Date(), 60), CONST.DATE.FNS_DB_FORMAT_STRING),
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastVisibleActionCreated: newAction.created});
+            await waitForBatchedUpdates();
+            Report.openReport(openParams);
+            await waitForBatchedUpdates();
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            const metadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
+
+            // Then the consumed manual mark is cleared and the new visit's divider targets the new message
+            expect(report?.manuallyMarkedUnreadReportActionID).toBeFalsy();
+            expect(metadata?.manuallyMarkedUnreadTime).toBeFalsy();
+            expect(
+                getUnreadMarkerReportAction({
+                    visibleReportActions: [newAction, markedAction],
+                    earliestReceivedOfflineMessageIndex: undefined,
+                    currentUserAccountID: 1,
+                    prevSortedVisibleReportActionsObjects: {...reportActions, [newAction.reportActionID]: newAction},
+                    unreadMarkerTime: report?.lastReadTime,
+                    isScrolledOverThreshold: false,
+                    isOffline: false,
+                    isReversed: false,
+                    manuallyMarkedUnreadReportActionID: report?.manuallyMarkedUnreadReportActionID,
+                    manuallyMarkedUnreadTime: metadata?.manuallyMarkedUnreadTime,
+                }),
+            ).toEqual([newAction.reportActionID, 0]);
+        });
+
+        it('preserves a pending manual mark whose unread cursor comes from the transaction thread', async () => {
+            // Given an expense report marked unread at its newer transaction-thread boundary
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const reportID = 'unread-thread-boundary';
+            const lastReadTime = '2026-01-01 10:00:00.999';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                lastReadTime,
+                lastVisibleActionCreated: '2026-01-01 09:00:00.000',
+                manuallyMarkedUnreadReportActionID: 'export-action',
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {manuallyMarkedUnreadTime: lastReadTime});
+            await waitForBatchedUpdates();
+            Report.flagReportNavigatedAway(reportID);
+
+            // When the report is opened from another inbox row
+            const openParams = {reportID, conciergeChat: undefined, introSelected: undefined, hasReportActions: true, currentUserAccountID: 1};
+            Report.openReport(openParams);
+            await waitForBatchedUpdates();
+
+            // Then its explicit divider survives even though the report's own visible timestamp is older than its cursor
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.manuallyMarkedUnreadReportActionID).toBe('export-action');
+
+            // When the report is read and subsequently reopened
+            Report.readNewestAction(reportID, true);
+            await waitForBatchedUpdates();
+            Report.flagReportNavigatedAway(reportID);
+            Report.openReport(openParams);
+            await waitForBatchedUpdates();
+
+            // Then both manual markers are cleared so they cannot reappear on a later visit
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.manuallyMarkedUnreadReportActionID).toBeFalsy();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`))?.manuallyMarkedUnreadTime).toBeFalsy();
+        });
+
         /** Puts a manual unread mark on the report, the way markCommentAsUnread does. */
         async function givenAManualUnreadMark(reportID: string) {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, manuallyMarkedUnreadReportActionID: 'marked-action-id'});
