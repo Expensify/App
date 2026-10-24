@@ -99,7 +99,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type {CreatableWorkspaceType} from '@src/types/onyx/Policy';
+import type {CreatableWorkspaceType, Unit} from '@src/types/onyx/Policy';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -178,6 +178,7 @@ type GetTrackExpenseInformationTransactionParams = {
     distance?: number;
     odometerStart?: number;
     odometerEnd?: number;
+    odometerUnit?: Unit;
     gpsCoordinates?: string;
     distanceRequestType?: string;
 };
@@ -946,6 +947,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         attendees,
         odometerStart,
         odometerEnd,
+        odometerUnit,
         gpsCoordinates,
     } = transactionParams;
 
@@ -1168,6 +1170,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             attendees,
             odometerStart: isOdometerDistanceRequest ? odometerStart : undefined,
             odometerEnd: isOdometerDistanceRequest ? odometerEnd : undefined,
+            odometerUnit: isOdometerDistanceRequest ? odometerUnit : undefined,
             gpsCoordinates: isGPSDistanceRequest ? gpsCoordinates : undefined,
         },
     });
@@ -2574,6 +2577,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         attendees,
         odometerStart,
         odometerEnd,
+        odometerUnit,
         isFromGlobalCreate = false,
         gpsCoordinates,
         distanceRequestType,
@@ -2694,6 +2698,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             attendees,
             odometerStart,
             odometerEnd,
+            odometerUnit,
             gpsCoordinates,
         },
         policyParams: {
@@ -2986,6 +2991,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                     isOdometerDistanceRequestTransactionUtils(transaction),
                 odometerStart,
                 odometerEnd,
+                odometerUnit,
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;

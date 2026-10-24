@@ -81,6 +81,7 @@ import {
     formatPhoneNumber,
     getCurrencyDecimalsLocal,
     getCurrencySymbolLocal,
+    getFetchMockCalls,
     getOnyxData,
     getRequiredOnyxUpdates,
     getRequiredWriteCall,
@@ -11809,6 +11810,32 @@ describe('createDistanceRequest', () => {
         expect(createdTransaction?.comment?.comment).toBe('Odometer test');
         expect(createdTransaction?.comment?.odometerStart).toBe(10000);
         expect(createdTransaction?.comment?.odometerEnd).toBe(10050);
+    });
+
+    it('sends the unit the odometer readings were entered in with the distance request', async () => {
+        // Given readings entered in km on an expense whose distance was converted to miles
+        const testReport = createRandomReport(1, undefined);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        // When the distance request is created
+        const {transactionID} = createDistanceRequest(
+            getDefaultDistanceRequestParams(
+                testReport,
+                {amount: 500, distance: 2.49, odometerStart: 2, odometerEnd: 6, odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+                recentWaypoints,
+            ),
+        );
+        await waitForBatchedUpdates();
+
+        // Then the backend gets the readings' unit so it can convert end - start into the rate's unit
+        const requestBody = getFetchMockCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST).at(0)?.[1]?.body;
+        const requestParams = requestBody instanceof FormData ? Object.fromEntries(requestBody) : {};
+        expect(requestParams).toEqual(expect.objectContaining({odometerStart: '2', odometerEnd: '6', odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}));
+
+        // And the optimistic transaction keeps the unit, so a later edit can send it too
+        const createdTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+        expect(createdTransaction?.comment?.odometerUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
     });
 
     it('creates distance request with category in policy expense chat', async () => {
