@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON, hasValuesIncludeViolationFilter} from '@libs/SearchQueryUtils';
-import {getCustomColumnDefault, getCustomColumns, getValidGroupBy, insertColumnBeforeTotalAmount, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getCustomColumns, getValidGroupBy, insertColumnBeforeTotalAmount, isSearchDataLoaded, groupByRequiredColumns} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,21 +44,7 @@ function SearchColumnsPage() {
 
     // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns
     // since it makes sense for them to show up in an expense management App and it fixes the layout issues.
-    const requiredColumns = new Set<SearchCustomColumnIds>([
-        CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-        CONST.SEARCH.TABLE_COLUMNS.TOTAL,
-        CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD,
-        CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
-        CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
-        CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
-        CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
-        CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
-        CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
-        CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
-        CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
-        CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
-        CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER,
-    ]);
+    const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL, ...Object.values(groupByRequiredColumns).flat()]);
 
     if (shouldRequireViolationsColumn) {
         requiredColumns.add(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
@@ -114,7 +100,13 @@ function SearchColumnsPage() {
 
         // Only the columns change, so it's still the same search - carry the key over rather than letting it be
         // re-derived from the new query.
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey: currentSearchKey}), {forceReplace: true});
+        Navigation.navigate(
+            ROUTES.SEARCH_ROOT.getRoute({
+                query: queryString,
+                searchKey: currentSearchKey,
+            }),
+            {forceReplace: true},
+        );
     };
 
     if (isSeedPending) {

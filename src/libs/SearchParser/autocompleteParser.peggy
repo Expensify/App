@@ -140,6 +140,7 @@ autocompleteKey "key"
       / submitterUserID
       / submitterPayrollID
       / orderDealNumbers
+      / approver
       / reportFieldDynamic
       / columns
       / limit

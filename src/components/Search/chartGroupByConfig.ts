@@ -135,6 +135,11 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         },
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? DateUtils.getQuarterDateRange(item.year, item.quarter) : undefined),
     },
+    [CONST.SEARCH.GROUP_BY.APPROVER]: {
+        titleIconName: 'Users',
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER ? (item.formattedApprover ?? '') : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER ? `${CONST.SEARCH.GROUP_BY.APPROVER}:${item.accountID}` : ''),
+    },
 };
 
 export default CHART_GROUP_BY_CONFIG;

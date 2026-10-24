@@ -285,6 +285,12 @@ type SearchQuarterGroup = SearchGroupBase & {
     quarter: number;
 };
 
+/** Model of approver grouped search result */
+type SearchApproverGroup = SearchGroupBase & {
+    /** Account ID of the approver */
+    accountID: number;
+};
+
 /** SearchResultDataType */
 type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
     Partial<Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined>> &
@@ -307,6 +313,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchWeekGroup
         | SearchYearGroup
         | SearchQuarterGroup
+        | SearchApproverGroup
     >;
 
 /** Model of search results */
@@ -342,4 +349,5 @@ export type {
     SearchWeekGroup,
     SearchYearGroup,
     SearchQuarterGroup,
+    SearchApproverGroup,
 };

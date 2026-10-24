@@ -23,7 +23,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {isCashBackWithdrawalGroup, isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
+import {isCashBackWithdrawalGroup, isTransactionApproverGroupListItemType, isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
@@ -60,6 +60,7 @@ import type {
     TransactionYearGroupListItemType,
 } from './types';
 
+import ApproverListItemHeader from './ApproverListItemHeader';
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
 import DayListItemHeader from './DayListItemHeader';
@@ -483,6 +484,25 @@ function TransactionGroupListItemImpl({
                     isExpanded={isExpanded}
                 />
             ),
+            [CONST.SEARCH.GROUP_BY.APPROVER]: (() => {
+                if (!isTransactionApproverGroupListItemType(groupItem)) {
+                    return null;
+                }
+                return (
+                    <ApproverListItemHeader
+                        approver={groupItem}
+                        onCheckboxPress={handleSelectionButtonPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                        isLargeScreenWidth={isLargeScreenWidth}
+                    />
+                );
+            })(),
         };
 
         if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
