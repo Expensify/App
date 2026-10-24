@@ -3,6 +3,7 @@ import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -12,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -43,6 +45,7 @@ type DomainListTableProps = {
 };
 
 export default function DomainListTable({domains, headerComponent}: DomainListTableProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EarthWithControls']);
@@ -90,7 +93,7 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
     const emptyStateButtons = [
         {
             buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
-            buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN)),
+            buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN), session),
             buttonText: translate('domain.addDomain.newDomain'),
         },
     ];

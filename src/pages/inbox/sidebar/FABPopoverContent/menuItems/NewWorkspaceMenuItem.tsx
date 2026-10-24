@@ -30,6 +30,7 @@ import React from 'react';
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.NEW_WORKSPACE;
 
 function NewWorkspaceMenuItem() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['NewWorkspace']);
@@ -55,7 +56,7 @@ function NewWorkspaceMenuItem() {
             iconHeight={variables.h40}
             title={translate('workspace.new.newWorkspace')}
             description={translate('workspace.new.getTheExpensifyCardAndMore')}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path)))}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path)), session)}
             shouldCallAfterModalHide={shouldUseNarrowLayout}
             shouldIgnoreCompactStyle
         />

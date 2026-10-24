@@ -59,6 +59,7 @@ export default function useCreateReport({
     shouldHandleNavigationBack = true,
     shouldSkipEmptyReportConfirmation = false,
 }: UseCreateReportParams): UseCreateReportResult {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // Read live: under SearchScopeProvider (Reports empty view) useOnyx would serve stale snapshot policies.
     const [activePolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
@@ -146,8 +147,9 @@ export default function useCreateReport({
             }
 
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-        });
+        }, session);
     }, [
+        session,
         arePoliciesLoaded,
         shouldNavigateToUpgradePath,
         activePolicy,

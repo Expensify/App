@@ -101,6 +101,28 @@ beforeEach(() => {
 });
 
 describe('Session', () => {
+    describe('isAnonymousUser', () => {
+        test('returns true for a passed anonymous session even when the stored session is not anonymous', async () => {
+            // Given a signed-in session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@example.com', authTokenType: undefined});
+            await waitForBatchedUpdates();
+
+            // When the check is made against an anonymous session passed by the caller
+            // Then the passed session decides the result, not the stored one
+            expect(SessionUtil.isAnonymousUser({authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS})).toBe(true);
+        });
+
+        test('returns false for a passed signed-in session even when the stored session is anonymous', async () => {
+            // Given an anonymous session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await waitForBatchedUpdates();
+
+            // When the check is made against a signed-in session passed by the caller
+            // Then the passed session decides the result, not the stored one
+            expect(SessionUtil.isAnonymousUser({email: 'user@example.com'})).toBe(false);
+        });
+    });
+
     describe('isSupportalSession', () => {
         test('returns true when the session uses a support auth token', async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});

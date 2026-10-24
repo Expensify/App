@@ -111,16 +111,16 @@ function QuickCreationActionsBar() {
         () =>
             interceptAnonymousUser(() => {
                 startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
-            }),
-        [draftTransactionIDs],
+            }, session),
+        [draftTransactionIDs, session],
     );
 
     const handleDistance = useCallback(
         () =>
             interceptAnonymousUser(() => {
                 startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, lastDistanceExpenseType);
-            }),
-        [draftTransactionIDs, lastDistanceExpenseType],
+            }, session),
+        [draftTransactionIDs, lastDistanceExpenseType, session],
     );
 
     const handleBookTravel = useCallback(
@@ -134,8 +134,8 @@ function QuickCreationActionsBar() {
                     return;
                 }
                 Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(travelEnabledPolicy?.id));
-            }),
-        [travelEnabledPolicy?.id, isTravelReady, blockIfDefaultWorkspaceLacksTravel],
+            }, session),
+        [travelEnabledPolicy?.id, isTravelReady, blockIfDefaultWorkspaceLacksTravel, session],
     );
 
     return (

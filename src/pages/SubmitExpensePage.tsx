@@ -25,6 +25,7 @@ import {View} from 'react-native';
  *     - Else re-route to the login page
  */
 function SubmitExpensePage() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
@@ -38,7 +39,7 @@ function SubmitExpensePage() {
                 Navigation.goBack();
                 startMoneyRequest(CONST.IOU.TYPE.SUBMIT, generateReportID(), draftTransactionIDs);
             });
-        });
+        }, session);
     });
 
     useEffect(
