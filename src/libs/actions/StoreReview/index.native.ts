@@ -14,42 +14,21 @@ import {hasAction as hasStoreReviewAction, isAvailableAsync, requestReview as re
 async function requestReview(): Promise<void> {
     try {
         // Determine if any review action is possible on this build/device/config
-        const getHasAction = async (): Promise<boolean> => {
-            const candidate: unknown = hasStoreReviewAction;
-            if (typeof candidate === 'function') {
-                return (candidate as () => Promise<boolean>)();
-            }
-            return false;
-        };
-
-        const hasAction = await getHasAction();
+        const hasAction = typeof hasStoreReviewAction === 'function' && (await hasStoreReviewAction());
         if (!hasAction) {
             Log.info('[StoreReview] No review action found', false, {hasAction});
             return;
         }
 
         // Check if available before requesting (returns false on web, TestFlight, Android <5.0)
-        const getAvailability = async (): Promise<boolean> => {
-            const candidate: unknown = isAvailableAsync;
-            if (typeof candidate === 'function') {
-                return (candidate as () => Promise<boolean>)();
-            }
-            return false;
-        };
-
-        const available = await getAvailability();
+        const available = typeof isAvailableAsync === 'function' && (await isAvailableAsync());
         if (available) {
             Log.info('[StoreReview] Requesting review', false, {available});
-            const performRequestReview = async (): Promise<void> => {
-                const candidate: unknown = requestNativeReview;
-                if (typeof candidate === 'function') {
-                    return (candidate as () => Promise<void>)();
-                }
-
+            if (typeof requestNativeReview === 'function') {
+                await requestNativeReview();
+            } else {
                 Log.hmmm('[StoreReview] No requestNativeReview function found');
-            };
-
-            await performRequestReview();
+            }
             return;
         }
 

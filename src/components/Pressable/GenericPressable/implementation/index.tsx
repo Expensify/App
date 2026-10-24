@@ -5,7 +5,7 @@ import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
 
 import type {ComponentRef} from 'react';
-import type {Role, View} from 'react-native';
+import type {View} from 'react-native';
 
 import React, {useLayoutEffect, useRef} from 'react';
 
@@ -13,10 +13,14 @@ import GenericPressable from './BaseGenericPressable';
 
 function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: PressableProps) {
     const accessible = (props.accessible ?? props.accessible === undefined) ? true : props.accessible;
-    const role = (props.accessibilityRole ?? props.role) as Role;
+    let role = props.role;
+    if (props.accessibilityRole) {
+        role = props.accessibilityRole === 'link' ? 'link' : undefined;
+    }
     // React Native Web maps role="button" to a native <button>. Safari clears the native text range
     // before the click handler can suppress row navigation, so render a div and restore the ARIA role.
-    const shouldRenderAsNonNativeButton = props.shouldAllowTextSelection && role === CONST.ROLE.BUTTON;
+    const effectiveRole = props.accessibilityRole ?? props.role;
+    const shouldRenderAsNonNativeButton = props.shouldAllowTextSelection && effectiveRole === CONST.ROLE.BUTTON;
 
     // react-native-web's Pressable always sets aria-disabled from its own `disabled` prop,
     // overriding any explicit aria-disabled we pass. We pass fullDisabled (not isDisabled) to
@@ -25,8 +29,8 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
     // `||` is intentional so that falsy values like empty string or 0 are treated as not-disabled
     const isAriaDisabled = props.fullDisabled || props.disabled || props.accessibilityState?.disabled;
     useLayoutEffect(() => {
-        const el = internalRef.current as unknown as HTMLElement | null;
-        if (!el) {
+        const el = internalRef.current;
+        if (typeof HTMLElement === 'undefined' || !(el instanceof HTMLElement)) {
             return;
         }
         if (isAriaDisabled) {
@@ -35,9 +39,9 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             el.removeAttribute('aria-disabled');
         }
         if (shouldRenderAsNonNativeButton) {
-            el.setAttribute('role', role);
+            el.setAttribute('role', CONST.ROLE.BUTTON);
         }
-    }, [isAriaDisabled, role, shouldRenderAsNonNativeButton]);
+    }, [effectiveRole, isAriaDisabled, shouldRenderAsNonNativeButton]);
 
     return (
         <GenericPressable
@@ -47,6 +51,7 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             focusable={focusable}
             tabIndex={(props.tabIndex ?? (!accessible || !focusable)) ? -1 : 0}
             accessibilityRole={shouldRenderAsNonNativeButton ? undefined : props.accessibilityRole}
+            // Keep link for BaseGenericPressable's Enter handler; React Native Web converts other accessibility roles.
             role={shouldRenderAsNonNativeButton ? undefined : role}
             id={props.id}
             aria-label={props.accessibilityLabel}
