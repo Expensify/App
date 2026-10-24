@@ -1,6 +1,7 @@
 import useOnyx from '@hooks/useOnyx';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import hasManualMapDistanceOverride from '@libs/TransactionUtils/hasManualMapDistanceOverride';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -19,7 +20,10 @@ function useDistanceDraftData({transaction, isGPSDistanceRequest, isManualDistan
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
 
-    const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
+    const transactionDistance =
+        isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest || hasManualMapDistanceOverride(transaction)
+            ? (transaction?.comment?.customUnit?.quantity ?? undefined)
+            : undefined;
     const transactionDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
     const isModifiedGPSDistanceRequest = isGPSDistanceRequest && gpsDraftDetails?.modifiedDistance != null;
     const originalTransactionDistance =
