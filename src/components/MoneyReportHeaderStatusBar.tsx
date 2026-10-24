@@ -84,6 +84,7 @@ function MoneyReportHeaderStatusBar({nextStep, onPress}: MoneyReportHeaderStatus
     return (
         <PressableWithFeedback
             onPress={onPress}
+            wrapperStyle={styles.w100}
             accessibilityLabel={translate('reportHistoryPage.title')}
             role={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_NEXT_STEP}

@@ -49,6 +49,7 @@ function MoneyRequestHeaderStatusBar({icon, description, shouldStyleFlexGrow = t
     return (
         <PressableWithFeedback
             onPress={onPress}
+            wrapperStyle={styles.w100}
             accessibilityLabel={translate('reportHistoryPage.title')}
             role={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_STATUS_BAR}
