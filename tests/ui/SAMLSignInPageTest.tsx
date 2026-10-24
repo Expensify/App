@@ -75,6 +75,18 @@ const renderPage = () => {
 };
 
 describe('SAMLSignInPage', () => {
+    it('does not open SAML while the persistent revocation modal is active', async () => {
+        // Given a restored completion receipt and SAML login credentials
+        await Onyx.set(ONYXKEYS.DOMAIN_SESSION_REVOCATION, {completionHandle: 'ab'.repeat(32), status: 'running'});
+
+        // When the SAML route is restored directly
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it cannot navigate away from the completion modal to the identity provider
+        expect(mockedPostSAMLLogin).not.toHaveBeenCalled();
+        expect(mockedOpenAuthSessionAsync).not.toHaveBeenCalled();
+    });
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,

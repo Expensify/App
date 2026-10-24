@@ -24,9 +24,13 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
+import {getDomainSessionRevocation} from '@libs/DomainSessionRevocation';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import generateSessionRevocationHandle from '@libs/generateSessionRevocationHandle';
+import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {getIsOffline} from '@libs/NetworkState';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarName} from '@libs/UserAvatarUtils';
@@ -37,6 +41,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
 import type {SecurityGroupKey} from '@src/types/onyx/Domain';
 import type {DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
+import type DomainSessionRevocation from '@src/types/onyx/DomainSessionRevocation';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -50,6 +55,134 @@ import Onyx from 'react-native-onyx';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
+import redirectToSignIn from './SignInRedirect';
+
+const pendingMemberRevocations = new Set<string>();
+let bulkRevocationSubmission: Promise<void> | undefined;
+let revocationSignOut: Promise<void> | undefined;
+
+function clearRevokeDomainMemberSessionsError(domainAccountID: number, targetAccountID: number) {
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {memberErrors: {[targetAccountID]: {revokeSessionsErrors: null}}});
+}
+
+/** A queued write cannot tell us whether sessions were actually revoked. */
+async function revokeDomainMemberSessions(domainAccountID: number, targetAccountID: number): Promise<boolean> {
+    const key = `${domainAccountID}:${targetAccountID}`;
+    if (getIsOffline() || pendingMemberRevocations.has(key)) {
+        return false;
+    }
+    pendingMemberRevocations.add(key);
+    try {
+        await clearRevokeDomainMemberSessionsError(domainAccountID, targetAccountID);
+        // The response establishes success and whether the acting admin was signed out.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_DOMAIN_MEMBER_SESSIONS, {
+            domainAccountID,
+            targetAccountID,
+            shouldRetry: false,
+            skipReauthentication: true,
+        });
+        if (response?.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
+            await redirectToSignIn(CONST.SIGN_OUT_REASON.REAUTH_FAILED);
+            return false;
+        }
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            throw new Error('Member session revocation was not confirmed');
+        }
+        if (response.selfRevoked) {
+            await redirectToSignIn(CONST.SIGN_OUT_REASON.DEVICE_REVOKED);
+        }
+        return true;
+    } catch {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+            memberErrors: {[targetAccountID]: {revokeSessionsErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.sessionRevocation.memberFailed')}},
+        });
+        return false;
+    } finally {
+        pendingMemberRevocations.delete(key);
+    }
+}
+
+function revokeAllDomainMemberSessions(domainAccountID: number): Promise<void> {
+    if (bulkRevocationSubmission) {
+        return bulkRevocationSubmission;
+    }
+    bulkRevocationSubmission = (async () => {
+        if (getIsOffline() || (await getDomainSessionRevocation())) {
+            return;
+        }
+        const completionHandle = await generateSessionRevocationHandle();
+        await Onyx.set(ONYXKEYS.DOMAIN_SESSION_REVOCATION, {completionHandle, status: 'running'});
+        try {
+            // Persist the receipt first, then inspect the real acceptance response without replaying a security action.
+            // eslint-disable-next-line rulesdir/no-api-side-effects-method
+            const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_ALL_DOMAIN_MEMBER_SESSIONS, {
+                domainAccountID,
+                completionHandle,
+                shouldRetry: false,
+                skipReauthentication: true,
+            });
+            if (response?.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
+                await Onyx.merge(ONYXKEYS.DOMAIN_SESSION_REVOCATION, {status: 'failed'});
+                await redirectToSignIn(CONST.SIGN_OUT_REASON.REAUTH_FAILED);
+            } else if (response?.jsonCode && response.jsonCode !== CONST.JSON_CODE.SUCCESS && response.jsonCode !== CONST.JSON_CODE.UNABLE_TO_RETRY) {
+                await Onyx.merge(ONYXKEYS.DOMAIN_SESSION_REVOCATION, {status: 'failed'});
+            }
+        } catch {
+            // A lost response is not proof the job was rejected. Only look up the saved receipt; never resubmit.
+        }
+    })().finally(() => {
+        bulkRevocationSubmission = undefined;
+    });
+    return bulkRevocationSubmission;
+}
+
+async function getDomainSessionRevocationStatus(completionHandle: string): Promise<DomainSessionRevocation['status']> {
+    await bulkRevocationSubmission;
+    const receipt = await getDomainSessionRevocation();
+    if (receipt?.completionHandle === completionHandle && receipt.status !== 'running') {
+        return receipt.status;
+    }
+    try {
+        // Completion lookup must work after the actor's credentials have been revoked.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_DOMAIN_SESSION_REVOCATION_STATUS, {
+            completionHandle,
+            shouldRetry: false,
+            skipReauthentication: true,
+        });
+        if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && response.status && ['running', 'succeeded', 'failed', 'unavailable'].includes(response.status)) {
+            return response.status;
+        }
+    } catch {
+        return 'unavailable';
+    }
+    return 'unavailable';
+}
+
+function clearRevokedDomainSession() {
+    revocationSignOut ??= redirectToSignIn(CONST.SIGN_OUT_REASON.DEVICE_REVOKED).finally(() => {
+        revocationSignOut = undefined;
+    });
+    return revocationSignOut;
+}
+
+async function updateDomainSessionRevocationStatus(completionHandle: string, status: DomainSessionRevocation['status']) {
+    const receipt = await getDomainSessionRevocation();
+    if (receipt?.completionHandle !== completionHandle || receipt.status === 'succeeded') {
+        return;
+    }
+    await Onyx.merge(ONYXKEYS.DOMAIN_SESSION_REVOCATION, {status});
+    if (status === 'succeeded') {
+        await clearRevokedDomainSession();
+    }
+}
+
+async function dismissDomainSessionRevocation() {
+    await revocationSignOut;
+    await Onyx.set(ONYXKEYS.DOMAIN_SESSION_REVOCATION, null);
+    Navigation.resetToAppRoot();
+}
 
 /**
  * Fetches a validation code that the user is supposed to put in the domain's DNS records to verify it
@@ -2759,6 +2892,13 @@ function clearDomainHighlightItems(domainAccountID: number) {
 }
 
 export {
+    revokeDomainMemberSessions,
+    clearRevokeDomainMemberSessionsError,
+    revokeAllDomainMemberSessions,
+    getDomainSessionRevocationStatus,
+    updateDomainSessionRevocationStatus,
+    clearRevokedDomainSession,
+    dismissDomainSessionRevocation,
     getDomainValidationCode,
     validateDomain,
     resetDomainValidationError,

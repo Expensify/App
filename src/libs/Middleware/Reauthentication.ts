@@ -1,5 +1,6 @@
 import {reconnect} from '@libs/actions/Reconnect';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
 import {replay as replayMainQueue} from '@libs/Network/MainQueue';
@@ -98,7 +99,7 @@ function handleExpiredSession<TKey extends OnyxKey>(
     // For the SignInWithShortLivedAuthToken command, if the short token expires, the server returns a 407 error,
     // and credentials are still empty at this time, which causes reauthenticate to throw an error (requireParameters),
     // and the subsequent SaveResponseInOnyx also cannot be executed, so we need this parameter to skip the reauthentication logic.
-    const skipReauthentication = request?.data?.skipReauthentication;
+    const skipReauthentication = request?.data?.skipReauthentication || request.command === SIDE_EFFECT_REQUEST_COMMANDS.GET_DOMAIN_SESSION_REVOCATION_STATUS;
     if ((!shouldRetry && !apiRequestType) || skipReauthentication) {
         if (isFromSequentialQueue) {
             return Promise.resolve(data);

@@ -163,6 +163,7 @@ function getMemberCustomRowProps(accountID: number, domainPendingActions: Domain
     const mergedErrors = {
         ...getLatestError(accountIDErrors?.errors),
         ...getLatestError(accountIDErrors?.lockAccountErrors),
+        ...getLatestError(accountIDErrors?.revokeSessionsErrors),
         ...getLatestError({...accountIDErrors?.changeDomainSecurityGroupErrors, ...emailErrors?.changeDomainSecurityGroupErrors}),
         ...getLatestError(emailErrors?.errors),
         ...getLatestError(accountIDErrors?.vacationDelegateErrors),

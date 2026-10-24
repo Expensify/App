@@ -15,6 +15,7 @@ import clearShortLivedAuthState from './actions/Session/clearShortLivedAuthState
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import redirectToSignIn from './actions/SignInRedirect';
 import {AUTHENTICATION_COMMAND} from './API/types';
+import {getDomainSessionRevocation} from './DomainSessionRevocation';
 import HttpsError from './Errors/HttpsError';
 import {getAuthenticateErrorMessage, getErrorMessage} from './ErrorUtils';
 import Log from './Log';
@@ -212,7 +213,12 @@ function reauthenticate(command = ''): Promise<ReauthenticationResult> {
         command,
     });
 
-    return hasReadRequiredDataFromStorage().then(() => {
+    return hasReadRequiredDataFromStorage().then(async () => {
+        if (await getDomainSessionRevocation()) {
+            setIsAuthenticating(false);
+            await redirectToSignIn(CONST.SIGN_OUT_REASON.DEVICE_REVOKED);
+            return {wasSuccessful: false};
+        }
         // While connected as a delegate, ONYXKEYS.CREDENTIALS is wiped by clearOnyxForDelegateTransition; the original user's creds live in stashedCredentials.
         // ACCOUNT can lose `delegate` once access is revoked while SESSION still holds the restricted token
         const isDelegate =

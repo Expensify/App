@@ -7,6 +7,7 @@ import useAppState from '@hooks/useAppState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import {isDomainSessionRevocationActive} from '@libs/DomainSessionRevocation';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {postSAMLLogin} from '@libs/LoginUtils';
@@ -52,6 +53,7 @@ function msSince(startedAt: number | null): number | undefined {
 
 function SAMLSignInPage() {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [sessionRevocation, sessionRevocationMetadata] = useOnyx(ONYXKEYS.DOMAIN_SESSION_REVOCATION);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
@@ -178,7 +180,7 @@ function SAMLSignInPage() {
 
     useEffect(() => {
         // Don't open auth session more than once. If user cancels it we should navigate back to ROUTES.HOME
-        if (!SAMLUrl || hasOpenedAuthSession.current) {
+        if (!SAMLUrl || hasOpenedAuthSession.current || sessionRevocationMetadata.status !== 'loaded' || sessionRevocation) {
             return;
         }
         hasOpenedAuthSession.current = true;
@@ -214,10 +216,13 @@ function SAMLSignInPage() {
                 Log.hmmm('SAML sign in failed', {error});
                 handleExitSAMLFlow('error');
             });
-    }, [SAMLUrl, handleNavigationStateChange, handleExitSAMLFlow]);
+    }, [SAMLUrl, handleNavigationStateChange, handleExitSAMLFlow, sessionRevocation, sessionRevocationMetadata.status]);
 
     useEffect(() => {
         // If we don't have a valid login to pass here, direct the user back to a clean sign in state to try again
+        if (sessionRevocationMetadata.status !== 'loaded' || sessionRevocation) {
+            return;
+        }
         if (!credentials?.login) {
             handleSAMLLoginError(translate('common.error.email'), true);
             return;
@@ -235,6 +240,9 @@ function SAMLSignInPage() {
         body.append('useBrowser', 'true');
         postSAMLLogin(body)
             .then((response) => {
+                if (isDomainSessionRevocationActive()) {
+                    return;
+                }
                 if (!response || !response.url) {
                     handleSAMLLoginError(translate('common.error.login'), false);
                     return;
@@ -244,7 +252,7 @@ function SAMLSignInPage() {
             .catch((error: Error) => {
                 handleSAMLLoginError(error.message ?? translate('common.error.login'), false);
             });
-    }, [credentials?.login, SAMLUrl, translate]);
+    }, [credentials?.login, SAMLUrl, translate, sessionRevocation, sessionRevocationMetadata.status]);
 
     return (
         <ScreenWrapper

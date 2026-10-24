@@ -27,7 +27,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearDomainMemberError, closeUserAccount, exportMembersToCSV, setDomainMembersSelectedForMove} from '@libs/actions/Domain';
+import {clearDomainMemberError, closeUserAccount, exportMembersToCSV, setDomainMembersSelectedForMove, revokeAllDomainMemberSessions} from '@libs/actions/Domain';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getMemberCustomRowProps, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
 import {getLatestError} from '@libs/ErrorUtils';
@@ -47,7 +47,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
+import {domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount, isAdminSelector} from '@selectors/Domain';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -58,7 +58,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer', 'Exit']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
     const clearSelectedMembers = () => {
@@ -78,6 +78,10 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const [personalDetails] = useAllPersonalDetails();
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [sessionRevocation] = useOnyx(ONYXKEYS.DOMAIN_SESSION_REVOCATION);
+    const canRevokeSessions = !!domain?.validated && isAdminSelector(session?.accountID)(domain) && !session?.authTokenType && !account?.delegatedAccess?.delegate;
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     useDomainDocumentTitle(domainName, 'domain.domainMembers');
     // We need to use isSmallScreenWidth here because the DecisionModal is opening from RHP and ShouldUseNarrowLayout layout will not work in this place.
@@ -231,38 +235,75 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     };
 
     const hasSettingsErrors = hasDomainMembersSettingsErrors(domainErrors);
+    const handleRevokeAllSessions = async () => {
+        if (!canRevokeSessions || isOffline || sessionRevocation) {
+            return;
+        }
+        const result = await showConfirmModal({
+            title: translate('domain.members.sessionRevocation.revokeAll'),
+            prompt: translate('domain.members.sessionRevocation.allPrompt'),
+            confirmText: translate('domain.members.sessionRevocation.revoke'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            shouldDisableConfirmButtonWhenOffline: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        try {
+            await revokeAllDomainMemberSessions(domainAccountID);
+        } catch {
+            showConfirmModal({
+                title: translate('domain.members.sessionRevocation.revokeAll'),
+                prompt: translate('domain.members.sessionRevocation.startFailed'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+        }
+    };
+
     const getHeaderButtons = () => {
-        return (shouldUseNarrowLayout ? canSelectMultiple : selectedMembers.length > 0) ? (
-            <ButtonWithDropdownMenu<DomainMemberBulkActionType>
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                size={CONST.BUTTON_SIZE.MEDIUM}
-                onPress={() => null}
-                options={getBulkActionsButtonOptions()}
-                isSplitButton={false}
-                style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
-                isDisabled={!selectedMembers.length}
-                testID="DomainMembersPage-header-dropdown-menu-button"
-                wrapperStyle={shouldDisplayButtonsInSeparateLine && styles.flexGrow1}
-            />
-        ) : (
+        return (
             <View style={[styles.flexRow, styles.gap2]}>
-                <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
-                    innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                    style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
-                >
-                    <Button.Icon src={icons.Plus} />
-                    <Button.Text>{translate('domain.members.addMember')}</Button.Text>
-                </Button>
+                {(shouldUseNarrowLayout ? canSelectMultiple : selectedMembers.length > 0) ? (
+                    <ButtonWithDropdownMenu<DomainMemberBulkActionType>
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        shouldAlwaysShowDropdownMenu
+                        customText={translate('workspace.common.selected', {count: selectedMembers.length})}
+                        size={CONST.BUTTON_SIZE.MEDIUM}
+                        onPress={() => null}
+                        options={getBulkActionsButtonOptions()}
+                        isSplitButton={false}
+                        style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
+                        isDisabled={!selectedMembers.length}
+                        testID="DomainMembersPage-header-dropdown-menu-button"
+                        wrapperStyle={shouldDisplayButtonsInSeparateLine && styles.flexGrow1}
+                    />
+                ) : (
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
+                        innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
+                        style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
+                    >
+                        <Button.Icon src={icons.Plus} />
+                        <Button.Text>{translate('domain.members.addMember')}</Button.Text>
+                    </Button>
+                )}
                 <ButtonWithDropdownMenu
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}
                     brickRoadIndicator={hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     options={[
+                        {
+                            value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.REVOKE_SESSIONS,
+                            text: translate('domain.members.sessionRevocation.revokeAll'),
+                            icon: icons.Exit,
+                            onSelected: handleRevokeAllSessions,
+                            shouldShow: canRevokeSessions,
+                            disabled: isOffline || !!sessionRevocation,
+                            shouldSkipFocusRestore: true,
+                        },
                         {
                             value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SETTINGS,
                             text: translate('domain.common.settings'),

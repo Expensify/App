@@ -1891,6 +1891,9 @@ type ReadCommandParameters = {
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {
+    REVOKE_DOMAIN_MEMBER_SESSIONS: 'RevokeDomainMemberSessions',
+    REVOKE_ALL_DOMAIN_MEMBER_SESSIONS: 'RevokeAllDomainMemberSessions',
+    GET_DOMAIN_SESSION_REVOCATION_STATUS: 'GetDomainSessionRevocationStatus',
     AUTHENTICATE_PUSHER: 'AuthenticatePusher',
     GENERATE_SPOTNANA_TOKEN: 'GenerateSpotnanaToken',
     GET_MISSING_ONYX_MESSAGES: 'GetMissingOnyxMessages',
@@ -1968,6 +1971,9 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN]: Parameters.MergeIntoAccountAndLogInParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL]: Parameters.AddWorkEmailParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT]: Parameters.LogOutParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_DOMAIN_MEMBER_SESSIONS]: Parameters.RevokeDomainMemberSessionsParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_ALL_DOMAIN_MEMBER_SESSIONS]: Parameters.RevokeAllDomainMemberSessionsParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.GET_DOMAIN_SESSION_REVOCATION_STATUS]: Parameters.GetDomainSessionRevocationStatusParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET]: Parameters.CreateDigitalWalletParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT]: Parameters.LockAccountParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE]: Parameters.SetVacationDelegateParams;

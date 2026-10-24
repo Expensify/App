@@ -10,6 +10,7 @@ import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -20,6 +21,8 @@ import {
     clearTwoFactorAuthExemptEmailsErrors,
     clearValidateDomainTwoFactorCodeError,
     closeUserAccount,
+    revokeDomainMemberSessions,
+    clearRevokeDomainMemberSessionsError,
     setTwoFactorAuthExemptEmailForDomain,
 } from '@libs/actions/Domain';
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -45,7 +48,7 @@ import type {Domain} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {requiresTwoFactorAuthSelector} from '@selectors/Account';
-import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, vacationDelegateSelector} from '@selectors/Domain';
+import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, vacationDelegateSelector, isAdminSelector} from '@selectors/Domain';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
@@ -55,15 +58,20 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Flag', 'Unlock', 'CircularArrowBackwards']);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Flag', 'Unlock', 'CircularArrowBackwards', 'Exit']);
+    const {isOffline} = useNetwork();
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isRevokingSessions, setIsRevokingSessions] = useState(false);
     const [shouldForceCloseAccount, setShouldForceCloseAccount] = useState<boolean>();
     // We need to use isSmallScreenWidth here because the DecisionModal is opening from RHP and ShouldUseNarrowLayout layout will not work in this place
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
-    const securityGroupSelector = useCallback((domain: OnyxEntry<Domain>) => selectSecurityGroupForAccount(accountID)(domain), [accountID]);
+    const securityGroupSelector = useCallback((domainValue: OnyxEntry<Domain>) => selectSecurityGroupForAccount(accountID)(domainValue), [accountID]);
     const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: securityGroupSelector,
     });
@@ -90,6 +98,32 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const [isAccountLocked] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: accountLockSelector(accountID)});
     const lockDomainError = getLatestError(domainErrors?.memberErrors?.[accountID]?.lockAccountErrors);
     const lockDomainErrorMessage = Object.values(lockDomainError).at(0);
+    const canRevokeSessions =
+        !!domain?.validated &&
+        isAdminSelector(session?.accountID)(domain) &&
+        (!!userSecurityGroup || isAdminSelector(accountID)(domain)) &&
+        !session?.authTokenType &&
+        !account?.delegatedAccess?.delegate;
+
+    const handleRevokeSessions = async () => {
+        if (!canRevokeSessions || isOffline || isRevokingSessions) {
+            return;
+        }
+        const result = await showConfirmModal({
+            title: translate('domain.members.sessionRevocation.revoke'),
+            prompt: translate('domain.members.sessionRevocation.memberPrompt'),
+            confirmText: translate('domain.members.sessionRevocation.revoke'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            shouldDisableConfirmButtonWhenOffline: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        setIsRevokingSessions(true);
+        await revokeDomainMemberSessions(domainAccountID, accountID).finally(() => {
+            setIsRevokingSessions(false);
+        });
+    };
 
     const handleCloseAccount = async () => {
         if (!userSecurityGroup || shouldForceCloseAccount === undefined) {
@@ -199,6 +233,23 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     />
                 )}
                 <View style={styles.mt6} />
+                {canRevokeSessions && (
+                    <OfflineWithFeedback
+                        pendingAction={isRevokingSessions ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
+                        errors={getLatestError(domainErrors?.memberErrors?.[accountID]?.revokeSessionsErrors)}
+                        onClose={() => {
+                            clearRevokeDomainMemberSessionsError(domainAccountID, accountID);
+                        }}
+                        errorRowStyles={styles.mh5}
+                    >
+                        <MenuItemAction
+                            title={translate('domain.members.sessionRevocation.revoke')}
+                            icon={icons.Exit}
+                            onPress={handleRevokeSessions}
+                            isDisabled={isOffline || isRevokingSessions}
+                        />
+                    </OfflineWithFeedback>
+                )}
                 {!!accountRequiresTwoFactorAuth && (
                     <MenuItemAction
                         title={translate('domain.common.resetTwoFactorAuth')}
