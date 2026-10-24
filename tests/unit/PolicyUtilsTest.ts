@@ -487,6 +487,9 @@ describe('PolicyUtils', () => {
             });
 
             it('excludes workspaces where the member cannot create expenses', () => {
+                // Given a member workspace and an approve-only workspace
+                // When the workspace pickers collect policies with expense chat
+                // Then the approve-only workspace is left out, since no expense can be created in it
                 const memberPolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'member', role: CONST.POLICY.ROLE.USER, pendingAction: null});
                 const approveOnlyPolicy = createMock<Policy>({
                     ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
@@ -619,6 +622,9 @@ describe('PolicyUtils', () => {
             });
 
             it('excludes a per diem workspace where the member cannot create expenses', () => {
+                // Given a control workspace with per diem rates where the member is approve-only
+                // When the per diem workspace list is built
+                // Then the workspace is left out, so an approve-only member cannot start a per diem expense there
                 const policies: OnyxCollection<Policy> = {
                     approveOnly: {
                         ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
@@ -1194,18 +1200,27 @@ describe('PolicyUtils', () => {
             const currentUserLogin = 'member@test.com';
 
             it('returns true for a member who can create expenses', () => {
+                // Given a workspace where the member can create expenses
+                // When we check whether it is a valid target for new expenses
+                // Then it is
                 const policy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.USER, pendingAction: null});
 
                 expect(canAccessAndCreateExpensesOnPolicy(policy, currentUserLogin)).toBe(true);
             });
 
             it('returns false for an approve-only member', () => {
+                // Given an approve-only workspace
+                // When we check whether it is a valid target for new expenses
+                // Then it is not, since creating expenses there would fail on the server
                 const policy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.APPROVE_ONLY, pendingAction: null});
 
                 expect(canAccessAndCreateExpensesOnPolicy(policy, currentUserLogin)).toBe(false);
             });
 
             it('returns false for a workspace pending deletion', () => {
+                // Given a workspace pending deletion
+                // When we check whether it is a valid target for new expenses
+                // Then it is not, even though the role would allow expense creation
                 const policy = createMock<Policy>({
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,

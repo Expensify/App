@@ -4795,6 +4795,9 @@ describe('actions/Policy', () => {
         });
 
         it('should not pick a workspace the member cannot create expenses on as the new active policy', async () => {
+            // Given a default workspace to delete, a newer approve-only workspace, and an older regular workspace
+            // When the deletion optimistically picks the new active workspace
+            // Then the approve-only workspace is skipped, so it never shows the Default label
             const personalPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL);
             personalPolicy.created = '2020-01-01 10:00:00';
             personalPolicy.pendingAction = null;

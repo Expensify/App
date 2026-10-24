@@ -4470,6 +4470,9 @@ describe('ReportUtils', () => {
         });
 
         it('returns false when the outstanding child is the member own empty report on a workspace they cannot create expenses on', async () => {
+            // Given the member's own open, empty report on an approve-only workspace
+            // When the LHN checks whether their workspace chat needs attention
+            // Then the outstanding-child flag alone does not show the GBR, since only the owner can act on it
             const expenseReportID = '7101';
             const expenseReport = {
                 ...LHNTestUtils.getFakeReport(),
@@ -4499,6 +4502,9 @@ describe('ReportUtils', () => {
         });
 
         it('returns true when the outstanding child is the member own empty report on a workspace they can create expenses on', async () => {
+            // Given the member's own open, empty report on a workspace where they are a regular member
+            // When the LHN checks whether their workspace chat needs attention
+            // Then the outstanding-child flag shows the GBR, since adding expenses is an action for them
             const expenseReportID = '7102';
             const expenseReport = {
                 ...LHNTestUtils.getFakeReport(),

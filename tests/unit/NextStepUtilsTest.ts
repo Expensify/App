@@ -986,6 +986,9 @@ describe('libs/NextStepUtils', () => {
         });
 
         it('returns the no further action next step for an open, empty report when the owner cannot create expenses on the workspace', () => {
+            // Given an open, empty report whose owner cannot create expenses on the workspace
+            // When the report next step is resolved
+            // Then it says no further action, because the owner can never add the expenses it waits for
             const currentNextStep: ReportNextStep = {
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
