@@ -42,6 +42,20 @@ function getAuthenticateErrorMessage<TKey extends OnyxKey>(response: Response<TK
     }
 }
 
+/** Returns the localized message key for a rejected search query. */
+function getSearchErrorMessage<TKey extends OnyxKey>(response: Response<TKey>): TranslationPaths {
+    switch (response.UUID) {
+        case CONST.SEARCH.QUERY_ERROR.TOO_MANY_KEYWORDS:
+            return 'search.searchResults.tooManyKeywords';
+        case CONST.SEARCH.QUERY_ERROR.INVALID_REPORT_ID:
+            return 'search.searchResults.invalidReportID';
+        case CONST.SEARCH.QUERY_ERROR.UNSUPPORTED_FILTER:
+            return 'search.searchResults.unsupportedFilter';
+        default:
+            return 'errorPage.wrongTypeSubtitle';
+    }
+}
+
 /**
  * Creates an error object with a timestamp (in microseconds) as the key and the translated error message as the value.
  * @param error - The translation key for the error message.
@@ -252,6 +266,7 @@ function isTranslationKeyError(message: unknown): message is TranslationKeyError
 export {
     addErrorMessage,
     getAuthenticateErrorMessage,
+    getSearchErrorMessage,
     getEarliestErrorField,
     getErrorMessage,
     getErrorsWithTranslationData,
