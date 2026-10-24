@@ -3088,6 +3088,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 getLoginByAccountID(selectedMergeReports.at(0)?.ownerAccountID, personalDetails),
                 allReportNameValuePairs,
                 policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedMergeReports.at(0)?.policyID}`],
+                false,
             )
         ) {
             options.push({

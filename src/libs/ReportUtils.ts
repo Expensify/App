@@ -3213,12 +3213,13 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, rules: Onyx
 /**
  * Determines whether a money request report is eligible for merging transactions based on the user's role and permissions.
  * Rules:
- * - **Admins**: reports that are in "Open" or "Processing" status
+ * - **Admins**: reports that are in "Open" or "Processing" status, or "Approved" when allowReportApprovedForAdmin is true
  * - **Submitters**: IOUs, unreported expenses, and expenses on Open or Processing reports at the first level of approval
  * - **Managers**: Expenses on Open or Processing reports
  *
  * @param reportOrReportID - The ID of the money request report to check for merge eligibility
  * @param isAdmin - Whether the current user is an admin of the policy associated with the target report
+ * @param allowReportApprovedForAdmin - Whether admins are allowed to merge reports that are in an approved state
  *
  * @returns True if the report is eligible for merging transactions, false otherwise
  */
@@ -3228,6 +3229,7 @@ function isMoneyRequestReportEligibleForMerge(
     rules: OnyxCollection<Rule>,
     reportOwnerLogin: string | undefined,
     currentUserAccountID?: number,
+    allowReportApprovedForAdmin?: boolean,
 ): boolean {
     const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport(reportOrReportID) : reportOrReportID;
 
@@ -3239,7 +3241,8 @@ function isMoneyRequestReportEligibleForMerge(
     const isSubmitter = isReportOwner(report, currentUserAccountID);
 
     if (isAdmin) {
-        return isOpenReport(report) || isProcessingReport(report);
+        const isApprovedAndMergeable = !!allowReportApprovedForAdmin && isReportApproved({report});
+        return isOpenReport(report) || isProcessingReport(report) || isApprovedAndMergeable;
     }
 
     if (isSubmitter) {
@@ -14281,6 +14284,10 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
     return lastSuccessfulExportCreated > lastResetCreated;
 }
 
+function isReportExportedOrPending(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
+    return !!report?.pendingFields?.export || isExported(reportActions, report);
+}
+
 function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>) {
     if (report?.hasExportError) {
         return true;
@@ -15242,6 +15249,81 @@ function shouldShowMarkAsDone({
 }
 
 /**
+ * Returns whether all selected reports have the same visible, editable report field values.
+ * Disabled, hidden, and formula fields are ignored because users cannot edit them to resolve a mismatch.
+ */
+function doReportsHaveMatchingReportFieldValues(selectedReports: Array<OnyxEntry<Report>>, policy: OnyxEntry<Policy>): boolean {
+    if (selectedReports.length < 2 || !policy?.areReportFieldsEnabled) {
+        return true;
+    }
+
+    const policyFields = Object.values(policy?.fieldList ?? {});
+    const policyFieldsByID = new Map(policyFields.map((field) => [field.fieldID, field]));
+
+    const getComparableFieldValues = (report: OnyxEntry<Report>) => {
+        if (!report) {
+            return undefined;
+        }
+
+        const fields = getAvailableReportFields(report, policyFields).filter((field) => {
+            const fieldType = policyFieldsByID.get(field.fieldID)?.type ?? field.type;
+            return fieldType !== CONST.REPORT_FIELD_TYPES.FORMULA && !shouldHideSingleReportField(field) && isReportFieldTargetMatchingReport(report, field);
+        });
+
+        return new Map(
+            fields.map((field) => {
+                let externalID;
+                const policyField = policyFieldsByID.get(field.fieldID);
+                const fieldType = policyField?.type ?? field.type;
+                const value = field.value ?? field.defaultValue ?? '';
+                if (fieldType === CONST.REPORT_FIELD_TYPES.LIST) {
+                    // Only use `defaultExternalID` as a fallback when the field hasn't actually been selected yet.
+                    externalID = field.externalID ?? (field.value == null ? field.defaultExternalID : undefined) ?? undefined;
+                    // Keep option labels and IDs from the same source because policy options may have been reordered.
+                    const optionField = policyField ?? field;
+                    if (!externalID && !!optionField.externalIDs.length) {
+                        const optionValues = optionField.values ?? [];
+                        const optionIndex = optionValues.indexOf(value);
+                        if (optionIndex !== -1 && optionIndex === optionValues.lastIndexOf(value)) {
+                            externalID = optionField.externalIDs.at(optionIndex);
+                        }
+                    }
+                }
+
+                return [
+                    field.fieldID,
+                    {
+                        value,
+                        externalID: externalID === '' ? undefined : externalID,
+                    },
+                ];
+            }),
+        );
+    };
+
+    const firstReportFieldValues = getComparableFieldValues(selectedReports.at(0));
+    if (!firstReportFieldValues) {
+        return false;
+    }
+
+    for (const report of selectedReports.slice(1)) {
+        const reportFieldValues = getComparableFieldValues(report);
+        if (!reportFieldValues || reportFieldValues.size !== firstReportFieldValues.size) {
+            return false;
+        }
+
+        for (const [fieldID, {value, externalID}] of firstReportFieldValues) {
+            const otherField = reportFieldValues.get(fieldID);
+            if (otherField?.value !== value || otherField.externalID !== externalID) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
  * Determines whether the current user is eligible to initiate a merge of the selected expense reports.
  *
  * @param policy - The workspace policy the selected reports belong to. A single policy is enough because cross-workspace
@@ -15255,6 +15337,7 @@ function canMergeReports(
     reportOwnerLogin: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     policy: OnyxEntry<Policy>,
+    shouldValidateReportFields = true,
 ): boolean {
     // Need at least 2 reports and a valid caller identity.
     if (selectedReports.length < 2 || !currentUserAccountID) {
@@ -15285,11 +15368,10 @@ function canMergeReports(
             return false;
         }
 
-        // When reports are in the Processing (submitted) state they must share
-        // the same managerID so the merged report lands in exactly one approver's
-        // inbox. For Open reports the managerID may legitimately be unset, but the
-        // same-state constraint above already prevents mixing Open and Processing.
-        if (isProcessingReport(report)) {
+        // Processing and Approved reports must share the same managerID so the
+        // merged report preserves a single approval chain. Open drafts may
+        // legitimately have no managerID.
+        if (isProcessingReport(report) || isReportApproved({report})) {
             if (!firstSelectedReport.managerID || firstSelectedReport.managerID !== report.managerID) {
                 return false;
             }
@@ -15300,7 +15382,7 @@ function canMergeReports(
         const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
         const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
         const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-        const isReportEligibleForMerge = isMoneyRequestReportEligibleForMerge(report, isAdmin, rules, reportOwnerLogin, currentUserAccountID);
+        const isReportEligibleForMerge = isMoneyRequestReportEligibleForMerge(report, isAdmin, rules, reportOwnerLogin, currentUserAccountID, true);
 
         if (!hasWriteAccess || !isReportEligibleForMerge) {
             return false;
@@ -15309,7 +15391,15 @@ function canMergeReports(
         return true;
     };
 
-    return selectedReports.every(validator);
+    if (!selectedReports.every(validator)) {
+        return false;
+    }
+
+    if (!shouldValidateReportFields) {
+        return true;
+    }
+
+    return doReportsHaveMatchingReportFieldValues(selectedReports, policy);
 }
 
 export {
@@ -15645,6 +15735,7 @@ export {
     canBeExported,
     canShareReport,
     isExported,
+    isReportExportedOrPending,
     hasExpensifyGuidesEmails,
     hasExportError,
     hasOnlyNonReimbursableTransactions,
@@ -15739,6 +15830,7 @@ export {
     shouldShowMarkAsDone,
     hasHeldExpensesFromTransactions,
     canMergeReports,
+    doReportsHaveMatchingReportFieldValues,
     canModifyHoldStatus,
     replaceLocalAttachmentReferences,
     isUploadingAttachmentRemovedFromDraft,
