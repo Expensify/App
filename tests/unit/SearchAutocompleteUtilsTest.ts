@@ -30,6 +30,35 @@ describe('SearchAutocompleteUtils', () => {
             CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
         ] as string[]);
 
+        it('highlights trip room statuses and no group-by for a trip search with the TravelApproval beta', () => {
+            // Given a trip search with a trip room status and a group-by
+            const input = 'type:trip status:canceled group-by:from';
+            const parseTrip = (isTravelApprovalBetaEnabled: boolean) =>
+                parseForLiveMarkdown(
+                    input,
+                    currentUserName,
+                    mockSubstitutionMap,
+                    mockUserLogins,
+                    mockCurrencyList,
+                    mockCategoryList,
+                    mockTagList,
+                    mockExportedToList,
+                    isTravelApprovalBetaEnabled,
+                );
+
+            // When it's parsed with and without the beta
+            // Then the status is valid either way, and group-by is only valid without the beta, since trip rooms can't be grouped
+            expect(parseTrip(true)).toEqual([
+                {start: 5, type: 'mention-user', length: 4},
+                {start: 17, type: 'mention-user', length: 8},
+            ]);
+            expect(parseTrip(false)).toEqual([
+                {start: 5, type: 'mention-user', length: 4},
+                {start: 17, type: 'mention-user', length: 8},
+                {start: 35, type: 'mention-user', length: 4},
+            ]);
+        });
+
         it('should highlight valid filters with correct values', () => {
             const input = 'type:expense from:john@example.com currency:USD';
 

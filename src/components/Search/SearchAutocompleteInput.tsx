@@ -9,6 +9,7 @@ import useFocusAfterNav from '@hooks/useFocusAfterNav';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -99,6 +100,8 @@ function SearchAutocompleteInput({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const isTravelApprovalBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
     const inputRef = useRef<BaseTextInputRef>(null);
     const inputEventTimeStampRef = useRef<number | undefined>(undefined);
     const autoFocusAfterNav = useFocusAfterNav(inputRef, shouldDelayFocus);
@@ -183,7 +186,17 @@ function SearchAutocompleteInput({
     const parser = (input: string) => {
         'worklet';
 
-        return parseForLiveMarkdown(input, currentUserDisplayName, substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue, exportedToSharedValue);
+        return parseForLiveMarkdown(
+            input,
+            currentUserDisplayName,
+            substitutionMap,
+            emailListSharedValue,
+            currencySharedValue,
+            categorySharedValue,
+            tagSharedValue,
+            exportedToSharedValue,
+            isTravelApprovalBetaEnabled,
+        );
     };
 
     const clearInput = () => {
