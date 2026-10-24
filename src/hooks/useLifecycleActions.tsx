@@ -199,6 +199,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         approveMoneyRequest({
             getCurrencyDecimals,
             expenseReport: moneyRequestReport,
+            expenseReportTransactions: transactions,
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: email ?? '',
             hasViolations,

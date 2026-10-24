@@ -91,6 +91,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
             approveMoneyRequest({
                 getCurrencyDecimals,
                 expenseReport: currentMoneyRequestReport,
+                expenseReportTransactions: moneyRequestReportTransactions,
                 rules,
                 currentUserAccountIDParam: currentUserDetails.accountID,
                 currentUserEmailParam: currentUserDetails.email ?? '',
