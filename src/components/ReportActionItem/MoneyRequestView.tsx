@@ -1485,9 +1485,9 @@ function MoneyRequestView({
                             name={translate('common.category')}
                             value={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
                             error={getErrorForField('category')}
+                            hintText={reservationNightsHintText}
                         >
                             {!canEdit && !!categoryCopyValue && <MenuItem.Copy value={categoryCopyValue} />}
-                            {!!reservationNightsHintText && <MenuItem.HelpText message={reservationNightsHintText} />}
                         </MoneyRequestEditableField>
                     )
                 );

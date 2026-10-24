@@ -1,6 +1,7 @@
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import type EditableField from '@components/ReportActionItem/MoneyRequestViewFields/EditableField';
@@ -1651,8 +1652,14 @@ describe('MoneyRequestView edit fields', () => {
             // When the expense is rendered
             await renderWithReservationDates('2026-10-01', '2026-10-04');
 
-            // Then the hint explains the per-night evaluation used by the category limit check
-            expect(screen.getByText(reservationNightsHint)).toBeOnTheScreen();
+            // Then the hint stays below the category row, outside the trailing controls.
+            const hint = screen.getByText(reservationNightsHint);
+            const category = screen.getByLabelText(fieldLabel('common.category'));
+            expect(category).toContainElement(hint);
+            for (let ancestor = hint.parent; ancestor && ancestor !== category; ancestor = ancestor.parent) {
+                expect(ancestor.type).not.toBe(MenuItem.Row);
+                expect(ancestor.type).not.toBe(MenuItem.Trailing);
+            }
         });
 
         it('does not show the hint for a single-night reservation', async () => {
