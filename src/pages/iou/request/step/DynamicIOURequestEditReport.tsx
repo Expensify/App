@@ -213,6 +213,8 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         shouldBypassConfirmation: true,
     });
 
+    const canCreateReport = !!policyForMovingExpensesID || shouldSelectPolicy || hasUnreportedManagedCardTransactions;
+
     const createReport = () => {
         const restrictionPolicy = policyForMovingExpenses;
         if (
@@ -222,11 +224,11 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicy.id));
             return;
         }
-        if (hasPerDiemTransactions) {
-            handleCreateReport();
+        if (!canCreateReport) {
             return;
         }
-        if (!hasPerDiemTransactions && !hasUnreportedManagedCardTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (hasPerDiemTransactions) {
+            handleCreateReport();
             return;
         }
         if (shouldSelectPolicy) {
@@ -247,7 +249,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             selectReport={selectReport}
             removeFromReport={removeFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}
-            createReport={createReport}
+            createReport={canCreateReport ? createReport : undefined}
             isPerDiemRequest={hasPerDiemTransactions}
             isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
             transactionPolicyID={targetExpensePolicyID}

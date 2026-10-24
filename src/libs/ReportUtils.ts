@@ -145,9 +145,11 @@ import {
     canMemberWrite as canMemberWritePolicyUtils,
     canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
+    canSubmitPerDiemExpenseFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
     getForwardsToAccount,
+    getGroupPoliciesWhereReportCanBeCreated,
     getManagerAccountEmail,
     getManagerAccountID,
     getPerDiemCustomUnit,
@@ -6217,27 +6219,55 @@ function canEditFieldOfMoneyRequest({
             return false;
         }
 
+        const reportOwnerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
+        const isBlockedOnCurrentPolicy = !isAdmin && !!reportPolicy && !canCreateExpensesOnPolicy(reportPolicy, deprecatedCurrentUserEmail);
+        const isPerDiem = isPerDiemRequest(transaction);
+
+        // Counts outstanding reports the owner could move this expense to, stopping early once `count` exceeds
+        // `stopAt` since callers only need to know whether the count is 0 or greater than 1, not the exact total.
+        const countOutstandingReports = (excludePolicyID?: string, stopAt = 1): number => {
+            let count = 0;
+            for (const currentPolicy of policiesArray) {
+                if ((excludePolicyID && currentPolicy.id === excludePolicyID) || !canCreateExpensesOnPolicy(currentPolicy, reportOwnerLogin) || isTeachersUnitePolicyID(currentPolicy.id)) {
+                    continue;
+                }
+                if (isPerDiem && !canSubmitPerDiemExpenseFromWorkspace(currentPolicy)) {
+                    continue;
+                }
+                const reports = getOutstandingReportsForUser(
+                    currentPolicy.id,
+                    moneyRequestReport?.ownerAccountID,
+                    rules,
+                    reportNameValuePairs,
+                    outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
+                );
+                count += reports.length;
+                if (count > stopAt) {
+                    break;
+                }
+            }
+            return count;
+        };
+
+        // A member who cannot create expenses on this policy (e.g. approveOnly role) can only move the expense if
+        // there is another eligible workspace or an existing outstanding report to move it to. Otherwise disallow it.
+        if (isBlockedOnCurrentPolicy) {
+            const hasOtherEligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail).some(
+                (p) => p.id !== moneyRequestReport?.policyID && (!isPerDiem || canSubmitPerDiemExpenseFromWorkspace(p)),
+            );
+            if (!hasOtherEligiblePolicies && countOutstandingReports(moneyRequestReport?.policyID, 0) === 0) {
+                return false;
+            }
+        }
+
         // Check the cheaper condition first
         if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, rules, moneyRequestReportNameValuePair)) {
             return true;
         }
 
         // Check if there are multiple outstanding reports across policies
-        let outstandingReportsCount = 0;
-        for (const currentPolicy of policiesArray) {
-            const reports = getOutstandingReportsForUser(
-                currentPolicy.id,
-                moneyRequestReport?.ownerAccountID,
-                rules,
-                reportNameValuePairs,
-                outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
-            );
-            outstandingReportsCount += reports.length;
-
-            // Short-circuit once we find more than 1
-            if (outstandingReportsCount > 1) {
-                return true;
-            }
+        if (countOutstandingReports(undefined, 1) > 1) {
+            return true;
         }
 
         return false;
