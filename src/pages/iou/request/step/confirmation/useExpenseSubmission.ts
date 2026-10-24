@@ -291,6 +291,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         transaction,
         transactions,
         receiptFiles,
+        canEnterScanFieldsManually,
         report,
         personalDetails,
         currentUserPersonalDetails,
