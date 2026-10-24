@@ -4,7 +4,7 @@ import usePreMountDestination from '@hooks/usePreMountDestination';
 import {clearPreMountedDraftReport, clearPreMountedDraftReportMarker, preMountDraftReport} from '@libs/actions/Report/PreMountedDraftReport';
 import {getReusableP2PReportID} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {findSelfDMReportID, getParticipantsChatKey, isMoneyRequestReport} from '@libs/ReportUtils';
+import {findSelfDMReportID, getParticipantsChatKey, isMoneyRequestReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import getSubmitExpensePreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSubmitExpensePreMountDestinationRoute';
@@ -83,7 +83,13 @@ function useSubmitDestinationPreMount({
     const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination ? findSelfDMReportID() : undefined;
     const isMRReport = isMoneyRequestReport(report);
     const shouldUsePerDiemChatReport = isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID;
-    const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : report?.reportID;
+    // Picking another workspace in the "To" picker moves the transaction to that workspace chat while the route still points
+    // at the previous one, so `report` resolves to undefined. Fall back to the picked workspace chat
+    // so the destination can still be pre-mounted instead of revealing the Inbox before navigating there.
+    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const pickedParticipant = transaction?.participants?.at(0);
+    const pickedWorkspaceChatReportID = !isUnreported && isPolicyExpenseChat(pickedParticipant) ? pickedParticipant?.reportID : undefined;
+    const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : (report?.reportID ?? pickedWorkspaceChatReportID);
     const destinationReportID = (isSelfDMDestination ? selfDMReportID : (backToReport ?? routeDestinationReportID)) ?? selfDMReportID;
 
     // The user can swap recipients here without a remount, so `report` can still lag behind the current
