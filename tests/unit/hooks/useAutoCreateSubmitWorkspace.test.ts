@@ -301,6 +301,29 @@ describe('useAutoCreateSubmitWorkspace', () => {
         expect(navigateSpy).toHaveBeenCalledWith(existingSubmitPolicy.id, expect.any(Boolean));
     });
 
+    it('creates a new Submit workspace when the only existing one is pending deletion', async () => {
+        // Given an already-onboarded user whose only Submit workspace was deleted while offline,
+        // so it is still in Onyx with a pending DELETE action
+        const deletedSubmitPolicy = createMock<PolicyType>({
+            id: 'deleted-submit-policy-id',
+            name: 'Deleted Submit Workspace',
+            type: CONST.POLICY.TYPE.SUBMIT,
+            role: CONST.POLICY.ROLE.ADMIN,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${deletedSubmitPolicy.id}`, deletedSubmitPolicy);
+        await waitForBatchedUpdates();
+
+        // When the user confirms the Submit plan welcome modal
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        await result.current('John', 'Doe', false);
+
+        // Then a new Submit workspace is created and the user lands on it, because a workspace
+        // being deleted should not count as an existing one to reuse
+        expect(createWorkspaceSpy).toHaveBeenCalledTimes(1);
+        expect(navigateSpy).toHaveBeenCalledWith(MOCK_POLICY_ID, expect.any(Boolean));
+    });
+
     it('keeps the Home fallback for onboarding callers when creation is skipped', async () => {
         // Given an onboarding user who already has an editable group workspace, so creation is skipped
         const existingSubmitPolicy = createMock<PolicyType>({

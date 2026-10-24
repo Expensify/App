@@ -1,7 +1,7 @@
 import Log from '@libs/Log';
 import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
-import {canEditWorkspaceSettings, isGroupPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, isGroupPolicy, isPendingDeletePolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
@@ -46,15 +46,19 @@ function useAutoCreateSubmitWorkspace() {
     } = useOnboardingWorkspaceCreationState();
     const delegateAccountID = useDelegateAccountID();
 
+    // Workspaces pending deletion (e.g. deleted while offline) stay in Onyx until the request succeeds,
+    // so skip them here; otherwise they block creating a new workspace and we navigate to a deleted one.
     const groupPolicySelector = useMemo(
-        () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).some((policy) => isGroupPolicy(policy) && canEditWorkspaceSettings(policy)),
+        () => (policies: OnyxCollection<Policy>) =>
+            Object.values(policies ?? {}).some((policy) => isGroupPolicy(policy) && !isPendingDeletePolicy(policy) && canEditWorkspaceSettings(policy)),
         [],
     );
     const [hasEditableGroupPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
     const existingSubmitPolicyIDSelector = useMemo(
         // Pass the login so the per-employee role fallback in canEditWorkspaceSettings covers
         // partially-loaded policies where the top-level `role` isn't populated yet.
-        () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).find((policy) => isSubmitPolicy(policy) && canEditWorkspaceSettings(policy, currentUserEmail))?.id,
+        () => (policies: OnyxCollection<Policy>) =>
+            Object.values(policies ?? {}).find((policy) => isSubmitPolicy(policy) && !isPendingDeletePolicy(policy) && canEditWorkspaceSettings(policy, currentUserEmail))?.id,
         [currentUserEmail],
     );
     const [existingSubmitPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: existingSubmitPolicyIDSelector});
