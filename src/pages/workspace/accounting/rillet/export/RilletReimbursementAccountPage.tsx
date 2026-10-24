@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearRilletErrorField, updateRilletBillPaymentAccount} from '@libs/actions/connections/Rillet';
+import {clearRilletErrorField, updateRilletReimbursementAccount} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -29,33 +29,37 @@ type AccountListItem = ListItem & {
     value: RilletAccount['code'];
 };
 
-function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
+function RilletReimbursementAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
-    const billPaymentAccountCode = rilletConfig?.sync?.billPaymentAccountCode;
-    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID) : undefined;
-
-    const syncReimbursedReports = rilletConfig?.sync?.syncReimbursedReports ?? true;
-    const shouldBeBlocked = !syncReimbursedReports;
+    const reimbursementAccountCode = rilletConfig?.export?.reimbursementAccountCode;
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
 
     const data: AccountListItem[] =
         rilletData?.accounts
-            ?.filter((accountItem) => accountItem.type === CONST.RILLET_ACCOUNT_TYPE.ASSET && accountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE)
+            ?.filter(
+                (accountItem) =>
+                    accountItem.type === CONST.RILLET_ACCOUNT_TYPE.LIABILITY &&
+                    accountItem.subtype !== CONST.RILLET_ACCOUNT_SUBTYPE.CREDIT_CARD &&
+                    accountItem.subtype !== CONST.RILLET_ACCOUNT_SUBTYPE.ACCOUNTS_PAYABLE &&
+                    accountItem.subtype !== CONST.RILLET_ACCOUNT_SUBTYPE.OTHER_LONG_TERM_LIABILITY &&
+                    accountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE,
+            )
             .map((accountItem) => ({
                 value: accountItem.code,
                 text: `${accountItem.code} ${accountItem.name}`,
                 keyForList: accountItem.code,
-                isSelected: billPaymentAccountCode === accountItem.code,
+                isSelected: reimbursementAccountCode === accountItem.code,
             })) ?? [];
     const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.billPaymentAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.reimbursementAccount.description')}</Text>
         </View>
     );
 
@@ -70,9 +74,9 @@ function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 
-    const setBillPaymentAccount = (item: AccountListItem) => {
-        if (item.value !== billPaymentAccountCode && policyID) {
-            updateRilletBillPaymentAccount(policyID, item.value, billPaymentAccountCode);
+    const selectReimbursementAccount = (item: AccountListItem) => {
+        if (item.value !== reimbursementAccountCode && policyID) {
+            updateRilletReimbursementAccount(policyID, item.value, reimbursementAccountCode);
         }
         Navigation.goBack(backPath);
     };
@@ -82,24 +86,23 @@ function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            shouldBeBlocked={shouldBeBlocked}
-            displayName="RilletBillPaymentAccountPage"
-            title="workspace.rillet.billPaymentAccount.label"
+            displayName="RilletReimbursementAccountPage"
+            title="workspace.rillet.reimbursementAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
-            onSelectRow={setBillPaymentAccount}
+            onSelectRow={selectReimbursementAccount}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={billPaymentAccountCode}
+            initiallyFocusedOptionKey={reimbursementAccountCode}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
-            pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.pendingFields)}
-            errors={getLatestErrorField(rilletConfig, CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE)}
+            pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE], rilletConfig?.pendingFields)}
+            errors={getLatestErrorField(rilletConfig, CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE)}
+            onClose={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE)}
         />
     );
 }
 
-export default withPolicyConnections(RilletBillPaymentAccountPage);
+export default withPolicyConnections(RilletReimbursementAccountPage);

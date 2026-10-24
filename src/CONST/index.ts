@@ -4221,6 +4221,7 @@ const CONST = {
         EXPORT_DATE: 'exportDate',
         REIMBURSABLE: 'reimbursable',
         NON_REIMBURSABLE: 'nonReimbursable',
+        REIMBURSEMENT_ACCOUNT_CODE: 'reimbursementAccountCode',
         DEFAULT_VENDORID: 'defaultVendorID',
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
@@ -4244,6 +4245,7 @@ const CONST = {
 
     RILLET_EXPORT_REIMBURSABLE: {
         VENDOR_BILL: 'VENDOR_BILL',
+        REIMBURSEMENT: 'REIMBURSEMENT',
     },
 
     RILLET_EXPORT_NON_REIMBURSABLE: {
@@ -4271,6 +4273,8 @@ const CONST = {
 
     RILLET_ACCOUNT_SUBTYPE: {
         CREDIT_CARD: 'Credit Card',
+        ACCOUNTS_PAYABLE: 'Accounts Payable',
+        OTHER_LONG_TERM_LIABILITY: 'Other Long Term Liability',
     },
 
     DUALENTRY_CONFIG: {

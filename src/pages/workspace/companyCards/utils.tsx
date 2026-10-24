@@ -437,8 +437,6 @@ function getPolicyCardExportSettings(
         case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
             const rilletConfig = policy?.connections?.rillet?.config;
             const rilletData = policy?.connections?.rillet?.data;
-            const exportReimbursable = rilletConfig?.export?.reimbursable ?? CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL;
-            const exportNonReimbursable = rilletConfig?.export?.nonReimbursable ?? CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE;
 
             return {
                 description: currentConnectionName
@@ -447,10 +445,7 @@ function getPolicyCardExportSettings(
                 exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
                 shouldHideMenuItemDescription: true,
                 shouldShowMenuItemIcon: true,
-                shouldShowMenuItem:
-                    rilletConfig?.export?.exportToMultipleAccounts &&
-                    exportReimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL &&
-                    exportNonReimbursable === CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE,
+                shouldShowMenuItem: rilletConfig?.export?.exportToMultipleAccounts,
                 accountSelection: {
                     type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT,
                     nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,

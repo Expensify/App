@@ -6290,14 +6290,22 @@ const translations = {
             exportDescription: 'Configure how Expensify data exports to Rillet.',
             exportReimbursable: {
                 label: 'Export reimbursable expenses as',
+                description: "We'll create an itemized vendor bill or reimbursement for each Expensify report. If the period is closed, we'll post to the next open period.",
                 values: {
-                    [CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                    VENDOR_BILL: {
                         label: 'Vendor bills',
+                    },
+                    REIMBURSEMENT: {
+                        label: 'Reimbursements',
                     },
                 },
             },
+            reimbursementAccount: {
+                label: 'Reimbursement account',
+                description: 'Choose where to export reimbursable expenses.',
+            },
             exportDate: {
-                label: 'Vendor bill date',
+                label: 'GL impact date',
                 description: 'Use this date when exporting reports to Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6374,9 +6382,9 @@ const translations = {
             },
             syncReimbursedReports: 'Sync reimbursed reports',
             syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
-            billPaymentAccount: {
-                label: 'Bill payment account',
-                description: "Choose where to pay bills from and we'll create the payment in Rillet.",
+            achPaymentAccount: {
+                label: 'ACH payment account',
+                description: "Choose where to pay reports from and we'll create the payment in Rillet.",
             },
             fxExpenseAccount: {
                 label: 'Rillet currency conversion fee account',
@@ -6497,7 +6505,7 @@ const translations = {
                 },
             },
             syncReimbursedReports: 'Sync reimbursed reports',
-            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a payment will be generated in this account.',
             billPaymentAccount: {
                 label: 'Bill payment account',
                 description: "Choose where to pay bills from and we'll create the payment in DualEntry.",
