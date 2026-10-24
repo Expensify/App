@@ -4,10 +4,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
 
-import type {ViewStyle} from 'react-native';
-
 import React from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import type TextInputMeasurementProps from './types';
 
@@ -28,12 +26,17 @@ function TextInputMeasurement({
     autoGrowMeasurementStyles,
 }: TextInputMeasurementProps) {
     const styles = useThemeStyles();
+    const flattenedInputStyle = StyleSheet.flatten(inputStyle);
+    const wrapperInputStyle = flattenedInputStyle && {
+        ...flattenedInputStyle,
+        color: typeof flattenedInputStyle.color === 'string' ? flattenedInputStyle.color : undefined,
+    };
 
     return (
         <>
             {!!contentWidth && isPrefixCharacterPaddingCalculated && (
                 <View
-                    style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
+                    style={[wrapperInputStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
                     onLayout={(e) => {
                         if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
                             return;
