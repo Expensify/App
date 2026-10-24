@@ -8,6 +8,7 @@ import TalkToHumanPage from '@pages/settings/HelpPage/TalkToHumanPage';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
@@ -49,7 +50,7 @@ describe('TalkToHumanPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
-        setSettingsSplitRoutes(['talkToHuman']);
+        setSettingsSplitRoutes([SCREENS.SETTINGS.HELP_TALK_TO_HUMAN]);
     });
 
     it('goes back to the page the link was pressed on and opens the ticket after the transition', () => {
@@ -75,7 +76,7 @@ describe('TalkToHumanPage', () => {
     it('falls back to the Help page for a direct link, where only the injected Settings sidebar sits behind it', () => {
         // Given a cold load with one full screen route and the Settings sidebar added under this page
         setRootRoutes([NAVIGATORS.TAB_NAVIGATOR]);
-        setSettingsSplitRoutes(['settingsRoot', 'talkToHuman']);
+        setSettingsSplitRoutes([SCREENS.SETTINGS.ROOT, SCREENS.SETTINGS.HELP_TALK_TO_HUMAN]);
 
         // When the page opens
         render(<TalkToHumanPage />);
@@ -88,7 +89,7 @@ describe('TalkToHumanPage', () => {
     it('does not count a side modal as a page to return to', () => {
         // Given a direct link with a side modal open next to the only full screen route
         setRootRoutes([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR]);
-        setSettingsSplitRoutes(['settingsRoot', 'talkToHuman']);
+        setSettingsSplitRoutes([SCREENS.SETTINGS.ROOT, SCREENS.SETTINGS.HELP_TALK_TO_HUMAN]);
 
         // When the page opens
         render(<TalkToHumanPage />);
@@ -100,7 +101,7 @@ describe('TalkToHumanPage', () => {
     it('goes back to the earlier Settings page when the link was pressed from another page in the same Settings split', () => {
         // Given a single full screen route whose Settings split holds an earlier page under this one
         setRootRoutes([NAVIGATORS.TAB_NAVIGATOR]);
-        setSettingsSplitRoutes(['settingsRoot', 'profile', 'talkToHuman']);
+        setSettingsSplitRoutes([SCREENS.SETTINGS.ROOT, SCREENS.SETTINGS.PROFILE.ROOT, SCREENS.SETTINGS.HELP_TALK_TO_HUMAN]);
 
         // When the page opens
         render(<TalkToHumanPage />);
