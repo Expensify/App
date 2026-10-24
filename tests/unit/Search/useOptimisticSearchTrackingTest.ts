@@ -35,13 +35,14 @@ const transactions: OnyxCollection<Transaction> = {
     },
 };
 
-function makeQueryJSON(hash: number): SearchQueryJSON {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the hook reads only these four fields off the query
+function makeQueryJSON(hash: number, flatFilters: SearchQueryJSON['flatFilters'] = []): SearchQueryJSON {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the hook reads only these fields off the query
     return {
         hash,
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
         sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        flatFilters,
     } as SearchQueryJSON;
 }
 
@@ -53,11 +54,12 @@ function makeSearchResults(): SearchResults {
     } as unknown as SearchResults;
 }
 
-function renderTracking(hash: number) {
+function renderTracking(hash: number, flatFilters?: SearchQueryJSON['flatFilters']) {
     return renderHook(() =>
         useOptimisticSearchTracking({
             searchResults: makeSearchResults(),
-            queryJSON: makeQueryJSON(hash),
+            queryJSON: makeQueryJSON(hash, flatFilters),
+            currentUserAccountID: 1,
             transactions,
             reportActions: undefined,
         }),
@@ -97,5 +99,19 @@ describe('useOptimisticSearchTracking', () => {
 
         // Then the earlier expense is left out, since it has no relation to this query's filters
         expect(result.current.searchDataWithOptimisticTransaction).not.toHaveProperty(TRANSACTION_KEY);
+    });
+
+    it('does not add the optimistic transaction when it does not match the query filters', () => {
+        // Given a submission whose expense is still pending
+        markPendingSearchWrite();
+        setSearchWriteWatchKey(TRANSACTION_KEY);
+
+        // When Search mounts with a merchant filter, which only the server evaluates and "Unique merchant" doesn't match
+        const {result} = renderTracking(333, [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'I'}]}]);
+
+        // Then the expense is left out and tracking stops, since the server will never return it for this query
+        expect(result.current.searchDataWithOptimisticTransaction).not.toHaveProperty(TRANSACTION_KEY);
+        expect(result.current.trackingState.isOptimisticTrackingCleared).toBe(true);
+        expect(result.current.showPendingExpensePlaceholder).toBe(false);
     });
 });
