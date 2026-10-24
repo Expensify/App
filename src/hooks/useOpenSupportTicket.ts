@@ -14,7 +14,7 @@ function useOpenSupportTicket() {
     const {translate} = useLocalize();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
-    const openSupportTicketOrConcierge = () =>
+    const openSupportTicketOrConcierge = () => {
         openSupportTicket()
             .then((response) => {
                 if (!isNoSupportRepAvailableResponse(response)) {
@@ -25,6 +25,7 @@ function useOpenSupportTicket() {
                 Navigation.goBack(undefined, {afterTransition: () => openConciergeAnywhere({forceConcierge: true})});
             })
             .catch(() => undefined);
+    };
 
     return {openSupportTicketOrConcierge};
 }
