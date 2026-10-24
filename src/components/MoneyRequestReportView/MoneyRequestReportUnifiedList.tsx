@@ -1,7 +1,6 @@
 import FlashList from '@components/FlashList';
 import type FlatListRefType from '@components/FlashList/types';
 
-import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
@@ -163,7 +162,6 @@ function MoneyRequestReportUnifiedList({
     // the report actions.
     const isHorizontalTable = controller.shouldScrollHorizontally && !controller.isEmptyTransactions;
     const shouldInlineTransactions = !isHorizontalTable && !controller.isEmptyTransactions;
-    const styles = useThemeStyles();
 
     const reportActionItems: UnifiedListItem[] = visibleReportActions.map((action) => ({type: 'report-action', action}));
     const data: UnifiedListItem[] = shouldInlineTransactions ? [...controller.transactionListItems, TRANSACTIONS_FOOTER_ITEM, ...reportActionItems] : reportActionItems;
@@ -347,8 +345,6 @@ function MoneyRequestReportUnifiedList({
         />
     );
 
-    const shouldShowActionsLoadingSkeletonInFooter = shouldInlineTransactions && shouldShowActionsLoadingSkeleton;
-
     return (
         <MoneyRequestReportFlashList
             ref={listRef}
@@ -404,14 +400,11 @@ function MoneyRequestReportUnifiedList({
             onScroll={handleScroll}
             onScrollBeginDrag={onScrollBeginDrag}
             onContentSizeChange={onContentSizeChange}
-            contentContainerStyle={[contentContainerStyle, shouldShowActionsLoadingSkeletonInFooter && styles.flexGrow1]}
-            ListFooterComponentStyle={shouldShowActionsLoadingSkeletonInFooter ? [styles.flexGrow1, styles.flexShrink1, styles.flexBasis0, styles.mnh0] : undefined}
+            contentContainerStyle={contentContainerStyle}
             ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton /> : undefined}
             ListFooterComponent={
                 <>
-                    {shouldShowActionsLoadingSkeletonInFooter && (
-                        <ReportActionsListLoadingSkeleton style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0, styles.mnh0, styles.overflowHidden]} />
-                    )}
+                    {shouldInlineTransactions && shouldShowActionsLoadingSkeleton && <ReportActionsListLoadingSkeleton />}
                     {listFooterComponent}
                 </>
             }
