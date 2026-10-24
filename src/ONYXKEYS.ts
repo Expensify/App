@@ -160,6 +160,9 @@ const ONYXKEYS = {
     /** Object containing contact method that's going to be added */
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
+    /** Reasons the backend refused an approve-only role change, shown to the requesting client in a modal */
+    BLOCKED_ROLE_CHANGE: 'blockedRoleChange',
+
     /** Store the information of validateCode */
     VALIDATE_ACTION_CODE: 'validateActionCode',
 
@@ -1944,6 +1947,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED]: boolean;
     [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: OnyxTypes.SupportalPermissionDenied | null;
+    [ONYXKEYS.BLOCKED_ROLE_CHANGE]: OnyxTypes.BlockedRoleChange | null;
     [ONYXKEYS.RESET_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;

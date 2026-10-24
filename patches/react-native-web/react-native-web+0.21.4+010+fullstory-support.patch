@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-web/dist/exports/Text/index.js b/node_modules/react-native-web/dist/exports/Text/index.js
-index 1076f55..1bba56c 100644
+index 4b3b4c3..323ea8d 100644
 --- a/node_modules/react-native-web/dist/exports/Text/index.js
 +++ b/node_modules/react-native-web/dist/exports/Text/index.js
-@@ -29,7 +29,12 @@ import { useLocaleContext, getLocaleDirection } from '../../modules/useLocale';
+@@ -27,7 +27,12 @@ import { useLocaleContext, getLocaleDirection } from '../../modules/useLocale';
  var forwardPropsList = Object.assign({}, forwardedProps.defaultProps, forwardedProps.accessibilityProps, forwardedProps.clickProps, forwardedProps.focusProps, forwardedProps.keyboardProps, forwardedProps.mouseProps, forwardedProps.touchProps, forwardedProps.styleProps, {
    href: true,
    lang: true,
@@ -17,10 +17,10 @@ index 1076f55..1bba56c 100644
  var pickProps = props => pick(props, forwardPropsList);
  var Text = /*#__PURE__*/React.forwardRef((props, forwardedRef) => {
 diff --git a/node_modules/react-native-web/dist/exports/TextInput/index.js b/node_modules/react-native-web/dist/exports/TextInput/index.js
-index 0f476a7..6fab5b0 100644
+index e9912ae..de6b636 100644
 --- a/node_modules/react-native-web/dist/exports/TextInput/index.js
 +++ b/node_modules/react-native-web/dist/exports/TextInput/index.js
-@@ -66,7 +66,12 @@ var forwardPropsList = Object.assign({}, forwardedProps.defaultProps, forwardedP
+@@ -65,7 +65,12 @@ var forwardPropsList = Object.assign({}, forwardedProps.defaultProps, forwardedP
    rows: true,
    spellCheck: true,
    value: true,
@@ -35,10 +35,10 @@ index 0f476a7..6fab5b0 100644
  var pickProps = props => pick(props, forwardPropsList);
  
 diff --git a/node_modules/react-native-web/dist/exports/TouchableWithoutFeedback/index.js b/node_modules/react-native-web/dist/exports/TouchableWithoutFeedback/index.js
-index 656e8d9..ec53965 100644
+index fcf59f6..7ff4d5d 100644
 --- a/node_modules/react-native-web/dist/exports/TouchableWithoutFeedback/index.js
 +++ b/node_modules/react-native-web/dist/exports/TouchableWithoutFeedback/index.js
-@@ -30,7 +30,12 @@ var forwardPropsList = {
+@@ -29,7 +29,12 @@ var forwardPropsList = {
    onBlur: true,
    onFocus: true,
    onLayout: true,
@@ -71,7 +71,7 @@ index 45343e5..054942f 100644
  var pickProps = props => pick(props, forwardPropsList);
  var View = /*#__PURE__*/React.forwardRef((props, forwardedRef) => {
 diff --git a/node_modules/react-native-web/dist/modules/createDOMProps/index.js b/node_modules/react-native-web/dist/modules/createDOMProps/index.js
-index 18f5e8b..1cfcc9c 100644
+index c64d292..7939b54 100644
 --- a/node_modules/react-native-web/dist/modules/createDOMProps/index.js
 +++ b/node_modules/react-native-web/dist/modules/createDOMProps/index.js
 @@ -1,6 +1,6 @@
@@ -82,7 +82,7 @@ index 18f5e8b..1cfcc9c 100644
  /**
   * Copyright (c) Nicolas Gallagher.
   *
-@@ -145,6 +145,10 @@ var createDOMProps = (elementType, props, options) => {
+@@ -144,6 +144,10 @@ var createDOMProps = (elementType, props, options) => {
      style = _props.style,
      tabIndex = _props.tabIndex,
      testID = _props.testID,
@@ -91,9 +91,9 @@ index 18f5e8b..1cfcc9c 100644
 +    dataElement = _props.dataElement,
 +    dataSourceFile = _props.dataSourceFile,
      domProps = _objectWithoutPropertiesLoose(_props, _excluded);
- 
-   /*
-@@ -834,6 +838,26 @@ var createDOMProps = (elementType, props, options) => {
+   var disabled = ariaDisabled || accessibilityDisabled;
+   var role = AccessibilityUtil.propsToAriaRole(props);
+@@ -412,6 +416,26 @@ var createDOMProps = (elementType, props, options) => {
    if (domProps.type == null && elementType === 'button') {
      domProps.type = 'button';
    }
@@ -122,10 +122,10 @@ index 18f5e8b..1cfcc9c 100644
  export default createDOMProps;
 \ No newline at end of file
 diff --git a/node_modules/react-native-web/src/exports/Text/index.js b/node_modules/react-native-web/src/exports/Text/index.js
-index f27ccec..c5b996e 100644
+index 5eb0115..4f9a4b8 100644
 --- a/node_modules/react-native-web/src/exports/Text/index.js
 +++ b/node_modules/react-native-web/src/exports/Text/index.js
-@@ -39,7 +39,13 @@ const forwardPropsList = Object.assign(
+@@ -38,7 +38,13 @@ const forwardPropsList = Object.assign(
    {
      href: true,
      lang: true,
@@ -141,10 +141,10 @@ index f27ccec..c5b996e 100644
  );
  
 diff --git a/node_modules/react-native-web/src/exports/TextInput/index.js b/node_modules/react-native-web/src/exports/TextInput/index.js
-index 8f8de0b..ba933c2 100644
+index a226ab0..7586697 100644
 --- a/node_modules/react-native-web/src/exports/TextInput/index.js
 +++ b/node_modules/react-native-web/src/exports/TextInput/index.js
-@@ -77,7 +77,13 @@ const forwardPropsList = Object.assign(
+@@ -76,7 +76,13 @@ const forwardPropsList = Object.assign(
      rows: true,
      spellCheck: true,
      value: true,
@@ -160,10 +160,10 @@ index 8f8de0b..ba933c2 100644
  );
  
 diff --git a/node_modules/react-native-web/src/exports/TouchableWithoutFeedback/index.js b/node_modules/react-native-web/src/exports/TouchableWithoutFeedback/index.js
-index e2ef7d0..7c69697 100644
+index 995b848..91ac580 100644
 --- a/node_modules/react-native-web/src/exports/TouchableWithoutFeedback/index.js
 +++ b/node_modules/react-native-web/src/exports/TouchableWithoutFeedback/index.js
-@@ -56,7 +56,13 @@ const forwardPropsList = {
+@@ -55,7 +55,13 @@ const forwardPropsList = {
    onBlur: true,
    onFocus: true,
    onLayout: true,
@@ -198,10 +198,10 @@ index cec4d58..f04f897 100644
  );
  
 diff --git a/node_modules/react-native-web/src/modules/createDOMProps/index.js b/node_modules/react-native-web/src/modules/createDOMProps/index.js
-index 3fbb3df..3376779 100644
+index 2826311..5e01a2e 100644
 --- a/node_modules/react-native-web/src/modules/createDOMProps/index.js
 +++ b/node_modules/react-native-web/src/modules/createDOMProps/index.js
-@@ -149,6 +149,13 @@ const createDOMProps = (elementType, props, options) => {
+@@ -148,6 +148,13 @@ const createDOMProps = (elementType, props, options) => {
      style,
      tabIndex,
      testID,
@@ -215,7 +215,7 @@ index 3fbb3df..3376779 100644
      // Rest
      ...domProps
    } = props;
-@@ -912,6 +919,27 @@ const createDOMProps = (elementType, props, options) => {
+@@ -532,6 +539,27 @@ const createDOMProps = (elementType, props, options) => {
    if (domProps.type == null && elementType === 'button') {
      domProps.type = 'button';
    }

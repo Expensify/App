@@ -588,7 +588,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: '添付ファイルエラー',
         errorWhileSelectingAttachment: '添付ファイルの選択中にエラーが発生しました。もう一度お試しください。',
         errorWhileSelectingCorruptedAttachment: '破損した添付ファイルを選択した際にエラーが発生しました。別のファイルをお試しください。',
-        errorWhileConvertingHeic: 'この画像を処理できませんでした。もう一度お試しいただくか、別の形式で写真をアップロードしてください。',
+        errorWhileConvertingImage: 'この画像を処理できませんでした。もう一度お試しいただくか、別の形式で写真をアップロードしてください。',
         takePhoto: '写真を撮る',
         retake: '再撮影',
         usePhoto: '写真を使用',
@@ -4876,7 +4876,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
             deleteOpenExpensifyCardsError: '御社にはまだ Expensify カードが残っています。削除するには、<concierge-link>Concierge までお問い合わせください</concierge-link>。',
-            deleteTravelInvoicingError: 'お客様の会社では、統合トラベル請求がまだ有効になっています。',
+            deleteTravelBillingError: 'お客様の会社では、統合トラベル請求がまだ有効になっています。',
             outstandingBalanceWarning: '最後のワークスペースを削除する前に精算する必要がある未払残高があります。支払いを解決するには、サブスクリプション設定に移動してください。',
             settleBalance: 'サブスクリプションに移動',
             unavailable: '利用できないワークスペース',
@@ -4948,6 +4948,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         return 'メンバー管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '支払い管理者';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return '承認のみ';
                     case CONST.POLICY.ROLE.USER:
                         return 'メンバー';
                     default:
@@ -4978,9 +4980,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             budgetFrequency: {monthly: '毎月', yearly: '年次'},
             budgetFrequencyUnit: {monthly: '月', yearly: '年'},
             budgetTypeForNotificationMessage: {tag: 'タグ', category: 'カテゴリ'},
-            travelInvoicing: '統合トラベル請求の経費を次の形式でエクスポートします',
-            travelInvoicingVendor: '出張ベンダー',
-            travelInvoicingPayableAccount: '旅費未払金勘定',
+            travelBilling: '統合トラベル請求の経費を次の形式でエクスポートします',
+            travelBillingVendor: '出張ベンダー',
+            travelBillingPayableAccount: '旅費未払金勘定',
             hr: '人事',
             recruiting: '採用',
             rooms: 'ルーム',
@@ -4988,6 +4990,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             cardAdminAlternateText: 'ワークスペースカードを管理します。',
             peopleAdminAlternateText: 'メンバーと承認ワークフローを管理します。',
             paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
+            approveOnlyAlternateText: 'レポートの承認のみ。',
             readOnlyActionTitle: 'ちょっと待ってください…',
             readOnlyActionPrompt: 'このワークスペースでのあなたのロールは、これらの設定を表示できますが、編集することはできません。',
             noAccessActionPrompt: 'このワークスペースでのあなたのロールでは、これらの設定にアクセスできません。必要な場合は管理者に依頼してください。',
@@ -5276,7 +5279,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             notConfigured: '未設定',
             bankAccountDescription: '小切手の送金元を選択してください。',
             creditCardAccount: 'クレジットカード口座',
-            travelInvoicingDescription: (integrationName = 'QuickBooks Online') => `旅費は、以下で指定した ${integrationName} アカウントにクレジットカード請求としてエクスポートされます。`,
+            travelBillingDescription: (integrationName = 'QuickBooks Online') => `旅費は、以下で指定した ${integrationName} アカウントにクレジットカード請求としてエクスポートされます。`,
             companyCardsLocationEnabledDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} では、ロケーションをタグとして取り込んでいる場合、ベンダー請求書のエクスポートでロケーションをサポートしていません。現在このワークスペースではロケーションがタグとして取り込まれているため、このエクスポートオプションは利用できません。`,
             outOfPocketTaxEnabledDescription: (integrationName = 'QuickBooks Online') =>
@@ -5375,7 +5378,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             purchaseBill: '仕入請求書',
             exportDeepDiveCompanyCard: 'エクスポートされた経費は、以下のXero銀行口座に銀行取引として記帳され、取引日付は銀行取引明細書の日付と一致します。',
             bankTransactions: '銀行取引',
-            travelInvoicingDescription: '旅費は、以下で指定したXeroアカウントに銀行取引としてエクスポートされます。',
+            travelBillingDescription: '旅費は、以下で指定したXeroアカウントに銀行取引としてエクスポートされます。',
             xeroBankAccount: 'Xero 銀行口座',
             bankAccount: '銀行口座',
             xeroBankAccountDescription: '経費を銀行取引として計上する先を選択してください。',
@@ -5475,7 +5478,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: '仕入先請求書',
                 },
             },
-            travelInvoicingDescription: '旅費は、以下で指定した Sage Intacct アカウントにクレジットカード請求としてエクスポートされます。',
+            travelBillingDescription: '旅費は、以下で指定した Sage Intacct アカウントにクレジットカード請求としてエクスポートされます。',
             creditCardAccount: 'クレジットカード口座',
             defaultVendor: 'デフォルトのベンダー',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -6080,8 +6083,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             billPaymentAccount: {label: '請求支払用口座', description: '請求書の支払い元を選択すると、Rillet 内に支払いを作成します。'},
             syncExpensifyCardSettlements: 'Expensify カードの清算を同期する',
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
-            syncTravelInvoicingSettlements: '統合トラベル請求の精算を同期',
-            travelInvoicingSettlementAccount: {label: 'コンソリデーテッド・トラベル・ビリングの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
+            syncTravelBillingSettlements: '統合トラベル請求の精算を同期',
+            travelBillingSettlementAccount: {label: 'コンソリデーテッド・トラベル・ビリングの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
             exportToMultipleAccounts: '複数アカウントへのエクスポートを設定',
             cardProgramAccount: {
                 label: 'カードプログラム口座',
@@ -6228,9 +6231,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             syncExpensifyCardSettlements: 'Expensify カードの清算を同期',
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
-            syncTravelInvoicingSettlements: '一括旅行請求の精算を同期',
-            travelInvoicingSettlementAccount: {label: '統合トラベル請求の決済口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
-            travelInvoicingPayableAccount: {label: '統合トラベル請求買掛金勘定'},
+            syncTravelBillingSettlements: '一括旅行請求の精算を同期',
+            travelBillingSettlementAccount: {label: '統合トラベル請求の決済口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
+            travelBillingPayableAccount: {label: '統合トラベル請求買掛金勘定'},
         },
         type: {
             free: '無料',
@@ -6397,6 +6400,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             chooseTransactionStartDate: '取引の開始日を選択',
             startDateDescription: 'インポート開始日を選択してください。この日付以降のすべての取引を同期します。',
             editStartDateDescription: '新しい取引開始日を選択してください。その日以降のすべての取引を、すでに取り込んだものを除いて同期します。',
+            bulkEditStartDateDescription: '選択したすべてのカードの取引開始日を選択してください。その日以降の取引を、すでに取り込んだものを除いて同期します。',
+            bulkStartDateUpdated: '取引開始日を更新しました',
             fromTheBeginning: '最初から',
             customStartDate: 'カスタム開始日',
             customCloseDate: 'カスタム締め日',
@@ -6622,13 +6627,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         subtitle: 'このワークスペースのカテゴリ、タグ、レポートフィールドを Expensify Travel にプッシュして、出張者が予約時にそれらに回答できるようにします。',
                     },
                 },
-                travelInvoicing: {
+                travelBilling: {
                     travelBookingSection: {
                         title: '出張予約',
                         subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備ができました。',
                         manageTravelLabel: '出張を管理',
                     },
-                    travelInvoicingSection: {
+                    travelBillingSection: {
                         title: '出張費の一括請求',
                         subtitle: '購入時に都度支払うのではなく、すべての出張費用を月次請求書に集約して管理します。',
                         learnHow: '詳しく見る',
@@ -6728,6 +6733,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     `取引をエクスポートする${integration}アカウントを選択してください。${exportPageLink ? `利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。` : ''}`,
                 lastUpdated: '最終更新日時',
                 transactionStartDate: '取引開始日',
+                bulkUpdateTransactionStartDate: '取引開始日を更新',
                 updateCard: 'カードを更新',
                 unassignCard: 'カードの割り当てを解除',
                 unassignCards: 'カードの割り当てを解除',
@@ -7163,6 +7169,14 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
         },
         people: {
             genericFailureMessage: 'ワークスペースからメンバーを削除する際にエラーが発生しました。もう一度お試しください',
+            approveOnlyRoleBlockedTitle: 'この役割は変更できません',
+            approveOnlyRoleBlockedConfirm: '了解',
+            approveOnlyRoleBlockedDescription: '承認のみのメンバーはこのワークスペースで経費を作成できません。先に以下を解決する必要があります：',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: 'このワークスペースでカードが割り当てられています。ワークスペース管理者またはカード管理者が先に割り当てを解除する必要があります。',
+                isRestrictedByDomainGroup: 'このワークスペースは、彼らが所属するドメイングループの優先ワークスペースです。ドメイン管理者が先に変更する必要があります。',
+                isDefaultPolicy: 'これは彼らのデフォルトのワークスペースです。役割を更新する前に、別のワークスペースを設定する必要があります。',
+            },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `${memberName} さんを削除してもよろしいですか？`,
                 other: 'これらのメンバーを本当に削除しますか？',
@@ -7214,6 +7228,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 cannotRemove: '自分自身またはワークスペースのオーナーを削除することはできません',
                 genericRemove: 'そのワークスペースメンバーを削除する際に問題が発生しました',
             },
+            makeApproveOnly: () => ({
+                one: '承認のみに設定',
+                other: '承認のみに設定',
+            }),
             addedWithPrimary: '一部のメンバーは、プライマリーログインで追加されました。',
             invitedBySecondaryLogin: (secondaryLogin: string) => `セカンダリログイン${secondaryLogin}によって追加されました。`,
             workspaceMembersCount: (count: number) => `ワークスペースメンバー合計：${count}`,
@@ -7236,6 +7254,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             admins: 'ワークスペース管理者',
             approvers: '承認者',
             auditors: '監査担当者',
+            approveOnly: '承認のみ',
             guests: 'ゲスト',
             editors: '編集者',
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
@@ -7646,13 +7665,13 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 chooseBankAccount: 'Expensify カードの支払いを照合する銀行口座を選択してください。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `継続消込が正しく機能するように、この口座が、末尾が ${lastFourPAN} の<a href="${settlementAccountUrl}">Expensify カード精算口座</a>と一致していることを確認してください。`,
-                chooseTravelInvoicingBankAccount: '一括旅行請求の支払いを消し込む銀行口座を選択してください。',
-                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                chooseTravelBillingBankAccount: '一括旅行請求の支払いを消し込む銀行口座を選択してください。',
+                travelBillingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Continuous Reconciliation が正しく動作するように、この口座が、Consolidated Travel Billing の決済口座（末尾が ${lastFourPAN}）と一致していることをご確認ください。`,
             },
-            syncTravelInvoicingSettlements: '統合トラベル請求の精算を同期する',
-            syncTravelInvoicingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用の口座を設定してください。',
-            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
+            syncTravelBillingSettlements: '統合トラベル請求の精算を同期する',
+            syncTravelBillingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用の口座を設定してください。',
+            syncTravelBillingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
             campfire: 'Campfire',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
@@ -9080,9 +9099,9 @@ ${reportName}`,
             billPaymentAccount: {label: '支払口座', description: 'Expensify が請求書を支払済みとしてマークしたときに、Campfire クレジット用のクリアリング勘定科目を選択します。'},
             syncExpensifyCardSettlements: 'Expensify カード清算を同期する',
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算に使う口座を選択してください。選択された口座で、Campfire に支払いを作成します。'},
-            syncTravelInvoicingSettlements: '一括旅行請求の精算を同期',
-            travelInvoicingSettlementAccount: {label: '統合トラベル請求の決済口座', description: '精算に使う口座を選択してください。選択された口座で、Campfire に支払いを作成します。'},
-            travelInvoicingPayableAccount: {label: '統合トラベル請求買掛金勘定'},
+            syncTravelBillingSettlements: '一括旅行請求の精算を同期',
+            travelBillingSettlementAccount: {label: '統合トラベル請求の決済口座', description: '精算に使う口座を選択してください。選択された口座で、Campfire に支払いを作成します。'},
+            travelBillingPayableAccount: {label: '統合トラベル請求買掛金勘定'},
             exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
             cardProgramAccount: {
                 label: 'カードプログラム口座',
@@ -9483,8 +9502,8 @@ ${reportName}`,
                 other: `${joinedNames} の承認ワークフローと経費チャットからあなたを削除しました。これまでに提出されたレポートは、引き続き受信トレイで承認可能です。`,
             };
         },
-        demotedFromWorkspace: (policyName: string, oldRole: string) =>
-            `${policyName} でのあなたのロールを ${oldRole} からユーザーに更新しました。あなた自身のものを除き、すべての申請者経費チャットから削除されました。`,
+        demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
+            `${policyName} でのあなたのロールを ${oldRole} から${newRole}に更新しました。あなた自身のものを除き、すべての申請者経費チャットから削除されました。`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `デフォルト通貨を${newCurrency}（以前は${oldCurrency}）に更新しました`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `自動レポート頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `承認モードを「${newValue}」（以前は「${oldValue}」）に更新しました`,
@@ -9962,6 +9981,10 @@ ${reportName}`,
             `${displayName}さんの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `デフォルトの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
+        updateRulesDocument: (isReplacement: boolean, overviewURL?: string) => {
+            const message = isReplacement ? '経費ポリシー文書を置き換えました' : '経費ポリシー文書を追加しました';
+            return overviewURL ? `${message}（<a href="${overviewURL}">ワークスペース &gt; 概要</a>内）` : message;
+        },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `「精算不要レポートを支払済みにしない」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
     },
@@ -10197,7 +10220,7 @@ ${reportName}`,
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `すべての${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `すべてのCSVインポート済みカード${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                travelInvoicing: '出張費の一括請求',
+                travelBilling: '出張費の一括請求',
             },
             bankAccount: {banks: '銀行口座', closedBankAccounts: '解約済み銀行口座'},
             workspace: {active: 'アクティブ', archived: 'アーカイブ済み', selectAll: 'すべて選択'},
@@ -10713,7 +10736,7 @@ ${reportName}`,
         personalCard: '個人のカード',
         companyCard: '会社カード',
         expensifyCard: 'Expensify カード',
-        travelInvoicing: '出張費の一括請求',
+        travelBilling: '出張費の一括請求',
         travelCard: 'トラベルカード',
     },
     distance: {
