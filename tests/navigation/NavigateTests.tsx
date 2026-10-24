@@ -156,6 +156,48 @@ describe('Navigate', () => {
             expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
         });
 
+        it('replaces the Talk to a human route with the Help page', () => {
+            // Given the Talk to a human route open on top of the Settings sidebar
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 4,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
+                                        {
+                                            name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 1,
+                                                routes: [{name: SCREENS.SETTINGS.ROOT}, {name: SCREENS.SETTINGS.HELP_TALK_TO_HUMAN}],
+                                            },
+                                        },
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            // When the page is replaced by the Help page
+            act(() => {
+                Navigation.navigate(ROUTES.SETTINGS_HELP, {forceReplace: true});
+            });
+
+            // Then the Help page takes its place and nothing is left behind it
+            const settingsSplit = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4);
+            expect(settingsSplit?.state?.routes.map((route) => route.name)).toEqual([SCREENS.SETTINGS.ROOT, SCREENS.SETTINGS.HELP]);
+        });
+
         it('returns to the Workspaces list after directly opening a Workspace subpage without its sidebar', () => {
             render(
                 <TestNavigationContainer
