@@ -4,12 +4,13 @@ import type {CurrencyListActionsContextType} from '@components/CurrencyListConte
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
-import {translateLocal} from '@libs/Localize';
+import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import {format} from '@libs/NumberFormatUtils';
 import {getTextFromHtml} from '@libs/ReportActionMessageUtils';
+import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -18,6 +19,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList, Report, ReportAction} from '@src/types/onyx';
+import type {Message} from '@src/types/onyx/ReportAction';
 
 import type {ImageSourcePropType} from 'react-native';
 
@@ -160,15 +162,31 @@ export default {
         const {person, message} = reportAction;
         const plainTextPerson = person?.map((f) => (Str.isSMSLogin(f.text ?? '') ? formatPhoneNumber(f.text ?? '') : (f.text ?? ''))).join() ?? '';
 
-        // Specifically target the comment part of the message
+        // Specifically target the comment part of the message, falling back to the action's full text
+        // for system actions (e.g. MARKEDREIMBURSED) that have no COMMENT-type message fragment.
         let plainTextMessage = '';
         if (Array.isArray(message)) {
             plainTextMessage = getTextFromHtml(message?.find((f) => f?.type === 'COMMENT')?.html);
         } else {
             plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html) : '';
         }
+        if (!plainTextMessage) {
+            if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+                const originalMessage = getOriginalMessage(reportAction) as {message?: string} | undefined;
+                plainTextMessage = translate(IntlStore.getCurrentLocale(), 'iou.paidElsewhere', undefined, originalMessage?.message?.trim());
+            } else {
+                const rawMessage = reportAction.message;
+                const messages: Message[] = Array.isArray(rawMessage) ? rawMessage.filter((m): m is Message => m !== undefined) : [];
+                plainTextMessage = messages
+                    .filter((m) => m.style === 'normal')
+                    .map((m) => m.text ?? '')
+                    .join(' ')
+                    .trim();
+            }
+        }
 
-        if (isRoomOrGroupChat) {
+        const isExpenseReport = ReportUtils.isExpenseReport(report);
+        if (isRoomOrGroupChat || isExpenseReport) {
             const roomName = getReportName(report, derivedReportName);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
