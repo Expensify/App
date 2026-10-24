@@ -648,6 +648,8 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
         },
     ];
 
+    // Roles that cannot create expenses show a dedicated modal on refusal, so skip inline row errors.
+    const canCreateExpenses = canRoleCreateExpenses(newRole);
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -658,8 +660,8 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
                         // eslint-disable-next-line no-param-reassign
                         member[current.email] = {
                             ...(previousEmployeeList[current.email] ?? {}),
-                            pendingAction: newRole === CONST.POLICY.ROLE.APPROVE_ONLY ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            errors: newRole === CONST.POLICY.ROLE.APPROVE_ONLY ? null : ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                            pendingAction: canCreateExpenses ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null,
+                            errors: canCreateExpenses ? ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage') : null,
                         };
                         return member;
                     }, {}),
