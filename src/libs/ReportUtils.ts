@@ -6226,7 +6226,7 @@ function canEditFieldOfMoneyRequest({
         const countOutstandingReports = (excludePolicyID?: string, stopAt = 1): number => {
             let count = 0;
             for (const currentPolicy of policiesArray) {
-                if ((excludePolicyID && currentPolicy.id === excludePolicyID) || !canCreateExpensesOnPolicy(currentPolicy, reportOwnerLogin)) {
+                if ((excludePolicyID && currentPolicy.id === excludePolicyID) || !canCreateExpensesOnPolicy(currentPolicy, reportOwnerLogin) || isTeachersUnitePolicyID(currentPolicy.id)) {
                     continue;
                 }
                 if (isPerDiem && !canSubmitPerDiemExpenseFromWorkspace(currentPolicy)) {
@@ -6250,7 +6250,9 @@ function canEditFieldOfMoneyRequest({
         // A member who cannot create expenses on this policy (e.g. approveOnly role) can only move the expense if
         // there is another eligible workspace or an existing outstanding report to move it to. Otherwise disallow it.
         if (isBlockedOnCurrentPolicy) {
-            const hasOtherEligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail).some((p) => p.id !== moneyRequestReport?.policyID);
+            const hasOtherEligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail).some(
+                (p) => p.id !== moneyRequestReport?.policyID && (!isPerDiem || canSubmitPerDiemExpenseFromWorkspace(p)),
+            );
             if (!hasOtherEligiblePolicies && countOutstandingReports(moneyRequestReport?.policyID, 0) === 0) {
                 return false;
             }

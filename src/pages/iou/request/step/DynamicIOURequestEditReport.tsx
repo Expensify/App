@@ -213,7 +213,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         shouldBypassConfirmation: true,
     });
 
-    const canCreateReport = !!policyForMovingExpensesID || shouldSelectPolicy || hasPerDiemTransactions || hasUnreportedManagedCardTransactions;
+    const canCreateReport = !!policyForMovingExpensesID || shouldSelectPolicy || hasUnreportedManagedCardTransactions;
 
     const createReport = () => {
         const restrictionPolicy = policyForMovingExpenses;
@@ -224,11 +224,11 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicy.id));
             return;
         }
-        if (hasPerDiemTransactions) {
-            handleCreateReport();
+        if (!canCreateReport) {
             return;
         }
-        if (!canCreateReport) {
+        if (hasPerDiemTransactions) {
+            handleCreateReport();
             return;
         }
         if (shouldSelectPolicy) {

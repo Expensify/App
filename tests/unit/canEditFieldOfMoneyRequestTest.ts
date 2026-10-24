@@ -455,6 +455,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             });
 
             it('should return false when the user has approveOnly role on the policy and no other workspaces', async () => {
+                // Given a policy where the current user only has approveOnly role and no other workspaces
                 const approveOnlyPolicy = {
                     ...expensePolicy,
                     role: CONST.POLICY.ROLE.APPROVE_ONLY,
@@ -472,6 +473,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await waitForBatchedUpdates();
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
+                // When checking if the user can move the expense
                 const canEditReportField = canEditFieldOfMoneyRequest({
                     rules: undefined,
                     reportAction,
@@ -481,6 +483,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                     reportNameValuePairs: undefined,
                 });
 
+                // Then the move action should be disallowed
                 expect(canEditReportField).toBe(false);
             });
         });
