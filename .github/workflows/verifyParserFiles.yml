@@ -3,13 +3,13 @@ name: Check consistency of search parser files
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches-ignore: [production]
     paths:
       - 'src/libs/SearchParser/**'
 
 jobs:
   verify:
-    if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
+    if: github.actor != 'OSBotify' && github.actor != 'os-botify[bot]' && github.actor != 'imgbot[bot]'
     runs-on: blacksmith-6vcpu-macos-latest
     steps:
       - name: Checkout

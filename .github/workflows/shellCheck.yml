@@ -4,12 +4,12 @@ on:
   workflow_call:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches-ignore: [production]
     paths: ['**.sh']
 
 jobs:
   lint:
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    if: ${{ (github.actor != 'OSBotify' || github.event_name == 'workflow_call') && (github.event_name != 'pull_request' || github.actor != 'os-botify[bot]') }}
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout

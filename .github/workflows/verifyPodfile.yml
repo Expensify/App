@@ -3,7 +3,7 @@ name: Verify iOS native configuration
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches-ignore: [production]
     paths:
       - ios/**
       - 'package.json'
@@ -15,7 +15,7 @@ on:
 
 jobs:
   verify:
-    if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
+    if: github.actor != 'OSBotify' && github.actor != 'os-botify[bot]' && github.actor != 'imgbot[bot]'
     runs-on: blacksmith-6vcpu-macos-latest
     steps:
       - name: Checkout
