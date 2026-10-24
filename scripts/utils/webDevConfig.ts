@@ -1,5 +1,5 @@
 /** Resolve one set of ports and flags for every process in a local web session. */
-import {LOCAL_BACKEND_URL_KEYS} from '../../config/rsbuild/developmentEnvKeys';
+import {LOCAL_BACKEND_URL_KEYS, QA_ACCESS_TEAM_DOMAIN_KEY} from '../../config/rsbuild/developmentEnvKeys';
 
 function getWebDevFlags(env: Record<string, string | undefined>) {
     return {isWorkerEnabled: env.USE_CLOUDFLARE_WORKER !== 'false', isProxyEnabled: env.USE_WEB_PROXY !== 'false', shouldOpenBrowser: env.WEB_OPEN !== 'false'};
@@ -17,6 +17,14 @@ function getDevelopmentConnectOrigins(env: Record<string, string | undefined>): 
             throw new Error(`${key} must be an HTTP(S) URL without credentials`);
         }
         origins.add(url.origin);
+    }
+    const teamDomain = env[QA_ACCESS_TEAM_DOMAIN_KEY];
+    if (teamDomain) {
+        const issuer = URL.parse(`https://${teamDomain}`);
+        if (issuer?.host !== teamDomain.toLowerCase()) {
+            throw new Error(`${QA_ACCESS_TEAM_DOMAIN_KEY} must be a bare hostname, like team.cloudflareaccess.com`);
+        }
+        origins.add(issuer.origin);
     }
     return [...origins];
 }

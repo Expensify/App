@@ -25,6 +25,27 @@ describe('web development configuration', () => {
         expect(() => getDevelopmentConnectOrigins({EXPENSIFY_URL: 'https://user:pass@example.test'})).toThrow();
     });
 
+    test('allows the QA backend and its Cloudflare Access team domain', () => {
+        // Given a QA backend behind Cloudflare Access, whose token endpoint the app calls on the bare team domain
+        // When CSP origins are resolved
+        const origins = getDevelopmentConnectOrigins({
+            QA_EXPENSIFY_URL: 'https://qa.example.test/',
+            QA_SECURE_EXPENSIFY_URL: 'https://secure-qa.example.test/',
+            QA_CF_TEAM_DOMAIN: 'team.cloudflareaccess.com',
+        });
+        // Then the app can reach the QA hosts and the Access issuer
+        expect(origins).toEqual(['https://qa.example.test', 'https://secure-qa.example.test', 'https://team.cloudflareaccess.com']);
+    });
+
+    test('names QA_CF_TEAM_DOMAIN when it is not a bare hostname', () => {
+        // Given a team domain written as a URL, which the app would prefix with https:// again
+        // When CSP origins are resolved
+        // Then startup explains the setting rather than allowing an origin the app never calls
+        for (const QA_CF_TEAM_DOMAIN of ['https://team.cloudflareaccess.com', 'team.cloudflareaccess.com/path', 'user@team.cloudflareaccess.com']) {
+            expect(() => getDevelopmentConnectOrigins({QA_CF_TEAM_DOMAIN})).toThrow('QA_CF_TEAM_DOMAIN');
+        }
+    });
+
     test('rejects invalid and overlapping ports before starting children', () => {
         // Given invalid coordinated ports
         // When the launcher checks them
