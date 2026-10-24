@@ -25,6 +25,9 @@ type CustomLHNOptionsListProps = {
 
     /** Callback to fire when the list is laid out */
     onFirstItemRendered: () => void;
+
+    /** Header rendered as the list's first item */
+    listHeaderComponent?: React.ReactNode;
 };
 
 type LHNOptionsListProps = CustomLHNOptionsListProps;

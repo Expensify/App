@@ -1,3 +1,4 @@
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,6 +27,11 @@ import TabSelectorBase from './TabSelector/TabSelectorBase';
 
 type WorkspaceListActiveTabKey = 'workspaces' | 'domains';
 
+const TAB_LABEL_KEYS = {
+    workspaces: 'common.workspaces',
+    domains: 'common.domains',
+} as const;
+
 type WorkspaceListHeaderContentProps = {
     activeTabKey: WorkspaceListActiveTabKey;
     headerButton?: React.ReactNode;
@@ -44,6 +50,7 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     const styles = useThemeStyles();
     const {pageGutterRight, pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
+    const shouldRenderTopBar = useIsMobileWebLandscape();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
     const {badgeText: domainsBadgeText, hasDomainErrors} = useDomainsTabBadge();
     const navigationOptions = [
@@ -77,15 +84,23 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     };
 
     return (
-        <View style={[styles.flexRow, styles.justifyContentBetween, pageGutterRight, styles.pt1, styles.pb2]}>
-            <TabSelectorBase
-                contentContainerStyles={pageGutter}
-                tabs={navigationOptions}
-                activeTabKey={activeTabKey}
-                onTabPress={onTabPress}
-            />
-            {shouldShowHeaderButton && headerButton}
-        </View>
+        <>
+            {shouldRenderTopBar && (
+                <TopBarWithLoadingBar
+                    shouldDisplayHelpButton
+                    breadcrumbLabel={translate(TAB_LABEL_KEYS[activeTabKey])}
+                />
+            )}
+            <View style={[styles.flexRow, styles.justifyContentBetween, pageGutterRight, styles.pt1, styles.pb2]}>
+                <TabSelectorBase
+                    contentContainerStyles={pageGutter}
+                    tabs={navigationOptions}
+                    activeTabKey={activeTabKey}
+                    onTabPress={onTabPress}
+                />
+                {shouldShowHeaderButton && headerButton}
+            </View>
+        </>
     );
 }
 
@@ -98,10 +113,13 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const debugTabViewHeight = useDebugTabViewHeight();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
+
+    // When the header scrolls with the table, the top bar is rendered by WorkspaceListHeaderContent inside the list instead.
+    const shouldScrollTopBarWithTable = scrollHeaderWithTable && shouldScrollMainHeader;
 
     const isWorkspacesListPage = activeTabKey === 'workspaces';
     const testID = isWorkspacesListPage ? 'WorkspacesListPage' : 'DomainsListPage';
-    const activeTabLabel = isWorkspacesListPage ? translate('common.workspaces') : translate('common.domains');
     const headerContent = headerComponent ?? (
         <WorkspaceListHeaderContent
             activeTabKey={activeTabKey}
@@ -127,12 +145,14 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
         >
             <View style={[styles.flex1, styles.flexRow]}>
                 <View style={[styles.flex1]}>
-                    <TopBarWithLoadingBar
-                        shouldDisplayHelpButton
-                        breadcrumbLabel={activeTabLabel}
-                    >
-                        {!scrollHeaderWithTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
-                    </TopBarWithLoadingBar>
+                    {!shouldScrollTopBarWithTable && (
+                        <TopBarWithLoadingBar
+                            shouldDisplayHelpButton
+                            breadcrumbLabel={translate(TAB_LABEL_KEYS[activeTabKey])}
+                        >
+                            {!scrollHeaderWithTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
+                        </TopBarWithLoadingBar>
+                    )}
 
                     {content}
                     {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
