@@ -393,19 +393,19 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const canAssignMemberRole = isGroupPolicy(policy) && !isSubmitWorkspace;
 
     const data: WorkspaceMemberRowData[] = useMemo(() => {
-        const ownerDisplayRole = isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.OWNER;
         const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin ?? '', payerRole));
         const policyRoles = Object.values(CONST.POLICY.ROLE);
 
         return filteredMembers.map(({policyEmployee, accountID, details}) => {
             const isPendingDeleteOrError = canEditWorkspaceSettings && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
             const employeeRole = policyRoles.find((policyRole) => policyRole === policyEmployee.role);
-            const role = policy?.owner === details.login ? ownerDisplayRole : employeeRole;
-
             const login = details.login ?? '';
+            const isOwner = policy?.owner === login;
+            // Submit still shows the owner as Editor. Collect and Control keep the employee's real role so the Role column matches the member details page.
+            const role = isOwner && isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : employeeRole;
+
             const memberEmail = formatPhoneNumber(login);
             const memberName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
-            const isOwner = policy?.owner === login;
             const isCurrentUser = accountID === session?.accountID;
             const isReimburser = isPolicyReimburser(policy, login);
             const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== policyEmployee.role);
@@ -421,6 +421,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return {
                 keyForList: login,
                 role,
+                isOwner,
                 login,
                 accountID,
                 name: memberName,
