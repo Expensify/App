@@ -33,6 +33,9 @@ type AnyOnyxUpdate<TKey extends OnyxKey = any> = {
 
 /** Generic base for types of onyx requests model sent to the API */
 type OnyxDataBase<TOnyxUpdate> = {
+    /** Apply successful ASAP scan responses as they arrive, so live scan updates cannot outrun report replacement. Client-only request metadata. */
+    shouldApplyScanResponseImmediately?: boolean;
+
     /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
     successData?: TOnyxUpdate[];
 
