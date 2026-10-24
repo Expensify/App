@@ -101,6 +101,8 @@ function BaseContentInner({
             restoreFocusType={restoreFocusType}
             innerContainerStyle={innerContainerStyle ?? styles.pv0}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode}
+            // The bottom safe area padding is applied by `<Content>`/`<ScrollableContent>` instead, see `useShouldAddBottomSafeAreaPadding`.
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID={testID}
         >
             <FocusTrapForModal
