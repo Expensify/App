@@ -12,6 +12,7 @@ import {getReportFieldKey, hasViolations as hasViolationsReportUtils, isReportFi
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -20,6 +21,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import {useAllPersonalDetails} from './usePersonalDetails';
 import useReportTransactions from './useReportTransactions';
 import useReportTransactionViolations from './useReportTransactionViolations';
 
@@ -32,6 +34,7 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
     const [transactionViolations] = useReportTransactionViolations(reportTransactions);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [reportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(report?.ownerAccountID));
 
     return (reportField: PolicyReportField, value: string) => {
         if (!report) {
@@ -58,7 +61,7 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
             undefined,
             reportTransactions,
         );
-        const isFieldDisabled = isReportFieldDisabled(report, reportField, policy, rules);
+        const isFieldDisabled = isReportFieldDisabled(report, reportField, policy, rules, reportOwnerLogin);
         const hasOtherViolations = Object.entries(report.fieldList ?? {}).some(([key, field]) => key !== fieldKey && field.value === '' && !isFieldDisabled);
 
         updateReportField({
