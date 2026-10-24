@@ -453,6 +453,36 @@ describe('canEditFieldOfMoneyRequest', () => {
                 // Then they should be able to move the expense since there are multiple outstanding expense reports
                 expect(canEditReportField).toBe(false);
             });
+
+            it('should return false when the user has approveOnly role on the policy and no other workspaces', async () => {
+                const approveOnlyPolicy = {
+                    ...expensePolicy,
+                    role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, approveOnlyPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                    },
+                });
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReportField).toBe(false);
+            });
         });
 
         describe('Policy has Dynamic External Workflow', () => {

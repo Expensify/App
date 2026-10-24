@@ -145,9 +145,11 @@ import {
     canMemberWrite as canMemberWritePolicyUtils,
     canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
+    canSubmitPerDiemExpenseFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
     getForwardsToAccount,
+    getGroupPoliciesWhereReportCanBeCreated,
     getManagerAccountEmail,
     getManagerAccountID,
     getPerDiemCustomUnit,
@@ -6217,14 +6219,24 @@ function canEditFieldOfMoneyRequest({
             return false;
         }
 
+        const reportOwnerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails()) ?? deprecatedCurrentUserEmail;
+        const eligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail);
+        const canCreateReport = isPerDiemRequest(transaction) ? eligiblePolicies.some(canSubmitPerDiemExpenseFromWorkspace) : eligiblePolicies.length > 0;
+
         // Check the cheaper condition first
-        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, rules, moneyRequestReportNameValuePair)) {
+        if (canCreateReport && (isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, rules, moneyRequestReportNameValuePair)) {
             return true;
         }
 
         // Check if there are multiple outstanding reports across policies
         let outstandingReportsCount = 0;
         for (const currentPolicy of policiesArray) {
+            if (!canCreateExpensesOnPolicy(currentPolicy, reportOwnerLogin)) {
+                continue;
+            }
+            if (isPerDiemRequest(transaction) && !canSubmitPerDiemExpenseFromWorkspace(currentPolicy)) {
+                continue;
+            }
             const reports = getOutstandingReportsForUser(
                 currentPolicy.id,
                 moneyRequestReport?.ownerAccountID,

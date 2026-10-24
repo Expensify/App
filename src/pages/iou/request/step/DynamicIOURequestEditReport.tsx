@@ -93,7 +93,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const isOwnedByOther = selectedReport?.ownerAccountID !== currentUserPersonalDetails.accountID;
     const isOwnedByOtherOrHasPerDiem = isOwnedByOther || hasPerDiemTransactions;
     const targetExpensePolicyID = isOwnedByOtherOrHasPerDiem ? selectedReport?.policyID : undefined;
-    const {policyForMovingExpensesID, shouldSelectPolicy, shouldNavigateToUpgradePath, arePoliciesLoaded} = usePolicyForMovingExpenses(
+    const {policyForMovingExpensesID, shouldSelectPolicy, arePoliciesLoaded} = usePolicyForMovingExpenses(
         hasPerDiemTransactions,
         undefined,
         targetExpensePolicyID,
@@ -231,23 +231,6 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         if (!arePoliciesLoaded) {
             return;
         }
-        if (shouldNavigateToUpgradePath && !hasUnreportedManagedCardTransactions) {
-            const firstTransactionID = transactionIDs.at(0);
-            if (firstTransactionID) {
-                Navigation.navigate(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.EDIT,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            transactionID: firstTransactionID,
-                            reportID: reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
-                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                        }),
-                    ),
-                );
-            }
-            return;
-        }
         if (!hasUnreportedManagedCardTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
@@ -269,7 +252,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             selectReport={selectReport}
             removeFromReport={removeFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}
-            createReport={createReport}
+            createReport={policyForMovingExpensesID || shouldSelectPolicy || hasPerDiemTransactions || hasUnreportedManagedCardTransactions ? createReport : undefined}
             isPerDiemRequest={hasPerDiemTransactions}
             isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
             transactionPolicyID={targetExpensePolicyID}
