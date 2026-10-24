@@ -10,6 +10,11 @@ function saveDraftAnswers(formID: OnyxFormKey, answers: DynamicFormValues) {
     Onyx.merge(`${formID}Draft`, answers);
 }
 
+/** Empties the draft, such as when the form starts over for another bank account */
+function clearDraftAnswers(formID: OnyxFormKey) {
+    Onyx.set(`${formID}Draft`, null);
+}
+
 /** Sensitive answers live in memory only, so they reach the next page of the flow but are never written to the draft */
 function saveSensitiveAnswers(formID: OnyxFormKey, answers: DynamicFormValues) {
     Onyx.merge(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[formID]: answers});
@@ -35,4 +40,4 @@ function clearSensitiveAnswers(formID: OnyxFormKey) {
     Onyx.merge(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[formID]: null});
 }
 
-export {clearListItemEdit, clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers, startListItemEdit};
+export {clearDraftAnswers, clearListItemEdit, clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers, startListItemEdit};

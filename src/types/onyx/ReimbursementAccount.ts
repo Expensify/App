@@ -273,8 +273,24 @@ type WiseBusinessOnboarding = {
     /** Last saved step */
     step?: string;
 
-    /** Business page answers */
+    /** Business page answers. The page prefills what the bank account holds under the same keys, and the admin confirms it */
     business?: {
+        /** Legal business name */
+        companyName: string;
+
+        companyTaxID: string;
+        website: string;
+        addressStreet: string;
+        addressCity: string;
+
+        /** Empty where the country has no states */
+        addressState: string;
+
+        addressZipCode: string;
+
+        /** Two-letter country code */
+        addressCountry: Country;
+
         /** The legal form, prefilled from the account's incorporation type where it maps cleanly */
         companyType: ValueOf<typeof CONST.WISE.COMPANY_TYPE>;
 
