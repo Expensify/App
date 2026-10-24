@@ -4469,6 +4469,64 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
+        it('returns false when the outstanding child is the member own empty report on a workspace they cannot create expenses on', async () => {
+            const expenseReportID = '7101';
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: expenseReportID,
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 0,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(101, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {role: CONST.POLICY.ROLE.APPROVE_ONLY});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+        });
+
+        it('returns true when the outstanding child is the member own empty report on a workspace they can create expenses on', async () => {
+            const expenseReportID = '7102';
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: expenseReportID,
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 0,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(102, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {role: CONST.POLICY.ROLE.USER});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+        });
+
         describe('when the outstanding child expense is all on hold', () => {
             const expenseReportID = '7201';
             const transactionThreadReportID = '7202';
