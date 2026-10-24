@@ -71,9 +71,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     forward(userActivity: userActivity)
   }
 
-  // There is no scene lifecycle forwarding because nothing implements the matching
-  // `UIApplicationDelegate` methods. RN's `AppState` and every SDK here (Airship, Firebase,
-  // SDWebImage) observe the `UIApplication` notifications, which UIKit posts either way.
+  func sceneWillResignActive(_ scene: UIScene) {
+    appDelegate?.showPrivacyOverlay()
+  }
+
+  func sceneDidBecomeActive(_ scene: UIScene) {
+    appDelegate?.hidePrivacyOverlay()
+  }
+
+  // The privacy overlay is the only scene lifecycle forwarding. RN's `AppState` and every SDK here
+  // (Airship, Firebase, SDWebImage) observe the `UIApplication` notifications, which UIKit posts either way.
 
   // MARK: - Launch options
 
