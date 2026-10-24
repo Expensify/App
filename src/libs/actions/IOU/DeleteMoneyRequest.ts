@@ -106,6 +106,7 @@ type PrepareToCleanUpMoneyRequestParams = {
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountID: number;
 };
 
 /** Builds the Onyx surface a delete needs to touch: updated report + preview action, thread/report deletion flags, sticky-total marker. */
@@ -122,6 +123,7 @@ function prepareToCleanUpMoneyRequest({
     transactionIDsPendingDeletion,
     selectedTransactionIDs,
     policy,
+    currentUserAccountID,
 }: PrepareToCleanUpMoneyRequestParams): PrepareToCleanUpMoneyRequestResult {
     const allTransactions = getAllTransactions();
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -276,7 +278,7 @@ function prepareToCleanUpMoneyRequest({
     }
 
     if (updatedIOUReport) {
-        const lastVisibleAction = getLastVisibleAction(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction);
+        const lastVisibleAction = getLastVisibleAction(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction, undefined, undefined, currentUserAccountID);
         const iouReportLastMessageText = getLastVisibleMessage(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction).lastMessageText;
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
@@ -355,7 +357,8 @@ function getNavigationUrlOnMoneyRequestDelete(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    isSingleTransactionView = false,
+    isSingleTransactionView: boolean | undefined,
+    currentUserAccountID: number,
 ): Route | undefined {
     if (!transactionID) {
         return undefined;
@@ -368,6 +371,7 @@ function getNavigationUrlOnMoneyRequestDelete(
         chatReport,
         isChatReportArchived,
         getCurrencyDecimals,
+        currentUserAccountID,
     });
 
     // Determine which report to navigate back to
@@ -442,6 +446,7 @@ function cleanUpMoneyRequest({
             getCurrencyDecimals,
             shouldRemoveIOUTransactionID: false,
             policy,
+            currentUserAccountID,
         });
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
@@ -453,6 +458,7 @@ function cleanUpMoneyRequest({
         isChatIOUReportArchived,
         getCurrencyDecimals,
         isSingleTransactionView,
+        currentUserAccountID,
     );
     // build Onyx data
 
@@ -862,6 +868,7 @@ function deleteMoneyRequest({
         transactionIDsPendingDeletion,
         selectedTransactionIDs,
         policy,
+        currentUserAccountID,
     });
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
@@ -873,6 +880,7 @@ function deleteMoneyRequest({
         isChatIOUReportArchived,
         getCurrencyDecimals,
         isSingleTransactionView,
+        currentUserAccountID,
     );
 
     // STEP 2: Build Onyx data
