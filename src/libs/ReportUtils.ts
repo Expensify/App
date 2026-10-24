@@ -2272,8 +2272,8 @@ function getOptimisticPolicyState(
               }, {}),
           };
 
-    const optimisticVendors: PolicyVendors = isVendorsUpdateEmpty
-        ? (policyData.vendors ?? {})
+    const optimisticVendors: PolicyVendors | undefined = isVendorsUpdateEmpty
+        ? policyData.vendors
         : {
               ...(policyData.vendors ?? {}),
               ...Object.entries(vendorsUpdate).reduce<PolicyVendors>((acc, [vendorID, vendorUpdate]) => {
@@ -2537,6 +2537,13 @@ function pushTransactionViolationsOnyxData(
             if (!isTaxTrackingUpdate && Array.isArray(recomputedViolations)) {
                 const preservedTaxViolations = (existingViolations ?? []).filter((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
                 optimisticViolations.value = [...recomputedViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.TAX_OUT_OF_POLICY), ...preservedTaxViolations];
+            }
+
+            // Keep existing non-vendor violations when the update is only about vendors.
+            if (isVendorOnlyUpdate && Array.isArray(optimisticViolations.value)) {
+                const nonVendorViolations = (existingViolations ?? []).filter((violation) => violation.name !== CONST.VIOLATIONS.INACTIVE_VENDOR);
+                const vendorViolations = optimisticViolations.value.filter((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
+                optimisticViolations.value = [...nonVendorViolations, ...vendorViolations];
             }
 
             if (!isEmptyObject(optimisticViolations)) {

@@ -15759,9 +15759,14 @@ describe('ReportUtils', () => {
                             [mockTransaction.transactionID]: transaction,
                         },
                         violations: {
-                            [mockTransaction.transactionID]: [
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`]: [
                                 {
                                     name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                                    showInReview: true,
+                                },
+                                {
+                                    name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
                                     type: CONST.VIOLATION_TYPES.VIOLATION,
                                     showInReview: true,
                                 },
@@ -15778,7 +15783,13 @@ describe('ReportUtils', () => {
             expect(onyxData.optimisticData).toContainEqual({
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
-                value: [],
+                value: [
+                    {
+                        name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
             });
         });
     });

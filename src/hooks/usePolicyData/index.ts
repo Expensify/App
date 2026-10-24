@@ -61,7 +61,7 @@ function usePolicyData(policyID?: string): PolicyData {
         transactionsAndViolations,
         tags: tags ?? {},
         categories: categories ?? {},
-        vendors: vendors ?? {},
+        vendors: vendors ?? undefined,
         policy: policy as OnyxValueWithOfflineFeedback<Policy>,
         reports: Object.values(reports ?? {}) as Array<OnyxValueWithOfflineFeedback<Report>>,
     };
