@@ -15,6 +15,10 @@
         "AppStartTimeModule": {
             "swift": "HybridAppStartTimeModule",
             "kotlin": "HybridAppStartTimeModule"
+        },
+        "ShareActionHandler": {
+            "swift": "HybridShareActionHandler",
+            "kotlin": "HybridShareActionHandler"
         }
     },
     "ignorePaths": ["node_modules"]
