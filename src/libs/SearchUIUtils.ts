@@ -7519,7 +7519,6 @@ export {
     createTypeMenuSections,
     omitInsightsPageMenuItems,
     omitTravelApprovalMenuItems,
-    SPEND_INSIGHT_KEYS,
     formatBadgeText,
     getSectionBadgeText,
     getItemBadgeText,

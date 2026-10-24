@@ -1447,8 +1447,6 @@ const CONST = {
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
-        INSIGHTS_PAGE: 'insightsPage',
-        INSIGHTS_COMPARE: 'insightsCompare',
         NL_FILTERS: 'nlFilters',
         PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',

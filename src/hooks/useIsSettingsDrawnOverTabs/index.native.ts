@@ -1,10 +1,4 @@
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-
-import getTabWithoutBarItem from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/getTabWithoutBarItem';
-
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 
 /**
  * When the native tab bar has no Account item, the Account tab is drawn over the other tabs
@@ -12,8 +6,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
  */
 function useIsSettingsDrawnOverTabs() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
-    return shouldUseNarrowLayout && getTabWithoutBarItem(isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
+    return shouldUseNarrowLayout;
 }
 
 export default useIsSettingsDrawnOverTabs;

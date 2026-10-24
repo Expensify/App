@@ -153,10 +153,6 @@ const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true) => {
         sections = omitTravelApprovalMenuItems(sections);
     }
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
-        return sections;
-    }
-
     return omitInsightsPageMenuItems(sections);
 };
 

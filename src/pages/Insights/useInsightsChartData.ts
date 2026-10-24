@@ -6,7 +6,6 @@ import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 
 import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsightsChartData';
@@ -63,12 +62,11 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
 
     const sortedData = useGroupedItems(snapshot, queryJSON);
     const current = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
 
-    const comparedChart = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) ? getComparedChart(dashboardChart, filters, translate) : undefined;
+    const comparedChart = getComparedChart(dashboardChart, filters, translate);
     // Keeps every compared group, so each plotted group finds its own and not only the top ones.
     const comparedSortedData = useGroupedItems(comparedChart?.snapshot, queryJSON && {...queryJSON, limit: undefined});
 

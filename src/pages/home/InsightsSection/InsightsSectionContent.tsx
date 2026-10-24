@@ -10,7 +10,6 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -37,8 +36,6 @@ function InsightsSectionContent() {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
-    const isInsightsPageEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
 
     const {configs: insightConfigs, isResolved: isConfigResolved} = useHomeInsightConfigs();
     const [selectedKey, selectedKeyMetadata] = useOnyx(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT);
@@ -58,10 +55,7 @@ function InsightsSectionContent() {
         return null;
     }
 
-    const navigateToInsights = () =>
-        Navigation.navigate(
-            isInsightsPageEnabled ? ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND) : ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key}),
-        );
+    const navigateToInsights = () => Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
 
     const widget = (
         <WidgetContainer
@@ -100,16 +94,16 @@ function InsightsSectionContent() {
                         groupBy={groupBy}
                         data={data}
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
-                        shouldShowSinglePointAsBar={isInsightsPageEnabled}
+                        shouldShowSinglePointAsBar
                         shouldUseResponsiveLabels
-                        shouldDrillDownOnPress={!isInsightsPageEnabled}
+                        shouldDrillDownOnPress={false}
                     />
                 </View>
             )}
         </WidgetContainer>
     );
 
-    if (!isInsightsPageEnabled || canUseTouchScreen()) {
+    if (canUseTouchScreen()) {
         return widget;
     }
 
