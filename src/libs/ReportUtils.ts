@@ -6220,9 +6220,11 @@ function canEditFieldOfMoneyRequest({
         }
 
         const reportOwnerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
-        const isBlockedOnCurrentPolicy = !!reportPolicy && !canCreateExpensesOnPolicy(reportPolicy, reportOwnerLogin);
+        const isBlockedOnCurrentPolicy = !isAdmin && !!reportPolicy && !canCreateExpensesOnPolicy(reportPolicy, deprecatedCurrentUserEmail);
         const isPerDiem = isPerDiemRequest(transaction);
 
+        // Counts outstanding reports the owner could move this expense to, stopping early once `count` exceeds
+        // `stopAt` since callers only need to know whether the count is 0 or greater than 1, not the exact total.
         const countOutstandingReports = (excludePolicyID?: string, stopAt = 1): number => {
             let count = 0;
             for (const currentPolicy of policiesArray) {

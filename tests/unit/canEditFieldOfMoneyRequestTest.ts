@@ -486,6 +486,52 @@ describe('canEditFieldOfMoneyRequest', () => {
                 // Then the move action should be disallowed
                 expect(canEditReportField).toBe(false);
             });
+
+            it('should return true when an admin moves an expense owned by an approveOnly member', async () => {
+                // Given an admin viewing an expense owned by an approve-only member
+                const employeeAccountID = 12345;
+                const employeeEmail = 'employee@test.com';
+                const adminPolicy = {
+                    ...expensePolicy,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [employeeEmail]: {
+                            role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                        },
+                    },
+                };
+                const employeeExpenseReport = {
+                    ...expenseReport,
+                    ownerAccountID: employeeAccountID,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, adminPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, employeeExpenseReport);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [employeeAccountID]: {
+                        accountID: employeeAccountID,
+                        login: employeeEmail,
+                    },
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                    },
+                });
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                // When checking if the admin can move the expense
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then the move action should be allowed for the admin
+                expect(canEditReportField).toBe(true);
+            });
         });
 
         describe('Policy has Dynamic External Workflow', () => {
