@@ -1,5 +1,5 @@
 /** Root installs should set up the Worker tooling locally, but only when its lockfile changes, and never in CI. */
-import {afterEach, beforeEach, describe, expect, mock, test} from 'bun:test';
+import {afterEach, beforeEach, describe, expect, mock, spyOn, test} from 'bun:test';
 
 import {mkdtempSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -46,14 +46,21 @@ describe('Cloudflare Worker install during App setup', () => {
         expect(install).toHaveBeenCalledTimes(2);
     });
 
-    test('retries an install that failed', async () => {
-        // Given an install that fails partway
+    test('warns instead of failing the App install, and retries next time', async () => {
+        // Given an install that fails partway, e.g. offline or a failed workerd download
         const failingInstall = mock(async () => {
             throw new Error('network error');
         });
-        // When the root install runs
-        // Then it fails, and the next root install tries again
-        await expect(installCloudflareWorker(workerDir, {}, failingInstall)).rejects.toThrow('network error');
+        const warn = spyOn(console, 'warn').mockImplementation(() => {});
+        try {
+            // When the root install runs
+            // Then it still succeeds for developers who never run the Worker, and explains what is missing
+            expect(await installCloudflareWorker(workerDir, {}, failingInstall)).toBe(false);
+            expect(warn).toHaveBeenCalledTimes(1);
+        } finally {
+            warn.mockRestore();
+        }
+        // And the next root install tries again
         expect(await installCloudflareWorker(workerDir, {}, install)).toBe(true);
     });
 

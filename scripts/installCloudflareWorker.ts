@@ -22,7 +22,13 @@ async function installCloudflareWorker(workerDir: string, env: Record<string, st
         return false;
     }
     console.log('Installing local Cloudflare Worker tooling');
-    await install(workerDir);
+    try {
+        await install(workerDir);
+    } catch (error) {
+        // Only `npm run web` uses the Worker, and it serves Rsbuild directly without it, so this must not fail the App install.
+        console.warn('Could not install the Cloudflare Worker tooling. npm run web will serve Rsbuild directly until the next npm install installs it.', error);
+        return false;
+    }
     await Bun.write(installedLockfileHash, lockfileHash);
     return true;
 }
