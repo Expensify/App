@@ -48,8 +48,8 @@ function useSendMoneySubmission({
 }: UseSendMoneySubmissionParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    function sendMoney(paymentMethod: PaymentMethodType | undefined, options?: SendMoneyOptions) {
-        const {shouldHandleNavigation = true, resolvedReportIDs, shouldStartTracking = true} = options ?? {};
+    function sendMoney(paymentMethod: PaymentMethodType | undefined, options: SendMoneyOptions) {
+        const {shouldHandleNavigation, resolvedReportIDs, shouldStartTracking} = options;
         const currency = transaction?.currency;
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
         const participant = participants?.at(0);

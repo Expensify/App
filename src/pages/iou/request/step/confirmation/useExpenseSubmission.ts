@@ -409,12 +409,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         [SUBMISSION_PATH.REQUEST_MONEY]: requestMoneySubmission.createTransaction,
     };
 
-    const createTransaction = guardSubmission(
-        submitLock,
-        ({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) =>
-            submitByPath[submissionPath]({locationPermissionGranted, shouldHandleNavigation, writeBarrier}),
-        blockDistanceRequestIfNeeded,
-    );
+    const createTransaction = guardSubmission(submitLock, submitByPath[submissionPath], blockDistanceRequestIfNeeded);
 
     return {createTransaction, sendMoney};
 }

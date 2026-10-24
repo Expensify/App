@@ -466,13 +466,13 @@ function IOURequestStepConfirmationContent({
             }
 
             if (paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && paymentMethod !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                sendMoney(paymentMethod);
+                sendMoney(paymentMethod, {shouldHandleNavigation: true, shouldStartTracking: true});
                 return;
             }
 
             const participant = participants.at(0);
             if (!participant) {
-                sendMoney(paymentMethod);
+                sendMoney(paymentMethod, {shouldHandleNavigation: true, shouldStartTracking: true});
                 return;
             }
 
@@ -481,7 +481,7 @@ function IOURequestStepConfirmationContent({
                 : resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
             const payDestinationReportID = optimisticP2PDestinationReportID ?? destinationReportID ?? resolvedReportIDs.chatReportID;
             if (!payDestinationReportID || Navigation.getTopmostReportId() === payDestinationReportID) {
-                sendMoney(paymentMethod, {resolvedReportIDs});
+                sendMoney(paymentMethod, {resolvedReportIDs, shouldHandleNavigation: true, shouldStartTracking: true});
                 return;
             }
 
