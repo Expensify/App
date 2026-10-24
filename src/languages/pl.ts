@@ -12330,5 +12330,24 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         mobileClaimPrompt: 'Odwiedź Expensify w swojej przeglądarce internetowej, aby odebrać zniżkę na odnowienie.',
     },
     bulkActionBar: {label: 'Akcje zbiorcze', clearSelection: 'Wyczyść wybór', loadingSelection: 'Wczytywanie zaznaczenia'},
+    reportHistoryPage: {
+        title: 'Historia raportu',
+        created: 'utworzył raport',
+        submitted: 'wysłano',
+        approved: 'zatwierdzone',
+        paid: 'zapłacono',
+        toSubmit: 'przesłać',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'aby automatycznie wysłać';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `aby automatycznie wysyłać ${eta} każdego miesiąca` : `do automatycznego przesłania ${eta}`;
+        },
+        toApprove: 'zaakceptować',
+        toPay: 'zapłać',
+        minutesAgo: (count: number) => `${count} min temu`,
+        hoursAgo: (count: number) => `${count} godz. temu`,
+        daysAgo: (count: number) => `${count}d temu`,
+    },
 };
 export default translations;

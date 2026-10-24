@@ -60,6 +60,24 @@ type GetReportNextStepParams = {
     rules: OnyxCollection<Rule>;
 };
 
+function getNextStepETA(
+    nextStep: ReportNextStep,
+    translate: LocaleContextProps['translate'],
+    dateFnsLocale: DateFnsLocale | undefined,
+): {eta?: string; etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>} {
+    if (nextStep.eta?.etaKey) {
+        return {eta: translate(`nextStep.eta.${nextStep.eta.etaKey}`), etaType: CONST.NEXT_STEP.ETA_TYPE.KEY};
+    }
+    if (nextStep.eta?.dateTime) {
+        const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
+        // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight,
+        // which shifts the day back by one when formatted in a UTC-negative timezone. `parseISO` parses it as
+        // local midnight so the rendered day matches the day set in the workspace settings.
+        return {eta: format(parseISO(nextStep.eta.dateTime), formatString, {locale: dateFnsLocale}), etaType: CONST.NEXT_STEP.ETA_TYPE.DATE_TIME};
+    }
+    return {};
+}
+
 function buildNextStepMessage(
     nextStep: ReportNextStep,
     translate: LocaleContextProps['translate'],
@@ -78,19 +96,7 @@ function buildNextStepMessage(
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER;
     }
 
-    let eta: string | undefined;
-    let etaType: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined;
-    if (nextStep.eta?.etaKey) {
-        eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
-        etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
-    } else if (nextStep.eta?.dateTime) {
-        const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
-        // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight,
-        // which shifts the day back by one when formatted in a UTC-negative timezone. `parseISO` parses it as
-        // local midnight so the rendered day matches the day set in the workspace settings.
-        eta = format(parseISO(nextStep.eta.dateTime), formatString, {locale: dateFnsLocale});
-        etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
-    }
+    const {eta, etaType} = getNextStepETA(nextStep, translate, dateFnsLocale);
 
     const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
     const message =
@@ -399,6 +405,7 @@ function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: Ony
 export {
     getReportNextStep,
     buildNextStepMessage,
+    getNextStepETA,
     buildOptimisticNextStep,
     buildOptimisticFixIssueNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,

@@ -12292,5 +12292,24 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         mobileClaimPrompt: 'Visite o Expensify no seu navegador para resgatar seu desconto de renovação.',
     },
     bulkActionBar: {label: 'Ações em massa', clearSelection: 'Limpar seleção', loadingSelection: 'Carregando seleção'},
+    reportHistoryPage: {
+        title: 'Histórico do relatório',
+        created: 'criou relatório',
+        submitted: 'enviado',
+        approved: 'aprovado',
+        paid: 'pago',
+        toSubmit: 'enviar',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'para enviar automaticamente';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `para enviar automaticamente no dia ${eta} de cada mês` : `para enviar automaticamente em ${eta}`;
+        },
+        toApprove: 'aprovar',
+        toPay: 'pagar',
+        minutesAgo: (count: number) => `há ${count} min.`,
+        hoursAgo: (count: number) => `${count}h atrás`,
+        daysAgo: (count: number) => `Há ${count}d`,
+    },
 };
 export default translations;

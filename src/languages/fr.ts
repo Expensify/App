@@ -12417,5 +12417,24 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         mobileClaimPrompt: 'Visitez Expensify dans votre navigateur web pour bénéficier de votre réduction de renouvellement.',
     },
     bulkActionBar: {label: 'Actions groupées', clearSelection: 'Effacer la sélection', loadingSelection: 'Chargement de la sélection'},
+    reportHistoryPage: {
+        title: 'Historique de la note de frais',
+        created: 'note de frais créée',
+        submitted: 'Soumis',
+        approved: 'approuvé',
+        paid: 'payé',
+        toSubmit: 'soumettre',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'soumettre automatiquement';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `pour soumettre automatiquement le ${eta} de chaque mois` : `pour soumettre automatiquement ${eta}`;
+        },
+        toApprove: 'approuver',
+        toPay: 'payer',
+        minutesAgo: (count: number) => `Il y a ${count} min`,
+        hoursAgo: (count: number) => `Il y a ${count} h`,
+        daysAgo: (count: number) => `Il y a ${count} j`,
+    },
 };
 export default translations;
