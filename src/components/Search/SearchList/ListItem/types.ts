@@ -33,6 +33,7 @@ import type {
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
+    SearchTrip,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
     SearchYearGroup,
@@ -387,6 +388,26 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
+type TripListItemType = ListItem &
+    SearchTrip & {
+        /** The personal details of the traveler */
+        traveler: PersonalDetails;
+
+        /** Final and formatted "traveler" value used for displaying and sorting */
+        formattedTraveler: string;
+
+        /** The trip room's name, used as the trip name */
+        tripName: string;
+
+        /** Key used internally by React */
+        keyForList: string;
+    };
+
+type TripListItemProps = ListItemProps<TripListItemType> & {
+    /** Columns to show */
+    columns?: SearchColumnType[];
+};
+
 type ReportActionListItemType = ListItem &
     ReportAction & {
         /** The personal details of the user posting comment */
@@ -404,7 +425,7 @@ type ReportActionListItemType = ListItem &
         reportName: string;
     };
 
-type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType | TripListItemType;
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
     SearchCardGroup & {
@@ -607,6 +628,8 @@ export type {
     SearchListItem,
     TaskListItemProps,
     TaskListItemType,
+    TripListItemProps,
+    TripListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionCardGroupListItemType,

@@ -24,6 +24,7 @@ import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
@@ -173,13 +174,15 @@ function SearchPageNarrow({
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
 
-    const handleSearchAction = useCallback((value: SearchParams | string) => {
+    const {isBetaEnabled} = usePermissions();
+    const isTravelApprovalEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
+    const handleSearchAction = (value: SearchParams | string) => {
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value);
+            search({...value, shouldReturnTripRooms: isTravelApprovalEnabled});
         }
-    }, []);
+    };
 
     const navigation = useNavigation();
     // When pre-inserted behind the RHP (not focused), always start in static rendering

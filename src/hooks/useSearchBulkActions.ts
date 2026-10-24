@@ -172,6 +172,7 @@ import useReportPDFDownloadModal from './useReportPDFDownloadModal';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -632,6 +633,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
@@ -2971,6 +2973,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                             shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
                                             isOffline,
                                             isLoading: !!currentSearchResults?.search?.isLoading,
+                                            shouldReturnTripRooms,
                                         });
                                         clearSelectedTransactions();
                                     },
@@ -3052,6 +3055,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
                             isOffline,
                             isLoading: !!currentSearchResults?.search?.isLoading,
+                            shouldReturnTripRooms,
                         });
                         clearSelectedTransactions();
                     };
@@ -3468,6 +3472,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         hasUnloadedMatchingExpenses,
         isUnreportedOnlyQuery,
         currentSearchQueryJSON,
+        shouldReturnTripRooms,
         currentSearchResults?.search?.isLoading,
         shouldCalculateTotalsOnRefresh,
         rules,
