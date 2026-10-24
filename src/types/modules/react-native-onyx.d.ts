@@ -1,6 +1,7 @@
 import type {OnyxCollectionKey, OnyxDerivedKey, OnyxFormDraftKey, OnyxFormKey, OnyxValueKey, OnyxValues} from '@src/ONYXKEYS';
 
 import type Onyx from 'react-native-onyx';
+import type {OnyxKey, OnyxValue} from 'react-native-onyx';
 import type {CollectionKeyBase} from 'react-native-onyx/dist/types';
 
 declare module 'react-native-onyx' {
@@ -16,7 +17,7 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
     interface Window {
         Onyx: typeof Onyx & {
-            get: (key: CollectionKeyBase) => Promise<unknown>;
+            get: <TKey extends OnyxKey>(key: TKey) => Promise<OnyxValue<TKey>>;
             log: (key: CollectionKeyBase) => void;
         };
     }
