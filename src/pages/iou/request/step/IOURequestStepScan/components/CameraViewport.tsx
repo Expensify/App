@@ -94,6 +94,8 @@ type CameraViewportProps = {
 
     setFlash: (updater: (prev: boolean) => boolean) => void;
 
+    isTorchOn?: boolean;
+
     /** Extra content rendered below the viewfinder, inside the camera view */
     children?: ReactNode;
 };
@@ -120,6 +122,7 @@ function CameraViewport({
     flash,
     hasFlash,
     setFlash,
+    isTorchOn = false,
     children,
 }: CameraViewportProps) {
     const theme = useTheme();
@@ -170,6 +173,7 @@ function CameraViewport({
                         outputs={outputs}
                         style={[styles.flex1, shouldHidePreview && styles.opacity0]}
                         zoom={shouldHidePreview ? 1 : getZoomProp(device)}
+                        torchMode={isTorchOn ? 'on' : 'off'}
                         cameraTabIndex={1}
                         forceInactive={isAttachmentPickerActive || (didCapturePhoto && !hasPendingPhotoCapture)}
                         shouldStayActiveWhenBlurred={hasPendingPhotoCapture}
