@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -16,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {
     canEditReportTitle,
     getAvailableReportFields,
+    getInvoiceReceiverPolicyID,
     getParentNavigationSubtitle,
     getReportFieldKey,
     isInvoiceReport as isInvoiceReportUtil,
@@ -73,7 +75,17 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
         isMoneyRequest,
         isTrackExpenseReport: isTrackExpenseReportUtil(report, parentReport, parentReportAction),
     });
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, formatPhoneNumber, derivedParentReportName, isParentReportArchived);
+    const invoiceReceiverPolicy = usePolicy(getInvoiceReceiverPolicyID(parentReport));
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(
+        report,
+        policy,
+        invoiceReceiverPolicy,
+        conciergeReportID,
+        translate,
+        formatPhoneNumber,
+        derivedParentReportName,
+        isParentReportArchived,
+    );
 
     const titleField: OnyxTypes.PolicyReportField | undefined = (() => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
