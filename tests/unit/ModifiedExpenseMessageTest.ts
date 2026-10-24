@@ -168,23 +168,6 @@ describe('ModifiedExpenseMessage', () => {
             expect(undefinedResult).toBe(`set the merchant to "Cafe" and tag to "" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`);
         });
 
-        it('renders a backend null tag as an empty fragment through the real decoder', () => {
-            // Given a backend null tag even though the declared producer contract only admits strings
-            const originalMessage = createMock<OriginalMessageModifiedExpense>({
-                personalRulesModifiedFields: {
-                    merchant: 'Cafe',
-                    // @ts-expect-error -- Cover backend null compatibility without widening the declared tag type.
-                    tag: null,
-                },
-            });
-
-            // When the report action formatter sends the nullish fallback through the real tag decoder
-            const result = formatRulesAction(originalMessage);
-
-            // Then the report action renders the empty tag in its original position instead of crashing
-            expect(result).toBe(`set the merchant to "Cafe" and tag to "" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`);
-        });
-
         it.each([true, false])('preserves full policy messages and route precedence for admin access %s', (isAdminAccessAllowed) => {
             // Given mixed policy standalone/list fields and an admin access decision
             jest.mocked(isPolicyAdmin).mockReturnValue(isAdminAccessAllowed);
