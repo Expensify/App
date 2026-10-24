@@ -136,12 +136,15 @@ function useReportActionsNewActionLiveTail({
                 const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     if (index > 0) {
+                        // Only the scrollToBottom() branches should arm the pending scroll-to-bottom flush. Arming it here too
+                        // would queue a competing scrollToBottom() that fights the scrollToIndex() jump to the report preview.
                         setTimeout(() => {
                             reportScrollManager.scrollToIndex(index);
                         }, 100);
                     } else {
                         setIsFloatingMessageCounterVisible(false);
                         reportScrollManager.scrollToBottom();
+                        setIsScrollToBottomEnabled(true);
                     }
                     if (action?.reportActionID) {
                         setActionIdToHighlight(action.reportActionID);
@@ -149,9 +152,8 @@ function useReportActionsNewActionLiveTail({
                 } else {
                     setIsFloatingMessageCounterVisible(false);
                     reportScrollManager.scrollToBottom();
+                    setIsScrollToBottomEnabled(true);
                 }
-
-                setIsScrollToBottomEnabled(true);
             },
         });
     });
