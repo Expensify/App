@@ -8147,6 +8147,11 @@ const CONST = {
                     search: true,
                     reportView: false,
                 },
+                PAID: {
+                    column: this.TABLE_COLUMNS.PAID,
+                    search: true,
+                    reportView: false,
+                },
                 POSTED: {
                     column: this.TABLE_COLUMNS.POSTED,
                     search: true,
@@ -8332,6 +8337,7 @@ const CONST = {
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
                     FIRST_APPROVER: this.TABLE_COLUMNS.FIRST_APPROVER,
                     FIRST_APPROVED: this.TABLE_COLUMNS.FIRST_APPROVED,
+                    PAID: this.TABLE_COLUMNS.PAID,
                     PAID_BY: this.TABLE_COLUMNS.PAID_BY,
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
@@ -8535,6 +8541,7 @@ const CONST = {
             APPROVED: 'approved',
             FIRST_APPROVER: 'firstapprover',
             FIRST_APPROVED: 'firstapproved',
+            PAID: 'paid',
             PAID_BY: 'paidBy',
             POSTED: 'posted',
             EXPORTED: 'exported',

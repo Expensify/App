@@ -97,6 +97,7 @@ function TransactionItemRowWide({
     isDateColumnCreated = false,
     submittedColumnSize,
     approvedColumnSize,
+    paidColumnSize,
     postedColumnSize,
     exportedColumnSize,
     amountColumnSize,
@@ -166,6 +167,8 @@ function TransactionItemRowWide({
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isApprovedColumnWide = approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isPaidColumnWide = paidColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const {paid: paidDate = ''} = transactionItem;
     const isPostedColumnWide = postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isExportedColumnWide = exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -303,6 +306,20 @@ function TransactionItemRowWide({
                     >
                         <DateCell
                             date={transactionItem.approved ?? report?.approved ?? ''}
+                            showTooltip={shouldShowTooltip}
+                            isLargeScreenWidth
+                            shouldUseLocalTimeZone
+                        />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.PAID:
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID, {isPaidColumnWide})]}
+                    >
+                        <DateCell
+                            date={paidDate}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
                             shouldUseLocalTimeZone
