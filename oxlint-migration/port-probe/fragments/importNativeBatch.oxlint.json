@@ -1,0 +1,35 @@
+{
+    "flags": ["--import-plugin"],
+    "overrides": [
+        {
+            "files": ["**/importNativeBatch.ts"],
+            "plugins": ["import"],
+            "rules": {
+                "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
+                "import/extensions": ["error", "ignorePackages", {"js": "never", "mjs": "never", "jsx": "never", "ts": "never", "tsx": "never", "cts": "never", "mts": "never"}],
+                "import/first": "error",
+                "import/newline-after-import": "error",
+                "import/no-amd": "error",
+                "import/no-mutable-exports": "error",
+                "import/no-named-default": "error",
+                "import/no-self-import": "error",
+                "import/no-webpack-loader-syntax": "error"
+            }
+        },
+        {
+            "files": ["**/importNativeBatchAbsolute.ts"],
+            "plugins": ["import"],
+            "rules": {
+                "import/no-absolute-path": "error"
+            }
+        },
+        {
+            "files": ["**/importNativeBatchJs.js"],
+            "plugins": ["import"],
+            "rules": {
+                "import/named": "error",
+                "import/no-named-as-default-member": "error"
+            }
+        }
+    ]
+}

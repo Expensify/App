@@ -1,0 +1,422 @@
+{
+    "you-dont-need-lodash-underscore/all": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/all",
+        "expected": 1,
+        "why": "`_.all(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.every() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/any": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/any",
+        "expected": 1,
+        "why": "`_.any(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.some() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/assign": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/assign",
+        "expected": 1,
+        "why": "`_.assign(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Object.assign() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/bind": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/bind",
+        "expected": 1,
+        "why": "`_.bind(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Function.prototype.bind() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/capitalize": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/capitalize",
+        "expected": 1,
+        "why": "`_.capitalize(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and string.charAt(0).toUpperCase() + string.slice(1).toLowerCase() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/cast-array": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/cast-array",
+        "expected": 1,
+        "why": "`_.castArray(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.isArray(arr) ? arr : [arr] is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/collect": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/collect",
+        "expected": 1,
+        "why": "`_.collect(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.map() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/concat": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/concat",
+        "expected": 1,
+        "why": "`_.concat(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.concat() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/contains": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/contains",
+        "expected": 1,
+        "why": "`_.contains(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.includes() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/defaults": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/defaults",
+        "expected": 1,
+        "why": "`_.defaults(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Object.assign({}, defaultValues, newValues) is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/detect": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/detect",
+        "expected": 1,
+        "why": "`_.detect(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.find() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/drop": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/drop",
+        "expected": 1,
+        "why": "`_.drop(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.slice() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/drop-right": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/drop-right",
+        "expected": 1,
+        "why": "`_.dropRight(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.slice() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/each": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/each",
+        "expected": 1,
+        "why": "`_.each(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.forEach() or Object.entries().forEach() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/ends-with": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/ends-with",
+        "expected": 1,
+        "why": "`_.endsWith(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and String.prototype.endsWith() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/entries": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/entries",
+        "expected": 1,
+        "why": "`_.entries(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Object.entries() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/every": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/every",
+        "expected": 1,
+        "why": "`_.every(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.every() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/extend-own": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/extend-own",
+        "expected": 1,
+        "why": "`_.extendOwn(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Object.assign() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/fill": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/fill",
+        "expected": 1,
+        "why": "`_.fill(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.fill() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/filter": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/filter",
+        "expected": 1,
+        "why": "`_.filter(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.filter() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/find": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/find",
+        "expected": 1,
+        "why": "`_.find(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.find() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/find-index": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/find-index",
+        "expected": 1,
+        "why": "`_.findIndex(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.findIndex() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/first": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/first",
+        "expected": 1,
+        "why": "`_.first(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.at(0) or Array.prototype.slice() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/flatten": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/flatten",
+        "expected": 1,
+        "why": "`_.flatten(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.reduce((a,b) => a.concat(b), []) is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/foldl": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/foldl",
+        "expected": 1,
+        "why": "`_.foldl(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.reduce() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/foldr": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/foldr",
+        "expected": 1,
+        "why": "`_.foldr(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.reduceRight() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/for-each": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/for-each",
+        "expected": 1,
+        "why": "`_.forEach(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.forEach() or Object.entries().forEach() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/get": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/get",
+        "expected": 1,
+        "why": "`_.get(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and optional chaining to get nested values and nullish coalescing operator for fallback values is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/head": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/head",
+        "expected": 1,
+        "why": "`_.head(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.at(0) is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/includes": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/includes",
+        "expected": 1,
+        "why": "`_.includes(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.includes() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/index-of": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/index-of",
+        "expected": 1,
+        "why": "`_.indexOf(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.indexOf() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/inject": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/inject",
+        "expected": 1,
+        "why": "`_.inject(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.reduce() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/is-array": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/is-array",
+        "expected": 1,
+        "why": "`_.isArray(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.isArray() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/is-array-buffer": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/is-array-buffer",
+        "expected": 1,
+        "why": "`_.isArrayBuffer(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and value instanceof ArrayBuffer is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/is-date": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/is-date",
+        "expected": 1,
+        "why": "`_.isDate(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and String.prototype.toString.call() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/is-finite": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/is-finite",
+        "expected": 1,
+        "why": "`_.isFinite(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Number.isFinite() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/is-function": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/is-function",
+        "expected": 1,
+        "why": "`_.isFunction(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and typeof func === \"function\" is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/is-integer": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/is-integer",
+        "expected": 1,
+        "why": "`_.isInteger(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Number.isInteger() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/is-nan": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/is-nan",
+        "expected": 1,
+        "why": "`_.isNaN(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Number.isNaN() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/is-nil": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/is-nil",
+        "expected": 1,
+        "why": "`_.isNil(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and value === null || value === undefined is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/is-null": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/is-null",
+        "expected": 1,
+        "why": "`_.isNull(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and value === null is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/is-string": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/is-string",
+        "expected": 1,
+        "why": "`_.isString(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and str != null && typeof str.valueOf() === \"string\" is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/is-undefined": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/is-undefined",
+        "expected": 1,
+        "why": "`_.isUndefined(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and value === undefined is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/join": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/join",
+        "expected": 1,
+        "why": "`_.join(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.join() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/keys": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/keys",
+        "expected": 1,
+        "why": "`_.keys(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Object.keys() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/last": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/last",
+        "expected": 1,
+        "why": "`_.last(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.at(-1) or Array.prototype.slice() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/last-index-of": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/last-index-of",
+        "expected": 1,
+        "why": "`_.lastIndexOf(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.lastIndexOf() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/map": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/map",
+        "expected": 1,
+        "why": "`_.map(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.map() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/omit": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/omit",
+        "expected": 1,
+        "why": "`_.omit(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and {a, b, c, ...notOmittedValues} is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/pad-end": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/pad-end",
+        "expected": 1,
+        "why": "`_.padEnd(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and String.prototype.padEnd() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/pad-start": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/pad-start",
+        "expected": 1,
+        "why": "`_.padStart(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and String.prototype.padStart() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/pairs": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/pairs",
+        "expected": 1,
+        "why": "`_.pairs(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Object.entries() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/reduce": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/reduce",
+        "expected": 1,
+        "why": "`_.reduce(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.reduce() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/reduce-right": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/reduce-right",
+        "expected": 1,
+        "why": "`_.reduceRight(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.reduceRight() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/repeat": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/repeat",
+        "expected": 1,
+        "why": "`_.repeat(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and String.prototype.repeat() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/replace": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/replace",
+        "expected": 1,
+        "why": "`_.replace(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and String.prototype.replace() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/reverse": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/reverse",
+        "expected": 1,
+        "why": "`_.reverse(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.reverse() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/select": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/select",
+        "expected": 1,
+        "why": "`_.select(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.filter() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/size": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/size",
+        "expected": 1,
+        "why": "`_.size(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.length is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/slice": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/slice",
+        "expected": 1,
+        "why": "`_.slice(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.slice() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/some": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/some",
+        "expected": 1,
+        "why": "`_.some(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.some() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/split": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/split",
+        "expected": 1,
+        "why": "`_.split(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and String.prototype.split() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/starts-with": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/starts-with",
+        "expected": 1,
+        "why": "`_.startsWith(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and String.prototype.startsWith() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/take-right": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/take-right",
+        "expected": 1,
+        "why": "`_.takeRight(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Array.prototype.slice() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/to-lower": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/to-lower",
+        "expected": 1,
+        "why": "`_.toLower(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and String.prototype.toLowerCase() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/to-pairs": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/to-pairs",
+        "expected": 1,
+        "why": "`_.toPairs(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Object.entries() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/to-upper": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/to-upper",
+        "expected": 1,
+        "why": "`_.toUpper(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and String.prototype.toUpperCase() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/trim": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/trim",
+        "expected": 1,
+        "why": "`_.trim(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and String.prototype.trim() is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/union-by": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/union-by",
+        "expected": 1,
+        "why": "`_.unionBy(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Example of native implementation: https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore#_unionBy is the native equivalent it asks for"
+    },
+    "you-dont-need-lodash-underscore/values": {
+        "fixture": "fixtures/ydnlBatch.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/values",
+        "expected": 1,
+        "why": "`_.values(\u2026)` is the call shape this rule matches (the plugin is generated from lodash method names) and Object.values() is the native equivalent it asks for"
+    }
+}

@@ -1,0 +1,8 @@
+{
+    "@typescript-eslint/no-deprecated": {
+        "fixture": "fixtures/deprecatedSelfClosingJsx.tsx",
+        "oxlintRule": "hosted/no-deprecated-self-closing-jsx",
+        "expected": 2,
+        "why": "tsgolint skips the signature check on self-closing JSX, so a component deprecated only through the component it wraps (MenuItem) goes unreported; config/oxlint/noDeprecatedSelfClosingJsx.mjs stands in. typescript/no-deprecated stays on for this file, so the day tsgolint reports these itself the run fails on an unclaimed finding and the stand-in can go"
+    }
+}

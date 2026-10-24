@@ -1,0 +1,22 @@
+{
+    "overrides": [
+        {
+            "files": ["**/a11yNpmBatch.tsx"],
+            "jsPlugins": ["eslint-plugin-react-native-a11y"],
+            "rules": {
+                "react-native-a11y/has-accessibility-props": "error",
+                "react-native-a11y/has-valid-accessibility-actions": "error",
+                "react-native-a11y/has-valid-accessibility-component-type": "error",
+                "react-native-a11y/has-valid-accessibility-ignores-invert-colors": "error",
+                "react-native-a11y/has-valid-accessibility-live-region": "error",
+                "react-native-a11y/has-valid-accessibility-role": "error",
+                "react-native-a11y/has-valid-accessibility-state": "error",
+                "react-native-a11y/has-valid-accessibility-states": "error",
+                "react-native-a11y/has-valid-accessibility-traits": "error",
+                "react-native-a11y/has-valid-accessibility-value": "error",
+                "react-native-a11y/has-valid-important-for-accessibility": "error",
+                "react-native-a11y/no-nested-touchables": "error"
+            }
+        }
+    ]
+}

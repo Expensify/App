@@ -1,0 +1,8 @@
+{
+    "@typescript-eslint/no-floating-promises": {
+        "fixture": "fixtures/typedSample.ts",
+        "oxlintRule": "typescript/no-floating-promises",
+        "expected": 1,
+        "why": "anchor for the whole type-aware native population: proves the probe reaches tsgolint and typescript-eslint's projectService together, so a typed shard failing here means the harness broke, not the rule"
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "flags": ["--type-aware"],
+    "overrides": [
+        {
+            "files": ["**/deprecatedSelfClosingJsx.tsx"],
+            "rules": {
+                "typescript/no-deprecated": "error",
+                "hosted/no-deprecated-self-closing-jsx": [
+                    "error",
+                    {"components": [{"module": "oxlint-migration/port-probe/fixtures/deprecatedSelfClosingJsxCard", "importName": "default", "reason": "Compose `Card.Root` instead."}]}
+                ]
+            }
+        }
+    ]
+}
