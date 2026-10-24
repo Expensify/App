@@ -259,6 +259,9 @@ type MoneyRequestNavigatorParamList = {
 
         /** Whether owned workspace chats should be left out of the picker (sent as the string 'true' when on) */
         shouldExcludeWorkspaces?: string;
+
+        /** Whether the page was opened from the confirmation's "To" row, so a selection returns to it (sent as the string 'true' when on) */
+        isFromConfirmation?: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE]: {
         action: IOUAction;
