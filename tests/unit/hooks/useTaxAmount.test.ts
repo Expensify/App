@@ -21,14 +21,18 @@ jest.mock('@libs/DistanceRequestUtils', () => ({
     },
 }));
 
+let mockCategoryTaxCode: string | undefined;
+let mockHasTaxRateWithMatchingValue: boolean;
+
 jest.mock('@libs/TransactionUtils', () => ({
     calculateTaxAmount: (taxPercentage: string, taxableAmount: number) => {
         const pct = Number.parseFloat(String(taxPercentage).replace('%', '')) || 0;
         return (taxableAmount * pct) / 100;
     },
+    getCategoryTaxCode: () => mockCategoryTaxCode,
     getDefaultTaxCode: () => 'tax_default',
     getTaxValue: () => '10%',
-    hasTaxRateWithMatchingValue: () => false,
+    hasTaxRateWithMatchingValue: () => mockHasTaxRateWithMatchingValue,
 }));
 
 type Params = Parameters<typeof useTaxAmount>[0];
@@ -63,6 +67,8 @@ describe('useTaxAmount', () => {
         mockConvertToDistanceInMeters.mockImplementation((distance: number) => distance);
         mockGetCommuterExclusionDisplayData.mockReturnValue(null);
         mockGetTaxableAmount.mockReturnValue(100);
+        mockCategoryTaxCode = undefined;
+        mockHasTaxRateWithMatchingValue = false;
     });
 
     it('returns the default tax code and value from policy resolution', () => {
@@ -154,5 +160,29 @@ describe('useTaxAmount', () => {
     it('shouldKeepCurrentTaxSelection is false when policy has no matching tax rate', () => {
         const {result} = renderHook(() => useTaxAmount(baseParams));
         expect(result.current.shouldKeepCurrentTaxSelection).toBe(false);
+    });
+
+    it('prefers the tax rate from the category rule over the workspace default', () => {
+        // Given a category whose tax rule resolves to a tax code of its own
+        mockCategoryTaxCode = 'tax_category';
+
+        // When the hook resolves the default tax code
+        const {result} = renderHook(() => useTaxAmount(baseParams));
+
+        // Then the category rule outranks the workspace default, so the confirmation page opens on the rule's rate
+        expect(result.current.defaultTaxCode).toBe('tax_category');
+    });
+
+    it('keeps the workspace default when the user picks it over the category rule rate', () => {
+        // Given a category rule that resolves to its own tax code, and a user who picked the workspace default instead
+        mockCategoryTaxCode = 'tax_category';
+        mockHasTaxRateWithMatchingValue = true;
+        const transaction = {...baseTransaction, taxCode: 'tax_default'};
+
+        // When the hook decides whether that selection survives
+        const {result} = renderHook(() => useTaxAmount({...baseParams, transaction}));
+
+        // Then it is kept, because the selection is compared against the rule's rate rather than the workspace default
+        expect(result.current.shouldKeepCurrentTaxSelection).toBe(true);
     });
 });
