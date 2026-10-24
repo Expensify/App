@@ -1,6 +1,6 @@
 /** A government-published reference mileage rate. Reference entries only - they get a customUnitRateID when copied onto a policy. */
 type GovernmentMileageRate = {
-    /** Deterministic "<countryCode>_<startDate>" ID (e.g. "US_2026-01-01") */
+    /** Deterministic "<countryCode>_<startDate>" ID (e.g. "US_2026-01-01"), or "<countryCode>_<fuelBand>_<startDate>" for a UK fuel band */
     sourceRateID: string;
 
     /** Currency the rate is published in */
@@ -20,6 +20,9 @@ type GovernmentMileageRate = {
 
     /** Whether the rate is enabled when copied onto a policy */
     enabled?: boolean;
+
+    /** Fraction of the rate that is tax reclaimable, only published for UK fuel bands */
+    taxClaimablePercentage?: number;
 };
 
 export default GovernmentMileageRate;

@@ -2642,6 +2642,69 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
             expect(updatedPolicy?.autoUpdateGovernmentRateCountry ?? null).toBeNull();
         });
+
+        describe('UK fuel-band rates', () => {
+            const customUnitID = 'unit_123';
+            const ukStandardRate: GovernmentMileageRate = {sourceRateID: 'GB_2011-04-06', currency: 'GBP', name: 'United Kingdom', rate: 45, startDate: '2011-04-06', enabled: true};
+            const petrolBand: GovernmentMileageRate = {
+                sourceRateID: 'GB_PETROL_UP_TO_1400_2026-09-01',
+                currency: 'GBP',
+                name: 'Cars & Vans (Petrol/Hybrid) - Up to 1400cc',
+                rate: 45,
+                startDate: '2026-09-01',
+                enabled: true,
+                taxClaimablePercentage: 13 / 45,
+            };
+
+            // A workspace tracking tax with distance tax on, which gets the fuel bands instead of the standard UK rate
+            const buildEligiblePolicy = () => ({
+                ...createRandomPolicy(0),
+                name: 'Workspace',
+                outputCurrency: CONST.CURRENCY.USD,
+                shouldAutoUpdateGovernmentDistanceRates: true,
+                tax: {trackingEnabled: true},
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: true},
+                        rates: {},
+                    },
+                },
+            });
+
+            it('copies only the fuel bands when a government rate country is given for GBP', () => {
+                // Given an eligible workspace
+                const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+                const policy = buildEligiblePolicy();
+
+                // When the currency changes to GBP with GB as the government rate country
+                Policy.updateGeneralSettings(policy, policy.name, CONST.CURRENCY.GBP, {}, {governmentRateCountry: 'GB', governmentMileageRates: [ukStandardRate, petrolBand]});
+
+                // Then only the fuel band is copied optimistically, matching what the server copies
+                const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS);
+                const params = requireRecord(requireCallArgument(apiCallArgs, 1));
+                expect(Object.keys(parseJSONRecord(params.optimisticRateIDs))).toEqual(['GB_PETROL_UP_TO_1400_2026-09-01']);
+
+                apiWriteSpy.mockRestore();
+            });
+
+            it('copies no rates optimistically when the currency changes to GBP without a country', () => {
+                // Given an eligible workspace
+                const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+                const policy = buildEligiblePolicy();
+
+                // When the currency changes to GBP the way the currency page does it, without a government rate country
+                Policy.updateGeneralSettings(policy, policy.name, CONST.CURRENCY.GBP, {}, {governmentMileageRates: [ukStandardRate, petrolBand]});
+
+                // Then no rates are copied optimistically, because the server copies the fuel bands and its response adds them
+                const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS);
+                const params = requireRecord(requireCallArgument(apiCallArgs, 1));
+                expect(params.optimisticRateIDs).toBeUndefined();
+
+                apiWriteSpy.mockRestore();
+            });
+        });
     });
 
     describe('updateAddress', () => {
