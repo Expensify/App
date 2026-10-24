@@ -131,7 +131,7 @@ describe('filterReactCompilerMessages', () => {
         expect(result).toEqual(messages);
     });
 
-    it('drops suppressible messages when both compilers memoize the file', async () => {
+    it('drops suppressible messages when the compiler memoizes the file', async () => {
         const messages = [
             makeMessage({ruleID: 'react/jsx-no-constructed-context-values'}),
             makeMessage({ruleID: 'react-hooks/exhaustive-deps', message: 'React Hook useCallback() Hook is missing a dependency'}),
@@ -168,9 +168,9 @@ describe('filterReactCompilerMessages', () => {
     });
 
     it('does not persist fallback compiler failures to cache', () => {
-        expect(shouldPersistCompilerCache({filename: 'a.tsx', bothMemoized: false, cacheable: false})).toBe(false);
-        expect(shouldPersistCompilerCache({filename: 'a.tsx', bothMemoized: false, cacheable: true})).toBe(true);
-        expect(shouldPersistCompilerCache({filename: 'a.tsx', bothMemoized: true, cacheable: true})).toBe(true);
+        expect(shouldPersistCompilerCache({filename: 'a.tsx', memoized: false, cacheable: false})).toBe(false);
+        expect(shouldPersistCompilerCache({filename: 'a.tsx', memoized: false, cacheable: true})).toBe(true);
+        expect(shouldPersistCompilerCache({filename: 'a.tsx', memoized: true, cacheable: true})).toBe(true);
         expect(shouldPersistCompilerCache(undefined)).toBe(false);
     });
 });
