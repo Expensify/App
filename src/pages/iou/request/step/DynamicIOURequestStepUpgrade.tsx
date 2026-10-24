@@ -24,7 +24,6 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
@@ -54,7 +53,7 @@ import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 
 type DynamicIOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE>;
 
@@ -99,12 +98,10 @@ function DynamicIOURequestStepUpgrade({
     const createReportForCurrentUser = useCreateNewReport();
 
     // Hooks for bulk move functionality
-    const {selectedTransactions, selectedTransactionIDs, areAllMatchingItemsSelected, excludedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, areAllMatchingItemsSelected, excludedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchQueryJSON} = useSearchQueryContext();
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const selectedTransactionsKeys = Object.keys(selectedTransactions);
-    const effectiveSelectedTransactionsKeys = selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs;
+    const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -118,11 +115,9 @@ function DynamicIOURequestStepUpgrade({
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
-    const transactions = selectedTransactionsKeys.length
-        ? Object.values(selectedTransactions)
-              .map((transactionItem) => transactionItem.transaction)
-              .filter((item): item is Transaction => !!item)
-        : selectedTransactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((item): item is Transaction => !!item);
+    const transactions = Object.values(selectedTransactions)
+        .map((transactionItem) => transactionItem.transaction)
+        .filter((item): item is Transaction => !!item);
 
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
@@ -131,7 +126,7 @@ function DynamicIOURequestStepUpgrade({
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const ownerAccountID = selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID;
 
-    const ownerPersonalDetails = getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails;
+    const ownerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails, [personalDetails, ownerAccountID]);
 
     const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
@@ -145,12 +140,12 @@ function DynamicIOURequestStepUpgrade({
         }
     };
 
-    const afterUpgradeAcknowledged = () => {
+    const afterUpgradeAcknowledged = useCallback(() => {
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
         const policyID = policyDataRef.current?.policyID;
 
         // Bulk move expenses
-        if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && effectiveSelectedTransactionsKeys.includes(transactionID)) {
+        if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
             const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, isTrackIntentUser, getCurrencyDecimals, rules);
@@ -168,7 +163,7 @@ function DynamicIOURequestStepUpgrade({
             // Move ALL selected transactions to the new report
             changeTransactionsReport({
                 isVendorMatchingBetaEnabled,
-                transactionIDs: effectiveSelectedTransactionsKeys,
+                transactionIDs: selectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
@@ -191,8 +186,7 @@ function DynamicIOURequestStepUpgrade({
                 ...allMatchingQueryParams,
             });
 
-            turnOffMobileSelectionMode();
-            clearSelectedTransactions(true);
+            clearSelectedTransactions();
 
             Navigation.dismissModal();
             return;
@@ -274,7 +268,44 @@ function DynamicIOURequestStepUpgrade({
             default:
                 Navigation.goBack();
         }
-    };
+    }, [
+        isVendorMatchingBetaEnabled,
+        action,
+        upgradeBackTo,
+        shouldReturnToConfirmation,
+        navigateWithMicrotask,
+        reportID,
+        shouldSubmitExpense,
+        transactionID,
+        upgradePath,
+        selectedTransactionsKeys,
+        clearSelectedTransactions,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        allPolicies,
+        allPolicyCategories,
+        session?.accountID,
+        session?.email,
+        ownerPersonalDetails,
+        transactions,
+        iouType,
+        isTrack,
+        allPolicyTags,
+        createReportForCurrentUser,
+        transactionViolations,
+        reports,
+        selfDMReportActions,
+        isTrackIntentUser,
+        delegateAccountID,
+        getCurrencyDecimals,
+        getCurrencySymbol,
+        rules,
+        cardList,
+        areAllMatchingItemsSelected,
+        currentSearchQueryJSON,
+        excludedTransactions,
+        isOffline,
+    ]);
 
     const participant = transaction?.participants?.[0];
     const adminParticipant =
