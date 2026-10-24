@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import {getTargetTabRoute} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
@@ -10,7 +11,14 @@ import {CommonActions} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 
 import {isFullScreenName} from './isNavigatorName';
-import {clearLiveWideTabPreMountKeys, markWideTabPreMountRouteKeyRevealed} from './wideTabPreMountRouteKey';
+import {
+    clearLiveWideTabPreMountKeys,
+    createWideTabPreMountRouteKey,
+    markWideTabPreMountRouteKeyRevealed,
+    setLiveWideTabPreMountPreloadedRouteKey,
+    setLiveWideTabPreMountRouteKey,
+    setLiveWideTabPreMountTabRouteKey,
+} from './wideTabPreMountRouteKey';
 
 type TabRoute = NavigationState['routes'][number];
 
@@ -168,6 +176,52 @@ function getPreMountTabState(tabStateKey: string): TabStateWithPreloads | undefi
     return tabState && tabState.stale === false ? (tabState as TabStateWithPreloads) : undefined;
 }
 
+/**
+ * Mounts the wide-layout submit destination as a hidden screen inside the current TAB_NAVIGATOR. The single navigator
+ * instance is kept, so visited tabs keep their state. Returns the key of the pre-mounted screen, or undefined when skipped.
+ */
+function preMountWideDestinationInTab(focusedTargetTab: NavigationPartialRoute): string | undefined {
+    const tabState = getCurrentTabState();
+    const destinationName = focusedTargetTab.state?.routes.at(-1)?.name;
+    if (!tabState || !destinationName || livePreMount) {
+        return undefined;
+    }
+    const preMount = buildWideTabPreMount(tabState, focusedTargetTab, createWideTabPreMountRouteKey(destinationName));
+    if (!preMount) {
+        return undefined;
+    }
+    const {routeKey} = preMount;
+
+    // Set before the dispatch, so the stack keeps the screen attached and unfrozen from its very first render.
+    setLiveWideTabPreMountRouteKey(routeKey);
+    setLiveWideTabPreMountPreloadedRouteKey(preMount.addedPreloadedRouteKey);
+    setLiveWideTabPreMountTabRouteKey(tabState.routes.find((route) => route.name === focusedTargetTab.name)?.key);
+    navigationRef.dispatch({...CommonActions.reset(preMount.tabState), target: tabState.key});
+    const nextTabState = getCurrentTabState();
+    const targetTabRoute = nextTabState?.routes.find((route) => route.name === focusedTargetTab.name);
+
+    // A tab that never mounted has no navigator to read its new stack back from yet, only the preload marks the dispatch.
+    const isPreMounted = isRealizedStackState(targetTabRoute?.state)
+        ? targetTabRoute.state.routes.some((route) => route.key === routeKey)
+        : !!targetTabRoute && !!nextTabState?.preloadedRouteKeys?.includes(targetTabRoute.key);
+    if (!isPreMounted) {
+        clearLiveWideTabPreMountKeys();
+        Log.hmmm('[Navigation] Wide pre-mount in tab dispatch was ignored', {destinationName});
+        return undefined;
+    }
+
+    livePreMount = {
+        routeKey,
+        isExistingRoute: preMount.isExistingRoute,
+        tabStateKey: tabState.key,
+        tabName: focusedTargetTab.name,
+        addedPreloadedRouteKey: preMount.addedPreloadedRouteKey,
+        originalTabRoute: preMount.originalTabRoute,
+        coveringRouteKey: preMount.coveringRouteKey,
+    };
+    return routeKey;
+}
+
 /** True while the tab navigator holding the live pre-mount is the topmost fullscreen, the only case where a reveal can show it. */
 function isWideTabPreMountInTopFullscreen(): boolean {
     return !!livePreMount && getCurrentTabState()?.key === livePreMount.tabStateKey;
@@ -209,5 +263,13 @@ function discardWideTabPreMount() {
     clearLiveWideTabPreMountKeys();
 }
 
-export {buildWideTabPreMount, buildCancelledWideTabPreMount, finishWideTabPreMountReveal, cancelWideTabPreMount, discardWideTabPreMount, isWideTabPreMountInTopFullscreen};
+export {
+    buildWideTabPreMount,
+    buildCancelledWideTabPreMount,
+    preMountWideDestinationInTab,
+    finishWideTabPreMountReveal,
+    cancelWideTabPreMount,
+    discardWideTabPreMount,
+    isWideTabPreMountInTopFullscreen,
+};
 export type {LiveWideTabPreMount, TabStateWithPreloads};

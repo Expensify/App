@@ -1,4 +1,3 @@
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -31,7 +30,7 @@ type GetSubmitExpensePreMountDestinationRouteParams = {
 };
 
 /**
- * Returns the fullscreen route to pre-mount behind the expense confirmation RHP on narrow layout,
+ * Returns the fullscreen route to pre-mount for the expense confirmation RHP,
  * or undefined when pre-insert is not eligible for the current navigation topology.
  */
 function getSubmitExpensePreMountDestinationRoute({
@@ -47,8 +46,7 @@ function getSubmitExpensePreMountDestinationRoute({
     isLookingAroundUser,
     isMovingTransactionFromTrackExpense,
 }: GetSubmitExpensePreMountDestinationRouteParams): Route | undefined {
-    // Bail out early on wide layout: nothing here is ever shown on wide, so skip the navigation reads below entirely.
-    if (!isTransactionReady || !getIsNarrowLayout()) {
+    if (!isTransactionReady) {
         return undefined;
     }
 
