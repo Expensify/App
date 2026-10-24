@@ -276,9 +276,6 @@ function IOURequestStepConfirmationContent({
         !transaction?.receipt?.isTestReceipt &&
         !transaction?.receipt?.isTestDriveReceipt;
 
-    // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
-    const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually))?.transactionID;
-
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && isScanRequest(transaction);
     let headerTitle;
     if (isCategorizingTrackExpense) {
@@ -358,6 +355,9 @@ function IOURequestStepConfirmationContent({
             isPolicyExpenseChat = hasPolicyExpenseChat(defaultParticipants);
         }
     }
+
+    // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
+    const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually, isPolicyExpenseChat))?.transactionID;
 
     const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
 
@@ -680,6 +680,7 @@ function IOURequestStepConfirmationContent({
                 draftTransactionIDs={draftTransactionIDs}
                 isReceiptReady={!isOdometerDistanceRequest || isOdometerReady}
                 canEnterScanFieldsManually={canEnterScanFieldsManually}
+                isPolicyExpenseChat={isPolicyExpenseChat}
                 onReceiptFilesChange={setReceiptFiles}
             />
             <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>

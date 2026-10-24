@@ -115,19 +115,8 @@ function AttachmentModalBaseContent({
     });
 
     const fallbackFile = originalFileName ? {name: originalFileName} : undefined;
-    const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>(() => filesProp ?? fallbackFile);
-    const [isMultipleFiles, setIsMultipleFiles] = useState<boolean>(() => Array.isArray(files));
-    const fileToDisplay = isMultipleFiles ? (files as FileObject[])?.at(fileToDisplayIndex) : (files as FileObject);
-
-    const setFile = (newFile: FileObject | FileObject[] | undefined) => {
-        if (Array.isArray(newFile)) {
-            setFilesInternal(newFile);
-            setIsMultipleFiles(true);
-        } else {
-            setFilesInternal(newFile);
-            setIsMultipleFiles(false);
-        }
-    };
+    const [files, setFile] = useState<FileObject | FileObject[] | undefined>(() => filesProp ?? fallbackFile);
+    const fileToDisplay = Array.isArray(files) ? files.at(fileToDisplayIndex) : files;
 
     useEffect(() => {
         setFile(filesProp ?? fallbackFile);
@@ -165,7 +154,7 @@ function AttachmentModalBaseContent({
             return;
         }
 
-        const confirm = () => onConfirm?.(Object.assign(files ?? {}, {source} as FileObject));
+        const confirm = () => onConfirm?.(Object.assign(files ?? {}, {source}));
 
         // Sequence close and confirm so the screen underneath never flashes between them. On native the modal must close
         // first, otherwise the back navigation latches onto the confirm navigation and loops.

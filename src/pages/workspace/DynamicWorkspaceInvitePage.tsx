@@ -7,6 +7,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 
+import useAgents from '@hooks/useAgents';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -66,6 +67,9 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     const [personalDetails] = useAllPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const {agents} = useAgents();
+    const agentsAccountIDs = new Set(agents.map(({accountID}) => accountID));
+
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails);
         policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
@@ -137,6 +141,7 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
             initialSelected,
             initialExtraOptions,
             shouldKeepSelectedInAvailableOptions: true,
+            agentsWhitelist: agentsAccountIDs,
         });
 
     let sections: Array<Section<OptionData>>;

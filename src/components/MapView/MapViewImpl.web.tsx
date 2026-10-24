@@ -21,14 +21,14 @@ import useNetwork from '@src/hooks/useNetwork';
 import getCurrentPosition from '@src/libs/getCurrentPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {MapMouseEvent, MapProps, MapRef} from 'react-map-gl/mapbox';
+import type {MapMouseEvent, MapProps, MapRef, ViewState, ViewStateChangeEvent} from 'react-map-gl/mapbox';
 
 // Explanation: Different Mapbox libraries are required for web and native mobile platforms.
 // This is why we have separate components for web and native to handle the specific implementations.
 // For the web version, we use the Mapbox Web library called react-map-gl, while for the native mobile version,
 // we utilize a different Mapbox library @rnmapbox/maps tailored for mobile development.
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import Map, {Marker} from 'react-map-gl/mapbox';
 import {View} from 'react-native';
 
@@ -55,7 +55,6 @@ function MapViewImpl({
     interactive = true,
     distanceInMeters,
     unit,
-    ref,
     shouldDisplayCurrentLocation = true,
 }: MapViewProps) {
     // Coordinates of every rendered route (the main one and the alternate one, if any), used to frame the map around all of them.
@@ -71,13 +70,14 @@ function MapViewImpl({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'Expand', 'MapCurrentLocation']);
 
     const [mapRef, setMapRef] = useState<MapRef | null>(null);
     const initialLocation = {longitude: initialState.location[0], latitude: initialState.location[1]};
     const currentPosition = userLocation ?? initialLocation;
     const prevUserPosition = usePrevious(currentPosition);
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
+    const [isWaypointsNextCenterTarget, setIsWaypointsNextCenterTarget] = useState(false);
     const [isHoveringDirection, setIsHoveringDirection] = useState(false);
     // Mapbox corrupts its camera state when the map container is resized to zero (e.g. while a page
     // transition collapses it), and every camera update throws afterwards. The map therefore mounts
@@ -87,6 +87,7 @@ function MapViewImpl({
     const resetBoundariesRef = useRef<() => void>(() => {});
     const setRef = (newRef: MapRef | null) => setMapRef(newRef);
     const shouldInitializeCurrentPosition = useRef(true);
+    const [lastViewState, setLastViewState] = useState<ViewState>();
 
     // Determines if map can be panned to user's detected
     // location without bothering the user. It will return
@@ -141,6 +142,7 @@ function MapViewImpl({
             center: [currentPosition.longitude, currentPosition.latitude],
             zoom: CONST.MAPBOX.DEFAULT_ZOOM,
             animate: shouldAnimatePan,
+            speed: CONST.MAPBOX.FLY_TO_SPEED,
         });
     }, [currentPosition, mapRef, prevUserPosition.longitude, prevUserPosition.latitude, shouldPanMapToCurrentPosition]);
 
@@ -161,10 +163,14 @@ function MapViewImpl({
             return;
         }
 
+        // The camera goes back to framing the waypoints below, so the center button starts the cycle again from the current position.
+        setIsWaypointsNextCenterTarget(false);
+
         if (waypoints.length === 1) {
             mapRef.flyTo({
                 center: waypoints.at(0)?.coordinate,
                 zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                speed: CONST.MAPBOX.FLY_TO_SPEED,
             });
             return;
         }
@@ -175,7 +181,7 @@ function MapViewImpl({
             waypoints.map((waypoint) => waypoint.coordinate),
             allDirectionCoordinates,
         );
-        map.fitBounds([northEast, southWest], {padding: mapPadding});
+        map.fitBounds([northEast, southWest], {padding: mapPadding, speed: CONST.MAPBOX.FLY_TO_SPEED});
     };
 
     // The ResizeObserver outlives renders, so it reads the latest reset logic through a ref.
@@ -183,6 +189,7 @@ function MapViewImpl({
         resetBoundariesRef.current = resetBoundaries;
     }, [resetBoundaries]);
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- we need to reset Center button target when camera moves on waypoints change
     useEffect(resetBoundaries, [resetBoundaries]);
 
     useEffect(() => {
@@ -252,29 +259,39 @@ function MapViewImpl({
         };
     }, [accessToken, isOffline]);
 
-    useImperativeHandle(
-        ref,
-        () => ({
-            flyTo: (location: [number, number], zoomLevel: number = CONST.MAPBOX.DEFAULT_ZOOM, animationDuration?: number) =>
-                mapRef?.flyTo({
-                    center: location,
-                    zoom: zoomLevel,
-                    duration: animationDuration,
-                }),
-            fitBounds: (northEast: [number, number], southWest: [number, number]) => mapRef?.fitBounds([northEast, southWest]),
-        }),
-        [mapRef],
+    // Only a real, displayed user location is something to alternate with. currentPosition falls back to initialState
+    // (e.g. the first waypoint), which would otherwise make the first press zoom into that waypoint instead of framing the route.
+    const canCenterOnCurrentPosition = shouldDisplayCurrentLocation && !!userLocation;
+    const {singleWaypointCoordinate, hasWaypointsTarget} = utils.getCenterTargets(
+        waypoints,
+        allDirectionCoordinates,
+        canCenterOnCurrentPosition ? [userLocation.longitude, userLocation.latitude] : undefined,
     );
+
+    // The waypoints can disappear after the user centered on their location, so the button only offers them while they are still a target.
+    const shouldShowWaypointsCenterIcon = isWaypointsNextCenterTarget && hasWaypointsTarget;
 
     const centerMap = () => {
         if (!mapRef) {
             return;
         }
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
-        if (waypointCoordinates.length > 1 || (allDirectionCoordinates ?? []).length > 1) {
-            const {northEast, southWest} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], allDirectionCoordinates);
+        const shouldCenterOnWaypoints = hasWaypointsTarget && (isWaypointsNextCenterTarget || !canCenterOnCurrentPosition);
+        setIsWaypointsNextCenterTarget(!shouldCenterOnWaypoints && hasWaypointsTarget && canCenterOnCurrentPosition);
+
+        if (shouldCenterOnWaypoints) {
+            if (singleWaypointCoordinate) {
+                mapRef.flyTo({
+                    center: singleWaypointCoordinate,
+                    zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                    bearing: 0,
+                    speed: CONST.MAPBOX.FLY_TO_SPEED,
+                });
+                return;
+            }
+            const {northEast, southWest} = utils.getBounds(waypointCoordinates, allDirectionCoordinates);
             const map = mapRef?.getMap();
-            map?.fitBounds([southWest, northEast], {padding: mapPadding, animate: true, duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME});
+            map?.fitBounds([southWest, northEast], {padding: mapPadding, speed: CONST.MAPBOX.FLY_TO_SPEED});
             return;
         }
 
@@ -282,9 +299,12 @@ function MapViewImpl({
             center: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
             zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
             bearing: 0,
-            animate: true,
-            duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
+            speed: CONST.MAPBOX.FLY_TO_SPEED,
         });
+    };
+
+    const saveViewState = (event: ViewStateChangeEvent) => {
+        setLastViewState(event.viewState);
     };
 
     let initialViewState: MapProps['initialViewState'];
@@ -307,12 +327,33 @@ function MapViewImpl({
                 },
             };
         }
+    } else if (lastViewState && waypoints?.length) {
+        initialViewState = lastViewState;
     } else {
-        initialViewState = {
-            longitude: currentPosition?.longitude,
-            latitude: currentPosition?.latitude,
-            zoom: initialState.zoom,
-        };
+        // Start framed on the waypoints the same way resetBoundaries frames them, so the map does not fly in from the current location
+        const firstWaypointCoordinate = waypoints?.length === 1 ? waypoints.at(0)?.coordinate : undefined;
+        if (firstWaypointCoordinate) {
+            initialViewState = {
+                longitude: firstWaypointCoordinate[0],
+                latitude: firstWaypointCoordinate[1],
+                zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+            };
+        } else if (waypoints?.length) {
+            const {northEast, southWest} = utils.getBounds(
+                waypoints.map((waypoint) => waypoint.coordinate),
+                allDirectionCoordinates,
+            );
+            initialViewState = {
+                bounds: [northEast, southWest],
+                fitBoundsOptions: {padding: mapPadding},
+            };
+        } else {
+            initialViewState = {
+                longitude: currentPosition?.longitude,
+                latitude: currentPosition?.latitude,
+                zoom: initialState.zoom,
+            };
+        }
     }
 
     // The route layers only need to be interactive when there is an alternate route to pick, so that clicking a route selects it.
@@ -322,6 +363,7 @@ function MapViewImpl({
         setUserInteractedWithMap(true);
         // Dragging must keep the grabbing cursor even when it starts on top of a route.
         setIsHoveringDirection(false);
+        setIsWaypointsNextCenterTarget(false);
     };
 
     const selectClickedDirection = (event: MapMouseEvent) => {
@@ -344,6 +386,7 @@ function MapViewImpl({
                 {hasValidContainerSize && (
                     <Map
                         onDrag={onDrag}
+                        onMoveEnd={saveViewState}
                         ref={setRef}
                         mapboxAccessToken={accessToken}
                         initialViewState={initialViewState}
@@ -406,7 +449,7 @@ function MapViewImpl({
                         accessibilityLabel={translate('common.center')}
                     >
                         <Button.Icon
-                            src={expensifyIcons.Crosshair}
+                            src={shouldShowWaypointsCenterIcon ? expensifyIcons.Expand : expensifyIcons.Crosshair}
                             fill={theme.icon}
                             hoverFill={theme.icon}
                         />

@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import setSearchRowFocused from '@libs/actions/SearchRowFocus';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
@@ -127,10 +128,17 @@ function BaseSearchList({
     };
     const getOnFocus = useStableIndexedHandler(handleFocusByIndex);
 
-    const renderItemWithKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => {
-        const isItemFocused = focusedIndex === index;
-        return renderItem(item, index, isItemFocused, getOnFocus(index));
-    };
+    // Rows read their own focus by key, so a focus change doesn't invalidate every FlashList cell.
+    const focusedKeyForList = focusedIndex >= 0 ? data.at(focusedIndex)?.keyForList : undefined;
+    useEffect(() => {
+        if (!focusedKeyForList) {
+            return;
+        }
+        setSearchRowFocused(focusedKeyForList, true);
+        return () => setSearchRowFocused(focusedKeyForList, false);
+    }, [focusedKeyForList]);
+
+    const renderItemWithKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => renderItem(item, index, getOnFocus(index));
 
     const selectFocusedOption = (event?: GestureResponderEvent | KeyboardEvent) => {
         // Allow event propagation during cell editing so Enter can trigger TextInput.onSubmitEditing.
@@ -170,7 +178,7 @@ function BaseSearchList({
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    const extraData = [focusedIndex, columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy];
+    const extraData = [columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy];
 
     return (
         <AnimatedFlashListComponent

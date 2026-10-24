@@ -28,7 +28,7 @@ import getButtonState from '@libs/getButtonState';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {isGroupPolicyByType} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
 import {
     canCreateTaskInReport,
     getPayeeName,
@@ -313,7 +313,7 @@ function AttachmentPickerWithMenuItems({
     const moneyRequestOptions = moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
 
     const createReportOption: PopoverMenuItem[] =
-        !isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report)
+        !isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report) || !canCreateExpensesOnPolicy(policy)
             ? []
             : [
                   {

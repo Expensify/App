@@ -20,7 +20,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
@@ -149,6 +149,7 @@ function IOURequestEditReportCommon({
 
     const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing);
 
+    const reportOwnerLogin = personalDetails?.[resolvedReportOwnerAccountID]?.login;
     // Outstanding reports belong to one owner, so listing them would offer their reports for everyone else's expenses.
     const reportOptions: TransactionGroupListItem[] =
         outstandingReports.length === 0 || hasMultipleSubmitters
@@ -159,6 +160,9 @@ function IOURequestEditReportCommon({
                   .filter((report): report is NonNullable<typeof report> => report !== undefined)
                   .filter((report) => {
                       const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                      if (!canCreateExpensesOnPolicy(policy, reportOwnerLogin)) {
+                          return false;
+                      }
                       if (isTimeRequest && !isTimeTrackingEnabled(policy)) {
                           return false;
                       }

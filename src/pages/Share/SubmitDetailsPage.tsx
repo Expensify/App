@@ -577,7 +577,7 @@ function SubmitDetailsPage({
 
     const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
         const receipt: Receipt = file;
-        receipt.state = hasAllManuallyEnteredScanFields(transaction) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
+        receipt.state = hasAllManuallyEnteredScanFields(transaction, !!isPolicyExpenseChat) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
         // The share flow builds the receipt here by hand and skips buildReceiptFiles, so this is the only place to stamp
         // the trace id and log the capture.
         const receiptTraceId = mintAndStampReceiptTraceId(receipt);
@@ -713,7 +713,7 @@ function SubmitDetailsPage({
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policy?.id}
                         isConfirming={isConfirming}
-                        onConfirm={() => onConfirm(!hasAllManuallyEnteredScanFields(transaction))}
+                        onConfirm={() => onConfirm(!hasAllManuallyEnteredScanFields(transaction, !!isPolicyExpenseChat))}
                         reportID={reportOrAccountID}
                         // The share flow always creates a Scan expense from the shared file: it is never a split, never
                         // a moved tracked expense and never a test receipt, so the amount / merchant / date are always

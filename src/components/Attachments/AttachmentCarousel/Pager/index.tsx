@@ -9,7 +9,7 @@ import type {NativeSyntheticEvent} from 'react-native';
 
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {GestureDetector, useNativeGesture} from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import Animated, {useAnimatedProps, useSharedValue} from 'react-native-reanimated';
 
@@ -82,7 +82,7 @@ function AttachmentCarouselPager({items, activeAttachmentID, initialPage, setSho
 
     const extractItemKey = (item: Attachment, index: number) => `attachmentID-${item.attachmentID}-${index}`;
 
-    const nativeGestureHandler = Gesture.Native();
+    const nativeGestureHandler = useNativeGesture();
 
     const stateValue: AttachmentCarouselPagerStateContextType = {
         pagerItems,

@@ -13,6 +13,7 @@ import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@compo
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -73,9 +74,10 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     }, [report]);
 
     const taskTitleWithoutPre = StringUtils.removePreCodeBlock(report?.reportName);
-    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
+    const accountIDToName = useMentionedAccountIDToNameMap(taskTitleWithoutPre);
+    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre, {accountIDToName}), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
     const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
-    const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre);
+    const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre, {accountIDToName});
     const isCompletedFromOnyx = isCompletedTaskReport(report);
     const shouldDisableCompletedOnboardingTaskLink =
         isCompletedFromOnyx && [introSelected?.addWorkEmail, introSelected?.validateEmail, introSelected?.joinWorkspace].includes(report?.reportID);

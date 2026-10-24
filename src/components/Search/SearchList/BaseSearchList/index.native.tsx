@@ -26,7 +26,7 @@ function BaseSearchList({
 }: BaseSearchListProps) {
     const tabRootScrollProps = useTabRootScrollProps(contentContainerStyle);
     const renderItemWithoutKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => {
-        return renderItem(item, index, false, undefined);
+        return renderItem(item, index, undefined);
     };
 
     return (

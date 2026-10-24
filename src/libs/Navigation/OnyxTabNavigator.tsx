@@ -329,7 +329,7 @@ function createOnyxTabNavigator<const TTabName extends string>(names: ReadonlyAr
                     .then(() => guard.onDiscard())
                     .catch((error: unknown) => {
                         Log.warn('[OnyxTabNavigator] Failed to run tab-switch onDiscard callback', {error});
-                        Growl.error(translate('common.genericErrorMessage'));
+                        Growl.error({bodyText: translate('common.genericErrorMessage')});
                     })
                     .then(() => {
                         jumpToTargetTab();

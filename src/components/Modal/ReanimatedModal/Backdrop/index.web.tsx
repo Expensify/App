@@ -1,5 +1,5 @@
 import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
-import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
+import {cssEasing, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
 
 import useLocalize from '@hooks/useLocalize';
@@ -8,6 +8,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+
+import type {ViewStyle} from 'react-native';
+import type {CSSStyle} from 'react-native-reanimated';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -25,14 +28,6 @@ function Backdrop({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    let Entering;
-    if (!backdropOpacity) {
-        Entering = undefined;
-    } else {
-        const FadeIn = new Keyframe(getModalInAnimation('fadeIn', backdropOpacity));
-        Entering = FadeIn.duration(animationInTiming).reduceMotion(ReduceMotion.Never);
-    }
-
     let Exiting;
     if (!backdropOpacity) {
         Exiting = undefined;
@@ -41,8 +36,14 @@ function Backdrop({
         Exiting = FadeOut.duration(animationOutTiming).reduceMotion(ReduceMotion.Never);
     }
 
-    const backdropStyle = {
+    // A CSS animation instead of an entering keyframe: on web, Reanimated hides an entering element until its keyframe starts and can
+    // delete the keyframe before the next animation frame (for example in a background tab), which leaves the backdrop hidden for good.
+    // A CSS animation keeps its keyframes until the view unmounts and never hides the view.
+    const backdropStyle: CSSStyle<ViewStyle> = {
         opacity: backdropOpacity,
+        animationName: {from: {opacity: 0}, to: {opacity: backdropOpacity}},
+        animationDuration: animationInTiming,
+        animationTimingFunction: cssEasing,
     };
 
     if (!customBackdrop) {
@@ -58,7 +59,6 @@ function Backdrop({
                 {isBackdropVisible && (
                     <Animated.View
                         style={[styles.modalBackdrop, backdropStyle, style]}
-                        entering={Entering}
                         exiting={Exiting}
                     />
                 )}
@@ -72,7 +72,6 @@ function Backdrop({
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <Animated.View
-                    entering={Entering}
                     exiting={Exiting}
                     style={[styles.modalBackdrop, backdropStyle, style]}
                 >

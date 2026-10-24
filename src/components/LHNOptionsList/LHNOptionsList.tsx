@@ -3,10 +3,7 @@ import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/us
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,8 +12,6 @@ import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
@@ -32,27 +27,32 @@ import LHNTooltipContextProvider from './LHNTooltipContextProvider';
 import OptionRowLHNData from './OptionRowLHN';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
 
-const keyExtractor = (item: Report) => `report_${item.reportID}`;
+const keyExtractor = (reportID: string) => `report_${reportID}`;
 const platform = getPlatform();
 const isWeb = platform === CONST.PLATFORM.WEB;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
-    const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const reportAttributes = useReportAttributes();
-    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [personalDetails] = useAllPersonalDetails();
-
     const styles = useThemeStyles();
     const tabRootScrollProps = useTabRootScrollProps(contentContainerStyles, {hasBottomSafeAreaPadding: true});
+    const previousOptionMode = usePrevious(optionMode);
+
+    // Controls the visibility of the educational tooltip based on user scrolling.
+    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
+    const triggerScrollEvent = useScrollEventEmitter();
+
+    const flashListRef = useRef<FlashListRef<string>>(null);
+    const hasCalledOnLayout = useRef(false);
+
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+    const extraData = [data.length, optionMode, isOffline];
+    const savedScrollIndex = getScrollIndex(route);
+    const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
-    const hasCalledOnLayout = React.useRef(false);
     const onLayoutItem = () => {
         if (hasCalledOnLayout.current) {
             return;
@@ -61,10 +61,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         onFirstItemRendered();
     };
 
-    // Controls the visibility of the educational tooltip based on user scrolling.
-    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
-    const triggerScrollEvent = useScrollEventEmitter();
-
     /**
      * Function which renders a row in the list
      */
@@ -72,31 +68,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         if (!item) {
             return null;
         }
-        const reportID = item.reportID;
-        const itemReportAttributes = reportAttributes?.[reportID];
-        const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
-        const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
-
-        let invoiceReceiverPolicyID = '-1';
-        if (item.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
-            invoiceReceiverPolicyID = item.invoiceReceiver.policyID;
-        }
-        if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
-            invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
-        }
-        const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
-        const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
-
         return (
             <OptionRowLHNData
-                reportID={reportID}
-                fullReport={item}
-                reportAttributes={itemReportAttributes}
-                reportAttributesDerived={reportAttributes}
-                oneTransactionThreadReport={itemOneTransactionThreadReport}
-                policy={itemPolicy}
-                invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
-                personalDetails={personalDetails ?? {}}
+                reportID={item}
                 viewMode={optionMode}
                 isOptionFocused={!shouldDisableFocusOptions}
                 onSelectRow={onSelectRow}
@@ -105,19 +79,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             />
         );
     };
-
-    const extraData = [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline];
-
-    const previousOptionMode = usePrevious(optionMode);
-
-    useEffect(() => {
-        if (previousOptionMode === null || previousOptionMode === optionMode || !flashListRef.current) {
-            return;
-        }
-
-        // If the option mode changes want to scroll to the top of the list because rendered items will have different height.
-        flashListRef.current.scrollToOffset({offset: 0});
-    }, [previousOptionMode, optionMode]);
 
     const onScroll: NonNullable<FlashListProps<string>['onScroll']> = (e) => {
         // If the layout measurement is 0, it means the FlashList is not displayed but the onScroll may be triggered with offset value 0.
@@ -148,8 +109,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         });
     };
 
-    const savedScrollIndex = getScrollIndex(route);
-    const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
+    useEffect(() => {
+        if (previousOptionMode === null || previousOptionMode === optionMode || !flashListRef.current) {
+            return;
+        }
+
+        // If the option mode changes want to scroll to the top of the list because rendered items will have different height.
+        flashListRef.current.scrollToOffset({offset: 0});
+    }, [previousOptionMode, optionMode]);
 
     return (
         <View style={style ?? styles.flex1}>
