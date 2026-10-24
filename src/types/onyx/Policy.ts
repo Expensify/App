@@ -1241,7 +1241,7 @@ type NetSuiteConnection = {
 
     lastSync?: ConnectionLastSync;
 
-    /** Config object used solely to store autosync settings */
+    /** Config object used to store autosync settings and authentication type */
     config: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** NetSuite auto synchronization configs */
         autoSync: {
@@ -1256,6 +1256,9 @@ type NetSuiteConnection = {
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
+
+        /** Authentication method used for this connection */
+        authType?: 'tba' | 'oauth2';
     }>;
 
     /** Encrypted token secret for authenticating to NetSuite */
@@ -3035,9 +3038,23 @@ type BusinessCentralExport = {
     /** Accounting method used during export */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 
+    /** Whether company card expenses can export to a bank account set per card feed or per card instead of `nonReimbursableAccount` */
+    exportToMultipleAccounts: boolean;
+
+    /** ID of the Business Central bank account each card feed exports to, keyed by feed */
+    cardProgramAccounts: Record<CardFeedWithNumber, string>;
+
     /** Whether reports dated in a closed accounting period are exported to the next open period */
     exportToNextOpenPeriod: boolean;
 };
+
+/** Offline feedback key for card program account */
+type BusinessCentralExportCardProgramAccountsOfflineFeedbackKey = `${typeof CONST.BUSINESS_CENTRAL_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `BusinessCentralExport`
+ */
+type BusinessCentralExportOfflineFeedbackKeys = keyof Omit<BusinessCentralExport, 'cardProgramAccounts'> | BusinessCentralExportCardProgramAccountsOfflineFeedbackKey;
 
 /**
  * Automatic synchronization settings for Business Central.
@@ -3108,7 +3125,7 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    'companyID' | 'enableNewCategories' | 'autoSync' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralExport | keyof BusinessCentralSync
+    'companyID' | 'enableNewCategories' | 'autoSync' | BusinessCentralCodingOfflineFeedbackKeys | BusinessCentralExportOfflineFeedbackKeys | keyof BusinessCentralSync
 >;
 
 /** Gusto connection data */
@@ -4291,6 +4308,7 @@ export type {
     ZohoBooksExportDate,
     ZohoBooksVendor,
     ZohoBooksAccount,
+    BusinessCentralBankAccount,
     BusinessCentralCompany,
     BusinessCentralCoding,
     BusinessCentralCustomerMappings,

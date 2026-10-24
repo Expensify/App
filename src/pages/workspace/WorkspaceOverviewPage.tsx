@@ -1,6 +1,7 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import Badge from '@components/Badge';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -822,7 +823,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                             <MenuItem.Description>{formattedAddress}</MenuItem.Description>
                                         </MenuItem.Content>
                                         <MenuItem.Trailing>
-                                            {isCompanyAddressPrimary && <MenuItem.RightLabel>{translate('workspace.officeLocations.primary')}</MenuItem.RightLabel>}
+                                            {isCompanyAddressPrimary && (
+                                                <Badge
+                                                    text={translate('workspace.officeLocations.primary')}
+                                                    badgeStyles={styles.ml0}
+                                                />
+                                            )}
                                         </MenuItem.Trailing>
                                     </MenuItem.Row>
                                 </MenuItemSectionRoot>
@@ -847,7 +853,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                                 <MenuItem.Description>{formatAddressToString(officeLocation.address)}</MenuItem.Description>
                                             </MenuItem.Content>
                                             <MenuItem.Trailing>
-                                                {!!officeLocation.isDefault && <MenuItem.RightLabel>{translate('workspace.officeLocations.primary')}</MenuItem.RightLabel>}
+                                                {!!officeLocation.isDefault && (
+                                                    <Badge
+                                                        text={translate('workspace.officeLocations.primary')}
+                                                        badgeStyles={styles.ml0}
+                                                    />
+                                                )}
                                                 {isEditable && <MenuItem.Chevron />}
                                             </MenuItem.Trailing>
                                         </MenuItem.Row>
