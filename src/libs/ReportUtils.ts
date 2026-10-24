@@ -15249,11 +15249,11 @@ function shouldShowMarkAsDone({
 }
 
 /**
- * Returns whether all selected reports have the same editable report field values.
- * Formula fields are ignored because users cannot edit them to resolve a mismatch.
+ * Returns whether all selected reports have the same visible, editable report field values.
+ * Disabled, hidden, and formula fields are ignored because users cannot edit them to resolve a mismatch.
  */
 function doReportsHaveMatchingReportFieldValues(selectedReports: Array<OnyxEntry<Report>>, policy: OnyxEntry<Policy>): boolean {
-    if (selectedReports.length < 2) {
+    if (selectedReports.length < 2 || !policy?.areReportFieldsEnabled) {
         return true;
     }
 
@@ -15267,7 +15267,7 @@ function doReportsHaveMatchingReportFieldValues(selectedReports: Array<OnyxEntry
 
         const fields = getAvailableReportFields(report, policyFields).filter((field) => {
             const fieldType = policyFieldsByID.get(field.fieldID)?.type ?? field.type;
-            return fieldType !== CONST.REPORT_FIELD_TYPES.FORMULA && isReportFieldTargetMatchingReport(report, field);
+            return fieldType !== CONST.REPORT_FIELD_TYPES.FORMULA && !shouldHideSingleReportField(field) && isReportFieldTargetMatchingReport(report, field);
         });
 
         return new Map(

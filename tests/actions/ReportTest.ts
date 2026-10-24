@@ -12433,6 +12433,7 @@ describe('actions/Report', () => {
             owner: currentUserEmail,
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
+            areReportFieldsEnabled: true,
         });
 
         const workspaceChatReport = createMock<OnyxTypes.Report>({

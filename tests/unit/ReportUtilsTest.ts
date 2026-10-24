@@ -28494,7 +28494,7 @@ describe('ReportUtils', () => {
                 defaultValue: '',
                 deletable: true,
                 target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
-                values: [],
+                values: type === CONST.REPORT_FIELD_TYPES.LIST ? ['Acme', 'Globex'] : [],
                 keys: [],
                 externalIDs: [],
                 disabledOptions: [],
@@ -28508,6 +28508,7 @@ describe('ReportUtils', () => {
             ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
             id: POLICY_ID,
             role: CONST.POLICY.ROLE.ADMIN,
+            areReportFieldsEnabled: true,
         });
 
         const memberPolicy = createMock<Policy>({
@@ -28656,6 +28657,57 @@ describe('ReportUtils', () => {
             expect(result).toBe(false);
             // The bulk action menu skips only this validation so the user can open the RHP and see the mismatch error.
             expect(canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, adminPolicy, false)).toBe(true);
+        });
+
+        it.each([
+            ['Open', makeOpenReport],
+            ['Processing', makeProcessingReport],
+            ['Approved', makeApprovedReport],
+        ] as const)('ignores differing report fields on %s reports when report fields are disabled', (_state, makeReport) => {
+            // Given otherwise mergeable reports with different saved values for a disabled workspace feature.
+            const first = makeReport({fieldList: {expensify_client: makeReportField('client', 'Acme')}});
+            const second = makeReport({fieldList: {expensify_client: makeReportField('client', 'Globex')}});
+            const policyWithFieldsDisabled = {...adminPolicy, areReportFieldsEnabled: false};
+
+            // When checking merge eligibility before and after turning off report fields.
+            const withFieldsEnabled = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, adminPolicy);
+            const withFieldsDisabled = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, policyWithFieldsDisabled);
+
+            // Then the mismatch blocks merging only while the workspace's report fields are editable.
+            expect(withFieldsEnabled).toBe(false);
+            expect(withFieldsDisabled).toBe(true);
+        });
+
+        it('ignores list report fields without enabled options', () => {
+            // Given reports with different saved selections whose list field has no selectable options anymore.
+            const field = {...makeReportField('client', 'A', CONST.REPORT_FIELD_TYPES.LIST), values: ['A', 'B'], disabledOptions: [false, false]};
+            const first = makeApprovedReport({fieldList: {expensify_client: field}});
+            const second = makeApprovedReport({fieldList: {expensify_client: {...field, value: 'B'}}});
+            const policyWithHiddenList = {
+                ...adminPolicy,
+                fieldList: {expensify_client: {...field, disabledOptions: [true, true]}},
+            };
+
+            // When checking merge eligibility using the current policy options rather than stale report options.
+            const withEnabledOptions = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, adminPolicy);
+            const withoutEnabledOptions = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, policyWithHiddenList);
+
+            // Then hidden values do not block the merge, but visible mismatched selections still do.
+            expect(withEnabledOptions).toBe(false);
+            expect(withoutEnabledOptions).toBe(true);
+        });
+
+        it('still compares visible fields when another field is hidden', () => {
+            // Given a hidden list field and a visible text field with mismatching values on the same reports.
+            const hiddenField = {...makeReportField('hidden', 'A', CONST.REPORT_FIELD_TYPES.LIST), values: ['A', 'B'], disabledOptions: [true, true]};
+            const first = makeApprovedReport({fieldList: {expensify_hidden: hiddenField, expensify_client: makeReportField('client', 'Acme')}});
+            const second = makeApprovedReport({fieldList: {expensify_hidden: {...hiddenField, value: 'B'}, expensify_client: makeReportField('client', 'Globex')}});
+
+            // When the hidden field is excluded from validation.
+            const result = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, adminPolicy);
+
+            // Then the visible client field mismatch still prevents merging.
+            expect(result).toBe(false);
         });
 
         it.each(['externalID', 'defaultExternalID'] as const)('returns false when dropdown %s values differ despite matching labels', (idKey) => {
