@@ -8350,6 +8350,7 @@ const CONST = {
                     ORDER_DEAL_NUMBERS: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
                     AMOUNT_DEBITED: this.TABLE_COLUMNS.AMOUNT_DEBITED,
                     AMOUNT_REIMBURSED: this.TABLE_COLUMNS.AMOUNT_REIMBURSED,
+                    WITHDRAWAL_ID: this.TABLE_COLUMNS.WITHDRAWAL_ID,
                     EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
