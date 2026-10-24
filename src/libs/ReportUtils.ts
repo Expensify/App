@@ -6219,7 +6219,7 @@ function canEditFieldOfMoneyRequest({
             return false;
         }
 
-        const reportOwnerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails()) ?? deprecatedCurrentUserEmail;
+        const reportOwnerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
         const isBlockedOnCurrentPolicy = !!reportPolicy && !canCreateExpensesOnPolicy(reportPolicy, reportOwnerLogin);
         const isPerDiem = isPerDiemRequest(transaction);
 
