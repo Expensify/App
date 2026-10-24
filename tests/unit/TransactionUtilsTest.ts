@@ -19,7 +19,7 @@ import type {Routes} from '../../src/types/onyx/Transaction';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
+import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
@@ -334,122 +334,6 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('getCategoryTaxDetails', () => {
-        it('should return the associated tax when the category matches the tax expense rules', () => {
-            // Given a policy with tax expense rules associated with a category
-            const category = 'Advertising';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
-            };
-            const transaction = generateTransaction();
-
-            // When retrieving the tax from the associated category
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimalsLocal);
-
-            // Then it should return the associated tax code, amount, and value
-            expect(categoryTaxCode).toBe('id_TAX_RATE_1');
-            expect(categoryTaxAmount).toBe(5);
-            expect(categoryTaxValue).toBe('5%');
-        });
-
-        it("should return the default tax when the category doesn't match the tax expense rules", () => {
-            // Given a policy with tax expense rules associated with a category
-            const ruleCategory = 'Advertising';
-            const selectedCategory = 'Benefits';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(ruleCategory, 'id_TAX_RATE_1')},
-            };
-            const transaction = generateTransaction();
-
-            // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy, getCurrencyDecimalsLocal);
-
-            // Then it should return the default tax code, amount, and value
-            expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
-            expect(categoryTaxAmount).toBe(0);
-            expect(categoryTaxValue).toBe('0%');
-        });
-
-        it("should return the foreign default tax when the category doesn't match the tax expense rules and using a foreign currency", () => {
-            // Given a policy with tax expense rules associated with a category and a transaction with a foreign currency
-            const ruleCategory = 'Advertising';
-            const selectedCategory = 'Benefits';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: {
-                    ...CONST.DEFAULT_TAX,
-                    foreignTaxDefault: 'id_TAX_RATE_2',
-                    taxes: {
-                        ...CONST.DEFAULT_TAX.taxes,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        id_TAX_RATE_2: {
-                            name: 'Tax rate 2',
-                            value: '10%',
-                        },
-                    },
-                },
-                outputCurrency: 'IDR',
-                rules: {expenseRules: createCategoryTaxExpenseRules(ruleCategory, 'id_TAX_RATE_1')},
-            };
-            const transaction = generateTransaction();
-
-            // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy, getCurrencyDecimalsLocal);
-
-            // Then it should return the default tax code, amount, and value
-            expect(categoryTaxCode).toBe('id_TAX_RATE_2');
-            expect(categoryTaxAmount).toBe(9);
-            expect(categoryTaxValue).toBe('10%');
-        });
-
-        describe('should return undefined tax', () => {
-            it('if the transaction type is distance', () => {
-                // Given a policy with tax expense rules associated with a category
-                const category = 'Advertising';
-                const fakePolicy: Policy = {
-                    ...createRandomPolicy(0),
-                    taxRates: CONST.DEFAULT_TAX,
-                    rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
-                };
-                const transaction: Transaction = {
-                    ...generateTransaction(),
-                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                };
-
-                // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimalsLocal);
-
-                // Then it should return undefined for the tax code, amount, and value
-                expect(categoryTaxCode).toBe(undefined);
-                expect(categoryTaxAmount).toBe(undefined);
-                expect(categoryTaxValue).toBe(undefined);
-            });
-
-            it('if there are no policy tax expense rules', () => {
-                // Given a policy without tax expense rules
-                const category = 'Advertising';
-                const fakePolicy: Policy = {
-                    ...createRandomPolicy(0),
-                    taxRates: CONST.DEFAULT_TAX,
-                    rules: {},
-                };
-                const transaction = generateTransaction();
-
-                // When retrieving the tax from a category
-                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimalsLocal);
-
-                // Then it should return undefined for the tax code, amount, and value
-                expect(categoryTaxCode).toBe(undefined);
-                expect(categoryTaxAmount).toBe(undefined);
-                expect(categoryTaxValue).toBe(undefined);
-            });
-        });
-    });
-
     describe('getDefaultTaxCode for distance requests', () => {
         const RATE_ID = 'rate_1';
 
@@ -547,7 +431,6 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {merchant: 'Zero Scan edited'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
             updatedTransaction.pendingFields = {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
@@ -573,7 +456,6 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {merchant: 'Failed Scan edited'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
             updatedTransaction.pendingFields = {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
@@ -581,94 +463,6 @@ describe('TransactionUtils', () => {
             // Then the edit does not incorrectly confirm the missing amount
             expect(updatedTransaction.isAmountSet).not.toBe(true);
             expect(TransactionUtils.isFailedScanAmountPlaceholder(updatedTransaction)).toBe(true);
-        });
-
-        it('should return updated category and tax when updating category with a category tax rules', () => {
-            // Given a policy with tax expense rules associated with a category
-            const category = 'Advertising';
-            const taxCode = 'id_TAX_RATE_1';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
-            };
-            const transaction = generateTransaction();
-
-            // When updating the transaction category to the category associated with the rule
-            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
-                transaction,
-                isFromExpenseReport: true,
-                policy: fakePolicy,
-                transactionChanges: {category},
-                personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                getCurrencySymbol: getCurrencySymbolLocal,
-            });
-
-            // Then the updated transaction should contain the tax from the matched rule
-            expect(updatedTransaction.category).toBe(category);
-            expect(updatedTransaction.taxCode).toBe(taxCode);
-            expect(updatedTransaction.taxAmount).toBe(5);
-            expect(updatedTransaction.taxValue).toBe('5%');
-        });
-
-        it('should keep the existing tax when clearing the category on a server backed edit', () => {
-            // Given an expense carrying the tax of a category that has its own rule
-            const category = 'Advertising';
-            const taxCode = 'id_TAX_RATE_1';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
-            };
-            const transaction = generateTransaction({category, taxCode, taxAmount: 5, taxValue: '5%'});
-
-            // When the category is cleared
-            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
-                transaction,
-                isFromExpenseReport: true,
-                policy: fakePolicy,
-                transactionChanges: {category: ''},
-                personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                getCurrencySymbol: getCurrencySymbolLocal,
-            });
-
-            // Then the tax is left untouched, because the API is not told to change it and the server keeps its own
-            expect(updatedTransaction.category).toBe('');
-            expect(updatedTransaction.taxCode).toBe(taxCode);
-            expect(updatedTransaction.taxAmount).toBe(5);
-            expect(updatedTransaction.taxValue).toBe('5%');
-        });
-
-        it('should reset to the workspace default tax when clearing the category on a split draft', () => {
-            // Given a split draft carrying the tax of a category that has its own rule
-            const category = 'Advertising';
-            const taxCode = 'id_TAX_RATE_1';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
-            };
-            const transaction = generateTransaction({category, taxCode, taxAmount: 5, taxValue: '5%'});
-
-            // When the category is cleared on the draft
-            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
-                transaction,
-                isFromExpenseReport: false,
-                isSplitTransaction: true,
-                policy: fakePolicy,
-                transactionChanges: {category: ''},
-                personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                getCurrencySymbol: getCurrencySymbolLocal,
-            });
-
-            // Then the draft falls back to the workspace default, since the draft tax is what gets sent
-            expect(updatedTransaction.category).toBe('');
-            expect(updatedTransaction.taxCode).toBe('id_TAX_EXEMPT');
-            expect(updatedTransaction.taxAmount).toBe(0);
-            expect(updatedTransaction.taxValue).toBe('0%');
         });
 
         it('should update transaction when distance is changed', () => {
@@ -712,7 +506,6 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {distance: newDistance},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -776,7 +569,6 @@ describe('TransactionUtils', () => {
                 policy: undefined,
                 transactionChanges: {distance: 20},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -823,7 +615,6 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -871,7 +662,6 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -934,7 +724,6 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1000,7 +789,6 @@ describe('TransactionUtils', () => {
                         ...(rateUnitChanged ? {customUnitRateID: 'ID2'} : {}),
                     },
                     personalPolicyOutputCurrency: undefined,
-                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
@@ -1066,7 +854,6 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {distance: 20},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1144,7 +931,6 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {selectedRouteKey: 'route1'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1216,7 +1002,6 @@ describe('TransactionUtils', () => {
                     policies,
                     transactionChanges: {customUnitRateID: 'ID2'},
                     personalPolicyOutputCurrency: undefined,
-                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
@@ -1295,7 +1080,6 @@ describe('TransactionUtils', () => {
                     policy: undefined,
                     transactionChanges: {distance: 20},
                     personalPolicyOutputCurrency: 'EUR',
-                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
@@ -1350,7 +1134,6 @@ describe('TransactionUtils', () => {
                         },
                     },
                     personalPolicyOutputCurrency: 'EUR',
-                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
@@ -1411,7 +1194,6 @@ describe('TransactionUtils', () => {
                     },
                 },
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1461,7 +1243,6 @@ describe('TransactionUtils', () => {
                     routes: {route0: {distance: 32186.88, geometry: {coordinates: [[0, 0]], type: 'LineString'}}},
                 },
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1516,7 +1297,6 @@ describe('TransactionUtils', () => {
                     routes: {route0: {distance: 32186.88, geometry: {coordinates: [[0, 0]], type: 'LineString'}}},
                 },
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1536,7 +1316,6 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {amount: newAmount},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1552,7 +1331,6 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 transactionChanges: {amount: newAmount},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1567,7 +1345,6 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1584,7 +1361,6 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 transactionChanges: {taxValue: '5%'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 

@@ -6,16 +6,23 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
 import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
-import type {Policy, PolicyCategories, PolicyTagLists, Rule} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, Rule} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearMerchantRuleErrors} from './actions/Policy/Rules';
-import {getCategoryTaxRulesTableData, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
+import {getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {getExpenseDefaultRuleSummaryFields, getPolicyExpenseDefaultRules, getRuleMerchantMatchSummary, isEditableMerchantRule, isExpenseDefaultTaxValue} from './ExpenseDefaultRuleUtils';
+import {convertAmountToDisplayString} from './CurrencyUtils';
+import {
+    getExpenseDefaultConditionSummary,
+    getExpenseDefaultRuleSummaryFields,
+    getPolicyExpenseDefaultRules,
+    isEditableExpenseDefaultRule,
+    isExpenseDefaultTaxValue,
+} from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isTagInPolicy} from './PolicyUtils';
 
@@ -126,6 +133,7 @@ function getMerchantRulesTableData({
         tag: translate('common.tag').toLowerCase(),
         description: translate('common.description').toLowerCase(),
         tax: translate('common.tax').toLowerCase(),
+        amount: translate('iou.amount').toLowerCase(),
         vendor: translate('common.vendor').toLowerCase(),
     };
     const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
@@ -149,8 +157,38 @@ function getMerchantRulesTableData({
                 const summaryFields = getExpenseDefaultRuleSummaryFields(rule).filter(
                     ({field, value}) => field !== FIELD.TAG || !policyTags || typeof value !== 'string' || isTagInPolicy(value, policyTags),
                 );
-                const {merchants: merchantName} = getRuleMerchantMatchSummary(rule.filters);
+                const {merchants, categories, tags} = getExpenseDefaultConditionSummary(rule.filters);
+                const merchantNames = merchants.map(({value}) => value).join(', ');
+                const containedMerchantNames = merchants
+                    .filter(({isExactMatch}) => !isExactMatch)
+                    .map(({value}) => value)
+                    .join(', ');
+                const exactMerchantNames = merchants
+                    .filter(({isExactMatch}) => isExactMatch)
+                    .map(({value}) => value)
+                    .join(', ');
+                const categoryNames = categories.map(getDecodedCategoryName).join(', ');
+                const tagNames = tags.map(getCommaSeparatedTagNameWithSanitizedColons).join(', ');
 
+                const conditions: string[] = [];
+                // Spelled out rather than a single "Merchant is", so a contains rule and an exact match rule on the
+                // same merchant don't read as duplicates.
+                if (containedMerchantNames) {
+                    conditions.push(translate('workspace.rules.expenseDefaultsTable.merchantContains', containedMerchantNames));
+                }
+                if (exactMerchantNames) {
+                    conditions.push(translate('workspace.rules.expenseDefaultsTable.merchantExactlyMatches', exactMerchantNames));
+                }
+                if (categoryNames) {
+                    conditions.push(translate('workspace.rules.expenseDefaultsTable.categoryIs', categoryNames));
+                }
+                if (tagNames) {
+                    conditions.push(translate('workspace.rules.expenseDefaultsTable.tagIs', tagNames));
+                }
+
+                // The Categories section lists the rules a category alone decides. One that also matches on a
+                // merchant or a tag reads as a merchant rule, so it stays with them.
+                const isCategoryOnlyRule = categories.length > 0 && merchants.length === 0 && tags.length === 0;
                 const hasOnlyMerchantRename = summaryFields.length === 1 && summaryFields.at(0)?.field === FIELD.MERCHANT;
                 const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
 
@@ -175,6 +213,15 @@ function getMerchantRulesTableData({
                                 getTaxRateDisplayName(policy, value.field_id_TAX.externalID, value.field_id_TAX),
                             ),
                         );
+                    } else if (field === FIELD.AMOUNT && typeof value === 'number') {
+                        // The rule stores the amount negated, the way an expense carries it.
+                        actions.push(
+                            translate(
+                                'workspace.rules.merchantRules.ruleSummarySubtitleUpdateField',
+                                fieldLabels.amount,
+                                convertAmountToDisplayString(Math.abs(value), policy?.outputCurrency),
+                            ),
+                        );
                     } else if (field === FIELD.VENDOR_ID && typeof value === 'string') {
                         const unavailableLabel = translate('workspace.rules.merchantRules.vendorUnavailable');
                         actions.push(
@@ -190,9 +237,9 @@ function getMerchantRulesTableData({
                 const pendingAction = rule.pendingAction;
 
                 // A rule the editor can't represent would lose whatever the form can't show if it were saved back,
-                // so the row summarizes it but doesn't open it. See `getMerchantRuleFormValues`. It stays selectable
+                // so the row summarizes it but doesn't open it. See `getExpenseDefaultFormValues`. It stays selectable
                 // either way, because deleting it is the only thing an admin can still do with it.
-                const isEditable = isEditableMerchantRule(rule);
+                const isEditable = isEditableExpenseDefaultRule(rule);
                 const openEditor = () => {
                     if (!isEditable) {
                         return;
@@ -203,12 +250,13 @@ function getMerchantRulesTableData({
                 return {
                     keyForList: ruleID,
                     ruleID,
-                    section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS,
+                    section: isCategoryOnlyRule ? CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES : CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS,
                     isRename: hasOnlyMerchantRename,
                     typeLabel,
-                    conditionText: translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantName),
+                    // A rule matches on every condition it carries, so the row reads them as one sentence.
+                    conditionText: conditions.join(` ${translate('common.and')} `),
                     ruleDescription,
-                    searchTokens: [merchantName, ruleDescription],
+                    searchTokens: [merchantNames, categoryNames, tagNames, ruleDescription].filter(Boolean),
                     pendingAction,
                     errors: rule.errors,
                     onCloseError: () => clearMerchantRuleErrors(ruleID, rule),
@@ -223,7 +271,6 @@ function getExpenseDefaultsTableData({
     policy,
     policyID,
     rules,
-    policyCategories,
     policyTags,
     translate,
     isOffline,
@@ -232,19 +279,16 @@ function getExpenseDefaultsTableData({
     policy: Policy | undefined;
     policyID: string;
     rules: OnyxCollection<Rule> | undefined;
-    /** Read for the pending state of a category a rule depends on, so the rule shows as deleting alongside it. */
-    policyCategories: PolicyCategories | undefined;
     /** Read to hide a deleted tag from a merchant rule's summary. */
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocaleContextProps['translate'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
-    const categoryTaxRules = getCategoryTaxRulesTableData({policy, policyCategories, translate, isOffline, onNavigate});
     const merchantRules = getMerchantRulesTableData({policy, policyID, rules, policyTags, translate, isOffline, onNavigate});
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
-    return [...categoryTaxRules, ...merchantRules, ...merchantTypeRules];
+    return [...merchantRules, ...merchantTypeRules];
 }
 
 export {

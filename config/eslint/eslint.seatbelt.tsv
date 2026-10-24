@@ -1679,8 +1679,8 @@
 "../../src/pages/workspace/rules/ExpenseReportRulesSection.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	3
 "../../src/pages/workspace/rules/FlagForReviewRules/FlagForReviewRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/rules/IndividualExpenseRulesSectionRevamp.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
+"../../src/pages/workspace/rules/MerchantRules/ExpenseDefaultRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/rules/MerchantRules/ExpenseDefaultTypePage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/pages/workspace/rules/MerchantRules/MerchantRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/rules/MerchantTypeRules/MerchantTypeRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/rules/RulesNewPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/rules/SpendRules/SpendRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1

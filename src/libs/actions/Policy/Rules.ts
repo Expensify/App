@@ -26,10 +26,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {GeneratedRuleState, GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
-import type {AgentRule, CodingRule, CodingRuleFilter} from '@src/types/onyx/Policy';
+import type {AgentRule, CodingRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleBody} from '@src/types/onyx/Rule';
+import type {RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -269,7 +270,7 @@ async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<st
     }
 }
 
-function getTransactionsMatchingCodingRule(policyID: string, filters: CodingRuleFilter) {
+function getTransactionsMatchingCodingRule(policyID: string, filters: RuleFilterNode) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

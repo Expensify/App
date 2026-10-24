@@ -14,13 +14,11 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import usePolicyCategoryPickerCategories from '@hooks/usePolicyCategoryPickerCategories';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
-import {categoryHasTaxRule} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,26 +31,37 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type AddCategoryToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH>;
+import useMerchantRuleRoute from './useMerchantRuleRoute';
+
+type AddCategoryToMatchPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_CATEGORY_TO_MATCH
+>;
 
 type CategoryListItem = ListItem & {
     value: string;
 };
 
 function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
-    const {policyID, categoryName: editingCategoryName} = route.params;
+    const {policyID, ruleID, categoryName: editingCategoryName} = route.params;
     // Editing a category tax default edits one rule, so its category is swapped, not added to.
     const isEditingCategoryTaxRule = !!editingCategoryName;
+    // A category tax default is addressed by category rather than ruleID, so it returns to its own editor.
+    const {backToRoute} = useMerchantRuleRoute(
+        DYNAMIC_ROUTES.RULES_CATEGORY_TO_MATCH_FROM_EXPENSE.path,
+        policyID,
+        ruleID,
+        editingCategoryName ? ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, editingCategoryName) : undefined,
+    );
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
-    const policy = usePolicy(policyID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
 
@@ -66,10 +75,8 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         isLoading: arePolicyCategoriesLoading,
     } = usePolicyCategoryPickerCategories({
         policyID,
-        // Keep current selections so they stay removable; don't offer a category that already has a tax default.
-        // The rule being edited stays listed even once the selection moves off it, since its own category still has a
-        // tax rule and would otherwise drop out of the list with no way to switch back.
-        isEligible: (category) => selectedCategories.includes(category.name) || category.name === editingCategoryName || !categoryHasTaxRule(policy?.rules?.expenseRules, category.name),
+        // A rule only matches on the category, so every category is eligible.
+        isEligible: () => true,
     });
 
     const categoryItems: CategoryListItem[] = categories.map((category) => ({
@@ -78,6 +85,16 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         value: category.name,
         isSelected: selectedCategories.includes(category.name),
     }));
+
+    // A rule keeps matching on a category the workspace has since deleted. Listing it is the only way to see what the
+    // rule matches on and the only way to take it off, so it is added back rather than left out of the picker.
+    const listedCategoryNames = new Set(categories.map((category) => category.name));
+    for (const categoryName of selectedCategories) {
+        if (listedCategoryNames.has(categoryName)) {
+            continue;
+        }
+        categoryItems.push({keyForList: categoryName, text: getDecodedCategoryName(categoryName), value: categoryName, isSelected: true});
+    }
 
     // Tokenized like the main category picker, so the words can be typed in any order and a nested name is still found
     // by any part of it.
@@ -114,9 +131,6 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         setSelectedCategories((prev) => Array.from(new Set([...prev, ...visibleValues])));
     };
 
-    // Passed explicitly like every sibling picker, so a deep link has somewhere to pop to. A category tax default is
-    // addressed by category rather than ruleID.
-    const backToRoute = editingCategoryName ? ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, editingCategoryName) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
     const goBackToRule = () => Navigation.goBack(backToRoute);
     const goBackAfterSave = () => Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
 
