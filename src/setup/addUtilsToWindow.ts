@@ -1,6 +1,6 @@
 import {isProduction as isProductionLib} from '@libs/Environment/Environment';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {hasKey, isRecord} from '@libs/ObjectUtils';
+import {isRecord} from '@libs/ObjectUtils';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 
 import {setSupportAuthToken} from '@userActions/Session';
@@ -57,10 +57,11 @@ export default function addUtilsToWindow() {
         }
 
         function getStringRouteParam(params: ReturnType<typeof getRouteParams>, key: 'reportID' | 'transactionID' | 'policyID'): string | undefined {
-            if (!isRecord(params) || !hasKey(params, key)) {
+            if (!isRecord(params)) {
                 return undefined;
             }
-            const value = params[key];
+            const recordParams: Record<string, unknown> = params;
+            const value = recordParams[key];
             return typeof value === 'string' && value ? value : undefined;
         }
 

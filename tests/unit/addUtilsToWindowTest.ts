@@ -10,7 +10,7 @@ import SCREENS from '@src/SCREENS';
 import addUtilsToWindow from '@src/setup/addUtilsToWindow';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -56,6 +56,24 @@ const modernTransaction = {
 } satisfies Transaction;
 const legacyTransaction = {...modernTransaction, transactionID: 'legacy'} satisfies Transaction;
 const fallbackTransaction = {...modernTransaction, transactionID: 'fallback'} satisfies Transaction;
+
+async function readDebugOnyxOnce<TKey extends OnyxKey>(key: TKey): Promise<OnyxValue<TKey>> {
+    const connect = jest.spyOn(Onyx, 'connectWithoutView');
+    const disconnect = jest.spyOn(Onyx, 'disconnect');
+    const connectsBefore = connect.mock.calls.length;
+    const disconnectsBefore = disconnect.mock.calls.length;
+    const result = window.Onyx.get(key) satisfies Promise<OnyxValue<TKey>>;
+    expect(connect).toHaveBeenCalledTimes(connectsBefore + 1);
+    expect(disconnect).toHaveBeenCalledTimes(disconnectsBefore);
+    const value = await result;
+    expect(disconnect).toHaveBeenCalledTimes(disconnectsBefore + 1);
+    const connection = connect.mock.results.at(connectsBefore);
+    expect(connection?.type).toBe('return');
+    expect(connection?.value).toBeDefined();
+    expect(disconnect.mock.calls.at(disconnectsBefore)).toHaveLength(1);
+    expect(disconnect.mock.calls.at(disconnectsBefore)?.[0]).toBe(connection?.value);
+    return value;
+}
 
 describe('addUtilsToWindow', () => {
     const windowDescriptors = new Map<string, PropertyDescriptor | undefined>();
@@ -115,22 +133,18 @@ describe('addUtilsToWindow', () => {
         const key = `${ONYXKEYS.COLLECTION.TRANSACTION}modern` satisfies OnyxKey;
         await Onyx.set(key, modernTransaction);
         await waitForBatchedUpdates();
-        const connect = jest.spyOn(Onyx, 'connectWithoutView');
         const disconnect = jest.spyOn(Onyx, 'disconnect');
 
         // When a debug read starts, connect has returned but the deferred callback has not fired.
-        const result = window.Onyx.get(key) satisfies Promise<OnyxEntry<Transaction>>;
-        expect(connect).toHaveBeenCalledTimes(1);
-        expect(disconnect).not.toHaveBeenCalled();
+        const result = readDebugOnyxOnce(key) satisfies Promise<OnyxEntry<Transaction>>;
         const value = await result;
+        const valueDisconnects = disconnect.mock.calls.length;
 
         // Then resolution follows one disconnect of the returned handle and later writes have no live subscription.
         expect(value).toEqual(modernTransaction);
-        expect(disconnect).toHaveBeenCalledTimes(1);
-        expect(connect).toHaveReturnedWith(disconnect.mock.calls.at(0)?.[0]);
         await Onyx.merge(key, {merchant: 'Updated'});
         await waitForBatchedUpdates();
-        expect(disconnect).toHaveBeenCalledTimes(1);
+        expect(disconnect).toHaveBeenCalledTimes(valueDisconnects);
     });
 
     it.each([true, false])('reads a regular key with deferred one-shot delivery, present: %s', async (isPresent) => {
@@ -140,85 +154,67 @@ describe('addUtilsToWindow', () => {
             await Onyx.set(ONYXKEYS.SESSION, storedSession);
         }
         await waitForBatchedUpdates();
-        const connect = jest.spyOn(Onyx, 'connectWithoutView');
         const disconnect = jest.spyOn(Onyx, 'disconnect');
 
         // When the public read starts, its real connection returns before the deferred initial delivery.
-        const result = window.Onyx.get(ONYXKEYS.SESSION) satisfies Promise<OnyxEntry<Session>>;
-        expect(connect).toHaveBeenCalledTimes(1);
-        expect(disconnect).not.toHaveBeenCalled();
+        const result = readDebugOnyxOnce(ONYXKEYS.SESSION) satisfies Promise<OnyxEntry<Session>>;
         const session = await result;
+        const sessionDisconnects = disconnect.mock.calls.length;
 
         // Then it resolves only after releasing that handle, and subsequent writes cannot deliver again.
         expect(session).toEqual(isPresent ? storedSession : undefined);
-        expect(disconnect).toHaveBeenCalledTimes(1);
-        expect(connect).toHaveReturnedWith(disconnect.mock.calls.at(0)?.[0]);
         await Onyx.set(ONYXKEYS.SESSION, {accountID: 456});
         await waitForBatchedUpdates();
-        expect(disconnect).toHaveBeenCalledTimes(1);
+        expect(disconnect).toHaveBeenCalledTimes(sessionDisconnects);
     });
 
     it('preserves absent member delivery and releases its exact connection before resolving', async () => {
         // Given a missing member, its value is absent without losing the transaction return type.
-        const connect = jest.spyOn(Onyx, 'connectWithoutView');
         const disconnect = jest.spyOn(Onyx, 'disconnect');
 
         // When the public read starts, its initial delivery must still follow connect returning.
-        const result = window.Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}missing`) satisfies Promise<OnyxEntry<Transaction>>;
-        expect(connect).toHaveBeenCalledTimes(1);
-        expect(disconnect).not.toHaveBeenCalled();
+        const result = readDebugOnyxOnce(`${ONYXKEYS.COLLECTION.TRANSACTION}missing`) satisfies Promise<OnyxEntry<Transaction>>;
         const missing = await result;
+        const missingDisconnects = disconnect.mock.calls.length;
 
         // Then absence resolves after one exact-handle disconnect, and creating the member cannot deliver again.
         expect(missing).toBeUndefined();
-        expect(disconnect).toHaveBeenCalledTimes(1);
-        expect(connect).toHaveReturnedWith(disconnect.mock.calls.at(0)?.[0]);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}missing`, modernTransaction);
         await waitForBatchedUpdates();
-        expect(disconnect).toHaveBeenCalledTimes(1);
+        expect(disconnect).toHaveBeenCalledTimes(missingDisconnects);
     });
 
     it('preserves initialized empty, populated and empty-after-deletion collection-root snapshots', async () => {
         // Given global Onyx initialization, the configured root is already known and empty before its first write.
         // An unseeded/pre-init root is not reachable through this initialized public seam.
-        const connect = jest.spyOn(Onyx, 'connectWithoutView');
         const disconnect = jest.spyOn(Onyx, 'disconnect');
 
         // When each public root read starts, it returns a typed collection promise before initial delivery.
-        const initialResult = window.Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION) satisfies Promise<OnyxCollection<Transaction>>;
-        expect(connect).toHaveBeenCalledTimes(1);
-        expect(disconnect).not.toHaveBeenCalled();
+        const initialResult = readDebugOnyxOnce(ONYXKEYS.COLLECTION.TRANSACTION) satisfies Promise<OnyxCollection<Transaction>>;
         const initial = await initialResult;
+        const initialDisconnects = disconnect.mock.calls.length;
         expect(initial).toEqual({});
-        expect(disconnect).toHaveBeenCalledTimes(1);
-        expect(connect).toHaveNthReturnedWith(1, disconnect.mock.calls.at(0)?.[0]);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}modern`, modernTransaction);
         await waitForBatchedUpdates();
-        expect(disconnect).toHaveBeenCalledTimes(1);
+        expect(disconnect).toHaveBeenCalledTimes(initialDisconnects);
 
-        const populatedResult = window.Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION) satisfies Promise<OnyxCollection<Transaction>>;
-        expect(connect).toHaveBeenCalledTimes(2);
-        expect(disconnect).toHaveBeenCalledTimes(1);
+        const populatedResult = readDebugOnyxOnce(ONYXKEYS.COLLECTION.TRANSACTION) satisfies Promise<OnyxCollection<Transaction>>;
         const populated = await populatedResult;
-        expect(populated).toEqual({['transactions_modern' satisfies OnyxKey]: modernTransaction});
-        expect(disconnect).toHaveBeenCalledTimes(2);
-        expect(connect).toHaveNthReturnedWith(2, disconnect.mock.calls.at(1)?.[0]);
+        const populatedDisconnects = disconnect.mock.calls.length;
+        expect(populated).toEqual({[`${ONYXKEYS.COLLECTION.TRANSACTION}modern` satisfies OnyxKey]: modernTransaction});
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}modern`, null);
         await waitForBatchedUpdates();
-        expect(disconnect).toHaveBeenCalledTimes(2);
+        expect(disconnect).toHaveBeenCalledTimes(populatedDisconnects);
 
-        const emptyResult = window.Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION) satisfies Promise<OnyxCollection<Transaction>>;
-        expect(connect).toHaveBeenCalledTimes(3);
-        expect(disconnect).toHaveBeenCalledTimes(2);
+        const emptyResult = readDebugOnyxOnce(ONYXKEYS.COLLECTION.TRANSACTION) satisfies Promise<OnyxCollection<Transaction>>;
         const empty = await emptyResult;
+        const emptyDisconnects = disconnect.mock.calls.length;
 
         // Then snapshots preserve their collection category, and every read releases its own handle exactly once.
         expect(empty).toEqual({});
-        expect(disconnect).toHaveBeenCalledTimes(3);
-        expect(connect).toHaveNthReturnedWith(3, disconnect.mock.calls.at(2)?.[0]);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}modern`, modernTransaction);
         await waitForBatchedUpdates();
-        expect(disconnect).toHaveBeenCalledTimes(3);
+        expect(disconnect).toHaveBeenCalledTimes(emptyDisconnects);
     });
 
     it.each([
@@ -277,14 +273,14 @@ describe('addUtilsToWindow', () => {
         // Given conflicting parent, legacy and fallback records, the real domain accessor decides which ID is eligible.
         mockGetCurrentRoute.mockReturnValue({key: 'route', name: SCREENS.DEBUG.REPORT, params: {reportID: 'report'}});
         await Onyx.multiSet({
-            ['report_report' satisfies OnyxKey]: {reportID: 'report', parentReportID: 'parent', parentReportActionID: 'parent-action'} satisfies Report,
-            ['reportActions_parent' satisfies OnyxKey]: {[parentAction.reportActionID]: parentAction},
-            ['reportActions_report' satisfies OnyxKey]: {
+            [`${ONYXKEYS.COLLECTION.REPORT}report` satisfies OnyxKey]: {reportID: 'report', parentReportID: 'parent', parentReportActionID: 'parent-action'} satisfies Report,
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}parent` satisfies OnyxKey]: {[parentAction.reportActionID]: parentAction},
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}report` satisfies OnyxKey]: {
                 fallback: {...iouAction, reportActionID: 'fallback', message: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, text: '', IOUTransactionID: 'fallback'}},
             },
-            ['transactions_modern' satisfies OnyxKey]: modernTransaction,
-            ['transactions_legacy' satisfies OnyxKey]: legacyTransaction,
-            ['transactions_fallback' satisfies OnyxKey]: fallbackTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}modern` satisfies OnyxKey]: modernTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}legacy` satisfies OnyxKey]: legacyTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}fallback` satisfies OnyxKey]: fallbackTransaction,
         });
         await waitForBatchedUpdates();
 
@@ -309,17 +305,17 @@ describe('addUtilsToWindow', () => {
         } satisfies ReportAction;
         mockGetCurrentRoute.mockReturnValue({key: 'route', name: SCREENS.DEBUG.REPORT, params: {reportID: 'report'}});
         await Onyx.multiSet({
-            ['report_report' satisfies OnyxKey]: {reportID: 'report', parentReportID: 'parent', parentReportActionID: 'absent'} satisfies Report,
-            ['reportActions_report' satisfies OnyxKey]: {
+            [`${ONYXKEYS.COLLECTION.REPORT}report` satisfies OnyxKey]: {reportID: 'report', parentReportID: 'parent', parentReportActionID: 'absent'} satisfies Report,
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}report` satisfies OnyxKey]: {
                 comment: {...iouAction, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, message: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, text: '', IOUTransactionID: 'fallback'}},
                 missing: {...iouAction, message: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, text: ''}},
                 empty: {...iouAction, message: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, text: '', IOUTransactionID: ''}},
                 first: firstAction,
                 later: {...iouAction, message: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, text: '', IOUTransactionID: 'fallback'}},
             },
-            ['transactions_modern' satisfies OnyxKey]: modernTransaction,
-            ['transactions_legacy' satisfies OnyxKey]: legacyTransaction,
-            ['transactions_fallback' satisfies OnyxKey]: fallbackTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}modern` satisfies OnyxKey]: modernTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}legacy` satisfies OnyxKey]: legacyTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}fallback` satisfies OnyxKey]: fallbackTransaction,
         });
         await waitForBatchedUpdates();
 
@@ -355,13 +351,13 @@ describe('addUtilsToWindow', () => {
         const policy = {id: 'direct-policy', name: 'Direct'} satisfies Partial<Policy>;
         mockGetCurrentRoute.mockReturnValue({key: 'route', name: SCREENS.DEBUG.REPORT, params});
         await Onyx.multiSet({
-            ['report_direct-report' satisfies OnyxKey]: report,
-            ['report_report' satisfies OnyxKey]: {reportID: 'report', policyID: 'other-policy'},
-            ['report_parent' satisfies OnyxKey]: {reportID: 'parent', policyID: 'parent-policy'},
-            ['transactions_modern' satisfies OnyxKey]: modernTransaction,
-            ['policy_direct-policy' satisfies OnyxKey]: policy,
-            ['policy_report-policy' satisfies OnyxKey]: {id: 'report-policy'},
-            ['policy_parent-policy' satisfies OnyxKey]: {id: 'parent-policy'},
+            [`${ONYXKEYS.COLLECTION.REPORT}direct-report` satisfies OnyxKey]: report,
+            [`${ONYXKEYS.COLLECTION.REPORT}report` satisfies OnyxKey]: {reportID: 'report', policyID: 'other-policy'},
+            [`${ONYXKEYS.COLLECTION.REPORT}parent` satisfies OnyxKey]: {reportID: 'parent', policyID: 'parent-policy'},
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}modern` satisfies OnyxKey]: modernTransaction,
+            [`${ONYXKEYS.COLLECTION.POLICY}direct-policy` satisfies OnyxKey]: policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}report-policy` satisfies OnyxKey]: {id: 'report-policy'},
+            [`${ONYXKEYS.COLLECTION.POLICY}parent-policy` satisfies OnyxKey]: {id: 'parent-policy'},
         });
         await waitForBatchedUpdates();
 
@@ -378,11 +374,11 @@ describe('addUtilsToWindow', () => {
         const parentPolicy = {id: 'parent-policy'} satisfies Partial<Policy>;
         mockGetCurrentRoute.mockReturnValue({key: 'route', name: SCREENS.DEBUG.TRANSACTION, params: {transactionID: 'modern'}});
         await Onyx.multiSet({
-            ['transactions_modern' satisfies OnyxKey]: modernTransaction,
-            ['report_report' satisfies OnyxKey]: {reportID: 'report', parentReportID: 'parent', ...(hasOwnPolicy ? {policyID: 'own-policy'} : {})},
-            ['report_parent' satisfies OnyxKey]: {reportID: 'parent', policyID: 'parent-policy'},
-            ['policy_own-policy' satisfies OnyxKey]: ownPolicy,
-            ['policy_parent-policy' satisfies OnyxKey]: parentPolicy,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}modern` satisfies OnyxKey]: modernTransaction,
+            [`${ONYXKEYS.COLLECTION.REPORT}report` satisfies OnyxKey]: {reportID: 'report', parentReportID: 'parent', ...(hasOwnPolicy ? {policyID: 'own-policy'} : {})},
+            [`${ONYXKEYS.COLLECTION.REPORT}parent` satisfies OnyxKey]: {reportID: 'parent', policyID: 'parent-policy'},
+            [`${ONYXKEYS.COLLECTION.POLICY}own-policy` satisfies OnyxKey]: ownPolicy,
+            [`${ONYXKEYS.COLLECTION.POLICY}parent-policy` satisfies OnyxKey]: parentPolicy,
         });
         await waitForBatchedUpdates();
 
@@ -430,9 +426,9 @@ describe('addUtilsToWindow', () => {
     it('rejects route IDs that are not strings instead of coercing them into stored keys', async () => {
         // Given malformed route IDs and matching string keys, accepting coercion would return the wrong records.
         await Onyx.multiSet({
-            ['report_123' satisfies OnyxKey]: {reportID: '123'},
-            ['transactions_123' satisfies OnyxKey]: modernTransaction,
-            ['policy_123' satisfies OnyxKey]: {id: '123'},
+            [`${ONYXKEYS.COLLECTION.REPORT}123` satisfies OnyxKey]: {reportID: '123'},
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}123` satisfies OnyxKey]: modernTransaction,
+            [`${ONYXKEYS.COLLECTION.POLICY}123` satisfies OnyxKey]: {id: '123'},
         });
         mockGetCurrentRoute.mockReturnValue({
             key: 'route',
