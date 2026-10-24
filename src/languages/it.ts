@@ -11952,6 +11952,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         exportInProgress: 'Esportazione in corso',
         conciergeWillSend: 'Concierge ti invierà il file a breve.',
         currentView: 'Vista corrente',
+        currentViewGroupsOnly: 'Vista corrente (solo gruppi)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

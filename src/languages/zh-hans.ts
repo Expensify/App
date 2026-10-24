@@ -11481,6 +11481,7 @@ ${reportName}`,
         exportInProgress: '导出进行中',
         conciergeWillSend: 'Concierge 将很快把文件发送给你。',
         currentView: '当前视图',
+        currentViewGroupsOnly: '当前视图（仅分组）',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

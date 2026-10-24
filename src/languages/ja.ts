@@ -11775,6 +11775,7 @@ ${reportName}`,
         exportInProgress: 'エクスポート処理中',
         conciergeWillSend: 'Conciergeがまもなくファイルを送信します。',
         currentView: '現在のビュー',
+        currentViewGroupsOnly: '現在のビュー（グループのみ）',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

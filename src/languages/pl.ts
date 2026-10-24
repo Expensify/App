@@ -11942,6 +11942,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce wyśle Ci plik.',
         currentView: 'Bieżący widok',
+        currentViewGroupsOnly: 'Bieżący widok (tylko grupy)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
