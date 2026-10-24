@@ -6,14 +6,6 @@ on:
     branches-ignore: [staging, production]
     paths:
       - 'web/cloudflare-worker/**'
-      - 'scripts/startWeb.ts'
-      - 'scripts/waitForWebServer.ts'
-      - 'scripts/utils/webDevConfig.ts'
-      - 'scripts/utils/checkWebServer.ts'
-      - 'scripts/postInstall.sh'
-      - 'scripts/installCloudflareWorker.ts'
-      - 'config/rsbuild/**'
-      - 'package.json'
       # The tests check its inline scripts against the CSP hashes.
       - 'web/index.html'
       - '.nvmrc'
