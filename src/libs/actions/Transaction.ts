@@ -78,6 +78,7 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -879,6 +880,7 @@ type ChangeTransactionsReportProps = {
     isVendorMatchingBetaEnabled: boolean | undefined;
     jsonQuery?: string;
     hash?: number;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -903,6 +905,7 @@ function getChangeTransactionsReportOnyxData({
     getCurrencySymbol,
     isVendorMatchingBetaEnabled,
     cardList,
+    currentUserPersonalDetails,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1806,6 +1809,7 @@ function getChangeTransactionsReportOnyxData({
                 accountID,
                 login: email,
             },
+            currentUserPersonalDetails,
             iouReport: isUnreporting ? undefined : newReport,
             iouAction: searchIOUAction,
             policy: isUnreporting ? undefined : policy,
