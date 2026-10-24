@@ -174,6 +174,15 @@ function MoneyRequestReportPreview({
         return transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
     }, [transactions, action.childType, iouReport]);
 
+    // The expenses a press on this preview can page through, in the order the preview shows them.
+    const getOpenableTransactionIDs = useCallback(
+        () =>
+            (orderedTransactionsRef.current.length > 0 ? orderedTransactionsRef.current : transactions)
+                .filter((pressedTransaction) => !isTransactionPendingDelete(pressedTransaction))
+                .map((pressedTransaction) => pressedTransaction.transactionID),
+        [transactions],
+    );
+
     const cancelPendingPress = useCallback(() => {
         pendingExpenseTransactionRef.current = null;
         if (!cascadeTimerRef.current) {
@@ -203,6 +212,12 @@ function MoneyRequestReportPreview({
             name: 'MoneyRequestReportPreview',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
+
+        // Opening the report hands the carousel over to it. A one-expense report shows that expense directly, so a
+        // carousel left behind by another screen (e.g. the Spend page's results, still mounted under the RHP) would
+        // otherwise put arrows on it that page to expenses outside this report, such as one in the self DM.
+        setActiveTransactionIDs(getOpenableTransactionIDs(), {source: CAROUSEL_SOURCE.reportPreview(iouReportID)});
+
         // Small screens navigate to full report view since super wide RHP
         // is not available on narrow layouts and would break the navigation logic.
         if (isSmallScreenWidth) {
@@ -210,7 +225,7 @@ function MoneyRequestReportPreview({
         } else {
             Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
         }
-    }, [cancelPendingPress, iouReportID, isSmallScreenWidth]);
+    }, [cancelPendingPress, getOpenableTransactionIDs, iouReportID, isSmallScreenWidth]);
     const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`, {
         selector: hasOnceLoadedReportActionsSelector,
     });
@@ -284,9 +299,7 @@ function MoneyRequestReportPreview({
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
             });
 
-            const openableTransactionIDs = (orderedTransactionsRef.current.length > 0 ? orderedTransactionsRef.current : transactions)
-                .filter((pressedTransaction) => !isTransactionPendingDelete(pressedTransaction))
-                .map((pressedTransaction) => pressedTransaction.transactionID);
+            const openableTransactionIDs = getOpenableTransactionIDs();
 
             // This press owns the carousel it seeds. Without a source the list was unowned, so no screen could
             // release it and every other writer was free to overwrite it while the expense was still open.
@@ -346,7 +359,7 @@ function MoneyRequestReportPreview({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
             });
         },
-        [isSmallScreenWidth, iouReportID, markReportRHPWidth, unmarkReportRHPWidth, transactions],
+        [isSmallScreenWidth, iouReportID, markReportRHPWidth, unmarkReportRHPWidth, getOpenableTransactionIDs],
     );
 
     const openTransactionFromPreview = useCallback(
