@@ -232,18 +232,44 @@ describe('actions/PolicyMember', () => {
             };
 
             const approveOnlyData = Member.buildUpdateWorkspaceMembersRoleOnyxData(fakePolicy, [member1, member2], [1, 2], CONST.POLICY.ROLE.APPROVE_ONLY);
-            const approveOnlyUpdate = approveOnlyData.failureData.at(0);
-            const employeeList = approveOnlyUpdate && 'employeeList' in (approveOnlyUpdate.value ?? {}) ? approveOnlyUpdate.value.employeeList : undefined;
-            expect(employeeList?.[member1]?.errors).toBeUndefined();
-            expect(employeeList?.[member1]?.pendingAction).toBeNull();
-            expect(employeeList?.[member2]?.errors).toBeUndefined();
-            expect(employeeList?.[member2]?.pendingAction).toBeNull();
+            expect(approveOnlyData.failureData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                        value: expect.objectContaining({
+                            employeeList: {
+                                [member1]: {
+                                    email: member1,
+                                    role: CONST.POLICY.ROLE.USER,
+                                    pendingAction: null,
+                                },
+                                [member2]: {
+                                    email: member2,
+                                    role: CONST.POLICY.ROLE.USER,
+                                    pendingAction: null,
+                                },
+                            },
+                        }),
+                    }),
+                ]),
+            );
 
             const adminData = Member.buildUpdateWorkspaceMembersRoleOnyxData(fakePolicy, [member1], [1], CONST.POLICY.ROLE.ADMIN);
-            const adminUpdate = adminData.failureData.at(0);
-            const adminEmployeeList = adminUpdate && 'employeeList' in (adminUpdate.value ?? {}) ? adminUpdate.value.employeeList : undefined;
-            expect(adminEmployeeList?.[member1]?.errors).toBeTruthy();
-            expect(adminEmployeeList?.[member1]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(adminData.failureData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                        value: expect.objectContaining({
+                            employeeList: expect.objectContaining({
+                                [member1]: expect.objectContaining({
+                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    errors: expect.any(Object),
+                                }),
+                            }),
+                        }),
+                    }),
+                ]),
+            );
         });
     });
     describe('requestWorkspaceOwnerChange', () => {
