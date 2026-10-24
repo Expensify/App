@@ -2606,6 +2606,7 @@ function getUpdateTrackExpenseParams(
               transaction,
               transactionChanges,
               isFromExpenseReport: false,
+              shouldApplyCommuterExclusion: false,
               policy: policyForTransaction,
               personalPolicyOutputCurrency,
               getCurrencyDecimals,

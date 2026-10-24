@@ -145,6 +145,7 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
             report={iouReportR14932}
             policy={undefined}
             transaction={item}
+            displayTransaction={item}
             transactionRawAmount={item.amount}
             violations={item.errors ? violationsR14932 : []}
             offlineWithFeedbackOnClose={() => undefined}

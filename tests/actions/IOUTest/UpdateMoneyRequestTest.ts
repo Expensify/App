@@ -2292,6 +2292,79 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
     });
 
     describe('getUpdateTrackExpenseParams', () => {
+        it('uses the full distance when optimistically changing a tracked expense rate in Self DM', async () => {
+            const transactionID = 'track_distance_rate';
+            const transactionThreadReportID = 'track_distance_rate_thread';
+            const selfDMReportID = 'track_distance_rate_self_dm';
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 3,
+                modifiedAmount: 1,
+                currency: CONST.CURRENCY.USD,
+                merchant: '1.97 mi @ $0.015 / mi',
+                modifiedMerchant: '0.97 mi @ $0.015 / mi',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: 'custom',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 1.97,
+                        commuterExclusion: 1,
+                        reimbursableDistance: 0.97,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+            };
+            const fakeThreadReport = createMock<Report>({
+                reportID: transactionThreadReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: selfDMReportID,
+            });
+            const fakeSelfDMReport = createRandomReport(2, CONST.REPORT.CHAT_TYPE.SELF_DM);
+            fakeSelfDMReport.reportID = selfDMReportID;
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            custom: {customUnitRateID: 'custom', currency: CONST.CURRENCY.USD, rate: 0.02},
+                            default: {customUnitRateID: 'default', currency: CONST.CURRENCY.USD, rate: 1.5},
+                        },
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, fakeThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, fakeSelfDMReport);
+            await waitForBatchedUpdates();
+
+            const {onyxData} = getUpdateTrackExpenseParams({
+                transactionID,
+                transaction: fakeTransaction,
+                transactionThreadReportID,
+                transactionChanges: {customUnitRateID: 'default'},
+                policy: fakePolicy,
+                delegateAccountID: undefined,
+                currencyContext: {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
+                shouldBuildOptimisticModifiedExpenseReportAction: false,
+            });
+            const optimisticTransactionUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
+            expect(optimisticTransactionUpdate?.value).toMatchObject({
+                amount: -3,
+                modifiedAmount: -3,
+                modifiedMerchant: '1.97 mi @ $0.015 / mi',
+                comment: {customUnit: {customUnitRateID: 'default'}},
+            });
+        });
+
         it('preserves full-precision distance in API params (#90561 — mirror of getUpdateMoneyRequestParams)', async () => {
             // Given a self-DM track expense whose stored quantity is at 2-decimal precision
             const transactionID = 'track_distance_precision';

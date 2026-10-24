@@ -3,6 +3,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDisplayTransaction from '@hooks/useDisplayTransaction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -11,6 +12,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
+import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
@@ -67,7 +69,10 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const sessionAccountID = session?.accountID;
     const areThereDuplicates = allDuplicateIDs.length > 0 && duplicates.length > 0 && allDuplicateIDs.length === duplicates.length;
 
-    const transactionDetails = getTransactionDetails(transaction);
+    const transactionPreview = onPreviewPressed ? transaction : (originalTransaction ?? transaction);
+    const isParentPolicyExpenseChat = isGroupPolicyByType(policy?.type);
+    const {displayTransaction} = useDisplayTransaction(transactionPreview, isParentPolicyExpenseChat, policy);
+    const transactionDetails = getTransactionDetails(displayTransaction);
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails ?? {};
 
     const contextMenuReportID = contextAction ? chatReportID : reportID;
@@ -87,8 +92,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     const navigateToReviewFields = () =>
         Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.reportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, report));
-
-    const transactionPreview = transaction;
 
     const {isBillSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
@@ -118,6 +121,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     chatReport={chatReport}
                     personalDetails={personalDetails}
                     transaction={transactionPreview}
+                    displayTransaction={displayTransaction}
                     transactionRawAmount={transactionRawAmount}
                     report={report}
                     policy={policy}
@@ -142,7 +146,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
             isBillSplit={isBillSplit}
             chatReport={chatReport}
             personalDetails={personalDetails}
-            transaction={originalTransaction ?? transaction}
+            transaction={transactionPreview}
+            displayTransaction={displayTransaction}
             transactionRawAmount={transactionRawAmount}
             report={report}
             policy={policy}

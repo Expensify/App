@@ -62,6 +62,7 @@ function TransactionPreviewContent({
     report,
     policy,
     transaction,
+    displayTransaction,
     violations,
     transactionRawAmount,
     offlineWithFeedbackOnClose,
@@ -86,8 +87,8 @@ function TransactionPreviewContent({
     const {environmentURL} = useEnvironment();
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails = useMemo<Partial<TransactionDetails>>(
-        () => getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {},
-        [transaction, policy, isParentPolicyExpenseChat],
+        () => getTransactionDetails(displayTransaction, undefined, policy, isParentPolicyExpenseChat) ?? {},
+        [displayTransaction, policy, isParentPolicyExpenseChat],
     );
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
