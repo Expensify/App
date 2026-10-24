@@ -1,7 +1,7 @@
 /** The launcher should hand its resolved settings to each child explicitly, without mutating its own environment. */
 import {describe, expect, test} from 'bun:test';
 
-import getWebCommands from '../../scripts/startWeb';
+import getWebCommands from '../../scripts/utils/getWebCommands';
 
 const SETTINGS = {root: '/repo', publicPort: 8102, internalPort: 8103, connectOrigins: ['https://www.expensify.com.dev']};
 
