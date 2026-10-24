@@ -1,7 +1,9 @@
 /** Restores domain revocation progress independently of authenticated navigation. */
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRevokedDomainSession, dismissDomainSessionRevocation, getDomainSessionRevocationStatus, updateDomainSessionRevocationStatus} from '@libs/actions/Domain';
@@ -25,6 +27,10 @@ function DomainSessionRevocationManager() {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    // Modal positioning depends on screen width, not the underlying navigation layout.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.m5});
     const completionHandle = receipt?.completionHandle;
     const status = receipt?.status;
 
@@ -77,13 +83,15 @@ function DomainSessionRevocationManager() {
     return (
         <Modal
             isVisible
-            type={CONST.MODAL.MODAL_TYPE.CONFIRM}
+            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             onClose={() => {}}
             onBackdropPress={() => {}}
             shouldHandleNavigationBack={false}
             shouldTreatModalAsCovering
+            innerContainerStyle={styles.pv0}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={styles.m5}>
+            <View style={bottomSafeAreaPaddingStyle}>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb2]}>
                     <Text style={[styles.exportDownloadTitle, styles.flexShrink1]}>{translate(`domain.members.sessionRevocation.${receipt.status}Title`)}</Text>
                     {status === 'running' && <ActivityIndicator size="small" />}
