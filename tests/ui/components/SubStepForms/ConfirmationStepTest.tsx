@@ -1,13 +1,15 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import type {MenuItemProps} from '@components/MenuItem';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 
-import React from 'react';
+import type {Pressable as NativePressable} from 'react-native/Libraries/Components/Pressable/Pressable';
+import type {View as NativeView} from 'react-native/Libraries/Components/View/View';
+import type {Text as NativeText} from 'react-native/Libraries/Text/Text';
 
-type RNComponent = React.ComponentType<{testID?: string; children?: React.ReactNode}>;
-type ReactNative = {Pressable: RNComponent; View: RNComponent; Text: RNComponent};
+import React from 'react';
 
 jest.mock('@hooks/useAccessibilityAnnouncement', () => jest.fn());
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, formatPhoneNumber: (phone: string) => phone, preferredLocale: 'en'}));
@@ -16,13 +18,18 @@ jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/useSafeAreaPaddings', () => () => ({paddingTop: 0, paddingBottom: 0, insets: undefined, safeAreaPaddingBottomStyle: {}}));
 
 jest.mock('@components/MenuItemWithTopDescription', () => {
-    const reactNative = jest.requireActual<ReactNative>('react-native');
+    const reactNative = jest.requireActual<{Pressable: typeof NativePressable; View: typeof NativeView}>('react-native');
     const RNPressable = reactNative.Pressable;
     const RNView = reactNative.View;
     return {
         __esModule: true,
-        default: ({pressableTestID, title, description}: {pressableTestID?: string; title: string; description: string}) => (
-            <RNPressable testID={pressableTestID}>
+        default: ({pressableTestID, title, description, onPress}: MenuItemProps) => (
+            <RNPressable
+                testID={pressableTestID}
+                onPress={(event) => {
+                    onPress?.(event);
+                }}
+            >
                 <RNView testID={`${pressableTestID}-title`}>{title}</RNView>
                 <RNView testID={`${pressableTestID}-description`}>{description}</RNView>
             </RNPressable>
@@ -33,22 +40,15 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
 jest.mock('@components/RenderHTML', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/DotIndicatorMessage', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/Text', () => {
-    const reactNative = jest.requireActual<ReactNative>('react-native');
+    const reactNative = jest.requireActual<{Text: typeof NativeText}>('react-native');
     return {__esModule: true, default: reactNative.Text};
 });
 jest.mock('@components/ScrollView', () => {
-    const reactNative = jest.requireActual<ReactNative>('react-native');
+    const reactNative = jest.requireActual<{View: typeof NativeView}>('react-native');
     return {__esModule: true, default: reactNative.View};
 });
 
-type SummaryItem = {
-    id: string;
-    description: string;
-    title: string;
-    shouldShowRightIcon: boolean;
-    onPress: () => void;
-    testID?: string;
-};
+type SummaryItem = NonNullable<React.ComponentProps<typeof ConfirmationStep>['summaryItems']>[number];
 
 function renderStep(items: SummaryItem[]) {
     return render(
@@ -165,5 +165,32 @@ describe('ConfirmationStep — subtitle and resubmission', () => {
 
         // Then the error is announced for this submission
         expect(getAnnouncementKey()).not.toBe(keyBeforeSubmit);
+    });
+});
+
+describe('ConfirmationStep missing plain title', () => {
+    it('retains required rows and edit actions when a title is undefined', () => {
+        // Given a missing country label must keep its row identity and edit action
+        const editCountry = jest.fn();
+        const editName = jest.fn();
+        const items: SummaryItem[] = [
+            {id: 'country', description: 'Country', title: undefined, shouldShowRightIcon: true, onPress: editCountry},
+            {id: 'name', description: 'Name', title: 'Example', shouldShowRightIcon: true, onPress: editName},
+        ];
+
+        // When the real shared component forwards both rows to presentation
+        renderStep(items);
+        const country = screen.getByTestId('country');
+        const name = screen.getByTestId('name');
+
+        // Then missing title content does not remove the row or disconnect its action
+        expect(country).toBeOnTheScreen();
+        expect(name).toBeOnTheScreen();
+        expect(screen.getByTestId('country-title').props.children).toBeUndefined();
+        expect(screen.getByTestId('name-title').props.children).toBe('Example');
+        fireEvent.press(country);
+        fireEvent.press(name);
+        expect(editCountry).toHaveBeenCalledTimes(1);
+        expect(editName).toHaveBeenCalledTimes(1);
     });
 });

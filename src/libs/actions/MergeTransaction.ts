@@ -13,7 +13,7 @@ import {
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
-import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
+import type {MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
@@ -49,7 +49,7 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
@@ -71,7 +71,7 @@ function setupMergeTransactionData(transactionID: string, values: Partial<MergeT
  * Sets merge transaction data for a specific transaction
  */
 function setMergeTransactionKey(transactionID: string, values: MergeTransactionUpdateValues) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values);
 }
 
 const MERGE_TRANSACTION_DYNAMIC_PATHS: ReadonlySet<string> = new Set([
@@ -347,11 +347,12 @@ function getOnyxTargetTransactionData({
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const filteredTransactionChanges = Object.fromEntries(
         Object.entries(mergeTransaction).filter(([key, mergeValue]) => {
-            if (!(DERIVED_MERGE_FIELDS as readonly string[]).includes(key)) {
+            const field = DERIVED_MERGE_FIELDS.find((derivedField) => derivedField === key);
+            if (!field) {
                 return false;
             }
 
-            const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, key as MergeFieldKey);
+            const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, field);
 
             return !deepEqual(mergeValue, targetValue);
         }),

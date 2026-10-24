@@ -29,7 +29,7 @@ type SummaryItem = {
     description: string;
 
     /** The answer shown in the row */
-    title: string;
+    title: string | undefined;
 
     /** Whether the chevron is shown on the right of the row */
     shouldShowRightIcon: boolean;

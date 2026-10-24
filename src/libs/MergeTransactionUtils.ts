@@ -71,7 +71,7 @@ type MergeFieldData = {
 };
 
 /** Type for merge transaction values that can be null to clear existing values in Onyx */
-type MergeTransactionUpdateValues = Partial<Record<keyof MergeTransaction, NullishDeep<MergeTransaction[keyof MergeTransaction]> | null>>;
+type MergeTransactionUpdateValues = NullishDeep<MergeTransaction>;
 
 const MERGE_FIELD_TRANSLATION_KEYS = {
     amount: 'iou.amount',
@@ -147,7 +147,7 @@ function isEmptyMergeValue(value: unknown) {
  * @param field - The merge field key to get the value for
  * @returns The value of the specified field from the transaction
  */
-function getMergeFieldValue(transactionDetails: TransactionDetails | undefined, transaction: OnyxEntry<Transaction>, field: MergeFieldKey) {
+function getMergeFieldValue(transactionDetails: TransactionDetails | undefined, transaction: OnyxEntry<Transaction>, field: TupleToUnion<typeof DERIVED_MERGE_FIELDS>) {
     if (!transactionDetails || !transaction) {
         return '';
     }
