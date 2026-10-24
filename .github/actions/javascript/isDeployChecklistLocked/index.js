@@ -2591,8 +2591,12 @@ var require_CONST = __commonJS({
   "node_modules/expensify-common/dist/CONST.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.PUBLIC_DOMAINS_SET = exports.UI = exports.CONST = exports.g_cloudFrontImg = exports.g_cloudFront = void 0;
+    exports.MAX_URL_HOSTNAME_LENGTH = exports.MAX_URL_HOSTNAME_LABEL_LENGTH = exports.PUBLIC_DOMAINS_SET = exports.UI = exports.CONST = exports.g_cloudFrontImg = exports.g_cloudFront = void 0;
     var EMAIL_BASE_REGEX = "(?=((?=[\\w'#%+-]+(?:\\.[\\w'#%+-]+)*@)[\\w\\.'#%+-]{1,64}@(?:(?=[a-z\\d]+(?:-+[a-z\\d]+)*\\.)(?:[a-z\\d-]{1,63}\\.)+[a-z]{2,63})(?= |_|\\b))(?<end>.*))\\S{3,254}(?=\\k<end>$)";
+    var MAX_URL_HOSTNAME_LABEL_LENGTH = 63;
+    exports.MAX_URL_HOSTNAME_LABEL_LENGTH = MAX_URL_HOSTNAME_LABEL_LENGTH;
+    var MAX_URL_HOSTNAME_LENGTH = 253;
+    exports.MAX_URL_HOSTNAME_LENGTH = MAX_URL_HOSTNAME_LENGTH;
     var MOMENT_FORMAT_STRING = "YYYY-MM-DD";
     var g_cloudFront = "https://d2k5nsl2zxldvw.cloudfront.net";
     exports.g_cloudFront = g_cloudFront;
@@ -21596,12 +21600,22 @@ var require_Url = __commonJS({
       return mod && mod.__esModule ? mod : { "default": mod };
     };
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.MARKDOWN_URL_REGEX = exports.LOOSE_URL_WEBSITE_REGEX = exports.LOOSE_URL_REGEX = exports.URL_PROTOCOL_REGEX = exports.URL_REGEX_WITH_REQUIRED_PROTOCOL = exports.URL_REGEX = exports.URL_FRAGMENT_REGEX = exports.URL_PARAM_REGEX = exports.URL_PATH_REGEX = exports.URL_WEBSITE_REGEX = void 0;
+    exports.MARKDOWN_URL_REGEX = exports.LOOSE_URL_WEBSITE_REGEX = exports.LOOSE_URL_REGEX = exports.URL_PORT_REGEX = exports.URL_PROTOCOL_REGEX = exports.URL_REGEX_WITH_REQUIRED_PROTOCOL = exports.URL_REGEX = exports.URL_FRAGMENT_REGEX = exports.URL_PARAM_REGEX = exports.URL_PATH_REGEX = exports.URL_WEBSITE_REGEX = exports.URL_HOSTNAME_LABEL_REGEX = exports.URL_HOSTNAME_BOUNDARY_REGEX = void 0;
     var tlds_1 = __importDefault(require_tlds());
-    var ALLOWED_PORTS = "([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])";
+    var CONST_1 = require_CONST();
+    var URL_PORT_REGEX = "([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])";
+    exports.URL_PORT_REGEX = URL_PORT_REGEX;
     var URL_PROTOCOL_REGEX = "((ht|f)tps?:\\/\\/)";
     exports.URL_PROTOCOL_REGEX = URL_PROTOCOL_REGEX;
-    var URL_WEBSITE_REGEX = `${URL_PROTOCOL_REGEX}?((?:www\\.)?[a-z0-9](?=(?<label>[-a-z0-9]*[a-z0-9])?)\\k<label>\\.)+(?:${tlds_1.default})(?:\\:${ALLOWED_PORTS}|\\b|(?=_))(?!@(?:[a-z\\d-]+\\.)+[a-z]{2,})`;
+    var MAX_URL_HOSTNAME_LABEL_BODY_LENGTH = CONST_1.MAX_URL_HOSTNAME_LABEL_LENGTH - 2;
+    var URL_HOSTNAME_LABEL_REGEX = `[a-z0-9](?=(?<label>[-a-z0-9]{0,${MAX_URL_HOSTNAME_LABEL_BODY_LENGTH}}[a-z0-9])?)\\k<label>`;
+    exports.URL_HOSTNAME_LABEL_REGEX = URL_HOSTNAME_LABEL_REGEX;
+    var LOOSE_URL_HOSTNAME_LABEL_REGEX = `(?!-)[-a-z0-9]{1,${CONST_1.MAX_URL_HOSTNAME_LABEL_LENGTH}}(?<!-)`;
+    var URL_HOSTNAME_BOUNDARY_REGEX = "(?=[a-z0-9])(?<![a-z0-9]-*)(?<![a-z0-9]\\.)";
+    exports.URL_HOSTNAME_BOUNDARY_REGEX = URL_HOSTNAME_BOUNDARY_REGEX;
+    var URL_HOSTNAME_LENGTH_CHARACTER_REGEX = "(?:(?!\\.[.-]|-\\.)[-a-z0-9.])";
+    var URL_HOSTNAME_MAX_LENGTH_ASSERTION = `(?!${URL_HOSTNAME_LENGTH_CHARACTER_REGEX}{${CONST_1.MAX_URL_HOSTNAME_LENGTH}}${URL_HOSTNAME_LENGTH_CHARACTER_REGEX}*[a-z0-9](?:\\b|(?=_)))`;
+    var URL_WEBSITE_REGEX = `${URL_PROTOCOL_REGEX}?${URL_HOSTNAME_BOUNDARY_REGEX}${URL_HOSTNAME_MAX_LENGTH_ASSERTION}((?:www\\.)?${URL_HOSTNAME_LABEL_REGEX}\\.)+(?:${tlds_1.default})(?:\\:${URL_PORT_REGEX}|\\b|(?=_))(?!@(?:[a-z\\d-]+\\.)+[a-z]{2,})`;
     exports.URL_WEBSITE_REGEX = URL_WEBSITE_REGEX;
     var addEscapedChar = (reg) => `(?:${reg}|&(?:amp|#x27);)`;
     var URL_PATH_REGEX = `(?:${addEscapedChar("[.,=(+$!*]")}?\\/${addEscapedChar("[-\\w$@.+!*:(),=%~]")}*${addEscapedChar("[-\\w~@:%)]")}|\\/)*`;
@@ -21614,7 +21628,7 @@ var require_Url = __commonJS({
     exports.URL_REGEX = URL_REGEX;
     var URL_REGEX_WITH_REQUIRED_PROTOCOL = URL_REGEX.replace(`${URL_PROTOCOL_REGEX}?`, URL_PROTOCOL_REGEX);
     exports.URL_REGEX_WITH_REQUIRED_PROTOCOL = URL_REGEX_WITH_REQUIRED_PROTOCOL;
-    var LOOSE_URL_WEBSITE_REGEX = `${URL_PROTOCOL_REGEX}((?!-)[-a-z0-9]+(?<!-)(?:\\.(?!-)[-a-z0-9]+(?<!-))*)(?:\\:${ALLOWED_PORTS}|\\b|(?=_))`;
+    var LOOSE_URL_WEBSITE_REGEX = `${URL_PROTOCOL_REGEX}${URL_HOSTNAME_MAX_LENGTH_ASSERTION}(${LOOSE_URL_HOSTNAME_LABEL_REGEX}(?:\\.${LOOSE_URL_HOSTNAME_LABEL_REGEX})*)(?:\\:${URL_PORT_REGEX}|\\b|(?=_))`;
     exports.LOOSE_URL_WEBSITE_REGEX = LOOSE_URL_WEBSITE_REGEX;
     var LOOSE_URL_REGEX = `((${LOOSE_URL_WEBSITE_REGEX})${URL_PATH_REGEX}(?:${URL_PARAM_REGEX}|${URL_FRAGMENT_REGEX})*)`;
     exports.LOOSE_URL_REGEX = LOOSE_URL_REGEX;
@@ -23218,6 +23232,9 @@ var require_ExpensiMark = __commonJS({
     var URL_TLD_LIST = tlds_1.default.toLowerCase().split("|");
     var URL_TLDS = new Set(URL_TLD_LIST);
     var MAX_URL_TLD_LENGTH = Math.max(...URL_TLD_LIST.map((tld) => tld.length));
+    var URL_HOSTNAME_LABEL_AT_POSITION_REGEX = new RegExp(UrlPatterns.URL_HOSTNAME_LABEL_REGEX, "iy");
+    var URL_HOSTNAME_BOUNDARY_AT_POSITION_REGEX = new RegExp(UrlPatterns.URL_HOSTNAME_BOUNDARY_REGEX, "iy");
+    var URL_SUFFIX_AT_POSITION_REGEX = new RegExp(`(?:\\:${UrlPatterns.URL_PORT_REGEX}(?![0-9]))?${UrlPatterns.URL_PATH_REGEX}(?:${UrlPatterns.URL_PARAM_REGEX}|${UrlPatterns.URL_FRAGMENT_REGEX})*`, "iy");
     var PROTECTED_TAG_NAMES = /* @__PURE__ */ new Set(["a", "code", "pre", "video"]);
     var MARKDOWN_LINK_REGEX = new RegExp(`\\[((?:[^\\[\\]\\r\\n]*(?:\\[[^\\[\\]\\r\\n]*][^\\[\\]\\r\\n]*)*))]\\(${UrlPatterns.MARKDOWN_URL_REGEX}\\)(?![^<]*(<\\/pre>|<\\/code>))`, "gi");
     var MARKDOWN_IMAGE_REGEX = new RegExp(`\\!(?:\\[([^\\][]*(?:\\[[^\\][]*][^\\][]*)*)])?\\(${UrlPatterns.MARKDOWN_URL_REGEX}\\)(?![^<]*(<\\/pre>|<\\/code>))`, "gi");
@@ -23337,44 +23354,29 @@ var require_ExpensiMark = __commonJS({
       }
       return URL_PROTOCOLS.find((protocol) => text.slice(position, position + protocol.length).toLowerCase() === protocol);
     }
-    function isValidHostnameLabel(text, start, end) {
-      if (start >= end || !isAsciiAlphaNumeric(text[start]) || !isAsciiAlphaNumeric(text[end - 1])) {
-        return false;
-      }
-      for (let index = start + 1; index < end - 1; index++) {
-        if (!isAsciiAlphaNumeric(text[index]) && text[index] !== "-") {
-          return false;
-        }
-      }
-      return true;
+    function findValidHostnameLabelEnd(text, start) {
+      URL_HOSTNAME_LABEL_AT_POSITION_REGEX.lastIndex = start;
+      const match = URL_HOSTNAME_LABEL_AT_POSITION_REGEX.exec(text);
+      return match === null ? void 0 : URL_HOSTNAME_LABEL_AT_POSITION_REGEX.lastIndex;
     }
-    function findHostnameStart(text, dotPosition) {
-      let hostnameStart = dotPosition;
-      let labelEnd = dotPosition;
-      while (labelEnd > 0) {
-        let rawLabelStart = labelEnd - 1;
-        while (rawLabelStart >= 0 && text[rawLabelStart] !== "." && isHostnameCharacter(text[rawLabelStart])) {
-          rawLabelStart--;
-        }
-        rawLabelStart++;
-        let labelStart = rawLabelStart;
-        while (labelStart < labelEnd && text[labelStart] === "-") {
-          labelStart++;
-        }
-        if (!isValidHostnameLabel(text, labelStart, labelEnd)) {
-          break;
-        }
-        hostnameStart = labelStart;
-        if (labelStart !== rawLabelStart) {
-          break;
-        }
-        const separatorPosition = labelStart - 1;
-        if (separatorPosition < 0 || text[separatorPosition] !== ".") {
-          break;
-        }
-        labelEnd = separatorPosition;
+    function findHostnameEnd(text, hostnameStart) {
+      let hostnameEnd = hostnameStart;
+      while (hostnameEnd < text.length && isHostnameCharacter(text[hostnameEnd])) {
+        hostnameEnd++;
       }
-      return hostnameStart === dotPosition ? void 0 : hostnameStart;
+      return hostnameEnd;
+    }
+    function findNextHostnameStart(text, start, end) {
+      for (let index = start; index < end; index++) {
+        if (text[index - 1] !== "." && text[index - 1] !== "-") {
+          continue;
+        }
+        URL_HOSTNAME_BOUNDARY_AT_POSITION_REGEX.lastIndex = index;
+        if (URL_HOSTNAME_BOUNDARY_AT_POSITION_REGEX.test(text)) {
+          return index;
+        }
+      }
+      return end;
     }
     function findKnownTldEnd(text, dotPosition) {
       const maximumEnd = Math.min(text.length, dotPosition + 1 + MAX_URL_TLD_LENGTH);
@@ -23391,19 +23393,174 @@ var require_ExpensiMark = __commonJS({
       }
       return void 0;
     }
-    function extendUrlCandidateBoundaries(text, start, end) {
+    function analyzeHostname(text, hostnameStart, hostnameEnd, hasProtocol) {
+      let hostnameContentEnd = hostnameEnd;
+      while (hostnameContentEnd > hostnameStart && (text[hostnameContentEnd - 1] === "." || text[hostnameContentEnd - 1] === "-")) {
+        hostnameContentEnd--;
+      }
+      if (hostnameContentEnd === hostnameStart) {
+        return { isValid: false };
+      }
+      let labelStart = hostnameStart;
+      let validHostnamePrefixEnd;
+      let validKnownTldPrefixEnd;
+      for (let index = hostnameStart; index <= hostnameContentEnd; index++) {
+        if (index !== hostnameContentEnd && text[index] !== ".") {
+          continue;
+        }
+        const validLabelEnd = findValidHostnameLabelEnd(text, labelStart);
+        if (validLabelEnd === void 0) {
+          return { isValid: false, validHostnamePrefixEnd };
+        }
+        let labelContentEnd = index;
+        while (labelContentEnd > labelStart && text[labelContentEnd - 1] === "-") {
+          labelContentEnd--;
+        }
+        if (labelContentEnd - labelStart > Constants.MAX_URL_HOSTNAME_LABEL_LENGTH || labelContentEnd - hostnameStart > Constants.MAX_URL_HOSTNAME_LENGTH) {
+          return { isValid: false, validHostnamePrefixEnd: validKnownTldPrefixEnd };
+        }
+        if (hasProtocol) {
+          validHostnamePrefixEnd = validLabelEnd;
+        }
+        if (validLabelEnd !== index) {
+          return { isValid: false, validHostnamePrefixEnd };
+        }
+        if (index !== hostnameContentEnd) {
+          const tldEnd = findKnownTldEnd(text, index);
+          if (tldEnd !== void 0 && tldEnd <= hostnameContentEnd && tldEnd - hostnameStart <= Constants.MAX_URL_HOSTNAME_LENGTH) {
+            validKnownTldPrefixEnd = tldEnd;
+            if (!hasProtocol) {
+              validHostnamePrefixEnd = tldEnd;
+            }
+          }
+        }
+        labelStart = index + 1;
+      }
+      return { isValid: true, validHostnamePrefixEnd };
+    }
+    function findUrlCandidateStart(text, start) {
       let candidateStart = start;
       while (candidateStart > 0 && URL_CANDIDATE_PREFIX_CHARACTERS.includes(text[candidateStart - 1])) {
         candidateStart--;
       }
+      return candidateStart;
+    }
+    function extendUrlCandidateBoundaries(text, start, end) {
       let candidateEnd = end;
       while (candidateEnd < text.length && !isUrlBoundarySpace(text[candidateEnd]) && text[candidateEnd] !== "<") {
         candidateEnd++;
       }
-      return { start: candidateStart, end: candidateEnd };
+      return { start: findUrlCandidateStart(text, start), end: candidateEnd };
     }
     function startsWithIgnoreCase(text, expected, position) {
       return text.slice(position, position + expected.length).toLowerCase() === expected;
+    }
+    function findUrlEndBeforeUnmatchedParenthesis(text, start, end) {
+      let unmatchedOpenParentheses = 0;
+      for (let index = start; index < end; index++) {
+        if (text[index] === "(") {
+          unmatchedOpenParentheses++;
+        } else if (text[index] === ")") {
+          if (unmatchedOpenParentheses === 0) {
+            return index;
+          }
+          unmatchedOpenParentheses--;
+        }
+      }
+      return end;
+    }
+    function findUrlEnd(text, hostnameEnd) {
+      var _a;
+      URL_SUFFIX_AT_POSITION_REGEX.lastIndex = hostnameEnd;
+      const match = URL_SUFFIX_AT_POSITION_REGEX.exec(text);
+      return findUrlEndBeforeUnmatchedParenthesis(text, hostnameEnd, hostnameEnd + ((_a = match === null || match === void 0 ? void 0 : match[0].length) !== null && _a !== void 0 ? _a : 0));
+    }
+    function analyzeUrlRange(text, urlStart, hostnameStart) {
+      var _a;
+      const hostnameEnd = findHostnameEnd(text, hostnameStart);
+      const hostnameAnalysis = analyzeHostname(text, hostnameStart, hostnameEnd, hostnameStart !== urlStart);
+      if (hostnameAnalysis.isValid) {
+        return { hostnameEnd };
+      }
+      let invalidRangeEnd = findUrlEnd(text, hostnameEnd);
+      if (text[hostnameEnd] === ":") {
+        for (const protocol of URL_PROTOCOLS) {
+          const protocolStart = hostnameEnd - protocol.indexOf(":");
+          if (protocolStart >= hostnameStart && startsWithIgnoreCase(text, protocol, protocolStart)) {
+            invalidRangeEnd = protocolStart;
+            break;
+          }
+        }
+      }
+      const invalidRanges = [];
+      let invalidRangeStart = (_a = hostnameAnalysis.validHostnamePrefixEnd) !== null && _a !== void 0 ? _a : urlStart;
+      let index = findNextHostnameStart(text, hostnameStart + 1, hostnameEnd);
+      while (index < hostnameEnd) {
+        const followingHostnameStart = index;
+        index = findNextHostnameStart(text, index + 1, hostnameEnd);
+        const followingHostnameAnalysis = analyzeHostname(text, followingHostnameStart, index, false);
+        if (followingHostnameAnalysis.validHostnamePrefixEnd === void 0) {
+          continue;
+        }
+        invalidRanges.push({ start: invalidRangeStart, end: followingHostnameStart });
+        invalidRangeStart = followingHostnameAnalysis.validHostnamePrefixEnd;
+        if (followingHostnameAnalysis.isValid && index === hostnameEnd) {
+          invalidRangeStart = invalidRangeEnd;
+        }
+      }
+      if (invalidRangeStart < invalidRangeEnd) {
+        invalidRanges.push({ start: invalidRangeStart, end: invalidRangeEnd });
+      }
+      return { hostnameEnd, invalidRanges, urlEnd: invalidRangeEnd };
+    }
+    function findRawHostnameStart(text, dotPosition) {
+      let hostnameStart = dotPosition;
+      while (hostnameStart > 0 && isHostnameCharacter(text[hostnameStart - 1])) {
+        hostnameStart--;
+      }
+      return hostnameStart;
+    }
+    function findInvalidUrlRanges(text) {
+      const ranges = [];
+      let index = 0;
+      while (index < text.length) {
+        const matchedProtocol = getProtocolAt(text, index);
+        let analysis;
+        if (matchedProtocol) {
+          analysis = analyzeUrlRange(text, index, index + matchedProtocol.length);
+        } else {
+          if (text[index] !== ".") {
+            index++;
+            continue;
+          }
+          const tldEnd = findKnownTldEnd(text, index);
+          if (tldEnd === void 0) {
+            index++;
+            continue;
+          }
+          const hostnameStart = findRawHostnameStart(text, index);
+          analysis = analyzeUrlRange(text, hostnameStart, hostnameStart);
+        }
+        if (analysis.invalidRanges) {
+          for (const range of analysis.invalidRanges) {
+            ranges.push(range);
+          }
+          index = analysis.urlEnd;
+        } else {
+          index = findUrlEnd(text, analysis.hostnameEnd);
+        }
+      }
+      return ranges;
+    }
+    function maskInvalidUrlRanges(text, invalidRanges) {
+      const parts = [];
+      let start = 0;
+      for (const range of invalidRanges) {
+        parts.push(text.slice(start, range.start), " ".repeat(range.end - range.start));
+        start = range.end;
+      }
+      parts.push(text.slice(start));
+      return parts.join("");
     }
     function filterUrlCandidatesBlockedByFollowingHtml(text, candidates) {
       var _a;
@@ -23464,25 +23621,41 @@ var require_ExpensiMark = __commonJS({
           continue;
         }
         const matchedProtocol = getProtocolAt(text, index);
+        let urlStart = index;
+        let candidateEnd;
         if (matchedProtocol) {
-          const candidate2 = extendUrlCandidateBoundaries(text, index, index + matchedProtocol.length);
-          candidates.push(candidate2);
-          index = candidate2.end;
+          candidateEnd = index + matchedProtocol.length;
+        } else {
+          if (text[index] !== ".") {
+            index++;
+            continue;
+          }
+          const tldEnd = findKnownTldEnd(text, index);
+          if (tldEnd === void 0) {
+            index++;
+            continue;
+          }
+          urlStart = findRawHostnameStart(text, index);
+          candidateEnd = tldEnd;
+        }
+        const analysis = analyzeUrlRange(text, urlStart, matchedProtocol ? candidateEnd : urlStart);
+        if (analysis.invalidRanges) {
+          let candidateStart = urlStart;
+          for (const range of analysis.invalidRanges) {
+            if (candidateStart < range.start) {
+              candidates.push({ start: findUrlCandidateStart(text, candidateStart), end: range.start });
+            }
+            candidateStart = range.end;
+          }
+          if (candidateStart < analysis.urlEnd) {
+            candidates.push({ start: findUrlCandidateStart(text, candidateStart), end: analysis.urlEnd });
+          }
+          index = analysis.urlEnd;
           continue;
         }
-        if (text[index] !== ".") {
-          index++;
-          continue;
-        }
-        const tldEnd = findKnownTldEnd(text, index);
-        const hostnameStart = tldEnd === void 0 ? void 0 : findHostnameStart(text, index);
-        if (tldEnd === void 0 || hostnameStart === void 0) {
-          index++;
-          continue;
-        }
-        const candidate = extendUrlCandidateBoundaries(text, hostnameStart, tldEnd);
-        candidates.push(candidate);
-        index = candidate.end;
+        const broadCandidate = extendUrlCandidateBoundaries(text, urlStart, candidateEnd);
+        candidates.push(broadCandidate);
+        index = broadCandidate.end;
       }
       return filterUrlCandidatesBlockedByFollowingHtml(text, candidates);
     }
@@ -23985,7 +24158,7 @@ var require_ExpensiMark = __commonJS({
             name: "autolink",
             process: (textToProcess, replacement, _shouldKeepRawInput, shouldEscapeText) => {
               const regex2 = new RegExp(`(?![^<]*>|[^<>]*<\\/(?!h1>))([_*~]*?)${UrlPatterns.MARKDOWN_URL_REGEX}\\1(?!((?:(?!<a).)+)?<\\/a>|[^<]*(<\\/pre>|<\\/code>))`, "gi");
-              return this.modifyTextForUrlLinks(regex2, textToProcess, replacement, canUseCandidateScanning(textToProcess, shouldEscapeText));
+              return this.modifyTextForUrlLinks(regex2, textToProcess, replacement, canUseCandidateScanning(textToProcess, shouldEscapeText), true);
             },
             replacement: (_extras, _match, g1, g2) => {
               const href = str_1.default.sanitizeURL(g2);
@@ -24493,9 +24666,16 @@ ${g2}
         return restoreVictoryChartTags(replacedText, victoryChartTags);
       }
       /**
-       * Checks matched URLs for validity and replace valid links with html elements
+       * Replaces valid URL matches and optionally narrows parsing to URL candidates.
+       *
+       * @param regex - The URL pattern used for the final match.
+       * @param textToCheck - The text containing possible URLs.
+       * @param replacement - The replacement applied to each accepted URL.
+       * @param shouldScanForUrls - Whether to scan URL candidates before running the regex.
+       * @param shouldRejectPartialHostnameMatches - Whether to mask invalid URL ranges before matching.
+       * @param followingText - Text after the candidate that the regex needs to distinguish URLs from emails.
        */
-      modifyTextForUrlLinks(regex2, textToCheck, replacement, shouldScanForUrls = false) {
+      modifyTextForUrlLinks(regex2, textToCheck, replacement, shouldScanForUrls = false, shouldRejectPartialHostnameMatches = false, followingText = "") {
         if (shouldScanForUrls) {
           const candidates = findUrlCandidates(textToCheck);
           if (candidates.length === 0) {
@@ -24506,32 +24686,40 @@ ${g2}
           let outputStart = 0;
           for (const { start, end } of candidates) {
             const candidate = textToCheck.slice(start, end);
+            const contextEnd = textToCheck[end] === "@" ? findHostnameEnd(textToCheck, end + 1) : end;
             candidateRegex.lastIndex = 0;
             output.push(textToCheck.slice(outputStart, start));
-            output.push(this.modifyTextForUrlLinks(candidateRegex, candidate, replacement));
+            output.push(this.modifyTextForUrlLinks(candidateRegex, candidate, replacement, false, shouldRejectPartialHostnameMatches, textToCheck.slice(end, contextEnd)));
             outputStart = end;
           }
           output.push(textToCheck.slice(outputStart));
           return output.join("");
         }
-        let match = regex2.exec(textToCheck);
+        const matchingRegex = regex2;
+        const textWithContext = textToCheck + followingText;
+        const invalidUrlRanges = shouldRejectPartialHostnameMatches ? findInvalidUrlRanges(textWithContext) : [];
+        const maskedText = invalidUrlRanges.length > 0 ? maskInvalidUrlRanges(textWithContext, invalidUrlRanges) : textWithContext;
+        const textToMatch = maskedText.slice(0, textToCheck.length);
+        const contextRegex = followingText ? new RegExp(regex2.source, regex2.flags.replace("g", "y")) : void 0;
+        let match = matchingRegex.exec(textToMatch);
         let replacedText = "";
         let startIndex = 0;
         while (match !== null) {
-          let unmatchedOpenParentheses = 0;
-          let url = match[2];
-          for (let i = 0; i < url.length; i++) {
-            if (url[i] === "(") {
-              unmatchedOpenParentheses++;
-            } else if (url[i] === ")") {
-              if (unmatchedOpenParentheses <= 0) {
-                const numberOfCharsToRemove = url.length - i;
-                match[0] = match[0].substr(0, match[0].length - numberOfCharsToRemove);
-                url = url.substr(0, url.length - numberOfCharsToRemove);
-                break;
-              }
-              unmatchedOpenParentheses--;
+          if (contextRegex && match.index + match[0].length === textToCheck.length) {
+            contextRegex.lastIndex = match.index;
+            const contextMatch = contextRegex.exec(maskedText);
+            if (contextMatch === null) {
+              match = matchingRegex.exec(textToMatch);
+              continue;
             }
+            match = contextMatch;
+            matchingRegex.lastIndex = contextRegex.lastIndex;
+          }
+          let url = match[2];
+          const urlEnd = findUrlEndBeforeUnmatchedParenthesis(url, 0, url.length);
+          if (urlEnd < url.length) {
+            match[0] = match[0].slice(0, match[0].length - (url.length - urlEnd));
+            url = url.slice(0, urlEnd);
           }
           if (!url.includes("?") && !url.includes("#")) {
             let numberOfCharsToRemove = 0;
@@ -24571,7 +24759,7 @@ ${g2}
             replacedText = replacedText.concat(replacement(EXTRAS_DEFAULT, match[0], linkText, url));
           }
           startIndex = match.index + match[0].length;
-          match = regex2.exec(textToCheck);
+          match = matchingRegex.exec(textToMatch);
         }
         if (startIndex < textToCheck.length) {
           replacedText = replacedText.concat(textToCheck.substr(startIndex));
