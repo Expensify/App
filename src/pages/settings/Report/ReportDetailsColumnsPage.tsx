@@ -113,12 +113,22 @@ function ReportDetailsColumnsPage() {
                     if (allColumns.includes(column)) {
                         continue;
                     }
-                    // These table values share an editor, so removing that editor must remove its alias too.
-                    if (
-                        (column === CONST.SEARCH.TABLE_COLUMNS.POSTED && !selectedColumnIds.includes(CONST.SEARCH.TABLE_COLUMNS.DATE)) ||
-                        (column === CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE && !selectedColumnIds.includes(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES))
-                    ) {
-                        continue;
+                    let editorColumn: SearchCustomColumnIds | undefined;
+                    if (column === CONST.SEARCH.TABLE_COLUMNS.POSTED) {
+                        editorColumn = CONST.SEARCH.TABLE_COLUMNS.DATE;
+                    } else if (column === CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE) {
+                        editorColumn = CONST.SEARCH.TABLE_COLUMNS.ATTENDEES;
+                    }
+                    if (editorColumn) {
+                        const editorIndex = columnsToSave.indexOf(editorColumn);
+                        if (editorIndex === -1) {
+                            continue;
+                        }
+                        if (!columnsToPreserve.includes(editorColumn)) {
+                            // Keep the original table column when this editor was only added to represent it.
+                            columnsToSave[editorIndex] = column;
+                            continue;
+                        }
                     }
                     columnsToSave.splice(Math.min(index, columnsToSave.length), 0, column);
                 }

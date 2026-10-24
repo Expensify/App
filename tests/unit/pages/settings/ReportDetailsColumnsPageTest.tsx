@@ -241,13 +241,89 @@ it('preserves table-only columns when expense fields are reordered', () => {
             CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
             CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
             CONST.SEARCH.TABLE_COLUMNS.TOTAL,
-            CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
-            CONST.SEARCH.TABLE_COLUMNS.POSTED,
             CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
-            CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
+            CONST.SEARCH.TABLE_COLUMNS.POSTED,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
         ],
         savedColumns,
     );
+});
+
+it.each([
+    [CONST.SEARCH.TABLE_COLUMNS.POSTED, CONST.SEARCH.TABLE_COLUMNS.DATE],
+    [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES],
+])('preserves %s without adding %s when another field is selected', (tableColumn, editorColumn) => {
+    // Given a table column whose shared editor is not a separate table selection.
+    jest.mocked(useRoute).mockReturnValue({
+        key: 'fields',
+        name: SCREENS.REPORT_SETTINGS.FIELDS,
+        params: {reportID: 'report-1'},
+    });
+    const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, tableColumn];
+    const props = renderColumns(savedColumns);
+    const selectedColumns = [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, editorColumn, CONST.SEARCH.TABLE_COLUMNS.MCC];
+
+    // When an unrelated field is added and the saved preference is reopened.
+    props.onSave(selectedColumns);
+    const savedPreference = jest.mocked(setReportDetailsColumns).mock.calls.at(-1)?.at(0);
+    const reopenedProps = renderColumns(savedPreference ?? undefined);
+
+    // Then the table gains only the requested field and the expense keeps the chosen selection.
+    expect(setReportDetailsColumns).toHaveBeenCalledWith([...savedColumns, CONST.SEARCH.TABLE_COLUMNS.MCC], savedColumns);
+    expect(reopenedProps.currentColumns).toEqual(selectedColumns);
+    reopenedProps.onSave(reopenedProps.currentColumns);
+    expect(setReportDetailsColumns).toHaveBeenCalledTimes(1);
+});
+
+it.each([
+    [CONST.SEARCH.TABLE_COLUMNS.POSTED, CONST.SEARCH.TABLE_COLUMNS.DATE],
+    [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES],
+])('moves %s with its shared %s editor without adding a table column', (tableColumn, editorColumn) => {
+    // Given an alias-only selection alongside a table-only receipt column.
+    jest.mocked(useRoute).mockReturnValue({
+        key: 'fields',
+        name: SCREENS.REPORT_SETTINGS.FIELDS,
+        params: {reportID: 'report-1'},
+    });
+    const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.RECEIPT, tableColumn, CONST.SEARCH.TABLE_COLUMNS.MERCHANT];
+    const props = renderColumns(savedColumns);
+    const selectedColumns = [editorColumn, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+
+    // When the editor is moved and the saved preference is reopened.
+    props.onSave(selectedColumns);
+    const savedPreference = jest.mocked(setReportDetailsColumns).mock.calls.at(-1)?.at(0);
+    const reopenedProps = renderColumns(savedPreference ?? undefined);
+
+    // Then its original table column follows the chosen order without changing Receipt or duplicating the editor.
+    expect(setReportDetailsColumns).toHaveBeenCalledWith(
+        [tableColumn, CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT],
+        savedColumns,
+    );
+    expect(reopenedProps.currentColumns).toEqual(selectedColumns);
+});
+
+it.each([
+    [CONST.SEARCH.TABLE_COLUMNS.POSTED, CONST.SEARCH.TABLE_COLUMNS.DATE],
+    [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES],
+])('keeps both %s and %s when both were explicitly selected for the table', (tableColumn, editorColumn) => {
+    // Given a table that intentionally displays both columns sharing an expense editor.
+    jest.mocked(useRoute).mockReturnValue({
+        key: 'fields',
+        name: SCREENS.REPORT_SETTINGS.FIELDS,
+        params: {reportID: 'report-1'},
+    });
+    const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, tableColumn, editorColumn];
+    const props = renderColumns(savedColumns);
+    const selectedColumns = [editorColumn, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+
+    // When fields are added and reordered without deselecting the shared editor.
+    props.onSave(selectedColumns);
+    const savedPreference = jest.mocked(setReportDetailsColumns).mock.calls.at(-1)?.at(0);
+    const reopenedProps = renderColumns(savedPreference ?? undefined);
+
+    // Then both intentional table choices survive while the expense retains its selected order.
+    expect(setReportDetailsColumns).toHaveBeenCalledWith([editorColumn, tableColumn, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT], savedColumns);
+    expect(reopenedProps.currentColumns).toEqual(selectedColumns);
 });
 
 it.each([
