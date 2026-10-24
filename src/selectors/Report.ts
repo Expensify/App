@@ -75,6 +75,10 @@ function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CON
             if (isThread(report)) {
                 return CONST.REPORT_AVATAR_KIND.CHAT_THREAD;
             }
+            // Only a trip room missing its parent fields gets here. Legacy `isTripRoom` requires type=chat, so one without a type stays DEFAULT.
+            if (report.chatType === CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
+                return CONST.REPORT_AVATAR_KIND.TRIP_ROOM;
+            }
             break;
         case undefined:
             // Legacy `getIcons` classifies chats purely off chatType, so a chat row whose `type` hasn't populated
@@ -96,7 +100,7 @@ function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CON
         case CONST.REPORT.CHAT_TYPE.INVOICE:
             return CONST.REPORT_AVATAR_KIND.ROOM;
         default:
-            // DM, self-DM, system, a trip room without its parent fields and anything unclassified
+            // DM, self-DM, system, a trip room without a type and anything unclassified
             return CONST.REPORT_AVATAR_KIND.DEFAULT;
     }
 }
@@ -159,6 +163,13 @@ function reportPolicyFieldsSelector(report: OnyxEntry<Report>): Pick<Report, 'po
         return undefined;
     }
     return {policyID: report.policyID, policyName: report.policyName, oldPolicyName: report.oldPolicyName, policyAvatar: report.policyAvatar};
+}
+
+function reportTypeAndParentIDsSelector(report: OnyxEntry<Report>): Pick<Report, 'type' | 'chatReportID' | 'parentReportID'> | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {type: report.type, chatReportID: report.chatReportID, parentReportID: report.parentReportID};
 }
 
 const policyIDsWithEmptyReportsSelector =
@@ -445,6 +456,7 @@ export {
     reportAvatarFieldsSelector,
     reportAvatarKindSelector,
     reportPolicyFieldsSelector,
+    reportTypeAndParentIDsSelector,
     roomAvatarFieldsSelector,
     createMoveExpenseReportNVPSelector,
     createOutstandingReportsForPolicySelector,
