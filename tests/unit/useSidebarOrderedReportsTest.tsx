@@ -20,13 +20,30 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock dependencies
-jest.mock('@libs/SidebarUtils', () => ({
-    sortReportsToDisplayInLHN: jest.fn(),
-    getReportsToDisplayInLHN: jest.fn(),
-    updateReportsToDisplayInLHN: jest.fn(),
-    filterReportsForInboxTab: jest.fn((reportIDs: string[]) => reportIDs),
-    getInboxTabSummary: jest.fn(() => ({counts: {}, hasStaleUnreadReport: false})),
-}));
+jest.mock('@libs/SidebarUtils', () => {
+    const sortReportsToDisplayInLHN = jest.fn<string[] | undefined, unknown[]>();
+    type MockOrder = {orderedReportIDs: string[]; reportsToDisplay: unknown};
+    const toOrder = (reportsToDisplay: unknown, orderedReportIDs: string[] | undefined, previousIDs?: string[]): MockOrder & Record<string, unknown> => {
+        const ids = orderedReportIDs ?? [];
+        return {
+            groups: {pinnedAndGBRReports: [], errorReports: [], draftReports: [], nonArchivedReports: [], archivedReports: []},
+            groupByReportID: new Map(),
+            reportsToDisplay,
+            orderedReportIDs: previousIDs && previousIDs.length === ids.length && previousIDs.every((id, index) => id === ids.at(index)) ? previousIDs : ids,
+        };
+    };
+    return {
+        sortReportsToDisplayInLHN,
+        buildLHNOrder: jest.fn((...args: unknown[]) => toOrder(args.at(0), sortReportsToDisplayInLHN(...args))),
+        updateLHNOrder: jest.fn((order: MockOrder, changedReportIDs: unknown, ...args: unknown[]) =>
+            args.at(0) === order.reportsToDisplay ? order : toOrder(args.at(0), sortReportsToDisplayInLHN(...args), order.orderedReportIDs),
+        ),
+        getReportsToDisplayInLHN: jest.fn(),
+        updateReportsToDisplayInLHN: jest.fn(),
+        filterReportsForInboxTab: jest.fn((reportIDs: string[]) => reportIDs),
+        getInboxTabSummary: jest.fn(() => ({counts: {}, hasStaleUnreadReport: false})),
+    };
+});
 jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
