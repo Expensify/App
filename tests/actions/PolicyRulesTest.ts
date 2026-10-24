@@ -476,7 +476,7 @@ describe('actions/PolicyRules', () => {
                 scopeID: fakePolicy.id,
                 priority: CONST.RULES.EXPENSE_DEFAULT.PRIORITY,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.UPDATE_TRANSACTION]),
                 filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
                 actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
             });
@@ -544,7 +544,7 @@ describe('actions/PolicyRules', () => {
                 ruleID,
                 priority: CONST.RULES.EXPENSE_DEFAULT.PRIORITY,
                 value: JSON.stringify({
-                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.UPDATE_TRANSACTION]),
                     filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
                     actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
                 }),

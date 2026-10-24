@@ -63,7 +63,7 @@ function buildRuleWithOverrides(overrides: Record<string, unknown>): ExpenseDefa
 
 describe('ExpenseDefaultRuleUtils', () => {
     describe('buildMerchantRule', () => {
-        it('builds the CreateTransaction trigger, the merchant filter and one Set action per field', () => {
+        it('builds both transaction triggers, the merchant filter and one Set action per field', () => {
             const rule = buildMerchantRule(
                 {
                     merchantToMatch: 'Starbucks',
@@ -81,7 +81,7 @@ describe('ExpenseDefaultRuleUtils', () => {
             );
 
             expect(rule).toEqual({
-                triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION]),
+                triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION, TRIGGER.UPDATE_TRANSACTION]),
                 filters: {left: FIELD.MERCHANT, operator: EQUAL_TO, right: 'Starbucks'},
                 actions: toIndexMap([
                     {name: ACTION.SET, field: FIELD.MERCHANT, value: 'Starbucks Coffee'},

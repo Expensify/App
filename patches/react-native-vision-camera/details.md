@@ -1,28 +1,69 @@
 # `react-native-vision-camera` patches
 
-### [react-native-vision-camera+4.7.2+001+fix-ios-camera-teardown-hang-and-config-leak.patch](react-native-vision-camera+4.7.2+001+fix-ios-camera-teardown-hang-and-config-leak.patch)
+### [react-native-vision-camera+5.2.3+001+restore-v4-shutter-muting.patch](react-native-vision-camera+5.2.3+001+restore-v4-shutter-muting.patch)
 
-This patch carries two related iOS fixes to `CameraSession.configure`. The second addresses a crash that the first one exposed.
+- Reason:
 
-- Reason (1) — **main-thread hangs when leaving a camera screen**: VisionCamera could deallocate its preview while `AVCaptureSession` was still busy configuring, causing the main thread to wait on the capture-session lock.
+    ```
+    VisionCamera v5 dropped two ways v4 kept the photo shutter silent, so the upgrade made receipt, odometer and
+    attachment photos play the shutter sound where they did not before:
 
-  - **How it works**: Deactivates camera resources before teardown, uses a thread-safe counter to cancel stale configuration calls, and adds logging for slow or completed configurations.
-  - **Upstream source**: Ports the three-file solution from [react-native-vision-camera PR #3664](https://github.com/mrousavy/react-native-vision-camera/pull/3664). The library's creator and maintainer reviewed that PR, and the author revised it in response to the feedback. It was never merged and was ultimately closed as obsolete after VisionCamera V5 rewrote the upstream codebase.
-  - **Local correction**: Omits the upstream counter increment from `CameraView.deinit`. Normal configuration closures retain `CameraView` and therefore prevent `deinit`, while the teardown closure does not. Incrementing the counter from `deinit` could consequently invalidate and skip the queued teardown that disables the active camera session.
-  - **Why it was patched locally**: As explained in the [decision to patch locally](https://github.com/Expensify/App/issues/91293#issuecomment-4917304380), this was a known bug in the VisionCamera version used when the patch was introduced. At that time, upgrading to V5 was not a targeted alternative because it was a major rewrite that was still receiving similar reports, so porting the reviewed fix to the existing version was the lower-risk approach.
+    - iOS: `enableShutterSound: false` only works on iOS 18+, through `isShutterSoundSuppressionEnabled`. On iOS 16.4-17,
+      plain receipt scans and every photo taken with "Mute all sounds from Expensify" on now play the shutter sound.
+      The patch restores v4's fallback below iOS 18: when the sound is disabled, it disposes the system shutter sound
+      (`AudioServicesDisposeSystemSoundID(1108)`) right before capture. iOS 18+ keeps v5's own suppression.
+    - Android: v4 skipped the shutter sound while the ringer was on silent or vibrate (the fix for
+      https://github.com/Expensify/App/issues/39241). v5 only checks `enableShutterSound`, so the click plays on silent.
+      The patch restores the ringer check. Regions that legally require the sound still play it.
+    ```
 
-- Reason (2) — **`NSGenericException` from an unbalanced capture-session configuration**: `-[AVCaptureSession stopRunning] stopRunning may not be called between calls to beginConfiguration and commitConfiguration`, thrown from `CameraSession.checkIsActive` on the camera queue.
+- Upstream PR/issue: The maintainer offered to take the fix into V5 (https://github.com/Expensify/App/pull/102898#discussion_r4315528609). Upstream PR: https://github.com/margelo/react-native-vision-camera/pull/4228. Drop this patch once a release with it is installed.
+- E/App issue: https://github.com/Expensify/App/issues/102514
+- PR introducing patch: https://github.com/Expensify/App/pull/102898
 
-  - **How it works**: `configure` calls `beginConfiguration()` inside one `if difference.isSessionConfigurationDirty` block and `commitConfiguration()` inside a second block further down, so that input, output and device changes batch into a single hardware update. Any throw between the two — `configureDevice`, `configureOutputs`, the `noDevice` guard, or any of the device-configuration steps that follow it — skipped the commit and left the session's configuration counter permanently held. Every later `startRunning()` or `stopRunning()` on that session then threw, for the remainder of its lifetime. The patch tracks whether the configuration was opened and commits it on the error path, preserving the existing batching on the success path.
-  - **Relationship to fix 1**: The defect is upstream and predates this patch. Fix 1 added `deactivateCameraSession()`, which issues a `configure` call during teardown that reaches `checkIsActive` — turning a previously latent leak into a crash on the way out of the camera screen. Closing the upstream hole is preferred to reverting fix 1, which would reintroduce the hangs while leaving the leak in place.
-  - **Scope**: Video capture session only. The audio block in the same function has the identical defect, but it is unreachable in this app: `audio` defaults to `false` natively, no call site enables it, `startRecording` is never called, and every throw site in `configureAudioSession` sits behind `if enableAudio`. Revisit if either of those changes.
+### [react-native-vision-camera+5.2.3+002+unbind-own-session-only.patch](react-native-vision-camera+5.2.3+002+unbind-own-session-only.patch)
 
-- Upstream PR/issue:
-  - Fix 1: https://github.com/mrousavy/react-native-vision-camera/issues/3636, https://github.com/mrousavy/react-native-vision-camera/pull/3664
-  - Fix 2: N/A. The defect is real upstream, but `4.7.2` belongs to the V4 line, which is no longer supported — VisionCamera V5 rewrote this code, so a fix against V4 would not be accepted and a report against the rewritten V5 code would not describe the same source. This is the same situation that closed [PR #3664](https://github.com/mrousavy/react-native-vision-camera/pull/3664) as obsolete. The patch will be dropped if and when we move to V5.
-- E/App issue:
-  - Fix 1: https://github.com/Expensify/App/issues/91293
-  - Fix 2: https://github.com/Expensify/App/issues/97103
-- PR introducing patch:
-  - Fix 1: https://github.com/Expensify/App/pull/95984
-  - Fix 2: https://github.com/Expensify/App/pull/97499
+- Reason:
+
+    ```
+    On Android, every V5 CameraSession calls `cameraProvider.unbindAll()` when it configures and when it is disposed.
+    The provider is shared by the whole app, so opening one camera unbinds every other mounted camera. The Scan screen
+    stays mounted (inactive) under the confirmation page, so after Replace receipt opens and closes its own camera, Scan
+    comes back with nothing bound and the viewfinder stays black until the screen remounts. V4 only unbound its own use
+    cases. The patch makes each session remember what it bound (its `SessionConfig`, or its use cases for multi-camera)
+    and unbind only that.
+    ```
+
+- Upstream PR/issue: https://github.com/margelo/react-native-vision-camera/pull/4229. Drop this patch once a release with it is installed.
+- E/App issue: https://github.com/Expensify/App/issues/102514
+- PR introducing patch: https://github.com/Expensify/App/pull/102898
+
+### [react-native-vision-camera+5.2.3+003+restore-v4-ios-session-restart.patch](react-native-vision-camera+5.2.3+003+restore-v4-ios-session-restart.patch)
+
+- Reason:
+
+    ```
+    AVFoundation stops the iOS capture session on a runtime error (for example when media services are reset) and does
+    not restart it. V4 called `startRunning()` again while the camera was active. V5 only forwards the error to JS, so the
+    Scan viewfinder stays empty until the user leaves the screen. The patch restarts the session if JS still wants it
+    running, at most once per 5 s so a camera that keeps failing does not restart in a loop.
+    ```
+
+- Upstream PR/issue: https://github.com/margelo/react-native-vision-camera/pull/4230. Drop this patch once a release with it is installed.
+- E/App issue: https://github.com/Expensify/App/issues/102514
+- PR introducing patch: https://github.com/Expensify/App/pull/102898
+
+### [react-native-vision-camera+5.2.3+004+restore-v4-ios-keep-screen-awake.patch](react-native-vision-camera+5.2.3+004+restore-v4-ios-keep-screen-awake.patch)
+
+- Reason:
+
+    ```
+    V4 kept the iPhone screen awake while a camera was active (`UIApplication.shared.isIdleTimerDisabled = isActive`
+    in `CameraView.swift`). V5 never sets the idle timer, so the screen dims and locks on Scan, the odometer camera and
+    Take photo, which matters most during multi-scan. The patch sets it in `start()` and clears it in `stop()` and on
+    deinit. Android is unaffected: V4 never kept the screen on there either.
+    ```
+
+- Upstream PR/issue: https://github.com/margelo/react-native-vision-camera/pull/4233. Drop this patch once a release with it is installed.
+- E/App issue: https://github.com/Expensify/App/issues/102514
+- PR introducing patch: https://github.com/Expensify/App/pull/102898

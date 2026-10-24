@@ -193,8 +193,8 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 <>
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
                     <ToggleSettingOptionRow
-                        title={translate('workspace.dualEntry.syncTravelInvoicingSettlements')}
-                        switchAccessibilityLabel={translate('workspace.dualEntry.syncTravelInvoicingSettlements')}
+                        title={translate('workspace.dualEntry.syncTravelBillingSettlements')}
+                        switchAccessibilityLabel={translate('workspace.dualEntry.syncTravelBillingSettlements')}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTravelInvoicingSettlements}
@@ -209,7 +209,7 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
                             <MenuItemField
-                                name={translate('workspace.dualEntry.travelInvoicingSettlementAccount.label')}
+                                name={translate('workspace.dualEntry.travelBillingSettlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={travelInvoicingSettlementsBankAccount ? `${travelInvoicingSettlementsBankAccount?.id} ${travelInvoicingSettlementsBankAccount?.name}` : undefined}
                             >
@@ -220,7 +220,7 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
                             <MenuItemField
-                                name={translate('workspace.dualEntry.travelInvoicingPayableAccount.label')}
+                                name={translate('workspace.dualEntry.travelBillingPayableAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={travelInvoicingPayableAccount ? `${travelInvoicingPayableAccount?.id} ${travelInvoicingPayableAccount?.name}` : undefined}
                             >
