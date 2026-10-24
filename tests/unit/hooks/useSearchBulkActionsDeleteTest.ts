@@ -169,6 +169,7 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
 let mockShouldShowDeleteOption = false;
 jest.mock('@libs/SearchUIUtils', () => ({
     shouldShowDeleteOption: () => mockShouldShowDeleteOption,
+    isGroupEntry: jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils').isGroupEntry,
     getSelectedGroupFilterEntry: jest.fn(),
     navigateToSearchRHP: jest.fn(),
     getValidGroupBy: jest.fn(),
