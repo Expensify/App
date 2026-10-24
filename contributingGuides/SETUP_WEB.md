@@ -161,7 +161,7 @@ You probably have a misconfigured `.env` file - remove it (`rm .env`) and try ag
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
 2. Make sure you have the correct Node version installed as specified in `.nvmrc`
 3. Ensure HTTPS is properly configured if you're having certificate issues
-4. If Worker setup is missing, rerun `npm install`; launching the server never installs dependencies. Missing certificates require `npm run setup-https`. Trust the mkcert CA in the browser rather than disabling certificate checks.
+4. If the Worker tooling is missing, `npm run web` warns and serves Rsbuild directly. Rerun `npm install` to restore the Worker; it skips the Worker when `CI` is set, and launching the server never installs dependencies. Missing certificates require `npm run setup-https`. Trust the mkcert CA in the browser rather than disabling certificate checks.
 5. If the Worker returns `503`, inspect the Rsbuild process output. There is no fallback to an old `dist/` build. If a page appears stale, check for an old service worker in the disposable browser profile.
 6. The old ngrok workaround for Wrangler upstream ports is not required: live mode explicitly fetches a loopback HTTP origin. Do not clear CA settings or disable TLS verification to work around unrelated certificate errors.
 

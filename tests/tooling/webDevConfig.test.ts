@@ -5,14 +5,28 @@ import {assertWebPortAvailable, getDevelopmentConnectOrigins, getWebDevFlags, ge
 
 describe('web development configuration', () => {
     test('defaults both services on and allows independent opt-outs', () => {
-        // Given contributor defaults
+        // Given contributor defaults, with the Worker tooling installed
         // When flags are resolved
-        const defaults = getWebDevFlags({});
+        const defaults = getWebDevFlags({}, true);
         // Then neither opt-out changes the meaning of the other
-        expect(defaults).toEqual({isWorkerEnabled: true, isProxyEnabled: true, shouldOpenBrowser: true});
-        expect(getWebDevFlags({USE_WEB_PROXY: 'false'})).toMatchObject({isWorkerEnabled: true, isProxyEnabled: false});
-        expect(getWebDevFlags({USE_CLOUDFLARE_WORKER: 'false', WEB_OPEN: 'false'})).toEqual({isWorkerEnabled: false, isProxyEnabled: true, shouldOpenBrowser: false});
-        expect(getWebDevFlags({USE_CLOUDFLARE_WORKER: 'false', USE_WEB_PROXY: 'false'})).toMatchObject({isWorkerEnabled: false, isProxyEnabled: false});
+        expect(defaults).toEqual({isWorkerEnabled: true, isWorkerMissing: false, isProxyEnabled: true, shouldOpenBrowser: true});
+        expect(getWebDevFlags({USE_WEB_PROXY: 'false'}, true)).toMatchObject({isWorkerEnabled: true, isProxyEnabled: false});
+        expect(getWebDevFlags({USE_CLOUDFLARE_WORKER: 'false', WEB_OPEN: 'false'}, true)).toEqual({
+            isWorkerEnabled: false,
+            isWorkerMissing: false,
+            isProxyEnabled: true,
+            shouldOpenBrowser: false,
+        });
+        expect(getWebDevFlags({USE_CLOUDFLARE_WORKER: 'false', USE_WEB_PROXY: 'false'}, true)).toMatchObject({isWorkerEnabled: false, isProxyEnabled: false});
+    });
+
+    test('serves Rsbuild directly when the Worker tooling is not installed', () => {
+        // Given a checkout whose install skipped or failed to install the Worker, e.g. with CI set
+        // When flags are resolved
+        // Then the session still starts without the Worker, and says why, rather than failing
+        expect(getWebDevFlags({}, false)).toMatchObject({isWorkerEnabled: false, isWorkerMissing: true});
+        // And a session that opted out of the Worker has nothing to report
+        expect(getWebDevFlags({USE_CLOUDFLARE_WORKER: 'false'}, false)).toMatchObject({isWorkerEnabled: false, isWorkerMissing: false});
     });
 
     test('validates and deduplicates explicit backend origins', () => {

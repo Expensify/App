@@ -1,8 +1,15 @@
 /** Resolve one set of ports and flags for every process in a local web session. */
 import {LOCAL_BACKEND_URL_KEYS, QA_ACCESS_TEAM_DOMAIN_KEY} from '../../config/rsbuild/developmentEnvKeys';
 
-function getWebDevFlags(env: Record<string, string | undefined>) {
-    return {isWorkerEnabled: env.USE_CLOUDFLARE_WORKER !== 'false', isProxyEnabled: env.USE_WEB_PROXY !== 'false', shouldOpenBrowser: env.WEB_OPEN !== 'false'};
+/** A session whose install skipped or failed to install the Worker tooling still starts, serving Rsbuild directly. */
+function getWebDevFlags(env: Record<string, string | undefined>, isWorkerInstalled: boolean) {
+    const isWorkerRequested = env.USE_CLOUDFLARE_WORKER !== 'false';
+    return {
+        isWorkerEnabled: isWorkerRequested && isWorkerInstalled,
+        isWorkerMissing: isWorkerRequested && !isWorkerInstalled,
+        isProxyEnabled: env.USE_WEB_PROXY !== 'false',
+        shouldOpenBrowser: env.WEB_OPEN !== 'false',
+    };
 }
 
 function getDevelopmentConnectOrigins(env: Record<string, string | undefined>): string[] {

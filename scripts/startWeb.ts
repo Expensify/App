@@ -12,7 +12,11 @@ import waitForWebServer from './waitForWebServer';
 
 async function startWeb() {
     // Bun loads .env automatically, preserving explicit shell overrides.
-    const {isWorkerEnabled, isProxyEnabled, shouldOpenBrowser} = getWebDevFlags(Bun.env);
+    const isWorkerInstalled = await Bun.file('web/cloudflare-worker/node_modules/wrangler/bin/wrangler.js').exists();
+    const {isWorkerEnabled, isWorkerMissing, isProxyEnabled, shouldOpenBrowser} = getWebDevFlags(Bun.env, isWorkerInstalled);
+    if (isWorkerMissing) {
+        console.warn('Cloudflare Worker tooling is not installed, so serving Rsbuild directly without the Worker. Run npm install (it skips the Worker when CI is set).');
+    }
     const {publicPort, internalPort, ports} = getWebDevPorts(Bun.env, isWorkerEnabled);
     for (const port of ports) {
         assertWebPortAvailable(port);
@@ -24,9 +28,6 @@ async function startWeb() {
         if (!(await Bun.file(`config/rsbuild/${file}`).exists())) {
             throw new Error('Missing local HTTPS certificate. Run npm run setup-https first.');
         }
-    }
-    if (isWorkerEnabled && !(await Bun.file('web/cloudflare-worker/node_modules/wrangler/bin/wrangler.js').exists())) {
-        throw new Error('Missing Worker dependencies. Run npm install to finish App setup.');
     }
     const origin = `https://dev.new.expensify.com:${publicPort}`;
     const commands = getWebCommands({root: process.cwd(), isWorkerEnabled, isProxyEnabled, publicPort, internalPort, connectOrigins: getDevelopmentConnectOrigins(Bun.env)});
