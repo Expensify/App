@@ -59,6 +59,7 @@ function renderTable(members: WorkspaceMemberRowData[], tableRef: React.RefObjec
                             shouldShowCustomField2Column={false}
                             shouldShowOfficeLocationColumn={false}
                             shouldShowBankAccountColumn
+                            shouldShowTravelColumn={false}
                             onRowSelectionChange={jest.fn()}
                         />
                     </ScreenWrapperStatusContext.Provider>

@@ -5131,6 +5131,7 @@ const CONST = {
             CHANGE_ROLE: 'changeRole',
             CHANGE_OFFICE_LOCATION: 'changeOfficeLocation',
             CHANGE_WORK_ARRANGEMENT: 'changeWorkArrangement',
+            CHANGE_TRAVEL_ACCESS: 'changeTravelAccess',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -9736,6 +9737,12 @@ const CONST = {
             BOOK_OR_MANAGE_YOUR_TRIP: 'BookOrManageYourTrip',
             REVIEWING_REQUEST: 'ReviewingRequest',
         },
+        MEMBER_ROLE: {
+            TRAVELER: 'traveler',
+            ADMIN: 'admin',
+        },
+        // The travel value of a member who can't book travel, shown in place of their travel role
+        MEMBER_ACCESS_OFF: 'off',
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
             ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',
@@ -9747,6 +9754,7 @@ const CONST = {
                 DOMAIN_SELECTOR: 'domain-selector',
                 WORKSPACE_ADDRESS: 'workspace-address',
                 LEGAL_ENTITY_TAX_ID: 'legal-entity-tax-id',
+                TRAVEL_MEMBERS: 'travel-members',
                 TERMS: 'terms',
             },
         },
@@ -10683,6 +10691,7 @@ const CONST = {
             TRAVEL: {
                 BOOK_TRAVEL_BUTTON: 'WorkspaceTravel-BookTravelButton',
                 GET_STARTED_BUTTON: 'WorkspaceTravel-GetStartedButton',
+                MANAGE_MEMBERS_BUTTON: 'WorkspaceTravel-ManageMembersButton',
             },
             INVOICES: {
                 COMPANY_NAME: 'WorkspaceInvoices-CompanyName',

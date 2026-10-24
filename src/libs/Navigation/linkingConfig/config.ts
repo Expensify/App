@@ -1106,6 +1106,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBERS_CHANGE_WORK_ARRANGEMENT]: {
                             path: ROUTES.WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBERS_CHANGE_TRAVEL_ACCESS]: {
+                            path: ROUTES.WORKSPACE_MEMBERS_CHANGE_TRAVEL_ACCESS.route,
+                        },
                         [SCREENS.WORKSPACE.WORKFLOWS_IMPORT]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_IMPORT.route,
                         },
@@ -1193,6 +1196,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: {
                             path: ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_TRAVEL_ACCESS]: {
+                            path: ROUTES.WORKSPACE_MEMBER_TRAVEL_ACCESS.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_TRAVEL_ROLE]: {
+                            path: ROUTES.WORKSPACE_MEMBER_TRAVEL_ROLE.route,
                         },
                         [SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION]: {
                             path: ROUTES.WORKSPACE_MEMBER_OFFICE_LOCATION.route,

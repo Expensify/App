@@ -1,5 +1,6 @@
 import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
@@ -37,7 +38,9 @@ import {
     goBackFromInvalidPolicy,
     hasDynamicExternalWorkflow,
     isControlPolicy,
+    isPolicyAdmin,
     isSubmitPolicy,
+    isWorkspaceProvisionedForTravel,
     shouldHideDynamicExternalWorkflowPeople,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
@@ -142,6 +145,9 @@ function WorkspaceInviteMessageComponent({
     // Invitees have no office of their own yet, so office-based ones commute to the primary office
     const defaultOfficeLabel = selectedHasOfficeWorkArrangement && officeLocations.length > 1 ? getMemberOfficeLocation(officeLocations, undefined)?.name : undefined;
 
+    const shouldShowTravelCheckbox = isWorkspaceProvisionedForTravel(policy?.travelSettings) && isPolicyAdmin(policy, currentUserLogin);
+    const [shouldTurnOnTravel, setShouldTurnOnTravel] = useState(policy?.travelSettings?.autoEnableNewMembers ?? false);
+
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
 
@@ -229,6 +235,7 @@ function WorkspaceInviteMessageComponent({
             filteredReportActions,
             shouldShowApproverRow ? validatedApprover : undefined,
             shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
+            shouldShowTravelCheckbox ? shouldTurnOnTravel : undefined,
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearWorkspaceInviteWorkArrangementDraft(policyID);
@@ -404,6 +411,15 @@ function WorkspaceInviteMessageComponent({
                                 />
                             )}
                         </View>
+                        {shouldShowTravelCheckbox && (
+                            <CheckboxWithLabel
+                                style={styles.mb5}
+                                label={translate('workspace.inviteMessage.turnOnTravel')}
+                                accessibilityLabel={translate('workspace.inviteMessage.turnOnTravel')}
+                                value={shouldTurnOnTravel}
+                                onInputChange={(isChecked) => setShouldTurnOnTravel(!!isChecked)}
+                            />
+                        )}
                         <View style={[styles.mb3]}>
                             <Text style={[styles.textSupportingNormal]}>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                         </View>

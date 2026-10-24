@@ -21,6 +21,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+import {getTravelMembersSelectionToSend} from '@libs/TravelMembersSelectionUtils';
 
 import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
 
@@ -97,7 +98,7 @@ function TermsStep({policyID, resolvedDomain, firstIncompletePrerequisitePageNam
             resetToPage?.(firstIncompletePrerequisitePageName);
             return;
         }
-        acceptSpotnanaTerms(domain, policyID, travelProvisioning?.taxID)
+        acceptSpotnanaTerms(domain, policyID, travelProvisioning?.taxID, getTravelMembersSelectionToSend(travelProvisioning, policyID))
             .then((response) => {
                 // Extract the error code from onyxData - the backend sets errors in TRAVEL_PROVISIONING via onyxData
                 const travelProvisioningData = response?.onyxData?.find((data) => data.key === ONYXKEYS.TRAVEL_PROVISIONING);

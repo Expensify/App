@@ -4960,6 +4960,11 @@ const translations = {
                 required: 'Please enter your legal entity tax ID.',
             },
         },
+        travelMembers: {
+            headline: 'Who can book travel?',
+            subtitle: 'Choose who on this workspace can book travel. You can change this anytime from the Members page.',
+            everyone: 'Everyone on this workspace',
+        },
         domainPermissionInfo: {
             title: 'Domain',
             restriction: (domain: string) =>
@@ -4973,6 +4978,10 @@ const translations = {
         blockedFeatureModal: {
             title: 'Expensify Travel has been disabled',
             message: `Your admin has turned off Expensify Travel. Please follow your company's booking policy for travel arrangements.`,
+        },
+        memberAccessDisabledModal: {
+            title: "Travel isn't turned on for you yet",
+            message: "Your workspace admin hasn't turned on Expensify Travel for you. Reach out to your admin to get access.",
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Travel is not enabled',
@@ -7174,6 +7183,34 @@ const translations = {
                         title: 'Sync coding to Expensify Travel',
                         subtitle: "Push this workspace's categories, tags, and report fields to Expensify Travel so travelers answer them at booking time.",
                     },
+                    autoEnableNewMembers: {
+                        title: 'Automatically turn on travel for new members',
+                        subtitle: 'Anyone who joins this workspace can book travel right away.',
+                    },
+                },
+                members: {
+                    travelRole: 'Travel role',
+                    traveler: 'Traveler',
+                    travelAdmin: 'Travel admin',
+                    travelerDescription: 'Can book and manage their own trips',
+                    travelAdminDescription: 'Can also manage travel settings and trips for the company',
+                    off: 'Off',
+                    offDescription: "Can't book travel",
+                    on: 'On',
+                    onDescription: 'Can book travel',
+                    travel: 'Travel',
+                    travelAccess: 'Travel access',
+                    changeTravelAccess: 'Change travel access',
+                    turnOnTravel: 'Turn on travel',
+                    turnOnTravelDescription: 'Members book with the travel role they already have',
+                    turnOffTravel: 'Turn off travel',
+                    turnOffTravelDescription: "Members can't open Expensify Travel",
+                    makeTravelAdmins: 'Make travel admins',
+                    makeTravelAdminsDescription: 'Turns travel on, and members can manage travel settings and trips for the company',
+                    makeTravelers: 'Make travelers',
+                    makeTravelersDescription: 'Turns travel on, and members can book and manage their own trips',
+                    manageMembers: 'Manage members',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Can book travel: ${enabledCount} of ${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {
@@ -8464,6 +8501,7 @@ const translations = {
             confirmDetails: 'Confirm details',
             inviteMessagePrompt: 'Make your invitation extra special by adding a message below!',
             personalMessagePrompt: 'Message',
+            turnOnTravel: 'Turn on travel',
             genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
             inviteNoMembersError: 'Please select at least one member to invite',
             joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `${user} requested to join ${workspaceName}`,
