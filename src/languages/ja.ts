@@ -36,6 +36,8 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        moveUp: '上に移動',
+        moveDown: '下に移動',
         durationDays: ({count}: {count: number}) => ({
             one: `1 日`,
             other: `${count} 日`,
@@ -10125,6 +10127,7 @@ ${reportName}`,
             staleResults: {title: '再読み込みが必要です', subtitle: 'このページは古くなっています。最新の情報を見るには再読み込みしてください。', buttonText: '更新'},
         },
         columns: '列',
+        customizeFields: 'フィールドをカスタマイズ',
         editColumns: '列の編集',
         resetColumns: '列をリセット',
         groupColumns: '列をグループ化',

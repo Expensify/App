@@ -106,3 +106,5 @@ export default function ViolationMessages({
         </View>
     );
 }
+
+export type {ViolationMessagesProps};

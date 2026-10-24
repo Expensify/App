@@ -22,6 +22,8 @@ import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTy
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        moveUp: 'Mover hacia arriba',
+        moveDown: 'Mover hacia abajo',
         durationDays: ({count}: {count: number}) => ({
             one: `1 día`,
             other: `${count} días`,
@@ -10159,6 +10161,7 @@ ${reportName}`,
             staleResults: {title: 'Es necesario actualizar', subtitle: 'Esta página está desactualizada, actualiza para ver lo más reciente', buttonText: 'Actualizar'},
         },
         columns: 'Columnas',
+        customizeFields: 'Personalizar campos',
         editColumns: 'Editar columnas',
         resetColumns: 'Restablecer columnas',
         groupColumns: 'Columnas de grupo',

@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
+import getMoneyRequestViewFields from '@libs/getMoneyRequestViewFields';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -18,14 +19,14 @@ import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import arraysEqual from '@src/utils/arraysEqual';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 /**
  * Default selected columns for the report details table.
@@ -42,10 +43,13 @@ const REPORT_DETAILS_DEFAULT_COLUMNS: SearchCustomColumnIds[] = [
 ];
 
 const ALL_REPORT_DETAILS_CUSTOM_COLUMNS = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS).filter(isReportDetailsCustomColumn);
+const EXPENSE_DEFAULT_FIELDS = getMoneyRequestViewFields().filter(isReportDetailsCustomColumn);
+const ALL_EXPENSE_FIELDS = getMoneyRequestViewFields([...EXPENSE_DEFAULT_FIELDS, ...ALL_REPORT_DETAILS_CUSTOM_COLUMNS], true).filter(isReportDetailsCustomColumn);
 
 function ReportDetailsColumnsPage() {
-    const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.COLUMNS>>();
+    const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.COLUMNS | typeof SCREENS.REPORT_SETTINGS.FIELDS>>();
     const reportID = route.params.reportID;
+    const isExpenseView = route.name === SCREENS.REPORT_SETTINGS.FIELDS;
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
@@ -64,43 +68,36 @@ function ReportDetailsColumnsPage() {
 
     // The vendor column only exists for workspaces with the vendor feature, so hide it when this report's workspace lacks it.
     const isVendorColumnAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
-    const isColumnAvailable = (column: SearchCustomColumnIds) => isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR;
+    const isColumnAvailable = (column: SearchCustomColumnIds) =>
+        (!isExpenseView || column !== CONST.SEARCH.TABLE_COLUMNS.RECEIPT) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
 
     // Wait for transactions to load before rendering. ColumnsSettingsList snapshots
     // currentColumns in useState on mount and does not sync prop updates, so we must
     // pass the final value on first render.
     const isLoading = !reportTransactions;
 
-    // When no custom columns are saved, compute which columns getColumnsToShow would
-    // return for this report so data-driven columns (e.g. Exchange rate, Original amount,
-    // Tax rate, Tax amount) appear pre-selected when they have data on the table.
-    const effectiveColumns = useMemo(() => {
-        const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
-        if (savedColumns.length > 0) {
-            return savedColumns;
-        }
+    const rawSavedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
+    const savedColumns = rawSavedColumns.filter((column) => isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+    let tableColumns = savedColumns;
+    if (!tableColumns.length) {
+        tableColumns = reportTransactions?.length
+            ? getColumnsToShow({
+                  currentAccountID: currentUserDetails?.accountID,
+                  data: reportTransactions,
+                  report,
+                  isExpenseReportView: true,
+                  isExpenseReportViewFromIOUReport: isIOUReport(report),
+                  shouldShowBillableColumn: isBillableEnabledOnPolicy(policy),
+                  shouldShowReimbursableColumn: hasNonReimbursableTransactions(reportTransactions),
+                  reportCurrency: report?.currency,
+                  isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
+                  isVendorColumnAvailable,
+              }).filter(isReportDetailsCustomColumn)
+            : REPORT_DETAILS_DEFAULT_COLUMNS;
+    }
+    const effectiveColumns = isExpenseView ? getMoneyRequestViewFields(savedColumns, savedColumns.length > 0).filter(isReportDetailsCustomColumn) : tableColumns;
 
-        if (!reportTransactions?.length) {
-            return REPORT_DETAILS_DEFAULT_COLUMNS;
-        }
-
-        const visibleColumns = getColumnsToShow({
-            currentAccountID: currentUserDetails?.accountID,
-            data: reportTransactions,
-            report,
-            isExpenseReportView: true,
-            isExpenseReportViewFromIOUReport: isIOUReport(report),
-            shouldShowBillableColumn: isBillableEnabledOnPolicy(policy),
-            shouldShowReimbursableColumn: hasNonReimbursableTransactions(reportTransactions),
-            reportCurrency: report?.currency,
-            isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
-        });
-
-        // Filter to only columns available in the custom columns list (drops RECEIPT/TYPE/COMMENTS etc.)
-        return visibleColumns.filter(isReportDetailsCustomColumn);
-    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy]);
-
-    const allColumns = ALL_REPORT_DETAILS_CUSTOM_COLUMNS.filter(isColumnAvailable);
+    const allColumns = (isExpenseView ? ALL_EXPENSE_FIELDS : ALL_REPORT_DETAILS_CUSTOM_COLUMNS).filter(isColumnAvailable);
     const currentColumns = effectiveColumns.filter(isColumnAvailable);
     const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
 
@@ -108,7 +105,35 @@ function ReportDetailsColumnsPage() {
         // Skip saving if columns haven't changed from the effective state, to avoid
         // switching from the default path to the custom path in getColumnsToShow unnecessarily.
         if (!arraysEqual(selectedColumnIds, currentColumns)) {
-            setReportDetailsColumns(selectedColumnIds, reportDetailsColumns);
+            const columnsToSave = [...selectedColumnIds];
+            if (isExpenseView) {
+                // Preserve table-only and unavailable workspace columns from the account-wide preference.
+                const columnsToPreserve = rawSavedColumns.length > 0 ? rawSavedColumns : tableColumns;
+                for (const [index, column] of columnsToPreserve.entries()) {
+                    if (allColumns.includes(column)) {
+                        continue;
+                    }
+                    let editorColumn: SearchCustomColumnIds | undefined;
+                    if (column === CONST.SEARCH.TABLE_COLUMNS.POSTED) {
+                        editorColumn = CONST.SEARCH.TABLE_COLUMNS.DATE;
+                    } else if (column === CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE) {
+                        editorColumn = CONST.SEARCH.TABLE_COLUMNS.ATTENDEES;
+                    }
+                    if (editorColumn) {
+                        const editorIndex = columnsToSave.indexOf(editorColumn);
+                        if (editorIndex === -1) {
+                            continue;
+                        }
+                        if (!columnsToPreserve.includes(editorColumn)) {
+                            // Keep the original table column when this editor was only added to represent it.
+                            columnsToSave[editorIndex] = column;
+                            continue;
+                        }
+                    }
+                    columnsToSave.splice(Math.min(index, columnsToSave.length), 0, column);
+                }
+            }
+            setReportDetailsColumns(columnsToSave, reportDetailsColumns);
         }
         Navigation.goBack();
     };
@@ -119,8 +144,9 @@ function ReportDetailsColumnsPage() {
 
     return (
         <ColumnsSettingsList
+            titleKey={isExpenseView ? 'search.customizeFields' : 'search.columns'}
             allColumns={allColumns}
-            defaultSelectedColumns={REPORT_DETAILS_DEFAULT_COLUMNS}
+            defaultSelectedColumns={isExpenseView ? EXPENSE_DEFAULT_FIELDS : REPORT_DETAILS_DEFAULT_COLUMNS}
             currentColumns={currentColumns}
             requiredColumns={requiredColumns}
             onSave={handleSave}

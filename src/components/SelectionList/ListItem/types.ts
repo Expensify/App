@@ -11,7 +11,7 @@ import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ComponentType, PropsWithChildren, ReactNode} from 'react';
-import type {NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityProps, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
@@ -111,7 +111,7 @@ type ExtendedTargetedEvent = TargetedEvent & {
 };
 
 /** Props every SelectionList row receives from the list (via ListItemRenderer) or from a direct render outside a list. */
-type ListItemProps<TItem extends ListItem> = {
+type ListItemProps<TItem extends ListItem> = Pick<AccessibilityProps, 'accessibilityActions' | 'onAccessibilityAction'> & {
     /** The list item data */
     item: TItem;
 
@@ -133,6 +133,9 @@ type ListItemProps<TItem extends ListItem> = {
 
     onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
     onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
+
+    /** Optional long-press action, such as starting a native drag without changing selection. */
+    onLongPressRow?: ListItemPressableProps<TItem>['onLongPressRow'];
     onDismissError?: (item: TItem) => void;
     onFocus?: ListItemFocusEventHandler;
 
@@ -216,7 +219,8 @@ type ListItemPressableProps<TItem extends ListItem> = PropsWithChildren<{
 
     /** When `false`, a single-select row stays a `button` instead of becoming a listbox `option`. */
     shouldUseOptionRole?: boolean;
-}>;
+}> &
+    Pick<AccessibilityProps, 'accessibilityActions' | 'onAccessibilityAction'>;
 
 /** Props for SelectableListItem, which extends the composed ListItem pressable with selection button support. */
 type SelectableListItemProps<TItem extends ListItem> = PropsWithChildren<{
@@ -225,6 +229,9 @@ type SelectableListItemProps<TItem extends ListItem> = PropsWithChildren<{
 
     /** Callback to fire when the selection button is pressed */
     onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
+
+    /** Optional long-press action, such as starting a native drag without changing selection. */
+    onLongPressRow?: ListItemPressableProps<TItem>['onLongPressRow'];
     onDismissError?: (item: TItem) => void;
     onFocus?: ListItemFocusEventHandler;
     isDisabled?: boolean | null;
@@ -243,7 +250,8 @@ type SelectableListItemProps<TItem extends ListItem> = PropsWithChildren<{
 
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
     accessibilityRole?: Role;
-}>;
+}> &
+    Pick<AccessibilityProps, 'accessibilityActions' | 'onAccessibilityAction'>;
 
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */

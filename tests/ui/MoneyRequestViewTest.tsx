@@ -1,8 +1,10 @@
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
+import type EditableField from '@components/ReportActionItem/MoneyRequestViewFields/EditableField';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,7 +30,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 type MockMenuItemWithTopDescriptionProps = {
     description?: string;
-    title?: string;
+    title?: React.ReactNode;
     interactive?: boolean;
     descriptionTextStyle?: StyleProp<TextStyle>;
     errorText?: string;
@@ -102,6 +104,26 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
 // the menu-item testID stay strict-equal — they don't pick up the title text.
 jest.mock('@components/MenuItemWithTopDescription', () => {
     return (props: MockMenuItemWithTopDescriptionProps) => mockMenuItemWithTopDescription(props);
+});
+
+// Keep these tests focused on field visibility and edit permissions across the compound field boundary.
+jest.mock('@components/ReportActionItem/MoneyRequestViewFields/EditableField', () => {
+    const {default: ActualField} = jest.requireActual<{default: typeof EditableField}>('@components/ReportActionItem/MoneyRequestViewFields/EditableField');
+    return (props: React.ComponentProps<typeof ActualField>) => {
+        const {name, value, valueComponent, onPress, error} = props;
+        if (!name.startsWith('iou.amount') && !name.startsWith('iou.attendees') && name !== 'common.description' && name !== 'common.merchant') {
+            return <ActualField {...props} />;
+        }
+        return mockMenuItemWithTopDescription({description: name, title: valueComponent ?? value ?? '', interactive: !!onPress, errorText: typeof error === 'string' ? error : undefined});
+    };
+});
+
+jest.mock('@components/MenuItem/presets/MenuItemField', () => {
+    const {default: actualField} = jest.requireActual<{default: Record<string, unknown>}>('@components/MenuItem/presets/MenuItemField');
+    return Object.assign(
+        ({name, value, onPress}: {name: string; value?: string; onPress?: unknown}) => mockMenuItemWithTopDescription({description: name, title: value ?? '', interactive: !!onPress}),
+        {...actualField},
+    );
 });
 
 // Mock the legacy MenuItem (used for some fields like billable), but keep the real compound parts the migrated rows render with
@@ -247,6 +269,235 @@ describe('MoneyRequestView edit fields', () => {
         return transaction;
     };
 
+    it('omits redundant per-attendee totals on Collect', async () => {
+        // Given an older table preference that includes a redundant per-attendee total.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]);
+        });
+
+        // When the expense derives the report owner as its fallback attendee.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the expense view does not repeat information already provided by the Attendees field.
+        expect(screen.queryByTestId('menu-item-title-iou.totalPerAttendee')).not.toBeOnTheScreen();
+    });
+
+    it.each([
+        [CONST.SEARCH.TABLE_COLUMNS.BILLABLE, 'common.billable', false, {disabledFields: {defaultBillable: true}}],
+        [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, 'common.reimbursable', false, {disabledFields: {reimbursable: true}, defaultReimbursable: false}],
+        [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, 'common.reimbursable', true, {disabledFields: {reimbursable: true}, defaultReimbursable: true}],
+    ] as const)('keeps selected %s hidden when workspace settings prohibit its control (%s, value %s)', async (column, label, value, policy) => {
+        // Given an explicitly selected column whose control is hidden by the workspace settings.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {[column]: value});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, column]);
+        });
+
+        // When the expense is opened with the shared report preference.
+        renderMoneyRequestView(threadReport, policy);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then choosing a column cannot override the workspace's field visibility rules.
+        expect(screen.queryByTestId(`menu-item-${label}`)).not.toBeOnTheScreen();
+        expect(screen.queryByTestId(`menu-item-title-${label}`)).not.toBeOnTheScreen();
+        expect(screen.queryAllByRole('switch')).toHaveLength(0);
+
+        // When the field is deselected, or the account returns to its untouched preferences.
+        for (const columns of [[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT], null]) {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, columns);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the fallback row does not change the unselected or default expense layout.
+            expect(screen.queryByTestId(`menu-item-${label}`)).not.toBeOnTheScreen();
+        }
+    });
+
+    it.each([
+        [CONST.SEARCH.TABLE_COLUMNS.BILLABLE, 'common.billable', 'common.billable'],
+        [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, 'common.reimbursable', 'Iou.reimbursable'],
+    ] as const)('keeps the existing %s control when it is available', async (column, label, controlLabel) => {
+        // Given a selected boolean field whose control is available on this workspace.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, column]);
+        });
+
+        // When the expense is opened.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then customization preserves the existing switch instead of replacing it with a read-only row.
+        expect(screen.getByRole('switch', {name: controlLabel})).toBeOnTheScreen();
+        expect(screen.queryByTestId(`menu-item-${label}`)).not.toBeOnTheScreen();
+    });
+
+    it.each([
+        [CONST.SEARCH.TABLE_COLUMNS.BILLABLE, 'common.billable', true, {disabledFields: {defaultBillable: true}}],
+        [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, 'Iou.reimbursable', false, {disabledFields: {reimbursable: true}, defaultReimbursable: true}],
+        [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, 'Iou.reimbursable', true, {disabledFields: {reimbursable: true}, defaultReimbursable: false}],
+    ] as const)('keeps %s correctable when its value differs from the workspace setting', async (column, controlLabel, value, policy) => {
+        // Given an existing expense whose value must remain correctable despite the workspace restriction.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {[column]: value});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, column]);
+        });
+
+        // When the restricted field is selected in the shared preference.
+        renderMoneyRequestView(threadReport, policy);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the existing control remains available so the expense is not stuck with its old value.
+        expect(screen.getByRole('switch', {name: controlLabel})).toBeOnTheScreen();
+    });
+
+    it('keeps required fields available after customization', async () => {
+        // Given a report requiring a Category and Tag even though neither column was selected.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {Travel: {name: 'Travel', enabled: true}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                Location: {name: 'Location', orderWeight: 0, required: true, tags: {Berlin: {name: 'Berlin', enabled: true}}},
+            });
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+        });
+
+        // When the expense opens with the customized preference.
+        renderMoneyRequestView(threadReport, {areCategoriesEnabled: true, areTagsEnabled: true, requiresCategory: true, requiresTag: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the mandatory editors remain reachable so the expense can satisfy the workspace requirements.
+        expect(screen.getByLabelText(fieldLabel('common.category'))).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-Location')).toHaveTextContent('editable');
+        expect(screen.queryByTestId('menu-item-common.merchant')).not.toBeOnTheScreen();
+    });
+
+    it('shows a violation on a field omitted from the saved columns', async () => {
+        // Given a saved layout hiding Description on an expense with a missing-description violation.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {name: CONST.VIOLATIONS.MISSING_COMMENT, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+            ]);
+        });
+
+        // When the expense opens, the display preference must still allow the violation to be fixed.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Description editor and its error are visible without enabling unrelated fields.
+        expect(screen.getByTestId('menu-item-common.description')).toHaveTextContent('editable');
+        expect(screen.getByTestId('menu-item-error-common.description')).toHaveTextContent('violations.missingComment.');
+        expect(screen.queryByTestId('menu-item-common.merchant')).not.toBeOnTheScreen();
+    });
+
+    it('keeps the default expense fields when a sibling has accounting data', async () => {
+        // Given untouched preferences and another expense whose accounting values enable extra table columns.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        const transaction = await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {currency: CONST.CURRENCY.USD});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}sibling_mrv_test`, {
+                ...transaction,
+                transactionID: 'sibling_mrv_test',
+                currency: 'EUR',
+                currencyConversionRate: '1.25',
+                mcc: '5812',
+            });
+        });
+
+        // When the current expense opens without an explicit field selection.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then sibling data cannot add empty accounting fields to the existing expense layout.
+        expect(screen.getByTestId('menu-item-common.description')).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-common.exchangeRate')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-common.mcc')).not.toBeOnTheScreen();
+    });
+
+    it('falls back to default fields when the only saved column is unavailable', async () => {
+        // Given a Vendor preference saved on a different workspace where vendor matching was available.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.VENDOR]);
+        });
+
+        // When the expense opens on a workspace without the vendor feature.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the stale preference cannot hide the expense's standard editors.
+        expect(screen.getByTestId('menu-item-common.description')).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+        expect(screen.queryByLabelText(fieldLabel('common.vendor'))).not.toBeOnTheScreen();
+    });
+
+    it('renders the shared report fields in order and reacts to preference changes', async () => {
+        // Given an expense whose report columns include accounting data absent from the default editor.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- GL Code is the backend's category property.
+                Travel: {name: 'Travel', enabled: true, 'GL Code': '6100'},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                category: 'Travel',
+                mcc: '5812',
+                currency: 'EUR',
+                currencyConversionRate: '1.25',
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {currency: 'USD'});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [
+                CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
+                CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
+                CONST.SEARCH.TABLE_COLUMNS.MCC,
+                CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            ]);
+        });
+
+        // When the same expense is opened, it uses the report's selection and keeps existing editors.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the extra values are read-only, selected fields keep their order, and unchecked fields are absent.
+        expect(screen.getByTestId('menu-item-title-common.categoryGLCode')).toHaveTextContent('6100');
+        expect(screen.getByTestId('menu-item-title-common.exchangeRate')).toHaveTextContent('1.2500 EUR/USD');
+        expect(screen.getByTestId('menu-item-title-common.mcc')).toHaveTextContent('5812');
+        expect(screen.getByTestId('menu-item-common.categoryGLCode')).toHaveTextContent('readonly');
+        expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+        expect(screen.queryByTestId('menu-item-common.category')).not.toBeOnTheScreen();
+        const fieldIDs = screen.getAllByTestId(/^menu-item-(?!title)/).map((item) => String(item.props.testID));
+        expect(fieldIDs.slice(0, 4)).toEqual(['menu-item-common.categoryGLCode', 'menu-item-common.exchangeRate', 'menu-item-common.mcc', 'menu-item-common.merchant']);
+
+        // When another view updates the shared preference, the mounted expense must update too.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MCC]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the old selection is removed without reopening the expense.
+        expect(screen.queryByTestId('menu-item-common.categoryGLCode')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-common.merchant')).not.toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-common.mcc')).toBeOnTheScreen();
+    });
+
     it('should show amount and merchant as editable when report is open', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -318,16 +569,10 @@ describe('MoneyRequestView edit fields', () => {
         renderMoneyRequestView(threadReport, {areTagsEnabled: true});
         await waitForBatchedUpdatesWithAct();
 
-        // Then each affected description keeps both breakWord and userSelectNone
+        // Then the remaining legacy tag and report descriptions keep both wrapping and selection styles.
         await waitFor(() => {
             const renderedRows = mockMenuItemWithTopDescription.mock.calls.map(([props]) => props);
-            const affectedRows = [
-                renderedRows.find(({description}) => description === longTagName),
-                renderedRows.find(({description}) => description?.startsWith('iou.amount')),
-                renderedRows.find(({description}) => description === 'common.description'),
-                renderedRows.find(({description}) => description === 'common.merchant'),
-                renderedRows.find(({description}) => description === 'common.report'),
-            ];
+            const affectedRows = [renderedRows.find(({description}) => description === longTagName), renderedRows.find(({description}) => description === 'common.report')];
 
             expect(affectedRows).not.toContain(undefined);
             for (const row of affectedRows) {
@@ -1407,8 +1652,14 @@ describe('MoneyRequestView edit fields', () => {
             // When the expense is rendered
             await renderWithReservationDates('2026-10-01', '2026-10-04');
 
-            // Then the hint explains the per-night evaluation used by the category limit check
-            expect(screen.getByText(reservationNightsHint)).toBeOnTheScreen();
+            // Then the hint stays below the category row, outside the trailing controls.
+            const hint = screen.getByText(reservationNightsHint);
+            const category = screen.getByLabelText(fieldLabel('common.category'));
+            expect(category).toContainElement(hint);
+            for (let ancestor = hint.parent; ancestor && ancestor !== category; ancestor = ancestor.parent) {
+                expect(ancestor.type).not.toBe(MenuItem.Row);
+                expect(ancestor.type).not.toBe(MenuItem.Trailing);
+            }
         });
 
         it('does not show the hint for a single-night reservation', async () => {

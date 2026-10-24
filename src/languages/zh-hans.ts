@@ -36,6 +36,8 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        moveUp: '上移',
+        moveDown: '下移',
         durationDays: ({count}: {count: number}) => ({
             one: `1 天`,
             other: `${count} 天`,
@@ -9857,6 +9859,7 @@ ${reportName}`,
             staleResults: {title: '需要刷新', subtitle: '此页面已过期，刷新以查看最新内容', buttonText: '刷新'},
         },
         columns: '列',
+        customizeFields: '自定义字段',
         editColumns: '编辑列',
         resetColumns: '重置列',
         groupColumns: '分组列',

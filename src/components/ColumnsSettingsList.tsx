@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {ComponentRef} from 'react';
@@ -14,40 +15,26 @@ import type {ComponentRef} from 'react';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type {ColumnItem} from './ColumnsSettingsListItem';
+import type {DraggableListRenderItemParams} from './DraggableList/types';
 import type {SearchCustomColumnIds} from './Search/types';
 import type {ListItem} from './SelectionList/types';
 
 import Button from './Button';
+import ColumnsSettingsListItem from './ColumnsSettingsListItem';
 import DraggableList from './DraggableList';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
-import MultiSelectListItem from './SelectionList/ListItem/MultiSelectListItem';
 import Text from './Text';
 import TextLink from './TextLink';
 
-type ColumnItem = {
-    /** Display label for the column */
-    text: string;
-
-    value: SearchCustomColumnIds;
-    keyForList: SearchCustomColumnIds;
-
-    /** Whether the column is currently enabled/visible */
-    isSelected: boolean;
-
-    /** Whether the column toggle is disabled (e.g. for required columns) */
-    isDisabled: boolean;
-
-    /** Whether the column cannot be reordered via drag */
-    isDragDisabled: boolean;
-
-    /** Element rendered on the left side of the list item (e.g. drag handle) */
-    leftElement: React.JSX.Element;
-};
-
 type ColumnsSettingsListProps = {
+    /** The translation key for the title. Defaults to the search columns heading. */
+    titleKey?: TranslationPaths;
+
+    /** All columns available for selection, excluding the separate group columns. */
     allColumns: SearchCustomColumnIds[];
 
     /** The default set of selected columns when no customization has been applied */
@@ -76,6 +63,7 @@ type ColumnsSettingsListProps = {
 };
 
 function ColumnsSettingsList({
+    titleKey = 'search.columns',
     allColumns,
     defaultSelectedColumns,
     currentColumns,
@@ -120,7 +108,10 @@ function ColumnsSettingsList({
             return defaultColumns;
         }
 
-        const selected = selectedColumnIds.map((columnId) => ({columnId, isSelected: true}));
+        const selected = selectedColumnIds.map((columnId) => ({
+            columnId,
+            isSelected: true,
+        }));
         const unselected = allCustomColumns.filter((columnId) => !selectedColumnIds.includes(columnId)).map((columnId) => ({columnId, isSelected: false}));
 
         return [...selected, ...unselected];
@@ -208,16 +199,28 @@ function ColumnsSettingsList({
     const typeFocusedIndex = focusedIndex >= groupLength ? focusedIndex - groupLength : -1;
 
     const onGroupDragEnd = ({data}: {data: typeof allColumnsList}) => {
-        const newGroupColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
-        const existingTypeColumns = typeColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+        const newGroupColumns = data.map((item) => ({
+            columnId: item.value,
+            isSelected: item.isSelected,
+        }));
+        const existingTypeColumns = typeColumnsList.map((item) => ({
+            columnId: item.value,
+            isSelected: item.isSelected,
+        }));
         const newColumns = [...existingTypeColumns, ...newGroupColumns];
         setColumns(newColumns);
         setFocusedIndex(-1);
     };
 
     const onTypeDragEnd = ({data}: {data: typeof allColumnsList}) => {
-        const newTypeColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
-        const existingGroupColumns = groupColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+        const newTypeColumns = data.map((item) => ({
+            columnId: item.value,
+            isSelected: item.isSelected,
+        }));
+        const existingGroupColumns = groupColumnsList.map((item) => ({
+            columnId: item.value,
+            isSelected: item.isSelected,
+        }));
         const newColumns = [...existingGroupColumns, ...newTypeColumns];
         setColumns(newColumns);
         setFocusedIndex(-1);
@@ -231,14 +234,39 @@ function ColumnsSettingsList({
         onSave(selectedColumnIds);
     };
 
-    const renderItem = ({item, isFocused}: {item: ListItem; isFocused?: boolean}) => {
+    const moveColumn = (item: ColumnItem, offset: number) => {
+        const isGroupColumn = groupColumns.includes(item.value);
+        const columnList = isGroupColumn ? groupColumnsList : typeColumnsList;
+        const index = columnList.findIndex((column) => column.value === item.value);
+        const targetIndex = index + offset;
+        const targetItem = columnList.at(targetIndex);
+        if (index < 0 || targetIndex < 0 || item.isDragDisabled || !targetItem || targetItem.isDragDisabled) {
+            return;
+        }
+
+        const reorderedColumns = [...columnList];
+        reorderedColumns.splice(index, 1);
+        reorderedColumns.splice(targetIndex, 0, item);
+        const onDragEnd = isGroupColumn ? onGroupDragEnd : onTypeDragEnd;
+        onDragEnd({data: reorderedColumns});
+    };
+
+    const renderItem = ({item, isFocused, drag, isActive}: DraggableListRenderItemParams<ColumnItem>) => {
+        const columnList = groupColumns.includes(item.value) ? groupColumnsList : typeColumnsList;
+        const index = columnList.findIndex((column) => column.value === item.value);
+        const canMoveUp = !item.isDragDisabled && index > 0 && !columnList.at(index - 1)?.isDragDisabled;
+        const nextColumn = columnList.at(index + 1);
+        const canMoveDown = !item.isDragDisabled && !!nextColumn && !nextColumn.isDragDisabled;
+
         return (
-            <MultiSelectListItem
+            <ColumnsSettingsListItem
                 item={item}
                 isFocused={isFocused}
-                showTooltip={false}
+                drag={drag}
+                isActive={isActive}
                 onSelectRow={onSelectItem}
-                isDisabled={item.isDisabled}
+                onMoveUp={canMoveUp ? () => moveColumn(item, -1) : undefined}
+                onMoveDown={canMoveDown ? () => moveColumn(item, 1) : undefined}
             />
         );
     };
@@ -250,15 +278,13 @@ function ColumnsSettingsList({
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.columns')}>
-                {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
-            </HeaderWithBackButton>
+            <HeaderWithBackButton title={translate(titleKey)}>{!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}</HeaderWithBackButton>
             <View style={styles.flex1}>
-                <ScrollView
-                    style={styles.flex1}
-                    contentContainerStyle={styles.flex1}
-                >
-                    {isGrouped ? (
+                {isGrouped ? (
+                    <ScrollView
+                        style={styles.flex1}
+                        contentContainerStyle={styles.flex1}
+                    >
                         <View ref={containerRef}>
                             <View style={[styles.ph5, styles.pb3]}>
                                 <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
@@ -294,19 +320,19 @@ function ColumnsSettingsList({
                                 focusedIndex={typeFocusedIndex}
                             />
                         </View>
-                    ) : (
-                        <DraggableList
-                            disableScroll
-                            data={typeColumnsList}
-                            keyExtractor={(item) => item.value}
-                            onDragEnd={onTypeDragEnd}
-                            onSelectRow={onSelectItem}
-                            isItemDragDisabled={(item) => item.isDragDisabled}
-                            isItemDisabled={(item) => item.isDisabled}
-                            renderItem={renderItem}
-                        />
-                    )}
-                </ScrollView>
+                    </ScrollView>
+                ) : (
+                    <DraggableList
+                        data={typeColumnsList}
+                        keyExtractor={(item) => item.value}
+                        onDragEnd={onTypeDragEnd}
+                        onSelectRow={onSelectItem}
+                        shouldRestrictDragToEnabledItems
+                        isItemDragDisabled={(item) => item.isDragDisabled}
+                        isItemDisabled={(item) => item.isDisabled}
+                        renderItem={renderItem}
+                    />
+                )}
             </View>
             <View style={[styles.ph5, styles.pb5]}>
                 <Button
