@@ -8,10 +8,9 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
-import {canIOUBePaid as canIOUBePaidAction, getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
+import {getHoldMenuAmounts, openAfterTouchFrame} from '@libs/HoldMenuUtils';
+import {canIOUBePaid as canIOUBePaidAction} from '@libs/ReportUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
@@ -63,41 +62,24 @@ function MoneyReportHeaderModalsContent({reportID, children}: MoneyReportHeaderM
     const onlyShowPayElsewhere =
         !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, isChatReportArchived);
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton, transactions, convertToDisplayString);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
-    const transactionIDs = transactions.map((t) => t.transactionID);
 
     // Imperative modals
     const {showHoldMenu} = useHoldMenuModal();
     const {showOfflineModal, showDownloadErrorModal} = useAlertModals();
     const {openHoldEducational, openRejectModal} = useMoneyReportHeaderEducationalModals(moneyRequestReport?.reportID);
 
-    const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams): Promise<void> => {
-        const open = () =>
+    const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams): Promise<void> =>
+        openAfterTouchFrame(() =>
             showHoldMenu({
                 reportID: moneyRequestReport?.reportID,
                 chatReportID: chatReport?.reportID,
                 requestType,
                 paymentType,
                 methodID,
-                nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
-                fullAmount,
-                hasNonHeldExpenses: !hasOnlyHeldExpenses,
-                transactionCount: transactionIDs.length,
+                ...getHoldMenuAmounts(moneyRequestReport, shouldShowPayButton, transactions, convertToDisplayString),
                 onConfirm,
-            });
-
-        // On iOS, defer by one frame so the current touch animation finishes before the modal opens
-        if (getPlatform() === CONST.PLATFORM.IOS) {
-            return new Promise<void>((resolve) => {
-                requestAnimationFrame(() => {
-                    open().then(() => resolve());
-                });
-            });
-        }
-
-        return open().then(() => {});
-    };
+            }),
+        ).then(() => {});
 
     const contextValue = {
         openHoldMenu,
