@@ -1,5 +1,7 @@
 const name = 'no-manual-memoization';
 
+const REACT_NAVIGATION_MODULES = ['@react-navigation/native', '@react-navigation/core'];
+
 const meta = {
     type: 'problem',
     docs: {
@@ -47,7 +49,11 @@ function create(context) {
     }
 
     function isFocusEffectArgument(node) {
-        return node.parent.type === 'CallExpression' && node.parent.arguments[0] === node && importedMethod(node.parent.callee, '@react-navigation/native') === 'useFocusEffect';
+        return (
+            node.parent.type === 'CallExpression' &&
+            node.parent.arguments[0] === node &&
+            REACT_NAVIGATION_MODULES.some((moduleName) => importedMethod(node.parent.callee, moduleName) === 'useFocusEffect')
+        );
     }
 
     function isFocusCallback(node) {

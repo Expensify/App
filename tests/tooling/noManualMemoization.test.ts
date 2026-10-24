@@ -74,6 +74,7 @@ describe('no-manual-memoization', () => {
         "import React from 'react'; function fn(React) { return React.useMemo(() => 1, []); }",
         "import {useMemo} from 'react'; function fn(useMemo) { return useMemo(() => 1, []); }",
         "import {useFocusEffect} from '@react-navigation/native'; import {useCallback} from 'react'; useFocusEffect(useCallback(() => {}, []));",
+        "import {useFocusEffect} from '@react-navigation/core'; import {useCallback} from 'react'; useFocusEffect(useCallback(() => {}, []));",
         "import {useFocusEffect as focus} from '@react-navigation/native'; import {useCallback as callback} from 'react'; focus(callback(() => {}, []));",
         "import * as Navigation from '@react-navigation/native'; import React from 'react'; Navigation.useFocusEffect(React.useCallback(() => {}, []));",
         "import {useFocusEffect} from '@react-navigation/native'; import {useCallback} from 'react'; const callback = useCallback(() => {}, []); useFocusEffect(callback);",
