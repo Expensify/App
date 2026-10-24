@@ -81,6 +81,8 @@ Onyx.connectWithoutView({
     },
 });
 
+const inFlightApproveOnlyEmailsByPolicy: Record<string, string[]> = {};
+
 /**
  * Build optimistic data for adding members to the announcement/admins room
  */
@@ -727,6 +729,11 @@ function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEma
     if (isSubmitPolicy(policy)) {
         return;
     }
+    if (newRole === CONST.POLICY.ROLE.APPROVE_ONLY) {
+        inFlightApproveOnlyEmailsByPolicy[policy.id] = selectedMemberEmails;
+    } else {
+        delete inFlightApproveOnlyEmailsByPolicy[policy.id];
+    }
     const {optimisticData, successData, failureData, memberRoles} = buildUpdateWorkspaceMembersRoleOnyxData(policy, selectedMemberEmails, selectedMemberAccountIDs, newRole);
 
     const params: UpdateWorkspaceMembersRoleParams = {
@@ -1275,15 +1282,26 @@ function clearAddMemberError(policyID: string, login: string, accountID: number)
 /**
  * Removes an error after trying to update a member role
  */
-function clearUpdateMemberRoleError(policyID: string, login: string) {
+function clearUpdateMemberRoleError(policyID: string, login: string | string[]) {
+    const logins = Array.isArray(login) ? login : [login];
+    const employeeListUpdate = logins.reduce<Record<string, {pendingAction: null; errors: null}>>((acc, email) => {
+        acc[email] = {
+            pendingAction: null,
+            errors: null,
+        };
+        return acc;
+    }, {});
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        employeeList: {
-            [login]: {
-                pendingAction: null,
-                errors: null,
-            },
-        },
+        employeeList: employeeListUpdate,
     });
+}
+
+function clearApproveOnlyRoleBlockedErrors(policyID: string, email: string) {
+    const recordedEmails = inFlightApproveOnlyEmailsByPolicy[policyID] ?? [];
+    delete inFlightApproveOnlyEmailsByPolicy[policyID];
+    const emailsToClear = email && !recordedEmails.includes(email) ? [...recordedEmails, email] : recordedEmails;
+    clearUpdateMemberRoleError(policyID, emailsToClear.length > 0 ? emailsToClear : email);
 }
 
 function clearBlockedRoleChange() {
@@ -1592,6 +1610,7 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     clearUpdateMemberRoleError,
+    clearApproveOnlyRoleBlockedErrors,
     clearBlockedRoleChange,
     openWorkspaceMembersPage,
     setWorkspaceInviteMembersDraft,
