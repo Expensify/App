@@ -96,7 +96,7 @@ When a report exports, Expensify:
 - Creates a general journal entry or purchase invoice, based on your export settings.
 - Creates a vendor or employee in Business Central if one doesn't exist yet and **Auto-create employees/vendors** is enabled.
 - Converts foreign-currency expenses to your Business Central company's base currency.
-- Posts the entry automatically, or leaves it unposted, based on your **Posting mode**.
+- Posts the entry automatically, or leaves it for you to post manually, based on your **Posting mode**.
 - Adds a message to the report that links to the record in Business Central.
 
 If Business Central rejects the export, the error appears on the report.
