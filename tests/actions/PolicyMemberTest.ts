@@ -232,18 +232,18 @@ describe('actions/PolicyMember', () => {
             };
 
             const approveOnlyData = Member.buildUpdateWorkspaceMembersRoleOnyxData(fakePolicy, [member1, member2], [1, 2], CONST.POLICY.ROLE.APPROVE_ONLY);
-            const failureEmployeeList = (approveOnlyData.failureData[0] as {value: {employeeList: Record<string, {errors: unknown; pendingAction: unknown}>}}).value.employeeList;
-
-            expect(failureEmployeeList[member1].errors).toBeNull();
-            expect(failureEmployeeList[member1].pendingAction).toBeNull();
-            expect(failureEmployeeList[member2].errors).toBeNull();
-            expect(failureEmployeeList[member2].pendingAction).toBeNull();
+            const approveOnlyUpdate = approveOnlyData.failureData.at(0);
+            const employeeList = approveOnlyUpdate && 'employeeList' in (approveOnlyUpdate.value ?? {}) ? approveOnlyUpdate.value.employeeList : undefined;
+            expect(employeeList?.[member1]?.errors).toBeUndefined();
+            expect(employeeList?.[member1]?.pendingAction).toBeNull();
+            expect(employeeList?.[member2]?.errors).toBeUndefined();
+            expect(employeeList?.[member2]?.pendingAction).toBeNull();
 
             const adminData = Member.buildUpdateWorkspaceMembersRoleOnyxData(fakePolicy, [member1], [1], CONST.POLICY.ROLE.ADMIN);
-            const adminFailureEmployeeList = (adminData.failureData[0] as {value: {employeeList: Record<string, {errors: unknown; pendingAction: unknown}>}}).value.employeeList;
-
-            expect(adminFailureEmployeeList[member1].errors).toBeTruthy();
-            expect(adminFailureEmployeeList[member1].pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            const adminUpdate = adminData.failureData.at(0);
+            const adminEmployeeList = adminUpdate && 'employeeList' in (adminUpdate.value ?? {}) ? adminUpdate.value.employeeList : undefined;
+            expect(adminEmployeeList?.[member1]?.errors).toBeTruthy();
+            expect(adminEmployeeList?.[member1]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
         });
     });
     describe('requestWorkspaceOwnerChange', () => {

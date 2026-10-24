@@ -661,7 +661,7 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
                         member[current.email] = {
                             ...(previousEmployeeList[current.email] ?? {}),
                             pendingAction: canCreateExpenses ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null,
-                            errors: canCreateExpenses ? ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage') : null,
+                            ...(canCreateExpenses && {errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage')}),
                         };
                         return member;
                     }, {}),
