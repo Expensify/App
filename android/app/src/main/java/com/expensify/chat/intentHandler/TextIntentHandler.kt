@@ -7,64 +7,69 @@ import com.expensify.chat.utils.FileUtils
 
 
 class TextIntentHandler(private val context: Context) : AbstractIntentHandler() {
-    override fun handle(intent: Intent): Boolean {
+    override fun handle(intent: Intent, shouldLaunchActivity: Boolean): Boolean {
         super.clearTemporaryFiles(context)
         when(intent.action) {
             Intent.ACTION_SEND -> {
-                handleTextIntent(intent, context)
-                onCompleted()
+                saveSharedText(intent, context, shouldLaunchActivity)
+                // Expected persistence failures return from saveSharedText(), allowing the warm-start Share screen to display an attachment error.
+                // Cold starts use new-expensify://share/root as the activity's initial URL instead.
+                if (shouldLaunchActivity) {
+                    onCompleted()
+                }
                 return true
             }
         }
         return false
     }
 
-    private fun handleTextIntent(intent: Intent, context: Context) {
+    private fun saveSharedText(intent: Intent, context: Context, shouldLaunchActivity: Boolean) {
         when {
             intent.type == "text/plain" -> {
                 val extras = intent.extras
                 if (extras != null) {
                     when {
                         extras.containsKey(Intent.EXTRA_STREAM) -> {
-                            handleTextFileIntent(intent, context)
+                            saveSharedTextFile(intent, context, shouldLaunchActivity)
                         }
                         extras.containsKey(Intent.EXTRA_TEXT) -> {
-                            handleTextPlainIntent(intent, context)
+                            saveSharedTextContent(intent, context, shouldLaunchActivity)
                         }
                         else -> {
                             throw UnsupportedOperationException("Unknown text/plain content")
                         }
                     }
                 }
+                return
             }
-            Regex("text/.*").matches(intent.type ?: "") -> handleTextFileIntent(intent, context)
+            Regex("text/.*").matches(intent.type ?: "") -> saveSharedTextFile(intent, context, shouldLaunchActivity)
             else -> throw UnsupportedOperationException("Unsupported MIME type: ${intent.type}")
         }
     }
     
-    private fun saveToSharedPreferences(key: String, value: String) {
+    private fun saveToSharedPreferences(key: String, value: String, shouldLaunchActivity: Boolean) {
         val sharedPreferences = context.getSharedPreferences(IntentHandlerConstants.preferencesFile, Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putString(key, value)
-        editor.apply()
-    }
-
-    private fun handleTextFileIntent(intent: Intent, context: Context) {
-        (intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))?.let { fileUri ->
-            val resultingPath: String? = FileUtils.copyUriToStorage(fileUri, context)
-            if (resultingPath != null) {
-                val shareFileObject = ShareFileObject(resultingPath, intent.type)
-                saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString())
-            }
+        if (shouldLaunchActivity) {
+            editor.apply()
+            return
         }
+
+        editor.commit()
     }
 
-    private fun handleTextPlainIntent(intent: Intent, context: Context) {
-            var intentTextContent = intent.getStringExtra(Intent.EXTRA_TEXT)
-            if(intentTextContent != null) {
-                val shareFileObject = ShareFileObject(intentTextContent, intent.type)
-                saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString())
-            }
+    private fun saveSharedTextFile(intent: Intent, context: Context, shouldLaunchActivity: Boolean) {
+        val fileUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM) ?: return
+        val resultingPath = FileUtils.copyUriToStorage(fileUri, context) ?: return
+        val shareFileObject = ShareFileObject(resultingPath, intent.type)
+        saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString(), shouldLaunchActivity)
+    }
+
+    private fun saveSharedTextContent(intent: Intent, context: Context, shouldLaunchActivity: Boolean) {
+        val intentTextContent = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return
+        val shareFileObject = ShareFileObject(intentTextContent, intent.type)
+        saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString(), shouldLaunchActivity)
     }
 
     override fun onCompleted() {
