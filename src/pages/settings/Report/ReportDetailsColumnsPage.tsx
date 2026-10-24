@@ -76,7 +76,8 @@ function ReportDetailsColumnsPage() {
     // pass the final value on first render.
     const isLoading = !reportTransactions;
 
-    const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn).filter((column) => isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+    const rawSavedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
+    const savedColumns = rawSavedColumns.filter((column) => isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
     let tableColumns = savedColumns;
     if (!tableColumns.length) {
         tableColumns = reportTransactions?.length
@@ -106,9 +107,17 @@ function ReportDetailsColumnsPage() {
         if (!arraysEqual(selectedColumnIds, currentColumns)) {
             const columnsToSave = [...selectedColumnIds];
             if (isExpenseView) {
-                // The shared preference also contains table-only columns, which cannot be changed in this picker.
-                for (const [index, column] of tableColumns.entries()) {
+                // Preserve table-only and unavailable workspace columns from the account-wide preference.
+                const columnsToPreserve = rawSavedColumns.length > 0 ? rawSavedColumns : tableColumns;
+                for (const [index, column] of columnsToPreserve.entries()) {
                     if (allColumns.includes(column)) {
+                        continue;
+                    }
+                    // These table values share an editor, so removing that editor must remove its alias too.
+                    if (
+                        (column === CONST.SEARCH.TABLE_COLUMNS.POSTED && !selectedColumnIds.includes(CONST.SEARCH.TABLE_COLUMNS.DATE)) ||
+                        (column === CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE && !selectedColumnIds.includes(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES))
+                    ) {
                         continue;
                     }
                     columnsToSave.splice(Math.min(index, columnsToSave.length), 0, column);

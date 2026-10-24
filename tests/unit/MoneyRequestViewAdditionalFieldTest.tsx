@@ -71,6 +71,18 @@ describe('additional expense field values', () => {
     });
 
     it.each([
+        {hold: 'hold-action', expected: 'common.yes'},
+        {hold: undefined, expected: 'common.no'},
+    ])('shows the report table hold status as $expected', ({hold, expected}) => {
+        // Given an expense whose hold state must stay visible when opening it from the report table.
+        // When Held is selected as an expense field.
+        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.HELD, {comment: {hold}});
+
+        // Then the field displays the same localized Yes or No value as the table.
+        expect(field).toEqual(expect.objectContaining({value: expected, isValueSelectable: true}));
+    });
+
+    it.each([
         [1234, '1234'],
         ['5678', '5678'],
         [CONST.DEFAULT_NUMBER_ID, ''],

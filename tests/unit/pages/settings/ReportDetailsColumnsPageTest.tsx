@@ -216,10 +216,15 @@ it('preserves table-only columns when expense fields are reordered', () => {
     const props = renderColumns(savedColumns);
 
     // When the user reorders the expense fields without editing the table-only choices.
-    props.onSave([CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MERCHANT]);
+    props.onSave([CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES]);
 
     // Then the table-only columns retain their positions and are never separate expense picker choices.
-    expect(props.currentColumns).toEqual([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.DATE]);
+    expect(props.currentColumns).toEqual([
+        CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+        CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+        CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
+        CONST.SEARCH.TABLE_COLUMNS.DATE,
+    ]);
     for (const column of [
         CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
         CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
@@ -239,9 +244,35 @@ it('preserves table-only columns when expense fields are reordered', () => {
             CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
             CONST.SEARCH.TABLE_COLUMNS.POSTED,
             CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+            CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
         ],
         savedColumns,
     );
+});
+
+it.each([
+    [CONST.SEARCH.TABLE_COLUMNS.POSTED, CONST.SEARCH.TABLE_COLUMNS.DATE],
+    [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES],
+])('removes %s when its shared %s editor is deselected', (tableColumn, editorColumn) => {
+    // Given a table-only selection represented by its shared editor in the expense picker.
+    jest.mocked(useRoute).mockReturnValue({
+        key: 'fields',
+        name: SCREENS.REPORT_SETTINGS.FIELDS,
+        params: {reportID: 'report-1'},
+    });
+    const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, tableColumn];
+    const props = renderColumns(savedColumns);
+    expect(props.currentColumns).toEqual([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, editorColumn]);
+
+    // When the user deselects the shared editor and reopens their saved preference.
+    const selectedColumns = [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+    props.onSave(selectedColumns);
+    const savedPreference = jest.mocked(setReportDetailsColumns).mock.calls.at(-1)?.at(0);
+    const reopenedProps = renderColumns(savedPreference ?? undefined);
+
+    // Then the hidden table alias cannot silently reselect the editor.
+    expect(setReportDetailsColumns).toHaveBeenCalledWith(selectedColumns, savedColumns);
+    expect(reopenedProps.currentColumns).toEqual(selectedColumns);
 });
 
 it('uses expense defaults when the saved preference only contains unavailable fields', () => {
@@ -260,6 +291,48 @@ it('uses expense defaults when the saved preference only contains unavailable fi
     expect(props.currentColumns).toEqual(props.defaultSelectedColumns.filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR));
     expect(props.allColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
     expect(setReportDetailsColumns).not.toHaveBeenCalled();
+});
+
+it('preserves an unavailable Vendor preference when changing expense fields', () => {
+    // Given an account-wide Vendor preference opened in a workspace without vendor matching.
+    jest.mocked(useRoute).mockReturnValue({
+        key: 'fields',
+        name: SCREENS.REPORT_SETTINGS.FIELDS,
+        params: {reportID: 'report-1'},
+    });
+    const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+    const props = renderColumns(savedColumns);
+
+    // When the user adds Date without being able to change Vendor.
+    props.onSave([...props.currentColumns, CONST.SEARCH.TABLE_COLUMNS.DATE]);
+
+    // Then Vendor stays hidden here, but its selection and position survive for other workspaces.
+    expect(props.currentColumns).toEqual([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+    expect(props.allColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+    expect(setReportDetailsColumns).toHaveBeenCalledWith(
+        [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.DATE],
+        savedColumns,
+    );
+});
+
+it('preserves an unavailable Vendor-only preference when adding an expense field', () => {
+    // Given a Vendor-only preference that falls back to default expense fields in this workspace.
+    jest.mocked(useRoute).mockReturnValue({
+        key: 'fields',
+        name: SCREENS.REPORT_SETTINGS.FIELDS,
+        params: {reportID: 'report-1'},
+    });
+    const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.VENDOR];
+    const props = renderColumns(savedColumns);
+    const selectedColumns = [...props.currentColumns, CONST.SEARCH.TABLE_COLUMNS.MCC];
+
+    // When the user adds MCC to the displayed defaults.
+    props.onSave(selectedColumns);
+
+    // Then saving retains the original Vendor choice without adding unrelated table-only defaults.
+    expect(props.currentColumns).toEqual(props.defaultSelectedColumns.filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR));
+    expect(props.allColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+    expect(setReportDetailsColumns).toHaveBeenCalledWith([CONST.SEARCH.TABLE_COLUMNS.VENDOR, ...selectedColumns], savedColumns);
 });
 
 it('saves newly selected expense fields in their chosen order', () => {

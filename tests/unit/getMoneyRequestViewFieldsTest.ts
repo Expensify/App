@@ -76,4 +76,32 @@ describe('getMoneyRequestViewFields', () => {
         // Then each editor appears once because Amount, Attendees and Date already include those details.
         expect(fields).toEqual([CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES]);
     });
+
+    it.each([
+        [CONST.SEARCH.TABLE_COLUMNS.POSTED, CONST.SEARCH.TABLE_COLUMNS.DATE],
+        [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES],
+    ] as const)('preserves the data selected through %s when its editor is omitted', (column, editor) => {
+        // Given a supporting column selected without the expense editor that displays its value.
+        const columns = [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, column, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, column];
+
+        // When the saved columns are mapped to expense fields.
+        const fields = getMoneyRequestViewFields(columns, true);
+
+        // Then the matching editor appears once in the supporting column's saved position.
+        expect(fields).toEqual([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, editor, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+    });
+
+    it.each([
+        [CONST.SEARCH.TABLE_COLUMNS.POSTED, CONST.SEARCH.TABLE_COLUMNS.DATE],
+        [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES],
+    ] as const)('preserves an explicit editor selection alongside %s', (column, editor) => {
+        // Given an explicitly ordered editor followed by its supporting column and duplicate selections.
+        const columns = [editor, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, column, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, editor, column];
+
+        // When the saved columns are mapped to expense fields.
+        const fields = getMoneyRequestViewFields(columns, true);
+
+        // Then the explicit editor keeps its position without adding another row for the supporting column.
+        expect(fields).toEqual([editor, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+    });
 });

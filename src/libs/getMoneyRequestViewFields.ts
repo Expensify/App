@@ -21,13 +21,7 @@ const DEFAULT_FIELDS: SearchColumnType[] = [
     CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
 ];
 
-const EXCLUDED_FIELDS = new Set<SearchColumnType>([
-    CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
-    CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
-    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
-    CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
-    CONST.SEARCH.TABLE_COLUMNS.POSTED,
-]);
+const EXCLUDED_FIELDS = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
 
 /**
  * Maps report columns to expense editors. The receipt has its own panel, and Amount, Attendees and Date
@@ -38,7 +32,15 @@ function getMoneyRequestViewFields(tableColumns: SearchColumnType[] = [], hasCus
         return [...DEFAULT_FIELDS];
     }
 
-    const fields = tableColumns.filter((column) => isReportDetailsCustomColumn(column) && !EXCLUDED_FIELDS.has(column));
+    const fields = tableColumns.flatMap((column) => {
+        if (column === CONST.SEARCH.TABLE_COLUMNS.POSTED) {
+            return tableColumns.includes(CONST.SEARCH.TABLE_COLUMNS.DATE) ? [] : [CONST.SEARCH.TABLE_COLUMNS.DATE];
+        }
+        if (column === CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE) {
+            return tableColumns.includes(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES) ? [] : [CONST.SEARCH.TABLE_COLUMNS.ATTENDEES];
+        }
+        return isReportDetailsCustomColumn(column) && !EXCLUDED_FIELDS.has(column) ? [column] : [];
+    });
 
     // Amount is required even if an older or malformed preference omits it.
     return fields.includes(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT) ? [...new Set(fields)] : [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, ...new Set(fields)];
