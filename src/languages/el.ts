@@ -6899,6 +6899,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             currentTravelSpendInvoiceQueued: 'Θα δημιουργηθεί ένα νέο τιμολόγιο για τις ταξιδιωτικές σας δαπάνες και θα σας αποσταλεί σύντομα.',
                             currentTravelSpendInvoicePending: (amount: string) => `Ένα τιμολόγιο για ${amount} έχει αποσταλεί και αναμένει πληρωμή.`,
                             sendInvoiceNowCta: 'Στείλτε το τιμολόγιο τώρα',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `Το μηνιαίο όριο δαπανών ανά μέλος δεν μπορεί να υπερβαίνει το τρέχον όριο ταξιδιού των ${travelLimit}.`,
                         },
                         setUpNewFeed: 'Ρυθμίστε μια νέα ροή ταξιδιών',
                         feedSelectorIntro:
