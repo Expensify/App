@@ -862,6 +862,10 @@ function updateSplitExpenseField(
     const originalTransactionID = splitExpenseDraftTransaction?.comment?.originalTransactionID;
     const isDistanceRequest = originalTransaction && isDistanceRequestTransactionUtils(originalTransaction);
     const transactionDetails = getTransactionDetails(splitExpenseDraftTransaction);
+    // The draft tax isn't in a single sign convention: it keeps the split's displayed sign until the tax rate is changed,
+    // which writes it with the opposite sign. Take its size from the draft and its sign from the split amount instead.
+    const absTaxAmount = Math.abs(transactionDetails?.taxAmount ?? 0);
+    const splitTaxAmount = (splitExpenseDraftTransaction?.amount ?? 0) < 0 ? -absTaxAmount : absTaxAmount;
     let shouldResetDateRange = false;
 
     const splitExpenses = originalTransactionDraft?.comment?.splitExpenses?.map((item) => {
@@ -897,7 +901,7 @@ function updateSplitExpenseField(
                 reimbursable: getSplitReimbursable(policy, transactionDetails?.reimbursable, originalTransaction),
                 billable: transactionDetails?.billable,
                 taxCode: transactionDetails?.taxCode,
-                taxAmount: Math.abs(transactionDetails?.taxAmount ?? 0),
+                taxAmount: splitTaxAmount,
                 taxValue: transactionDetails?.taxValue,
                 routes: splitExpenseDraftTransaction?.routes ?? undefined,
                 merchant: splitExpenseDraftTransaction?.modifiedMerchant ? splitExpenseDraftTransaction.modifiedMerchant : (splitExpenseDraftTransaction?.merchant ?? ''),

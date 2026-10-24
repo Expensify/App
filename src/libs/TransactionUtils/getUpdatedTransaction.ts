@@ -31,6 +31,7 @@ import getDistanceInMeters from './getDistanceInMeters';
 // The functions imported here are pure helpers that aren't called at initialization time.
 // eslint-disable-next-line import/no-cycle
 import {
+    getAmount,
     getCategoryTaxDetails,
     getCurrency,
     hasAppliedCommuterExclusion,
@@ -381,7 +382,7 @@ function getUpdatedTransaction({
     }
 
     if (Object.hasOwn(transactionChanges, 'taxAmount') && typeof transactionChanges.taxAmount === 'number') {
-        updatedTransaction.taxAmount = isFromExpenseReport ? -transactionChanges.taxAmount : transactionChanges.taxAmount;
+        updatedTransaction.taxAmount = isFromExpenseReport || isUnReportedExpense ? -transactionChanges.taxAmount : transactionChanges.taxAmount;
     }
 
     if (Object.hasOwn(transactionChanges, 'taxCode') && typeof transactionChanges.taxCode === 'string') {
@@ -407,10 +408,15 @@ function getUpdatedTransaction({
         // change here only writes a rate that the response immediately overwrites. Split drafts have no such
         // response and send whatever tax the draft holds, so they keep recalculating.
         if (transactionChanges.category || isSplitTransaction) {
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, getCurrencyDecimals);
+            // Use the updated transaction so an amount or currency edited in the same change is taken into account
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, updatedTransaction, policy, getCurrencyDecimals);
             if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
+                // The category tax is calculated from the absolute amount, so give it the sign of the displayed amount,
+                // then store it with the opposite sign on expense reports and unreported expenses, the same as the amount.
+                const isNegativeAmount = getAmount(updatedTransaction, isFromExpenseReport, isUnReportedExpense) < 0;
+                const displayedCategoryTaxAmount = isNegativeAmount ? -categoryTaxAmount : categoryTaxAmount;
                 updatedTransaction.taxCode = categoryTaxCode;
-                updatedTransaction.taxAmount = categoryTaxAmount;
+                updatedTransaction.taxAmount = isFromExpenseReport || isUnReportedExpense ? -displayedCategoryTaxAmount : displayedCategoryTaxAmount;
                 updatedTransaction.taxValue = categoryTaxValue;
             }
         }

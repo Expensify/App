@@ -612,6 +612,65 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.taxValue).toBe('5%');
         });
 
+        it.each([
+            {name: 'a positive expense on an expense report', storedAmount: -100, reportID: '1', isFromExpenseReport: true, expectedTaxAmount: -5},
+            {name: 'a negative expense on an expense report', storedAmount: 100, reportID: '1', isFromExpenseReport: true, expectedTaxAmount: 5},
+            {name: 'a positive unreported expense', storedAmount: -100, reportID: CONST.REPORT.UNREPORTED_REPORT_ID, isFromExpenseReport: false, expectedTaxAmount: -5},
+            {name: 'a negative unreported expense', storedAmount: 100, reportID: CONST.REPORT.UNREPORTED_REPORT_ID, isFromExpenseReport: false, expectedTaxAmount: 5},
+        ])('should store the category tax with the same sign as the stored amount for $name', ({storedAmount, reportID, isFromExpenseReport, expectedTaxAmount}) => {
+            // Given a policy with a tax expense rule for a category, and an expense stored with the opposite sign of what is displayed
+            const category = 'Advertising';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
+            };
+            const transaction = generateTransaction({amount: storedAmount, reportID});
+
+            // When the category is set to the one with the rule
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport,
+                policy: fakePolicy,
+                transactionChanges: {category},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the tax is stored with the same sign as the amount, so it displays with the sign of the displayed amount
+            expect(updatedTransaction.taxAmount).toBe(expectedTaxAmount);
+        });
+
+        it.each([
+            {name: 'a positive expense edited to a negative amount', storedAmount: -100, editedAmount: -200, expectedTaxAmount: 10},
+            {name: 'a negative expense edited to a positive amount', storedAmount: 100, editedAmount: 200, expectedTaxAmount: -10},
+        ])('should calculate the category tax from the edited amount for $name', ({storedAmount, editedAmount, expectedTaxAmount}) => {
+            // Given a policy with a tax expense rule for a category, and an expense on an expense report
+            const category = 'Advertising';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
+            };
+            const transaction = generateTransaction({amount: storedAmount, reportID: '1'});
+
+            // When the amount's sign and the category change in the same edit, as a bulk edit can do
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                policy: fakePolicy,
+                transactionChanges: {amount: editedAmount, category},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the tax uses the edited amount, so it is stored with the same sign as the new stored amount
+            expect(updatedTransaction.modifiedAmount).toBe(-editedAmount);
+            expect(updatedTransaction.taxAmount).toBe(expectedTaxAmount);
+        });
+
         it('should keep the existing tax when clearing the category on a server backed edit', () => {
             // Given an expense carrying the tax of a category that has its own rule
             const category = 'Advertising';
@@ -1574,6 +1633,25 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.taxValue).toBe('5%');
             expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
             expect(updatedTransaction.taxAmount).toBe(-50);
+        });
+
+        it('should store an edited tax amount with the opposite sign for an unreported expense', () => {
+            // Given an unreported expense, which stores its amounts with the opposite sign like expense report expenses
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: -10000, taxAmount: -476});
+
+            // When the user edits the tax amount from the self DM, where isFromExpenseReport is false
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {taxAmount: 300},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the tax amount is stored with the opposite sign, so it reads back as the positive value the user entered
+            expect(updatedTransaction.taxAmount).toBe(-300);
+            expect(TransactionUtils.getTaxAmount(updatedTransaction, false, true)).toBe(300);
         });
 
         it('should not update taxValue when taxCode is not in transactionChanges', () => {
@@ -4132,6 +4210,76 @@ describe('TransactionUtils', () => {
                 convertedAmount: -100,
             });
             expect(TransactionUtils.getConvertedAmount(transaction, true, false, false, true)).toBe(-100);
+        });
+    });
+
+    describe('getTaxAmount', () => {
+        it('should return the absolute tax amount if the transaction is neither from an expense report nor unreported', () => {
+            // Given an IOU transaction whose tax is stored as a negative value
+            const transaction = generateTransaction({taxAmount: -100});
+
+            // When we read the tax amount
+            const taxAmount = TransactionUtils.getTaxAmount(transaction, false, false);
+
+            // Then it is returned unsigned, because IOU requests cannot have negative values
+            expect(taxAmount).toBe(100);
+        });
+
+        it('should return the opposite sign if the transaction is unreported', () => {
+            // Given an unreported transaction, which stores its tax with the opposite sign like an expense report transaction
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, taxAmount: 95});
+
+            // When we read the tax amount for a tracked expense that isn't on an expense report
+            const taxAmount = TransactionUtils.getTaxAmount(transaction, false, true);
+
+            // Then the sign is flipped back, so a negative unreported expense keeps its negative tax
+            expect(taxAmount).toBe(-95);
+        });
+    });
+
+    describe('getConvertedTaxAmount', () => {
+        it('should return the absolute converted tax amount if the transaction is not from an expense report', () => {
+            // Given an IOU transaction whose converted tax is stored as a negative value
+            const transaction = generateTransaction({convertedTaxAmount: -100});
+
+            // When we read the converted tax amount for a non-expense report
+            const convertedTaxAmount = TransactionUtils.getConvertedTaxAmount(transaction, false);
+
+            // Then it is returned unsigned, because IOU requests cannot have negative values
+            expect(convertedTaxAmount).toBe(100);
+        });
+
+        it('should return the opposite sign if the transaction is from an expense report', () => {
+            // Given an expense-report transaction whose converted tax is stored with the opposite sign of what we display
+            const transaction = generateTransaction({convertedTaxAmount: 182});
+
+            // When we read the converted tax amount for an expense report
+            const convertedTaxAmount = TransactionUtils.getConvertedTaxAmount(transaction, true);
+
+            // Then the sign is flipped back, so a refund's tax displays as negative
+            expect(convertedTaxAmount).toBe(-182);
+        });
+
+        it('should return the opposite sign if the transaction is unreported', () => {
+            // Given an unreported transaction, which stores its converted tax with the opposite sign like an expense report transaction
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, convertedTaxAmount: 182});
+
+            // When we read the converted tax amount for a tracked expense that isn't on an expense report
+            const convertedTaxAmount = TransactionUtils.getConvertedTaxAmount(transaction, false, true);
+
+            // Then the sign is flipped back, so a negative unreported expense keeps its negative tax
+            expect(convertedTaxAmount).toBe(-182);
+        });
+
+        it('should return 0 instead of -0 when there is no converted tax amount', () => {
+            // Given an expense-report transaction with no converted tax
+            const transaction = generateTransaction({convertedTaxAmount: 0});
+
+            // When we read the converted tax amount
+            const convertedTaxAmount = TransactionUtils.getConvertedTaxAmount(transaction, true);
+
+            // Then we get 0 rather than -0, so we never render "-0.00"
+            expect(Object.is(convertedTaxAmount, 0)).toBe(true);
         });
     });
 

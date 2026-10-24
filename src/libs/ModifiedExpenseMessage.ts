@@ -27,7 +27,7 @@ import {isModifiedExpenseAction} from './ReportActionTypeGuards';
 // eslint-disable-next-line import/no-cycle
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getReportName} from './ReportNameUtils';
 import {getPolicyName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
-import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
+import {getFormattedAttendees, getTagArrayFromName, normalizeTaxAmountSign} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
 let environmentURL: string;
@@ -87,14 +87,6 @@ function buildDateChangeFragment(
     }
     const formattedOldCreated = DateUtils.formatMachineDateWithUTCTimeZone(oldCreated, CONST.DATE.FNS_FORMAT_STRING);
     buildMessageFragmentForValue(translate, created, formattedOldCreated, translate('common.date'), false, setFragments, removalFragments, changeFragments);
-}
-
-/**
- * Get the absolute value for a tax amount.
- */
-function getTaxAmountAbsValue(taxAmount: number): number {
-    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
-    return Math.abs(taxAmount ?? 0);
 }
 
 /**
@@ -469,9 +461,9 @@ function getForReportAction({
     if (hasModifiedTaxAmount) {
         const currency = reportActionOriginalMessage?.currency;
 
-        const taxAmount = convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
-        const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
-        const oldTaxAmount = convertToDisplayString(oldTaxAmountValue, currency);
+        // Tax is only available on expense reports, so we can always convert the stored tax amounts as expense report amounts
+        const taxAmount = convertToDisplayString(normalizeTaxAmountSign(reportActionOriginalMessage?.taxAmount, true), currency);
+        const oldTaxAmount = convertToDisplayString(normalizeTaxAmountSign(reportActionOriginalMessage?.oldTaxAmount, true), currency);
         buildMessageFragmentForValue(translate, taxAmount, oldTaxAmount, translate('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
 

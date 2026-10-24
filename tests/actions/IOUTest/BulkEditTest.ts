@@ -2129,9 +2129,10 @@ describe('actions/IOU/BulkEdit', () => {
                 rules: undefined,
             });
 
+            // The tax has the same sign as the new negative amount
             const updates = getBulkEditUpdates(writeSpy);
             expect(updates.amount).toBe(-2000);
-            expect(updates.taxAmount).toBe(95);
+            expect(updates.taxAmount).toBe(-95);
 
             // Optimistic transaction merge should store the flipped sign for expense reports.
             const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
@@ -2139,7 +2140,81 @@ describe('actions/IOU/BulkEdit', () => {
                 (update) => isObject(update) && update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             );
             const transactionOnyxValue = isObject(transactionOnyxUpdate) && isObject(transactionOnyxUpdate.value) ? transactionOnyxUpdate.value : undefined;
-            expect(transactionOnyxValue?.taxAmount).toBe(-95);
+            expect(transactionOnyxValue?.taxAmount).toBe(95);
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('keeps the tax negative when bulk-editing the tax rate of a negative expense', () => {
+            // Given a negative expense on an expense report, stored with the opposite sign, and no tax
+            const transactionID = 'transaction-tax-rate-negative';
+            const iouReportID = 'iou-tax-rate-negative';
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                taxRates: CONST.DEFAULT_TAX,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                amount: 2000,
+                currency: CONST.CURRENCY.USD,
+                taxCode: 'id_TAX_EXEMPT',
+                taxAmount: 0,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // When the tax rate is bulk-edited to a 5% rate
+            updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                changes: {taxCode: 'id_TAX_RATE_1'},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+            });
+
+            // Then the tax is calculated from the displayed -20.00 amount, so it is negative
+            const updates = getBulkEditUpdates(writeSpy);
+            expect(updates.taxAmount).toBe(-95);
+
+            // And the optimistic tax is stored with the opposite sign, the same as the amount
+            const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const transactionOnyxUpdate = getRequiredOnyxUpdates(onyxData, 'optimisticData').find(
+                (update) => isObject(update) && update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            );
+            const transactionOnyxValue = isObject(transactionOnyxUpdate) && isObject(transactionOnyxUpdate.value) ? transactionOnyxUpdate.value : undefined;
+            expect(transactionOnyxValue?.taxAmount).toBe(95);
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();

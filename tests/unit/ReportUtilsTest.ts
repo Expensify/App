@@ -26257,6 +26257,18 @@ describe('ReportUtils', () => {
             expect(result).toBe(-500);
         });
 
+        it('should keep the negative sign of an unreported expense tax amount for TAX_AMOUNT column', () => {
+            // Given an unreported expense, which is stored with the opposite sign like an expense report expense, so a -$5.00 tax is stored as 500
+            const transaction = createMockTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, taxAmount: 500});
+            const chatReport = createMock<Report>({reportID: 'self-dm-report-id', type: CONST.REPORT.TYPE.CHAT});
+
+            // When we get the sort value for the tax amount column
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, chatReport, mockPolicy);
+
+            // Then the sign is flipped back instead of returning the absolute value, matching the TOTAL_AMOUNT column
+            expect(result).toBe(-500);
+        });
+
         it('should return cardID for CARD column', () => {
             const transaction = createMockTransaction({cardID: 12345});
             const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.CARD, mockReport, mockPolicy);
@@ -26538,6 +26550,28 @@ describe('ReportUtils', () => {
             const details = getTransactionDetails(transaction);
 
             expect(details?.taxValue).toBe('10%');
+        });
+
+        it('should keep the negative sign of the tax amount for a negative unreported expense', () => {
+            // Given a negative unreported expense, which is stored with the opposite sign like an expense report expense,
+            // so a -$9.50 expense with -$0.95 tax is stored as amount 950 and taxAmount 95
+            const transaction = createMock<Transaction>({
+                transactionID: 'unreported-negative-transaction',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 950,
+                currency: 'USD',
+                taxCode: 'id_TAX_RATE_1',
+                taxAmount: 95,
+                convertedTaxAmount: 95,
+            });
+
+            // When we get the transaction details to display
+            const details = getTransactionDetails(transaction);
+
+            // Then the tax amounts keep the same negative sign as the amount instead of being shown as absolute values
+            expect(details?.amount).toBe(-950);
+            expect(details?.taxAmount).toBe(-95);
+            expect(details?.convertedTaxAmount).toBe(-95);
         });
     });
 
@@ -29082,6 +29116,34 @@ describe('buildOptimisticModifiedExpenseReportAction sets delegateAccountID', ()
 
         // Then the builder leaves the action unattributed instead of reading the signed-in copilot
         expect(reportAction.delegateAccountID).toBeUndefined();
+    });
+});
+
+describe('buildOptimisticModifiedExpenseReportAction tax amount', () => {
+    it('stores the tax amounts with the stored expense report sign', () => {
+        // Given a negative expense on an expense report, whose -$4.76 tax amount is stored as 476
+        const oldTransaction = {...createRandomTransaction(1), taxAmount: 476};
+
+        // When the user changes the tax amount to $2.00
+        const reportAction = buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {taxAmount: 200}, true, undefined, undefined);
+
+        // Then both tax amounts keep the stored sign, like the server sends them, so the system message shows the same values before and after the server response
+        const originalMessage = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+        expect(originalMessage?.oldTaxAmount).toBe(476);
+        expect(originalMessage?.taxAmount).toBe(-200);
+    });
+
+    it('stores the tax amounts with the stored sign for an unreported expense', () => {
+        // Given a negative unreported expense, whose -$4.76 tax amount is stored as 476 like on an expense report
+        const oldTransaction = {...createRandomTransaction(1), reportID: CONST.REPORT.UNREPORTED_REPORT_ID, taxAmount: 476};
+
+        // When the user changes the tax amount to -$2.00
+        const reportAction = buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {taxAmount: -200}, false, undefined, undefined);
+
+        // Then the new tax amount is stored with the opposite sign too, so the system message shows it as -$2.00
+        const originalMessage = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+        expect(originalMessage?.oldTaxAmount).toBe(476);
+        expect(originalMessage?.taxAmount).toBe(200);
     });
 });
 
