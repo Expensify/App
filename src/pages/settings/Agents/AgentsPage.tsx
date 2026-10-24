@@ -8,12 +8,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import AgentsTable from '@components/Tables/AgentsTable';
 
 import useAgents from '@hooks/useAgents';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -36,12 +38,18 @@ function AgentsPage() {
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
-    const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useAgents();
+    const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useAgents(true);
     const hasAgents = agents.length > 0;
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;
 
     useDocumentTitle(translate('agentsPage.title'));
+
+    useCleanupSelectedOptions(clearSelectedAgents);
+    useSearchBackPress({
+        onClearSelection: clearSelectedAgents,
+        onNavigationCallBack: () => Navigation.goBack(),
+    });
 
     const newAgentButton = hasAgents ? (
         <Button

@@ -67,7 +67,7 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     const [personalDetails] = useAllPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const {agents} = useAgents();
+    const {agents} = useAgents(true);
     const agentsAccountIDs = new Set(agents.map(({accountID}) => accountID));
 
     const openWorkspaceInvitePage = () => {
