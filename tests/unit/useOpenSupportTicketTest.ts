@@ -77,9 +77,11 @@ describe('useOpenSupportTicket', () => {
 
         // And once that transition has finished the Help page is shown and Concierge opens
         const goBackOptions = jest.mocked(Navigation.goBack).mock.calls.at(0)?.at(1);
-        if (typeof goBackOptions === 'object') {
-            goBackOptions.afterTransition?.();
+        if (typeof goBackOptions !== 'object') {
+            throw new Error('goBack should receive options with an afterTransition callback');
         }
+        expect(goBackOptions.afterTransition).toEqual(expect.any(Function));
+        goBackOptions.afterTransition?.();
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HELP);
         expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true});
     });

@@ -67,9 +67,11 @@ describe('TalkToHumanPage', () => {
         // And the ticket is only requested once the transition has finished
         expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
         const goBackOptions = mockGoBack.mock.calls.at(0)?.at(1);
-        if (typeof goBackOptions === 'object') {
-            goBackOptions.afterTransition?.();
+        if (typeof goBackOptions !== 'object') {
+            throw new Error('goBack should receive options with an afterTransition callback');
         }
+        expect(goBackOptions.afterTransition).toEqual(expect.any(Function));
+        goBackOptions.afterTransition?.();
         expect(mockOpenSupportTicketOrConcierge).toHaveBeenCalledTimes(1);
     });
 
