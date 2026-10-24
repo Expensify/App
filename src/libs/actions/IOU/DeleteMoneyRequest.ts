@@ -14,7 +14,6 @@ import {
     getOutstandingChildRequest,
     getPersonalDetailsForAccountID,
     getReimbursableTotal,
-    getReportTransactions,
     getUnheldReimbursableTotal,
     hasOutstandingChildRequest,
     isArchivedReport,
@@ -98,7 +97,7 @@ type PrepareToCleanUpMoneyRequestParams = {
     reportAction: OnyxTypes.ReportAction | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     iouReport: OnyxEntry<OnyxTypes.Report>;
-    iouReportTransactions?: OnyxTypes.Transaction[];
+    iouReportTransactions: OnyxTypes.Transaction[];
     chatReport: OnyxEntry<OnyxTypes.Report>;
     isChatReportArchived: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
@@ -114,7 +113,7 @@ function prepareToCleanUpMoneyRequest({
     reportAction,
     transactionThreadReport,
     iouReport,
-    iouReportTransactions = [],
+    iouReportTransactions,
     chatReport,
     isChatReportArchived,
     getCurrencyDecimals,
@@ -173,7 +172,7 @@ function prepareToCleanUpMoneyRequest({
         canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatReportArchived);
     }
     // If we are deleting the last transaction on a report, then delete the report too
-    const shouldDeleteIOUReport = getReportTransactions(iouReportID).filter((trans) => !transactionIDsPendingDeletion?.includes(trans.transactionID)).length === 1;
+    const shouldDeleteIOUReport = iouReportTransactions.filter((trans) => !transactionIDsPendingDeletion?.includes(trans.transactionID)).length === 1;
 
     const iouReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`];
     if (shouldDeleteIOUReport) {
@@ -352,6 +351,7 @@ function getNavigationUrlOnMoneyRequestDelete(
     reportAction: OnyxTypes.ReportAction | undefined,
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
+    iouReportTransactions: OnyxTypes.Transaction[],
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
@@ -365,6 +365,7 @@ function getNavigationUrlOnMoneyRequestDelete(
         reportAction,
         transactionThreadReport,
         iouReport,
+        iouReportTransactions,
         chatReport,
         isChatReportArchived,
         getCurrencyDecimals,
@@ -449,6 +450,7 @@ function cleanUpMoneyRequest({
         reportAction,
         transactionThreadReport,
         iouReport,
+        iouReportTransactions,
         chatReport,
         isChatIOUReportArchived,
         getCurrencyDecimals,
@@ -869,6 +871,7 @@ function deleteMoneyRequest({
         reportAction,
         transactionThreadReport,
         iouReport,
+        iouReportTransactions,
         chatReport,
         isChatIOUReportArchived,
         getCurrencyDecimals,

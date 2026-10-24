@@ -74,6 +74,12 @@ const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 const CARLOS_ACCOUNT_ID = 1;
 
+/** Reads every transaction on the report from Onyx, so a test passes deleteMoneyRequest the same list the app would. */
+async function getReportTransactionsFromOnyx(reportID: string | undefined): Promise<Transaction[]> {
+    const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+    return Object.values(allTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
+}
+
 OnyxUpdateManager();
 
 describe('actions/IOU/DeleteMoneyRequest', () => {
@@ -457,7 +463,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
-                    iouReportTransactions: transaction ? [transaction] : [],
+                    iouReportTransactions: await getReportTransactionsFromOnyx(iouReport?.reportID),
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -1185,7 +1191,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
-                    iouReportTransactions: transaction ? [transaction] : [],
+                    iouReportTransactions: await getReportTransactionsFromOnyx(iouReport?.reportID),
                     chatReport,
                     transactionThreadReport: thread,
                     isChatIOUReportArchived: undefined,
@@ -1306,7 +1312,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
-                    iouReportTransactions: transaction ? [transaction] : [],
+                    iouReportTransactions: await getReportTransactionsFromOnyx(iouReport?.reportID),
                     chatReport,
                     transactionThreadReport: thread,
                     isSingleTransactionView: true,
@@ -1550,7 +1556,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
-                    iouReportTransactions: transaction ? [transaction] : [],
+                    iouReportTransactions: await getReportTransactionsFromOnyx(iouReport?.reportID),
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
