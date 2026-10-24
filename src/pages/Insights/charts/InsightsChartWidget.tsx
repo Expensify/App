@@ -2,6 +2,7 @@ import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
+import applyRunningTotal from '@components/Search/runningTotal';
 import SearchChartView from '@components/Search/SearchChartView';
 import type {SearchQueryJSON} from '@components/Search/types';
 import WidgetContainer from '@components/WidgetContainer';
@@ -22,7 +23,8 @@ import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import {getInsightsGroupByOptions, getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
+import {getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
@@ -63,8 +65,8 @@ type InsightsChartWidgetProps = {
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
 
-    /** Shows a group-by control in the chart's header when set */
-    onGroupByChange?: (groupBy: InsightsFilters['groupBy']) => void;
+    /** Shows a group-by control in the chart's header when set. Stores the time bucket or Running total the control picks. */
+    onGroupByChange?: (update: Partial<InsightsFilters>) => void;
 };
 
 function InsightsChartWidget({
@@ -92,20 +94,24 @@ function InsightsChartWidget({
     const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
 
     const groupByOptions = getInsightsGroupByOptions(filters.date);
+    const canRunningTotal = isRunningTotalAvailable(filters.date);
+    const shouldShowRunningTotal = filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && canRunningTotal && view === CONST.SEARCH.VIEW.LINE;
 
     const downloadCSV = () => {
         if (!queryJSON || state !== INSIGHTS_CHART_STATE.READY) {
             return;
         }
 
-        const content = buildInsightsChartCSV({data, groupBy, dateRange: getDateFilterRange(queryJSON), currency: filters.groupCurrency, getCurrencyDecimals, translate});
+        // Running total shows cumulative values, so the export accumulates the same way the chart does.
+        const csvData = shouldShowRunningTotal ? applyRunningTotal({data, groupBy}).data : data;
+        const content = buildInsightsChartCSV({data: csvData, groupBy, dateRange: getDateFilterRange(queryJSON), currency: filters.groupCurrency, getCurrencyDecimals, translate});
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };
 
     const groupByControl =
-        onGroupByChange && groupByOptions.length > 1 ? (
+        onGroupByChange && (groupByOptions.length > 1 || canRunningTotal) ? (
             <InsightsGroupByDropdown
-                groupBy={getQueryGroupBy(filters)}
+                groupBy={filters.groupBy}
                 options={groupByOptions}
                 onChange={onGroupByChange}
             />
@@ -162,6 +168,7 @@ function InsightsChartWidget({
                         data={data}
                         isLoading={isLoading}
                         comparison={comparison}
+                        shouldShowRunningTotal={shouldShowRunningTotal}
                         chartContainerStyle={cardPaddingHorizontal}
                         shouldShowSinglePointAsBar
                         shouldShowGroupLabels={false}
