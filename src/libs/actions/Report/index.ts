@@ -4326,7 +4326,7 @@ function updateReportField({
 
     let updatedReportField = reportField;
     if (reportField.type === CONST.REPORT_FIELD_TYPES.LIST && reportField.value !== previousReportField.value) {
-        const optionField = policy.fieldList?.[fieldKey] ?? reportField;
+        const optionField = policy?.fieldList?.[fieldKey] ?? reportField;
         const optionIndex = optionField.values.indexOf(reportField.value ?? '');
         const externalID = optionIndex !== -1 && optionIndex === optionField.values.lastIndexOf(reportField.value ?? '') ? optionField.externalIDs.at(optionIndex) : undefined;
         updatedReportField = {...reportField, externalID: externalID ?? null};
