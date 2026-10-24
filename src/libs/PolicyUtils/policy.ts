@@ -75,6 +75,7 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
+            canCreateExpensesOnPolicy(policy, currentUserLogin) &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             !isArchivedPolicy(policy),
     );
@@ -270,6 +271,11 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>, currentUserLogin: string)
     );
 }
 
+/** Whether the member has access to the workspace and can create expenses on it. */
+function canAccessAndCreateExpensesOnPolicy(policy: OnyxEntry<Policy>, currentUserLogin: string): boolean {
+    return isPolicyAccessible(policy, currentUserLogin) && canCreateExpensesOnPolicy(policy, currentUserLogin);
+}
+
 function getGroupPaidPolicies(policies: OnyxCollection<Policy> | null) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
@@ -440,6 +446,7 @@ export {
     getUserFriendlyWorkspaceType,
     getDefaultWorkspacePlanType,
     isPolicyAccessible,
+    canAccessAndCreateExpensesOnPolicy,
     getGroupPaidPolicies,
     hasAnyPaidPolicy,
     canCreateReportOnPolicy,
