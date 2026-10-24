@@ -6223,34 +6223,36 @@ function canEditFieldOfMoneyRequest({
         const isBlockedOnCurrentPolicy = !!reportPolicy && !canCreateExpensesOnPolicy(reportPolicy, reportOwnerLogin);
         const isPerDiem = isPerDiemRequest(transaction);
 
+        const countOutstandingReports = (excludePolicyID?: string, stopAt = 1): number => {
+            let count = 0;
+            for (const currentPolicy of policiesArray) {
+                if ((excludePolicyID && currentPolicy.id === excludePolicyID) || !canCreateExpensesOnPolicy(currentPolicy, reportOwnerLogin)) {
+                    continue;
+                }
+                if (isPerDiem && !canSubmitPerDiemExpenseFromWorkspace(currentPolicy)) {
+                    continue;
+                }
+                const reports = getOutstandingReportsForUser(
+                    currentPolicy.id,
+                    moneyRequestReport?.ownerAccountID,
+                    rules,
+                    reportNameValuePairs,
+                    outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
+                );
+                count += reports.length;
+                if (count > stopAt) {
+                    break;
+                }
+            }
+            return count;
+        };
+
+        // A member who cannot create expenses on this policy (e.g. approveOnly role) can only move the expense if
+        // there is another eligible workspace or an existing outstanding report to move it to. Otherwise disallow it.
         if (isBlockedOnCurrentPolicy) {
             const hasOtherEligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail).some((p) => p.id !== moneyRequestReport?.policyID);
-            if (!hasOtherEligiblePolicies) {
-                let otherOutstandingReportsCount = 0;
-                for (const currentPolicy of policiesArray) {
-                    if (currentPolicy.id === moneyRequestReport?.policyID || !canCreateExpensesOnPolicy(currentPolicy, reportOwnerLogin)) {
-                        continue;
-                    }
-                    if (isPerDiem && !canSubmitPerDiemExpenseFromWorkspace(currentPolicy)) {
-                        continue;
-                    }
-                    const reports = getOutstandingReportsForUser(
-                        currentPolicy.id,
-                        moneyRequestReport?.ownerAccountID,
-                        rules,
-                        reportNameValuePairs,
-                        outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
-                    );
-                    otherOutstandingReportsCount += reports.length;
-
-                    if (otherOutstandingReportsCount > 0) {
-                        break;
-                    }
-                }
-
-                if (otherOutstandingReportsCount === 0) {
-                    return false;
-                }
+            if (!hasOtherEligiblePolicies && countOutstandingReports(moneyRequestReport?.policyID, 0) === 0) {
+                return false;
             }
         }
 
@@ -6260,27 +6262,8 @@ function canEditFieldOfMoneyRequest({
         }
 
         // Check if there are multiple outstanding reports across policies
-        let outstandingReportsCount = 0;
-        for (const currentPolicy of policiesArray) {
-            if (!canCreateExpensesOnPolicy(currentPolicy, reportOwnerLogin)) {
-                continue;
-            }
-            if (isPerDiem && !canSubmitPerDiemExpenseFromWorkspace(currentPolicy)) {
-                continue;
-            }
-            const reports = getOutstandingReportsForUser(
-                currentPolicy.id,
-                moneyRequestReport?.ownerAccountID,
-                rules,
-                reportNameValuePairs,
-                outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
-            );
-            outstandingReportsCount += reports.length;
-
-            // Short-circuit once we find more than 1
-            if (outstandingReportsCount > 1) {
-                return true;
-            }
+        if (countOutstandingReports(undefined, 1) > 1) {
+            return true;
         }
 
         return false;
