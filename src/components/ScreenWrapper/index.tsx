@@ -143,9 +143,15 @@ function ScreenWrapper({
     // We disable legacy bottom safe area padding handling, if we are using edge-to-edge mode.
     const includeSafeAreaPaddingBottom = isUsingEdgeToEdgeMode ? false : includeSafeAreaPaddingBottomProp;
     const isSafeAreaTopPaddingApplied = includePaddingTop;
+    const isMaxHeightEnabled = restContainerProps.shouldEnableMaxHeight ?? false;
     const statusContextValue = useMemo(
-        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
-        [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
+        () => ({
+            didScreenTransitionEnd,
+            isSafeAreaTopPaddingApplied,
+            isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom,
+            shouldEnableMaxHeight: isMaxHeightEnabled,
+        }),
+        [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied, isMaxHeightEnabled],
     );
 
     // This context allows us to disable the safe area padding offsetting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.
