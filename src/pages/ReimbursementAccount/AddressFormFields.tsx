@@ -64,17 +64,17 @@ type AddressFormProps = ForwardedFSClassProps & {
     shouldAllowCountryChange?: boolean;
 };
 
-const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce(
-    (acc, key) => {
-        acc[COMMON_CONST.PROVINCES[key].provinceISO] = COMMON_CONST.PROVINCES[key].provinceName;
+const PROVINCES_LIST_OPTIONS = Object.values(COMMON_CONST.PROVINCES).reduce(
+    (acc, province) => {
+        acc[province.provinceISO] = province.provinceName;
         return acc;
     },
     {} as Record<string, string>,
 );
 
-const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typeof COMMON_CONST.STATES>).reduce(
-    (acc, key) => {
-        acc[COMMON_CONST.STATES[key].stateISO] = COMMON_CONST.STATES[key].stateName;
+const STATES_LIST_OPTIONS = Object.values(COMMON_CONST.STATES).reduce(
+    (acc, state) => {
+        acc[state.stateISO] = state.stateName;
         return acc;
     },
     {} as Record<string, string>,
