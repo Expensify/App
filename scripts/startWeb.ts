@@ -26,7 +26,7 @@ function getWebCommands({root, isWorkerEnabled, isProxyEnabled, publicPort, inte
         ...(isProxyEnabled ? [{name: 'api', command: 'npm run web-proxy', env: {USE_WEB_PROXY: 'true'}}] : []),
         {
             name: 'rsbuild',
-            command: 'node node_modules/@rsbuild/core/bin/rsbuild.js dev --config config/rsbuild/rsbuild.config.ts',
+            command: 'npx rsbuild dev --config config/rsbuild/rsbuild.config.ts',
             // WEB_LAUNCHER tells Rsbuild these settings came from this launcher, not from a user's .env.
             env: {
                 WEB_LAUNCHER: 'true',
@@ -43,7 +43,7 @@ function getWebCommands({root, isWorkerEnabled, isProxyEnabled, publicPort, inte
                       cwd: workerDir,
                       command: [
                           `bun ../../scripts/waitForWebServer.ts http://127.0.0.1:${internalPort}/ &&`,
-                          'node node_modules/wrangler/bin/wrangler.js dev',
+                          'npx wrangler dev',
                           '--local',
                           '--config wrangler.dev.jsonc',
                           '--ip 127.0.0.1',
