@@ -35,7 +35,7 @@ import React from 'react';
 
 import ExpenseFieldRow from './ExpenseFieldRow';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
-import {reportFieldTransactionStateSelector} from './selectors';
+import {reportFieldTransactionStateSelector, shouldReportFieldBeEditable} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type ReportFieldProps = {
@@ -138,7 +138,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false, ownerPersonalDetail?.login);
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = (isUnreported || isNewReport ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID);
+    const shouldReportBeEditable = shouldReportFieldBeEditable(outstandingReports, reportIDToUse, isUnreported || isNewReport) && !isMoneyRequestReport(reportID);
 
     const openReportPage = () => {
         if (!transactionID || !selectedReportID) {
