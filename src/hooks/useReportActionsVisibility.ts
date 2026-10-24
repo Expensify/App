@@ -24,18 +24,14 @@ type UseReportActionsVisibilityParams = {
     canPerformWriteAction: boolean;
     hasOlderActions: boolean;
     loadOlderChats: (force?: boolean) => void;
-    mainDMSessionStartTime?: string | null;
     conciergeShowFullHistory?: boolean;
     setConciergeShowFullHistory?: (show: boolean) => void;
-    conciergeHadMessagesAtSessionStart?: boolean;
-    setConciergeHadMessagesAtSessionStart?: (value: boolean) => void;
 };
 
 type UseReportActionsVisibilityResult = {
     sortedReportActions: ReportAction[];
     sortedVisibleReportActions: ReportAction[];
     isConciergeSidePanel: boolean;
-    isConciergeMainDM: boolean;
     isConciergeHiddenHistory: boolean;
     showConciergeSidePanelWelcome: boolean;
     showFullHistory: boolean;
@@ -50,11 +46,8 @@ function useReportActionsVisibility({
     canPerformWriteAction,
     hasOlderActions,
     loadOlderChats,
-    mainDMSessionStartTime,
     conciergeShowFullHistory,
     setConciergeShowFullHistory,
-    conciergeHadMessagesAtSessionStart,
-    setConciergeHadMessagesAtSessionStart,
 }: UseReportActionsVisibilityParams): UseReportActionsVisibilityResult {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -69,10 +62,9 @@ function useReportActionsVisibility({
     const isInSidePanel = useIsInSidePanel();
     const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
     const isConciergeMainDM = !isInSidePanel && isConciergeChatReport(report, conciergeReportID);
-    const isConciergeHiddenHistory = isConciergeSidePanel || isConciergeMainDM;
+    const isConciergeHiddenHistory = isConciergeSidePanel;
 
-    const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
-    const sessionStartTime = isConciergeSidePanel ? sidePanelSessionStartTime : (mainDMSessionStartTime ?? null);
+    const {sessionStartTime} = useSidePanelState();
 
     const hasUserSentMessage =
         isConciergeHiddenHistory && sessionStartTime
@@ -121,23 +113,24 @@ function useReportActionsVisibility({
             currentUserAccountID,
             greetingText: translate('common.concierge.greeting'),
             loadOlderChats,
-            isConciergeMainDM,
-            showFullHistory: isConciergeMainDM ? conciergeShowFullHistory : undefined,
-            onSetShowFullHistory: isConciergeMainDM ? setConciergeShowFullHistory : undefined,
-            hadMessagesAtSessionStart: isConciergeMainDM ? conciergeHadMessagesAtSessionStart : undefined,
-            onSetHadMessagesAtSessionStart: isConciergeMainDM ? setConciergeHadMessagesAtSessionStart : undefined,
         });
+
+    const hasConciergeMainDMHistory = isConciergeMainDM && (hasOlderActions || visibleReportActions.some((action) => !isCreatedAction(action)));
+
+    const showConciergeMainDMHistory = () => {
+        setConciergeShowFullHistory?.(true);
+        loadOlderChats(true);
+    };
 
     return {
         sortedReportActions: filteredReportActions,
         sortedVisibleReportActions: filteredVisibleActions,
         isConciergeSidePanel,
-        isConciergeMainDM,
         isConciergeHiddenHistory,
         showConciergeSidePanelWelcome,
-        showFullHistory,
-        hasPreviousMessages,
-        handleShowPreviousMessages,
+        showFullHistory: isConciergeMainDM ? !!conciergeShowFullHistory : showFullHistory,
+        hasPreviousMessages: isConciergeMainDM ? hasConciergeMainDMHistory : hasPreviousMessages,
+        handleShowPreviousMessages: isConciergeMainDM ? showConciergeMainDMHistory : handleShowPreviousMessages,
     };
 }
 

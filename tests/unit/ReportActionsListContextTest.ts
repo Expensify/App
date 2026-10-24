@@ -50,8 +50,6 @@ function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals
         isSingleExpenseReport: false,
         isMissingReportActions: true,
         isConciergeHiddenHistory: false,
-        isConciergeMainDM: false,
-        hasCachedReportActions: false,
         showConciergeSidePanelWelcome: false,
         derivedIsEmptyReport: undefined,
         ...overrides,
