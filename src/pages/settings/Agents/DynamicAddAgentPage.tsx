@@ -75,11 +75,12 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const {windowWidth, windowHeight} = useWindowDimensions();
     const {isKeyboardActive} = useKeyboardState();
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
-    // On native portrait the prompt grows with its content up to a max height instead of filling the screen, so the open
+    // On native the prompt grows with its content up to a max height instead of filling the screen, so the open
     // keyboard can't squeeze it or hide the line being edited, and the form scrolls to fit it above the keyboard.
-    const shouldAutoGrowPromptInput = Platform.OS !== 'web' && !isInLandscapeMode;
+    const shouldAutoGrowPromptInput = Platform.OS !== 'web';
     const shouldUseScrollableLayout = shouldAutoGrowPromptInput || isInLandscapeMode;
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
+    const landscapePromptHeight = shouldShrinkPromptInput ? PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE : styles.h42.height;
     const {accountID: currentUserAccountID, login: currentUserLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
@@ -237,7 +238,11 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     };
 
     const promptTopOffsetRef = useRef(0);
-    const handleInputFocus = () => scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+    const isPromptFocusedRef = useRef(false);
+    const handleInputFocus = () => {
+        isPromptFocusedRef.current = true;
+        scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+    };
 
     const agentAvatar = avatarSource ? (
         <UserAvatar
@@ -309,13 +314,18 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                             </View>
                         )}
                         <View
-                            style={
-                                shouldShrinkPromptInput
-                                    ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
-                                    : [isInLandscapeMode && styles.h42, !isInLandscapeMode && !shouldAutoGrowPromptInput && styles.flex1]
-                            }
+                            style={[
+                                !shouldAutoGrowPromptInput &&
+                                    (shouldShrinkPromptInput
+                                        ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
+                                        : [isInLandscapeMode && styles.h42, !isInLandscapeMode && styles.flex1]),
+                            ]}
                             onLayout={(event) => {
                                 promptTopOffsetRef.current = event.nativeEvent.layout.y;
+                                // Rotation preserves focus, so reveal the prompt again after its new layout is measured.
+                                if (isPromptFocusedRef.current) {
+                                    scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+                                }
                             }}
                         >
                             <InputWrapper
@@ -329,12 +339,16 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                                 onKeyPress={submitFormOnModEnter}
                                 defaultValue={defaultPrompt}
                                 multiline
-                                autoGrowHeight={shouldAutoGrowPromptInput}
-                                maxAutoGrowHeight={shouldAutoGrowPromptInput ? PROMPT_MAX_AUTO_GROW_HEIGHT : undefined}
+                                // Keep native markdown sizing enabled across rotation so the input retains focus while its height limit changes.
+                                autoGrowHeight={Platform.OS !== 'web'}
+                                maxAutoGrowHeight={isInLandscapeMode ? landscapePromptHeight : PROMPT_MAX_AUTO_GROW_HEIGHT}
                                 containerStyles={shouldAutoGrowPromptInput ? undefined : [styles.h100]}
                                 touchableInputWrapperStyle={shouldAutoGrowPromptInput ? undefined : [styles.flex1]}
                                 inputStyle={[!shouldAutoGrowPromptInput && styles.flex1, styles.textAlignVerticalTop]}
                                 onFocus={handleInputFocus}
+                                onBlur={() => {
+                                    isPromptFocusedRef.current = false;
+                                }}
                             />
                         </View>
                         <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>
