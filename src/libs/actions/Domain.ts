@@ -151,8 +151,9 @@ async function getDomainSessionRevocationStatus(completionHandle: string): Promi
             shouldRetry: false,
             skipReauthentication: true,
         });
-        if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && response.status && ['running', 'succeeded', 'failed', 'unavailable'].includes(response.status)) {
-            return response.status;
+        const status = response?.status;
+        if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && (status === 'running' || status === 'succeeded' || status === 'failed' || status === 'unavailable')) {
+            return status;
         }
     } catch {
         return 'unavailable';

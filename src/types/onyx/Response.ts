@@ -30,7 +30,8 @@ type Response<TKey extends OnyxKey> = {
 
     selfRevoked?: boolean;
     revokedAccountCount?: number;
-    status?: 'running' | 'succeeded' | 'failed' | 'unavailable';
+    /** HTTP status or a command-specific status. */
+    status?: number | string;
 
     /** Collection of onyx updates (SET/MERGE/...) */
     onyxData?: Array<OnyxUpdate<TKey>>;

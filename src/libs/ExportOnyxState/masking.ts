@@ -34,6 +34,8 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
     ONYXKEYS.MAPBOX_ACCESS_TOKEN,
     // Same story: the QA OAuth tokens sit in fields maskFragileData doesn't key on
     ONYXKEYS.CLOUDFLARE_SESSION,
+    // The completion handle authorizes status lookup after sign-out.
+    ONYXKEYS.DOMAIN_SESSION_REVOCATION,
     // All three hold the picked image itself in "uri", as a base64 data URL on web. Masking it would only
     // trade a copy of the user's photo for an equally large blob of random characters.
     ONYXKEYS.AVATAR_CROP_DRAFT,

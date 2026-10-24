@@ -24,6 +24,8 @@ import type {ReactNode} from 'react';
 import React from 'react';
 
 let mockDomain: Domain;
+const adminAccessKey = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}3` as const;
+const securityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1` as const;
 const mockOnyxKeys = ONYXKEYS;
 const mockMemberAccountID = 2;
 const mockShowConfirmModal = jest.fn();
@@ -93,8 +95,13 @@ describe('Domain members revocation', () => {
             validated: true,
             // eslint-disable-next-line @typescript-eslint/naming-convention -- This is the server-owned Onyx field name.
             domain_defaultSecurityGroupID: '1',
-            [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}3`]: 3,
-            [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {name: 'Members', shared: {[mockMemberAccountID]: 'read'}},
+            [adminAccessKey]: 3,
+            [securityGroupKey]: {
+                name: 'Members',
+                enableRestrictedPrimaryLogin: false,
+                enableRestrictedPolicyCreation: false,
+                shared: {[mockMemberAccountID]: 'read'},
+            },
         };
     });
 
@@ -129,7 +136,7 @@ describe('Domain members revocation', () => {
     it.each(['non-admin', 'unverified', 'offline'] as const)('blocks domain revocation when %s', async (scenario) => {
         // Given an unavailable or unauthorized domain-wide action
         if (scenario === 'non-admin') {
-            delete mockDomain[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}3`];
+            delete mockDomain[adminAccessKey];
         } else if (scenario === 'unverified') {
             mockDomain.validated = false;
         } else {

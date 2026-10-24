@@ -28,6 +28,8 @@ import React from 'react';
 
 const DOMAIN_ACCOUNT_ID = 1;
 const MEMBER_ACCOUNT_ID = 2;
+const adminAccessKey = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}3` as const;
+const securityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1` as const;
 const mockOnyxKeys = ONYXKEYS;
 
 let mockDomain: Domain;
@@ -104,8 +106,13 @@ describe('DomainMemberDetailsPage', () => {
             validated: true,
             // eslint-disable-next-line @typescript-eslint/naming-convention -- This is the server-owned Onyx field name.
             domain_defaultSecurityGroupID: '1',
-            [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}3`]: 3,
-            [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {name: 'Members', shared: {[MEMBER_ACCOUNT_ID]: 'read'}},
+            [adminAccessKey]: 3,
+            [securityGroupKey]: {
+                name: 'Members',
+                enableRestrictedPrimaryLogin: false,
+                enableRestrictedPolicyCreation: false,
+                shared: {[MEMBER_ACCOUNT_ID]: 'read'},
+            },
         };
         jest.mocked(revokeDomainMemberSessions).mockResolvedValue(true);
         jest.mocked(useNetwork).mockReturnValue({isOffline: false, lastOfflineAt: undefined});
@@ -156,9 +163,9 @@ describe('DomainMemberDetailsPage', () => {
         if (scenario === 'unverified') {
             mockDomain.validated = false;
         } else if (scenario === 'non-admin') {
-            delete mockDomain[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}3`];
+            delete mockDomain[adminAccessKey];
         } else {
-            delete mockDomain[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`];
+            delete mockDomain[securityGroupKey];
         }
 
         // When the real admin wrapper and member page render
