@@ -23,7 +23,8 @@ type MockTabsScreenProps = {
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const NativeTabView = NativeBottomTabView as unknown as React.ComponentType<NativeBottomTabViewProps>;
 
-// Each mounted native tab and each mounted tab content, in mount order
+// Each mounted native host, each mounted native tab and each mounted tab content, in mount order
+let mockNativeHostMountCount = 0;
 const mockNativeTabMounts: string[] = [];
 const contentMounts: string[] = [];
 let mockLatestHostProps: MockTabsHostProps | undefined;
@@ -33,6 +34,9 @@ jest.mock('react-native-screens', () => {
 
     function Host(props: MockTabsHostProps) {
         mockLatestHostProps = props;
+        mockUseEffect(() => {
+            mockNativeHostMountCount++;
+        }, []);
         return props.children;
     }
 
@@ -69,17 +73,34 @@ function buildTabState(inboxKey: string): TabNavigationState<ParamListBase> {
     };
 }
 
+function buildTabStateWithInsights(): TabNavigationState<ParamListBase> {
+    return {
+        type: 'tab',
+        key: 'tab',
+        index: 0,
+        stale: false,
+        routeNames: ['Inbox', 'Insights', 'Account'],
+        routes: [
+            {name: 'Inbox', key: 'Inbox-key'},
+            {name: 'Insights', key: 'Insights-key'},
+            {name: 'Account', key: 'Account-key'},
+        ],
+        history: [{type: 'route', key: 'Inbox-key'}],
+        preloadedRouteKeys: [],
+    };
+}
+
 function buildNavigation() {
     return {dispatch: jest.fn(), emit: jest.fn(), getState: jest.fn()};
 }
 
-function buildDescriptors(state: TabNavigationState<ParamListBase>): NativeBottomTabViewProps['descriptors'] {
+function buildDescriptors(state: TabNavigationState<ParamListBase>, hiddenRouteName?: string): NativeBottomTabViewProps['descriptors'] {
     const descriptors = Object.fromEntries(
         state.routes.map((route) => [
             route.key,
             {
                 route,
-                options: {},
+                options: route.name === hiddenRouteName ? {tabBarItemHidden: true} : {},
                 navigation: {},
                 render: () => <TabContent routeKey={route.key} />,
             },
@@ -90,7 +111,7 @@ function buildDescriptors(state: TabNavigationState<ParamListBase>): NativeBotto
     return descriptors as unknown as NativeBottomTabViewProps['descriptors'];
 }
 
-function renderTabView(state: TabNavigationState<ParamListBase>, navigation: ReturnType<typeof buildNavigation>) {
+function renderTabView(state: TabNavigationState<ParamListBase>, navigation: ReturnType<typeof buildNavigation>, hiddenRouteName?: string) {
     return (
         <ThemeProvider value={DefaultTheme}>
             <NativeTabView
@@ -98,7 +119,7 @@ function renderTabView(state: TabNavigationState<ParamListBase>, navigation: Ret
                 // The view calls only the navigation methods the mock provides.
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 navigation={navigation as unknown as NativeBottomTabViewProps['navigation']}
-                descriptors={buildDescriptors(state)}
+                descriptors={buildDescriptors(state, hiddenRouteName)}
             />
         </ThemeProvider>
     );
@@ -106,6 +127,7 @@ function renderTabView(state: TabNavigationState<ParamListBase>, navigation: Ret
 
 describe('NativeBottomTabView', () => {
     beforeEach(() => {
+        mockNativeHostMountCount = 0;
         mockNativeTabMounts.length = 0;
         contentMounts.length = 0;
         mockLatestHostProps = undefined;
@@ -124,6 +146,25 @@ describe('NativeBottomTabView', () => {
         // And the Inbox content still remounts under its new key, so the remount the new key asks for still happens
         expect(contentMounts.filter((routeKey) => routeKey.startsWith('Inbox'))).toEqual(['Inbox-key-1', 'Inbox-key-2']);
         // And native is asked to select the tab by its route name, which did not change
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Inbox');
+        // And the native host is not remounted, since the hidden routes did not change
+        expect(mockNativeHostMountCount).toBe(1);
+    });
+
+    it('remounts the native host with the new tabs when a different route is hidden', () => {
+        // Given the Inbox tab focused, with Insights hidden as it is without the Insights beta
+        const navigation = buildNavigation();
+        const state = buildTabStateWithInsights();
+        const {rerender} = render(renderTabView(state, navigation, 'Insights'));
+
+        // When the Insights beta is turned on, so Account is hidden instead
+        rerender(renderTabView(state, navigation, 'Account'));
+
+        // Then a new native host is mounted, since Android cannot remove the old host's tab in place and would crash
+        expect(mockNativeHostMountCount).toBe(2);
+        // And the new host gets the tabs that are visible now
+        expect(mockNativeTabMounts).toEqual(['Inbox', 'Account', 'Inbox', 'Insights']);
+        // And native is still asked to select the focused tab
         expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Inbox');
     });
 
