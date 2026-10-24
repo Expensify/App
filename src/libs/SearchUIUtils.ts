@@ -6267,10 +6267,24 @@ function isMappedFilterKey(key: string): key is MappedFilterKey {
 }
 
 function getFilterViewLabelKey(filterKey: keyof typeof FILTER_VIEW_MAP, type?: SearchDataTypes): TranslationPaths {
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && isCreatedDateType(type)) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && (isCreatedDateType(type) || type === CONST.SEARCH.DATA_TYPES.INVOICE)) {
         return 'search.filters.createdDate';
     }
     return FILTER_VIEW_MAP[filterKey].labelKey;
+}
+
+function isFilterMatchingSearchValue(filterKey: keyof typeof FILTER_VIEW_MAP, type: SearchDataTypes | undefined, searchValue: string, translate: LocalizedTranslate): boolean {
+    return translate(getFilterViewLabelKey(filterKey, type)).toLowerCase().includes(searchValue.trim().toLowerCase());
+}
+
+/** Keeps the filters whose label contains the search value, dropping the sections left empty. */
+function getMatchingFilters(
+    filters: Array<Array<SearchFilter['key']>>,
+    type: SearchDataTypes | undefined,
+    searchValue: string,
+    translate: LocalizedTranslate,
+): Array<Array<SearchFilter['key']>> {
+    return filters.map((section) => section.filter((filterKey) => isFilterMatchingSearchValue(filterKey, type, searchValue, translate))).filter((section) => section.length > 0);
 }
 
 function mapFiltersFormToLabelValueList(
@@ -7591,6 +7605,8 @@ export {
     RECONCILIATION_SEARCH_KEYS,
     FILTER_VIEW_MAP,
     getFilterViewLabelKey,
+    isFilterMatchingSearchValue,
+    getMatchingFilters,
     isCreatedDateType,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,

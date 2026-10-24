@@ -1,12 +1,15 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+
+import type * as TestHelper from '../../utils/TestHelper';
 
 // jest.mock factories can't reference imported bindings, but `mock`-prefixed locals are allowed.
 const MockView = View;
@@ -32,6 +35,7 @@ let mockOnFocus: ((filterKey: string) => void) | undefined;
 let mockOnPointerMove: ((event: {clientX: number; clientY: number}) => void) | undefined;
 let mockOnPointerLeave: ((event: {clientX: number}) => void) | undefined;
 let mockSelectedFilter: string | undefined;
+let mockOnSearchValueChange: ((searchValue: string) => void) | undefined;
 
 /** The form served by the useOnyx mock. Reassigned by tests to change filter values. */
 let mockFiltersForm: Partial<SearchAdvancedFiltersForm> | undefined;
@@ -45,12 +49,14 @@ jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () =
         onPointerMove: (event: {clientX: number; clientY: number}) => void;
         onPointerLeave: (event: {clientX: number}) => void;
         selectedFilter: string;
+        onSearchValueChange: (searchValue: string) => void;
     }) => {
         mockOnHoverIn = props.onHoverIn;
         mockOnFocus = props.onFocus;
         mockOnPointerMove = props.onPointerMove;
         mockOnPointerLeave = props.onPointerLeave;
         mockSelectedFilter = props.selectedFilter;
+        mockOnSearchValueChange = props.onSearchValueChange;
 
         return null;
     },
@@ -79,6 +85,12 @@ jest.mock('@components/Search/hooks/useUpdateFilterQuery', () => ({
     __esModule: true,
     default: () => ({updateFilterQueryParams: mockUpdateFilterQueryParams}),
 }));
+
+// The default locale context translates every label to an empty string, and the filter search matches labels.
+jest.mock('@hooks/useLocalize', () => {
+    const {translateLocal, localeCompare} = jest.requireActual<typeof TestHelper>('../../utils/TestHelper');
+    return () => ({translate: translateLocal, localeCompare});
+});
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
@@ -125,12 +137,26 @@ function leaveList(clientX = Number.MAX_SAFE_INTEGER) {
     });
 }
 
+/** Types into the filter search input and pauses long enough for the list to follow. */
+function search(searchValue: string) {
+    act(() => {
+        mockOnSearchValueChange?.(searchValue);
+    });
+    act(() => {
+        jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    });
+}
+
 /** Moves the keyboard focus onto a filter row. */
 function focus(filterKey: string) {
     act(() => {
         mockOnFocus?.(filterKey);
     });
 }
+
+beforeAll(async () => {
+    await IntlStore.load('en');
+});
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -273,5 +299,68 @@ describe('SearchAdvancedFiltersPopup', () => {
 
         // No timer is advanced: moving focus is deliberate and never passes over rows on the way.
         expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(true);
+    });
+
+    it('shows the first match once the typing pauses', () => {
+        // Given the popover open on Type
+        // When a search that Type does not match is typed, before the typing pauses
+        act(() => {
+            mockOnSearchValueChange?.('status');
+        });
+
+        // Then the content stays put while the typing may go on
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.TYPE);
+
+        // When the typing pauses
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+        });
+
+        // Then Status, the first match, takes over the content
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.STATUS);
+    });
+
+    it('shows the first match even when the shown filter still matches', () => {
+        // Given Withdrawal status shown, which sits below Status in the list
+        hoverAndRest(FILTER_KEYS.WITHDRAWAL_STATUS);
+
+        // When a search that both filters match is typed
+        search('status');
+
+        // Then Status takes over, as a selection list moves to its first match on every search
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.STATUS);
+    });
+
+    it('goes back to the first filter as soon as the search is cleared', () => {
+        // Given a search, then another of its matches picked
+        search('status');
+        hoverAndRest(FILTER_KEYS.WITHDRAWAL_STATUS);
+
+        // When the search is cleared, before any debounce elapses
+        act(() => {
+            mockOnSearchValueChange?.('');
+        });
+
+        // Then Type, the first row of the full list, takes over at once, the same moment the full list comes back
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.TYPE);
+    });
+
+    it('lets a contact list filter the search lands on derive at once', () => {
+        // Given the popover open on Type
+        // When a search whose first match is From is typed and the typing pauses
+        search('from');
+
+        // Then From derives its contact list straight away, because the typing has already settled
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.FROM);
+        expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(true);
+    });
+
+    it('shows the empty state when the search lists no filter', () => {
+        // Given the popover open on Type
+        // When a search that no filter matches is typed
+        search('unicorn');
+
+        // Then the content gives way to the empty state, so it does not show a filter missing from the list
+        expect(screen.getByText('No filters selected')).toBeOnTheScreen();
     });
 });

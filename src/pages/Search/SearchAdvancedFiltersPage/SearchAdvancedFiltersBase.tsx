@@ -7,6 +7,8 @@ import FilterList from '@components/Search/FilterComponents/AdvancedFilters/Filt
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 
+import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import {getMatchingFilters} from '@libs/SearchUIUtils';
 
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 
@@ -39,6 +42,10 @@ function SearchAdvancedFiltersBase() {
     const {isBetaEnabled} = usePermissions();
     const canUseNLFilters = isBetaEnabled(CONST.BETAS.NL_FILTERS);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
+    const [filterSearchValue, debouncedFilterSearchValue, setFilterSearchValue] = useDebouncedState('', CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const allFilters = useAdvancedSearchFilters(currentDraftFilters.type);
+    // A cleared input lists every filter at once rather than after the debounce, as in useSearchResults.
+    const filters = getMatchingFilters(allFilters, currentDraftFilters.type, filterSearchValue.trim() ? debouncedFilterSearchValue : '', translate);
 
     return (
         <ScreenWrapper
@@ -84,6 +91,9 @@ function SearchAdvancedFiltersBase() {
             <FilterList
                 contentContainerStyle={[styles.pb5]}
                 type={currentDraftFilters.type}
+                filters={filters}
+                searchValue={filterSearchValue}
+                onSearchValueChange={setFilterSearchValue}
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
             <View style={[isInLandscapeMode ? [styles.flexRow, styles.gap2] : [styles.gap3], styles.ph5, styles.pb5]}>

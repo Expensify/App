@@ -1,3 +1,4 @@
+import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import SafeTriangle from '@components/SafeTriangle';
@@ -8,9 +9,12 @@ import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery'
 import type {SearchQueryJSON} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import {useDebounceWithControls} from '@hooks/useDebounce';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -22,7 +26,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasFilterContentValuesChanged} from '@libs/SearchUIUtils';
+import {getMatchingFilters, hasFilterContentValuesChanged} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -32,7 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
-import type {ComponentRef} from 'react';
+import type {ComponentRef, Ref} from 'react';
 
 import React, {Activity, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -49,6 +53,9 @@ type SearchAdvancedFiltersPopupProps = {
 
     /** Closes the filters popover overlay */
     closeOverlay: () => void;
+
+    /** Ref to the filter search input, so the popover can focus it once it has opened */
+    filterSearchInputRef?: Ref<BaseTextInputRef>;
 };
 
 /** Which filter contents are mounted and what each was given. */
@@ -125,7 +132,7 @@ function MountedFilterContent({filterKey, values, ready, onChange}: MountedFilte
     );
 }
 
-function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFiltersPopupProps) {
+function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputRef}: SearchAdvancedFiltersPopupProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -137,6 +144,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const filterContentRef = useRef<ComponentRef<typeof View>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
+    const illustrations = useMemoizedLazyIllustrations(['Filters']);
     const [mountedFilterState, setMountedFilterState] = useState<MountedFilterState>(() => ({
         activeFilter: INITIAL_FILTER,
         mountedFilters: [INITIAL_FILTER],
@@ -147,6 +155,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
     }));
     const {activeFilter, mountedFilters, formWhileHidden, contentVersions, readyFilters} = mountedFilterState;
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    const allFilters = useAdvancedSearchFilters(searchAdvancedFiltersForm?.type);
 
     // Shows a filter's content. A visited one stays mounted, so a return reveals it rather than building it again.
     const showFilter = (filterKey: SearchFilter['key']) => {
@@ -217,6 +226,36 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
         markShownFilterReady();
     };
 
+    // Like a selection list, a search shows its first match. Typing has settled by now, so nothing is withheld, the
+    // same as for a focused row.
+    const showFirstMatchingFilter = (searchValue: string) => {
+        const firstMatchingFilter = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, searchValue, translate).at(0)?.at(0);
+        if (isDescribeMode || !firstMatchingFilter) {
+            return;
+        }
+
+        cancelReadyWait();
+        showFilter(firstMatchingFilter);
+        markShownFilterReady();
+    };
+
+    const [filterSearchValue, debouncedFilterSearchValue, setFilterSearchValue] = useDebouncedState<string>('', CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME, {
+        onDebouncedValueChange: showFirstMatchingFilter,
+    });
+    // A cleared input lists every filter at once rather than after the debounce, as in useSearchResults.
+    const filters = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, filterSearchValue.trim() ? debouncedFilterSearchValue : '', translate);
+    const isActiveFilterListed = filters.some((section) => section.includes(activeFilter));
+
+    // A cleared input lists every filter without waiting, so the content goes back to the first one with it.
+    const changeFilterSearchValue = (searchValue: string) => {
+        setFilterSearchValue(searchValue);
+        if (searchValue.trim()) {
+            return;
+        }
+
+        showFirstMatchingFilter(searchValue);
+    };
+
     const mayDeriveContent = (filterKey: SearchFilter['key']) => !DEFERRED_CONTENT_FILTERS.has(filterKey) || readyFilters.includes(filterKey);
 
     const getDescribeButtonBackground = (pressed: boolean) => {
@@ -275,9 +314,13 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                         </>
                     )}
                     <FilterList
-                        style={[styles.flex1]}
+                        style={[styles.flex1, styles.pt2]}
                         type={searchAdvancedFiltersForm?.type}
                         selectedFilter={isDescribeMode ? undefined : activeFilter}
+                        filters={filters}
+                        searchValue={filterSearchValue}
+                        onSearchValueChange={changeFilterSearchValue}
+                        searchInputRef={filterSearchInputRef}
                         onHoverIn={hoverFilter}
                         onPointerMove={trackPointerMovement}
                         onPointerLeave={stopTrackingPointer}
@@ -288,6 +331,12 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                     ref={filterContentRef}
                     style={[styles.filterContentContainer]}
                 >
+                    {!isDescribeMode && !isActiveFilterListed && (
+                        <BlockingView
+                            icon={illustrations.Filters}
+                            title={translate('search.filters.noFiltersSelected')}
+                        />
+                    )}
                     {isDescribeMode ? (
                         <SearchNLFilterContent onSuccess={handleNLSuccess} />
                     ) : (
@@ -296,7 +345,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                             // effects, so it holds no Onyx subscriptions until it is shown again.
                             <Activity
                                 key={`${filterKey}-${contentVersions[filterKey] ?? 0}`}
-                                mode={filterKey === activeFilter ? 'visible' : 'hidden'}
+                                mode={filterKey === activeFilter && isActiveFilterListed ? 'visible' : 'hidden'}
                             >
                                 <MountedFilterContent
                                     filterKey={filterKey}
