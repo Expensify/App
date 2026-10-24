@@ -237,7 +237,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                                     src={expensifyIcons.Clock}
                                     fill={theme.icon}
                                 />
-                                <View style={[styles.flex1, styles.ml3]}>
+                                <View style={[styles.flex1, styles.ml3, styles.flexRow, styles.renderHTML]}>
                                     <RenderHTML html={`<muted-text-label>${getSubmissionFrequencyHelperText(selectedFrequency, timezoneLink, translate)}</muted-text-label>`} />
                                 </View>
                             </View>
