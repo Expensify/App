@@ -139,7 +139,8 @@ describe('AddDelegatePage', () => {
     });
 
     it('shows a disabled Next button when no user is selected', () => {
-        // Given no user is selected
+        // Given no user is selected (reset in beforeEach)
+        // When the Add copilot page renders
         const listProps = renderPage();
 
         // Then a Next button is shown but disabled, since there is no copilot to continue with
@@ -147,8 +148,10 @@ describe('AddDelegatePage', () => {
         expect(listProps.confirmButtonOptions?.text).toBe('common.next');
         expect(listProps.confirmButtonOptions?.isDisabled).toBe(true);
 
-        // And confirming anyway does not navigate
+        // When the user presses Next anyway
         listProps.confirmButtonOptions?.onConfirm?.();
+
+        // Then nothing navigates, because there is no selected user to open the permission level step for
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
