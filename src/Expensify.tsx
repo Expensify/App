@@ -24,6 +24,7 @@ import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
 import useSaveMarketingAttribution from './hooks/useSaveMarketingAttribution';
+import useSyncAdvertisingConsent from './hooks/useSyncAdvertisingConsent';
 import {updateLastRoute} from './libs/actions/App';
 import {initReconnect} from './libs/actions/Reconnect';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -70,6 +71,7 @@ function Expensify() {
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     useDebugShortcut();
     useSaveMarketingAttribution();
+    useSyncAdvertisingConsent();
 
     useEffect(() => {
         initializeTelemetryTrackers();

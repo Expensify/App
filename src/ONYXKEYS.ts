@@ -6,6 +6,7 @@ import type {TranslationPaths} from './languages/types';
 import type {OnboardingFeatureMapItem} from './libs/actions/Welcome/OnboardingFeatures';
 import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow';
 import type Platform from './libs/getPlatform/types';
+import type {TargetedAdvertisingConsent} from './libs/Ketch/types';
 import type {TransactionThreadNavigationDescriptor} from './libs/TransactionThreadNavigationUtils';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
@@ -80,6 +81,9 @@ const ONYXKEYS = {
 
     /** Marketing attribution (UTM params and Google Ads click ID) captured from the landing URL */
     MARKETING_ATTRIBUTION: 'marketingAttribution',
+
+    /** The last targeted advertising consent sent to the server with UpdateAdvertisingConsent, so it is only sent again when it changes */
+    LAST_SENT_TARGETED_ADVERTISING_CONSENT: 'lastSentTargetedAdvertisingConsent',
 
     /** Keeps track if there is modal currently visible or not */
     MODAL: 'modal',
@@ -1772,6 +1776,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.MARKETING_ATTRIBUTION]: OnyxTypes.StoredMarketingAttribution;
+    [ONYXKEYS.LAST_SENT_TARGETED_ADVERTISING_CONSENT]: TargetedAdvertisingConsent;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN]: boolean;

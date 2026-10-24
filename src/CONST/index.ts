@@ -499,6 +499,17 @@ const CONST = {
     /** Google Ads only accepts click ID conversions for 90 days, so stored marketing attribution older than this is ignored */
     MARKETING_ATTRIBUTION_MAX_AGE_MS: 90 * 24 * 60 * 60 * 1000,
 
+    /** The user's targeted advertising consent as sent to the server, which gates Google Ads enhanced conversions */
+    TARGETED_ADVERTISING_CONSENT: {
+        GRANTED: 'granted',
+        DENIED: 'denied',
+    },
+
+    KETCH: {
+        /** Purpose code of the "Targeted Advertising" purpose in our Ketch config (same code in every jurisdiction) */
+        TARGETED_ADVERTISING_PURPOSE: 'targeted_advertising',
+    },
+
     AUTH_TOKEN_TYPES: {
         ANONYMOUS: 'anonymousAccount',
         SUPPORT: 'support',

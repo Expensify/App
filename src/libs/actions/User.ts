@@ -14,6 +14,7 @@ import type {
     SetNameValuePairParams,
     SetPersonalExpenseRulesParams,
     TogglePlatformMuteParams,
+    UpdateAdvertisingConsentParams,
     UpdateChatPriorityModeParams,
     UpdateNewsletterSubscriptionParams,
     UpdatePreferredEmojiSkinToneParams,
@@ -27,6 +28,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
+import type {TargetedAdvertisingConsent} from '@libs/Ketch/types';
 import Log from '@libs/Log';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -1025,6 +1027,24 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
     if (!autoSwitchedToFocusMode) {
         Navigation.goBack();
     }
+}
+
+/**
+ * Sends the user's Ketch targeted advertising consent to the server, which gates Google Ads enhanced conversions on it.
+ * The value is saved locally as the last one sent so it's only sent again when it changes.
+ */
+function updateAdvertisingConsent(targetedAdvertisingConsent: TargetedAdvertisingConsent) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LAST_SENT_TARGETED_ADVERTISING_CONSENT>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.LAST_SENT_TARGETED_ADVERTISING_CONSENT,
+            value: targetedAdvertisingConsent,
+        },
+    ];
+
+    const parameters: UpdateAdvertisingConsentParams = {targetedAdvertisingConsent};
+
+    API.write(WRITE_COMMANDS.UPDATE_ADVERTISING_CONSENT, parameters, {optimisticData});
 }
 
 function setActiveServer(server: ValueOf<typeof CONST.SERVER>) {
@@ -2082,6 +2102,7 @@ export {
     updatePreferredSkinTone,
     setInboxTab,
     updateChatPriorityMode,
+    updateAdvertisingConsent,
     setActiveServer,
     togglePlatformMute,
     joinScreenShare,
