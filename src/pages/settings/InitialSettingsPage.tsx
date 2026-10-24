@@ -207,7 +207,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 breadcrumbLabel={translate('initialSettingsPage.account')}
                 shouldDisplaySearch={shouldUseNarrowLayout}
                 shouldDisplayHelpButton={shouldUseNarrowLayout}
-                onBackButtonPress={isDrawnOverTabs ? goBackFromAccount : undefined}
             >
                 {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
                     /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */
