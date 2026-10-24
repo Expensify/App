@@ -6221,6 +6221,7 @@ function canEditFieldOfMoneyRequest({
 
         const reportOwnerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails()) ?? deprecatedCurrentUserEmail;
         const isBlockedOnCurrentPolicy = !!reportPolicy && !canCreateExpensesOnPolicy(reportPolicy, reportOwnerLogin);
+        const isPerDiem = isPerDiemRequest(transaction);
 
         if (isBlockedOnCurrentPolicy) {
             const hasOtherEligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail).some((p) => p.id !== moneyRequestReport?.policyID);
@@ -6230,7 +6231,7 @@ function canEditFieldOfMoneyRequest({
                     if (currentPolicy.id === moneyRequestReport?.policyID || !canCreateExpensesOnPolicy(currentPolicy, reportOwnerLogin)) {
                         continue;
                     }
-                    if (isPerDiemRequest(transaction) && !canSubmitPerDiemExpenseFromWorkspace(currentPolicy)) {
+                    if (isPerDiem && !canSubmitPerDiemExpenseFromWorkspace(currentPolicy)) {
                         continue;
                     }
                     const reports = getOutstandingReportsForUser(
@@ -6264,7 +6265,7 @@ function canEditFieldOfMoneyRequest({
             if (!canCreateExpensesOnPolicy(currentPolicy, reportOwnerLogin)) {
                 continue;
             }
-            if (isPerDiemRequest(transaction) && !canSubmitPerDiemExpenseFromWorkspace(currentPolicy)) {
+            if (isPerDiem && !canSubmitPerDiemExpenseFromWorkspace(currentPolicy)) {
                 continue;
             }
             const reports = getOutstandingReportsForUser(
