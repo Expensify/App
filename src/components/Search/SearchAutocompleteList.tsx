@@ -35,6 +35,7 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
+import {cancelSearchRouterQuerySpan, markSearchRouterQueryCommitted} from '@libs/telemetry/searchRouterQuerySpans';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -47,7 +48,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 
 import type {SearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
@@ -262,6 +263,7 @@ function SearchAutocompleteList({
     useEffect(() => {
         return () => {
             cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
+            cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.UNMOUNTED);
         };
     }, []);
 
@@ -416,6 +418,31 @@ function SearchAutocompleteList({
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
+
+    const localResultCount = searchOptions.recentReports.length + searchOptions.personalDetails.length;
+    const hasCommittedListRef = useRef(false);
+    const committedListOptionsRef = useRef(listOptions);
+    // Commit the query span in a layout effect so the span's end time reflects when the list is laid out
+    // for this query before paint. The list's first commit after the loading skeleton is cancelled so open latency
+    // stays with ManualOpenSearchRouter. While the skeleton is shown, the list is not rendered, so the span keeps waiting for it.
+    // While options are still loading, searchOptions is the empty default list, so committing would record a bogus zero-result query.
+    // Cancel instead of waiting so Onyx cold-load time does not get folded into query latency.
+    useLayoutEffect(() => {
+        if (!isRecentSearchesDataLoaded) {
+            return;
+        }
+        const isListMountCommit = !hasCommittedListRef.current;
+        hasCommittedListRef.current = true;
+        // useFilteredOptions rebuilds listOptions on the first query after open or clear, and when an Onyx dependency changes.
+        // Later queries reuse it, so samples are only comparable when split by this.
+        const areOptionsRebuilt = committedListOptionsRef.current !== listOptions;
+        committedListOptionsRef.current = listOptions;
+        if (isLoadingOptions) {
+            cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.OPTIONS_NOT_READY);
+            return;
+        }
+        markSearchRouterQueryCommitted(autocompleteQueryValue, {localResultCount, areOptionsRebuilt}, isListMountCommit);
+    }, [autocompleteQueryValue, localResultCount, listOptions, isRecentSearchesDataLoaded, isLoadingOptions]);
     const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);
