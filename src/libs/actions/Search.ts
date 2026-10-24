@@ -280,6 +280,7 @@ type HandleActionButtonPressParams = {
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
     isASAPSubmitBetaEnabled: boolean;
+    isWiseReimbursementsBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
@@ -325,6 +326,7 @@ function handleActionButtonPress({
     currentUserLogin,
     introSelected,
     isASAPSubmitBetaEnabled,
+    isWiseReimbursementsBetaEnabled,
     isSelfTourViewed,
     activePolicy,
     chatReport,
@@ -379,6 +381,7 @@ function handleActionButtonPress({
                 currentUserLogin,
                 introSelected,
                 isASAPSubmitBetaEnabled,
+                isWiseReimbursementsBetaEnabled,
                 isSelfTourViewed,
                 activePolicy,
                 chatReport,
@@ -630,6 +633,7 @@ type GetPayActionCallbackParams = {
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
     isASAPSubmitBetaEnabled: boolean;
+    isWiseReimbursementsBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
@@ -662,6 +666,7 @@ function getPayActionCallback({
     currentUserLogin,
     introSelected,
     isASAPSubmitBetaEnabled,
+    isWiseReimbursementsBetaEnabled,
     isSelfTourViewed,
     activePolicy,
     chatReport,
@@ -729,6 +734,7 @@ function getPayActionCallback({
         amountOwed,
         ownerBillingGracePeriodEnd,
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined,
+        isWiseReimbursementsBetaEnabled,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
         delegateAccountID,

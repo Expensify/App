@@ -13,7 +13,7 @@ import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntu
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
-import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {getBankAccountToSetUpBeforePaying, payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
@@ -1892,6 +1892,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     continue;
                 }
 
+                const methodID =
+                    paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined;
                 payMoneyRequest({
                     bankAccountList,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
@@ -1911,8 +1913,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     amountOwed,
                     ownerBillingGracePeriodEnd,
                     paymentPolicyID,
-                    methodID:
-                        paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined,
+                    methodID,
+                    isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                     additionalOnyxData,
                     shouldPlaySuccessSound: false,
                     chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
@@ -1922,6 +1924,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     isFallbackChatReport,
                     rules,
                 });
+
+                // payMoneyRequest opens the global reimbursements onboarding instead of paying, so this report stays unpaid
+                if (
+                    getBankAccountToSetUpBeforePaying({
+                        paymentType: paymentItem.paymentType as PaymentMethodType,
+                        methodID,
+                        bankAccountList,
+                        isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
+                        iouReport,
+                    })
+                ) {
+                    continue;
+                }
                 paidReportCount += 1;
             }
 

@@ -2853,6 +2853,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
             getStarted: 'Aan de slag',
             headerTitle: 'Wereldwijde terugbetalingen',
+            payingReportSubtitle: 'De bankrekeningen van het bedrijf en de medewerker gebruiken verschillende valuta.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Betaal mensen wereldwijd', subtitle: 'Schakel wereldwijde terugbetalingen in op je USD-rekening.'},
     },

@@ -2936,6 +2936,7 @@ const translations = {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
             subtitle: 'Pay members worldwide in their local currency.',
+            payingReportSubtitle: 'The company and employee bank accounts use different currencies.',
             getStarted: 'Get started',
         },
         wiseGlobalReimbursementsBanner: {

@@ -128,6 +128,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID,
+                isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid: animationCallback,
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,

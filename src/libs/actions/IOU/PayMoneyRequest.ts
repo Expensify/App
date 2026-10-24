@@ -5,6 +5,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import * as API from '@libs/API';
 import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
@@ -119,6 +120,7 @@ type PayMoneyRequestFunctionParams = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     methodID?: number;
+    isWiseReimbursementsBetaEnabled: boolean;
     onPaid?: () => void;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
@@ -876,6 +878,27 @@ function completePaymentOnboarding(
     });
 }
 
+/**
+ * Returns the paying bank account when the payment must wait for global reimbursements onboarding, so payMoneyRequest opens the onboarding instead of paying.
+ * Only non-USD reports qualify, because a USD report paid from a USD account is a domestic payment that never needs global reimbursements.
+ */
+function getBankAccountToSetUpBeforePaying({
+    paymentType,
+    methodID,
+    bankAccountList,
+    isWiseReimbursementsBetaEnabled,
+    iouReport,
+}: Pick<PayMoneyRequestFunctionParams, 'paymentType' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled' | 'iouReport'>): OnyxTypes.BankAccount | undefined {
+    if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !methodID) {
+        return undefined;
+    }
+    if (!iouReport?.currency || iouReport.currency === CONST.CURRENCY.USD) {
+        return undefined;
+    }
+    const bankAccount = bankAccountList?.[methodID];
+    return shouldSetUpGlobalReimbursementsBeforePaying(bankAccount) ? bankAccount : undefined;
+}
+
 function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     const {
         paymentType,
@@ -897,6 +920,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         amountOwed,
         ownerBillingGracePeriodEnd,
         methodID,
+        isWiseReimbursementsBetaEnabled,
         onPaid,
         additionalOnyxData,
         shouldPlaySuccessSound = true,
@@ -915,6 +939,17 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         shouldRestrictUserBillableActions(policyForBillingRestriction, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
     ) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
+        return;
+    }
+
+    // The backend rejects this payment until the account is set up for global reimbursements, so open the onboarding right away instead of showing an optimistic payment
+    const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({paymentType, methodID, bankAccountList, isWiseReimbursementsBetaEnabled, iouReport});
+    if (methodID && bankAccountToSetUp) {
+        Onyx.set(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL, {
+            bankAccountID: methodID,
+            bankCountry: bankAccountToSetUp.bankCountry,
+            bankCurrency: bankAccountToSetUp.bankCurrency,
+        });
         return;
     }
 
@@ -1259,4 +1294,4 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};

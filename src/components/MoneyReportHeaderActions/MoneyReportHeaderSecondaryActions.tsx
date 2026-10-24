@@ -230,7 +230,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 rules,
             });
         } else {
-            startAnimation();
             payMoneyRequest({
                 bankAccountList,
                 getCurrencyDecimals,
@@ -250,6 +249,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid: () => {
                     startAnimation();
                 },
