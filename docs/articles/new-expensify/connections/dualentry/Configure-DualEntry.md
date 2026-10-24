@@ -86,9 +86,9 @@ On the DualEntry integration, choose **Advanced** to configure:
 - **Bill payment account** – Select the DualEntry bank account used for bill payments. Expensify automatically selects an eligible bank account when possible.
 - **Sync Expensify Card settlements** – Automatically sync Expensify Card settlement payments to DualEntry. This setting appears when Expensify Cards are enabled for the workspace.
 - **Expensify Card settlement account** – Select the active USD bank account used for Expensify Card settlements.
-- **Sync Travel Invoicing settlements** – Automatically sync Travel Invoicing settlement payments to DualEntry. This setting appears when Travel Invoicing is enabled.
-- **Travel Invoicing settlement account** – Select the account used for Travel Invoicing settlements.
-- **Travel Invoicing payable account** – Select the payable account used for Travel Invoicing settlements.
+- **Sync Consolidated Travel Billing settlements** – Automatically sync Consolidated Travel Billing settlement payments to DualEntry. This setting appears when Consolidated Travel Billing is enabled.
+- **Consolidated Travel Billing settlement account** – Select the account used for Consolidated Travel Billing settlements.
+- **Consolidated Travel Billing payable account** – Select the payable account used for Consolidated Travel Billing settlements.
 
 ---
 
@@ -112,4 +112,4 @@ If **Configure exporting to multiple accounts** is enabled, a card can instead u
 
 ## Do I need a bill payment or settlement account?
 
-A bill payment account is required only when **Sync reimbursed reports** is enabled. A settlement account is required only when **Sync Expensify Card settlements** or **Sync Travel Invoicing settlements** is enabled.
+A bill payment account is required only when **Sync reimbursed reports** is enabled. A settlement account is required only when **Sync Expensify Card settlements** or **Sync Consolidated Travel Billing settlements** is enabled.
