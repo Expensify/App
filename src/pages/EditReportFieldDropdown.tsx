@@ -12,7 +12,7 @@ import {getReportFieldOptionsSection} from '@libs/ReportFieldOptionsListUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 type EditReportFieldDropdownPageProps = {
     /** Value of the policy report field */
@@ -62,18 +62,21 @@ function EditReportFieldDropdown({
 
     const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
+    const [draftValue, setDraftValue] = useState<string>();
+    const currentValue = draftValue ?? fieldValue;
+
     // Freeze the value selected when the picker opened so it drives the pinned "Selected" section for the whole open/focus cycle.
     // The live value still drives the checkmark, so tapping a row marks it without reordering the list. The reorder happens only on reopen.
     const initialFieldValue = useInitialSelection(fieldValue, {resetOnFocus: true});
 
     const optionSections = getReportFieldOptionsSection({
         searchValue: debouncedSearchValue,
-        // Live value drives the checkmark, so tapping a row marks it immediately.
+        // Staged value drives the checkmark, so tapping a row marks it immediately.
         selectedOptions: [
             {
-                keyForList: fieldValue,
-                searchText: fieldValue,
-                text: fieldValue,
+                keyForList: currentValue,
+                searchText: currentValue,
+                text: currentValue,
             },
         ],
         // Frozen value drives the pinned section, so the list doesn't reorder while selecting.
@@ -109,10 +112,13 @@ function EditReportFieldDropdown({
             titleNumberOfLines={shouldUseCompactRows ? 2 : undefined}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
-            // Re-selecting the value the field already holds submits that same value rather than an empty string.
-            // Both call sites compare the submitted value against the stored one and skip the save themselves, so
-            // signalling "no change" this way is no longer needed and leaves '' free to mean "cleared".
-            onSelectRow={(option) => onSubmit({[fieldKey]: option?.text ?? ''})}
+            onSelectRow={(option) => setDraftValue(option?.text ?? '')}
+            confirmButtonOptions={{
+                showButton: true,
+                text: translate('common.save'),
+                onConfirm: () => onSubmit({[fieldKey]: currentValue}),
+                isDisabled: draftValue === undefined || draftValue === fieldValue,
+            }}
             initiallyFocusedItemKey={initialFieldValue}
             shouldUpdateFocusedIndex
         />
