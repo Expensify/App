@@ -53,7 +53,7 @@ function renderTravelAddress(policy: Policy, onNext: EnableTravelSubPageProps['o
                                     onNext={onNext}
                                     onMove={() => {}}
                                     isEditing={false}
-                                    resolvedDomain="expensifail.com"
+                                    resolvedDomain="company.com"
                                 />
                             )}
                         </Stack.Screen>
@@ -150,7 +150,7 @@ describe('Workspace travel address country', () => {
         }
     });
 
-    it('trims the real submitted address and uppercases a Canadian postal code', async () => {
+    it('trims the real submitted address and converts a Canadian postal code to uppercase', async () => {
         // Given a complete Canadian office address with whitespace and a lowercase postal code.
         const policy = createMock<Policy>({
             id: 'travel-policy',

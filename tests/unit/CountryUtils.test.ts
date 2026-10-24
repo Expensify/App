@@ -192,7 +192,7 @@ describe('CountryUtils', () => {
         expect(getCountryCode('us')).toBe('us');
     });
 
-    it('keeps the reference and country property presence of falsey address inputs', () => {
+    it('keeps the reference and country property presence of falsy address inputs', () => {
         // Given the distinct supported absence and empty-string shapes in Address.
         const missing: Address = {street: '123 Main St'};
         const explicitUndefined: Address = {street: '123 Main St', country: undefined};
@@ -212,7 +212,7 @@ describe('CountryUtils', () => {
         // Given malformed historical data, outside the finite Address model and the live COUNTRY hook contract.
         const data = {street: '123 Main St', country: null};
 
-        // When this exact invalid expression reaches the existing falsey guard.
+        // When this exact invalid expression reaches the existing falsy guard.
         // @ts-expect-error - Nested null is deliberately invalid Address data, not a supported UI input.
         const result = normalizeCountryCode(data);
 

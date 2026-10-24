@@ -592,6 +592,8 @@ describe('country translation through the existing localization engine', () => {
         // Then country lookup shares the existing cache without widening finite function inference.
         expect(country).toBe('United States');
         expect(translateCountry(CONST.LOCALES.EN, 'US')).toBe('United States');
+        // Keep the exact Spanish label to independently check the real locale.
+        // cspell:disable-next-line
         expect(translateCountry(CONST.LOCALES.ES, 'US')).toBe('Estados Unidos de América');
         expect(translateCountry(undefined, 'Unknown Country')).toBe('allCountries.Unknown Country');
         expect(addressLine(2)).toBe('Address line 2');
