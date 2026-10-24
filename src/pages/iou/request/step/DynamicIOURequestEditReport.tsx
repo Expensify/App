@@ -42,7 +42,7 @@ import type {PersonalDetails, Report} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
+import React, {useMemo} from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -80,7 +80,10 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const personalDetails = usePersonalDetails();
-    const ownerPersonalDetails = getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails;
+    const ownerPersonalDetails = useMemo(
+        () => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails,
+        [personalDetails, selectedReport?.ownerAccountID],
+    );
     const [transactions] = useTransactionsByID(transactionIDs);
     const managedCardTransactionID = transactions.find((transaction) => isUnreportedManagedCardTransaction(transaction))?.transactionID;
     const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;
@@ -93,12 +96,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const isOwnedByOther = selectedReport?.ownerAccountID !== currentUserPersonalDetails.accountID;
     const isOwnedByOtherOrHasPerDiem = isOwnedByOther || hasPerDiemTransactions;
     const targetExpensePolicyID = isOwnedByOtherOrHasPerDiem ? selectedReport?.policyID : undefined;
-    const {policyForMovingExpensesID, shouldSelectPolicy, arePoliciesLoaded} = usePolicyForMovingExpenses(
-        hasPerDiemTransactions,
-        undefined,
-        targetExpensePolicyID,
-        hasUnreportedManagedCardTransactions,
-    );
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, targetExpensePolicyID, hasUnreportedManagedCardTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
@@ -228,10 +226,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             handleCreateReport();
             return;
         }
-        if (!arePoliciesLoaded) {
-            return;
-        }
-        if (!hasUnreportedManagedCardTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (!hasPerDiemTransactions && !hasUnreportedManagedCardTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {

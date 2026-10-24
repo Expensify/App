@@ -106,7 +106,7 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
 
     // we need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
-    const {policyForMovingExpensesID, shouldSelectPolicy, arePoliciesLoaded} = usePolicyForMovingExpenses(
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(
         isPerDiemTransaction,
         isTimeRequestUtil(transaction),
         targetExpensePolicyID,
@@ -210,10 +210,7 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
             handleCreateReport();
             return;
         }
-        if (!arePoliciesLoaded) {
-            return;
-        }
-        if (!isUnreportedManagedCardTransaction && !policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (!isPerDiemTransaction && !isUnreportedManagedCardTransaction && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
