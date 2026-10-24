@@ -126,7 +126,9 @@ type UnofferedOnboardingAccountingConnection =
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
     | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
     // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
-    | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
+    | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
+    // Still behind the ZOHO_BOOKS beta.
+    | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
 
 type UnhandledAccountingConnection = Exclude<TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>, OnboardingAccountingOption | UnofferedOnboardingAccountingConnection>;
 
@@ -236,6 +238,7 @@ const RULE_TRIGGERS = {
     REPORT_SUBMIT: 'ReportSubmit',
     REPORT_APPROVE: 'ReportApprove',
     CREATE_TRANSACTION: 'CreateTransaction',
+    UPDATE_TRANSACTION: 'UpdateTransaction',
 } as const;
 
 const EMAIL = {
@@ -292,6 +295,21 @@ const CONST = {
         '6674797068657631', // 'ftyphevc' - Typically for HEVC encoded media (common in HEIF)
         '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
     ],
+    // HEIC signatures sit inside the 'ftyp' box, which starts after the 4-byte box size.
+    HEIC_SIGNATURE_OFFSET: 4,
+    // TIFF header, which is also what a DNG (Adobe Digital Negative, e.g. iPhone ProRAW) starts with.
+    TIFF_SIGNATURES: [
+        '49492a00', // 'II*\0' - little-endian TIFF/DNG
+        '4d4d002a', // 'MM\0*' - big-endian TIFF/DNG
+    ],
+    TIFF_SIGNATURE_OFFSET: 0,
+    // How a TIFF/DNG is labelled when the picker does know what it is (Android's gallery and the document picker on both
+    // platforms). iOS gallery picks don't carry these and are recognized from TIFF_SIGNATURES instead. Only DNGs
+    // (DNG_EXTENSION / DNG_MIME_TYPE) are transcoded. Plain TIFFs are an accepted receipt format and are uploaded as-is.
+    TIFF_EXTENSIONS: ['dng', 'tif', 'tiff'],
+    TIFF_MIME_TYPES: ['image/x-adobe-dng', 'image/tiff', 'image/tif'],
+    DNG_EXTENSION: 'dng',
+    DNG_MIME_TYPE: 'image/x-adobe-dng',
     RECENT_WAYPOINTS_NUMBER: 20,
     // Validate-code action errorFields key the missing-personal-details ship-card flow writes its incorrect-magic-code
     // error under, and the ValidateCodeForm reads it back from, so the action and the page stay in sync.
@@ -351,6 +369,9 @@ const CONST = {
     POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
+
+    /** Smallest height a dropdown popover shrinks to before it stops being usable */
+    POPOVER_DROPDOWN_MIN_USABLE_HEIGHT: 200,
     POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT: 416,
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
@@ -428,9 +449,6 @@ const CONST = {
     RECEIPT_CAMERA: {
         PHOTO_WIDTH: 2880,
         PHOTO_HEIGHT: 2160,
-        // iPhones offer no 4:3 photo size between 3 MP and 12 MP, so the 6 MP target above selects 2016x1512
-        IOS_STILL_WIDTH: 4032,
-        IOS_STILL_HEIGHT: 3024,
         PHOTO_ASPECT_RATIO: 4 / 3,
     },
 
@@ -621,13 +639,23 @@ const CONST = {
             UNSUPPORTED: 'unsupported',
             MULTIPLE_RULES: 'multipleRules',
             UNINTELLIGIBLE: 'unintelligible',
+            AGENT_RULE: 'agentRule',
+            IMPOSSIBLE: 'impossible',
             FAILED: 'failed',
+        },
+        IMPOSSIBLE_REASON: {
+            NO_TRIGGER: 'noTrigger',
+            NO_CAPABILITY: 'noCapability',
+            MISSING_DATA: 'missingData',
+            RETROACTIVE: 'retroactive',
+            HISTORY_LIMIT: 'historyLimit',
         },
         RULE_TYPE: {
             REQUIRE_FIELDS: 'requireFields',
             FLAG_FOR_REVIEW: 'flagForReview',
             RESTRICT_CARD_SPEND: 'restrictCardSpend',
             EXPENSE_DEFAULTS: 'expenseDefaults',
+            CATEGORY_TAX_RATE: 'categoryTaxRate',
         },
     },
 
@@ -642,6 +670,14 @@ const CONST = {
             PDF: 'pdf',
             RECEIPTS: 'receipts',
         },
+    },
+    BULK_ACTION: {
+        STATE: {
+            RUNNING: 'running',
+            DONE: 'done',
+            FAILED: 'failed',
+        },
+        DELETE_EXPENSES: 'deleteExpenses',
     },
 
     SECURE_DOWNLOAD_TYPE: {
@@ -971,7 +1007,7 @@ const CONST = {
         FILE_LIMIT: 1,
     },
     DYNAMIC_FORM: {
-        /** A select with more options than this sits on its own page, since it opens a searchable list */
+        /** A select with more options than this opens a searchable list, so it sits on its own page */
         LARGE_SELECT_MIN_OPTIONS: 10,
 
         /** Most questions sharing a page when pages are built from a flat list of fields */
@@ -982,6 +1018,213 @@ const CONST = {
 
         /** Route segment of the confirmation page, which no page may take */
         CONFIRMATION_PAGE_KEY: 'confirm',
+    },
+    GLOBAL_REIMBURSEMENT_PROVIDER: {
+        WISE: 'WISE',
+        CORPAY: 'CORPAY',
+    },
+    WISE: {
+        /** Server-derived state of the Wise onboarding */
+        ONBOARDING_STATUS: {
+            IN_REVIEW: 'IN_REVIEW',
+            ACTION_REQUIRED: 'ACTION_REQUIRED',
+            APPROVED: 'APPROVED',
+            NOT_APPROVED: 'NOT_APPROVED',
+        },
+        /** Wise's state for one KYC requirement */
+        KYC_REQUIREMENT_STATE: {
+            NOT_PROVIDED: 'NOT_PROVIDED',
+            IN_REVIEW: 'IN_REVIEW',
+            VERIFIED: 'VERIFIED',
+        },
+        /** Who asked for the requirement: us before Submit, Wise after */
+        KYC_REQUIREMENT_REQUESTED_BY: {
+            EXPENSIFY: 'EXPENSIFY',
+            WISE: 'WISE',
+        },
+        /** Wise's KYC requirement types we collect */
+        KYC_REQUIREMENT: {
+            ID_DOCUMENT: 'ID_DOCUMENT',
+        },
+        /** Wise's companyType values, the legal form */
+        COMPANY_TYPE: {
+            LIMITED: 'LIMITED',
+            PARTNERSHIP: 'PARTNERSHIP',
+            SOLE_TRADER: 'SOLE_TRADER',
+            LIMITED_BY_GUARANTEE: 'LIMITED_BY_GUARANTEE',
+            LIMITED_LIABILITY_COMPANY: 'LIMITED_LIABILITY_COMPANY',
+            FOR_PROFIT_CORPORATION: 'FOR_PROFIT_CORPORATION',
+            NON_PROFIT_CORPORATION: 'NON_PROFIT_CORPORATION',
+            LIMITED_PARTNERSHIP: 'LIMITED_PARTNERSHIP',
+            LIMITED_LIABILITY_PARTNERSHIP: 'LIMITED_LIABILITY_PARTNERSHIP',
+            GENERAL_PARTNERSHIP: 'GENERAL_PARTNERSHIP',
+            SOLE_PROPRIETORSHIP: 'SOLE_PROPRIETORSHIP',
+            PRIVATE_LIMITED_COMPANY: 'PRIVATE_LIMITED_COMPANY',
+            PUBLIC_LIMITED_COMPANY: 'PUBLIC_LIMITED_COMPANY',
+            TRUST: 'TRUST',
+            OTHER: 'OTHER',
+        },
+        /** Wise's companyRole values */
+        COMPANY_ROLE: {
+            OWNER: 'OWNER',
+            DIRECTOR: 'DIRECTOR',
+            OTHER: 'OTHER',
+        },
+        /** Wise's industryCategories values, keys only */
+        INDUSTRY_CATEGORIES: [
+            'GROWING_OF_CROPS_AGRICULTURE',
+            'GROWING_OF_TOBACCO_SPICES_MEDICINAL_PLANTS',
+            'LIVESTOCK_FARMING_ANIMAL_PRODUCTION',
+            'FORESTRY_LOGGING',
+            'COMMERCIAL_FISHING_AQUACULTURE_SERVICES',
+            'EXTRACTION_OF_FOSSIL_FUELS',
+            'EXTRACTION_OF_METALS_GOLD_SILVER',
+            'QUARRYING_OF_CONSTRUCTION_INDUSTRIAL_MINERALS',
+            'EXTRACTION_OF_PRECIOUS_STONES_SPECIALISED_MINERALS',
+            'MANUFACTURE_OF_FOOD_PRODUCTS_PREPARED_MEALS',
+            'MANUFACTURE_OF_ALCOHOLIC_BEVERAGES_MALT',
+            'MANUFACTURE_OF_SOFT_DRINKS_BOTTLED_WATERS',
+            'MANUFACTURE_OF_TOBACCO_PRODUCTS',
+            'MANUFACTURE_OF_TEXTILES_APPAREL_FOOTWEAR',
+            'MANUFACTURE_OF_FUR_LEATHER_GOODS',
+            'MANUFACTURE_OF_WOOD_WOOD_BASED_PRODUCTS',
+            'MANUFACTURE_OF_PAPER_PAPER_PRODUCTS',
+            'PRINTING_MEDIA_REPRODUCTION_SERVICES',
+            'MANUFACTURE_OF_CHEMICALS_PETROLEUM_REFINED_PRODUCTS',
+            'MANUFACTURE_OF_COATINGS_INKS_PIGMENTS',
+            'MANUFACTURE_OF_PLASTIC_RUBBER_PRODUCTS',
+            'HOUSEHOLD_BEAUTY_AGRICULTURAL_CHEMICALS',
+            'MANUFACTURE_OF_PHARMACEUTICALS_MEDICINES',
+            'MANUFACTURE_PROCESSING_OF_GLASS_PRODUCTS',
+            'MANUFACTURE_OF_CERAMICS_CLAY_PRODUCTS',
+            'MANUFACTURE_OF_CEMENT_CONCRETE_STONE_PRODUCTS',
+            'MANUFACTURE_OF_BASIC_IRON_STEEL_NON_FERROUS_METALS',
+            'PRODUCTION_OF_PRECIOUS_METALS',
+            'PROCESSING_OF_NUCLEAR_FUEL',
+            'CASTING_OF_METALS_FOUNDRY_SERVICES',
+            'MANUFACTURE_OF_STRUCTURAL_METAL_PRODUCTS',
+            'MANUFACTURE_OF_METAL_TANKS_BOILERS_STEAM_GENERATORS',
+            'MANUFACTURE_OF_WEAPONS_AMMUNITION_MILITARY_VEHICLES',
+            'METAL_TREATMENT_PRECISION_MACHINING',
+            'MANUFACTURE_OF_TOOLS_HARDWARE_METAL_PACKAGING',
+            'MANUFACTURE_OF_COMPUTERS_ELECTRONICS_MEDICAL_OPTICAL_INSTRUMENTS',
+            'MANUFACTURE_OF_JEWELLERY_WATCHES',
+            'MANUFACTURE_OF_ELECTRICAL_EQUIPMENT_DOMESTIC_APPLIANCES',
+            'GENERAL_PURPOSE_MACHINERY_MECHANICAL_POWER',
+            'SPECIAL_PURPOSE_INDUSTRIAL_PROCESS_MACHINERY',
+            'MANUFACTURE_OF_MOTOR_VEHICLES_TRAILERS_LIGHT_TRANSPORT',
+            'MANUFACTURE_OF_MARINE_RAIL_AEROSPACE_EQUIPMENT',
+            'MANUFACTURE_OF_FURNITURE_MATTRESSES_CLEANING_TOOLS',
+            'MANUFACTURE_OF_MUSICAL_SPORTS_LEISURE_MISCELLANEOUS_GOODS',
+            'MANUFACTURE_OF_MEDICAL_DENTAL_INSTRUMENTS_AND_SUPPLIES',
+            'REPAIR_INSTALLATION_OF_INDUSTRIAL_EQUIPMENT',
+            'ELECTRIC_POWER_GENERATION_TRANSMISSION_SUPPLY',
+            'MANUFACTURE_DISTRIBUTION_TRADE_OF_GAS',
+            'STEAM_AIR_CONDITIONING_SUPPLY',
+            'WATER_SUPPLY_SEWERAGE_WASTE_MANAGEMENT',
+            'DEVELOPMENT_CONSTRUCTION_OF_BUILDINGS',
+            'CIVIL_ENGINEERING_INFRASTRUCTURE_CONSTRUCTION',
+            'ELECTRICAL_PLUMBING_SPECIALISED_BUILDING_INSTALLATION',
+            'BUILDING_COMPLETION_FINISHING_TRADES',
+            'ROOFING_SCAFFOLDING_ROOFING_OTHER_SPECIALISED_CONSTRUCTION_ACTIVITIES',
+            'AUTOMOTIVE_SALES_PARTS_SERVICES',
+            'WHOLESALE_OF_PHARMACEUTICALS_MEDICAL_SUPPLIES',
+            'WHOLESALE_OF_WATCHES_AND_JEWELLERY',
+            'WHOLESALE_OF_INDUSTRIAL_FUELS_CHEMICALS',
+            'WHOLESALE_OF_METALS_METAL_ORES',
+            'COMMISSION_AGENTS_GENERAL_TRADE_INTERMEDIARIES',
+            'WHOLESALE_OF_FRESH_PERISHABLE_FOODS',
+            'WHOLESALE_OF_CROPS_SEEDS_FLOWERS',
+            'WHOLESALE_OF_LIVESTOCK_ANIMAL_BY_PRODUCTS',
+            'WHOLESALE_OF_TEXTILES_CLOTHING',
+            'WHOLESALE_OF_JUICES_TEA_COFFEE_SPICES',
+            'WHOLESALE_OF_ALCOHOL',
+            'GENERAL_FOOD_BEVERAGE_TOBACCO_WHOLESALE',
+            'WHOLESALE_OF_ELECTRONICS_HOUSEHOLD_GOODS',
+            'WHOLESALE_OF_HEAVY_INDUSTRIAL_AGRICULTURAL_MACHINERY',
+            'WHOLESALE_OF_BUILDING_PLUMBING_TRADE_SUPPLIES',
+            'GENERALIST_MISCELLANEOUS_INDUSTRIAL_WHOLESALE',
+            'GROCERY_SUPERMARKETS_SPECIALIST_FOOD_RETAIL',
+            'ALCOHOL_TOBACCO_RETAIL',
+            'RETAIL_SALE_OF_WATCHES_AND_JEWELLERY',
+            'RETAIL_OF_ART_ANTIQUES_SPECIALISED_GOODS',
+            'PHARMACIES_HEALTH_BEAUTY_RETAIL',
+            'AUTOMOTIVE_FUEL_RETAIL',
+            'RETAIL_OF_ELECTRONICS_DIGITAL_EQUIPMENT',
+            'RETAIL_OF_HOME_GARDEN_DIY',
+            'BOOKS_SPORTS_RECREATIONAL_GOODS_RETAIL',
+            'RETAIL_OF_CLOTHING_FOOTWEAR',
+            'E_COMMERCE_DIRECT_TO_CONSUMER_RETAIL',
+            'PUBLIC_MASS_TRANSIT_SCHEDULED',
+            'PRIVATE_AVIATION_CHARTER_SERVICES',
+            'TAXIS_PRIVATE_HIRE_VEHICLES',
+            'FREIGHT_TRANSPORT_LOGISTICS_LAND_WATER_AIR_PIPELINE',
+            'SPACE_TRANSPORT_SATELLITE_LAUNCH_SERVICES',
+            'WAREHOUSING_CARGO_HANDLING_TRANSPORT_SUPPORT',
+            'POSTAL_COURIER_SERVICES',
+            'HOTELS_SHORT_STAY_ACCOMMODATION',
+            'RESTAURANTS_CATERING_BEVERAGE_SERVICES',
+            'MEDIA_CONTENT_PUBLISHING',
+            'SOFTWARE_DEVELOPMENT_PUBLISHING',
+            'FILM_RADIO_TV_MUSIC_PRODUCTION',
+            'TELECOMMUNICATIONS_NETWORKS_SERVICES',
+            'IT_CONSULTANCY_TECHNICAL_SUPPORT_SERVICES',
+            'DATA_HOSTING_WEB_PORTALS',
+            'NEWS_AGENCIES_SPECIALISED_INFORMATION_SERVICES',
+            'BANKING_CREDIT_FINANCIAL_INTERMEDIATION',
+            'HOLDING_COMPANIES',
+            'INVESTMENT_FUNDS_BROKERAGE_ASSET_MANAGEMENT',
+            'INSURANCE_REINSURANCE',
+            'PENSION_FUNDING_RETIREMENT_SERVICES',
+            'REAL_ESTATE_OWNERSHIP_LETTING',
+            'REAL_ESTATE_AGENCIES',
+            'PROPERTY_FACILITIES_MANAGEMENT_SERVICES',
+            'LEGAL_ACCOUNTING_MANAGEMENT_CONSULTANCY',
+            'ARCHITECTURE_ENGINEERING_TECHNICAL_CONSULTING',
+            'BUSINESS_STRATEGY_MANAGEMENT',
+            'MARKET_RESEARCH_PR_MEDIA_REPRESENTATION',
+            'ADVERTISING_DESIGN_PHOTOGRAPHY',
+            'SCIENTIFIC_RESEARCH_EXPERIMENTAL_DEVELOPMENT',
+            'TRANSLATION_INTERPRETATION_SERVICES',
+            'VETERINARY_SERVICES',
+            'VEHICLE_TRANSPORT_EQUIPMENT_LEASING',
+            'LEASING_OF_INTELLECTUAL_PROPERTY_IP',
+            'INDUSTRIAL_CONSTRUCTION_OFFICE_EQUIPMENT_LEASING',
+            'CONSUMER_LEISURE_HOUSEHOLD_GOODS_RENTAL',
+            'EMPLOYMENT_RECRUITMENT_HR_PROVISION',
+            'SECURITY_INVESTIGATION_SURVEILLANCE_SERVICES',
+            'BUSINESS_PROCESS_ADMINISTRATIVE_SUPPORT',
+            'CALL_CENTRES_DEBT_RECOVERY_SERVICES',
+            'CONFERENCES_EXHIBITIONS_TRADE_SHOWS',
+            'TRAVEL_AGENCIES_TOUR_OPERATORS_TOURIST_SERVICES',
+            'FACILITIES_MANAGEMENT_CLEANING',
+            'PUBLIC_ADMINISTRATION_REGULATION_DEFENCE',
+            'JUSTICE_PUBLIC_SAFETY_SOCIAL_SECURITY',
+            'SCHOOLS_COLLEGES_HIGHER_EDUCATION',
+            'SPECIALISED_TRAINING_EDUCATIONAL_SUPPORT',
+            'CLINICAL_HEALTHCARE_HOSPITALS_MEDICAL_PRACTICES',
+            'RESIDENTIAL_CARE_NURSING_FACILITIES',
+            'SOCIAL_WORK_CHILDCARE_COMMUNITY_SERVICES',
+            'GAMBLING_AND_BETTING_ACTIVITIES',
+            'ARTISTIC_CREATION_VENUES',
+            'PERFORMING_ARTS',
+            'HERITAGE_MUSEUMS_NATURE_PRESERVATION',
+            'THEME_PARKS_LEISURE_ATTRACTIONS',
+            'PROFESSIONAL_SPORTS_TEAMS_ATHLETES',
+            'SPORTS_FACILITIES_FITNESS_CENTRES',
+            'BUSINESS_PROFESSIONAL_LABOUR_ASSOCIATIONS',
+            'RELIGIOUS_ORGANISATIONS_SPIRITUAL_ACTIVITIES',
+            'POLITICAL_ORGANISATIONS_ADVOCACY',
+            'REPAIR_OF_COMPUTERS_ELECTRONICS_PERSONAL_GOODS',
+            'FUNERAL_CARE_RELATED_ACTIVITIES',
+            'WELLBEING_PERSONAL_SERVICES',
+            'HAIRDRESSING_BEAUTY_TREATMENT',
+            'LAUNDRY_DRY_CLEANING_SERVICES',
+            'REPAIR_OF_WATCHES_CLOCKS_JEWELLERY',
+            'DOMESTIC_EMPLOYERS_HOUSEHOLD_STAFF',
+            'RESIDENTS_PROPERTY_MANAGEMENT',
+            'DIPLOMATIC_BODIES',
+        ],
     },
     NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
@@ -1187,7 +1430,10 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
+        INDIRECT_TAG_UPLOADS: 'indirectTagUploads',
         BUSINESS_CENTRAL: 'businessCentral',
+        ZOHO_BOOKS: 'zohoBooks',
+        EXACT_ONLINE: 'exactOnline2026',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
         MULTIPLE_APPROVERS: 'multipleApprovers',
@@ -1202,13 +1448,16 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
+        NL_FILTERS: 'nlFilters',
         PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
+        COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         DESCRIBE_RULE: 'describeRule',
+        TRAVEL_APPROVAL: 'travelApproval',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1703,6 +1952,7 @@ const CONST = {
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
             DOWNLOAD_RECEIPTS: 'downloadReceipts',
+            SHARE: 'share',
             PRINT: 'print',
             CHANGE_WORKSPACE: 'changeWorkspace',
             CHANGE_APPROVER: 'changeApprover',
@@ -1866,6 +2116,7 @@ const CONST = {
                 MARKED_REIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
                 MARK_REIMBURSED_FROM_INTEGRATION: 'ACTIONMARKEDREIMBURSEDFROMINTEGRATION', // OldDot Action
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
+                MERGED_EXPENSE_DELETED: 'MERGEDEXPENSEDELETED',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 CONCIERGE_AUTO_MATCH_VENDOR: 'CONCIERGEAUTOMATCHVENDOR',
                 CONCIERGE_AUTO_SELECT_DISTANCE_RATE: 'CONCIERGEAUTOSELECTDISTANCERATE',
@@ -1934,6 +2185,7 @@ const CONST = {
                     ADD_OFFICE_LOCATION: 'POLICYCHANGELOG_ADD_OFFICE_LOCATION',
                     UPDATE_OFFICE_LOCATION: 'POLICYCHANGELOG_UPDATE_OFFICE_LOCATION',
                     DELETE_OFFICE_LOCATION: 'POLICYCHANGELOG_DELETE_OFFICE_LOCATION',
+                    UPDATE_EMPLOYEE_OFFICE_LOCATION: 'POLICYCHANGELOG_UPDATE_EMPLOYEE_OFFICE_LOCATION',
                     ADD_RULE: 'POLICYCHANGELOG_ADD_RULE',
                     UPDATE_RULE: 'POLICYCHANGELOG_UPDATE_RULE',
                     REMOVE_RULE: 'POLICYCHANGELOG_REMOVE_RULE',
@@ -2020,6 +2272,7 @@ const CONST = {
                     UPDATE_MULTIPLE_TAGS_APPROVER_RULES: 'POLICYCHANGELOG_UPDATE_MULTIPLE_TAGS_APPROVER_RULES',
                     UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
                     UPDATE_DESCRIPTION: 'POLICYCHANGELOG_UPDATE_DESCRIPTION',
+                    UPDATE_RULES_DOCUMENT: 'POLICYCHANGELOG_UPDATE_RULES_DOCUMENT',
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
                     UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
@@ -2043,6 +2296,8 @@ const CONST = {
                     UPDATE_CARD_FEED_LIABILITY: 'POLICYCHANGELOG_UPDATE_CARD_FEED_LIABILITY',
                     UPDATE_CARD_FEED_STATEMENT_PERIOD: 'POLICYCHANGELOG_UPDATE_CARD_FEED_STATEMENT_PERIOD',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
+                    ARCHIVE_POLICY: 'POLICYCHANGELOG_ARCHIVE_POLICY',
+                    UNARCHIVE_POLICY: 'POLICYCHANGELOG_UNARCHIVE_POLICY',
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     CORPORATE_FORCE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
@@ -2240,6 +2495,7 @@ const CONST = {
             WAITING_TO_APPROVE: 'waitingToApprove',
             WAITING_TO_PAY: 'waitingToPay',
             WAITING_FOR_PAYMENT: 'waitingForPayment',
+            WAITING_FOR_CANCELLED_REIMBURSEMENT: 'waitingForCancelledReimbursement',
             WAITING_TO_EXPORT: 'waitingToExport',
             SUBMITTING_TO_SELF: 'submittingToSelf',
             REJECTED_REPORT: 'rejectedReport',
@@ -2382,6 +2638,10 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
+        /** A load that started but has sent no progress event for this long is stalled (see useImageLoadStall) */
+        IMAGE_LOAD_STALL_TIMEOUT: 15000,
+        /** Budget for a load with no progress events at all (web <img>, no Content-Length): a ceiling, not a failure claim */
+        IMAGE_LOAD_CEILING_TIMEOUT: 10000,
         GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
@@ -2394,6 +2654,7 @@ const CONST = {
         BREADCRUMB_CATEGORY_MFA: 'mfa',
         BREADCRUMB_CATEGORY_3DS_NAVIGATION: '3ds.navigation',
         BREADCRUMB_CATEGORY_3DS_AUTHORIZE: '3ds.authorize',
+        BREADCRUMB_CATEGORY_SAML_AUTH_SESSION: 'saml.auth_session',
         BREADCRUMB_CATEGORY_BOOTSPLASH_FLOW: 'bootsplash.flow',
         BREADCRUMB_CATEGORY_MODULE_INIT: 'module.init',
         BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
@@ -2423,6 +2684,7 @@ const CONST = {
             BUILD_TYPE: 'build_type',
             /** Written by Sentry's `thirdPartyErrorFilterIntegration` on events whose every frame is foreign to our bundle, read by the noise filters. */
             THIRD_PARTY_CODE: 'third_party_code',
+            TEST_CRASH: 'test_crash',
         },
         EXPENSE_ERROR_TYPE: {
             REPORT_CREATION_FAILED: 'report_creation_failed',
@@ -2478,6 +2740,28 @@ const CONST = {
         SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT: 'SearchRouter.ModalCloseWait',
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
         SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
+        SPAN_SEARCH_ROUTER_QUERY: 'ManualSearchRouterQuery',
+        SEARCH_ROUTER_QUERY_CANCEL_REASON: {
+            SUPERSEDED: 'superseded',
+            CLEARED: 'cleared',
+            CLOSED: 'closed',
+            UNMOUNTED: 'unmounted',
+            LIST_MOUNT: 'list_mount',
+            TIMED_OUT: 'timed_out',
+            OPTIONS_NOT_READY: 'options_not_ready',
+        },
+        SEARCH_ROUTER_QUERY_LENGTH_BUCKET: {
+            EMPTY: '0-empty',
+            SHORT: '1-short',
+            MEDIUM: '2-medium',
+            LONG: '3-long',
+            VERY_LONG: '4-very-long',
+        },
+        SEARCH_ROUTER_QUERY_AUTOCOMPLETE_KEY: {
+            NONE: 'none',
+        },
+        SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN: 5,
+        SEARCH_ROUTER_QUERY_MAX_DURATION_MS: 10_000,
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW: 'ShareExtensionOpenSubmitFlow',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
@@ -2557,6 +2841,14 @@ const CONST = {
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         ATTRIBUTE_FAILED: 'failed',
         ATTRIBUTE_IS_WARM: 'is_warm',
+        ATTRIBUTE_QUERY_LENGTH_BUCKET: 'query_length_bucket',
+        ATTRIBUTE_HAS_FILTER: 'has_filter',
+        ATTRIBUTE_AUTOCOMPLETE_KEY: 'autocomplete_key',
+        ATTRIBUTE_QUERY_ORDINAL: 'query_ordinal',
+        ATTRIBUTE_LOCAL_RESULT_COUNT: 'local_result_count',
+        ATTRIBUTE_OPTIONS_REBUILT: 'options_rebuilt',
+        ATTRIBUTE_RENDER_DURATION_MS: 'render_duration_ms',
+        ATTRIBUTE_CANCEL_REASON: 'cancel_reason',
         ATTRIBUTE_IS_STARTUP: 'is_startup',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
         // Stamped on the navigate-to-inbox-tab span: wide-layout navigations mount the central report
@@ -2566,6 +2858,9 @@ const CONST = {
         // report list, so durations that include the openApp wait can be excluded from render measurements.
         ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         ATTRIBUTE_IS_PRELOADED: 'is_preloaded',
+        // Leaving a tab is paid inside the navigate-to-inbox-tab span, so the same tap costs more from some tabs.
+        ATTRIBUTE_SOURCE_TAB: 'source_tab',
+        ATTRIBUTE_MS_SINCE_PRELOAD: 'ms_since_preload',
         // The tap also kicked off an OpenReport request, so exclude these from render-only comparisons.
         ATTRIBUTE_WAITED_ON_OPEN_REPORT: 'waited_on_open_report',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
@@ -2603,10 +2898,7 @@ const CONST = {
         ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
         ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
         ATTRIBUTE_SOURCE: 'source',
-        ATTRIBUTE_PHASE_DETECTION_FORMAT_COUNT: 'phase_detection_format_count',
         ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM: 'selected_format_af_system',
-        ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT: 'has_interchangeable_phase_format',
-        ATTRIBUTE_MIN_FOCUS_DISTANCE: 'min_focus_distance',
         ATTRIBUTE_PHYSICAL_DEVICE_COUNT: 'physical_device_count',
         ATTRIBUTE_NEUTRAL_ZOOM: 'neutral_zoom',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
@@ -3063,7 +3355,7 @@ const CONST = {
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
-    ATTACHMENT_OR_RECEIPT_LOCAL_URL: /^https:\/\/(www\.)?([a-z0-9_-]+\.)*expensify.com(:[0-9]+)?\/(chat-attachments|receipts)/,
+    ATTACHMENT_OR_RECEIPT_LOCAL_URL: /^https:\/\/(www\.)?([a-z0-9_-]+\.)*expensify\.com(:[0-9]+)?\/(chat-attachments\/[0-9]+|receipts)\/[^/?#]+\.[a-z0-9]+([?#]|$)/,
     ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE: 'data-expensify-thumbnail-url',
     ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
     ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
@@ -3200,9 +3492,10 @@ const CONST = {
         FILE_TOO_LARGE: 'fileTooLarge',
         FILE_TOO_SMALL: 'fileTooSmall',
         FILE_CORRUPTED: 'fileCorrupted',
-        HEIC_CONVERSION_FAILED: 'heicConversionFailed',
+        IMAGE_CONVERSION_FAILED: 'imageConversionFailed',
         PROTECTED_FILE: 'protectedFile',
         HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
+        DNG_IMAGE: 'dngImage',
         IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
         FOLDER_NOT_ALLOWED: 'folderNotAllowed',
         MAX_FILE_LIMIT_EXCEEDED: 'maxFileLimitExceeded',
@@ -3538,6 +3831,7 @@ const CONST = {
         },
         ATS_APPROVER_FIELD: {
             RECRUITER: 'recruiter',
+            HIRING_MANAGER: 'hiringManager',
             RECRUITING_COORDINATOR: 'coordinator',
         },
         ATS_FILTER_TYPE: {
@@ -3652,6 +3946,7 @@ const CONST = {
             },
             AUTH_TYPE: {
                 TBA: 'tba',
+                OAUTH2: 'oauth2',
             },
             STEP_KEYS: {
                 install: 'installBundle',
@@ -4170,6 +4465,17 @@ const CONST = {
         NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         DEFAULT_VENDOR_ID: 'defaultVendorID',
         PAYMENT_METHOD_CODE: 'paymentMethodCode',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
+        AUTO_SYNC: 'autoSync',
+        ACCOUNTING_METHOD: 'accountingMethod',
+        EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        REIMBURSEMENT_BANK_ACCOUNT_ID: 'reimbursementBankAccountID',
+        SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
+        SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
+        POSTING_MODE: 'postingMode',
+        AUTO_CREATE_ENTITIES: 'autoCreateEntities',
     },
 
     BUSINESS_CENTRAL_EXPORT_DATE: {
@@ -4607,6 +4913,10 @@ const CONST = {
         SUCCESS: 'success',
         ERROR: 'error',
         WARNING: 'warning',
+        POSITION: {
+            TOP: 'top',
+            BOTTOM_RIGHT: 'bottomRight',
+        },
         DURATION: 2000,
         DURATION_LONG: 3500,
         // Longer duration for growls with an actionable button (e.g. "View"), giving the user enough time to tap it.
@@ -4686,6 +4996,12 @@ const CONST = {
             CARD_ADMIN: 'cardAdmin',
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
+            APPROVE_ONLY: 'approveOnly',
+        },
+        APPROVE_ONLY_BLOCKED_REASONS: {
+            HAS_CARD_ON_POLICY: 'hasCardOnPolicy',
+            IS_RESTRICTED_BY_DOMAIN_GROUP: 'isRestrictedByDomainGroup',
+            IS_DEFAULT_POLICY: 'isDefaultPolicy',
         },
         WORKSPACE_STATUS: {
             ACTIVE: 'active',
@@ -4699,8 +5015,10 @@ const CONST = {
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
             MEMBERS: 'members',
+            AGENTS: 'agents',
             ROOMS: 'rooms',
             ASSIGN_ELEVATED_ROLES: 'assignElevatedRoles',
+            ALL_REPORTS: 'allReports',
             WORKFLOWS: 'workflows',
             WORKFLOWS_APPROVALS: 'workflowsApprovals',
             WORKFLOWS_PAYMENTS: 'workflowsPayments',
@@ -4716,6 +5034,7 @@ const CONST = {
             REPORT_FIELDS: 'reportFields',
             ACCOUNTING: 'accounting',
             MORE_FEATURES: 'moreFeatures',
+            CREATE_EXPENSES: 'createExpenses',
         },
         POLICY_FEATURE_ACCESS: {
             READ: 'read',
@@ -4797,6 +5116,7 @@ const CONST = {
         ID_FAKE: '_FAKE_',
         SECONDARY_ACTIONS: {
             IMPORT_SPREADSHEET: 'importSpreadsheet',
+            APPEND_CUSTOM_TAG_LIST: 'appendCustomTagList',
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
             EXPORT: 'export',
@@ -4807,11 +5127,9 @@ const CONST = {
             REMOVE: 'remove',
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
-            MAKE_AUDITOR: 'makeAuditor',
-            MAKE_GUEST: 'makeGuest',
-            MAKE_CARD_ADMIN: 'makeCardAdmin',
-            MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
-            MAKE_PAYMENTS_ADMIN: 'makePaymentsAdmin',
+            CHANGE_ROLE: 'changeRole',
+            CHANGE_OFFICE_LOCATION: 'changeOfficeLocation',
+            CHANGE_WORK_ARRANGEMENT: 'changeWorkArrangement',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -4940,6 +5258,7 @@ const CONST = {
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
+            PREVENT_PAYOUT_NON_REIMBURSABLE_REPORTS: 'preventPayoutNonReimbursableReports',
             MAX_EXPENSE_AGE: 'maxExpenseAge',
         },
         PROHIBITED_EXPENSES: {
@@ -4967,6 +5286,8 @@ const CONST = {
             ADDRESS: 'address',
             IS_DEFAULT: 'isDefault',
         },
+        // The officeID that assigns a member to the company address, which isn't keyed in the workspace's officeLocations
+        COMPANY_ADDRESS_OFFICE_ID: '1',
         WORK_ARRANGEMENT: {
             OFFICE_BASED: 'officeBased',
             NO_REGULAR_WORKPLACE: 'noRegularWorkplace',
@@ -5004,6 +5325,7 @@ const CONST = {
                 CAMPFIRE: 'campfire',
                 ZOHO_BOOKS: 'zohoBooks',
                 BUSINESS_CENTRAL: 'businessCentral',
+                EXACT_ONLINE: 'exactOnline',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -5042,6 +5364,7 @@ const CONST = {
                 campfire: 'Campfire',
                 zohoBooks: 'Zoho Books',
                 businessCentral: 'Dynamics 365 Business Central',
+                exactOnline: 'Exact Online',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -5067,6 +5390,7 @@ const CONST = {
                     this.NAME.RILLET,
                     this.NAME.DUALENTRY,
                     this.NAME.CAMPFIRE,
+                    this.NAME.ZOHO_BOOKS,
                     this.NAME.BUSINESS_CENTRAL,
                 ] as const;
             },
@@ -5083,6 +5407,7 @@ const CONST = {
                     [this.NAME.RILLET]: 'rillet',
                     [this.NAME.DUALENTRY]: 'dualentry',
                     [this.NAME.CAMPFIRE]: 'campfire',
+                    [this.NAME.ZOHO_BOOKS]: 'zohoBooks',
                     [this.NAME.BUSINESS_CENTRAL]: 'businessCentral',
                 } as const;
             },
@@ -5741,6 +6066,11 @@ const CONST = {
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR: 'business_central_export_vendor',
+
+            /**
+             * Name of Card NVP for Business Central custom export accounts
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT: 'business_central_export_account',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -5803,6 +6133,11 @@ const CONST = {
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR_POLICY_ID: 'business_central_export_vendor_policy_id',
+
+            /**
+             * Name of Card NVP for Business Central custom export accounts
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT_POLICY_ID: 'business_central_export_account_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -6055,7 +6390,6 @@ const CONST = {
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
-        ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164\u115f\u1160\uffa0\u2800]/g,
         SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
@@ -6158,6 +6492,8 @@ const CONST = {
     FORM_CHARACTER_LIMIT: 50,
     STANDARD_LENGTH_LIMIT: 100,
     STANDARD_LIST_ITEM_LIMIT: 12,
+    // The inline category/tag pickers in the expense table are small popovers, so they show the search input sooner than the full-page pickers.
+    INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD: 8,
     SEARCH_BAR_THRESHOLD: 3,
     // Number of approval workflow cards rendered before the "Load more" affordance on Workspace → Workflows.
     WORKFLOW_APPROVALS_INITIAL_BATCH: 5,
@@ -7151,8 +7487,11 @@ const CONST = {
         SINGLE_MARKER_ZOOM: 15,
         DEFAULT_COORDINATE: [-122.4021, 37.7911] as [number, number],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
-        ANIMATION_DURATION_ON_CENTER_ME: 1000,
+        ANIMATION_DURATION_DEFAULT: 1000,
+        ANIMATION_DURATION_LONG: 1500,
         GPS_ROUTE_ANIMATION_DURATION_MS: 1000,
+        CAMERA_ANIMATION_MODE: 'flyTo',
+        FLY_TO_SPEED: 4,
     },
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
@@ -7466,6 +7805,12 @@ const CONST = {
     ONBOARDING_ACCOUNTING_MAPPING,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
+
+    /** How many report fields are shown side by side in the report view on a wide layout */
+    REPORT_FIELDS_PER_ROW: 3,
+
+    /** Below this many options, a report field list is short enough to scan without a search input */
+    REPORT_FIELD_LIST_SEARCH_THRESHOLD: 8,
 
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
@@ -7903,6 +8248,11 @@ const CONST = {
                     search: true,
                     reportView: true,
                 },
+                HELD: {
+                    column: this.TABLE_COLUMNS.HELD,
+                    search: true,
+                    reportView: true,
+                },
                 MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
                 TAX_CODE: {
                     column: this.TABLE_COLUMNS.TAX_CODE,
@@ -8198,6 +8548,7 @@ const CONST = {
             ORIGINAL_AMOUNT: 'originalamount',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            HELD: 'held',
             TAX_RATE: 'taxrate',
             TOTAL_AMOUNT: 'amount',
             ATTENDEES: 'attendees',
@@ -8332,6 +8683,7 @@ const CONST = {
             IN: 'in',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+            ANY_APPROVAL: 'anyApproval',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
@@ -8346,6 +8698,8 @@ const CONST = {
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            DECLINED: 'declined',
+            HELD: 'held',
             POLICY_ID: 'policyID',
             ACTION: 'action',
             HAS: 'has',
@@ -8425,6 +8779,7 @@ const CONST = {
             IN: 'in',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+            ANY_APPROVAL: 'any-approval',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
@@ -8436,6 +8791,8 @@ const CONST = {
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            DECLINED: 'declined',
+            HELD: 'held',
             ACTION: 'action',
             HAS: 'has',
             PURCHASE_AMOUNT: 'purchase-amount',
@@ -8476,6 +8833,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'purchase-amount',
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
+                [this.TABLE_COLUMNS.HELD]: 'held',
                 [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
                 [this.TABLE_COLUMNS.TOTAL_AMOUNT]: 'amount',
                 [this.TABLE_COLUMNS.TOTAL]: 'total',
@@ -8569,6 +8927,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
+            TRIPS: 'trips',
         },
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
@@ -9323,14 +9682,6 @@ const CONST = {
     // (ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN), but the API expects the unprefixed name.
     SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME: 'submitMigrationModalShown',
 
-    AI_FEATURES_PROMO_MODAL: 'aiFeaturesPromoModal',
-
-    AI_FEATURES_PROMO_LEARN_MORE_URLS: {
-        SPEND_ANALYSIS: 'https://help.expensify.com/articles/new-expensify/concierge-ai/How-Concierge-Analyzes-Spend',
-        EXPENSE_ASSISTANT: 'https://help.expensify.com/articles/new-expensify/concierge-ai/Expense-Assistant',
-        BUILD_AGENTS: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-Agent-Rules',
-    },
-
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     SELECTION_BUTTON_TEST_ID: 'selection-button-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
@@ -9357,6 +9708,8 @@ const CONST = {
     INBOX_TAB_STALE_UNREAD_MONTHS: 3,
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
+    WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER: 'wiseGlobalReimbursementsWalletBanner',
+    WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER: 'wiseGlobalReimbursementsWorkspaceBanner',
     SMART_BANNER_HEIGHT: 152,
 
     NAVIGATION_TESTS: {
@@ -9456,6 +9809,7 @@ const CONST = {
         TYPE_TRANSFER_TO: 'transfer_to',
         TYPE_TRANSFER_FAILED: 'transfer_failed',
         TYPE_TRANSFER_OLD: 'transfer_old',
+        TYPE_INVOICING: 'invoicing2018',
     },
     PAYMENT_HISTORY: {
         STATE: {
@@ -9598,6 +9952,14 @@ const CONST = {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
         },
+        WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER: {
+            CTA: 'WiseGlobalReimbursementsWalletBanner-CTA',
+            DISMISS: 'WiseGlobalReimbursementsWalletBanner-Dismiss',
+        },
+        WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER: {
+            CTA: 'WiseGlobalReimbursementsWorkspaceBanner-CTA',
+            DISMISS: 'WiseGlobalReimbursementsWorkspaceBanner-Dismiss',
+        },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
             DISMISS: 'ProductMarketingWindow-Dismiss',
@@ -9655,6 +10017,9 @@ const CONST = {
         ATTACHMENT_MODAL: {
             SEND_BUTTON: 'AttachmentModal-SendButton',
             IMAGE_ZOOM: 'AttachmentModal-ImageZoom',
+        },
+        IMAGE_LOAD: {
+            RETRY_BUTTON: 'ImageLoadTimeoutNotice-RetryButton',
         },
         MODAL: {
             DISMISS_DIALOG: 'Modal-DismissDialog',
@@ -9813,6 +10178,7 @@ const CONST = {
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
+            REPORT_FIELD_DELETE_BUTTON: 'Report-ReportFieldDeleteButton',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
@@ -9866,6 +10232,11 @@ const CONST = {
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
             DOWNLOAD_RECEIPTS: 'MoreMenu-DownloadReceipts',
+            SHARE: 'MoreMenu-Share',
+            SHARE_REPORT: 'MoreMenu-ShareReport',
+            SHARE_CODE: 'MoreMenu-ShareCode',
+            REFER_FRIEND: 'MoreMenu-ReferFriend',
+            COPY_URL: 'MoreMenu-CopyURL',
             PRINT: 'MoreMenu-Print',
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
@@ -9995,6 +10366,9 @@ const CONST = {
         },
         CATEGORY_PICKER_MODAL: {
             BACK_BUTTON: 'CategoryPickerModal-BackButton',
+        },
+        TAG_PICKER_MODAL: {
+            BACK_BUTTON: 'TagPickerModal-BackButton',
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
@@ -10137,6 +10511,7 @@ const CONST = {
             INITIAL: {
                 PROFILE: 'WorkspaceInitial-Profile',
                 MEMBERS: 'WorkspaceInitial-Members',
+                AGENTS: 'WorkspaceInitial-Agents',
                 ROOMS: 'WorkspaceInitial-Rooms',
                 REPORTS: 'WorkspaceInitial-Reports',
                 ACCOUNTING: 'WorkspaceInitial-Accounting',
@@ -10230,6 +10605,7 @@ const CONST = {
             },
             ACCOUNTING: {
                 SETUP_BUTTON: 'WorkspaceAccounting-SetupButton',
+                EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
             },
@@ -10273,6 +10649,7 @@ const CONST = {
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_DESCRIBE: 'WorkspaceRules-SpendRuleDescribe',
+                DESCRIBE_RULE_TRY_SUGGESTION: 'WorkspaceRules-DescribeRuleTrySuggestion',
                 SPEND_RULE_DELETE: 'WorkspaceRules-SpendRuleDelete',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
                 AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',
@@ -10385,6 +10762,9 @@ const CONST = {
         UPLOAD_FILE: {
             REMOVE_BUTTON: 'UploadFile-RemoveButton',
         },
+        LIST_FIELD: {
+            REMOVE_BUTTON: 'ListField-RemoveButton',
+        },
         BANK_ACCOUNT: {
             DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
         },
@@ -10479,6 +10859,7 @@ const CONST = {
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
             PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
+            VIEW_BILLING_RECEIPT: 'SettingsSubscription-ViewBillingReceipt',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
         },
@@ -10545,10 +10926,6 @@ const CONST = {
             CLOSE_BUTTON: 'FeatureTraining-CloseButton',
             BACK_BUTTON: 'FeatureTraining-BackButton',
         },
-        AI_FEATURES_PROMO_MODAL: {
-            CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
-            HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
-        },
     },
 
     /**
@@ -10565,6 +10942,11 @@ const CONST = {
     },
 
     AGENTS: {
+        OWNER_TYPE: {
+            PERSON: 'person',
+            WORKSPACE: 'workspace',
+            DOMAIN: 'domain',
+        },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
         },

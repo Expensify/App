@@ -11,6 +11,7 @@ import type {TableHandle} from '@components/Table';
 import type {RoomMemberRowData, RoomMembersTableColumnKey} from '@components/Tables/RoomMembersTable';
 import RoomMembersTable from '@components/Tables/RoomMembersTable';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -45,6 +46,7 @@ import {
     isChatThread,
     isDefaultRoom,
     isPolicyExpenseChat as isPolicyExpenseChatUtils,
+    isThreadMemberProtectedByParentReport,
     isUserCreatedPolicyRoom,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -92,6 +94,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const reportForSubtitle = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
     const derivedSubtitleReportName = useDerivedReportNameByReportID(reportForSubtitle?.reportID);
     const subtitleReportName = getReportName(reportForSubtitle, derivedSubtitleReportName);
+    const accountIDToName = useMentionedAccountIDToNameMap(subtitleReportName);
 
     const {chatParticipants: participants, personalDetailsParticipants} = useMemo(
         () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
@@ -223,7 +226,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 (isPolicyExpenseChat && isProtectedByPolicyRole) ||
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                details.accountID === report.ownerAccountID;
+                details.accountID === report.ownerAccountID ||
+                isThreadMemberProtectedByParentReport(parentReport, accountID);
 
             result.push({
                 keyForList: String(accountID),
@@ -250,6 +254,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         isPolicyExpenseChat,
         localeCompare,
         openRoomMemberDetails,
+        parentReport,
         participants,
         personalDetails,
         policy,
@@ -357,7 +362,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(subtitleReportName) : subtitleReportName)}
+                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(subtitleReportName, {accountIDToName}) : subtitleReportName)}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();

@@ -1241,7 +1241,7 @@ type NetSuiteConnection = {
 
     lastSync?: ConnectionLastSync;
 
-    /** Config object used solely to store autosync settings */
+    /** Config object used to store autosync settings and authentication type */
     config: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** NetSuite auto synchronization configs */
         autoSync: {
@@ -1256,6 +1256,9 @@ type NetSuiteConnection = {
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
+
+        /** Authentication method used for this connection */
+        authType?: 'tba' | 'oauth2';
     }>;
 
     /** Encrypted token secret for authenticating to NetSuite */
@@ -3034,7 +3037,24 @@ type BusinessCentralExport = {
 
     /** Accounting method used during export */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** Whether company card expenses can export to a bank account set per card feed or per card instead of `nonReimbursableAccount` */
+    exportToMultipleAccounts: boolean;
+
+    /** ID of the Business Central bank account each card feed exports to, keyed by feed */
+    cardProgramAccounts: Record<CardFeedWithNumber, string>;
+
+    /** Whether reports dated in a closed accounting period are exported to the next open period */
+    exportToNextOpenPeriod: boolean;
 };
+
+/** Offline feedback key for card program account */
+type BusinessCentralExportCardProgramAccountsOfflineFeedbackKey = `${typeof CONST.BUSINESS_CENTRAL_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `BusinessCentralExport`
+ */
+type BusinessCentralExportOfflineFeedbackKeys = keyof Omit<BusinessCentralExport, 'cardProgramAccounts'> | BusinessCentralExportCardProgramAccountsOfflineFeedbackKey;
 
 /**
  * Automatic synchronization settings for Business Central.
@@ -3042,7 +3062,30 @@ type BusinessCentralExport = {
 type BusinessCentralAutoSync = {
     /** Whether automatic synchronization is enabled */
     enabled: boolean;
+
+    /** ID of the daily job that runs the automatic synchronization, null while it is disabled */
+    jobID?: string | null;
 };
+
+/**
+ * Settings for syncing payments made in Expensify back to Business Central.
+ */
+type BusinessCentralSync = {
+    /** Whether reimbursed expense reports are marked as paid in Business Central */
+    syncReimbursedReports: boolean;
+
+    /** ID of the Business Central bank account employee reimbursements are paid from */
+    reimbursementBankAccountID: string;
+
+    /** Whether Expensify Card settlements are synced to Business Central */
+    syncExpensifyCardSettlements: boolean;
+
+    /** ID of the Business Central bank account Expensify Card settlements are paid from */
+    settlementsBankAccountID: string;
+};
+
+/** Payment sync setting that holds a Business Central bank account ID */
+type BusinessCentralBankAccountSettingName = keyof Pick<BusinessCentralSync, 'reimbursementBankAccountID' | 'settlementsBankAccountID'>;
 
 /**
  * Connection config for Business Central.
@@ -3073,13 +3116,16 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Auto-sync settings */
         autoSync?: BusinessCentralAutoSync;
 
+        /** Payment sync settings */
+        sync?: BusinessCentralSync;
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    'companyID' | 'enableNewCategories' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralExport | keyof BusinessCentralAutoSync
+    'companyID' | 'enableNewCategories' | 'autoSync' | BusinessCentralCodingOfflineFeedbackKeys | BusinessCentralExportOfflineFeedbackKeys | keyof BusinessCentralSync
 >;
 
 /** Gusto connection data */
@@ -3780,6 +3826,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         preventSelfApproval?: boolean;
 
+        /** When enabled, non-reimbursable reports cannot be marked as paid */
+        preventPayoutNonReimbursableReports?: boolean;
+
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
 
@@ -4253,10 +4302,13 @@ export type {
     ZohoBooksExportDate,
     ZohoBooksVendor,
     ZohoBooksAccount,
+    BusinessCentralBankAccount,
     BusinessCentralCompany,
     BusinessCentralCoding,
     BusinessCentralCustomerMappings,
     BusinessCentralExport,
+    BusinessCentralSync,
+    BusinessCentralBankAccountSettingName,
     BusinessCentralCodingOfflineFeedbackKeys,
 };
 
