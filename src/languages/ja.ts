@@ -9132,6 +9132,10 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Zoho Books 組織',
+            organizationSelectDescription: 'データをインポートする Zoho Books の組織を選択してください。',
+            noOrganizationsFound: '組織が見つかりません',
+            noOrganizationsFoundDescription: 'Zoho Books で組織を追加して、接続を再度同期してください',
+            multiLocationNotSupported: '複数拠点の組織にはまだ対応していません',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',

@@ -4317,4 +4317,4 @@ export type {
  *
  * @public
  */
-export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, ZohoBooksExport, ZohoBooksSync};
+export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, ZohoBooksExport, ZohoBooksOrganization, ZohoBooksSync};

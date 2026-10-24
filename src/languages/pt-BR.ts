@@ -9240,6 +9240,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         zohoBooks: {
             organization: 'Organização Zoho Books',
+            organizationSelectDescription: 'Escolha a organização no Zoho Books da qual você deseja importar dados.',
+            noOrganizationsFound: 'Nenhuma organização encontrada',
+            noOrganizationsFoundDescription: 'Adicione uma organização no Zoho Books e sincronize a conexão novamente',
+            multiLocationNotSupported: 'Organizações com vários locais ainda não são compatíveis',
         },
         businessCentral: {
             businessCentralSetup: 'Configuração do Dynamics 365 Business Central',

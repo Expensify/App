@@ -9316,6 +9316,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         zohoBooks: {
             organization: 'Zoho Books-Organisation',
+            organizationSelectDescription: 'Wählen Sie die Organisation in Zoho Books aus, aus der Sie Daten importieren möchten.',
+            noOrganizationsFound: 'Keine Organisationen gefunden',
+            noOrganizationsFoundDescription: 'Bitte fügen Sie eine Organisation in Zoho Books hinzu und synchronisieren Sie die Verbindung erneut',
+            multiLocationNotSupported: 'Organisationen mit mehreren Standorten werden noch nicht unterstützt',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
