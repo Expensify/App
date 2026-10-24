@@ -16,12 +16,13 @@ import SuccessPageBase from './SuccessPageBase';
 
 function SuccessPage() {
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [is2FAEnabled = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.requiresTwoFactorAuth});
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
 
     const goBack = () => {
-        quitAndNavigateBack(ROUTES.SETTINGS_SECURITY);
+        quitAndNavigateBack(is2FAEnabled, ROUTES.SETTINGS_SECURITY);
     };
 
     const onButtonPress = () => {

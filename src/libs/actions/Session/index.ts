@@ -1441,8 +1441,21 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
     // A 2FA code is required to disable 2FA
     const params: DisableTwoFactorAuthParams = {twoFactorAuthCode};
 
+    // The secret kept for an unfinished setup is no longer valid once 2FA is turned off.
+    const disableSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                recoveryCodes: null,
+                twoFactorAuthSecretKey: null,
+            },
+        },
+    ];
+
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
-    API.write(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, params, {optimisticData, successData: disableSuccessData, failureData});
 }
 
 function clearDisableTwoFactorAuthErrors() {
@@ -1488,6 +1501,9 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
                 // Clear the secret key once we know we no longer need to show it
                 // This is necessary in case the user needs to complete the replaceTwoFactorDevice flow on this device at some point in the future - that flow uses the presence of this key to know when to navigate from one step to the next
                 twoFactorAuthSecretKey: null,
+                // The success screen is the usual place that drops recovery codes. If the user already closed
+                // the panel, that screen never mounts, so clear them here once validation has succeeded.
+                recoveryCodes: null,
             },
         },
     ];
@@ -1498,6 +1514,9 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+                // Drop the saved codes so leaving this screen can request a fresh secret. The secret itself
+                // stays, so the QR remains and a mistyped code can be retried without leaving the page.
+                recoveryCodes: null,
             },
         },
     ];

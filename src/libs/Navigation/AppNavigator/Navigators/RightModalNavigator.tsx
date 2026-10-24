@@ -2,6 +2,7 @@ import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelCo
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,6 +36,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
@@ -137,6 +139,7 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const [is2FAEnabled = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.requiresTwoFactorAuth});
     const [containerNode, setContainerNode] = useState<ComponentRef<typeof View> | null>(null);
     const [setContainerNodeFromRef] = useState(() => (node: ComponentRef<typeof View> | null) => {
         setContainerNode(node);
@@ -318,7 +321,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
                                 listeners={{
                                     beforeRemove: () => {
-                                        TransitionTracker.runAfterTransitions({callback: () => clearTwoFactorAuthData(true), waitForUpcomingTransition: true});
+                                        TransitionTracker.runAfterTransitions({callback: () => clearTwoFactorAuthData(is2FAEnabled, true), waitForUpcomingTransition: true});
                                     },
                                 }}
                             />
