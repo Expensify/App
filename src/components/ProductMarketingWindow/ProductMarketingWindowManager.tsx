@@ -6,18 +6,19 @@ import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import {dismissMarketingWindow} from '@libs/actions/User';
 import {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import openExternalLink from '@libs/openExternalLink';
-import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, isProductMarketingAnnouncementDismissed} from '@libs/ProductMarketingWindowUtils';
+import {getActiveProductMarketingAnnouncement, isProductMarketingAnnouncementDismissed} from '@libs/ProductMarketingWindowUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
-import {accountIDSelector, isSupportalSessionSelector} from '@src/selectors/Session';
-import type {Session} from '@src/types/onyx';
+import {hasActiveAdminPoliciesSelector} from '@src/selectors/Policy';
+import {accountIDSelector, emailSelector, isSupportalSessionSelector} from '@src/selectors/Session';
+import type {Policy, Session} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/core';
 import React, {useState} from 'react';
@@ -74,14 +75,28 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
         setAccountIDsWithObservedActiveOnboarding((accountIDs) => new Set(accountIDs).add(currentAccountID));
     }
 
-    const announcement = ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT;
+    // The audience inputs must finish loading before a variant is chosen. Otherwise an admin could briefly see
+    // (and dismiss, via the shared update key) the member variant while policies are still hydrating.
+    const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [hasActiveAdminPolicies = false, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies: OnyxCollection<Policy>) => hasActiveAdminPoliciesSelector(policies, currentUserLogin ?? ''),
+    });
+    const announcement = getActiveProductMarketingAnnouncement(hasActiveAdminPolicies);
     const illustrationNames = announcement?.visual.type === 'illustration' ? [announcement.visual.name] : [];
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
     const isDismissed = isProductMarketingAnnouncementDismissed(announcement, lastDismissedMarketingWindow);
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
     const isLoading =
-        isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, isLoadingAppMetadata, currentAccountIDMetadata, stashedAccountIDMetadata, accountMetadata, onboardingMetadata) ||
-        isLoadingApp;
+        isLoadingOnyxValue(
+            lastDismissedMarketingWindowMetadata,
+            isLoadingAppMetadata,
+            currentAccountIDMetadata,
+            stashedAccountIDMetadata,
+            accountMetadata,
+            onboardingMetadata,
+            currentUserLoginMetadata,
+            policiesMetadata,
+        ) || isLoadingApp;
     const shouldSuppressForOnboardingSession = hasCompletedGuidedSetupFlow === false || (currentAccountID !== undefined && accountIDsWithObservedActiveOnboarding.has(currentAccountID));
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
     const navigation = useNavigation();
