@@ -6,6 +6,7 @@ import {sortDefaultToTop} from '@libs/ListUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getNetSuiteCreditCardAccounts} from '@libs/NetSuiteUtils';
 import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
@@ -342,6 +343,21 @@ function getPolicyCardExportSettings(
                             workspaceDefaultAccountID: config?.payableAcct,
                         },
                     };
+                case CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE: {
+                    return {
+                        description,
+                        exportPageLink,
+                        shouldShowMenuItem: true,
+                        exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT,
+                        accountSelection: {
+                            type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
+                            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT,
+                            accounts: normalizeAccounts(getNetSuiteCreditCardAccounts(policy)),
+                            defaultLabel: defaultAccount,
+                            workspaceDefaultAccountID: config?.creditCardAccount,
+                        },
+                    };
+                }
                 default:
                     return {description, exportPageLink, shouldShowMenuItem: false};
             }
