@@ -3129,6 +3129,8 @@ const CONST = {
         SUCCESS: 200,
         BAD_REQUEST: 400,
         INVALID_SEARCH_QUERY: 401,
+        PAYMENT_REQUIRED: 402,
+        CONFLICT: 409,
         NOT_AUTHENTICATED: 407,
         SUPPORT_NOT_AUTHORIZED: 411,
         EXP_ERROR: 666,
@@ -5763,6 +5765,10 @@ const CONST = {
         OFFLINE_PIN_MARKETS: ['GB', 'IE', 'FR', 'FI', 'IL', 'IS'] as string[],
         CARD_PROGRAM: {
             CURRENT: 'CURRENT',
+        },
+        SETTLEMENT_TYPE: {
+            FULL: 'full',
+            PARTIAL: 'partial',
         },
         FRAUD_TYPES: {
             DOMAIN: 'domain',

@@ -1,10 +1,9 @@
 import Button from '@components/Button';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import WorkspaceCardLabel, {useWorkspaceCardLabelPopover} from '@components/WorkspaceCardLabel';
 
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -15,7 +14,8 @@ import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCardSettings} from '@libs/CardUtils';
+import {getCardSettings, getQueuedExpensifyCardSettlement} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
@@ -23,7 +23,6 @@ import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
-import {queueExpensifyCardForBilling} from '@userActions/Card';
 import {requestExpensifyCardLimitIncrease} from '@userActions/Policy/Policy';
 import {navigateToConciergeChat, openReport} from '@userActions/Report';
 
@@ -81,7 +80,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -163,23 +161,20 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
     const settlementFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
-    const isSettleBalanceButtonDisplayed = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && !cardManualBilling && isCurrentBalanceType;
-    const isSettleDateTextDisplayed = !!cardManualBilling && isCurrentBalanceType;
+    const queuedSettlement = getQueuedExpensifyCardSettlement(cardManualBilling);
+    const isSettleBalanceButtonDisplayed = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && !queuedSettlement.isQueued && isCurrentBalanceType;
+    const isSettleDateTextDisplayed = queuedSettlement.isQueued && isCurrentBalanceType;
+    const settleBalanceErrorMessage = isCurrentBalanceType ? Object.values(getLatestErrorField({errorFields: settings?.errorFields}, 'settleBalance')).at(0) : undefined;
 
+    // Billing runs once a day, so whatever is queued now is settled on the next run
     const settlementDate = isSettleDateTextDisplayed ? format(addDays(new Date(), 1), CONST.DATE.FNS_FORMAT_STRING) : '';
+    const settlementDateMessage =
+        queuedSettlement.isPartial && queuedSettlement.amount !== undefined
+            ? translate('workspace.expensifyCard.partialBalanceWillBeSettledOn', convertToDisplayString(queuedSettlement.amount, settlementCurrency), settlementDate)
+            : translate('workspace.expensifyCard.fullBalanceWillBeSettledOn', settlementDate);
 
     const handleSettleBalanceButtonClick = () => {
-        showConfirmModal({
-            title: translate('workspace.expensifyCard.settleBalanceConfirmationTitle'),
-            prompt: translate('workspace.expensifyCard.settleBalanceConfirmationPrompt'),
-            confirmText: translate('workspace.expensifyCard.settleBalance'),
-            cancelText: translate('common.cancel'),
-        }).then(({action}) => {
-            if (action !== ModalActions.CONFIRM) {
-                return;
-            }
-            queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID);
-        });
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTLE_BALANCE.getRoute(policyID));
     };
 
     const handleViewTransactionsPress = () => {
@@ -225,8 +220,13 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                             {translate('workspace.common.viewTransactions')}
                         </TextLink>
                     )}
-                    {isSettleDateTextDisplayed && (
-                        <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', settlementDate)}</Text>
+                    {isSettleDateTextDisplayed && <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{settlementDateMessage}</Text>}
+                    {!!settleBalanceErrorMessage && (
+                        <FormHelpMessage
+                            isError
+                            message={settleBalanceErrorMessage}
+                            style={styles.mt1}
+                        />
                     )}
                 </>
             }

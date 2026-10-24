@@ -132,15 +132,30 @@ describe('actions/Card', () => {
             await mockFetch.resume?.();
             await waitForBatchedUpdates();
 
-            // The workspace and the chosen frequency are sent, and the settlement day is not: the backend picks the
-            // real day and sends it back, which is the whole reason the day cannot be guessed on the client.
+            // The workspace, the chosen frequency and the card program are sent, and the settlement day is not: the
+            // backend picks the real day and sends it back, which is the whole reason the day cannot be guessed on the client.
             expect(getLastSettlementFrequencyRequestParams()).toEqual(
                 expect.objectContaining({
                     policyAccountID: String(workspaceAccountID),
                     settlementFrequency: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY,
+                    feedCountry: programKey,
                 }),
             );
             expect(getLastSettlementFrequencyRequestParams()).not.toHaveProperty('monthlySettlementDate');
+        });
+
+        it('tells the backend which card program to update for a UK/EU workspace', async () => {
+            // Given a UK/EU workspace, whose card settings live under the GB program
+            const ukProgramKey = CONST.COUNTRY.GB;
+
+            // When its settlement frequency is switched to monthly
+            updateSettlementFrequency(workspaceAccountID, ukProgramKey, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
+            await waitForBatchedUpdates();
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the request names the GB program, otherwise the backend assumes US and the switch silently fails
+            expect(getLastSettlementFrequencyRequestParams()).toEqual(expect.objectContaining({feedCountry: ukProgramKey}));
         });
     });
 });
