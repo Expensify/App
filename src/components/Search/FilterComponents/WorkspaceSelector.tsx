@@ -45,27 +45,31 @@ type WorkspaceFilterItem = ListItem & {
 
 type WorkspaceOption = MultiSelectItem<string> & {isArchived: boolean};
 
-type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined>;
+type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
+    shouldShowActiveSectionTitle?: boolean;
+};
 
 const SECTION_HEADER_HEIGHT = 60;
 
 function SectionHeader({
     title,
-    selectAllLabel,
+    shouldShowTitle = true,
     items,
     selectedValues,
     onToggle,
 }: {
     title: string;
-    selectAllLabel: string;
+    shouldShowTitle?: boolean;
     items: WorkspaceFilterItem[];
     selectedValues: string[];
     onToggle: (values: string[]) => void;
 }) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const selectedCount = items.filter((item) => selectedValues.includes(item.value)).length;
     const isAllSelected = items.length > 0 && selectedCount === items.length;
     const isIndeterminate = selectedCount > 0 && selectedCount < items.length;
+    const selectAllLabel = isAllSelected ? `${translate('common.deselect')} ${translate('common.all')}` : translate('search.filters.workspace.selectAll');
 
     const toggleSection = () => {
         if (isAllSelected) {
@@ -80,9 +84,11 @@ function SectionHeader({
 
     return (
         <View>
-            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5]}>
-                <Text style={[styles.textLabelSupporting]}>{title}</Text>
-            </View>
+            {shouldShowTitle && (
+                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5]}>
+                    <Text style={[styles.textLabelSupporting]}>{title}</Text>
+                </View>
+            )}
             <PressableWithoutFeedback
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.WORKSPACE_SELECTOR_SELECT_ALL}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv2]}
@@ -90,7 +96,7 @@ function SectionHeader({
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${selectAllLabel} ${title}`}
             >
-                <Text style={[styles.textStrong]}>{selectAllLabel}</Text>
+                <Text style={[styles.textStrong, isAllSelected && styles.textSupporting]}>{selectAllLabel}</Text>
                 <Checkbox
                     isChecked={isAllSelected}
                     isIndeterminate={isIndeterminate}
@@ -102,7 +108,16 @@ function SectionHeader({
     );
 }
 
-function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: WorkspaceSelectorProps) {
+function WorkspaceSelector({
+    value = [],
+    selectionListTextInputStyle,
+    selectionListStyle,
+    autoFocus,
+    ready = true,
+    footer,
+    onChange,
+    shouldShowActiveSectionTitle = true,
+}: WorkspaceSelectorProps) {
     const {isOffline} = useNetwork();
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {translate} = useLocalize();
@@ -153,7 +168,6 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
     const activeItems = filteredOptions.filter((item) => !item.isArchived).map(toFilterItem);
     const archivedItems = filteredOptions.filter((item) => item.isArchived).map(toFilterItem);
     const hasArchived = archivedItems.length > 0;
-    const selectAllLabel = translate('search.filters.workspace.selectAll');
 
     const sections: Array<Section<WorkspaceFilterItem>> = [
         {
@@ -163,7 +177,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
                 activeItems.length > 0 ? (
                     <SectionHeader
                         title={translate('search.filters.workspace.active')}
-                        selectAllLabel={selectAllLabel}
+                        shouldShowTitle={shouldShowActiveSectionTitle}
                         items={activeItems}
                         selectedValues={value}
                         onToggle={onChange}
@@ -179,7 +193,6 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
             customHeader: (
                 <SectionHeader
                     title={translate('search.filters.workspace.archived')}
-                    selectAllLabel={selectAllLabel}
                     items={archivedItems}
                     selectedValues={value}
                     onToggle={onChange}
@@ -189,7 +202,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
     }
 
     const itemCount = activeItems.length + archivedItems.length;
-    const headerExtraHeight = (activeItems.length > 0 ? SECTION_HEADER_HEIGHT : 0) + (hasArchived ? SECTION_HEADER_HEIGHT : 0);
+    const headerExtraHeight = (activeItems.length > 0 ? (shouldShowActiveSectionTitle ? SECTION_HEADER_HEIGHT : SECTION_HEADER_HEIGHT / 2) : 0) + (hasArchived ? SECTION_HEADER_HEIGHT : 0);
 
     const textInputOptions: TextInputOptions = {
         value: searchTerm,
