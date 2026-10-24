@@ -263,7 +263,7 @@ describe('actions/PolicyMember', () => {
                             employeeList: expect.objectContaining({
                                 [member1]: expect.objectContaining({
                                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                    errors: expect.any(Object),
+                                    errors: TestHelper.anyObject,
                                 }),
                             }),
                         }),
