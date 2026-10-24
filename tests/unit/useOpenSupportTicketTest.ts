@@ -2,14 +2,13 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useOpenSupportTicket from '@hooks/useOpenSupportTicket';
 
+import {isNoSupportRepAvailableResponse, openSupportTicket} from '@libs/actions/Report';
 import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {isNoSupportRepAvailableResponse, openSupportTicket} from '@userActions/Report';
-
 const mockOpenConciergeAnywhere = jest.fn();
 
-jest.mock('@userActions/Report', () => ({
+jest.mock('@libs/actions/Report', () => ({
     openSupportTicket: jest.fn(),
     isNoSupportRepAvailableResponse: jest.fn(),
 }));

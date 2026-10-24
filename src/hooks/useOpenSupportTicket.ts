@@ -1,7 +1,6 @@
+import {isNoSupportRepAvailableResponse, openSupportTicket} from '@libs/actions/Report';
 import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
-
-import {isNoSupportRepAvailableResponse, openSupportTicket} from '@userActions/Report';
 
 import useLocalize from './useLocalize';
 import useOpenConciergeAnywhere from './useOpenConciergeAnywhere';
