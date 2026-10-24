@@ -1125,7 +1125,7 @@ function duplicateReport({
         isASAPSubmitBetaEnabled,
         targetPolicy,
         isTrackIntentUser,
-        getCurrencyDecimals,
+        {getCurrencyDecimals, formatPhoneNumber},
         rules,
         false,
         undefined,

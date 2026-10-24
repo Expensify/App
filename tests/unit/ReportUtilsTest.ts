@@ -6170,6 +6170,7 @@ describe('ReportUtils', () => {
                 chatReport,
                 expenseReport,
                 getCurrencyDecimalsLocal,
+                formatPhoneNumber,
                 undefined,
                 '',
                 expenseTransaction,
@@ -17239,7 +17240,7 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, undefined);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, formatPhoneNumber, undefined);
 
             expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
             expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
@@ -17261,11 +17262,12 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, undefined);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, formatPhoneNumber, undefined);
             const updatedPreviewAction = updateReportPreview(
                 iouReport,
                 reportPreviewAction,
                 getCurrencyDecimalsLocal,
+                formatPhoneNumber,
                 false,
                 '',
                 createMock<Transaction>({
@@ -21954,7 +21956,11 @@ describe('ReportUtils', () => {
             });
 
             // When we call getReportPreviewReportActionMessage
-            const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
+            const result = getReportPreviewReportActionMessage(
+                {reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction},
+                getCurrencyDecimalsLocal,
+                formatPhoneNumber,
+            );
 
             // Then it should return the childReportName instead of "payer owes $0"
             expect(result).toBe('Expense Report 2025-01-15');
@@ -21973,7 +21979,11 @@ describe('ReportUtils', () => {
             });
 
             // When we call getReportPreviewReportActionMessage
-            const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
+            const result = getReportPreviewReportActionMessage(
+                {reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction},
+                getCurrencyDecimalsLocal,
+                formatPhoneNumber,
+            );
 
             // Then it should return the message from the report action (not the childReportName)
             expect(result).toBe('payer owes $100');
@@ -22182,7 +22192,7 @@ describe('ReportUtils', () => {
                 const params = {reportOrID: settledReport, iouReportAction: reportPreviewAction, originalReportAction: reportPreviewAction, policy: settledPolicy};
 
                 // When both variants build the message
-                const storedMessage = getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal);
+                const storedMessage = getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal, formatPhoneNumber);
 
                 // Then the hardcoded English copy must not drift from the localized function
                 expect(storedMessage).toContain('paid with wallet');
@@ -22201,7 +22211,7 @@ describe('ReportUtils', () => {
                 const params = {reportOrID: settledReport, iouReportAction: reportPreviewAction, originalReportAction: reportPreviewAction, policy: settledPolicy};
 
                 // When both variants build the message
-                const storedMessage = getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal);
+                const storedMessage = getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal, formatPhoneNumber);
 
                 // Then the stored message is the plain "marked as paid" wording and matches the localized variant
                 expect(storedMessage).toContain('marked as paid');
@@ -22271,7 +22281,9 @@ describe('ReportUtils', () => {
                 // The localized preview differs between English and Spanish...
                 expect(getReportPreviewMessage(spanishTranslate, convertToDisplayString, params)).not.toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
                 // ...but the report-action-message variant is always the English text, regardless of the loaded locale
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal, formatPhoneNumber)).toBe(
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, params),
+                );
             });
 
             it('routes the participant display name through the injected translate function', async () => {
@@ -22315,7 +22327,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
+                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal, formatPhoneNumber);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
                 expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
@@ -22339,7 +22351,7 @@ describe('ReportUtils', () => {
 
                 // When the message is built while Spanish is the loaded locale, which the cached module-level translation used to follow
                 await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
-                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
+                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal, formatPhoneNumber);
 
                 // Then the message stored on the report action names the participant in English, like the rest of its copy
                 expect(result).toContain(translate(CONST.LOCALES.EN, 'common.hidden'));
@@ -22365,7 +22377,7 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
+                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal, formatPhoneNumber);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
                 expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
@@ -27402,7 +27414,7 @@ describe('ReportUtils', () => {
         };
 
         // REPORT_PREVIEW action that sits in the chat report and links to the expense report
-        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, getCurrencyDecimalsLocal, undefined, '', transaction);
+        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, getCurrencyDecimalsLocal, formatPhoneNumber, undefined, '', transaction);
 
         beforeAll(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});

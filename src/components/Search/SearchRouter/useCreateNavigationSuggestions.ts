@@ -92,7 +92,7 @@ function openBookTravel(policyID: string | undefined, isTravelEnabled: boolean) 
 }
 
 function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceItem[] {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'Suitcase', 'NewWorkspace']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -158,7 +158,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
                 isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 policy,
                 isTrackIntentUser,
-                getCurrencyDecimals,
+                {getCurrencyDecimals, formatPhoneNumber},
                 rules,
                 false,
                 shouldDismissEmptyReportsConfirmation,

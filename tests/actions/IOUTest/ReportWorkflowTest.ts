@@ -281,6 +281,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     if (expenseReport) {
                         const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                         submitReport({
+                            formatPhoneNumber,
                             rules: undefined,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             submitterLogin: undefined,
@@ -413,6 +414,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             const expenseReportTransactions = await getReportTransactionsFromOnyx(freshExpenseReport?.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
@@ -553,6 +555,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             const expenseReportTransactions = await getReportTransactionsFromOnyx(freshExpenseReport?.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
@@ -678,6 +681,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             const expenseReportTransactions = await getReportTransactionsFromOnyx(freshExpenseReport?.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
@@ -804,6 +808,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             const expenseReportTransactions = await getReportTransactionsFromOnyx(freshExpenseReport?.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
@@ -1134,6 +1139,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         if (expenseReport) {
                             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                             submitReport({
+                                formatPhoneNumber,
                                 rules: undefined,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 submitterLogin: undefined,
@@ -1437,6 +1443,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         if (expenseReport) {
                             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                             submitReport({
+                                formatPhoneNumber,
                                 rules: undefined,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 submitterLogin: undefined,
@@ -1620,6 +1627,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     if (expenseReport) {
                         const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                         submitReport({
+                            formatPhoneNumber,
                             rules: undefined,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             submitterLogin: undefined,
@@ -1698,6 +1706,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Submit with amountOwed > 0 should trigger restriction
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
@@ -1822,6 +1831,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 const ownerBillingGracePeriodEnd = Math.floor(Date.now() / 1000) - 86400 * 30;
                 const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                 submitReport({
+                    formatPhoneNumber,
                     rules: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     submitterLogin: undefined,
@@ -1888,6 +1898,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -1969,6 +1980,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -2045,6 +2057,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -2101,6 +2114,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -2160,6 +2174,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -2234,6 +2249,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -2330,6 +2346,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -2426,6 +2443,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -2505,6 +2523,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             mockFetch?.pause?.();
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -2579,6 +2598,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -2652,6 +2672,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
@@ -2719,6 +2740,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
@@ -2761,6 +2783,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
@@ -3177,6 +3200,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
@@ -3218,6 +3242,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
@@ -3311,6 +3336,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             approveMoneyRequest({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -3354,6 +3380,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             approveMoneyRequest({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -3408,6 +3435,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}` as const;
 
             approveMoneyRequest({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -4487,6 +4515,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         const createApproveMoneyRequestParams = (expenseReport: Report, expenseReportPolicy: OnyxEntry<Policy>) => ({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            formatPhoneNumber,
             expenseReport,
             expenseReportPolicy,
             rules: undefined,
@@ -4542,7 +4571,10 @@ describe('actions/IOU/ReportWorkflow', () => {
             const onApproved = jest.fn();
             const expenseReport = createSubmittedExpenseReport();
 
-            approveMoneyRequest({...createApproveMoneyRequestParams(expenseReport, submitPolicy), onApproved});
+            approveMoneyRequest({
+                ...createApproveMoneyRequestParams(expenseReport, submitPolicy),
+                onApproved,
+            });
 
             expect(onApproved).not.toHaveBeenCalled();
         });
@@ -4551,7 +4583,10 @@ describe('actions/IOU/ReportWorkflow', () => {
             const onApproved = jest.fn();
             const expenseReport = createSubmittedExpenseReport(teamPolicyID);
 
-            approveMoneyRequest({...createApproveMoneyRequestParams(expenseReport, teamPolicy), onApproved});
+            approveMoneyRequest({
+                ...createApproveMoneyRequestParams(expenseReport, teamPolicy),
+                onApproved,
+            });
 
             expect(onApproved).toHaveBeenCalledTimes(1);
         });
@@ -4674,6 +4709,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Admin approves the report
             approveMoneyRequest({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -4728,6 +4764,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report
             approveMoneyRequest({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -4781,6 +4818,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Admin approves the report
             approveMoneyRequest({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -4908,6 +4946,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report (no take control actions)
             approveMoneyRequest({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -4941,6 +4980,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             approveMoneyRequest({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -4972,6 +5012,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             approveMoneyRequest({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: updatedReport,
@@ -5033,6 +5074,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report
             approveMoneyRequest({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: singleApproverReport,
@@ -5094,6 +5136,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             })
                 .then(() => {
                     approveMoneyRequest({
+                        formatPhoneNumber,
                         rules: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         expenseReport: normalReport,
@@ -5226,6 +5269,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             const newExpenseReportID = approveMoneyRequest({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,

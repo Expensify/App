@@ -23,7 +23,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -151,6 +151,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 throw new Error('Required transaction or report data is missing');
             }
             const result = rejectMoneyRequest({
+                formatPhoneNumber,
                 transactionID: transaction.transactionID,
                 reportID: iouReport.reportID,
                 comment,
@@ -179,6 +180,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 throw new Error('Required transaction or report data is missing');
             }
             rejectMoneyRequest({
+                formatPhoneNumber,
                 transactionID: transaction.transactionID,
                 reportID: iouReport.reportID,
                 comment,
@@ -247,6 +249,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 throw new Error('Required transaction or report data is missing');
             }
             rejectMoneyRequest({
+                formatPhoneNumber,
                 transactionID: transaction.transactionID,
                 reportID: iouReport.reportID,
                 comment,
@@ -298,6 +301,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
 
             rejectMoneyRequest({
+                formatPhoneNumber,
                 transactionID: transaction.transactionID,
                 reportID: iouReport.reportID,
                 comment,
@@ -317,6 +321,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             });
 
             rejectMoneyRequest({
+                formatPhoneNumber,
                 transactionID: secondTransaction.transactionID,
                 reportID: iouReport.reportID,
                 comment,
@@ -394,6 +399,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
                 // When: Rejecting it from the report it is no longer on
                 const result = rejectMoneyRequest({
+                    formatPhoneNumber,
                     transactionID: transaction.transactionID,
                     reportID: iouReport.reportID,
                     comment,
@@ -425,6 +431,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 // When: The server rejects the request
                 mockFetch?.fail?.();
                 rejectMoneyRequest({
+                    formatPhoneNumber,
                     transactionID: transaction.transactionID,
                     reportID: iouReport.reportID,
                     comment,
@@ -456,6 +463,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 // When: The expense is rejected while offline
                 mockFetch?.pause?.();
                 rejectMoneyRequest({
+                    formatPhoneNumber,
                     transactionID: transaction.transactionID,
                     reportID: iouReport.reportID,
                     comment,
@@ -503,6 +511,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 // When: The expense is rejected while offline and the queued request fails on reconnection
                 mockFetch?.pause?.();
                 rejectMoneyRequest({
+                    formatPhoneNumber,
                     transactionID: transaction.transactionID,
                     reportID: iouReport.reportID,
                     comment,
@@ -546,6 +555,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
                 // When: Rejecting it again
                 rejectMoneyRequest({
+                    formatPhoneNumber,
                     transactionID: transaction.transactionID,
                     reportID: iouReport.reportID,
                     comment,
@@ -614,6 +624,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 throw new Error('Required transaction or report data is missing');
             }
             rejectMoneyRequest({
+                formatPhoneNumber,
                 transactionID: transaction.transactionID,
                 reportID: iouReport.reportID,
                 comment,

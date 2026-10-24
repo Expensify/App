@@ -234,7 +234,7 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
@@ -244,6 +244,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         handleActionButtonPressUtil({
             isASAPSubmitBetaEnabled,
             getCurrencyDecimals,
+            formatPhoneNumber,
             hash: currentSearchHash,
             item: liveTransactionItem,
             goToItem: () => onSelectRow(item, transactionPreviewData, event),

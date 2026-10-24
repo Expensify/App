@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
-import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -90,6 +90,7 @@ describe('actions/IOU/SendMoney', () => {
                 const writeSpy = jest.spyOn(API, 'writeWhenReady').mockImplementation(jest.fn());
 
                 sendMoneyElsewhere({
+                    formatPhoneNumber,
                     report: {reportID: ''},
                     quickAction: undefined,
                     amount: 10000,

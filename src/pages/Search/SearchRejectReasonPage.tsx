@@ -40,7 +40,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const {isBetaEnabled} = usePermissions();
@@ -68,6 +68,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             }
 
             const urlToNavigateBack = rejectMoneyRequestsOnSearch({
+                formatPhoneNumber,
                 hash: currentSearchHash,
                 selectedTransactions: selectedTransactionsForReject,
                 comment,
@@ -93,6 +94,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
         },
         [
             isDelegateAccessRestricted,
+            formatPhoneNumber,
             currentSearchHash,
             selectedTransactionsForReject,
             allPolicies,

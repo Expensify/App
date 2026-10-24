@@ -64,7 +64,7 @@ function DynamicIOURequestStepUpgrade({
 }: DynamicIOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
 
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -148,7 +148,15 @@ function DynamicIOURequestStepUpgrade({
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, isTrackIntentUser, getCurrencyDecimals, rules);
+            const optimisticReport = createNewReport(
+                ownerPersonalDetails,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                newPolicy,
+                isTrackIntentUser,
+                {getCurrencyDecimals, formatPhoneNumber},
+                rules,
+            );
 
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
             const reportsForCall = {
@@ -298,6 +306,7 @@ function DynamicIOURequestStepUpgrade({
         isTrackIntentUser,
         delegateAccountID,
         getCurrencyDecimals,
+        formatPhoneNumber,
         getCurrencySymbol,
         rules,
         cardList,

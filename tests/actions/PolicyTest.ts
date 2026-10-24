@@ -8098,6 +8098,7 @@ describe('actions/Policy', () => {
             const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
 
             Policy.createWorkspaceFromIOUPayment({
+                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 iouReport,
                 reportPreviewAction: undefined,
                 currentUserAccountID: customAccountID,
@@ -8157,6 +8158,7 @@ describe('actions/Policy', () => {
             const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
 
             const result = Policy.createWorkspaceFromIOUPayment({
+                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 iouReport,
                 reportPreviewAction: undefined,
                 currentUserAccountID: ESH_ACCOUNT_ID,
@@ -8193,6 +8195,7 @@ describe('actions/Policy', () => {
             };
 
             const result = Policy.createWorkspaceFromIOUPayment({
+                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 iouReport: nonIOUReport,
                 reportPreviewAction: undefined,
                 currentUserAccountID: ESH_ACCOUNT_ID,
@@ -8254,6 +8257,7 @@ describe('actions/Policy', () => {
             const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
 
             const result = Policy.createWorkspaceFromIOUPayment({
+                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 iouReport,
                 reportPreviewAction: undefined,
                 currentUserAccountID: ESH_ACCOUNT_ID,
@@ -8311,6 +8315,7 @@ describe('actions/Policy', () => {
             const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
 
             Policy.createWorkspaceFromIOUPayment({
+                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 iouReport,
                 reportPreviewAction: undefined,
                 currentUserAccountID: ESH_ACCOUNT_ID,
@@ -8389,6 +8394,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             Policy.createWorkspaceFromIOUPayment({
+                formatPhoneNumber: TestHelper.formatPhoneNumber,
                 iouReport,
                 reportPreviewAction: undefined,
                 currentUserAccountID: ESH_ACCOUNT_ID,

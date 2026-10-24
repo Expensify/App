@@ -80,7 +80,7 @@ function useSelectionModePayment({
     onPaid,
     confirmApproval,
 }: UseSelectionModePaymentParams) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
@@ -189,6 +189,7 @@ function useSelectionModePayment({
 
         if (isInvoiceReport) {
             payInvoice({
+                formatPhoneNumber,
                 bankAccountList,
                 isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
@@ -215,6 +216,7 @@ function useSelectionModePayment({
             });
         } else {
             payMoneyRequest({
+                formatPhoneNumber,
                 bankAccountList,
                 getCurrencyDecimals,
                 isASAPSubmitBetaEnabled,
@@ -311,6 +313,7 @@ function useSelectionModePayment({
 
     const invokePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         selectPaymentType({
+            formatPhoneNumber,
             getCurrencyDecimals,
             event,
             iouPaymentType,

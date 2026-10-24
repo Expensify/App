@@ -6,6 +6,7 @@ import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCr
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
@@ -119,6 +120,7 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const isCreateReportRestricted = useCreateReportRestrictionCheck(session);
     const handleGoBack = () => {
@@ -184,7 +186,7 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
             isASAPSubmitBetaEnabled,
             policyForNewReport,
             isTrackIntentUser,
-            getCurrencyDecimals,
+            {getCurrencyDecimals, formatPhoneNumber},
             rules,
             false,
             shouldDismissEmptyReportsConfirmation,

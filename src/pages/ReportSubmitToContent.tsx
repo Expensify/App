@@ -330,6 +330,7 @@ function ReportSubmitToContent({
         }
 
         submitReport({
+            formatPhoneNumber,
             getCurrencyDecimals,
             expenseReport: report,
             expenseReportTransactions: reportTransactions,
@@ -369,6 +370,7 @@ function ReportSubmitToContent({
         });
     }, [
         hasSelectedSubmitToMember,
+        formatPhoneNumber,
         selectedSubmitToMember?.accountID,
         employeePersonalDetails,
         managerEmail,

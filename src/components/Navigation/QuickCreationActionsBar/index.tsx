@@ -36,7 +36,7 @@ import {View} from 'react-native';
 
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'LocationAdd', 'LuggageWithLinesPlus']);
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -86,7 +86,7 @@ function QuickCreationActionsBar() {
                 isASAPSubmitBetaEnabled,
                 policy,
                 isTrackIntentUser,
-                getCurrencyDecimals,
+                {getCurrencyDecimals, formatPhoneNumber},
                 rules,
                 false,
                 shouldDismissEmptyReportsConfirmation,
@@ -98,7 +98,7 @@ function QuickCreationActionsBar() {
                 Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
             });
         },
-        [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, getCurrencyDecimals, rules],
+        [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, getCurrencyDecimals, formatPhoneNumber, rules],
     );
 
     const {createReport, isVisible: isCreateReportReady} = useCreateReport({
