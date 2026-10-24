@@ -7545,6 +7545,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Sincronizando datos de Campfire';
                         case 'campfireSyncConnection':
                             return 'Iniciando conexión con Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Sincronizando datos de Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Iniciando conexión con Zoho Books';
                         case 'campfireSyncImportData':
@@ -9136,6 +9138,11 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Organización Zoho Books',
+            importDescription: 'Elige qué configuraciones de codificación quieres importar desde Zoho Books.',
+            accountTypesDescription: 'Tus cuentas de Zoho Books se importarán como categorías.',
+            enableNewAccountsTitle: 'Habilitar cuentas recién importadas',
+            enableNewAccountsDescription: 'Las nuevas cuentas de Zoho Books estarán disponibles como categorías.',
+            reportingTagsImport: 'Todas las etiquetas de informes de Zoho Books se importan como etiquetas',
         },
         businessCentral: {
             businessCentralSetup: 'Configuración de Dynamics 365 Business Central',

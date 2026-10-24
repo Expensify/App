@@ -7690,6 +7690,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                             return 'Sincronizando dados do Campfire';
                         case 'campfireSyncConnection':
                             return 'Inicializando conexão com o Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Sincronizando dados do Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Inicializando conexão com o Zoho Books';
                         case 'campfireSyncImportData':
@@ -9240,6 +9242,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         zohoBooks: {
             organization: 'Organização Zoho Books',
+            importDescription: 'Escolha quais configurações de codificação importar do Zoho Books.',
+            accountTypesDescription: 'Suas contas do Zoho Books serão importadas como categorias.',
+            enableNewAccountsTitle: 'Ativar contas recém-importadas',
+            enableNewAccountsDescription: 'Novas contas Zoho Books estarão disponíveis como categorias.',
+            reportingTagsImport: 'Todas as tags de relatório do Zoho Books são importadas como etiquetas',
         },
         businessCentral: {
             businessCentralSetup: 'Configuração do Dynamics 365 Business Central',

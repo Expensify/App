@@ -6645,6 +6645,11 @@ const translations = {
         },
         zohoBooks: {
             organization: 'Zoho Books organization',
+            importDescription: 'Choose which coding configurations to import from Zoho Books.',
+            accountTypesDescription: 'Your Zoho Books accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Zoho Books accounts will be available as categories.',
+            reportingTagsImport: 'All Zoho Books reporting tags import as tags',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',
@@ -8190,6 +8195,8 @@ const translations = {
                             return 'Syncing Campfire data';
                         case 'campfireSyncConnection':
                             return 'Initializing connection to Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Syncing Zoho Books data';
                         case 'zohoBooksSyncConnection':
                             return 'Initializing connection to Zoho Books';
                         case 'campfireSyncImportData':

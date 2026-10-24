@@ -7613,6 +7613,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return 'Campfire データを同期しています';
                         case 'campfireSyncConnection':
                             return 'Campfire への接続を初期化しています';
+                        case 'zohoBooksSyncTitle':
+                            return 'Zoho Books データを同期しています';
                         case 'zohoBooksSyncConnection':
                             return 'Zoho Books への接続を初期化しています';
                         case 'campfireSyncImportData':
@@ -9132,6 +9134,11 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Zoho Books 組織',
+            importDescription: 'Zoho Books からインポートするコーディング設定を選択してください。',
+            accountTypesDescription: 'Zoho Books のアカウントはカテゴリとしてインポートされます。',
+            enableNewAccountsTitle: '新しくインポートされた口座を有効にする',
+            enableNewAccountsDescription: '新しい Zoho Books アカウントは、カテゴリーとして利用できるようになります。',
+            reportingTagsImport: 'すべての Zoho Books レポートタグがタグとしてインポートされます',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
