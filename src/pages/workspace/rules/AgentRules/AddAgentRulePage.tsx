@@ -82,12 +82,18 @@ function AddAgentRulePage({
     const isDraftFromFallback = !!generationID && !didSelectSuggestion;
     const fallbackExplanation = generatedRule?.generationID === generationID ? generatedRule?.explanation : undefined;
 
+    // A suggestion or a draft of the describe flow saves without a check while the admin leaves its text unchanged
+    const [checkedPrompt, setCheckedPrompt] = useState<string>();
+
     // The draft can load after the first render. Open Write one time only, because the admin must still be able to go
     // to Suggestions.
     const [didOpenTabForDraft, setDidOpenTabForDraft] = useState(false);
     if (!didOpenTabForDraft && hasDraftPrompt) {
         setDidOpenTabForDraft(true);
         setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
+        if (generationID) {
+            setCheckedPrompt(draftValues?.[INPUT_IDS.PROMPT]);
+        }
     }
 
     // Reset the active tab to Suggestions when the workspace changes.
@@ -131,6 +137,7 @@ function AddAgentRulePage({
             return;
         }
         setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[INPUT_IDS.PROMPT]: suggestion.prompt});
+        setCheckedPrompt(suggestion.prompt);
         setDidSelectSuggestion(true);
         setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
     };
@@ -267,7 +274,11 @@ function AddAgentRulePage({
                                     textStyles={[styles.breakWord, styles.textSupporting]}
                                 />
                             )}
-                            <AddAgentRuleWriteTab onSave={saveRule} />
+                            <AddAgentRuleWriteTab
+                                policyID={policyID}
+                                checkedPrompt={checkedPrompt}
+                                onSave={saveRule}
+                            />
                         </>
                     )}
                 </View>

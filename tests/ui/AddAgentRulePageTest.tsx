@@ -114,8 +114,13 @@ jest.mock('@pages/workspace/rules/AgentRules/AddAgentRuleWriteTab', () => {
         Pressable: React.ComponentType<{accessibilityLabel?: string; onPress?: () => void; children?: React.ReactNode}>;
         Text: React.ComponentType<{children?: React.ReactNode}>;
     }>('react-native');
-    return ({onSave}: {onSave: (values: {prompt: string}) => void}) =>
-        ReactModule.createElement(Pressable, {accessibilityLabel: 'WriteTab', onPress: () => onSave({prompt: 'Hold gift card expenses'})}, ReactModule.createElement(Text, null, 'WriteTab'));
+    return ({onSave, checkedPrompt}: {onSave: (values: {prompt: string}) => void; checkedPrompt?: string}) =>
+        ReactModule.createElement(
+            Pressable,
+            {accessibilityLabel: 'WriteTab', onPress: () => onSave({prompt: 'Hold gift card expenses'})},
+            ReactModule.createElement(Text, null, 'WriteTab'),
+            ReactModule.createElement(Text, null, `CheckedPrompt: ${checkedPrompt ?? 'none'}`),
+        );
 });
 
 type AddAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_NEW>;
@@ -200,6 +205,43 @@ describe('AddAgentRulePage', () => {
 
         // Then the page still switches to Write, because the first render must not decide the tab for good
         expect(screen.getByText('WriteTab')).toBeOnTheScreen();
+    });
+
+    it('lets the draft of the describe flow save without another check', async () => {
+        // Given a draft that Concierge wrote in the describe flow
+        await setAgentRuleDraft(PROMPT);
+
+        // When the page renders with the generationID of that description
+        renderAddAgentRulePage(GENERATION_ID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Write tab treats the draft as checked, because Concierge already answered that RuleBot can do it
+        expect(screen.getByText(`CheckedPrompt: ${PROMPT}`)).toBeOnTheScreen();
+    });
+
+    it('checks a draft that has no generationID', async () => {
+        // Given a draft that the admin typed on an earlier visit
+        await setAgentRuleDraft(PROMPT);
+
+        // When the page renders without a generationID
+        renderAddAgentRulePage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Write tab checks the draft before it saves, because Concierge never saw it
+        expect(screen.getByText('CheckedPrompt: none')).toBeOnTheScreen();
+    });
+
+    it('lets a picked suggestion save without a check', async () => {
+        // Given the page opens on the suggestions
+        renderAddAgentRulePage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin picks a suggestion
+        fireEvent.press(screen.getByLabelText('PickSuggestion'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Write tab treats the suggestion as checked, because Concierge wrote it
+        expect(screen.getByText('CheckedPrompt: Hold any expense over $75 without a receipt')).toBeOnTheScreen();
     });
 
     it('shows the fallback banner when the page opens with a generationID', async () => {
