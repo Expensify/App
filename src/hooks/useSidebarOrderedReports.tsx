@@ -248,6 +248,7 @@ function SidebarOrderedReportsContextProvider({
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
                 displayedReports: currentReportsToDisplay,
                 reports: chatReports,
+                policies: allPolicies,
                 updatedReportsKeys: effectiveUpdatedReports,
                 currentReportId: derivedCurrentReportID,
                 isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
@@ -268,6 +269,7 @@ function SidebarOrderedReportsContextProvider({
             reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: derivedCurrentReportID,
                 reports: chatReports,
+                policies: allPolicies,
                 isDefaultRoomsBetaEnabled,
                 priorityMode,
                 draftComments: reportsDrafts,
