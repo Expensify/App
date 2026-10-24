@@ -1348,6 +1348,10 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_REQUEST_LIMIT_INCREASE]: {
+        policyID: string;
+        domainAccountID: number;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT]: {
         policyID: string;
         fundID?: string;
