@@ -179,6 +179,7 @@ import {addDays} from 'date-fns/addDays';
 import {subMinutes} from 'date-fns/subMinutes';
 import Onyx from 'react-native-onyx';
 
+import type {Part} from './CopyPolicySettings';
 import type {PolicyOwner} from './PolicyDraft';
 
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './OptimisticPolicyCategoriesAndMccGroups';
@@ -313,7 +314,7 @@ type DuplicatePolicyDataOptions = {
     policyID?: string;
     targetPolicyID?: string;
     welcomeNote: string;
-    parts: Record<string, boolean>;
+    parts: Part[];
     file?: File | CustomRNImageManipulatorResult;
     policyCategories?: PolicyCategories;
     localCurrency: string;
@@ -3407,7 +3408,7 @@ function createDraftWorkspace({
 
 function buildOptimisticDuplicatePolicy(
     sourcePolicy: Policy,
-    policyOptions: DuplicatePolicyDataOptions & {distanceCustomUnitID: string; perDiemCustomUnitID: string; customUnitRateID: string},
+    policyOptions: DuplicatePolicyDataOptions & {distanceCustomUnitID: string; perDiemCustomUnitID: string; optimisticRateIDs: Record<string, string>},
 ) {
     const {
         policyName: duplicatedPolicyName = '',
@@ -3417,23 +3418,24 @@ function buildOptimisticDuplicatePolicy(
         localCurrency: duplicatedLocalCurrency,
         distanceCustomUnitID: duplicatedDistanceCustomUnitID,
         perDiemCustomUnitID: duplicatedPerDiemCustomUnitID,
-        customUnitRateID: duplicatedCustomUnitRateID,
+        optimisticRateIDs: duplicatedRateIDs,
     } = policyOptions;
 
-    const isMemberFeatureSelected = duplicatedParts?.people;
-    const isReportsFeatureSelected = duplicatedParts?.reports;
-    const isConnectionsFeatureSelected = duplicatedParts?.connections;
-    const isTaxesFeatureSelected = duplicatedParts?.taxes;
-    const isTagsFeatureSelected = duplicatedParts?.tags;
-    const isInvoicesFeatureSelected = duplicatedParts?.invoices;
-    const isInvoiceFieldsFeatureSelected = duplicatedParts?.invoiceFields;
-    const isDistanceRatesFeatureSelected = duplicatedParts?.distance;
-    const isRulesFeatureSelected = duplicatedParts?.expenses;
-    const isWorkflowsFeatureSelected = duplicatedParts?.exportLayouts;
-    const isPerDiemFeatureSelected = duplicatedParts?.perDiem;
-    const isOverviewFeatureSelected = duplicatedParts?.overview;
-    const isTravelFeatureSelected = duplicatedParts?.travel;
-    const duplicatedOutputCurrency = isOverviewFeatureSelected ? sourcePolicy?.outputCurrency : duplicatedLocalCurrency;
+    const isMemberFeatureSelected = duplicatedParts.includes('members');
+    const isReportsFeatureSelected = duplicatedParts.includes('reports');
+    const isConnectionsFeatureSelected = duplicatedParts.includes('accounting');
+    const isTaxesFeatureSelected = duplicatedParts.includes('taxes');
+    const isTagsFeatureSelected = duplicatedParts.includes('tags');
+    const isInvoicesFeatureSelected = duplicatedParts.includes('invoices');
+    const isInvoiceFieldsFeatureSelected = duplicatedParts.includes('invoices');
+    const isDistanceRatesFeatureSelected = duplicatedParts.includes('distanceRates');
+    const isRulesFeatureSelected = duplicatedParts.includes('rules');
+    const isWorkflowsFeatureSelected = duplicatedParts.includes('workflows');
+    const isPerDiemFeatureSelected = duplicatedParts.includes('perDiem');
+    const isOverviewFeatureSelected = duplicatedParts.includes('overview');
+    const isCurrencyFeatureSelected = duplicatedParts.includes('currency');
+    const isTravelFeatureSelected = duplicatedParts.includes('travel');
+    const duplicatedOutputCurrency = isCurrencyFeatureSelected ? sourcePolicy?.outputCurrency : duplicatedLocalCurrency;
 
     const filterPendingDeleteData = <T>(data?: Record<string, T>): Record<string, T> | undefined =>
         data
@@ -3491,7 +3493,7 @@ function buildOptimisticDuplicatePolicy(
         customUnits: getCustomUnitsForDuplication(sourcePolicy, isDistanceRatesFeatureSelected, isPerDiemFeatureSelected, {
             distanceCustomUnitID: duplicatedDistanceCustomUnitID,
             perDiemCustomUnitID: duplicatedPerDiemCustomUnitID,
-            customUnitRateID: duplicatedCustomUnitRateID,
+            rateIDsBySourceRateID: duplicatedRateIDs,
         }),
         taxRates: isTaxesFeatureSelected ? taxRatesWithoutPendingDelete : undefined,
         rules: undefined,
@@ -3529,7 +3531,6 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         parts,
         targetPolicyID = generatePolicyID(),
         policyCategories,
-        localCurrency,
         currentUserAccountID,
         currentUserEmail,
         rules,
@@ -3547,15 +3548,22 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         expenseCreatedReportActionID,
         pendingChatMembers,
     } = ReportUtils.buildOptimisticWorkspaceChats(targetPolicyID, policyName, currentUserAccountID, currentUserEmail);
-    const isMemberOptionSelected = parts?.people;
-    const isCategoriesOptionSelected = parts?.categories;
-    const isOverviewOptionSelected = parts?.overview;
-
-    const outputCurrency = isOverviewOptionSelected && policy?.outputCurrency ? policy?.outputCurrency : localCurrency;
+    const isMemberOptionSelected = parts.includes('members');
+    const isCategoriesOptionSelected = parts.includes('categories');
 
     const policyMemberAccountIDs = isMemberOptionSelected ? Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetailsByLogins, false, false)) : [];
-    const {customUnitID: distanceCustomUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(outputCurrency);
+    const distanceCustomUnitID = generateCustomUnitID();
     const perDiemCustomUnitID = generateCustomUnitID();
+
+    // Every copied rate gets a new ID, so the duplicate never shares a rate ID with its source.
+    const optimisticRateIDs: Record<string, string> = {};
+    const copiedUnits = [
+        parts.includes('distanceRates') ? PolicyUtils.getDistanceRateCustomUnit(policy) : undefined,
+        parts.includes('perDiem') ? PolicyUtils.getPerDiemCustomUnit(policy) : undefined,
+    ];
+    for (const rate of copiedUnits.flatMap((unit) => Object.values(unit?.rates ?? {}))) {
+        optimisticRateIDs[rate.customUnitRateID] = generateCustomUnitID();
+    }
 
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(targetPolicyID, [...policyMemberAccountIDs], currentUserAccountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
@@ -3583,7 +3591,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
-            value: buildOptimisticDuplicatePolicy(policy, {...options, targetPolicyID, distanceCustomUnitID, perDiemCustomUnitID, customUnitRateID}),
+            value: buildOptimisticDuplicatePolicy(policy, {...options, targetPolicyID, distanceCustomUnitID, perDiemCustomUnitID, optimisticRateIDs}),
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3788,7 +3796,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     // Merchant rules are their own collection keyed per rule, and each rule names the policy it belongs to,
     // so the duplicate gets fresh rules rather than a copy of the source's. The server mints its own IDs,
     // which is why the optimistic copies are dropped once it responds.
-    const copiedRules = parts?.codingRules ? buildCopiedExpenseDefaultRules(rules, policy?.id, targetPolicyID) : {};
+    const copiedRules = parts.includes('codingRules') ? buildCopiedExpenseDefaultRules(rules, policy?.id, targetPolicyID) : {};
     for (const [ruleID, rule] of Object.entries(copiedRules)) {
         const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${ruleID}` as const;
         optimisticData.push({onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: rule});
@@ -3813,7 +3821,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         distanceCustomUnitID,
         parts: JSON.stringify(parts),
         welcomeNote,
-        customUnitRateID,
+        optimisticRateIDs: JSON.stringify(optimisticRateIDs),
         file: clonedFile,
     };
 

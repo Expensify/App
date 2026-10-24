@@ -25,6 +25,7 @@ import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
 
+import type {Part} from '@userActions/Policy/CopyPolicySettings';
 import {duplicateWorkspace as duplicateWorkspaceAction, openDuplicatePolicyPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
@@ -57,7 +58,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const categoriesCount = Object.values(policyCategories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const codingRulesCount = getExpenseDefaultRuleCount(allRules, policy?.id);
-    const [selectedItems, setSelectedItems] = useState<string[]>([]);
+    const [selectedItems, setSelectedItems] = useState<Part[]>([]);
     const policyFields = Object.values(getReportFieldsByPolicyID(policy) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportFields = policyFields.filter((field) => field.target !== CONST.REPORT_FIELD_TARGETS.INVOICE).length;
     const invoiceFields = policyFields.filter((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE).length;
@@ -94,11 +95,16 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         const rules = getWorkspaceRules(policy, translate);
         const workflows = getWorkflowRules(policy, translate);
 
-        const result = [
+        const result: Array<{translation: string; value: Part; alternateText?: string} | undefined> = [
             {
                 translation: translate('workspace.common.profile'),
                 value: 'overview',
-                alternateText: `${policy?.outputCurrency} ${translate('common.currency')}, ${formattedAddress}`,
+                alternateText: formattedAddress,
+            },
+            {
+                translation: translate('common.currency'),
+                value: 'currency',
+                alternateText: policy?.outputCurrency,
             },
             totalMembers > 1
                 ? {
@@ -233,24 +239,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             welcomeNote: `${translate('workspace.duplicateWorkspace.welcomeNote')} ${duplicateWorkspace.name}`,
             policyCategories: effectiveSelectedItems.includes('categories') ? policyCategories : undefined,
             personalDetailsByLogins: employeePersonalDetails,
-            parts: {
-                people: effectiveSelectedItems.includes('members'),
-                reports: effectiveSelectedItems.includes('reports'),
-                connections: effectiveSelectedItems.includes('accounting'),
-                categories: effectiveSelectedItems.includes('categories'),
-                tags: effectiveSelectedItems.includes('tags'),
-                taxes: effectiveSelectedItems.includes('taxes'),
-                perDiem: effectiveSelectedItems.includes('perDiem'),
-                reimbursements: effectiveSelectedItems.includes('invoices'),
-                expenses: effectiveSelectedItems.includes('rules'),
-                distance: effectiveSelectedItems.includes('distanceRates'),
-                invoices: effectiveSelectedItems.includes('invoices'),
-                invoiceFields: effectiveSelectedItems.includes('invoices'),
-                exportLayouts: effectiveSelectedItems.includes('workflows'),
-                overview: effectiveSelectedItems.includes('overview'),
-                travel: effectiveSelectedItems.includes('travel'),
-                codingRules: effectiveSelectedItems.includes('codingRules'),
-            },
+            parts: effectiveSelectedItems,
             file: duplicatedWorkspaceAvatar,
             localCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
             rules: allRules,
