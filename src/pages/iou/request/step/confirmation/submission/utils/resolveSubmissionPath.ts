@@ -2,6 +2,7 @@ import CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 const SUBMISSION_PATH = {
+    PAY: 'pay',
     DISTANCE: 'distance',
     SPLIT: 'split',
     INVOICE: 'invoice',
@@ -27,6 +28,10 @@ type SubmissionPathSnapshot = {
 
 /** Pure resolver that maps a confirmation's render-time flags to the submission path it should run. */
 function resolveSubmissionPath(snapshot: SubmissionPathSnapshot): SubmissionPath {
+    if (snapshot.iouType === CONST.IOU.TYPE.PAY) {
+        return SUBMISSION_PATH.PAY;
+    }
+
     const isTrackExpense = snapshot.iouType === CONST.IOU.TYPE.TRACK;
 
     if (!isTrackExpense && !snapshot.isSelfDMDestination && snapshot.isDistanceRequest && !snapshot.isMovingTransactionFromTrackExpense && !snapshot.isUnreported) {
@@ -51,4 +56,4 @@ function resolveSubmissionPath(snapshot: SubmissionPathSnapshot): SubmissionPath
 }
 
 export {SUBMISSION_PATH, resolveSubmissionPath};
-export type {SubmissionPath, SubmissionPathSnapshot};
+export type {SubmissionPathSnapshot};

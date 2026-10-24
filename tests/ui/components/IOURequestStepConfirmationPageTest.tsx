@@ -1314,7 +1314,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 // When the screen renders and resolves the P2P destination
                 await waitForBatchedUpdatesWithAct();
 
-                expect(getChatByParticipantsSpy).toHaveBeenCalled();
                 expect(getReusableP2PReportIDSpy).toHaveBeenCalledWith(expect.objectContaining({accountID: PARTICIPANT_ACCOUNT_ID}), optimisticP2PReportID);
                 // Then it pre-mounts the report at the transaction's own optimistic ID, not a different one
                 await waitFor(

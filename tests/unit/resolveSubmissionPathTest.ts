@@ -22,6 +22,13 @@ function snap(overrides: Partial<SubmissionPathSnapshot>): SubmissionPathSnapsho
 
 describe('resolveSubmissionPath', () => {
     describe('happy path per destination', () => {
+        it('routes a pay expense through pay', () => {
+            // Given a PAY expense
+            // When the dispatch destination is resolved
+            // Then SendMoney runs, ahead of every other branch
+            expect(resolveSubmissionPath(snap({iouType: CONST.IOU.TYPE.PAY}))).toBe(SUBMISSION_PATH.PAY);
+        });
+
         it('routes a regular expense owed to someone else through requestMoney', () => {
             // Given the default snapshot, with no type or destination flags set
             // When the dispatch destination is resolved
