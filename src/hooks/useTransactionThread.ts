@@ -70,3 +70,4 @@ function useTransactionThread({reportID, report, allReportActions, isOffline}: U
 }
 
 export default useTransactionThread;
+export {selectTransactionThreadReportActions};
