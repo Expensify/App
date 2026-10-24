@@ -8,7 +8,6 @@ import Parser from '@libs/Parser';
 import {
     getChangedApproverActionMessage,
     getDelegateSubmitMessage,
-    getOriginalMessage,
     isActionOfType,
     isApprovedAction,
     isForwardedAction,
@@ -18,6 +17,7 @@ import {
     isSubmittedAction,
     isSubmittedAndClosedAction,
     isUnapprovedAction,
+    shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
@@ -34,6 +34,8 @@ type GetReportHistoryStepsParams = {
     translate: LocalizedTranslate;
     dateFnsLocale: DateFnsLocale | undefined;
     currentUserEmail: string | undefined;
+    currentUserAccountID: number | undefined;
+    reportID: string | undefined;
 
     /** Shown as the creator when the created action has no actor */
     reportOwnerAccountID: number | undefined;
@@ -77,15 +79,11 @@ function getCompletedStep(
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED)) {
         return {...step, icon: 'Clear', label: translate('iou.adminCanceledRequest')};
     }
-    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
-        // Auto-pay creates these without a new approver, and the report hides them too
-        const originalMessage = getOriginalMessage(reportAction);
-        if (originalMessage?.automaticAction && !originalMessage?.mentionedAccountIDs?.length) {
-            return undefined;
-        }
-        return {...step, icon: 'Workflows', label: Parser.htmlToText(getChangedApproverActionMessage(translate, reportAction))};
-    }
-    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)) {
+    if (
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)
+    ) {
         return {...step, icon: 'Workflows', label: Parser.htmlToText(getChangedApproverActionMessage(translate, reportAction))};
     }
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)) {
@@ -118,10 +116,24 @@ function getUpcomingStep(
     return {...step, icon: 'MoneyBag', label: translate('reportHistoryPage.toPay')};
 }
 
-function getReportHistorySteps({translate, dateFnsLocale, currentUserEmail, reportOwnerAccountID, reportActions, upcomingSteps, nextStep}: GetReportHistoryStepsParams): ReportHistoryStep[] {
+function getReportHistorySteps({
+    translate,
+    dateFnsLocale,
+    currentUserEmail,
+    currentUserAccountID,
+    reportID,
+    reportOwnerAccountID,
+    reportActions,
+    upcomingSteps,
+    nextStep,
+}: GetReportHistoryStepsParams): ReportHistoryStep[] {
     const completedSteps: ReportHistoryStep[] = [];
-    for (const reportAction of Object.values(reportActions ?? {})) {
-        if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+    for (const [key, reportAction] of Object.entries(reportActions ?? {})) {
+        // The backend writes companion actions next to some steps, like a MARKED_REIMBURSED beside the PAY, and the report hides them
+        if (
+            reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+            !shouldReportActionBeVisible(reportAction, key, undefined, currentUserAccountID, reportID, false, reportActions)
+        ) {
             continue;
         }
         const step = getCompletedStep(translate, reportAction, currentUserEmail, reportOwnerAccountID);

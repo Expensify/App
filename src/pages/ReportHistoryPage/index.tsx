@@ -51,6 +51,8 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
         translate,
         dateFnsLocale,
         currentUserEmail: currentUserPersonalDetails.login,
+        currentUserAccountID: currentUserPersonalDetails.accountID,
+        reportID: report.reportID,
         reportOwnerAccountID: report.ownerAccountID,
         reportActions,
         upcomingSteps: reportUpcomingSteps?.steps ?? [],
