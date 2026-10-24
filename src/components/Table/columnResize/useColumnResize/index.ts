@@ -2,8 +2,9 @@
  * Web column resizing by dragging a column's right edge. Widths live in CSS custom properties so React doesn't render
  * mid-drag, and the layout is saved to Onyx when the drag ends.
  */
+import getDraggedSize from '@components/ResizeHandle/getDraggedSize';
+import usePointerDrag from '@components/ResizeHandle/usePointerDrag';
 import {SCROLL_EXTENT_FLOOR_VARIABLE, TABLE_COLUMN_SCROLLER_SELECTOR} from '@components/Table/columnResize/columnWidthExpressions';
-import getDraggedColumnWidth from '@components/Table/columnResize/getDraggedColumnWidth';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -13,7 +14,7 @@ import CONST from '@src/CONST';
 
 import type React from 'react';
 
-import {useEffect, useRef} from 'react';
+import {useRef} from 'react';
 
 import type {ColumnResizeController, ColumnResizeHandleDOMProps, UseColumnResizeParams} from './types';
 
@@ -28,7 +29,7 @@ function getHandleStyle(columnGap: number): React.CSSProperties {
         bottom: 0,
         // Spans the gap to the next column, with the grip and the line flush against this column's edge, so they read as part of the column being resized.
         right: -columnGap,
-        width: columnGap + CONST.TABLES.COLUMN_RESIZE.INDICATOR_WIDTH,
+        width: columnGap + CONST.RESIZE_HANDLE.INDICATOR_WIDTH,
         // Otherwise a touch drag on the handle is taken over by the table's own horizontal scrolling.
         touchAction: 'none',
     };
@@ -58,14 +59,8 @@ function useColumnResize({
     const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
     const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef);
 
-    const resetDrag = () => {
-        dragRef.current = null;
-        document.body.style.cursor = '';
-    };
-
     // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
     const endDrag = (drag: Drag) => {
-        resetDrag();
         hideIndicator();
         scopeElementRef.current?.style.removeProperty(SCROLL_EXTENT_FLOOR_VARIABLE);
 
@@ -88,18 +83,26 @@ function useColumnResize({
         setGripHovered(event.currentTarget, isPointerOnHeading);
     };
 
+    const pointerDrag = usePointerDrag<Drag>({
+        dragRef,
+        onMove: (drag, clientX) => {
+            // The line rides the handle, so it follows the clamped width, not the pointer.
+            const width = getDraggedSize(drag.startWidth, clientX - drag.startClientX, {min: dragMinWidths?.[drag.columnKey] ?? CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH});
+
+            for (const [columnKey, resizedWidth] of Object.entries(getResizedColumnWidths(drag.columnKey, width))) {
+                writeColumnWidth(columnKey, resizedWidth);
+            }
+        },
+        onEnd: (drag, event) => {
+            endDrag(drag);
+            syncGripHover(event);
+        },
+    });
+
     const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {
-        // Secondary buttons open context menus rather than dragging.
-        if (event.button !== 0) {
+        if (!pointerDrag.startDrag(event, {columnKey, startClientX: event.clientX, startWidth: readColumnWidth(columnKey) ?? 0})) {
             return;
         }
-
-        // Keeps the drag from selecting the header's labels, and from reaching the column's sort button underneath.
-        event.preventDefault();
-        event.stopPropagation();
-
-        // Keeps the drag on this handle once the pointer moves off it.
-        event.currentTarget.setPointerCapture(event.pointerId);
 
         revealIndicator(event.currentTarget);
 
@@ -108,69 +111,7 @@ function useColumnResize({
         if (scroller) {
             scopeElementRef.current?.style.setProperty(SCROLL_EXTENT_FLOOR_VARIABLE, `${scroller.scrollLeft + scroller.clientWidth}px`);
         }
-
-        dragRef.current = {
-            columnKey,
-            startClientX: event.clientX,
-            startWidth: readColumnWidth(columnKey) ?? 0,
-        };
-        // On the whole page mid-drag, so the cursor doesn't flicker once the pointer outruns the handle.
-        document.body.style.cursor = styles.cursorColResize.cursor ?? '';
     };
-
-    const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-        const drag = dragRef.current;
-
-        if (!drag) {
-            return;
-        }
-
-        // The line rides the handle, so it follows the clamped width, not the pointer.
-        const width = getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX, dragMinWidths?.[drag.columnKey]);
-
-        for (const [columnKey, resizedWidth] of Object.entries(getResizedColumnWidths(drag.columnKey, width))) {
-            writeColumnWidth(columnKey, resizedWidth);
-        }
-    };
-
-    const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
-        const drag = dragRef.current;
-
-        if (!drag) {
-            return;
-        }
-
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-            event.currentTarget.releasePointerCapture(event.pointerId);
-        }
-
-        endDrag(drag);
-        syncGripHover(event);
-    };
-
-    /** Ends a drag whose pointer capture the browser reclaimed. Also fires after a normal pointerup, when it's a no-op. */
-    const handleLostPointerCapture = (event: React.PointerEvent<HTMLDivElement>) => {
-        const drag = dragRef.current;
-
-        if (!drag) {
-            return;
-        }
-
-        endDrag(drag);
-        syncGripHover(event);
-    };
-
-    // Unmounting mid-drag would otherwise leave the resize cursor on the document and a dangling drag.
-    useEffect(
-        () => () => {
-            if (!dragRef.current) {
-                return;
-            }
-
-            resetDrag();
-        },
-        [],
-    );
 
     if (!columnResizingID) {
         return undefined;
@@ -185,10 +126,7 @@ function useColumnResize({
             style: {...getHandleStyle(columnGap), ...styles.cursorColResize},
             ref: trackHeadingHover,
             onPointerDown: (event) => handlePointerDown(columnKey, event),
-            onPointerMove: handlePointerMove,
-            onPointerUp: handlePointerUp,
-            onPointerCancel: handleLostPointerCapture,
-            onLostPointerCapture: handleLostPointerCapture,
+            ...pointerDrag.handlers,
         };
     };
 
