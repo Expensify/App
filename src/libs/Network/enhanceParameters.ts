@@ -1,4 +1,4 @@
-import {AUTHENTICATION_COMMAND} from '@libs/API/types';
+import {AUTHENTICATION_COMMAND, SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import * as Environment from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -52,7 +52,7 @@ Onyx.connectWithoutView({
  * Does this command require an authToken?
  */
 function isAuthTokenRequired(command: string): boolean {
-    return !['Log', AUTHENTICATION_COMMAND, 'BeginSignIn', 'SetPassword'].includes(command);
+    return !['Log', AUTHENTICATION_COMMAND, 'BeginSignIn', 'SetPassword', SIDE_EFFECT_REQUEST_COMMANDS.GET_DOMAIN_SESSION_REVOCATION_STATUS].includes(command);
 }
 
 /**
@@ -79,6 +79,14 @@ function getBaseRequestParameters(email?: unknown) {
  */
 export default function enhanceParameters(command: string, parameters: Record<string, unknown>): Record<string, unknown> {
     const finalParameters: Record<string, unknown> = {...parameters, ...getBaseRequestParameters(parameters.email)};
+
+    if (command === SIDE_EFFECT_REQUEST_COMMANDS.GET_DOMAIN_SESSION_REVOCATION_STATUS) {
+        delete finalParameters.authToken;
+        delete finalParameters.email;
+        finalParameters.skipReauthentication = true;
+        finalParameters.shouldRetry = false;
+        return finalParameters;
+    }
 
     if (isAuthTokenRequired(command) && !parameters.authToken) {
         const authToken = getAuthToken();

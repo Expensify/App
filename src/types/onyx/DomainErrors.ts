@@ -14,6 +14,7 @@ type GeneralDomainMemberErrors = {
  * Errors for domain members
  */
 type DomainMemberErrors = {
+    revokeSessionsErrors?: OnyxCommon.Errors;
     /**
      * Errors related to a specific domain vacation delegate
      */

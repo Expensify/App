@@ -17,6 +17,18 @@ import type DomainPendingAction from '@src/types/onyx/DomainPendingActions';
 
 const adminID = 1;
 describe('DomainUtils', () => {
+    it('surfaces account-ID session revocation failures in the members table', () => {
+        // Given a phone-primary member whose revocation is keyed by account ID
+        const accountID = 2;
+        const timestamp = '123';
+        const domainErrors: DomainErrors = {errors: {}, memberErrors: {[accountID]: {errors: {}, revokeSessionsErrors: {[timestamp]: 'Could not confirm sign-out'}}}};
+
+        // When the row is rendered using their primary login
+        const row = getMemberCustomRowProps(accountID, {}, domainErrors, '+15005550006@expensify.sms');
+
+        // Then the error remains attached to the right account
+        expect(row.errors).toEqual({[timestamp]: 'Could not confirm sign-out'});
+    });
     describe('hasDomainErrors', () => {
         it('should return false when domainErrors is undefined', () => {
             expect(hasDomainErrors(undefined)).toBe(false);

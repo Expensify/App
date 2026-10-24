@@ -10954,6 +10954,7 @@ const CONST = {
     },
 
     DOMAIN: {
+        SESSION_REVOCATION_POLL_INTERVAL_MS: 3000,
         /** Onyx prefix for domain admin account IDs */
         EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
         /** Onyx prefix for domain security groups */
@@ -10967,6 +10968,7 @@ const CONST = {
             SECONDARY_ACTIONS: {
                 SETTINGS: 'settings',
                 SAVE_TO_CSV: 'saveToCSV',
+                REVOKE_SESSIONS: 'revokeSessions',
             },
             BULK_ACTION_TYPES: {
                 CLOSE_ACCOUNT: 'closeAccount',

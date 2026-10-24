@@ -25,6 +25,9 @@ const ONYXKEYS = {
     /** Holds information about the users account that is logging in */
     ACCOUNT: 'account',
 
+    /** Completion-only receipt, preserved when ordinary credentials are cleared. */
+    DOMAIN_SESSION_REVOCATION: 'domainSessionRevocation',
+
     /** Holds the reportID for the report between the user and their account manager */
     ACCOUNT_MANAGER_REPORT_ID: 'accountManagerReportID',
 
@@ -1802,6 +1805,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.JOINABLE_POLICIES]: OnyxTypes.JoinablePolicies;
     [ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES]: OnyxTypes.ValidateUserAndGetAccessiblePolicies;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
+    [ONYXKEYS.DOMAIN_SESSION_REVOCATION]: OnyxTypes.DomainSessionRevocation;
     [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL]: string;
