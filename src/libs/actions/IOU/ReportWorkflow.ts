@@ -62,7 +62,6 @@ import Onyx from 'react-native-onyx';
 
 import type AdditionalPayOnyxData from './types/AdditionalPayOnyxData';
 
-import {getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import mergeAdditionalPayOnyxData from './mergeAdditionalPayOnyxData';
 
@@ -86,6 +85,7 @@ type ApproveMoneyRequestFunctionParams = {
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
 };
 
 type SubmitReportFunctionParams = {
@@ -156,6 +156,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         isTrackIntentUser,
         getCurrencyDecimals,
+        allTransactionViolations,
     } = params;
     if (!expenseReport) {
         return;
@@ -280,9 +281,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                     updatedExpenseReport,
                     currentUserEmailParam,
                     currentUserAccountIDParam,
-                    // TODO: https://github.com/Expensify/App/issues/66512
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    getAllTransactionViolations(),
+                    allTransactionViolations,
                     undefined,
                 ),
             },
@@ -467,17 +466,13 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             expenseReport,
             ownerLogin,
             expenseReportPolicy,
-            // TODO: https://github.com/Expensify/App/issues/66512
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            getAllTransactionViolations()?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
+            allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`],
         ),
     );
     if (duplicatedTransactions.length) {
         const filteredTransactions = !full ? duplicatedTransactions.filter((transaction) => !isOnHold(transaction)) : duplicatedTransactions;
         for (const transaction of filteredTransactions) {
-            // TODO: https://github.com/Expensify/App/issues/66512
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const transactionViolations = getAllTransactionViolations()?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
             const newTransactionViolations = transactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,

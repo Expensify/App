@@ -332,6 +332,7 @@ function useSelectionModePayment({
             isTrackIntentUser,
             ownerLogin,
             delegateAccountID,
+            allTransactionViolations,
         });
     };
 

@@ -71,6 +71,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            allTransactionViolations,
         });
     };
 
