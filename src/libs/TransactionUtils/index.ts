@@ -1004,7 +1004,7 @@ function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFor
 /**
  * Determine whether a transaction is made with an Expensify card.
  */
-function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+function isExpensifyCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'bank'>>): boolean {
     return transaction?.bank === CONST.EXPENSIFY_CARD.BANK;
 }
 
@@ -1013,6 +1013,30 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
  */
 function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'managedCard'>>): boolean {
     return !!transaction?.managedCard;
+}
+
+/**
+ * Determine whether the reimbursable value of a transaction can be changed by the user.
+ * Company card transactions follow their feed's reimbursable setting: only the "Do Not Force" options allow changes.
+ * Only the value stamped on the transaction at import is used, so changing the feed setting only affects expenses imported afterward.
+ * A transaction without a stamped value behaves as "Force No".
+ */
+function isCardTransactionReimbursableEditable(transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'bank' | 'comment'>>): boolean {
+    if (!isManagedCardTransaction(transaction)) {
+        return true;
+    }
+
+    if (isExpensifyCardTransaction(transaction)) {
+        return false;
+    }
+
+    const forceReimbursable = transaction?.comment?.forceReimbursable;
+
+    return (
+        forceReimbursable === CONST.COMPANY_CARD.FORCE_REIMBURSABLE.DEFAULT_YES ||
+        forceReimbursable === CONST.COMPANY_CARD.FORCE_REIMBURSABLE.DEFAULT_NO ||
+        forceReimbursable === CONST.COMPANY_CARD.FORCE_REIMBURSABLE.NONE
+    );
 }
 
 /**
@@ -1907,6 +1931,7 @@ export {
     hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
+    isCardTransactionReimbursableEditable,
     isDuplicate,
     isPending,
     hasOnlyPendingCardTransactions,

@@ -34,6 +34,7 @@ import {
     getTagArrayFromName,
     getTaxName,
     hasSplitExpenseInSelection,
+    isCardTransactionReimbursableEditable,
     isDistanceRequest,
     isManagedCardTransaction,
     isPerDiemRequest,
@@ -153,11 +154,17 @@ function SearchEditMultiplePage() {
     });
 
     const areSelectedTransactionsReimbursable = selectedTransactionContexts.every(({transaction, report, transactionPolicy}) => {
+        if (!isCardTransactionReimbursableEditable(transaction)) {
+            return false;
+        }
+
         // Unreported expenses have no policy yet but reimbursable is always applicable
         if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             return true;
         }
-        return !isIOUReport(report) && !isInvoiceReport(report) && transactionPolicy?.disabledFields?.reimbursable === false && !isManagedCardTransaction(transaction);
+
+        // The workspace cash expense rules don't apply to card expenses, which follow their card feed's reimbursable setting instead
+        return !isIOUReport(report) && !isInvoiceReport(report) && (isManagedCardTransaction(transaction) || transactionPolicy?.disabledFields?.reimbursable === false);
     });
 
     const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, mergedTransactions, mergedReports);

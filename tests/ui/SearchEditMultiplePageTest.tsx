@@ -186,6 +186,58 @@ describe('SearchEditMultiplePage', () => {
         expect(screen.getByLabelText(/^Reimbursable/).props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
+    it('shows Reimbursable for "Do Not Force" company card expenses on an "Always" workspace', async () => {
+        // Given a workspace whose cash expenses are always non-reimbursable, and a company card expense stamped "Do Not Force"
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {defaultReimbursable: false, disabledFields: {reimbursable: true}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${OPEN_TRANSACTION_ID}`, {managedCard: true, comment: {forceReimbursable: CONST.COMPANY_CARD.FORCE_REIMBURSABLE.DEFAULT_YES}});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Reimbursable row shows, because the workspace cash expense rules don't apply to card expenses
+        expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
+    });
+
+    it('hides Reimbursable when the selection contains a forced company card expense', async () => {
+        // Given a cash expense and a company card expense stamped "Force No"
+        const cardTransactionID = 'cardTransaction';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${cardTransactionID}`, {
+            ...buildTransaction(cardTransactionID, OPEN_REPORT_ID),
+            managedCard: true,
+            comment: {forceReimbursable: CONST.COMPANY_CARD.FORCE_REIMBURSABLE.FORCE_NO},
+        });
+        await selectTransactions([OPEN_TRANSACTION_ID, cardTransactionID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Reimbursable row is hidden, because the forced expense's reimbursable value can't change
+        expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+    });
+
+    it('ignores the current card feed setting for a company card expense with no stamped value', async () => {
+        // Given a company card expense with no stamped value, whose card belongs to a feed that is now set to "Do Not Force"
+        const cardID = 1234;
+        const fundID = '5678';
+        const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${OPEN_TRANSACTION_ID}`, {managedCard: true, cardID});
+        await Onyx.set(ONYXKEYS.CARD_LIST, {[cardID]: {cardID, bank: feed, fundID, state: CONST.EXPENSIFY_CARD.STATE.OPEN}});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${fundID}`, {
+            settings: {companyCards: {[feed]: {forceReimbursable: CONST.COMPANY_CARD.FORCE_REIMBURSABLE.DEFAULT_NO}}},
+        });
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Reimbursable row is hidden, because changing the feed setting only affects expenses imported afterward
+        expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+    });
+
     it('fetches policy categories and tags when they are enabled but not loaded yet', async () => {
         // Given a workspace with categories and tags enabled whose categories and tags were never loaded, as after a cache clear
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true, areTagsEnabled: true});

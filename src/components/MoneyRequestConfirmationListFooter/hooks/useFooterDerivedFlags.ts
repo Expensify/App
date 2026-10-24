@@ -7,7 +7,13 @@ import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {canShowReimbursableToggleForPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getCurrency, isManagedCardTransaction, isScanRequest, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
+import {
+    getCurrency,
+    isCardTransactionReimbursableEditable,
+    isManagedCardTransaction,
+    isScanRequest,
+    shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -94,11 +100,12 @@ function useFooterDerivedFlags({
 
     // A flag for showing the billable field
     const shouldShowBillable = isBillableEnabledOnPolicy(policy);
+    // The workspace cash expense rules don't apply to card expenses, which follow their card feed's reimbursable setting instead
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) &&
         !!policy &&
-        canShowReimbursableToggleForPolicy(policy, transaction?.reimbursable) &&
-        !isManagedCardTransaction(transaction) &&
+        (isManagedCardTransaction(transaction) || canShowReimbursableToggleForPolicy(policy, transaction?.reimbursable)) &&
+        isCardTransactionReimbursableEditable(transaction) &&
         !isTypeInvoice;
     // Submit workspaces ship Categories/Distance enabled by default, so never route their fields to the upgrade gate.
     const isSubmitWorkspace = isSubmitPolicy(policy);
