@@ -140,8 +140,8 @@ const translations: TranslationDeepObject<typeof en> = {
         addCardTermsOfService: 'Expensify 利用規約',
         perPerson: '1人あたり',
         reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
-            one: `1 泊 • 1泊あたり ${nightlyRate}`,
-            other: `${count} 泊 • 1泊あたり ${nightlyRate}`,
+            one: `1泊・1泊あたり${nightlyRate}`,
+            other: `${count}泊・1泊あたり${nightlyRate}`,
         }),
         phone: '電話',
         phoneNumber: '電話番号',
@@ -3010,6 +3010,13 @@ ${date} の ${merchant} への ${amount}`,
                 '9': '9番目',
                 '10': '10番目',
             },
+            lastMondayOfMonth: '先週の月曜日',
+            lastTuesdayOfMonth: '先週の火曜日',
+            lastWednesdayOfMonth: '先週の水曜日',
+            lastThursdayOfMonth: '先週の木曜日',
+            lastFridayOfMonth: '先週の金曜日',
+            lastSaturdayOfMonth: '先週の土曜日',
+            lastSundayOfMonth: '先週の日曜日',
         },
         approverInMultipleWorkflows: 'このメンバーはすでに別の承認ワークフローに属しています。ここでの更新内容はそちらにも反映されます。',
         approverNotWorkspaceMember: 'この承認者はワークスペースのメンバーではなくなりました。新しい承認者を選択するか、このワークフローを削除してください。',
@@ -3030,6 +3037,45 @@ ${date} の ${merchant} への ${amount}`,
         approverFromProvider: ({provider}: {provider: string}) => `${provider}から`,
         finalApprover: '最終承認者',
         manager: 'マネージャー',
+        submitFrequency: '送信頻度',
+        submitOn: '提出日',
+        dayOfTheWeek: '曜日',
+        dayOfTheMonth: '月の日付',
+        firstSubmission: '初回の提出',
+        secondSubmission: '2 回目の提出',
+        submissionDatesOrderError: '1 回目の提出日は 2 回目の提出日より前でなければなりません',
+        daysOfWeek: {monday: '月曜日', tuesday: '火曜日', wednesday: '水曜日', thursday: '木曜日', friday: '金曜日', saturday: '土曜日', sunday: '日曜日'},
+        frequencySummary: {
+            weekly: {monday: '毎週月曜日', tuesday: '毎週火曜日', wednesday: '毎週水曜日', thursday: '毎週木曜日', friday: '毎週金曜日', saturday: '毎週土曜日', sunday: '毎週日曜日'},
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `毎月2回、${firstDay}日と${secondDay}日に`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `毎月${firstDay}日と最終日の月2回`,
+            monthly: ({day}: {day: string}) => `毎月${day}日`,
+            monthlyLastDay: '毎月末日',
+            monthlyLastBusinessDay: '毎月最終営業日',
+            monthlyLastWeekday: {
+                monday: '毎月、最後の月曜日',
+                tuesday: '毎月、最終火曜日',
+                wednesday: '毎月、最後の水曜日',
+                thursday: '毎月、最後の木曜日',
+                friday: '毎月、最終金曜日',
+                saturday: '毎月、最終土曜日',
+                sunday: '毎月、最終日曜日',
+            },
+        },
+        frequencyRowDescription: {
+            instant: '経費は作成されるとすぐに提出されます',
+            byTrip: '経費がない状態が2日続くとレポートが提出されます',
+            manually: 'レポートは、メンバーが提出するまで下書きのままです',
+        },
+        frequencyHelperText: {
+            instant: '経費は作成後すぐに提出されます。',
+            daily: ({timezoneLink}: {timezoneLink: string}) => `レポートは、<a href="${timezoneLink}">ワークスペースのタイムゾーン</a>に基づいて毎日自動的に提出されます。`,
+            weekly: ({timezoneLink}: {timezoneLink: string}) => `レポートは、<a href="${timezoneLink}">ワークスペースのタイムゾーン</a>に基づいて毎週自動送信されます。`,
+            twiceAMonth: ({timezoneLink}: {timezoneLink: string}) => `レポートは、<a href="${timezoneLink}">ワークスペースのタイムゾーン</a>に基づいて月に2回自動送信されます。`,
+            monthly: ({timezoneLink}: {timezoneLink: string}) => `レポートは、<a href="${timezoneLink}">ワークスペースのタイムゾーン</a>に基づいて毎月自動で送信されます。`,
+            byTrip: '新しい経費が追加されない状態が丸2日続くと、レポートが提出されます。',
+            manually: 'レポートは、メンバーが提出するまで下書きのままになります。',
+        },
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートまでご連絡ください。',
@@ -3947,7 +3993,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             removeDelegate: '休暇代理人を削除',
         },
     },
-    completedStep: (stepLabel: string) => `${stepLabel}、完了`,
+    completedStep: (stepLabel: string) => `${stepLabel}：完了`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `ステップ ${step}`;
         if (total) {
@@ -4057,7 +4103,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         addItem: ({item}: {item: string}) => `${item}を追加`,
         removeItemTitle: ({item}: {item: string}) => `${item}を削除しますか？`,
         removeItemPrompt: ({name}: {name: string}) => `本当に${name}を削除しますか？`,
-        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `末尾が ${ending} の${label}`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `末尾が${ending}の${label}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
         questionsChanged: 'このページの質問が変更されました',
     },
@@ -4874,7 +4920,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
             deleteOpenExpensifyCardsError: '御社にはまだ Expensify カードが残っています。削除するには、<concierge-link>Concierge までお問い合わせください</concierge-link>。',
-            deleteTravelBillingError: 'お客様の会社では、統合トラベル請求がまだ有効になっています。',
+            deleteTravelBillingError: '御社では統合旅行請求がまだ有効になっています。',
             outstandingBalanceWarning: '最後のワークスペースを削除する前に精算する必要がある未払残高があります。支払いを解決するには、サブスクリプション設定に移動してください。',
             settleBalance: 'サブスクリプションに移動',
             unavailable: '利用できないワークスペース',
@@ -4943,7 +4989,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'カード管理者';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'メンバー管理';
+                        return 'ユーザー管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '支払い管理者';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
@@ -4979,8 +5025,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             budgetFrequencyUnit: {monthly: '月', yearly: '年'},
             budgetTypeForNotificationMessage: {tag: 'タグ', category: 'カテゴリ'},
             travelBilling: '統合トラベル請求の経費を次の形式でエクスポートします',
-            travelBillingVendor: '出張ベンダー',
-            travelBillingPayableAccount: '旅費未払金勘定',
+            travelBillingVendor: '旅行ベンダー',
+            travelBillingPayableAccount: '旅費買掛金勘定',
             hr: '人事',
             recruiting: '採用',
             rooms: 'ルーム',
@@ -4988,7 +5034,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             cardAdminAlternateText: 'ワークスペースカードを管理します。',
             peopleAdminAlternateText: 'メンバーと承認ワークフローを管理します。',
             paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
-            approveOnlyAlternateText: 'レポートの承認のみ。',
+            approveOnlyAlternateText: 'レポートの承認のみを行います。',
             readOnlyActionTitle: 'ちょっと待ってください…',
             readOnlyActionPrompt: 'このワークスペースでのあなたのロールは、これらの設定を表示できますが、編集することはできません。',
             noAccessActionPrompt: 'このワークスペースでのあなたのロールでは、これらの設定にアクセスできません。必要な場合は管理者に依頼してください。',
@@ -5277,7 +5323,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             notConfigured: '未設定',
             bankAccountDescription: '小切手の送金元を選択してください。',
             creditCardAccount: 'クレジットカード口座',
-            travelBillingDescription: (integrationName = 'QuickBooks Online') => `旅費は、以下で指定した ${integrationName} アカウントにクレジットカード請求としてエクスポートされます。`,
+            travelBillingDescription: (integrationName = 'QuickBooks Online') =>
+                `出張旅費は、下で指定された ${integrationName} アカウントにクレジットカード利用明細としてエクスポートされます。`,
             companyCardsLocationEnabledDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} では、ロケーションをタグとして取り込んでいる場合、ベンダー請求書のエクスポートでロケーションをサポートしていません。現在このワークスペースではロケーションがタグとして取り込まれているため、このエクスポートオプションは利用できません。`,
             outOfPocketTaxEnabledDescription: (integrationName = 'QuickBooks Online') =>
@@ -5376,7 +5423,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             purchaseBill: '仕入請求書',
             exportDeepDiveCompanyCard: 'エクスポートされた経費は、以下のXero銀行口座に銀行取引として記帳され、取引日付は銀行取引明細書の日付と一致します。',
             bankTransactions: '銀行取引',
-            travelBillingDescription: '旅費は、以下で指定したXeroアカウントに銀行取引としてエクスポートされます。',
+            travelBillingDescription: '出張費は、以下で指定された Xero 勘定科目に銀行取引としてエクスポートされます。',
             xeroBankAccount: 'Xero 銀行口座',
             bankAccount: '銀行口座',
             xeroBankAccountDescription: '経費を銀行取引として計上する先を選択してください。',
@@ -5476,7 +5523,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: '仕入先請求書',
                 },
             },
-            travelBillingDescription: '旅費は、以下で指定した Sage Intacct アカウントにクレジットカード請求としてエクスポートされます。',
+            travelBillingDescription: '以下で指定された Sage Intacct アカウントに、出張費がクレジットカードの利用履歴としてエクスポートされます。',
             creditCardAccount: 'クレジットカード口座',
             defaultVendor: 'デフォルトのベンダー',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -6229,9 +6276,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             syncExpensifyCardSettlements: 'Expensify カードの清算を同期',
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
-            syncTravelBillingSettlements: '一括旅行請求の精算を同期',
-            travelBillingSettlementAccount: {label: '統合トラベル請求の決済口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
-            travelBillingPayableAccount: {label: '統合トラベル請求買掛金勘定'},
+            syncTravelBillingSettlements: '統合トラベル請求の精算を同期',
+            travelBillingSettlementAccount: {label: '一括出張請求の精算口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
+            travelBillingPayableAccount: {label: '統合出張請求買掛金勘定'},
         },
         type: {
             free: '無料',
@@ -6398,7 +6445,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             chooseTransactionStartDate: '取引の開始日を選択',
             startDateDescription: 'インポート開始日を選択してください。この日付以降のすべての取引を同期します。',
             editStartDateDescription: '新しい取引開始日を選択してください。その日以降のすべての取引を、すでに取り込んだものを除いて同期します。',
-            bulkEditStartDateDescription: '選択したすべてのカードの取引開始日を選択してください。その日以降の取引を、すでに取り込んだものを除いて同期します。',
+            bulkEditStartDateDescription: '選択したすべてのカードに対して取引の開始日を選択してください。その日以降の取引を同期し、すでにインポート済みの取引は除外します。',
             bulkStartDateUpdated: '取引開始日を更新しました',
             fromTheBeginning: '最初から',
             customStartDate: 'カスタム開始日',
@@ -6731,7 +6778,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     `取引をエクスポートする${integration}アカウントを選択してください。${exportPageLink ? `利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。` : ''}`,
                 lastUpdated: '最終更新日時',
                 transactionStartDate: '取引開始日',
-                bulkUpdateTransactionStartDate: '取引開始日を更新',
+                bulkUpdateTransactionStartDate: '取引の開始日を更新',
                 updateCard: 'カードを更新',
                 unassignCard: 'カードの割り当てを解除',
                 unassignCards: 'カードの割り当てを解除',
@@ -7167,13 +7214,13 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
         },
         people: {
             genericFailureMessage: 'ワークスペースからメンバーを削除する際にエラーが発生しました。もう一度お試しください',
-            approveOnlyRoleBlockedTitle: 'この役割は変更できません',
-            approveOnlyRoleBlockedConfirm: '了解',
-            approveOnlyRoleBlockedDescription: '承認のみのメンバーはこのワークスペースで経費を作成できません。先に以下を解決する必要があります：',
+            approveOnlyRoleBlockedTitle: 'このロールは変更できません',
+            approveOnlyRoleBlockedConfirm: '了解しました',
+            approveOnlyRoleBlockedDescription: '承認のみのメンバーは、このワークスペースで経費を作成できません。まず次の項目を解決する必要があります。',
             approveOnlyRoleBlockedReasons: {
-                hasCardOnPolicy: 'このワークスペースでカードが割り当てられています。ワークスペース管理者またはカード管理者が先に割り当てを解除する必要があります。',
-                isRestrictedByDomainGroup: 'このワークスペースは、彼らが所属するドメイングループの優先ワークスペースです。ドメイン管理者が先に変更する必要があります。',
-                isDefaultPolicy: 'これは彼らのデフォルトのワークスペースです。役割を更新する前に、別のワークスペースを設定する必要があります。',
+                hasCardOnPolicy: 'このワークスペースで、その人にカードが割り当てられています。先にワークスペース管理者またはカード管理者がカードの割り当てを解除する必要があります。',
+                isRestrictedByDomainGroup: 'このワークスペースは、そのユーザーが所属しているドメイングループの優先ワークスペースです。先にドメイン管理者が変更する必要があります。',
+                isDefaultPolicy: 'これはその人のデフォルトワークスペースです。あなたがその人の役割を更新する前に、別のワークスペースを設定してもらう必要があります。',
             },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `${memberName} さんを削除してもよろしいですか？`,
@@ -7227,8 +7274,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 genericRemove: 'そのワークスペースメンバーを削除する際に問題が発生しました',
             },
             makeApproveOnly: () => ({
-                one: '承認のみに設定',
-                other: '承認のみに設定',
+                one: '承認のみにする',
+                other: '承認をメンバーのみに限定する',
             }),
             addedWithPrimary: '一部のメンバーは、プライマリーログインで追加されました。',
             invitedBySecondaryLogin: (secondaryLogin: string) => `セカンダリログイン${secondaryLogin}によって追加されました。`,
@@ -7274,7 +7321,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             },
             officeLocation: 'オフィス所在地',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
-            changeOfficeLocation: 'オフィスの所在地を変更',
+            changeOfficeLocation: 'オフィス所在地を変更',
             changeWorkArrangement: '勤務形態を変更',
             changeRole: 'ロールを変更',
         },
@@ -7663,12 +7710,12 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 chooseBankAccount: 'Expensify カードの支払いを照合する銀行口座を選択してください。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `継続消込が正しく機能するように、この口座が、末尾が ${lastFourPAN} の<a href="${settlementAccountUrl}">Expensify カード精算口座</a>と一致していることを確認してください。`,
-                chooseTravelBillingBankAccount: '一括旅行請求の支払いを消し込む銀行口座を選択してください。',
+                chooseTravelBillingBankAccount: '統合トラベル請求の支払いを照合する銀行口座を選択してください。',
                 travelBillingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Continuous Reconciliation が正しく動作するように、この口座が、Consolidated Travel Billing の決済口座（末尾が ${lastFourPAN}）と一致していることをご確認ください。`,
             },
-            syncTravelBillingSettlements: '統合トラベル請求の精算を同期する',
-            syncTravelBillingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用の口座を設定してください。',
+            syncTravelBillingSettlements: '統合トラベル請求の精算を同期',
+            syncTravelBillingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用のアカウントを設定してください。',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
             campfire: 'Campfire',
             zohoBooks: 'Zoho Books',
@@ -7850,6 +7897,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             avatarUploadFailureMessage: 'アバターのアップロード中にエラーが発生しました。もう一度お試しください。',
             addressContext: 'Expensify Travel を有効にするには、ワークスペースの住所が必要です。お客様のビジネスに関連付けられた住所を入力してください。',
             policy: '経費ポリシー',
+            timezoneInputLabel: 'タイムゾーン',
+            timezoneInputHelpText: '自動レポート送信にはお客様のタイムゾーンが使用されます',
+            timezoneErrorMessage: 'タイムゾーンを変更できませんでした。もう一度お試しいただくか、サポートまでご連絡ください。',
         },
         officeLocations: {
             title: 'オフィス所在地',
@@ -9097,9 +9147,9 @@ ${reportName}`,
             billPaymentAccount: {label: '支払口座', description: 'Expensify が請求書を支払済みとしてマークしたときに、Campfire クレジット用のクリアリング勘定科目を選択します。'},
             syncExpensifyCardSettlements: 'Expensify カード清算を同期する',
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算に使う口座を選択してください。選択された口座で、Campfire に支払いを作成します。'},
-            syncTravelBillingSettlements: '一括旅行請求の精算を同期',
-            travelBillingSettlementAccount: {label: '統合トラベル請求の決済口座', description: '精算に使う口座を選択してください。選択された口座で、Campfire に支払いを作成します。'},
-            travelBillingPayableAccount: {label: '統合トラベル請求買掛金勘定'},
+            syncTravelBillingSettlements: '統合トラベル請求の精算を同期',
+            travelBillingSettlementAccount: {label: '一括出張請求の精算口座', description: '精算に使う口座を選択してください。選択された口座で、Campfire に支払いを作成します。'},
+            travelBillingPayableAccount: {label: '統合出張請求買掛金勘定'},
             exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
             cardProgramAccount: {
                 label: 'カードプログラム口座',
@@ -9188,29 +9238,29 @@ ${reportName}`,
             exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
             cardProgramAccount: {
                 label: 'カードプログラム口座',
-                description: 'これらのカードプログラムのワークスペースアカウントを上書きします。',
+                description: 'これらのカードプログラムのワークスペース口座を上書きします。',
                 descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
                 countInfo: ({count}: {count: number}) => {
                     if (!count) {
-                        return 'すべてのプログラムはデフォルトアカウントを使用します';
+                        return 'すべてのプログラムがデフォルトアカウントを使用します';
                     }
                     return {
-                        one: `カスタム勘定科目を使用するプログラム：${count} 件`,
-                        other: `${count} 件のプログラム（カスタムアカウントあり）`,
+                        one: `カスタムアカウントを持つプログラムが ${count} 件`,
+                        other: `カスタムアカウントがあるプログラムは ${count} 件あります`,
                     };
                 },
             },
             cardAccount: {
-                label: 'カード単位の口座',
+                label: 'カードごとの口座',
                 description: '個々のカードに対してプログラム口座を上書きします。',
                 descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
                 countInfo: ({count}: {count: number}) => {
                     if (!count) {
-                        return 'すべてのカードはプログラムアカウントを使用します';
+                        return 'すべてのカードはプログラム口座を使用します';
                     }
                     return {
                         one: `カスタム口座付きカード ${count} 枚`,
-                        other: `カスタム口座のあるカードが ${count} 枚`,
+                        other: `カスタム口座付きカード ${count} 枚`,
                     };
                 },
             },
@@ -9501,7 +9551,7 @@ ${reportName}`,
             };
         },
         demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
-            `${policyName} でのあなたのロールを ${oldRole} から${newRole}に更新しました。あなた自身のものを除き、すべての申請者経費チャットから削除されました。`,
+            `${policyName} でのあなたのロールを ${oldRole} から ${newRole} に更新しました。自分自身のものを除き、すべての申請者経費チャットからあなたを削除しました。`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `デフォルト通貨を${newCurrency}（以前は${oldCurrency}）に更新しました`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `自動レポート頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `承認モードを「${newValue}」（以前は「${oldValue}」）に更新しました`,
@@ -9751,9 +9801,9 @@ ${reportName}`,
             setCompanyAddressAsPrimary: '会社の住所を主要に設定',
             removed: ({name}: {name: string}) => `オフィス所在地「${name}」を削除しました`,
             changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
-                `${displayName}さんのオフィス所在地を${officeLocation}（以前は${previousOfficeLocation}）に変更しました`,
+                `${displayName}さんのオフィス所在地を${previousOfficeLocation}から${officeLocation}に変更しました`,
             quotedName: ({name}: {name: string}) => `「${name}」`,
-            companyAddress: '会社の住所',
+            companyAddress: '会社住所',
             primaryOffice: '主なオフィス',
         },
         workArrangement: {
@@ -9980,8 +10030,8 @@ ${reportName}`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `デフォルトの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
         updateRulesDocument: (isReplacement: boolean, overviewURL?: string) => {
-            const message = isReplacement ? '経費ポリシー文書を置き換えました' : '経費ポリシー文書を追加しました';
-            return overviewURL ? `${message}（<a href="${overviewURL}">ワークスペース &gt; 概要</a>内）` : message;
+            const message = isReplacement ? '経費ポリシー文書を差し替えました' : '経費ポリシー文書を追加しました';
+            return overviewURL ? `${message}（<a href="${overviewURL}">ワークスペース &gt; 概要</a> 内）` : message;
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `「精算不要レポートを支払済みにしない」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
@@ -10512,7 +10562,7 @@ ${reportName}`,
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
                     const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
-                    const article = role === CONST.POLICY.ROLE.AUDITOR ? '1つの' : 'a';
+                    const article = role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.APPROVE_ONLY ? '1つの' : 'a';
                     return didJoinPolicy ? `${email} さんがワークスペースの招待リンクから参加しました` : `${email} を ${article} ${translatedRole} として追加しました`;
                 },
                 updateRole: (email: string, currentRole: string, newRole: string) => `${email} のロールを ${currentRole} から ${newRole} に更新しました`,
@@ -11480,7 +11530,7 @@ ${reportName}`,
             },
             billedTo: '請求先',
             activity: 'アクティビティ',
-            findActiveUser: 'アクティブユーザーを検索',
+            findActiveUser: '有効なユーザーを検索',
             viewReceipt: '領収書を表示',
             viewInvoice: '請求書を表示',
         },
@@ -12052,84 +12102,84 @@ ${reportName}`,
         approvingTitle: 'レポートを承認しています…',
         submittingTitle: 'レポートを送信しています…',
         payingTitle: 'レポートを支払済みにしています…',
-        holdingTitle: '経費を保留にしています…',
+        holdingTitle: '経費を保留しています…',
         unholdingTitle: '経費の保留を解除しています…',
         rejectingTitle: '経費を却下しています…',
         deletingTitle: 'レポートを削除しています…',
-        deletingExpensesTitle: '経費を削除しています…',
-        runningBody: '数分お待ちいただくか、完了したら Concierge からメッセージをお送りすることもできます。',
+        deletingExpensesTitle: '経費を削除しています...',
+        runningBody: '数分お待ちいただくか、完了したら Concierge からメッセージを受け取ることもできます。',
         sendFromConcierge: '完了したらメッセージを送ってください',
         conciergeTitle: 'もちろんです！',
         conciergeBody: '完了したら Concierge からメッセージが届きます。',
         goToConcierge: 'Concierge に移動',
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `${count} 件中 ${doneCount} 件のレポートを承認しました`,
-            other: `${count} 件中 ${doneCount} 件のレポートを承認しました`,
+            one: `${count}件のレポートのうち${doneCount}件を承認しました`,
+            other: `${count}件のレポートのうち${doneCount}件を承認しました`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `${count} 件中 ${doneCount} 件のレポートを提出しました`,
-            other: `${count} 件中 ${doneCount} 件のレポートを提出しました`,
+            one: `${count}件中${doneCount}件のレポートを提出済み`,
+            other: `${count} 件中 ${doneCount} 件のレポートを送信しました`,
         }),
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `${count} 件中 ${doneCount} 件のレポートを支払済みにしました`,
-            other: `${count} 件中 ${doneCount} 件のレポートを支払済みにしました`,
+            one: `${count}件のレポートのうち${doneCount}件を支払い済みにしました`,
+            other: `${count}件のレポートのうち${doneCount}件を支払い済みにしました`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `${count} 件中 ${doneCount} 件のレポートの経費を保留にしました`,
-            other: `${count} 件中 ${doneCount} 件のレポートの経費を保留にしました`,
+            one: `${count}件のレポートのうち${doneCount}件で経費を保留しました`,
+            other: `${count}件のレポートのうち${doneCount}件で保留中の経費があります`,
         }),
         unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `${count} 件中 ${doneCount} 件のレポートの経費の保留を解除しました`,
-            other: `${count} 件中 ${doneCount} 件のレポートの経費の保留を解除しました`,
+            one: `未保留の経費（${count} レポート中 ${doneCount} 件）`,
+            other: `未保留経費（${count} 件のレポートのうち ${doneCount} 件）`,
         }),
         rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `${count} 件中 ${doneCount} 件のレポートの経費を却下しました`,
-            other: `${count} 件中 ${doneCount} 件のレポートの経費を却下しました`,
+            one: `${count}件のレポートのうち${doneCount}件の経費を却下しました`,
+            other: `${count}件のレポートのうち${doneCount}件の経費を却下しました`,
         }),
         deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `${count} 件中 ${doneCount} 件のレポートを削除しました`,
-            other: `${count} 件中 ${doneCount} 件のレポートを削除しました`,
+            one: `${count}件のレポートのうち${doneCount}件を削除しました`,
+            other: `${count} 件のレポートのうち ${doneCount} 件を削除しました`,
         }),
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `${count} 件中 ${doneCount} 件のレポートの経費を削除しました`,
-            other: `${count} 件中 ${doneCount} 件のレポートの経費を削除しました`,
+            one: `${count}件のレポートのうち${doneCount}件のレポートから経費を削除しました`,
+            other: `${count}件のレポートのうち${doneCount}件の経費を削除しました`,
         }),
         noReportsTitle: '一致するレポートはありません',
-        noReportsBody: '選択したレポートには、いずれもこの操作は必要ありませんでした。',
+        noReportsBody: '選択されたレポートの中に、この操作が必要なものはありませんでした。',
         viewFailedReports: 'レポートを表示',
         failedTitle: '問題が発生しました',
         failedBody: 'この操作を開始できませんでした。後でもう一度お試しください。',
         notApprovedBody: ({count}: {count: number}) => ({
             one: '1件のレポートを承認できませんでした。',
-            other: `${count} 件のレポートを承認できませんでした。`,
+            other: `${count} 件のレポートは承認できませんでした。`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
-            one: '1件のレポートを提出できませんでした。',
-            other: `${count} 件のレポートを提出できませんでした。`,
+            one: '1 件のレポートを送信できませんでした。',
+            other: `${count} 件の報告書を送信できませんでした。`,
         }),
         notPaidBody: ({count}: {count: number}) => ({
-            one: '1件のレポートを支払済みにできませんでした。',
-            other: `${count} 件のレポートを支払済みにできませんでした。`,
+            one: '1件のレポートを支払えませんでした。',
+            other: `${count} 件のレポートを支払えませんでした。`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
-            one: '1件のレポートの経費を保留にできませんでした。',
-            other: `${count} 件のレポートの経費を保留にできませんでした。`,
+            one: '1件のレポート上の経費を保留できませんでした。',
+            other: `${count} 件のレポート上の経費を保留にできませんでした。`,
         }),
         notUnheldBody: ({count}: {count: number}) => ({
-            one: '1件のレポートの経費の保留を解除できませんでした。',
-            other: `${count} 件のレポートの経費の保留を解除できませんでした。`,
+            one: '1件のレポート上の経費は保留解除できませんでした。',
+            other: `${count} 件のレポートに含まれる経費を保留解除できませんでした。`,
         }),
         notRejectedBody: ({count}: {count: number}) => ({
-            one: '1件のレポートの経費を却下できませんでした。',
+            one: '1件のレポート上の経費は却下できませんでした。',
             other: `${count} 件のレポートの経費を却下できませんでした。`,
         }),
         notDeletedBody: ({count}: {count: number}) => ({
-            one: '1件のレポートを削除できませんでした。',
+            one: 'レポートを1件削除できませんでした。',
             other: `${count} 件のレポートを削除できませんでした。`,
         }),
         expensesNotDeletedBody: ({count}: {count: number}) => ({
-            one: '1件のレポートの経費を削除できませんでした。',
-            other: `${count} 件のレポートの経費を削除できませんでした。`,
+            one: '1件のレポートに含まれる経費は削除できませんでした。',
+            other: `${count} 件のレポートに含まれる経費を削除できませんでした。`,
         }),
     },
     earlyRenewal: {
