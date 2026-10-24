@@ -10408,6 +10408,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         display: {
             label: 'Weergave',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Weergave (${count})` : 'Weergave'),
             sortBy: 'Sorteren op',
             sortOrder: 'Sorteervolgorde',
             groupBy: 'Groeperen op',

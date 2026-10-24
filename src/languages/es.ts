@@ -10165,6 +10165,7 @@ ${reportName}`,
         expenseColumns: 'Columnas de gastos',
         display: {
             label: 'Mostrar',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Mostrar (${count})` : 'Mostrar'),
             sortBy: 'Ordenar por',
             sortOrder: 'Orden de clasificación',
             groupBy: 'Agrupar por',

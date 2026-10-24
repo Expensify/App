@@ -10126,6 +10126,7 @@ const CONST = {
             SAVED_SEARCH_MENU_ITEM: 'Search-SavedSearchMenuItem',
             SAVE_VIEW_BUTTON: 'Search-SaveViewButton',
             RESET_FILTERS_BUTTON: 'Search-ResetFiltersButton',
+            RESET_DISPLAY_BUTTON: 'Search-ResetDisplayButton',
             SAVE_FILTERS_BUTTON: 'Search-SaveFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
             ACTION_CELL_PAY: 'Search-ActionCellPay',
