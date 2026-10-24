@@ -1,3 +1,5 @@
+import {getMsSinceNativeAppStart} from '@libs/telemetry/nativeAppStartTime';
+
 import setupTelemetry from '@src/setup/telemetry/index.native';
 
 // jest/setup.ts mocks '@src/setup/telemetry' globally; unmock (hoisted above imports) so we exercise the real native implementation.
@@ -107,5 +109,27 @@ describe('telemetry startup markers (native)', () => {
 
         expect(() => setupTelemetry()).not.toThrow();
         expect(startInactiveSpanMock).not.toHaveBeenCalled();
+    });
+
+    it('keeps the accepted native start time for spans that start later, such as the scan shutter span', () => {
+        // Given a native start time one second before telemetry setup
+        setupTelemetry();
+
+        // When a span starts 500ms after setup
+        jest.spyOn(Date, 'now').mockReturnValue(2_500);
+
+        // Then it can read the time since the native app start
+        expect(getMsSinceNativeAppStart()).toBe(1_500);
+    });
+
+    it('drops the native start time of a prewarmed process so later spans report no duration', () => {
+        // Given a native start time older than the prewarm threshold, as on a prewarmed process
+        jest.spyOn(Date, 'now').mockReturnValue(1_000 + 60 * 1000 + 1);
+
+        // When telemetry setup discards it
+        setupTelemetry();
+
+        // Then later spans get no duration instead of minutes or hours
+        expect(getMsSinceNativeAppStart()).toBeUndefined();
     });
 });
