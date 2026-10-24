@@ -2821,8 +2821,12 @@ function getSearchQueryJSONFromRouteParams(params: unknown) {
  * Note: the preserved-state map has no subscription, so a `useRootNavigationState` selector built on this
  * only re-reads it on navigation events. Call `getCurrentSearchQueryJSON` imperatively where you need the
  * value at an arbitrary moment (e.g. right after a delegate switch, which clears the map without navigating).
+ *
+ * Pass `shouldFallBackToDefaultQuery: false` to get `undefined` instead of the default query when the last tab
+ * navigator has no Search state yet (e.g. a tab navigator pushed from the side panel). Reactive readers use this
+ * to keep the last real query instead of resetting it to the default.
  */
-function getSearchRootParamsFromRootState(rootState: unknown): SearchRootParams | undefined {
+function getSearchRootParamsFromRootState(rootState: unknown, shouldFallBackToDefaultQuery = true): SearchRootParams | undefined {
     const lastTabNavigator = getLastRouteByName(rootState, NAVIGATORS.TAB_NAVIGATOR);
     const tabStateFromParams = getParamsState(lastTabNavigator?.params);
     const tabState = lastTabNavigator?.state ?? (lastTabNavigator?.key ? getPreservedNavigatorState(lastTabNavigator.key) : undefined) ?? tabStateFromParams;
@@ -2844,7 +2848,7 @@ function getSearchRootParamsFromRootState(rootState: unknown): SearchRootParams 
         if (nestedSearchRootParams && getSearchQueryJSONFromRouteParams(nestedSearchRootParams)) {
             return nestedSearchRootParams;
         }
-        return {q: buildSearchQueryString()};
+        return shouldFallBackToDefaultQuery ? {q: buildSearchQueryString()} : undefined;
     }
 
     return getSearchRootParamsFromSearchNavigatorState(lastSearchNavigatorState);

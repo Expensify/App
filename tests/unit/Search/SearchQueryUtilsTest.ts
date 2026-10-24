@@ -320,6 +320,54 @@ describe('SearchQueryUtils', () => {
             expect(getSearchRootParamsFromRootState(undefined)?.q).toBe(buildSearchQueryString());
         });
 
+        it('returns undefined instead of the canned query when the last tab navigator has no Search state and the fallback is disabled', () => {
+            // Given the Search tab was used in the first tab navigator, and a second tab navigator was pushed from the
+            // side panel (e.g. "Go to room") without ever visiting Search
+            const rootState = {
+                index: 1,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [{key: 'search-nav-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: {index: 0, routes: [searchRootRoute(CHAT_QUERY)]}}],
+                        },
+                    },
+                    {
+                        key: 'tab-2',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {index: 0, routes: [{key: 'reports-nav-2', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]},
+                    },
+                ],
+            };
+
+            // When the reactive reader disables the default-query fallback
+            // Then it gets undefined, so it can keep the last real query instead of overwriting it with the default
+            expect(getSearchRootParamsFromRootState(rootState, false)).toBeUndefined();
+
+            // And imperative callers keep getting the default query
+            expect(getSearchRootParamsFromRootState(rootState)?.q).toBe(buildSearchQueryString());
+        });
+
+        it('still returns nested route params when the fallback is disabled and the Search navigator is not mounted', () => {
+            // Given a cold boot where the Search tab exists only as nested route params
+            const rootState = {
+                index: 0,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        params: {screen: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, params: {screen: SCREENS.SEARCH.ROOT, params: {q: CHAT_QUERY}}},
+                    },
+                ],
+            };
+
+            // When the default-query fallback is disabled
+            // Then the real query from the route params is still returned
+            expect(getSearchRootParamsFromRootState(rootState, false)?.q).toBe(CHAT_QUERY);
+        });
+
         it('returns undefined when a mounted Search navigator has no usable Search root params', () => {
             // The provider keeps its own `?? buildSearchQueryString()` fallback for this case; the resolver
             // must not invent a query, so that `getCurrentSearchQueryJSON` callers still see `undefined`.
