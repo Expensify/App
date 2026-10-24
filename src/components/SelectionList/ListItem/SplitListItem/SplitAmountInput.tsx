@@ -36,7 +36,7 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
         return convertToFrontendAmountAsString(amountAsInt, decimals);
     };
 
-    if (splitItem.isEditable) {
+    if (splitItem.isEditable && splitItem.isAmountEditable !== false) {
         return (
             <MoneyRequestAmountInput
                 ref={inputCallbackRef}
