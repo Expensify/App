@@ -4,6 +4,11 @@ import {Collapse} from 'react-collapse';
 import type CollapsibleProps from './types';
 
 function Collapsible({isOpened = false, children}: CollapsibleProps) {
-    return <Collapse isOpened={isOpened}>{children}</Collapse>;
+    return (
+        <Collapse isOpened={isOpened}>
+            {/* aria-hidden does not remove the mounted controls from the tab order. */}
+            <div inert={!isOpened}>{children}</div>
+        </Collapse>
+    );
 }
 export default Collapsible;
