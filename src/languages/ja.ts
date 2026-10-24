@@ -7377,6 +7377,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7623,6 +7625,18 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return 'カード精算を同期しています';
                         case 'campfireSyncTravelSettlements':
                             return '出張精算を同期しています';
+                        case 'digitsSyncTitle':
+                            return 'Digits データを同期しています';
+                        case 'digitsSyncConnection':
+                            return 'Digits への接続を初期化しています';
+                        case 'digitsSyncImportData':
+                            return 'データを読み込んでいます';
+                        case 'digitsSyncPayments':
+                            return '仕入先への支払いを同期しています';
+                        case 'digitsSyncCardSettlements':
+                            return 'カード精算を同期しています';
+                        case 'digitsSyncTravelSettlements':
+                            return '出張精算を同期しています';
                         case 'businessCentralSyncTitle':
                             return 'Dynamics 365 Business Central データを同期しています';
                         case 'businessCentralSyncConnection':
@@ -7671,6 +7685,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             syncTravelBillingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用の口座を設定してください。',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>継続的な照合はカードフィードごとに設定されます。設定するフィードを変更するには、フィードを選択してください。</muted-text-label>',

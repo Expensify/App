@@ -44,7 +44,8 @@ type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA
     | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
-    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
@@ -477,6 +478,9 @@ const adminPoliciesConnectedToDualEntrySelector = (policies: OnyxCollection<Poli
 const adminPoliciesConnectedToCampfireSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE));
 
+const adminPoliciesConnectedToDigitsSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.DIGITS));
+
 const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (policies: OnyxCollection<Policy>) => Policy[]> = {
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: adminPoliciesConnectedToNetSuiteSelector,
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: adminPoliciesConnectedToSageIntacctSelector,
@@ -485,6 +489,7 @@ const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (po
     [CONST.POLICY.CONNECTIONS.NAME.RILLET]: adminPoliciesConnectedToRilletSelector,
     [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: adminPoliciesConnectedToDualEntrySelector,
     [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: adminPoliciesConnectedToCampfireSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: adminPoliciesConnectedToDigitsSelector,
 };
 
 function isReusablePolicyConnection(policy: Policy, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {

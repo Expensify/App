@@ -7483,6 +7483,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7728,6 +7730,18 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                             return 'Synchronizowanie rozliczeń karty';
                         case 'campfireSyncTravelSettlements':
                             return 'Synchronizowanie rozliczeń podróży';
+                        case 'digitsSyncTitle':
+                            return 'Synchronizowanie danych Digits';
+                        case 'digitsSyncConnection':
+                            return 'Inicjowanie połączenia z Digits';
+                        case 'digitsSyncImportData':
+                            return 'Wczytywanie danych';
+                        case 'digitsSyncPayments':
+                            return 'Synchronizowanie płatności dla dostawców';
+                        case 'digitsSyncCardSettlements':
+                            return 'Synchronizowanie rozliczeń karty';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Synchronizowanie rozliczeń podróży';
                         case 'businessCentralSyncTitle':
                             return 'Synchronizowanie danych Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
@@ -7776,6 +7790,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             syncTravelBillingSettlementsNoAccountTooltip: 'Aby odblokować, ustaw konto dla swoich eksportów.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Aby odblokować, włącz automatyczną synchronizację.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Ciągłe uzgadnianie jest konfigurowane dla każdego źródła kart osobno. Wybierz źródło, aby zmienić, które konfigurujesz.</muted-text-label>',

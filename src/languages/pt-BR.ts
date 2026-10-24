@@ -7455,6 +7455,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7700,6 +7702,18 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                             return 'Sincronizando liquidações de cartão';
                         case 'campfireSyncTravelSettlements':
                             return 'Sincronizando acertos de viagem';
+                        case 'digitsSyncTitle':
+                            return 'Sincronizando dados do Digits';
+                        case 'digitsSyncConnection':
+                            return 'Inicializando conexão com o Digits';
+                        case 'digitsSyncImportData':
+                            return 'Carregando dados';
+                        case 'digitsSyncPayments':
+                            return 'Sincronizando pagamentos a fornecedores';
+                        case 'digitsSyncCardSettlements':
+                            return 'Sincronizando liquidações de cartão';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Sincronizando acertos de viagem';
                         case 'businessCentralSyncTitle':
                             return 'Sincronizando dados do Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
@@ -7749,6 +7763,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             syncTravelBillingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>A Conciliação Contínua é configurada por feed de cartão. Selecione um feed para alterar qual você está configurando.</muted-text-label>',
