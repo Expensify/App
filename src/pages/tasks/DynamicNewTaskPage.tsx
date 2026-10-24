@@ -2,7 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DisplayNames from '@components/DisplayNames';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import MenuItem from '@components/MenuItem';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -184,15 +184,17 @@ function DynamicNewTaskPage() {
                 onBackButtonPress={() => dismissModalAndClearOutTaskInfo()}
                 shouldShowLink={false}
             >
-                <HeaderWithBackButton
-                    title={translate('newTaskPage.confirmTask')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => {
-                        Navigation.goBack(detailsBackPath);
-                    }}
+                <Header
                     /** Skip focus of the first interactive element in the header to make sure that Enter key confirms the task instead of navigating back. */
                     shouldSkipFocusAfterTransition
-                />
+                >
+                    <Header.BackButton
+                        onPress={() => {
+                            Navigation.goBack(detailsBackPath);
+                        }}
+                    />
+                    <Header.Title title={translate('newTaskPage.confirmTask')} />
+                </Header>
                 {!!hasDestinationError && (
                     <FormHelpMessage
                         style={[styles.ph4, styles.mb4]}

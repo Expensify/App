@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -31,10 +31,7 @@ function TravelDotLinkWebview({route}: TravelDotLinkWebviewProps) {
             testID="TravelDotLinkWebview"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('travel.header')}
-                shouldShowBackButton
-            />
+            <HeaderWithBackButtonAndTitle title={translate('travel.header')} />
             <WebView
                 ref={webViewRef}
                 source={{uri: url}}
