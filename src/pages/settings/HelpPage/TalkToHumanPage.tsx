@@ -3,7 +3,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
 import useOpenSupportTicket from '@hooks/useOpenSupportTicket';
 
-import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
+import getFullScreenRootRouteCount from '@libs/Navigation/helpers/getFullScreenRootRouteCount';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
@@ -36,8 +36,7 @@ function TalkToHumanPage() {
 
         // Leave this route first, because the ticket stores the route it opens from as its Back target.
         // A direct link has only the injected Settings sidebar behind it, so fall back to the Help page.
-        const fullScreenRouteCount = navigationRef.current?.getRootState().routes.filter((route) => !isSideModalNavigator(route.name)).length ?? 0;
-        const hasPageToReturnTo = fullScreenRouteCount > 1 || (navigation.getState()?.routes.length ?? 0) > 2;
+        const hasPageToReturnTo = getFullScreenRootRouteCount(navigationRef.current?.getRootState()) > 1 || (navigation.getState()?.routes.length ?? 0) > 2;
         Navigation.goBack(hasPageToReturnTo ? undefined : ROUTES.SETTINGS_HELP, {afterTransition: openSupportTicketOrConcierge});
     }, [isOffline, navigation, openSupportTicketOrConcierge]);
 
