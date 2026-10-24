@@ -38,7 +38,7 @@ type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps & PlatformSt
 
 type WorkspaceAutoReportingFrequencyPageItem = {
     text: string;
-    keyForList: string;
+    keyForList: AutoReportingFrequencyKey;
     isSelected: boolean;
     footerComponent?: React.ReactNode | null;
 };
@@ -76,7 +76,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     const selectedFrequency = userSelectedFrequency ?? autoReportingFrequency;
 
     const onSelectAutoReportingFrequency = (item: WorkspaceAutoReportingFrequencyPageItem) => {
-        setUserSelectedFrequency(item.keyForList as AutoReportingFrequencyKey);
+        setUserSelectedFrequency(item.keyForList);
     };
 
     const saveAutoReportingFrequency = useCallback(() => {
@@ -128,13 +128,22 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
 
     const isSubmitWorkspace = isSubmitPolicy(policy);
     const autoReportingFrequencyDisplayNames = getAutoReportingFrequencyDisplayNames(translate, isSubmitWorkspace);
+    const autoReportingFrequencyValues = Object.values(CONST.POLICY.AUTO_REPORTING_FREQUENCIES);
 
-    const autoReportingFrequencyItems: WorkspaceAutoReportingFrequencyPageItem[] = Object.keys(autoReportingFrequencyDisplayNames).map((frequencyKey) => ({
-        text: autoReportingFrequencyDisplayNames[frequencyKey as AutoReportingFrequencyKey] ?? '',
-        keyForList: frequencyKey,
-        isSelected: frequencyKey === selectedFrequency,
-        footerContent: frequencyKey === selectedFrequency && frequencyKey === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY ? monthlyFrequencyDetails() : null,
-    }));
+    const autoReportingFrequencyItems: WorkspaceAutoReportingFrequencyPageItem[] = Object.entries(autoReportingFrequencyDisplayNames).flatMap(([key, label]) => {
+        const frequencyKey = autoReportingFrequencyValues.find((frequency) => frequency === key);
+        if (frequencyKey === undefined) {
+            return [];
+        }
+        return [
+            {
+                text: label ?? '',
+                keyForList: frequencyKey,
+                isSelected: frequencyKey === selectedFrequency,
+                footerContent: frequencyKey === selectedFrequency && frequencyKey === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY ? monthlyFrequencyDetails() : null,
+            },
+        ];
+    });
 
     return (
         <AccessOrNotFoundWrapper
