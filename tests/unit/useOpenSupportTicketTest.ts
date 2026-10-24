@@ -6,13 +6,15 @@ import {isNoSupportRepAvailableResponse, openSupportTicket} from '@libs/actions/
 import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
 
+import ROUTES from '@src/ROUTES';
+
 const mockOpenConciergeAnywhere = jest.fn();
 
 jest.mock('@libs/actions/Report', () => ({
     openSupportTicket: jest.fn(),
     isNoSupportRepAvailableResponse: jest.fn(),
 }));
-jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn(), navigate: jest.fn()}));
 jest.mock('@libs/Growl', () => ({error: jest.fn()}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useOpenConciergeAnywhere', () => () => ({openConciergeAnywhere: mockOpenConciergeAnywhere}));
@@ -53,6 +55,7 @@ describe('useOpenSupportTicket', () => {
         // Then there is no error toast and no fallback navigation
         expect(Growl.error).not.toHaveBeenCalled();
         expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(mockOpenConciergeAnywhere).not.toHaveBeenCalled();
     });
 
@@ -72,11 +75,12 @@ describe('useOpenSupportTicket', () => {
         expect(Growl.error).toHaveBeenCalledWith({bodyText: 'supportTicket.noSupportRepAvailable'});
         expect(Navigation.goBack).toHaveBeenCalledTimes(1);
 
-        // And Concierge opens once that transition has finished
+        // And once that transition has finished the Help page is shown and Concierge opens
         const goBackOptions = jest.mocked(Navigation.goBack).mock.calls.at(0)?.at(1);
         if (typeof goBackOptions === 'object') {
             goBackOptions.afterTransition?.();
         }
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HELP);
         expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true});
     });
 
