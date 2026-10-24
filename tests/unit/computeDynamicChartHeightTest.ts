@@ -11,6 +11,8 @@ describe('computeDynamicChartHeight', () => {
                 isHorizontal: false,
                 itemCount: 2,
                 padding: horizontalChartPadding,
+                bottomAxisSize: 0,
+                topAxisSize: 0,
             }),
         ).toBe(designHeight);
     });
@@ -22,6 +24,8 @@ describe('computeDynamicChartHeight', () => {
                 isHorizontal: true,
                 itemCount: 5,
                 padding: horizontalChartPadding,
+                bottomAxisSize: 0,
+                topAxisSize: 0,
             }),
         ).toBe(designHeight);
     });
@@ -33,6 +37,8 @@ describe('computeDynamicChartHeight', () => {
                 isHorizontal: true,
                 itemCount: 6,
                 padding: horizontalChartPadding,
+                bottomAxisSize: 0,
+                topAxisSize: 0,
             }),
         ).toBe(designHeight);
     });
@@ -44,6 +50,8 @@ describe('computeDynamicChartHeight', () => {
                 isHorizontal: true,
                 itemCount: 0,
                 padding: horizontalChartPadding,
+                bottomAxisSize: 0,
+                topAxisSize: 0,
             }),
         ).toBe(designHeight);
     });
@@ -55,6 +63,8 @@ describe('computeDynamicChartHeight', () => {
                 isHorizontal: true,
                 itemCount: 2,
                 padding: horizontalChartPadding,
+                bottomAxisSize: 0,
+                topAxisSize: 0,
             }),
         ).toBeUndefined();
     });
@@ -66,6 +76,8 @@ describe('computeDynamicChartHeight', () => {
                 isHorizontal: true,
                 itemCount: 2,
                 padding: horizontalChartPadding,
+                bottomAxisSize: 0,
+                topAxisSize: 0,
             }),
         ).toBe(291);
     });
@@ -77,6 +89,8 @@ describe('computeDynamicChartHeight', () => {
                 isHorizontal: true,
                 itemCount: 2,
                 padding: undefined,
+                bottomAxisSize: 0,
+                topAxisSize: 0,
             }),
         ).toBe(291);
     });
@@ -88,6 +102,8 @@ describe('computeDynamicChartHeight', () => {
                 isHorizontal: true,
                 itemCount: 2,
                 padding: horizontalChartPadding,
+                bottomAxisSize: 0,
+                topAxisSize: 0,
             }),
         ).toBe(291);
     });
@@ -99,6 +115,8 @@ describe('computeDynamicChartHeight', () => {
                 isHorizontal: true,
                 itemCount: 2,
                 padding: horizontalChartPadding,
+                bottomAxisSize: 0,
+                topAxisSize: 0,
             }),
         ).toBe(250);
     });
