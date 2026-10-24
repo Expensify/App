@@ -1,7 +1,9 @@
 /** Keep local Worker/API opt-outs and coordinated port selection independent. */
 import {describe, expect, test} from 'bun:test';
 
-import {assertWebPortAvailable, getDevelopmentConnectOrigins, getWebDevFlags, getWebDevPorts} from '../../scripts/utils/webDevConfig';
+import {findWebDevPorts, getDevelopmentConnectOrigins, getWebDevFlags, isWebPortAvailable} from '../../scripts/utils/webDevConfig';
+
+const isFree = () => true;
 
 describe('web development configuration', () => {
     test('defaults both services on and allows independent opt-outs', () => {
@@ -62,16 +64,43 @@ describe('web development configuration', () => {
 
     test('rejects invalid and overlapping ports before starting children', () => {
         // Given invalid coordinated ports
-        // When the launcher checks them
+        // When the launcher resolves them
         // Then startup fails instead of changing the upstream port behind the Worker's back
-        expect(() => getWebDevPorts({WEB_PORT: 'invalid'}, true)).toThrow();
-        expect(() => getWebDevPorts({WEB_PORT: '1023'}, true)).toThrow();
-        expect(() => getWebDevPorts({WEB_PORT: '65536'}, true)).toThrow();
-        expect(() => getWebDevPorts({WEB_PORT: '11000', WEB_INTERNAL_PORT: '11000'}, true)).toThrow('must differ');
+        expect(() => findWebDevPorts({WEB_PORT: 'invalid'}, true, isFree)).toThrow();
+        expect(() => findWebDevPorts({WEB_PORT: '1023'}, true, isFree)).toThrow();
+        expect(() => findWebDevPorts({WEB_PORT: '65536'}, true, isFree)).toThrow();
+        expect(() => findWebDevPorts({WEB_PORT: '11000', WEB_INTERNAL_PORT: '11000'}, true, isFree)).toThrow('must differ');
     });
 
-    test('fails clearly rather than reusing an occupied worktree origin', () => {
-        // Given another server owns a port
+    test('uses the default ports when they are free', () => {
+        // Given a machine with no other web session
+        // When the launcher resolves its ports
+        // Then the app is at its usual origin
+        expect(findWebDevPorts({}, true, isFree)).toEqual({publicPort: 8082, internalPort: 8083});
+    });
+
+    test('moves a second session to the next free ports rather than failing', () => {
+        // Given another worktree's session on the default ports
+        const busy = new Set([8082, 8083, 8085]);
+        // When this session resolves its ports
+        // Then it takes the next free ones, as portfinder did before the Worker
+        expect(findWebDevPorts({}, true, (port) => !busy.has(port))).toEqual({publicPort: 8084, internalPort: 8086});
+        expect(findWebDevPorts({}, false, (port) => !busy.has(port)).publicPort).toBe(8084);
+    });
+
+    test('fails fast on a busy port the user chose explicitly', () => {
+        // Given explicitly requested ports that another server owns
+        const busy = new Set([9100, 9201]);
+        // When the launcher resolves them
+        // Then it says which one is taken rather than silently moving the session
+        expect(() => findWebDevPorts({WEB_PORT: '9100'}, true, (port) => !busy.has(port))).toThrow('Port 9100 is in use');
+        expect(() => findWebDevPorts({WEB_PORT: '9200', WEB_INTERNAL_PORT: '9201'}, true, (port) => !busy.has(port))).toThrow('Port 9201 is in use');
+        // And a free explicit choice is used as is, with the other port found around it
+        expect(findWebDevPorts({WEB_INTERNAL_PORT: '8082'}, true, isFree)).toEqual({publicPort: 8083, internalPort: 8082});
+    });
+
+    test('detects a port another server owns, and releases its own probe', () => {
+        // Given another server on one port
         const listener = Bun.listen({
             hostname: '127.0.0.1',
             port: 0,
@@ -82,40 +111,22 @@ describe('web development configuration', () => {
             },
         });
         try {
-            // When this session resolves and checks its ports
-            // Then resolving them stays side-effect free, and the availability check stops startup before any child starts
-            expect(getWebDevPorts({WEB_PORT: String(listener.port)}, false).publicPort).toBe(listener.port);
-            expect(() => assertWebPortAvailable(listener.port)).toThrow('in use');
+            // When the launcher probes it, and a port it freed itself
+            // Then the owned port is unavailable
+            expect(isWebPortAvailable(listener.port)).toBe(false);
         } finally {
             listener.stop(true);
         }
-    });
-
-    test('releases the availability probe so the selected port can be bound', () => {
-        // Given an available local port
-        const initial = Bun.listen({
+        // And once free, the probe does not keep it from the session's own server
+        expect(isWebPortAvailable(listener.port)).toBe(true);
+        Bun.listen({
             hostname: '127.0.0.1',
-            port: 0,
+            port: listener.port,
             socket: {
                 data: (socket) => {
                     socket.end();
                 },
             },
-        });
-        const port = initial.port;
-        initial.stop(true);
-        // When a session probes that port
-        assertWebPortAvailable(port);
-        // Then its actual server can bind the port immediately
-        const listener = Bun.listen({
-            hostname: '127.0.0.1',
-            port,
-            socket: {
-                data: (socket) => {
-                    socket.end();
-                },
-            },
-        });
-        listener.stop(true);
+        }).stop(true);
     });
 });

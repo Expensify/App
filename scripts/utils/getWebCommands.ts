@@ -4,17 +4,20 @@ type WebCommandSettings = {
     root: string;
     isWorkerEnabled: boolean;
     isProxyEnabled: boolean;
+
+    /** False when another session already runs the API proxy, which this session's Rsbuild then shares. */
+    shouldStartProxy: boolean;
     publicPort: number;
     internalPort: number;
     connectOrigins: string[];
 };
 
 /** Each child gets the settings it needs in its own env, so the launcher's environment stays as the user set it. */
-function getWebCommands({root, isWorkerEnabled, isProxyEnabled, publicPort, internalPort, connectOrigins}: WebCommandSettings) {
+function getWebCommands({root, isWorkerEnabled, isProxyEnabled, shouldStartProxy, publicPort, internalPort, connectOrigins}: WebCommandSettings) {
     const workerDir = `${root}/web/cloudflare-worker`;
     // concurrently accepts command strings, so escape its dynamic paths and JSON bindings.
     return [
-        ...(isProxyEnabled ? [{name: 'api', command: 'npm run web-proxy', env: {USE_WEB_PROXY: 'true'}}] : []),
+        ...(isProxyEnabled && shouldStartProxy ? [{name: 'api', command: 'npm run web-proxy', env: {USE_WEB_PROXY: 'true'}}] : []),
         {
             name: 'rsbuild',
             command: 'npx rsbuild dev --config config/rsbuild/rsbuild.config.ts',

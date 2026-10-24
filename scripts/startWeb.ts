@@ -7,7 +7,7 @@ import concurrently from 'concurrently';
 import {API_PROXY_PORT} from '../web/cloudflare-worker/src/developmentAPIProxy';
 import checkWebServer from './utils/checkWebServer';
 import getWebCommands from './utils/getWebCommands';
-import {assertWebPortAvailable, getDevelopmentConnectOrigins, getWebDevFlags, getWebDevPorts} from './utils/webDevConfig';
+import {findWebDevPorts, getDevelopmentConnectOrigins, getWebDevFlags, isWebPortAvailable} from './utils/webDevConfig';
 import waitForWebServer from './waitForWebServer';
 
 async function startWeb() {
@@ -17,12 +17,10 @@ async function startWeb() {
     if (isWorkerMissing) {
         console.warn('Cloudflare Worker tooling is not installed, so serving Rsbuild directly without the Worker. Run npm install (it skips the Worker when CI is set).');
     }
-    const {publicPort, internalPort, ports} = getWebDevPorts(Bun.env, isWorkerEnabled);
-    for (const port of ports) {
-        assertWebPortAvailable(port);
-    }
-    if (isProxyEnabled) {
-        assertWebPortAvailable(API_PROXY_PORT, '::');
+    const {publicPort, internalPort} = findWebDevPorts(Bun.env, isWorkerEnabled, isWebPortAvailable);
+    const shouldStartProxy = isProxyEnabled && isWebPortAvailable(API_PROXY_PORT, '::');
+    if (isProxyEnabled && !shouldStartProxy) {
+        console.log(`Reusing the API proxy already on port ${API_PROXY_PORT}, e.g. from another worktree's session. API requests stop working if that session stops.`);
     }
     for (const file of ['key.pem', 'certificate.pem']) {
         if (!(await Bun.file(`config/rsbuild/${file}`).exists())) {
@@ -30,7 +28,15 @@ async function startWeb() {
         }
     }
     const origin = `https://dev.new.expensify.com:${publicPort}`;
-    const commands = getWebCommands({root: process.cwd(), isWorkerEnabled, isProxyEnabled, publicPort, internalPort, connectOrigins: getDevelopmentConnectOrigins(Bun.env)});
+    const commands = getWebCommands({
+        root: process.cwd(),
+        isWorkerEnabled,
+        isProxyEnabled,
+        shouldStartProxy,
+        publicPort,
+        internalPort,
+        connectOrigins: getDevelopmentConnectOrigins(Bun.env),
+    });
     const controller = new AbortController();
     const {commands: children, result} = concurrently(commands, {killOthersOn: ['success', 'failure'], killTimeout: 3000});
     const stop = () => {

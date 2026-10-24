@@ -81,8 +81,8 @@ variables referenced here get updated since your local `.env` file is ignored.
    requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.
    If you don't want to start the proxy server set this explicitly to `false`
 - `USE_CLOUDFLARE_WORKER` - Defaults to `true` for `npm run web`. Set to `false` to serve Rsbuild directly over HTTPS. This does not disable the API proxy.
-- `WEB_PORT` - Browser-facing development port (default `8082`). If occupied, choose a different port; the launcher will not reuse another session's server.
-- `WEB_INTERNAL_PORT` - Internal loopback HTTP Rsbuild port when the Worker is enabled (default `WEB_PORT + 1`).
+- `WEB_PORT` - Browser-facing development port (default: the first free port from `8082`). An explicit port must be free.
+- `WEB_INTERNAL_PORT` - Internal loopback HTTP Rsbuild port when the Worker is enabled (default: the next free port after `WEB_PORT`).
 - `WEB_OPEN` - Set to `false` to suppress automatic browser opening, for example in browser automation.
 - `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper
    see [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information

@@ -42,7 +42,7 @@ USE_WEB_PROXY=false npm run web        # Worker still enabled; use your configur
 WEB_PORT=8102 WEB_OPEN=false npm run web # isolated session suitable for Playwright
 ```
 
-`WEB_PORT` defaults to `8082`; `WEB_INTERNAL_PORT` defaults to the next port. Occupied ports fail startup rather than attaching to another worktree or silently changing the upstream. The API proxy retains port `9000`, so only one proxy-enabled session can own it. Stop the process that owns a needed port, or disable the API proxy and configure your backend. Ctrl-C or a required service exiting stops the remaining services.
+`WEB_PORT` defaults to the first free port from `8082`, and `WEB_INTERNAL_PORT` to the next free port after it, so a second worktree's session starts alongside the first. A port you set explicitly must be free, or startup fails. The API proxy keeps port `9000`: if another session already runs it, the new session reuses it, and its API requests stop working when that session stops. Ctrl-C or a required service exiting stops the remaining services.
 
 Set `EXPENSIFY_URL` and `SECURE_EXPENSIFY_URL` for your local backend and disable `USE_WEB_PROXY` for direct backend requests. Explicit backend origins are added only to the development connection policy. Backend CORS rules and TLS trust still apply; CSP allowances do not bypass them. Third-party OAuth may require an approved origin.
 
