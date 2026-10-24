@@ -12,3 +12,10 @@ export default function useResponsiveLayoutOnWideRHP(): ResponsiveLayoutOnWideRH
         isSuperWideRHPDisplayedOnWideLayout: false,
     };
 }
+
+// Super Wide and Wide RHPs are not displayed on native platforms.
+function useIsDisplayedInWideRHP(): boolean {
+    return false;
+}
+
+export {useIsDisplayedInWideRHP};
