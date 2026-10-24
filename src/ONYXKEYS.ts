@@ -887,7 +887,7 @@ const ONYXKEYS = {
     /** Pagination state of the workspace rooms page, keyed by policyID */
     POLICY_ROOMS_METADATA: 'policyRoomsMetadata',
 
-    /** Maps an agent's optimistic accountID to the real one assigned by CreateAgent, consumed and cleared by replaceOptimisticAgentWithActualAgent */
+    /** Retains agent optimistic-to-real accountID mappings for queued actions, other tabs, and late-opened settings screens */
     OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING: 'optimisticAgentAccountIDMapping',
 
     /**
