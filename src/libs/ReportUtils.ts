@@ -6220,11 +6220,41 @@ function canEditFieldOfMoneyRequest({
         }
 
         const reportOwnerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails()) ?? deprecatedCurrentUserEmail;
-        const eligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail);
-        const canCreateReport = isPerDiemRequest(transaction) ? eligiblePolicies.some(canSubmitPerDiemExpenseFromWorkspace) : eligiblePolicies.length > 0;
+        const isBlockedOnCurrentPolicy = !!reportPolicy && !canCreateExpensesOnPolicy(reportPolicy, reportOwnerLogin);
+
+        if (isBlockedOnCurrentPolicy) {
+            const hasOtherEligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail).some((p) => p.id !== moneyRequestReport?.policyID);
+            if (!hasOtherEligiblePolicies) {
+                let otherOutstandingReportsCount = 0;
+                for (const currentPolicy of policiesArray) {
+                    if (currentPolicy.id === moneyRequestReport?.policyID || !canCreateExpensesOnPolicy(currentPolicy, reportOwnerLogin)) {
+                        continue;
+                    }
+                    if (isPerDiemRequest(transaction) && !canSubmitPerDiemExpenseFromWorkspace(currentPolicy)) {
+                        continue;
+                    }
+                    const reports = getOutstandingReportsForUser(
+                        currentPolicy.id,
+                        moneyRequestReport?.ownerAccountID,
+                        rules,
+                        reportNameValuePairs,
+                        outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
+                    );
+                    otherOutstandingReportsCount += reports.length;
+
+                    if (otherOutstandingReportsCount > 0) {
+                        break;
+                    }
+                }
+
+                if (otherOutstandingReportsCount === 0) {
+                    return false;
+                }
+            }
+        }
 
         // Check the cheaper condition first
-        if (canCreateReport && (isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, rules, moneyRequestReportNameValuePair)) {
+        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, rules, moneyRequestReportNameValuePair)) {
             return true;
         }
 
