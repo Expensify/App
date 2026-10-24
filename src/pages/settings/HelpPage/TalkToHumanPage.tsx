@@ -48,9 +48,7 @@ function TalkToHumanPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
 
-    return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+    return <FullScreenLoadingIndicator />;
 }
-
-TalkToHumanPage.displayName = 'TalkToHumanPage';
 
 export default TalkToHumanPage;
