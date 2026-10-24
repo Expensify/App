@@ -11,19 +11,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
-import PDFDownloadModal from './PDFDownloadModal';
+import type {ModalProps} from './Modal/Global/ModalContext';
 
-type ReportPDFDownloadModalProps = {
-    reportID: string | undefined;
-    isVisible: boolean;
-    onClose: () => void;
-    onModalHide?: () => void;
+import FileDownloadModalWrapper from './Modal/Global/FileDownloadModalWrapper';
 
-    /** Called when the modal is dismissed while the PDF is still generating (e.g. Submit via PDF retracts the submit). */
-    onCancel?: () => void;
+type ReportPDFDownloadModalProps = ModalProps & {
+    reportID: string;
 };
 
-function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCancel}: ReportPDFDownloadModalProps) {
+/**
+ * Rendered by the global modal stack, so its Onyx subscriptions live as long as the modal does. The caller that opened
+ * it can unmount while the PDF is generating and the modal still picks up the filename.
+ */
+function ReportPDFDownloadModal({reportID, closeModal, resolveModal}: ReportPDFDownloadModalProps) {
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${reportID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -43,7 +43,7 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCa
     // Excluded while offline: the request is legitimately queued and waiting for connectivity, not stuck.
     // Keyed by reportID (not just a boolean) so if this modal is ever reused for a different report without
     // unmounting, the timer restarts against the new report instead of firing late and blaming the wrong one.
-    useStallLogger(isVisible && !isOffline && !reportPDFFilename ? reportID : false, '[PDFStall] reportPDFFilename never resolved to a filename or error while the download modal was open', {
+    useStallLogger(!isOffline && !reportPDFFilename ? reportID : false, '[PDFStall] reportPDFFilename never resolved to a filename or error while the download modal was open', {
         reportID,
     });
 
@@ -57,25 +57,24 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCa
         return translate('reportDetailsPage.successPDF');
     })();
 
-    // reportPDFFilename is null while the backend is still generating, so a dismissal at that point is a cancel
-    // (e.g. Submit via PDF retracts the submit); once it holds a filename or 'error' the submit has already resolved.
-    const handleClose = () => {
-        if (!reportPDFFilename) {
-            onCancel?.();
+    // reportPDFFilename is null while the backend is still generating, so the wrapper reports a dismissal at that point
+    // as a cancel (e.g. Submit via PDF retracts the submit). Once it holds a filename or 'error' the submit has resolved.
+    const status = (() => {
+        if (hasPDFDownloadFailed) {
+            return CONST.FILE_DOWNLOAD_STATUS.FAILED;
         }
-        onClose();
-    };
+        return hasFinishedPDFDownload ? CONST.FILE_DOWNLOAD_STATUS.READY : CONST.FILE_DOWNLOAD_STATUS.GENERATING;
+    })();
 
     return (
-        <PDFDownloadModal
-            isVisible={isVisible}
-            shouldTreatModalAsCovering
-            onClose={handleClose}
-            onModalHide={onModalHide}
-            hasFinishedPDFDownload={hasFinishedPDFDownload}
-            hasPDFDownloadFailed={hasPDFDownloadFailed}
+        <FileDownloadModalWrapper
+            closeModal={closeModal}
+            resolveModal={resolveModal}
+            title={translate('reportDetailsPage.generatingPDF')}
+            status={status}
             message={message}
-            onDownloadPDF={() => {
+            shouldTreatModalAsCovering
+            onDownload={() => {
                 if (!hasFinishedPDFDownload) {
                     return;
                 }
@@ -85,6 +84,5 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCa
     );
 }
 
-ReportPDFDownloadModal.displayName = 'ReportPDFDownloadModal';
-
 export default ReportPDFDownloadModal;
+export type {ReportPDFDownloadModalProps};
