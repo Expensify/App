@@ -2513,7 +2513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountValidate: {
             confirmMerge: 'Sind Sie sicher, dass Sie Konten zusammenführen möchten?',
             mergeIsIrreversible: (login: string) =>
-                `Das Zusammenführen Ihrer Konten ist endgültig. Alle Ausgaben und Berichte von <strong>${login}</strong>, einschließlich Entwürfen und nicht eingereichter Ausgaben, werden in das Konto verschoben, das Sie behalten.`,
+                `Das Zusammenführen Ihrer Konten ist unumkehrbar. Alle Ausgaben und Berichte von <strong>${login}</strong>, einschließlich Entwürfen und nicht eingereichten Ausgaben, werden auf das Konto verschoben, das Sie behalten.`,
             enterSecurityCode: (login: string) => `Um fortzufahren, geben Sie bitte den Sicherheitscode ein, der an <strong>${login}</strong> gesendet wurde.`,
             errors: {
                 incorrectSecurityCode: 'Falscher oder ungültiger Sicherheitscode. Bitte versuchen Sie es erneut oder fordern Sie einen neuen Code an.',
