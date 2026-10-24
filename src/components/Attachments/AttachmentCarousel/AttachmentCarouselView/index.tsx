@@ -75,7 +75,9 @@ function AttachmentCarouselView({
     const isPagerScrolling = useSharedValue(false);
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
-    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | null>(attachmentID ?? source);
+    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource>(attachmentID ?? source);
+    // FlatList requires a stable viewability callback, so keep the current selection available without adding it to the callback's dependencies.
+    const activeAttachmentIDRef = useRef(activeAttachmentID);
 
     const scrollRef = useAnimatedRef<Animated.FlatList<Attachment>>();
 
@@ -95,21 +97,25 @@ function AttachmentCarouselView({
                 return;
             }
 
-            Keyboard.dismiss();
-
             // Since we can have only one item in view at a time, we can use the first item in the array
             // to get the index of the current page
             const entry = viewableItems.at(0);
-            if (!entry) {
-                setActiveAttachmentID(null);
+            // Resizing or scrolling between pages can temporarily leave no item above the visibility threshold.
+            // Keep the current attachment mounted until another attachment becomes viewable.
+            if (!entry || entry.index == null) {
                 return;
             }
 
             const item = entry.item;
-            if (entry.index != null) {
-                setPage(entry.index);
-                setActiveAttachmentID(item.attachmentID ?? item.source);
+            const nextAttachmentID = item.attachmentID ?? item.source;
+            if (activeAttachmentIDRef.current === nextAttachmentID) {
+                return;
             }
+
+            Keyboard.dismiss();
+            activeAttachmentIDRef.current = nextAttachmentID;
+            setPage(entry.index);
+            setActiveAttachmentID(nextAttachmentID);
 
             if (onNavigate) {
                 onNavigate(item);

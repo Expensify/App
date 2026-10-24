@@ -189,8 +189,9 @@ describe('AttachmentCarouselView web', () => {
         expect(onNavigate.mock.calls.at(0)?.at(0)).toBe(second);
     });
 
-    it('clears focus for empty tokens and navigates a null-index token without changing page or focus', () => {
-        // Given a real callback installed by the web target
+    it('preserves focus when viewability has no indexed attachment during a resize', () => {
+        // Given a focused attachment and the web FlatList viewability callback
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
         const {props} = renderCarousel();
         const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
         expect(viewability).toBeDefined();
@@ -199,16 +200,16 @@ describe('AttachmentCarouselView web', () => {
         }
         const attachment: Attachment = {source: 'second.png'};
 
-        // When a token has no index, navigation still receives it, then an empty token set clears focus
+        // When resizing temporarily reports an attachment without an index or no visible attachments
         act(() => viewability({viewableItems: [{item: attachment, key: 'second', index: null, isViewable: true}], changed: []}));
-        expect(props.onNavigate).toHaveBeenCalledWith(attachment);
-        expect(props.setPage).not.toHaveBeenCalled();
-        expect(screen.getByText('first.png:true')).toBeOnTheScreen();
         act(() => viewability({viewableItems: [], changed: []}));
 
-        // Then empty input removes active focus without another navigation
-        expect(screen.getByText('first.png:false')).toBeOnTheScreen();
-        expect(props.onNavigate).toHaveBeenCalledTimes(1);
+        // Then the selected attachment stays focused without dismissing the keyboard or navigating
+        expect(screen.getByText('first.png:true')).toBeOnTheScreen();
+        expect(dismiss).not.toHaveBeenCalled();
+        expect(props.setPage).not.toHaveBeenCalled();
+        expect(props.onNavigate).not.toHaveBeenCalled();
+        dismiss.mockRestore();
     });
 
     it('returns before keyboard, page or navigation effects during fullscreen', () => {
