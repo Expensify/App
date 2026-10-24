@@ -41,8 +41,8 @@ function CenteredModalLayout({children, width, height, onBackdropPress, contentS
     const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
     const shouldDockToBottom = !onboardingIsMediumOrLargerScreenWidth;
-
     const safeAreaHorizontalPadding = useSafeAreaHorizontalPadding();
+
     const safeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: addBottomSafeAreaPadding && !isInLandscapeMode && shouldDockToBottom,
         style: [shouldDockToBottom && styles.pt2, !isInLandscapeMode && styles.pb5, safeAreaHorizontalPadding, contentStyle],

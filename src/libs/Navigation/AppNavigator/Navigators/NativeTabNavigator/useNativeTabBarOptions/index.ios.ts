@@ -38,17 +38,19 @@ const LANDSCAPE_TAB_ICON_LAYOUT: TabIconLayout = {
  * in the color of the selected tab, so each icon is drawn with its own colors, its status dot and its label. Both
  * selection states are images, because RNScreens rejects a tab whose icon and selectedIcon differ in type.
  */
-function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
+function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
     const avatar = useTabAvatarImage(isAccountAvatarShown);
     const {windowWidth} = useWindowDimensions();
     const {isInLandscapeMode} = useResponsiveLayout();
-    const tabIconLayout = isInLandscapeMode ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT;
+    // A column has the height for a stacked tab whatever the orientation.
+    const isInline = isInLandscapeMode && !isTabBarVertical;
+    const tabIconLayout = isInline ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT;
     // One of the tabs never has a bar item, so the bar splits its width between the others.
     const barItemCount = Object.keys(tabLabels).length - 1;
     const itemWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset;
     // In landscape the label shares the item's width with the glyph's box beside it.
-    const labelMaxWidth = isInLandscapeMode ? itemWidth - tabIconLayout.avatarSize - variables.nativeTabIconLabelGap : itemWidth;
+    const labelMaxWidth = isInline ? itemWidth - tabIconLayout.avatarSize - variables.nativeTabIconLabelGap : itemWidth;
 
     const screenOptions: NativeBottomTabNavigationOptions = {
         // The labels are drawn into the icons.
@@ -69,14 +71,17 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
             color: isSelected ? theme.iconMenu : theme.icon,
             avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
             dotColor: dotColors[name],
-            label: {
-                text: tabLabels[name],
-                color: isSelected ? theme.text : theme.textSupporting,
-                isBold: isSelected,
-                fontSize: fontScale.micro,
-                gap: variables.nativeTabIconLabelGap,
-                maxWidth: labelMaxWidth,
-            },
+            // A column is too narrow for the labels, so it shows the icons alone.
+            label: isTabBarVertical
+                ? undefined
+                : {
+                      text: tabLabels[name],
+                      color: isSelected ? theme.text : theme.textSupporting,
+                      isBold: isSelected,
+                      fontSize: fontScale.micro,
+                      gap: variables.nativeTabIconLabelGap,
+                      maxWidth: labelMaxWidth,
+                  },
         })),
         // The label is drawn into the icon, so VoiceOver reads it from here.
         tabBarAccessibilityLabel: tabLabels[name],

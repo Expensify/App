@@ -1,5 +1,9 @@
+import HorizontalSafeArea from '@components/HorizontalSafeArea';
+
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
+
+import NAVIGATORS from '@src/NAVIGATORS';
 
 import type {BottomTabNavigationOptions} from '@react-navigation/bottom-tabs';
 import type {NativeBottomTabNavigationOptions} from '@react-navigation/bottom-tabs/unstable';
@@ -9,22 +13,40 @@ import React, {useLayoutEffect, useRef} from 'react';
 
 import type {PlatformSpecificNavigationOptions, PlatformStackNavigationOptions} from './types';
 
+const NAVIGATORS_WITH_OWN_HORIZONTAL_SAFE_AREA = new Set<string>([
+    NAVIGATORS.TAB_NAVIGATOR,
+    NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR,
+    NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR,
+    NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR,
+]);
+
 // The only navigation capability ScreenLayout actually needs, regardless of which navigator (stack, bottom-tabs, ...)
 // it's used with. Keeping this minimal means passing a real (properly-typed) navigation prop into it - e.g. from
 // bottomTabScreenLayoutWrapper below - needs no unsafe cast, since every navigator's `addListener` structurally satisfies it.
 type TransitionAwareNavigation = {
     addListener(type: 'transitionStart' | 'transitionEnd', callback: () => void): () => void;
+    getParent(): unknown;
 };
 
 // screenLayout is invoked as a render function (not JSX), so we need this wrapper to create a proper React component boundary for hooks.
 function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBase, string, PlatformSpecificNavigationOptions | PlatformStackNavigationOptions, string>) {
-    return (
+    // The type cast is needed because useNavigationBuilder hardcodes the Navigation generic to `string`.
+    const transitionAwareNavigation = navigation as unknown as TransitionAwareNavigation;
+    const screen = (
         <ScreenLayout
             {...rest}
-            // The type cast is needed because useNavigationBuilder hardcodes the Navigation generic to `string`.
-            navigation={navigation as unknown as TransitionAwareNavigation}
+            navigation={transitionAwareNavigation}
         />
     );
+
+    // Root screens keep out of the horizontal safe area, and the screens nested in them sit inside it already. The tab
+    // navigator places its own, because the native tab bar may sit in the inset, and the centered modals span the window
+    // so that their backdrop covers the inset too.
+    const isRootScreen = !transitionAwareNavigation.getParent();
+    if (!isRootScreen || NAVIGATORS_WITH_OWN_HORIZONTAL_SAFE_AREA.has(rest.route.name)) {
+        return screen;
+    }
+    return <HorizontalSafeArea>{screen}</HorizontalSafeArea>;
 }
 
 // Same as screenLayoutWrapper above, but for bottom-tab navigators, JS and native. No cast needed here - their
@@ -83,3 +105,4 @@ function ScreenLayout({children, navigation}: ScreenLayoutProps) {
 
 export default screenLayoutWrapper;
 export {bottomTabScreenLayoutWrapper};
+export type {ScreenLayoutProps};
