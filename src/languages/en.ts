@@ -11846,6 +11846,7 @@ const translations = {
         },
         yourPlan: {
             title: 'Your plan',
+            plan: 'Plan',
             exploreAllPlans: 'Explore all plans',
             customPricing: 'Custom pricing',
             asLowAs: (price: string) => `as low as ${price} per active member/month`,
@@ -11976,16 +11977,21 @@ const translations = {
         },
         subscriptionSettings: {
             title: 'Subscription settings',
-            editSubscription: 'Edit subscription',
-            summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
-                `Subscription type: ${subscriptionType}, Subscription size: ${subscriptionSize}${expensifyCode ? `, Expensify code: ${expensifyCode}` : ''}, Auto renew: ${autoRenew}, Auto increase annual seats: ${autoIncrease}`,
-            none: 'none',
-            on: 'on',
-            off: 'off',
+            subscriptionType: 'Subscription type',
+            memberCount: ({count}: {count: number}) => ({
+                one: '1 member',
+                other: `${count} members`,
+            }),
+            sizeNotSet: `<muted-text>If you don't set your subscription size now, we'll set it automatically based on your first month's active member count. <a href="${CONST.PRICING}">Learn more</a></muted-text>`,
+            expensifyCodeApplied: 'Expensify code applied',
+            addExpensifyCode: 'Add Expensify code',
+            saveWithAnnualSubscription: 'Save with an annual subscription',
             annual: 'Annual',
             autoRenew: 'Auto-renew',
             autoIncrease: 'Auto-increase annual seats',
             saveUpTo: (amountWithCurrency: string) => `Save up to ${amountWithCurrency}/month per active member`,
+            autoIncreaseDescription: (amountWithCurrency: string) =>
+                `Save up to ${amountWithCurrency}/month per active member. Extra seats are added automatically when active users exceed your subscription, extending your annual end date.`,
             automaticallyIncrease:
                 'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
             disableAutoRenew: 'Disable auto-renew',
@@ -11994,7 +12000,9 @@ const translations = {
             renewsOn: (date: string) => `Renews on ${date}.`,
             pricingConfiguration: 'Pricing depends on configuration. For the lowest price, choose an annual subscription and get the Expensify Card.',
             learnMore: (hasAdminsRoom: boolean) =>
-                `<muted-text>Learn more on our <a href="${CONST.PRICING}">pricing page</a> or chat with our team in your ${hasAdminsRoom ? `<a href="adminsRoom">#admins room.</a>` : '#admins room.'}</muted-text>`,
+                `<muted-text>Learn more on our <a href="${CONST.PRICING}">pricing page</a> or chat with our team in your ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">#admins room.</a>` : '#admins room.'}</muted-text>`,
+            annualSavingsDescription: (hasAdminsRoom: boolean) =>
+                `<muted-text>For the lowest price, choose an annual subscription and get the Expensify Card. Learn more on our <a href="${CONST.PRICING}">pricing page</a> or chat with our team in your ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">#admins room.</a>` : '#admins room.'}</muted-text>`,
             estimatedPrice: 'Estimated price',
             changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',
             collectBillingDescription: 'Collect workspaces are billed monthly per member, with no annual commitment.',
