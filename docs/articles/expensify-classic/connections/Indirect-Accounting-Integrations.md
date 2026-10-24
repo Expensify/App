@@ -58,6 +58,8 @@ Expensify offers pre-configured flat-file integrations for the following account
 - **Oracle**
 - **SAP**
 
+Dynamics 365 Business Central has a direct integration, so you don't need a flat-file export for it. Learn how to [connect to Dynamics 365 Business Central](/articles/new-expensify/connections/business-central/Connect-to-Business-Central). Other Microsoft Dynamics products still use the flat-file integration.
+
 ## What if my accounting package isn’t listed?
 
 If your accounting software supports flat-file imports but isn’t listed above, you can create a custom export template:
