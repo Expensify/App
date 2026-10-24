@@ -81,8 +81,6 @@ Onyx.connectWithoutView({
     },
 });
 
-const inFlightApproveOnlyEmailsByPolicy: Record<string, string[]> = {};
-
 /**
  * Build optimistic data for adding members to the announcement/admins room
  */
@@ -660,8 +658,8 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
                         // eslint-disable-next-line no-param-reassign
                         member[current.email] = {
                             ...(previousEmployeeList[current.email] ?? {}),
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                            pendingAction: newRole === CONST.POLICY.ROLE.APPROVE_ONLY ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            errors: newRole === CONST.POLICY.ROLE.APPROVE_ONLY ? null : ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
                         };
                         return member;
                     }, {}),
@@ -728,11 +726,6 @@ function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEma
     // Submit workspaces lock everyone to the Editor role, so role changes are not allowed.
     if (isSubmitPolicy(policy)) {
         return;
-    }
-    if (newRole === CONST.POLICY.ROLE.APPROVE_ONLY) {
-        inFlightApproveOnlyEmailsByPolicy[policy.id] = selectedMemberEmails;
-    } else {
-        delete inFlightApproveOnlyEmailsByPolicy[policy.id];
     }
     const {optimisticData, successData, failureData, memberRoles} = buildUpdateWorkspaceMembersRoleOnyxData(policy, selectedMemberEmails, selectedMemberAccountIDs, newRole);
 
@@ -1282,26 +1275,15 @@ function clearAddMemberError(policyID: string, login: string, accountID: number)
 /**
  * Removes an error after trying to update a member role
  */
-function clearUpdateMemberRoleError(policyID: string, login: string | string[]) {
-    const logins = Array.isArray(login) ? login : [login];
-    const employeeListUpdate = logins.reduce<Record<string, {pendingAction: null; errors: null}>>((acc, email) => {
-        acc[email] = {
-            pendingAction: null,
-            errors: null,
-        };
-        return acc;
-    }, {});
-
+function clearUpdateMemberRoleError(policyID: string, login: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        employeeList: employeeListUpdate,
+        employeeList: {
+            [login]: {
+                pendingAction: null,
+                errors: null,
+            },
+        },
     });
-}
-
-function clearApproveOnlyRoleBlockedErrors(policyID: string, email: string) {
-    const recordedEmails = inFlightApproveOnlyEmailsByPolicy[policyID] ?? [];
-    delete inFlightApproveOnlyEmailsByPolicy[policyID];
-    const emailsToClear = email && !recordedEmails.includes(email) ? [...recordedEmails, email] : recordedEmails;
-    clearUpdateMemberRoleError(policyID, emailsToClear.length > 0 ? emailsToClear : email);
 }
 
 function clearBlockedRoleChange() {
@@ -1610,7 +1592,6 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     clearUpdateMemberRoleError,
-    clearApproveOnlyRoleBlockedErrors,
     clearBlockedRoleChange,
     openWorkspaceMembersPage,
     setWorkspaceInviteMembersDraft,

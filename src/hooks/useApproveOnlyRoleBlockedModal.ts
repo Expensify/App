@@ -2,7 +2,7 @@
  * Subscribes to BLOCKED_ROLE_CHANGE in Onyx and shows the blocked-reasons modal on the global modal stack
  * when the backend refuses an approve-only role change.
  */
-import {clearApproveOnlyRoleBlockedErrors, clearBlockedRoleChange} from '@userActions/Policy/Member';
+import {clearBlockedRoleChange} from '@userActions/Policy/Member';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -47,15 +47,7 @@ function useApproveOnlyRoleBlockedModal() {
         lastShownRef.current = blockedRoleChange;
         isModalOpenRef.current = true;
 
-        const {policyID, email, blockedReasons = []} = blockedRoleChange;
-
-        // Clear row errors once failureData has settled so the modal is the only feedback shown.
-        if (policyID) {
-            Promise.resolve().then(() => {
-                clearApproveOnlyRoleBlockedErrors(policyID, email ?? '');
-            });
-        }
-
+        const {blockedReasons = []} = blockedRoleChange;
         const reasonLines = blockedReasons.filter((reason) => reason in REASON_TRANSLATION_KEYS).map((reason) => `• ${translate(REASON_TRANSLATION_KEYS[reason])}`);
         const hasReasonLines = reasonLines.length > 0;
 

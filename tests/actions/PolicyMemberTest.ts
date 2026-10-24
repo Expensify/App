@@ -213,100 +213,37 @@ describe('actions/PolicyMember', () => {
                 });
             });
         });
-    });
 
-    describe('clearUpdateMemberRoleError', () => {
-        it('clears errors for single and multiple member logins', async () => {
+        it('does not set errors in failureData when changing role to approve-only', () => {
             const member1 = 'member1@test.com';
             const member2 = 'member2@test.com';
             const fakePolicy: PolicyType = {
-                ...createRandomPolicy(0),
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
                 employeeList: {
                     [member1]: {
                         email: member1,
                         role: CONST.POLICY.ROLE.USER,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        errors: {error1: 'Failed'},
                     },
                     [member2]: {
                         email: member2,
                         role: CONST.POLICY.ROLE.USER,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        errors: {error2: 'Failed'},
                     },
                 },
             };
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            const approveOnlyData = Member.buildUpdateWorkspaceMembersRoleOnyxData(fakePolicy, [member1, member2], [1, 2], CONST.POLICY.ROLE.APPROVE_ONLY);
+            const failureEmployeeList = (approveOnlyData.failureData[0] as {value: {employeeList: Record<string, {errors: unknown; pendingAction: unknown}>}}).value.employeeList;
 
-            Member.clearUpdateMemberRoleError(fakePolicy.id, member1);
-            await waitForBatchedUpdates();
+            expect(failureEmployeeList[member1].errors).toBeNull();
+            expect(failureEmployeeList[member1].pendingAction).toBeNull();
+            expect(failureEmployeeList[member2].errors).toBeNull();
+            expect(failureEmployeeList[member2].pendingAction).toBeNull();
 
-            let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
-            expect(policy?.employeeList?.[member1]?.errors).toBeNull();
-            expect(policy?.employeeList?.[member1]?.pendingAction).toBeNull();
-            expect(policy?.employeeList?.[member2]?.errors).toEqual({error2: 'Failed'});
+            const adminData = Member.buildUpdateWorkspaceMembersRoleOnyxData(fakePolicy, [member1], [1], CONST.POLICY.ROLE.ADMIN);
+            const adminFailureEmployeeList = (adminData.failureData[0] as {value: {employeeList: Record<string, {errors: unknown; pendingAction: unknown}>}}).value.employeeList;
 
-            Member.clearUpdateMemberRoleError(fakePolicy.id, [member2]);
-            await waitForBatchedUpdates();
-
-            policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
-            expect(policy?.employeeList?.[member2]?.errors).toBeNull();
-            expect(policy?.employeeList?.[member2]?.pendingAction).toBeNull();
-        });
-    });
-
-    describe('clearApproveOnlyRoleBlockedErrors', () => {
-        it('clears errors for all members in a bulk approve-only role change', async () => {
-            const member1 = createPersonalDetails(1);
-            const member2 = createPersonalDetails(2);
-            const memberLogin1 = member1.login ?? '';
-            const memberLogin2 = member2.login ?? '';
-            const fakePolicy: PolicyType = {
-                ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
-                employeeList: {
-                    [memberLogin1]: {
-                        email: memberLogin1,
-                        role: CONST.POLICY.ROLE.USER,
-                    },
-                    [memberLogin2]: {
-                        email: memberLogin2,
-                        role: CONST.POLICY.ROLE.USER,
-                    },
-                },
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            mockFetch?.pause?.();
-
-            Member.updateWorkspaceMembersRole(fakePolicy, [memberLogin1, memberLogin2], [member1.accountID, member2.accountID], CONST.POLICY.ROLE.APPROVE_ONLY);
-            await waitForBatchedUpdates();
-
-            // Simulate failure data setting error on both member rows
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {
-                employeeList: {
-                    [memberLogin1]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        errors: {error: 'Failed'},
-                    },
-                    [memberLogin2]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        errors: {error: 'Failed'},
-                    },
-                },
-            });
-
-            // When backend blocks role change reporting memberLogin1
-            Member.clearApproveOnlyRoleBlockedErrors(fakePolicy.id, memberLogin1);
-            await waitForBatchedUpdates();
-
-            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
-            expect(policy?.employeeList?.[memberLogin1]?.errors).toBeNull();
-            expect(policy?.employeeList?.[memberLogin1]?.pendingAction).toBeNull();
-            expect(policy?.employeeList?.[memberLogin2]?.errors).toBeNull();
-            expect(policy?.employeeList?.[memberLogin2]?.pendingAction).toBeNull();
-
-            await mockFetch?.resume?.();
+            expect(adminFailureEmployeeList[member1].errors).toBeTruthy();
+            expect(adminFailureEmployeeList[member1].pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
         });
     });
     describe('requestWorkspaceOwnerChange', () => {
