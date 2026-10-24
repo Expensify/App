@@ -14,6 +14,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isTrackExpenseReportNew} from '@libs/ReportUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -28,6 +29,7 @@ import type {OnyxEntry} from 'react-native-onyx';
  * than being duplicated across every surface that renders a transaction.
  */
 import {guidedSetupAndTourStatusSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
@@ -36,6 +38,7 @@ import {useCurrencyListActions} from './useCurrencyList';
 import useDelegateAccountID from './useDelegateAccountID';
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import {useLiveDuplicateTransactionsAndViolations} from './useDuplicateTransactionsAndViolations';
+import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -85,6 +88,7 @@ type UseTransactionInlineEditReturn = {
 };
 
 function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: UseTransactionInlineEditParams): UseTransactionInlineEditReturn {
+    const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -135,6 +139,10 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reportPolicyID)}`);
+    // The thread report is built under the report passed as parentReport, so the snapshot comes from that report's policy
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(parentReportForAction?.policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const [transactionThreadNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [chatReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(chatReportID)}`);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -207,6 +215,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             transactionThreadReport: transactionThreadReport ?? liveTransactionThreadReport,
             policy: completePolicy ?? policy,
             policyForTrackExpense: isTrackExpense ? policyForMovingExpenses : undefined,
+            fullPolicySnapshotLastModified,
             policyCategories,
             policyTags,
             reportPolicyTags,
@@ -237,11 +246,11 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     };
 
     const onEditMerchant = (newMerchant: string) => {
-        editTransactionMerchantInline(getEditParams(), newMerchant);
+        showInlineEditError(editTransactionMerchantInline(translate, getEditParams(), newMerchant));
     };
 
     const onEditDescription = (newDescription: string) => {
-        editTransactionDescriptionInline(getEditParams(), newDescription);
+        showInlineEditError(editTransactionDescriptionInline(translate, getEditParams(), newDescription));
     };
 
     const onEditCategory = (newCategory: string) => {
@@ -249,7 +258,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     };
 
     const onEditAmount = (newAmount: number) => {
-        editTransactionAmountInline(getEditParams(), newAmount);
+        showInlineEditError(editTransactionAmountInline(translate, getEditParams(), newAmount));
     };
 
     const onEditTag = (newTag: string) => {

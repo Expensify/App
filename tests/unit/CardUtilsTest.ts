@@ -3744,7 +3744,7 @@ describe('CardUtils', () => {
 
     describe('getCompanyCardDescription', () => {
         const mockTranslate: LocalizedTranslate = (key, ...parameters) => {
-            if (key === 'cardTransactions.travelInvoicing' && parameters.length === 0) {
+            if (key === 'cardTransactions.travelBilling' && parameters.length === 0) {
                 return 'Travel invoicing';
             }
             return key;

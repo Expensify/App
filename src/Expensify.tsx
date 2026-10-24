@@ -38,6 +38,7 @@ import PushNotification from './libs/Notification/PushNotification';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
 import {scheduleInitialDatabaseSizeMeasurement} from './libs/telemetry/databaseSizeTracker';
+import reportFullyDrawn from './libs/telemetry/reportFullyDrawn';
 import {cleanupTelemetryTrackers, initializeTelemetryTrackers} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
@@ -209,6 +210,7 @@ function Expensify() {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
+        reportFullyDrawn();
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER);
         scheduleInitialDatabaseSizeMeasurement();
