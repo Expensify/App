@@ -21,7 +21,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {SvgProps} from 'react-native-svg';
 
-import React, {useEffect, useRef} from 'react';
+import React, {Suspense, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
@@ -127,7 +127,9 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false, 
         >
             <View style={[styles.flex1, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {}, styles.overflowHidden, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
-                    <ImageSVG src={backgroundImage} />
+                    <Suspense fallback={null}>
+                        <ImageSVG src={backgroundImage} />
+                    </Suspense>
                 </View>
                 <View style={styles.eReceiptContentContainer}>
                     <View>

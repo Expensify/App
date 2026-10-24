@@ -5,7 +5,6 @@ import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
-import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -14,28 +13,42 @@ import useEarlyRenewalPeriod from '@hooks/useEarlyRenewalPeriod';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
+import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {acceptEarlyRenewalOffer} from '@libs/actions/EarlyRenewalOffer';
 import Navigation from '@libs/Navigation/Navigation';
 
+import {getBaseTheme} from '@styles/theme/utils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useState} from 'react';
+import React, {lazy, Suspense, useState} from 'react';
 import {View} from 'react-native';
 
 import EarlyRenewalOfferTile from './EarlyRenewalOfferTile';
+
+// Each theme's pattern is its own async chunk, so it stays out of the main bundle.
+const IceCreamBackgroundLight = lazy(() =>
+    import('@assets/images/themeDependent/ice-cream_background-fade-light.svg').catch((): {default: React.FC} => ({
+        default: () => null,
+    })),
+);
+const IceCreamBackgroundDark = lazy(() =>
+    import('@assets/images/themeDependent/ice-cream_background-fade-dark.svg').catch((): {default: React.FC} => ({
+        default: () => null,
+    })),
+);
 
 type IncentivizedOfferID = typeof CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_ONE_YEAR | typeof CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_TWO_YEARS;
 
 function EarlyRenewalOfferPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const themeIllustrations = useThemeIllustrations();
+    const themePreference = useThemePreference();
+    const IceCreamBackground = getBaseTheme(themePreference) === CONST.THEME.DARK ? IceCreamBackgroundDark : IceCreamBackgroundLight;
     const illustrations = useMemoizedLazyIllustrations(['IceCreamMenu', 'IceCreamNumberOne', 'IceCreamNumberTwo']);
     const [selectedOfferID, setSelectedOfferID] = useState<IncentivizedOfferID | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
@@ -72,11 +85,12 @@ function EarlyRenewalOfferPage() {
             >
                 {/* The pattern starts just above the header's bottom edge, so it shows behind the title as in Figma. */}
                 <View style={styles.earlyRenewalOfferBackground}>
-                    <ImageSVG
-                        src={themeIllustrations.IceCreamBackgroundImage}
-                        width={variables.earlyRenewalOfferBackgroundWidth}
-                        height={variables.earlyRenewalOfferBackgroundHeight}
-                    />
+                    <Suspense fallback={null}>
+                        <IceCreamBackground
+                            width={variables.earlyRenewalOfferBackgroundWidth}
+                            height={variables.earlyRenewalOfferBackgroundHeight}
+                        />
+                    </Suspense>
                 </View>
                 <HeaderWithBackButtonAndTitle
                     title={translate('earlyRenewal.claim')}

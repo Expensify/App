@@ -1,5 +1,3 @@
-import EReceiptBackground from '@assets/images/eReceipt_background.svg';
-
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,10 +13,11 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
-import React, {useMemo} from 'react';
+import React, {Suspense, useMemo} from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
+import {EReceiptBGDistance} from './Icon/EReceiptBGs';
 import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
 import ReceiptImage from './ReceiptImage';
@@ -58,11 +57,13 @@ function DistanceEReceiptPanel({transaction}: DistanceEReceiptPanelProps) {
     );
     return (
         <View style={styles.eReceiptPanel}>
-            <ImageSVG
-                src={EReceiptBackground}
-                style={styles.eReceiptBackground}
-                pointerEvents="none"
-            />
+            <Suspense fallback={null}>
+                <ImageSVG
+                    src={EReceiptBGDistance}
+                    style={styles.eReceiptBackground}
+                    pointerEvents="none"
+                />
+            </Suspense>
 
             <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
                 {!canShowStoredRouteMap || !thumbnailSource ? (
