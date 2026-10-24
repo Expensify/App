@@ -9,11 +9,15 @@ import type {ModalProps} from './ModalContext';
 
 import {ModalActions} from './ModalContext';
 
-type DecisionModalWrapperProps = ModalProps & Omit<DecisionModalProps, 'onClose' | 'onSecondOptionSubmit' | 'onFirstOptionSubmit' | 'isVisible' | 'isSmallScreenWidth'>;
+type DecisionModalWrapperProps = ModalProps &
+    Omit<DecisionModalProps, 'onClose' | 'onSecondOptionSubmit' | 'onFirstOptionSubmit' | 'isVisible' | 'isSmallScreenWidth'> & {
+        /** Whether dismissing the modal (backdrop, Escape, or Back) resolves with `ModalActions.DISMISS` instead of the second option's `ModalActions.CLOSE` */
+        shouldReportDismiss?: boolean;
+    };
 
-function DecisionModalWrapper({closeModal, onModalHide, ...props}: DecisionModalWrapperProps) {
+function DecisionModalWrapper({closeModal, onModalHide, shouldReportDismiss = false, ...props}: DecisionModalWrapperProps) {
     const [isVisible, setIsVisible] = useState(true);
-    const [closeAction, setCloseAction] = useState<typeof ModalActions.CONFIRM | typeof ModalActions.CLOSE>(ModalActions.CLOSE);
+    const [closeAction, setCloseAction] = useState<typeof ModalActions.CONFIRM | typeof ModalActions.CLOSE | typeof ModalActions.DISMISS>(ModalActions.CLOSE);
     // We need to use isSmallScreenWidth here because the DecisionModal breaks in RHP with shouldUseNarrowLayout.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -25,6 +29,11 @@ function DecisionModalWrapper({closeModal, onModalHide, ...props}: DecisionModal
 
     const handleSecondOption = () => {
         setCloseAction(ModalActions.CLOSE);
+        setIsVisible(false);
+    };
+
+    const handleDismiss = () => {
+        setCloseAction(shouldReportDismiss ? ModalActions.DISMISS : ModalActions.CLOSE);
         setIsVisible(false);
     };
 
@@ -45,7 +54,7 @@ function DecisionModalWrapper({closeModal, onModalHide, ...props}: DecisionModal
             isSmallScreenWidth={isSmallScreenWidth}
             onFirstOptionSubmit={handleFirstOption}
             onSecondOptionSubmit={handleSecondOption}
-            onClose={handleSecondOption}
+            onClose={handleDismiss}
             onModalHide={handleModalHide}
         />
     );

@@ -121,7 +121,7 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => {
 });
 
 describe('useAssignCard', () => {
-    const mockSetShouldShowOfflineModal = jest.fn();
+    const mockOnOfflineAssign = jest.fn();
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -158,7 +158,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockCustomFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    onOfflineAssign: mockOnOfflineAssign,
                 }),
             );
 
@@ -173,7 +173,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockCustomFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    onOfflineAssign: mockOnOfflineAssign,
                 }),
             );
 
@@ -187,7 +187,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockCustomFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    onOfflineAssign: mockOnOfflineAssign,
                 }),
             );
 
@@ -216,7 +216,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockCustomFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    onOfflineAssign: mockOnOfflineAssign,
                 }),
             );
 
@@ -233,7 +233,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockCustomFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    onOfflineAssign: mockOnOfflineAssign,
                 }),
             );
 
@@ -250,13 +250,13 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockDirectFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    onOfflineAssign: mockOnOfflineAssign,
                 }),
             );
 
             result.current.assignCard('Chase Checking 0000', 'Chase Checking 0000');
 
-            expect(mockSetShouldShowOfflineModal).toHaveBeenCalledWith(true);
+            expect(mockOnOfflineAssign).toHaveBeenCalledTimes(1);
         });
 
         it('should not show offline modal for commercial feed when offline', () => {
@@ -267,14 +267,14 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockCustomFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    onOfflineAssign: mockOnOfflineAssign,
                 }),
             );
 
             result.current.assignCard('490901XXXXXX1234', 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1');
 
             // Commercial feeds should work offline - offline modal should not be shown
-            expect(mockSetShouldShowOfflineModal).not.toHaveBeenCalled();
+            expect(mockOnOfflineAssign).not.toHaveBeenCalled();
         });
     });
 
@@ -286,7 +286,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockCustomFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    onOfflineAssign: mockOnOfflineAssign,
                 }),
             );
 
@@ -307,7 +307,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockDirectFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    onOfflineAssign: mockOnOfflineAssign,
                 }),
             );
 
@@ -340,7 +340,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockDirectFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    onOfflineAssign: mockOnOfflineAssign,
                 }),
             );
 
@@ -375,7 +375,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: csvFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    onOfflineAssign: mockOnOfflineAssign,
                 }),
             );
 
@@ -401,7 +401,7 @@ describe('useAssignCard', () => {
                 useAssignCard({
                     feedName: mockDirectFeed,
                     policyID: mockPolicyID,
-                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                    onOfflineAssign: mockOnOfflineAssign,
                 }),
             );
 
