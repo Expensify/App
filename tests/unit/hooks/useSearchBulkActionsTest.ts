@@ -10,7 +10,7 @@ import {exportSearchItemsToCSV, getExportTemplates, queueExportSearchItemsToCSV,
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {Card, ReportAction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -727,6 +727,51 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(mockUnholdRequest).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'tx1', reportID: 'childReport1', isOffline: true}));
             expect(mockUnholdRequest).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'tx2', reportID: 'childReport2', isOffline: true}));
             expect(mockShowDecisionModal).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('bulk move', () => {
+        function makeUnreportedCardExpense(transactionID: string, cardID: number) {
+            const transaction = createRandomTransaction(Number(transactionID.replace('tx', '')));
+            transaction.transactionID = transactionID;
+            transaction.reportID = CONST.REPORT.UNREPORTED_REPORT_ID;
+            transaction.cardID = cardID;
+            return makeSelectedTransaction({canChangeReport: true, reportID: CONST.REPORT.UNREPORTED_REPORT_ID, policyID: undefined, transaction});
+        }
+
+        it('offers Move expenses for several unreported card expenses that belong to the same cardholder', async () => {
+            // Given the user's own card, and two unreported expenses on it that have no money request action in the snapshot
+            const cardID = 101;
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: createMock<Card>({cardID, accountID: CURRENT_USER_ACCOUNT_ID})});
+            mockSelectedTransactions = {
+                tx1: makeUnreportedCardExpense('tx1', cardID),
+                tx2: makeUnreportedCardExpense('tx2', cardID),
+            };
+
+            // When the bulk actions are created for the Expenses search
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            // Then the owner resolves through the card and Move expenses is offered
+            await waitFor(() => {
+                expect(result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT)).toBeDefined();
+            });
+        });
+
+        it('hides Move expenses for several unreported expenses whose owner cannot be resolved', async () => {
+            // Given two unreported expenses on a card the user cannot see, with no money request action in the snapshot
+            mockSelectedTransactions = {
+                tx1: makeUnreportedCardExpense('tx1', 202),
+                tx2: makeUnreportedCardExpense('tx2', 202),
+            };
+
+            // When the bulk actions are created for the Expenses search
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            // Then Move expenses stays hidden, because the expenses could belong to different submitters
+            await waitFor(() => {
+                expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+            });
+            expect(result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT)).toBeUndefined();
         });
     });
 });
