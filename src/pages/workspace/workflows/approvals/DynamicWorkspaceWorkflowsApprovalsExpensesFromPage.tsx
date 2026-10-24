@@ -26,10 +26,10 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {canMemberWrite, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {
     getApproverChainKey,
-    getApprovalWorkflowRulesForPolicy,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     includesEveryWorkspaceMember,

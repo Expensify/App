@@ -1,4 +1,5 @@
-import {getApprovalWorkflowRulesForPolicy, hasApprovalWorkflowWithNonMemberApprover} from '@libs/WorkflowUtils';
+import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
+import {hasApprovalWorkflowWithNonMemberApprover} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

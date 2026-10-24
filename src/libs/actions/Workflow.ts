@@ -1,9 +1,9 @@
 import {write} from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, SetApprovalWorkflowParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getDefaultApprover, isNonMemberApprover} from '@libs/PolicyUtils';
-import type {ApprovalWorkflowRulesDiff} from '@libs/WorkflowUtils';
+import type {ApprovalWorkflowRulesDiff} from '@libs/RuleUtils';
+import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
 import {
     addMembersToRule,
     applyApprovalWorkflowRulesDiff,
@@ -11,7 +11,6 @@ import {
     buildApprovalWorkflowRulesForSave,
     calculateApprovers,
     convertApprovalWorkflowToPolicyEmployees,
-    getApprovalWorkflowRulesForPolicy,
     getNonMemberApproverError,
     getOverLimitForwardsToDisplayName,
     getWorkflowMemberEmails,
@@ -40,6 +39,9 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import lodashDropRightWhile from 'lodash/dropRightWhile';
 import Onyx from 'react-native-onyx';
 
+import type {ApprovalWorkflowRulesOnyxDataParams} from './ApprovalWorkflowRulesOnyxData';
+
+import {buildApprovalWorkflowRulesOnyxData} from './ApprovalWorkflowRulesOnyxData';
 import {completeTask} from './Task';
 
 type CreateApprovalWorkflowParams = {
@@ -296,66 +298,10 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     write(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
-type SetApprovalWorkflowRulesParams = {
-    policyID: string;
-
-    /**
-     * Diff of rules keyed by ruleID. A value of `ApprovalWorkflowRule` sets/replaces the rule
-     * under its `ruleID` in the `ONYXKEYS.COLLECTION.RULE` collection; a value of `null` removes it.
-     */
-    rulesDiff: ApprovalWorkflowRulesDiff;
-
-    /** The rules as currently stored in Onyx, which `rulesDiff` is applied on top of. Used to roll back on failure. */
-    previousRules: OnyxCollection<Rule>;
-};
-
-/**
- * Build the Onyx updates for a request that applies a diff of approval-workflow rules: the diff shows while the request
- * is pending, and is kept when it succeeds or rolled back when it fails.
- */
-function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
-    const genericError = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
-
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
-
-    for (const [ruleID, rule] of Object.entries(rulesDiff)) {
-        const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${ruleID}` as const;
-        const previousRule = previousRules?.[ruleKey];
-        const restore: OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE> = previousRule
-            ? {onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: {...previousRule, pendingAction: null, errors: genericError}}
-            : {onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: null};
-
-        if (rule === null) {
-            optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: ruleKey, value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null}});
-            successData.push({onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: null});
-            failureData.push(restore);
-            continue;
-        }
-
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: ruleKey,
-            value: {
-                ...rule,
-                scope: CONST.RULES.SCOPE.POLICY,
-                scopeID: policyID,
-                pendingAction: previousRule ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                errors: null,
-            },
-        });
-        successData.push({onyxMethod: Onyx.METHOD.MERGE, key: ruleKey, value: {pendingAction: null}});
-        failureData.push(restore);
-    }
-
-    return {optimisticData, successData, failureData};
-}
-
 /**
  * Apply a set of approval-workflow rule changes to a policy via the SetApprovalWorkflow Auth command.
  */
-function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
+function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: ApprovalWorkflowRulesOnyxDataParams) {
     if (!policyID || isEmptyObject(rulesDiff)) {
         return;
     }
@@ -366,15 +312,6 @@ function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetAppro
     };
 
     write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules}));
-}
-
-/**
- * Build the Onyx updates for a request whose backend deletes the policy's approval workflow rules, the way
- * setApprovalWorkflowRules deletes rules: they stop routing while the request is pending, and come back if it fails.
- */
-function buildDeleteApprovalWorkflowRulesOnyxData(policyID: string, rules: OnyxCollection<Rule>) {
-    const rulesDiff: ApprovalWorkflowRulesDiff = Object.fromEntries(Object.keys(getApprovalWorkflowRulesForPolicy(rules, policyID)).map((ruleID) => [ruleID, null]));
-    return buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules: rules});
 }
 
 type CreateApprovalWorkflowRulesParams = CreateApprovalWorkflowParams & {
@@ -797,7 +734,6 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
 }
 
 export {
-    buildDeleteApprovalWorkflowRulesOnyxData,
     createApprovalWorkflow,
     createApprovalWorkflowRules,
     removeApprovalWorkflowRules,
