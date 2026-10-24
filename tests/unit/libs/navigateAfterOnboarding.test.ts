@@ -71,4 +71,19 @@ describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
         expect(setOnboardingRHPVariant).toHaveBeenCalledWith(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
         expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(false);
     });
+
+    it.each([false, true])('navigates to Spend > Expenses without opening the side panel for onboarding exits (narrow layout: %s)', (shouldUseNarrowLayout) => {
+        // Given an onboarding exit that creates or joins a Submit workspace, where Home's Getting started is the only onboarding
+
+        // When an onboarding caller asks it not to open the side panel
+        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue('test-policy-id', shouldUseNarrowLayout, false);
+
+        // Then it still lands on Spend > Expenses and stores the rhpAdminsRoom variant, so admins who open the side panel later see #admins,
+        // but the side panel isn't opened on any layout
+        expect(navigationMock.navigate).toHaveBeenCalledWith(
+            ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
+        );
+        expect(setOnboardingRHPVariant).toHaveBeenCalledWith(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
+        expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
+    });
 });

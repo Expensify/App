@@ -131,7 +131,8 @@ function useAutoCreateSubmitWorkspace() {
                 policyIDForNavigation = existingSubmitPolicyID;
             }
 
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout);
+            // Onboarding lands on Expenses with the side panel closed. Already-onboarded callers keep opening it.
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout, !shouldCompleteOnboarding);
         },
         [
             currentUserEmail,

@@ -191,7 +191,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         });
 
         if (shouldUseSubmitFlow) {
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, shouldUseNarrowLayout);
+            // Onboarding lands on Expenses with the side panel closed, so the user is only onboarded in one place
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, shouldUseNarrowLayout, false);
             return;
         }
 
