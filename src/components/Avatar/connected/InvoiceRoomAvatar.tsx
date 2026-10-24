@@ -99,7 +99,7 @@ function InvoiceRoomAvatar({
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`, {selector: policyAvatarFieldsSelector});
 
     // The unknown account, standing in for a missing receiver.
-    const receiverIcon = getInvoiceReceiverIcon(invoiceReceiver, invoiceReceiverPolicy, personalDetails) ?? {
+    const receiverIcon = getInvoiceReceiverIcon(invoiceReceiver, invoiceReceiverPolicy, personalDetails ?? undefined) ?? {
         id: CONST.DEFAULT_NUMBER_ID,
         type: CONST.ICON_TYPE_AVATAR,
         source: defaultAvatars.FallbackAvatar,
