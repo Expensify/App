@@ -212,7 +212,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
                             nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH};
                         } else if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
                             nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH};
-                        } else if (policy?.autoReportingOffset !== undefined) {
+                        } else if (typeof policy?.autoReportingOffset === 'number') {
                             let etaDateTime = setDate(new Date(), policy?.autoReportingOffset);
                             if (isPast(etaDateTime)) {
                                 etaDateTime = addMonths(etaDateTime, 1);

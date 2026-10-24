@@ -11,9 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPolicyErrorField, setWorkspaceAutoHarvesting} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCorrectedAutoReportingFrequency} from '@libs/PolicyUtils';
-
-import {getAutoReportingFrequencyDisplayNames} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
+import {getSubmissionScheduleDescription, getSubmissionScheduleSummary} from '@libs/SubmissionScheduleUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
@@ -30,12 +28,13 @@ type WorkflowsSubmissionsTabProps = {
 };
 
 function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
-    const {translate} = useLocalize();
+    const {translate, toLocaleOrdinal} = useLocalize();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteWorkflows, showReadOnlyModal, withReadOnlyFallback: withWorkflowsReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
 
+    const scheduleDescription = getSubmissionScheduleDescription(policy, translate);
     const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policyID)), [policyID]);
 
@@ -64,13 +63,14 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
                     >
                         <MenuItemField.Row
                             name={translate('common.frequency')}
-                            value={getAutoReportingFrequencyDisplayNames(translate)[getCorrectedAutoReportingFrequency(policy) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]}
+                            value={getSubmissionScheduleSummary(policy, translate, toLocaleOrdinal)}
                         >
                             <>
                                 {hasDelayedSubmissionError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                                 {canWriteWorkflows && <MenuItem.Chevron />}
                             </>
                         </MenuItemField.Row>
+                        {!!scheduleDescription && <MenuItem.HelpText message={scheduleDescription} />}
                     </MenuItemSectionRoot>
                 </View>
             }
