@@ -135,9 +135,9 @@ function MoneyReportView({
     ];
 
     const policyReportFields = useMemo(() => {
-        const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
+        const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs, policy?.errorFields);
         return Object.values(fieldsByName).filter((field) => isReportFieldTargetMatchingReport(report, field));
-    }, [policy?.fieldList, report, reportNameValuePairs]);
+    }, [policy?.fieldList, policy?.errorFields, report, reportNameValuePairs]);
 
     const isOnlyTitleFieldEnabled = policyReportFields.every(shouldHideSingleReportField);
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report, transactions.length > 0);

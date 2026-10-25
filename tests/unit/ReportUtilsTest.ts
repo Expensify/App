@@ -274,7 +274,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type {Icon, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Icon, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
 import type {Participant, Participants, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -22751,8 +22751,8 @@ describe('ReportUtils', () => {
             expect(getAvailableReportFields(report, policyFieldList)).toEqual(expectedFieldList);
         });
 
-        it('should skip policy fields pending ADD that are not on the report', async () => {
-            // Given an unsettled report and a policy field that failed to be created, so it is still pending ADD on the policy but was removed from the report
+        it('should skip policy fields that failed to be created', async () => {
+            // Given an unsettled report and a policy field that failed to be created, so it is still pending ADD on the policy with an error and was removed from the report
             const report = createMock<Report>({
                 reportID: '3',
                 policyID: '1',
@@ -22760,12 +22760,31 @@ describe('ReportUtils', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             const failedPolicyField = {...fieldList2.expensify_field_id_LIST_POLICY, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- ErrorFields doesn't model the nested fieldList.<fieldKey>.defaultValue shape the server uses
+            const policyErrorFields = {fieldList: {expensify_field_id_LIST_POLICY: {defaultValue: {1: 'Error'}}}} as unknown as ErrorFields;
 
             // When getting the available report fields
-            const availableFields = getAvailableReportFields(report, [failedPolicyField]);
+            const availableFields = getAvailableReportFields(report, [failedPolicyField], policyErrorFields);
 
             // Then the failed field is not shown on the report
             expect(availableFields).toEqual(Object.values(fieldList1));
+        });
+
+        it('should keep policy fields pending ADD without an error that are not on the report', async () => {
+            // Given a report created after a field was added offline, so the field is pending ADD on the policy, has no error, and was never written to this report
+            const report = createMock<Report>({
+                reportID: 'reportCreatedAfterOfflineFieldAdd',
+                policyID: '1',
+                fieldList: {},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const pendingPolicyField = {...fieldList2.expensify_field_id_LIST_POLICY, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+
+            // When getting the available report fields
+            const availableFields = getAvailableReportFields(report, [pendingPolicyField], {});
+
+            // Then the pending field is still shown, because it hasn't failed
+            expect(availableFields.map(({fieldID}) => fieldID)).toEqual(['field_id_LIST_POLICY']);
         });
 
         it('should keep policy fields pending ADD that are already on the report', async () => {

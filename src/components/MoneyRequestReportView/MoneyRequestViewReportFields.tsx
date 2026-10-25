@@ -141,7 +141,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
     };
 
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
-        const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
+        const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs, policy?.errorFields);
         const fields = Object.values(fieldsByName);
 
         return fields

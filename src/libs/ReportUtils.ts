@@ -5573,7 +5573,8 @@ function isReportFieldDisabledForUser(
  */
 function canEditReportTitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined, rules: OnyxCollection<Rule>): boolean {
     const titleField =
-        getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField)) ?? getTitleFieldWithFallback(policy);
+        getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}), policy?.errorFields).find((reportField) => isReportFieldOfTypeTitle(reportField)) ??
+        getTitleFieldWithFallback(policy);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules);
 
     return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isGroupPolicyPolicyUtils(policy);
@@ -5638,7 +5639,11 @@ function getReportFieldsByPolicyID(policy: OnyxEntry<Policy>): Policy['fieldList
  * Get the report fields that we should display a MoneyReportView gets opened
  */
 
-function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields: Array<PolicyReportField & {pendingAction?: PendingAction | null}>): PolicyReportField[] {
+function getAvailableReportFields(
+    report: OnyxEntry<Report>,
+    policyReportFields: Array<PolicyReportField & {pendingAction?: PendingAction | null}>,
+    policyErrorFields?: ErrorFields,
+): PolicyReportField[] {
     // Get the report fields that are attached to a report. These will persist even if a field is deleted from the policy.
     const reportFields = Object.values(report?.fieldList ?? {});
     const reportIsSettled = isSettled(report?.reportID);
@@ -5650,10 +5655,12 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
 
     // If the report is unsettled, we want to merge the new fields that get added to the policy with the fields that
     // are attached to the report.
-    // Skip policy fields pending ADD that aren't on the report yet. Optimistic adds are written to the report too, so this
-    // keeps fields that failed to be created (kept on the policy until their error is dismissed) off reports.
+    // Skip policy fields that failed to be created. They stay on the policy, pending ADD with an error, until the error is
+    // dismissed. Fields still pending ADD without an error (for example, created offline) are kept.
     const reportFieldIDs = new Set(reportFields.map(({fieldID}) => fieldID));
-    const availablePolicyReportFields = policyReportFields.filter(({fieldID, pendingAction}) => pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || reportFieldIDs.has(fieldID));
+    const availablePolicyReportFields = policyReportFields.filter(
+        ({fieldID, pendingAction}) => pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || !policyErrorFields?.fieldList?.[getReportFieldKey(fieldID)],
+    );
     const mergedFieldIds = Array.from(new Set([...availablePolicyReportFields.map(({fieldID}) => fieldID), ...reportFieldIDs]));
 
     const fields = mergedFieldIds.map((id) => {
@@ -10821,7 +10828,7 @@ function hasVisibleReportFieldViolations(
         return false;
     }
 
-    const {fieldsByName} = getReportFieldMaps(report, policy.fieldList, reportNameValuePairs);
+    const {fieldsByName} = getReportFieldMaps(report, policy.fieldList, reportNameValuePairs, policy.errorFields);
 
     return Object.values(fieldsByName).some((field) => {
         if (!isReportFieldTargetMatchingReport(report, field)) {
@@ -15064,8 +15071,9 @@ function getReportFieldMaps(
     report: OnyxEntry<Report>,
     fieldList: Record<string, PolicyReportField>,
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>,
+    policyErrorFields?: ErrorFields,
 ): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
-    const availableFields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
+    const availableFields = getAvailableReportFields(report, Object.values(fieldList ?? {}), policyErrorFields);
     const invoiceReportFields = report?.type === CONST.REPORT.TYPE.INVOICE ? getInvoiceReportFieldsFromReportNameValuePairs(reportNameValuePairs) : [];
     const fieldsMatchingReport = [...availableFields, ...invoiceReportFields].filter((field) => isReportFieldTargetMatchingReport(report, field));
     const fields = [...new Map(fieldsMatchingReport.map((field) => [field.fieldID, field])).values()];
