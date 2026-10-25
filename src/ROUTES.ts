@@ -2351,6 +2351,7 @@ const ROUTES = {
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
+    TALK_TO_HUMAN: 'settings/help/talk-to-human',
     TRACK_EXPENSE: 'track-expense',
     SUBMIT_EXPENSE: 'submit-expense',
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
@@ -2788,7 +2789,6 @@ const ROUTES = {
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_TROUBLESHOOT_SERVER: 'settings/troubleshoot/server',
     SETTINGS_HELP: 'settings/help',
-    SETTINGS_HELP_TALK_TO_HUMAN: 'settings/help/talk-to-human',
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
     SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD: 'settings/teachersunite/add-payment-card',

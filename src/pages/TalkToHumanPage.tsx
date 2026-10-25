@@ -1,0 +1,52 @@
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
+import ScreenWrapper from '@components/ScreenWrapper';
+
+import useNetwork from '@hooks/useNetwork';
+import useOpenSupportTicket from '@hooks/useOpenSupportTicket';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import ROUTES from '@src/ROUTES';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
+
+// Utility page: goes back, then does what the Help page's Talk to a human row does (offline it shows Help instead).
+function TalkToHumanPage() {
+    const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+    const {openSupportTicketOrConcierge} = useOpenSupportTicket();
+    const hasHandledLink = useRef(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            Navigation.isNavigationReady().then(() => {
+                if (hasHandledLink.current) {
+                    return;
+                }
+                hasHandledLink.current = true;
+
+                Navigation.goBack();
+                if (isOffline) {
+                    Navigation.navigate(ROUTES.SETTINGS_HELP);
+                    return;
+                }
+                openSupportTicketOrConcierge();
+            });
+        }, [isOffline, openSupportTicketOrConcierge]),
+    );
+
+    return (
+        <ScreenWrapper testID="TalkToHumanPage">
+            <View style={[styles.borderBottom]}>
+                <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
+            </View>
+            <ReportActionsSkeletonView />
+        </ScreenWrapper>
+    );
+}
+
+export default TalkToHumanPage;
