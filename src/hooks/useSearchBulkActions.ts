@@ -2940,18 +2940,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         if (areAllMatchingItemsSelected) {
-            // The backend skips the matching reports the user can't act on, so one loaded item that allows the action is enough to offer it.
-            const hasLoadedItemWith = (reportFlag: 'canApprove' | 'canSubmit', actionType: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>) =>
-                selectedReports.length ? selectedReports.some((report) => report[reportFlag]) : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === actionType);
-            const shouldShowApproveOptionForAllMatchingItems =
-                !isOffline && (isExpenseType || isExpenseReportType) && !hasSubmitPolicyTransactions && hasLoadedItemWith('canApprove', CONST.SEARCH.ACTION_TYPES.APPROVE);
+            // Approve and Submit are report actions, and the backend skips the matching reports the user can't act on.
+            const shouldShowApproveOptionForAllMatchingItems = !isOffline && isExpenseReportType && !hasSubmitPolicyTransactions && selectedReports.some((report) => report.canApprove);
             // Submit plan workspaces pick an approver per report and Mark as done is a different action, so neither is sent to the backend.
             const shouldShowSubmitOptionForAllMatchingItems =
-                !isOffline &&
-                (isExpenseType || isExpenseReportType) &&
-                !doSelectedItemsBelongToSubmitPolicy &&
-                noReportsShouldMarkAsDone &&
-                hasLoadedItemWith('canSubmit', CONST.SEARCH.ACTION_TYPES.SUBMIT);
+                !isOffline && isExpenseReportType && !doSelectedItemsBelongToSubmitPolicy && noReportsShouldMarkAsDone && selectedReports.some((report) => report.canSubmit);
 
             // Offer an all-matching move only when no rows are excluded and unloaded matches are unreported.
             // The backend rejects the entire move if any matching expense is invalid
