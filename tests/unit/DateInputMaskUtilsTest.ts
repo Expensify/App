@@ -1,5 +1,6 @@
 import {
     clearSegmentsUpTo,
+    completeZeroSegments,
     getAdjacentSegmentName,
     getClipboardTextFromSegments,
     getDateMaskParts,
@@ -502,6 +503,47 @@ describe('DateInputMaskUtils', () => {
         it('reports whether anything has been filled in', () => {
             expect(hasAnySegment(EMPTY)).toBe(false);
             expect(hasAnySegment(segments('', '09', ''))).toBe(true);
+        });
+    });
+
+    describe('completeZeroSegments', () => {
+        it('settles a segment left reading as zero on the first month or day', () => {
+            // Given a month or day the user moved on from after typing only its zero
+            // When the field is left
+            // Then it settles on the first one, since no date has a zeroth month or day
+            expect(completeZeroSegments(segments('2026', '0', '15'))).toEqual(segments('2026', '01', '15'));
+            expect(completeZeroSegments(segments('2026', '09', '0'))).toEqual(segments('2026', '09', '01'));
+            expect(completeZeroSegments(segments('2026', '0', '0'))).toEqual(segments('2026', '01', '01'));
+        });
+
+        it('settles a segment whose digits are all zeroes', () => {
+            // Given both digits typed as zeroes, which reads as the same unusable number
+            // When the field is left
+            // Then it settles the same way as a single zero does
+            expect(completeZeroSegments(segments('2026', '00', '15'))).toEqual(segments('2026', '01', '15'));
+        });
+
+        it('returns the segments themselves when there is nothing to settle', () => {
+            // Given segments that already read as numbers a date can hold
+            // When the field is left
+            // Then the very same object comes back, which is how the caller tells nothing was filled out
+            const filled = segments('2026', '09', '15');
+            expect(completeZeroSegments(filled)).toBe(filled);
+            expect(completeZeroSegments(EMPTY)).toBe(EMPTY);
+        });
+
+        it('leaves an empty segment empty', () => {
+            // Given a segment nothing was typed into, as opposed to one holding a zero
+            // When the field is left
+            // Then it stays empty, since the user never started a number there to finish
+            expect(completeZeroSegments(segments('2026', '', '0'))).toEqual(segments('2026', '', '01'));
+        });
+
+        it('leaves a year of zeroes alone', () => {
+            // Given a year reading as zero, which is four digits rather than a number cut short
+            // When the field is left
+            // Then it is left as it is, and the date it cannot make is reported instead
+            expect(completeZeroSegments(segments('0000', '09', '15'))).toEqual(segments('0000', '09', '15'));
         });
     });
 });
