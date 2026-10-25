@@ -149,17 +149,23 @@ function CalendarPicker({
     const maxMonthStart = startOfMonth(maxDate);
     const currentMonthStart = startOfMonth(currentDateView);
 
-    const onYearSelected = (year: number) => {
-        const newDateView = addYears(currentDateView, year - currentYearView);
+    /**
+     * The year and month on offer are each held to the bounds, but the date they land on need not be, since the day and
+     * whichever of the two was not picked come along unchanged. The view is pulled into range on its way to the screen,
+     * so the date handed over is pulled in the same way rather than disagreeing with the month being shown.
+     */
+    const selectMonthOrYear = (newDateView: Date) => {
         setDateView(newDateView);
-        onMonthOrYearSelected?.(format(newDateView, CONST.DATE.FNS_FORMAT_STRING));
+        onMonthOrYearSelected?.(format(clamp(newDateView, {start: minDate, end: maxDate}), CONST.DATE.FNS_FORMAT_STRING));
+    };
+
+    const onYearSelected = (year: number) => {
+        selectMonthOrYear(addYears(currentDateView, year - currentYearView));
         requestAnimationFrame(() => setIsYearPickerVisible(false));
     };
 
     const onMonthSelected = (month: number) => {
-        const newDateView = setMonth(currentDateView, month);
-        setDateView(newDateView);
-        onMonthOrYearSelected?.(format(newDateView, CONST.DATE.FNS_FORMAT_STRING));
+        selectMonthOrYear(setMonth(currentDateView, month));
         requestAnimationFrame(() => setIsMonthPickerVisible(false));
     };
 

@@ -143,12 +143,15 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
     // Set on arriving at a segment, so the next digit replaces it instead of extending it
     const [shouldOverwrite, setShouldOverwrite] = useState(false);
     const [appliedValue, setAppliedValue] = useState(value);
+    const [wasEnabled, setWasEnabled] = useState(isEnabled);
     // Digits that do not add up to a date stay on screen after the field is left, so the user can correct them
     const [hasInvalidEntry, setHasInvalidEntry] = useState(false);
     // Native selection cannot span separate inputs, so selecting the whole date is tracked here and drawn by the field
     const [isAllSelected, setIsAllSelected] = useState(false);
     // A repeated click selects as its last press goes down, and the press completing that click arrives after
     const hasJustSelectedByClick = useRef(false);
+    // Set as a finished segment hands the caret on, so the separator that usually follows knows it has already happened
+    const isCaretHandedOverRef = useRef(false);
     // Every keystroke is prevented, so each segment's input has an empty undo history of its own and the field keeps
     // one covering all three. `pastSegments` is what undo walks back through and `undoneSegments` is what redo returns.
     const pastSegments = useRef<DateSegments[]>([]);
@@ -158,6 +161,21 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         pastSegments.current = [];
         undoneSegments.current = [];
     };
+
+    // Typing is turned off by the window narrowing, and a field without segments has nowhere to show a date part way
+    // through. The entry goes with it, so widening the window again does not bring back an edit that already left the
+    // screen while the committed date was being shown in its place.
+    if (isEnabled !== wasEnabled) {
+        setWasEnabled(isEnabled);
+
+        if (!isEnabled) {
+            setIsEditing(false);
+            setSegments(EMPTY_SEGMENTS);
+            setHasInvalidEntry(false);
+            setIsAllSelected(false);
+            setViewDate(undefined);
+        }
+    }
 
     // A date set from outside, by the calendar or a restored draft, has to reach an edit in progress too
     if (value !== appliedValue) {
@@ -189,6 +207,22 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
 
         const caretPosition = element?.value?.length ?? 0;
         element?.setSelectionRange?.(caretPosition, caretPosition);
+    };
+
+    /**
+     * The digits the browser has selected inside one segment's own input, or undefined while nothing there is selected.
+     * Only a selection spanning the whole date is tracked here, since that one cannot be made natively.
+     */
+    const getSegmentSelection = (name: DateSegmentName) => {
+        const element = segmentRefs.current[name];
+        const start = element?.selectionStart;
+        const end = element?.selectionEnd;
+
+        if (typeof start !== 'number' || typeof end !== 'number' || start === end) {
+            return undefined;
+        }
+
+        return {start, end};
     };
 
     const enterSegment = (name: DateSegmentName) => {
@@ -255,6 +289,8 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
 
     const handleKeyPress = (name: DateSegmentName, event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
+        const wasCaretHandedOver = isCaretHandedOverRef.current;
+        isCaretHandedOverRef.current = false;
 
         // A shortcut is the browser's to handle, apart from the ones it cannot apply across separate inputs
         if (event.nativeEvent.metaKey || event.nativeEvent.ctrlKey) {
@@ -324,6 +360,8 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
 
             if (result.nextSegmentName) {
                 enterSegment(result.nextSegmentName);
+                // Set after the move, since arriving at the segment is what clears it
+                isCaretHandedOverRef.current = true;
             }
             return;
         }
@@ -340,6 +378,17 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
             if (wasAllSelected) {
                 applySegments(EMPTY_SEGMENTS);
                 enterSegment(FIRST_SEGMENT_NAME);
+                return;
+            }
+
+            const selection = getSegmentSelection(name);
+
+            // Selected digits are what the key takes out, the same as in any text field. A segment is zero padded from
+            // the right, so the selection is read against the text on screen rather than against the digits behind it.
+            if (selection) {
+                const shownValue = getSegmentDisplay(segments, name);
+                applySegments({...segments, [name]: `${shownValue.slice(0, selection.start)}${shownValue.slice(selection.end)}`});
+                setShouldOverwrite(false);
                 return;
             }
 
@@ -367,8 +416,8 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         event.preventDefault();
 
         // A full segment hands the caret on by itself, so the separator typed after it arrives in a segment the user
-        // has not written in yet. Moving on again would step over that segment and leave it empty.
-        if (!segments[name]) {
+        // has not written in yet. Moving on again would step over that segment, leaving whatever it held behind.
+        if (!segments[name] || wasCaretHandedOver) {
             return;
         }
 
@@ -419,6 +468,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
     };
 
     const handleSegmentFocus = () => {
+        isCaretHandedOverRef.current = false;
         setShouldOverwrite(true);
 
         if (isEditing) {
