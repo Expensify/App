@@ -5,7 +5,7 @@ import type {AgentRowData, AgentsTableColumnKey} from '@components/Tables/Agents
 
 import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent} from '@libs/actions/Agent';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
-import {getLatestError} from '@libs/ErrorUtils';
+import {getAgentErrors} from '@libs/AgentUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -80,13 +80,7 @@ function useAgentsTable() {
             ownerDisplayName = ownerDetails?.login ? Str.extractEmailDomain(ownerDetails.login) : undefined;
         }
 
-        const mergedErrors = {
-            ...getLatestError(agent.errors ?? undefined),
-            ...getLatestError(agent.nameErrors ?? undefined),
-            ...getLatestError(agent.promptErrors ?? undefined),
-            ...getLatestError(agent.avatarErrors ?? undefined),
-        };
-        const rowErrors = getLatestError(mergedErrors);
+        const agentErrors = getAgentErrors(agent);
 
         return [
             {
@@ -99,7 +93,7 @@ function useAgentsTable() {
                 ownerType: agent.ownerType,
                 ownerPolicyID,
                 pendingAction,
-                errors: Object.keys(rowErrors).length > 0 ? rowErrors : undefined,
+                errors: agentErrors && Object.keys(agentErrors).length > 0 ? agentErrors : undefined,
                 disabled: isPendingDeletion,
                 canManage: true,
                 action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(accountID))),

@@ -1,0 +1,25 @@
+import {Agent} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import {OnyxEntry} from 'react-native-onyx';
+
+import {getLatestError} from './ErrorUtils';
+
+function getAgentErrors(agent: OnyxEntry<Agent>): Errors | undefined {
+    if (!agent) {
+        return undefined;
+    }
+    const mergedErrors = {
+        ...getLatestError(agent.errors ?? undefined),
+        ...getLatestError(agent.nameErrors ?? undefined),
+        ...getLatestError(agent.promptErrors ?? undefined),
+        ...getLatestError(agent.avatarErrors ?? undefined),
+    };
+    return getLatestError(mergedErrors);
+}
+
+function doesAgentHaveErrors(agent: OnyxEntry<Agent>): boolean {
+    return !!getAgentErrors(agent);
+}
+
+export {getAgentErrors, doesAgentHaveErrors};
