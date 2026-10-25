@@ -25,10 +25,57 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ComponentRef} from 'react';
 
+import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type ThreeDotsMenuProps from './types';
+
+/**
+ * FlashList writes an explicit pixel width onto each row after the window has already resized, which moves this
+ * button without changing the button's own size. Watch the ancestors that do change size, and report once the button's window rect has actually moved.
+ */
+function subscribeToAnchorMovement(anchor: HTMLElement, onMove: () => void): () => void {
+    if (typeof ResizeObserver === 'undefined') {
+        return () => {};
+    }
+
+    const initialRect = anchor.getBoundingClientRect();
+    let lastLeft = initialRect.left;
+    let lastTop = initialRect.top;
+    let lastWidth = initialRect.width;
+    let lastHeight = initialRect.height;
+    let frame = 0;
+
+    const observer = new ResizeObserver(() => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => {
+            if (!anchor.isConnected) {
+                return;
+            }
+            const nextRect = anchor.getBoundingClientRect();
+            if (nextRect.left === lastLeft && nextRect.top === lastTop && nextRect.width === lastWidth && nextRect.height === lastHeight) {
+                return;
+            }
+            lastLeft = nextRect.left;
+            lastTop = nextRect.top;
+            lastWidth = nextRect.width;
+            lastHeight = nextRect.height;
+            onMove();
+        });
+    });
+
+    let node: HTMLElement | null = anchor;
+    while (node) {
+        observer.observe(node);
+        node = node.parentElement;
+    }
+
+    return () => {
+        cancelAnimationFrame(frame);
+        observer.disconnect();
+    };
+}
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
@@ -88,6 +135,28 @@ function ThreeDotsMenu({
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => calculatePopoverPosition(buttonRef, anchorAlignment), [anchorAlignment, calculatePopoverPosition]);
 
     const getMenuPosition = shouldSelfPosition ? calculateAndSetThreeDotsMenuPosition : getAnchorPosition;
+    const getMenuPositionRef = useRef(getMenuPosition);
+    const isPopupMenuVisibleRef = useRef(isPopupMenuVisible);
+    // Compared inside the resize effect so opening the menu does not schedule a measurement of its own.
+    const windowSizeRef = useRef({windowWidth, windowHeight});
+
+    useLayoutEffect(() => {
+        getMenuPositionRef.current = getMenuPosition;
+        isPopupMenuVisibleRef.current = isPopupMenuVisible;
+    }, [getMenuPosition, isPopupMenuVisible]);
+
+    const refreshAnchorPosition = useCallback(() => {
+        const resolvePosition = getMenuPositionRef.current;
+        if (!isPopupMenuVisibleRef.current || !resolvePosition) {
+            return;
+        }
+        resolvePosition().then((value) => {
+            if (!isPopupMenuVisibleRef.current) {
+                return;
+            }
+            setPosition((previousPosition) => (previousPosition?.horizontal === value.horizontal && previousPosition?.vertical === value.vertical ? previousPosition : value));
+        });
+    }, []);
 
     const onThreeDotsPress = () => {
         if (isPopupMenuVisible) {
@@ -137,14 +206,36 @@ function ThreeDotsMenu({
     }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible, isContainerFocused]);
 
     useLayoutEffect(() => {
-        if (!getMenuPosition || !isPopupMenuVisible) {
+        // Record resizes that happen while the menu is closed so opening it later is not treated as a resize.
+        // While it is open, leave the recorded size unchanged until the deferred measurement runs. Updating it
+        // before that would swallow the change when this effect is cleaned up and run again.
+        if (!isPopupMenuVisible || !getMenuPositionRef.current) {
+            windowSizeRef.current = {windowWidth, windowHeight};
+            return;
+        }
+        if (windowSizeRef.current.windowWidth === windowWidth && windowSizeRef.current.windowHeight === windowHeight) {
             return;
         }
 
-        getMenuPosition?.().then((value) => {
-            setPosition(value);
-        });
-    }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
+        // The row width lands after this commit, so measuring immediately would store the button's old coordinates.
+        const debouncedRefresh = debounce(() => {
+            windowSizeRef.current = {windowWidth, windowHeight};
+            refreshAnchorPosition();
+        }, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
+        debouncedRefresh();
+        return () => debouncedRefresh.cancel();
+    }, [windowWidth, windowHeight, isPopupMenuVisible, refreshAnchorPosition]);
+
+    useEffect(() => {
+        if (!isPopupMenuVisible || typeof HTMLElement === 'undefined') {
+            return;
+        }
+        const anchor = buttonRef.current;
+        if (!(anchor instanceof HTMLElement)) {
+            return;
+        }
+        return subscribeToAnchorMovement(anchor, refreshAnchorPosition);
+    }, [isPopupMenuVisible, refreshAnchorPosition]);
 
     const getIconFill = () => {
         if (!shouldChangeFillOnOpen) {
