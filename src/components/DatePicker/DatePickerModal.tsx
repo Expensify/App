@@ -100,7 +100,7 @@ function DatePickerModal({
         applySelection(newValue);
     };
 
-    const handleMonthOrYearSelection = (newValue: string) => {
+    const applyMonthOrYearSelection = (newValue: string) => {
         onMonthOrYearSelected?.(newValue);
 
         // An empty field has no day to mark as selected, so the pick only moves the calendar
@@ -147,7 +147,7 @@ function DatePickerModal({
                 value={DateUtils.parseCalendarDate(selectedDate)}
                 defaultMonth={DateUtils.parseCalendarDate(defaultValue)}
                 onSelected={handleDateSelection}
-                onMonthOrYearSelected={onMonthOrYearSelected ? handleMonthOrYearSelection : undefined}
+                onMonthOrYearSelected={onMonthOrYearSelected ? applyMonthOrYearSelection : undefined}
                 containerStyle={bottomSafeAreaPaddingStyle}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
                 viewDate={viewDate}

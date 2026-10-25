@@ -35,7 +35,6 @@ import {useRef, useState} from 'react';
 const FIRST_SEGMENT_NAME = DATE_SEGMENT_NAMES[0];
 const LAST_SEGMENT_NAME = DATE_SEGMENT_NAMES[DATE_SEGMENT_NAMES.length - 1];
 
-const DELETE_KEY = 'Delete';
 const SELECT_ALL_KEY = 'a';
 const COPY_KEY = 'c';
 const CUT_KEY = 'x';
@@ -287,14 +286,14 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         setShouldOverwrite(false);
     };
 
-    const handleKeyPress = (name: DateSegmentName, event: TextInputKeyPressEvent) => {
+    const applyKeyToSegments = (name: DateSegmentName, event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
         const wasCaretHandedOver = isCaretHandedOverRef.current;
         isCaretHandedOverRef.current = false;
 
         // A shortcut is the browser's to handle, apart from the ones it cannot apply across separate inputs
         if (event.nativeEvent.metaKey || event.nativeEvent.ctrlKey) {
-            if (key === CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey || key === DELETE_KEY) {
+            if (key === CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey || key === CONST.KEYBOARD_SHORTCUTS.DELETE.shortcutKey) {
                 event.preventDefault();
                 setIsAllSelected(false);
                 applySegments(isAllSelected ? EMPTY_SEGMENTS : clearSegmentsUpTo(segments, name));
@@ -372,7 +371,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
             return;
         }
 
-        if (key === CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey || key === DELETE_KEY) {
+        if (key === CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey || key === CONST.KEYBOARD_SHORTCUTS.DELETE.shortcutKey) {
             event.preventDefault();
 
             if (wasAllSelected) {
@@ -426,7 +425,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
     };
 
     // Every keystroke is prevented, so this only runs for text the user pasted or cut
-    const handleChangeText = (name: DateSegmentName, text: string) => {
+    const applyPastedOrCutText = (name: DateSegmentName, text: string) => {
         const shownValue = getSegmentDisplay(segments, name);
 
         // Cutting takes the digits out of the input itself rather than through a keystroke, so text going missing is
@@ -467,7 +466,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         setShouldOverwrite(false);
     };
 
-    const handleSegmentFocus = () => {
+    const startEditing = () => {
         isCaretHandedOverRef.current = false;
         setShouldOverwrite(true);
 
@@ -490,14 +489,14 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
      * segment the user has taken a digit out of reports no date at all, so the committed value never changes and
      * nothing else would tell the field to catch up.
      */
-    const handleDateSelected = (isoDate: string) => {
+    const followPickedDate = (isoDate: string) => {
         forgetHistory();
         setIsAllSelected(false);
         setHasInvalidEntry(false);
         setSegments(getSegmentsFromISODate(isoDate));
     };
 
-    const handleFieldBlur = () => {
+    const settleEntry = () => {
         forgetHistory();
         setIsEditing(false);
         setViewDate(undefined);
@@ -518,7 +517,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
     };
 
     // The clear button unmounts as it is pressed, so focus is placed here rather than left to whatever is underneath
-    const handleClear = () => {
+    const clearEntry = () => {
         forgetHistory();
         setSegments(EMPTY_SEGMENTS);
         setHasInvalidEntry(false);
@@ -612,14 +611,14 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         hasIncompleteEntry: shouldShowSegments && hasAnySegment(segments) && !getISODateFromSegments(segments),
         getSegmentProps: (name: DateSegmentName) => ({
             value: getSegmentDisplay(displayedSegments, name),
-            onKeyPress: (event: TextInputKeyPressEvent) => handleKeyPress(name, event),
-            onChangeText: (text: string) => handleChangeText(name, text),
-            onFocus: handleSegmentFocus,
+            onKeyPress: (event: TextInputKeyPressEvent) => applyKeyToSegments(name, event),
+            onChangeText: (text: string) => applyPastedOrCutText(name, text),
+            onFocus: startEditing,
             onPointerDown: () => setIsAllSelected(false),
         }),
-        onFieldBlur: handleFieldBlur,
-        onDateSelected: handleDateSelected,
-        onClear: handleClear,
+        onFieldBlur: settleEntry,
+        onDateSelected: followPickedDate,
+        onClear: clearEntry,
     };
 }
 

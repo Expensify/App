@@ -67,7 +67,7 @@ function DateSegmentsInput({
     const parts = getDateMaskParts(mask).map((part) => ({...part, segmentProps: getSegmentProps(part.name)}));
 
     // A form hangs its validation on the field's blur, so it only runs once focus leaves the whole field
-    const handleSegmentBlur: NonNullable<BaseTextInputProps['onBlur']> = (event) => {
+    const reportFieldBlur: NonNullable<BaseTextInputProps['onBlur']> = (event) => {
         if ('relatedTarget' in event.nativeEvent && isSegmentElement(event.nativeEvent.relatedTarget)) {
             return;
         }
@@ -142,7 +142,7 @@ function DateSegmentsInput({
                                         segmentProps.onFocus();
                                         onFocus?.(event);
                                     }}
-                                    onBlur={handleSegmentBlur}
+                                    onBlur={reportFieldBlur}
                                     onPressOut={onPressOut}
                                     // react-native-web gives a text input no press events, so the press that collapses
                                     // a whole field selection has to be caught as a pointer one
@@ -211,7 +211,5 @@ function DateSegmentsInput({
         </View>
     );
 }
-
-DateSegmentsInput.displayName = 'DateSegmentsInput';
 
 export default DateSegmentsInput;

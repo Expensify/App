@@ -35,8 +35,6 @@ import DatePickerModal from './DatePickerModal';
 
 const PADDING_MODAL_DATE_PICKER = 8;
 
-const DELETE_KEY = 'Delete';
-
 function DatePicker({
     defaultValue,
     disabled,
@@ -311,7 +309,7 @@ function DatePicker({
 
     // The error text renders inside the anchor, so showing or hiding it changes the height the calendar was positioned
     // from. Remeasuring on the anchor's own layout covers that without having to name each thing that can resize it.
-    const handleAnchorLayout = () => {
+    const repositionOnAnchorLayout = () => {
         if (!isModalVisible) {
             return;
         }
@@ -341,7 +339,7 @@ function DatePicker({
         };
     }, [inputID, blockingError, setInputValidationError, onValidationErrorChange]);
 
-    const handleFieldBlur = () => {
+    const leaveField = () => {
         isFieldFocusedRef.current = false;
         setIsFieldFocused(false);
 
@@ -364,7 +362,7 @@ function DatePicker({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isModalVisible]);
 
-    const handleMonthOrYearSelected = (newDate: string) => {
+    const commitPickedMonthOrYear = (newDate: string) => {
         // Picking a month or year revises a date the field already holds. An empty field has no day to go with one,
         // so it waits for the day press rather than being filled with a day nobody chose.
         if (!selectedDate) {
@@ -376,7 +374,7 @@ function DatePicker({
 
     // The pickers are modals of their own, so they take focus with them, and their focus trap holds on to it until
     // they are gone. The calendar is still open at that point, which is the field still being used.
-    const handleMonthOrYearPickerClose = () => {
+    const returnFocusFromMonthOrYearPicker = () => {
         if (!isModalVisible) {
             return;
         }
@@ -384,7 +382,7 @@ function DatePicker({
         segmentInput.focusFirstUnfilledSegment();
     };
 
-    const handleFieldFocus = () => {
+    const enterField = () => {
         isFieldFocusedRef.current = true;
         setIsFieldFocused(true);
         hasPendingFieldBlurRef.current = false;
@@ -393,10 +391,10 @@ function DatePicker({
 
     // Autofocus leaves the field focused without a calendar, so editing the date is what asks for one, as typing does
     // on a field that cannot be typed into
-    const handleTypingKeyPress = (event: TextInputKeyPressEvent) => {
+    const showCalendarOnEdit = (event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
 
-        if (!isNumeric(key) && key !== CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey && key !== DELETE_KEY) {
+        if (!isNumeric(key) && key !== CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey && key !== CONST.KEYBOARD_SHORTCUTS.DELETE.shortcutKey) {
             return;
         }
 
@@ -443,7 +441,7 @@ function DatePicker({
         <>
             <View
                 ref={anchorRef}
-                onLayout={handleAnchorLayout}
+                onLayout={repositionOnAnchorLayout}
                 style={[styles.mv2, wrapperStyle]}
             >
                 <TextInput
@@ -471,7 +469,7 @@ function DatePicker({
                                   selectAllSegments: segmentInput.selectAllSegments,
                                   isSegmentElement: segmentInput.isSegmentElement,
                                   isAllSelected: segmentInput.isAllSelected,
-                                  onFieldBlur: handleFieldBlur,
+                                  onFieldBlur: leaveField,
                                   hasTypedDigits: segmentInput.hasTypedDigits,
                               }
                             : undefined
@@ -486,8 +484,8 @@ function DatePicker({
                     onPress={shouldDismissKeyboardBeforeShow || shouldAllowTyping ? handlePress : () => showDatePickerModal()}
                     onSubmitEditing={shouldAllowTyping ? undefined : () => showDatePickerModal()}
                     // Reaching the field by keyboard never fires a press, so focus is what opens the calendar
-                    onFocus={shouldAllowTyping ? handleFieldFocus : undefined}
-                    onKeyPress={shouldAllowTyping ? handleTypingKeyPress : handleInputKeyPress}
+                    onFocus={shouldAllowTyping ? enterField : undefined}
+                    onKeyPress={shouldAllowTyping ? showCalendarOnEdit : handleInputKeyPress}
                     textInputContainerStyles={[textInputContainerStyles, (isModalVisible || isFieldFocused) && styles.borderColorFocus]}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
@@ -518,8 +516,8 @@ function DatePicker({
                 shouldCloseOnWheel={!shouldAllowTyping}
                 viewDate={segmentInput.viewDate}
                 viewDateVersion={segmentInput.viewDateVersion}
-                onMonthOrYearSelected={shouldAllowTyping ? handleMonthOrYearSelected : undefined}
-                onMonthOrYearPickerClose={shouldAllowTyping ? handleMonthOrYearPickerClose : undefined}
+                onMonthOrYearSelected={shouldAllowTyping ? commitPickedMonthOrYear : undefined}
+                onMonthOrYearPickerClose={shouldAllowTyping ? returnFocusFromMonthOrYearPicker : undefined}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
         </>
