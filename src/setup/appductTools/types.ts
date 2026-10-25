@@ -1,6 +1,6 @@
 /**
- * Result envelope every tool returns. Contract and the tools documented but not
- * built live in melvin `docs/app-state-tools.md`.
+ * Result envelope every tool returns. The contract is defined by the CI caller
+ * and mirrored in each tool's description.
  *
  * `ok: true` means the guaranteed state was read back inside the app before
  * returning, never just dispatched. `already: true` means the state held before

@@ -1,8 +1,8 @@
 import type {RegisterTool} from './types';
 
 // Shared tool registration, platform-neutral: each entry (index.web.ts on web,
-// index.ts on native) passes its own SDK's registerTool. The tool contracts
-// live in melvin `docs/app-state-tools.md`.
+// index.ts on native) passes its own SDK's registerTool. The contract for these
+// tools is defined by the CI caller and mirrored in each tool's description.
 //
 // Dev builds only: @appduct/web resolves to an inert entry outside the
 // `development` export condition on web, and the native entries guard on

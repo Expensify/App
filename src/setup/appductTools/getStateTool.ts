@@ -7,8 +7,8 @@ import type {AppductTool} from './types';
 import {isSignedIn, onboardingCompletedFlag, state} from './appductState';
 
 /**
- * Report the identity's state without acting. Contract: melvin
- * docs/app-state-tools.md.
+ * Report the identity's state without acting. The contract is defined by the CI
+ * caller and mirrored in the description below.
  *
  * The login prefers the current personal details (what the profile shows) and
  * falls back to the session/credentials copies: the signed-in email lives in

@@ -7,8 +7,8 @@ import waitFor from './waitFor';
 
 /**
  * Sign the app in as an identity through the same actions the sign-in form
- * performs (BeginSignIn, then SignUpUser for a new account). Contract: melvin
- * docs/app-state-tools.md.
+ * performs (BeginSignIn, then SignUpUser for a new account). The contract is
+ * defined by the CI caller and mirrored in the description below.
  *
  * The form resolves the pressed element into a snapshot ref, and that ref goes
  * stale when the signed-in tree re-renders between capture and press. This tool
