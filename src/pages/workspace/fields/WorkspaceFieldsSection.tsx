@@ -176,7 +176,8 @@ function WorkspaceFieldsSection({
             <OfflineWithFeedback
                 pendingAction={item.pendingAction}
                 errors={item.errors}
-                errorRowStyles={[cardPaddingHorizontal, styles.mb2]}
+                errorRowStyles={cardPaddingHorizontal}
+                errorRowTextStyles={styles.mv2}
                 onClose={() => clearReportFieldErrors(policy, item.fieldID)}
             >
                 <MenuItem
@@ -191,7 +192,7 @@ function WorkspaceFieldsSection({
                 />
             </OfflineWithFeedback>
         ),
-        [canWrite, navigateToFieldSettings, cardPaddingHorizontal, policy, styles.mb2, styles.popoverMenuText, styles.textStrong],
+        [canWrite, navigateToFieldSettings, cardPaddingHorizontal, policy, styles.mv2, styles.popoverMenuText, styles.textStrong],
     );
 
     const headerText =
