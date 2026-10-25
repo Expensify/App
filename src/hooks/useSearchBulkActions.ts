@@ -1408,7 +1408,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         // "Select all" can cover more reports than are loaded, so hand the search query to the backend to approve every match.
         if (areAllMatchingItemsSelected) {
-            const allMatchingQuery = queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : undefined;
+            if (!queryJSON) {
+                Log.info('[BulkApprove] Dropping bulk approve: no search query');
+                return;
+            }
+            const allMatchingQuery = getAllMatchingReportQuery(queryJSON, excludedTransactions);
             if (!allMatchingQuery) {
                 Log.info('[BulkApprove] Dropping bulk approve: report exclusion has no reportID');
                 return;
@@ -2697,7 +2701,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 if (areAllMatchingItemsSelected) {
-                    const allMatchingQuery = queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : undefined;
+                    if (!queryJSON) {
+                        Log.info('[BulkSubmit] Dropping bulk submit: no search query');
+                        return;
+                    }
+                    const allMatchingQuery = getAllMatchingReportQuery(queryJSON, excludedTransactions);
                     if (!allMatchingQuery) {
                         Log.info('[BulkSubmit] Dropping bulk submit: report exclusion has no reportID');
                         return;
