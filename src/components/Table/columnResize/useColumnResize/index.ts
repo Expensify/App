@@ -1,12 +1,13 @@
 /**
- * Web column resizing: dragging a column's right edge sets its width. Widths live in CSS custom properties so React
- * doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
+ * Web column resizing by dragging a column's right edge. Widths live in CSS custom properties so React doesn't render
+ * mid-drag, and the layout is saved to Onyx when the drag ends.
  */
+import {SCROLL_EXTENT_FLOOR_VARIABLE, TABLE_COLUMN_SCROLLER_SELECTOR} from '@components/Table/columnResize/columnWidthExpressions';
 import getDraggedColumnWidth from '@components/Table/columnResize/getDraggedColumnWidth';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
+import {setTableColumnWidths} from '@libs/actions/TableColumnWidths';
 
 import CONST from '@src/CONST';
 
@@ -43,7 +44,15 @@ type Drag = {
     startWidth: number;
 };
 
-function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnWidths, dragMinWidths, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
+function useColumnResize({
+    columnResizingID,
+    resizableColumnKeys,
+    getResizedColumnWidths,
+    resolvedColumnWidths,
+    dragMinWidths,
+    getStoredTableColumnWidths,
+    columnGap,
+}: UseColumnResizeParams): ColumnResizeController | undefined {
     const styles = useThemeStyles();
     const dragRef = useRef<Drag | null>(null);
     const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
@@ -58,16 +67,18 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
     const endDrag = (drag: Drag) => {
         resetDrag();
         hideIndicator();
+        scopeElementRef.current?.style.removeProperty(SCROLL_EXTENT_FLOOR_VARIABLE);
 
         const width = readColumnWidth(drag.columnKey) ?? drag.startWidth;
 
         // Nothing gets stored, so no render follows to clear the live widths.
-        if (!columnResizingID || width === drag.startWidth) {
+        if (!columnResizingID || !getStoredTableColumnWidths || width === drag.startWidth) {
             clearLiveWidths();
             return;
         }
 
-        setTableColumnWidth(columnResizingID, drag.columnKey, width);
+        const paintedColumnWidths = Object.fromEntries(Object.keys(resolvedColumnWidths).map((columnKey) => [columnKey, readColumnWidth(columnKey) ?? 0]));
+        setTableColumnWidths(columnResizingID, getStoredTableColumnWidths(paintedColumnWidths, drag.columnKey));
     };
 
     // Releasing or losing capture doesn't reliably fire boundary events, so hit-test the heading, including the handle overhanging it.
@@ -92,6 +103,12 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
 
         revealIndicator(event.currentTarget);
 
+        // Shrinking a column while scrolled right would otherwise drag the pinned filter bar along with the columns.
+        const scroller = event.currentTarget.closest<HTMLElement>(TABLE_COLUMN_SCROLLER_SELECTOR);
+        if (scroller) {
+            scopeElementRef.current?.style.setProperty(SCROLL_EXTENT_FLOOR_VARIABLE, `${scroller.scrollLeft + scroller.clientWidth}px`);
+        }
+
         dragRef.current = {
             columnKey,
             startClientX: event.clientX,
@@ -109,7 +126,11 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         }
 
         // The line rides the handle, so it follows the clamped width, not the pointer.
-        writeColumnWidth(drag.columnKey, getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX, dragMinWidths?.[drag.columnKey]));
+        const width = getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX, dragMinWidths?.[drag.columnKey]);
+
+        for (const [columnKey, resizedWidth] of Object.entries(getResizedColumnWidths(drag.columnKey, width))) {
+            writeColumnWidth(columnKey, resizedWidth);
+        }
     };
 
     const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
