@@ -17,6 +17,7 @@ import {
     getTaxAmount,
     getValidWaypoints,
     hasTaxRateWithMatchingValue,
+    isGPSDistanceRequest,
     isMapDistanceRequest,
     isMerchantMissing,
     isPartiallyEnteredScanExpense,
@@ -326,7 +327,7 @@ function useConfirmationValidation({
         }
 
         if (iouType !== CONST.IOU.TYPE.PAY) {
-            if (isDistanceRequest && (isMapDistanceRequest(transaction) || !!transaction?.comment?.waypoints)) {
+            if (isDistanceRequest && !isGPSDistanceRequest(transaction) && (isMapDistanceRequest(transaction) || !!transaction?.comment?.waypoints)) {
                 const waypoints = transaction?.comment?.waypoints;
                 const validatedWaypoints = getValidWaypoints(waypoints);
                 const hasZeroCoordinates = Object.values(waypoints ?? {}).some(isZeroCoordinatesWaypoint);

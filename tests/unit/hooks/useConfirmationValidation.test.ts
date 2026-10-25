@@ -373,6 +373,26 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: null});
     });
 
+    it('does not block confirmation for GPS distance requests with repeated waypoints', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isDistanceRequest: true,
+                transaction: createTransactionBase({
+                    amount: 1000,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+                    comment: {
+                        waypoints: {
+                            waypoint0: {address: 'Same Address', lat: 10, lng: 10},
+                            waypoint1: {address: 'Same Address', lat: 10, lng: 10},
+                        },
+                    },
+                }),
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: null});
+    });
+
     it('returns invalidAmount for split with zero amount when fields are filled', () => {
         const {result} = renderHook(() =>
             useConfirmationValidation({
