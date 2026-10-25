@@ -17,7 +17,8 @@ import {
     useSyncPointPositions,
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
-import {getAxisLabelStep, getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {getAxisLabelStep, getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getLineRuns, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import type {LineRun} from '@components/Charts/utils/getLineRuns';
 import VictoryTheme, {
     CARTESIAN_Y_AXIS,
     CHART_CONTENT_MIN_HEIGHT,
@@ -69,10 +70,10 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
     const yAxisDomain = useDynamicYDomain(data);
     const seriesKeys = series.map((seriesItem) => seriesItem.key);
     const [{key: primarySeriesKey, color: primarySeriesColor = VictoryTheme.colors.default}] = series;
-    const isLastPointInProgress = !!data.at(-1)?.isInProgress;
+    const openPointFlags = data.map((point) => !!point.isInProgress);
 
-    // A lone point has no line leading into it, so it keeps the regular line's dot instead of a dashed segment.
-    const shouldDashLastSegment = isLastPointInProgress && data.length > 1;
+    // Periods that haven't ended, the current one and any later ones, are drawn dashed on the primary series, along with the segments leading into them.
+    const primaryLineRuns = getLineRuns(openPointFlags);
     const chartData: Array<{x: number} & Record<string, number | undefined>> = data.map((point, index) => ({
         x: index,
         ...Object.fromEntries(seriesKeys.map((key) => [key, point.values[key]])),
@@ -225,7 +226,10 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
     });
 
     const activePointX = useDerivedValue(() => activePointPosition.get().x);
-    const isActivePointHollow = useDerivedValue(() => isLastPointInProgress && matchedIndex.get() === data.length - 1);
+    const isActivePointHollow = useDerivedValue(() => {
+        const index = matchedIndex.get();
+        return index >= 0 && !!openPointFlags.at(index);
+    });
 
     const syncPointPositions = useSyncPointPositions(data, series, setPointPositions);
 
@@ -243,43 +247,42 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
     const renderOutside = (args: CartesianChartRenderArg<TupleToUnion<typeof chartData>, string>) => {
         const chartBoundsBottom = args.chartBounds.bottom;
         chartBottom.set(chartBoundsBottom);
-        // The last bucket is still in progress, so the primary series is dashed into it. A compared period has already ended.
-        const getCompletePoints = (seriesKey: string) => {
-            const seriesPoints = args.points[seriesKey] ?? [];
-            return shouldDashLastSegment && seriesKey === primarySeriesKey ? seriesPoints.slice(0, -1) : seriesPoints;
-        };
+        const primaryPoints = args.points[primarySeriesKey] ?? [];
 
         return (
             <>
-                <AreaGradient
-                    points={getCompletePoints(primarySeriesKey)}
-                    baselineY={chartBoundsBottom}
-                    color={primarySeriesColor}
-                />
+                {primaryLineRuns
+                    .filter((run) => !run.isDashed && run.end > run.start)
+                    .map((run) => (
+                        <AreaGradient
+                            key={`area-${run.start}`}
+                            points={primaryPoints.slice(run.start, run.end + 1)}
+                            baselineY={chartBoundsBottom}
+                            color={primarySeriesColor}
+                        />
+                    ))}
                 {/* Drawn last, the primary line sits on top of the compared one */}
                 {[...series].reverse().map((seriesItem) => {
                     const color = seriesItem.color ?? VictoryTheme.colors.default;
+                    const seriesPoints = args.points[seriesItem.key] ?? [];
+
+                    // Only the primary series is dashed
+                    const lineRuns: LineRun[] = seriesItem.key === primarySeriesKey ? primaryLineRuns : [{start: 0, end: seriesPoints.length - 1, isDashed: false}];
                     return (
                         <React.Fragment key={seriesItem.key}>
-                            <Line
-                                points={getCompletePoints(seriesItem.key)}
-                                color={color}
-                                strokeWidth={VictoryTheme.line.strokeWidth}
-                                strokeCap="round"
-                                strokeJoin="round"
-                                curveType="linear"
-                            />
-                            {shouldDashLastSegment && seriesItem.key === primarySeriesKey && (
+                            {lineRuns.map((run) => (
                                 <Line
-                                    points={(args.points[seriesItem.key] ?? []).slice(-2)}
+                                    key={`line-${run.start}`}
+                                    points={seriesPoints.slice(run.start, run.end + 1)}
                                     color={color}
                                     strokeWidth={VictoryTheme.line.strokeWidth}
                                     strokeCap="round"
+                                    strokeJoin="round"
                                     curveType="linear"
                                 >
-                                    <DashPathEffect intervals={DASH_INTERVALS} />
+                                    {run.isDashed && <DashPathEffect intervals={DASH_INTERVALS} />}
                                 </Line>
-                            )}
+                            ))}
                         </React.Fragment>
                     );
                 })}

@@ -1,8 +1,8 @@
 import type {ComponentRef, ReactNode, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {Text, View} from 'react-native';
+import type {Text, TextInput, View} from 'react-native';
 
-type AnchorType = ComponentRef<typeof View> | HTMLDivElement | ComponentRef<typeof Text> | null;
+type AnchorType = ComponentRef<typeof View> | HTMLDivElement | ComponentRef<typeof Text> | ComponentRef<typeof TextInput> | null;
 
 type PopoverContextProps = {
     children: ReactNode;
@@ -22,4 +22,4 @@ type AnchorRef = {
     shouldCloseOnWheel?: boolean;
 };
 
-export type {PopoverContextProps, AnchorRef};
+export type {PopoverContextProps, AnchorRef, AnchorType};

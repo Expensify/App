@@ -51,7 +51,7 @@ function OnfidoStep() {
     }, []);
 
     const reportError = useCallback(() => {
-        Growl.error(translate('onfidoStep.genericError'), 10000);
+        Growl.error({bodyText: translate('onfidoStep.genericError'), duration: 10000});
     }, [translate]);
 
     const verifyIdentity = useCallback(

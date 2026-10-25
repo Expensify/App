@@ -36,7 +36,14 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearIssueNewCardFormData, exportExpensifyCardListToCSV, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {canUpdateExpensifyCardLimitTypeInline, getExpensifyCardLimitInlineUpdate, updateExpensifyCardLimitInline, updateExpensifyCardLimitTypeInline} from '@libs/actions/Policy/InlineEdit';
+import {
+    canUpdateExpensifyCardLimitTypeInline,
+    getExpensifyCardLimitInlineEditError,
+    getExpensifyCardLimitInlineUpdate,
+    renameExpensifyCardInline,
+    updateExpensifyCardLimitInline,
+    updateExpensifyCardLimitTypeInline,
+} from '@libs/actions/Policy/InlineEdit';
 import {
     getCardsByCardholderName,
     getCardSettings,
@@ -52,6 +59,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -200,6 +208,12 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const changeCardLimit = useCallback(
         (card: Card, newLimit: string): InlineEditSaveResult => {
             const latestCard = cardsListRef.current?.[String(card.cardID)] ?? card;
+            const limitError = getExpensifyCardLimitInlineEditError(translate, newLimit);
+            if (limitError) {
+                showInlineEditError(limitError);
+                return true;
+            }
+
             const nextLimit = getExpensifyCardLimitInlineUpdate(latestCard, newLimit);
             if (nextLimit === undefined) {
                 return true;
@@ -263,9 +277,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     frozenDate: card.nameValuePairs?.frozen?.date,
                     errors: card.errors,
                     pendingAction: card.pendingAction,
+                    canEditName: canEditCard,
                     canEditLimitType: canEditCard,
                     canEditLimit: canEditCard,
                     action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(card.cardID.toString()))),
+                    onRenameName: (newName: string) => showInlineEditError(renameExpensifyCardInline(translate, fundID, card.cardID, newName, card.nameValuePairs?.cardTitle ?? '')),
                     onChangeLimitType: (newLimitType: CardLimitType) => changeCardLimitType(card, newLimitType),
                     onChangeLimit: (newLimit: string) => changeCardLimit(card, newLimit),
                     onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),
