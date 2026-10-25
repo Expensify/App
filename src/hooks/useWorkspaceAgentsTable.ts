@@ -3,7 +3,7 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import useAgents from './useAgents';
+import useAgentsTable from './useAgentsTable';
 import useNetwork from './useNetwork';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 import useWorkspaceMembers from './useWorkspaceMembers';
@@ -11,14 +11,14 @@ import useWorkspaceMembers from './useWorkspaceMembers';
 /**
  * Hook that returns the agent rows for a workspace: agents the user can manage joined with their workspace role, plus read-only rows for custom-agent members the user cannot manage.
  */
-function useWorkspaceAgents(policy: OnyxEntry<Policy>, shouldOpenWorkspaceMembersPage: boolean, shouldOpenAgentsPage: boolean) {
+function useWorkspaceAgentsTable(policy: OnyxEntry<Policy>, shouldOpenWorkspaceMembersPage: boolean, shouldOpenAgentsPage: boolean) {
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const workspaceMembers = useWorkspaceMembers(policy, shouldOpenWorkspaceMembersPage);
     const policyRoles = Object.values(CONST.POLICY.ROLE);
 
-    const {agents, ...rest} = useAgents(shouldOpenAgentsPage);
+    const {agents, ...rest} = useAgentsTable(shouldOpenAgentsPage);
     const workspaceAgents = agents.flatMap((agent) => {
         const agentMembership = workspaceMembers.find((member) => member.accountID === agent.accountID);
         const isAgentOwnedByWorkspace = agent.ownerAccountID === workspaceAccountID;
@@ -32,7 +32,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>, shouldOpenWorkspaceMember
         return [agent];
     });
 
-    // The useAgents hook only includes agents that the user can manage
+    // The useAgentsTable hook only includes agents that the user can manage
     // We need to include other agents in the workspace too
     const manageableAgentAccountIDs = new Set(workspaceAgents.map(({accountID}) => accountID));
     for (const workspaceMember of workspaceMembers) {
@@ -68,4 +68,4 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>, shouldOpenWorkspaceMember
     return {agents: workspaceAgents, ...rest};
 }
 
-export default useWorkspaceAgents;
+export default useWorkspaceAgentsTable;

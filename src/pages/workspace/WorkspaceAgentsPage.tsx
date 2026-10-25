@@ -14,7 +14,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAgents from '@hooks/useWorkspaceAgents';
+import useWorkspaceAgentsTable from '@hooks/useWorkspaceAgentsTable';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -50,7 +50,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
-    const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useWorkspaceAgents(policy, true, true);
+    const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useWorkspaceAgentsTable(policy, true, true);
     const hasAgents = agents.length > 0;
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;

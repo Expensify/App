@@ -7,7 +7,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import AgentsTable from '@components/Tables/AgentsTable';
 
-import useAgents from '@hooks/useAgents';
+import useAgentsTable from '@hooks/useAgentsTable';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -36,7 +36,7 @@ function AgentsPage() {
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
-    const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useAgents(true);
+    const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useAgentsTable(true);
     const hasAgents = agents.length > 0;
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;

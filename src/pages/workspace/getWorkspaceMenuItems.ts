@@ -1,7 +1,7 @@
 /**
  * Builds the ordered Workspace menu items with their visibility and indicator states.
  */
-import type {AgentForDisplay} from '@hooks/useAgents';
+import type {AgentForDisplay} from '@hooks/useAgentsTable';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';

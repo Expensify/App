@@ -44,7 +44,7 @@ type AgentForDisplay = AgentRowData;
 /**
  * Hook that derives the current user's manageable agent rows from Onyx and exposes selection and bulk-delete helpers for the Agents table.
  */
-function useAgents(shouldOpenAgentsPage: boolean) {
+function useAgentsTable(shouldOpenAgentsPage: boolean) {
     useEffect(() => {
         if (!shouldOpenAgentsPage) {
             return;
@@ -198,4 +198,4 @@ function useAgents(shouldOpenAgentsPage: boolean) {
 }
 
 export type {AgentForDisplay};
-export default useAgents;
+export default useAgentsTable;

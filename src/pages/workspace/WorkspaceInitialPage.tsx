@@ -28,7 +28,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import useWorkspaceAgents from '@hooks/useWorkspaceAgents';
+import useWorkspaceAgentsTable from '@hooks/useWorkspaceAgentsTable';
 
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
@@ -193,7 +193,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const canReadVendors = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.VENDORS);
     usePolicyConnectionsPrefetch(policy, canReadVendors);
 
-    const {agents: policyAgents} = useWorkspaceAgents(policy, false, false);
+    const {agents: policyAgents} = useWorkspaceAgentsTable(policy, false, false);
 
     const workspaceMenuItems = getWorkspaceMenuItems({
         policy,

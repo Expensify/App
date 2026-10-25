@@ -1,7 +1,7 @@
 /**
  * Builds the Account and General menu section data shown on the Initial Settings page.
  */
-import useAgents from '@hooks/useAgents';
+import useAgentsTable from '@hooks/useAgentsTable';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -87,7 +87,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
-    const {agents} = useAgents(false);
+    const {agents} = useAgentsTable(false);
     const hasAgentErrors = agents.some((agent) => agent.errors);
     const privateSubscription = usePrivateSubscription();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);

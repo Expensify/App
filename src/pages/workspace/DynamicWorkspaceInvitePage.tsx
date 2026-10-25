@@ -7,7 +7,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 
-import useAgents from '@hooks/useAgents';
+import useAgentsTable from '@hooks/useAgentsTable';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -67,7 +67,7 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     const [personalDetails] = useAllPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const {agents} = useAgents(true);
+    const {agents} = useAgentsTable(true);
     const agentsAccountIDs = new Set(agents.map(({accountID}) => accountID));
 
     const openWorkspaceInvitePage = () => {
