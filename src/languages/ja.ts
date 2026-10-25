@@ -3079,7 +3079,6 @@ ${date} の ${merchant} への ${amount}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートまでご連絡ください。',
-        monthlyOffsetErrorMessage: '月次の頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
     },
     workflowsCurrencyConversionFeesPage: {
         title: '通貨換算手数料',

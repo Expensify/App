@@ -3117,7 +3117,6 @@ ${amount} voor ${merchant} - ${date}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Indienfrequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
-        monthlyOffsetErrorMessage: 'Maandelijkse frequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Valutaomrekeningskosten',

@@ -3181,7 +3181,6 @@ ${amount} για ${merchant} - ${date}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Δεν ήταν δυνατή η αλλαγή της συχνότητας υποβολής. Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
-        monthlyOffsetErrorMessage: 'Η μηνιαία συχνότητα δεν μπόρεσε να αλλάξει. Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
     },
     workflowsCreateApprovalsPage: {
         title: 'Επιβεβαιώστε',

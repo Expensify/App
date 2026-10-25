@@ -3019,7 +3019,6 @@ ${amount} para ${merchant} - ${date}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'La frecuencia de envío no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
-        monthlyOffsetErrorMessage: 'La frecuencia mensual no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Comisiones por conversión de moneda',

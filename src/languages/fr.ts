@@ -3136,7 +3136,6 @@ ${amount} pour ${merchant} - ${date}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: "La fréquence de soumission n'a pas pu être modifiée. Veuillez réessayer ou contacter l'assistance.",
-        monthlyOffsetErrorMessage: 'La fréquence mensuelle n’a pas pu être modifiée. Veuillez réessayer ou contacter l’assistance.',
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Frais de conversion de devise',

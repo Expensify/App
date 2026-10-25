@@ -3116,7 +3116,6 @@ ${amount} per ${merchant} - ${date}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Impossibile modificare la frequenza di invio. Riprova oppure contatta l’assistenza.',
-        monthlyOffsetErrorMessage: 'Impossibile modificare la frequenza mensile. Riprova oppure contatta l’assistenza.',
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Commissioni di conversione valuta',

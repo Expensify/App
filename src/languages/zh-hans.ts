@@ -2994,7 +2994,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提交频率无法更改。请重试或联系支持团队。',
-        monthlyOffsetErrorMessage: '无法更改每月频率。请重试或联系支持。',
     },
     workflowsCurrencyConversionFeesPage: {
         title: '货币兑换费用',

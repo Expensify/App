@@ -3279,7 +3279,6 @@ const translations = {
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: "Submission frequency couldn't be changed. Please try again or contact support.",
-        monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Currency conversion fees',
