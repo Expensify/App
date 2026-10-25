@@ -3,7 +3,7 @@ import type colors from '@styles/theme/colors';
 import type CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 
-import type {ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ColorValue as RNColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
@@ -44,7 +44,7 @@ type EreceiptColorStyle = {
     color: ColorValue;
     titleColor: ColorValue;
 };
-type TextColorStyle = {color: string};
+type TextColorStyle = {color: RNColorValue};
 
 export type {
     AllStyles,

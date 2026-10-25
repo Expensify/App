@@ -1,8 +1,10 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getPolicyReimburserAccountID} from '@libs/PolicyPaymentUtils';
 import {getLinkedTransactionID, getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {getIOUReportActionDisplayMessage} from '@libs/ReportUtils';
 
@@ -12,7 +14,7 @@ import type {ReportAction} from '@src/types/onyx';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import {policyACHAccountNumberSelector} from '@selectors/Policy';
+import {policyPaymentAttributionSelector} from '@selectors/Policy';
 import React from 'react';
 
 import ReportActionMessageContent from './ReportActionMessageContent';
@@ -38,13 +40,14 @@ function IouReportActionMessage({action, displayAsGroup, reportID, style, isHidd
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(action))}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [policyACHAccountNumber] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`, {selector: policyACHAccountNumberSelector});
+    const [policyPaymentAttribution] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`, {selector: policyPaymentAttributionSelector});
+    const [reimburserAccountID] = useAllPersonalDetails((personalDetails) => getPolicyReimburserAccountID(policyPaymentAttribution, personalDetails));
 
     let iouMessage: string | undefined;
     const isIOUAction = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU);
     const originalMessageType = isIOUAction ? getOriginalMessage(action)?.type : undefined;
     if (isIOUAction && originalMessageType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
-        iouMessage = getIOUReportActionDisplayMessage(translate, action, convertToDisplayString, policyACHAccountNumber, transaction, bankAccountList);
+        iouMessage = getIOUReportActionDisplayMessage(translate, action, convertToDisplayString, policyPaymentAttribution, transaction, bankAccountList, reimburserAccountID);
     }
 
     return (

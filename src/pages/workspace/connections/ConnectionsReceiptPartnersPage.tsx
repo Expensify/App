@@ -56,7 +56,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
         getOverflowMenu,
     } = useReceiptPartnersSettings(policyID, {
         // These settings have nothing to show once Uber is disconnected
-        onDisconnectConfirmed: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID)),
+        onDisconnectConfirmed: (disconnect) => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID), {afterTransition: disconnect}),
     });
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
     const isLoading = policy?.isLoading;
@@ -74,10 +74,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
             fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}}
         >
             {isLoading ? (
-                <FullScreenLoadingIndicator
-                    shouldUseGoBackButton
-                    style={styles.flex1}
-                />
+                <FullScreenLoadingIndicator style={styles.flex1} />
             ) : (
                 <ScreenWrapper
                     testID="ConnectionsReceiptPartnersPage"
