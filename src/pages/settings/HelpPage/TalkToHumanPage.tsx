@@ -28,16 +28,14 @@ function TalkToHumanPage() {
         }
         hasHandledLink.current = true;
 
-        // Creating a ticket needs the network, so replace this route with the Help page and let the customer retry from there.
-        if (isOffline) {
-            Navigation.navigate(ROUTES.SETTINGS_HELP, {forceReplace: true});
-            return;
-        }
-
         // Leave this route first, because the ticket stores the route it opens from as its Back target.
         // A direct link has only the injected Settings sidebar behind it, so fall back to the Help page.
         const hasPageToReturnTo = getFullScreenRootRouteCount(navigationRef.current?.getRootState()) > 1 || (navigation.getState()?.routes.length ?? 0) > 2;
-        Navigation.goBack(hasPageToReturnTo ? undefined : ROUTES.SETTINGS_HELP, {afterTransition: openSupportTicketOrConcierge});
+
+        // Creating a ticket needs the network, so offline the customer gets the Help page to retry from instead.
+        Navigation.goBack(hasPageToReturnTo ? undefined : ROUTES.SETTINGS_HELP, {
+            afterTransition: isOffline ? () => Navigation.navigate(ROUTES.SETTINGS_HELP) : openSupportTicketOrConcierge,
+        });
     }, [isOffline, navigation, openSupportTicketOrConcierge]);
 
     return <FullScreenLoadingIndicator />;

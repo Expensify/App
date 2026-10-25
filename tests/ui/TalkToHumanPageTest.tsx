@@ -42,6 +42,15 @@ function setSettingsSplitRoutes(names: string[]) {
     mockGetNavigatorState.mockReturnValue({routes: names.map((name) => ({name}))});
 }
 
+function callAfterTransition() {
+    const goBackOptions = mockGoBack.mock.calls.at(0)?.at(1);
+    if (typeof goBackOptions !== 'object') {
+        throw new Error('goBack should receive options with an afterTransition callback');
+    }
+    expect(goBackOptions.afterTransition).toEqual(expect.any(Function));
+    goBackOptions.afterTransition?.();
+}
+
 function getGoBackFallbackRoute() {
     return mockGoBack.mock.calls.at(0)?.at(0);
 }
@@ -66,12 +75,7 @@ describe('TalkToHumanPage', () => {
 
         // And the ticket is only requested once the transition has finished
         expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
-        const goBackOptions = mockGoBack.mock.calls.at(0)?.at(1);
-        if (typeof goBackOptions !== 'object') {
-            throw new Error('goBack should receive options with an afterTransition callback');
-        }
-        expect(goBackOptions.afterTransition).toEqual(expect.any(Function));
-        goBackOptions.afterTransition?.();
+        callAfterTransition();
         expect(mockOpenSupportTicketOrConcierge).toHaveBeenCalledTimes(1);
     });
 
@@ -113,18 +117,38 @@ describe('TalkToHumanPage', () => {
         expect(getGoBackFallbackRoute()).toBeUndefined();
     });
 
-    it('replaces itself with the Help page and creates no ticket when the link is opened offline', () => {
-        // Given the link opens while the device is offline
+    it('leaves the loader and then shows the Help page, creating no ticket, when the link is opened offline', () => {
+        // Given the link opens in the app while the device is offline
         mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
         setRootRoutes([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.TAB_NAVIGATOR]);
 
         // When the page opens
         render(<TalkToHumanPage />);
 
-        // Then the route is replaced by the Help page so that a ticket opened from there does not store this link as its back target
+        // Then it goes back to the page the link was pressed on
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+        expect(getGoBackFallbackRoute()).toBeUndefined();
+        expect(mockNavigate).not.toHaveBeenCalled();
+
+        // And once that transition has finished the Help page is shown, without replacing the route and without a ticket
+        callAfterTransition();
         expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HELP, {forceReplace: true});
-        expect(mockGoBack).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HELP);
+        expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the Help page for a direct link opened offline', () => {
+        // Given a cold load while the device is offline
+        mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+        setRootRoutes([NAVIGATORS.TAB_NAVIGATOR]);
+        setSettingsSplitRoutes([SCREENS.SETTINGS.ROOT, SCREENS.SETTINGS.HELP_TALK_TO_HUMAN]);
+
+        // When the page opens
+        render(<TalkToHumanPage />);
+
+        // Then it falls back to the Help page and creates no ticket
+        expect(getGoBackFallbackRoute()).toBe(ROUTES.SETTINGS_HELP);
+        callAfterTransition();
         expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
     });
 
@@ -138,9 +162,8 @@ describe('TalkToHumanPage', () => {
         mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
         rerender(<TalkToHumanPage />);
 
-        // Then no ticket is created and no other navigation happens
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockGoBack).not.toHaveBeenCalled();
+        // Then it only went back once and no ticket is created
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
         expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
     });
 

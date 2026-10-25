@@ -204,14 +204,6 @@ function TestSettingsSplitNavigator() {
                 name={SCREENS.SETTINGS.SUBSCRIPTION.ROOT}
                 getComponent={getEmptyComponent}
             />
-            <SettingsSplit.Screen
-                name={SCREENS.SETTINGS.HELP}
-                getComponent={getEmptyComponent}
-            />
-            <SettingsSplit.Screen
-                name={SCREENS.SETTINGS.HELP_TALK_TO_HUMAN}
-                getComponent={getEmptyComponent}
-            />
         </SettingsSplit.Navigator>
     );
 }
