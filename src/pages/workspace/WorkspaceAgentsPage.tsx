@@ -4,7 +4,6 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import RenderHTML from '@components/RenderHTML';
 import AgentsTable from '@components/Tables/AgentsTable';
 
-import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -13,7 +12,6 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAgents from '@hooks/useWorkspaceAgents';
@@ -59,12 +57,6 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     const canWriteAgents = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.AGENTS);
 
     useWorkspaceDocumentTitle(policy?.name, 'agentsPage.title');
-
-    useCleanupSelectedOptions(clearSelectedAgents);
-    useSearchBackPress({
-        onClearSelection: clearSelectedAgents,
-        onNavigationCallBack: () => Navigation.goBack(),
-    });
 
     const newAgentButton =
         canWriteAgents && hasAgents ? (
