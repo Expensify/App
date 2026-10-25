@@ -193,7 +193,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const canReadVendors = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.VENDORS);
     usePolicyConnectionsPrefetch(policy, canReadVendors);
 
-    const {agents: policyAgents} = useWorkspaceAgentsTable(policy, false, false);
+    const {agents: policyAgents} = useWorkspaceAgentsTable(policy);
 
     const workspaceMenuItems = getWorkspaceMenuItems({
         policy,

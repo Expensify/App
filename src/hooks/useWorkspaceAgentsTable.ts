@@ -11,11 +11,11 @@ import useWorkspaceMembers from './useWorkspaceMembers';
 /**
  * Hook that returns the agent rows for a workspace: agents the user can manage joined with their workspace role, plus read-only rows for custom-agent members the user cannot manage.
  */
-function useWorkspaceAgentsTable(policy: OnyxEntry<Policy>, shouldOpenWorkspaceMembersPage: boolean, shouldOpenAgentsPage: boolean) {
+function useWorkspaceAgentsTable(policy: OnyxEntry<Policy>) {
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const workspaceMembers = useWorkspaceMembers(policy, shouldOpenWorkspaceMembersPage);
+    const workspaceMembers = useWorkspaceMembers(policy);
     const policyRoles = Object.values(CONST.POLICY.ROLE);
 
     const {agents, ...rest} = useAgentsTable();
