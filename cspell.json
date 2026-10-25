@@ -725,6 +725,9 @@
         "healthcheck",
         "helpdot",
         "helpsite",
+        "hermestag",
+        "hermesv",
+        "hermesversion",
         "hexcode",
         "hibob",
         "hrefs",
@@ -1218,7 +1221,10 @@
         "Miniflare",
         "nosniff",
         "SAMEORIGIN",
-        "workerd"
+        "workerd",
+        "ftyp",
+        "ftypheic",
+        "JFIF"
     ],
     "ignorePaths": [
         ".github/actions/javascript/**/index.js",

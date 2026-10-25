@@ -4,6 +4,7 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 
+import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 
@@ -26,6 +28,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
 
     const policyID = policy?.id ?? '-1';
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {importCustomers, importTaxRates, importTrackingCategories, pendingFields, errorFields} = policy?.connections?.xero?.config ?? {};
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
@@ -67,6 +70,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
+            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
             displayName="XeroImportPage"
             headerTitle="workspace.accounting.import"
             headerSubtitle={currentXeroOrganizationName}

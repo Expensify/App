@@ -5,6 +5,7 @@ import {clearBulkAction, wasBulkActionInitiatedLocally} from '@libs/actions/Bulk
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {isModalActiveSelector} from '@selectors/Modal';
 import React, {useState} from 'react';
 
 import BulkActionStatusModal from './BulkActionStatusModal';
@@ -13,6 +14,7 @@ import BulkActionStatusModal from './BulkActionStatusModal';
 function BulkActionStatusManager() {
     const [bulkActions, bulkActionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.BULK_ACTION);
     const [openBulkActionID, setOpenBulkActionID] = useState<string | undefined>();
+    const [isAnyOtherModalActive] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
 
     // A record that already existed when this tab loaded resurfaces after a reload. One started in another tab
     // after that doesn't pop open here until this tab reloads.
@@ -32,7 +34,8 @@ function BulkActionStatusManager() {
     const surfaceableBulkActionID = surfaceableKey?.replace(ONYXKEYS.COLLECTION.BULK_ACTION, '');
 
     // Keep the modal open through the switch to shouldSendFromConcierge, and close it once the record is gone.
-    if (!openBulkActionID && surfaceableBulkActionID) {
+    // The menu that started the bulk action may still be closing, and iOS can't open a modal on top of it.
+    if (!openBulkActionID && surfaceableBulkActionID && !isAnyOtherModalActive) {
         setOpenBulkActionID(surfaceableBulkActionID);
     }
     if (openBulkActionID && !bulkActions?.[`${ONYXKEYS.COLLECTION.BULK_ACTION}${openBulkActionID}`]) {
@@ -64,7 +67,6 @@ function BulkActionStatusManager() {
         <BulkActionStatusModal
             key={openBulkActionID}
             bulkActionID={openBulkActionID}
-            isVisible
             onClose={handleClose}
         />
     );

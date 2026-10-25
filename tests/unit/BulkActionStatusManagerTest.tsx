@@ -20,10 +20,17 @@ jest.mock('@userActions/BulkAction', () => ({
     clearBulkAction: jest.fn(),
     wasBulkActionInitiatedLocally: jest.fn(() => false),
 }));
-jest.mock('@userActions/Modal', () => ({
-    ...jest.requireActual<typeof Modal>('@userActions/Modal'),
-    close: jest.fn((cb?: () => void) => cb?.()),
-}));
+jest.mock('@userActions/Modal', () => {
+    const actualModal = jest.requireActual<typeof Modal>('@userActions/Modal');
+    return {
+        ...actualModal,
+        // Like the real close(), this runs the open modal's onClose before the callback.
+        close: jest.fn((cb?: () => void) => {
+            actualModal.closeTop();
+            cb?.();
+        }),
+    };
+});
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
@@ -99,10 +106,12 @@ describe('BulkActionStatusManager', () => {
 
         // When the user opens those reports
         expect(screen.getByText('bulkAction.approvedTitle')).toBeTruthy();
+        expect(screen.getByText('bulkAction.notApprovedBody')).toBeTruthy();
         fireEvent.press(screen.getByText('bulkAction.viewFailedReports'));
 
         // Then Search opens on exactly those reports and the record is cleared
         expect(mockNavigate).toHaveBeenCalledWith(expect.stringMatching(/reportID%3A111%2C222/));
+        expect(mockClearBulkAction).toHaveBeenCalledTimes(1);
         expect(mockClearBulkAction).toHaveBeenCalledWith(BULK_ACTION_ID, expect.objectContaining({state: CONST.BULK_ACTION.STATE.DONE}));
     });
 
@@ -136,6 +145,25 @@ describe('BulkActionStatusManager', () => {
 
         // Then the modal shows the hold result
         expect(screen.getByText('bulkAction.heldTitle')).toBeTruthy();
+    });
+
+    it('waits for the menu that started the bulk action to close before showing it', async () => {
+        // Given a bulk pay that just started while the Pay menu is still closing
+        await Onyx.set(ONYXKEYS.MODAL, {isVisible: true, isPopover: true});
+        await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.PAY});
+
+        render(<BulkActionStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then nothing opens yet, since iOS can't open a modal on top of one that is closing
+        expect(screen.queryByText('bulkAction.payingTitle')).toBeNull();
+
+        // When the menu has closed
+        await Onyx.set(ONYXKEYS.MODAL, {isVisible: false});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the bulk pay shows
+        expect(screen.getByText('bulkAction.payingTitle')).toBeTruthy();
     });
 
     it('says so when no report matched', async () => {
