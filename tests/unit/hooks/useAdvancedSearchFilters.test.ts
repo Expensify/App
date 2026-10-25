@@ -525,12 +525,12 @@ describe('useAdvancedSearchFilters', () => {
             });
         });
 
-        it('moves the invoice total, title and report ID out of the report actions section', async () => {
-            // Given the invoice type, whose total and title used to sit among the report action dates
+        it('leads the invoice details with the amounts and gives report ID its own section', async () => {
+            // Given no cards, so the invoice card transactions section has nothing to show
             // When the invoice filters are listed
             const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.INVOICE), {wrapper});
 
-            // Then total and title lead the details section and report ID gets its own section
+            // Then Total and Amount lead the details section, and Report ID sits alone right after it
             await waitFor(() => {
                 expect(result.current.at(1)?.slice(0, 2)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]);
                 expect(result.current.at(2)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID]);

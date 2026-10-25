@@ -226,8 +226,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
         markShownFilterReady();
     };
 
-    // Like a selection list, a search shows its first match. Typing has settled by now, so nothing is withheld, the
-    // same as for a focused row.
+    // Like a selection list, a search shows its first match. The typing has stopped, so its content loads at once.
     const showFirstMatchingFilter = (searchValue: string) => {
         const firstMatchingFilter = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, searchValue, translate).at(0)?.at(0);
         if (isDescribeMode || !firstMatchingFilter) {
