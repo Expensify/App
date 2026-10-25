@@ -42,6 +42,7 @@ const SEARCH_TRANSACTION_ROW_ONLY_FIELDS: Record<Exclude<keyof TransactionListIt
     approved: true,
     exported: true,
     exportedTo: true,
+    declined: true,
     policy: true,
     reportAction: true,
     holdReportAction: true,
