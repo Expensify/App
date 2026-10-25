@@ -2,6 +2,8 @@ import {act, render} from '@testing-library/react-native';
 
 import SelectionList from '@components/SelectionList';
 
+import type * as PolicyMemberUtils from '@libs/PolicyUtils/members';
+
 import AssigneeStep from '@pages/workspace/expensifyCard/issueNew/AssigneeStep';
 
 import CONST from '@src/CONST';
@@ -108,21 +110,15 @@ jest.mock('@hooks/usePersonalDetailSearchSelector', () =>
     }),
 );
 
-jest.mock('@libs/PolicyUtils', () => {
-    const isExpensifyTeam = (email?: string) => email?.endsWith('@expensify.com') === true || email?.endsWith('@team.expensify.com') === true;
-    return {
-        canMemberWrite: jest.fn(() => true),
-        canRoleCreateExpenses: jest.fn((role?: string) => role !== 'approveOnly'),
-        filterGuideAndAccountManager: (list: unknown) => list,
-        getGuideAndAccountManagerInfo: jest.fn(() => ({assignedGuideEmail: undefined, accountManagerLogin: undefined, exclusions: {}})),
-        getIneligibleInvitees: jest.fn(() => []),
-        isDeletedPolicyEmployee: jest.fn(() => false),
-        isExpensifyTeam: jest.fn(isExpensifyTeam),
-        shouldFilterExpensifyTeam: jest.fn(
-            (policyOwner?: string, currentUserLogin?: string) => !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin),
-        ),
-    };
-});
+jest.mock('@libs/PolicyUtils', () => ({
+    canMemberWrite: jest.fn(() => true),
+    canRoleCreateExpenses: jest.fn((role?: string) => role !== 'approveOnly'),
+    filterGuideAndAccountManager: (list: unknown) => list,
+    getGuideAndAccountManagerInfo: jest.fn(() => ({assignedGuideEmail: undefined, accountManagerLogin: undefined, exclusions: {}})),
+    getIneligibleInvitees: jest.fn(() => []),
+    isDeletedPolicyEmployee: jest.fn(() => false),
+    shouldHideExpensifyTeamCardholder: jest.requireActual<typeof PolicyMemberUtils>('@libs/PolicyUtils/members').shouldHideExpensifyTeamCardholder,
+}));
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchValueForPhoneOrEmail: (value: string) => value,
 }));

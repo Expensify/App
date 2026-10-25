@@ -28,8 +28,7 @@ import {
     getGuideAndAccountManagerInfo,
     getIneligibleInvitees,
     isDeletedPolicyEmployee,
-    isExpensifyTeam,
-    shouldFilterExpensifyTeam,
+    shouldHideExpensifyTeamCardholder,
 } from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
@@ -154,11 +153,8 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         clearIssueNewCardFlow(policyID);
     };
 
-    // Expensify staff (guides, support) are hidden from the Workspace Members page, so they must not be offered as
-    // cardholders either, whether they come from the member list or from search results. The already-assigned
-    // cardholder stays visible so editing an assignment doesn't blank out.
-    const shouldFilterExpensifyStaff = shouldFilterExpensifyTeam(policy?.owner, session?.email);
-    const isHiddenExpensifyStaff = (login: string | null | undefined) => shouldFilterExpensifyStaff && !!login && login !== initialAssigneeEmail && isExpensifyTeam(login);
+    // Hide Expensify staff from member and search results, but keep the current cardholder visible while editing.
+    const isHiddenExpensifyStaff = (login: string | null | undefined) => shouldHideExpensifyTeamCardholder(login, initialAssigneeEmail, policy?.owner, session?.email);
 
     const membersDetails: AssigneeListItem[] = [];
     if (policy?.employeeList) {
