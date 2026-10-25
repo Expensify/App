@@ -18,7 +18,7 @@ function useWorkspaceAgentsTable(policy: OnyxEntry<Policy>, shouldOpenWorkspaceM
     const workspaceMembers = useWorkspaceMembers(policy, shouldOpenWorkspaceMembersPage);
     const policyRoles = Object.values(CONST.POLICY.ROLE);
 
-    const {agents, ...rest} = useAgentsTable(shouldOpenAgentsPage);
+    const {agents, ...rest} = useAgentsTable();
     const workspaceAgents = agents.flatMap((agent) => {
         const agentMembership = workspaceMembers.find((member) => member.accountID === agent.accountID);
         const isAgentOwnedByWorkspace = agent.ownerAccountID === workspaceAccountID;

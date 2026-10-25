@@ -17,6 +17,7 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {openAgentsPage} from '@libs/actions/Agent';
 import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {clearErrors, openWorkspaceInvitePage as policyOpenWorkspaceInvitePage} from '@libs/actions/Policy/Policy';
 import {searchUserInServer} from '@libs/actions/Report';
@@ -67,12 +68,18 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     const [personalDetails] = useAllPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const {agents} = useAgentsTable(true);
+    const {agents} = useAgentsTable();
     const agentsAccountIDs = new Set(agents.map(({accountID}) => accountID));
 
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails);
         policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
+
+        // The OpenWorkspaceInvitePage is only returning the policy members
+        // and on deep link the agent_ collection is empty resulting in `agentsWhitelist: []`
+        // making the user unable to invite their agents unless they visit the Agents page first
+        // Will be removed in https://github.com/Expensify/Expensify/issues/694677
+        openAgentsPage();
     };
 
     useEffect(() => {

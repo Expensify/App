@@ -3,7 +3,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {TableHandle} from '@components/Table';
 import type {AgentRowData, AgentsTableColumnKey} from '@components/Tables/AgentsTable';
 
-import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent, openAgentsPage} from '@libs/actions/Agent';
+import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent} from '@libs/actions/Agent';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -42,14 +42,7 @@ function handleErrorClose(pendingAction: PendingAction | null | undefined, accou
 /**
  * Hook that derives the current user's manageable agent rows from Onyx and exposes selection and bulk-delete helpers for the Agents table.
  */
-function useAgentsTable(shouldOpenAgentsPage: boolean) {
-    useEffect(() => {
-        if (!shouldOpenAgentsPage) {
-            return;
-        }
-        openAgentsPage();
-    }, [shouldOpenAgentsPage]);
-
+function useAgentsTable() {
     const {translate} = useLocalize();
     const allAgents = useAgents();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
