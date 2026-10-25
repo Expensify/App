@@ -282,6 +282,17 @@ function hasSearchFlatFilters(value: unknown): value is {flatFilters: SearchQuer
     return typeof value === 'object' && value !== null && 'flatFilters' in value && Array.isArray(value.flatFilters);
 }
 
+function expectQueryToExcludeReport(jsonQuery: string | undefined, reportID: string) {
+    const queryJSON: unknown = JSON.parse(jsonQuery ?? '{}');
+    if (!hasSearchFlatFilters(queryJSON)) {
+        throw new Error('Expected the queued query to contain flat filters');
+    }
+    expect(queryJSON.flatFilters).toContainEqual({
+        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: reportID}],
+    });
+}
+
 /**
  * The export options take one of two shapes: normally they sit inside the Export entry's `subMenuItems`, but when
  * Export is the only bulk action available the dropdown opens straight onto them, so they sit at the top level of
@@ -810,7 +821,7 @@ describe('useSearchBulkActions - Approve under Select all', () => {
         });
 
         // Then the query sent to the backend excludes the deselected report, so it isn't approved
-        expect(queueBulkApproveReports).toHaveBeenCalledWith(expect.stringContaining('report2'));
+        expectQueryToExcludeReport(jest.mocked(queueBulkApproveReports).mock.calls.at(-1)?.at(0), 'report2');
     });
 
     it('leaves out the report of an expense the user deselected on an expenses search', async () => {
@@ -831,7 +842,51 @@ describe('useSearchBulkActions - Approve under Select all', () => {
         });
 
         // Then the query sent to the backend excludes report2, since approving it would also approve the deselected expense
-        expect(queueBulkApproveReports).toHaveBeenCalledWith(expect.stringContaining('report2'));
+        expectQueryToExcludeReport(jest.mocked(queueBulkApproveReports).mock.calls.at(-1)?.at(0), 'report2');
+    });
+
+    it('queues the bulk approve when one of the selected reports can be approved', async () => {
+        // Given "Select all" on a reports search, where only one loaded report can be approved
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: 'report1'})};
+        mockSelectedReports = [
+            {
+                reportID: 'report1',
+                policyID: 'policy1',
+                action: CONST.SEARCH.ACTION_TYPES.APPROVE,
+                canPay: false,
+                canApprove: true,
+                canSubmit: false,
+                canChangeApprover: false,
+                total: 100,
+                chatReportID: undefined,
+            },
+            {
+                reportID: 'report2',
+                policyID: 'policy1',
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                canPay: false,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
+                total: 100,
+                chatReportID: undefined,
+            },
+        ];
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)).toBe(true);
+        });
+
+        // When the user selects Approve
+        const approveOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
+        await act(async () => {
+            await approveOption?.onSelected?.();
+        });
+
+        // Then the backend gets the search query and skips the report the user can't approve
+        expect(queueBulkApproveReports).toHaveBeenCalledTimes(1);
     });
 
     it('keeps the Approve option when a loaded expense is held', async () => {
@@ -925,7 +980,7 @@ describe('useSearchBulkActions - Submit under Select all', () => {
         });
 
         // Then the query sent to the backend excludes the deselected report, so it isn't submitted
-        expect(queueBulkSubmitReports).toHaveBeenCalledWith(expect.stringContaining('report2'));
+        expectQueryToExcludeReport(jest.mocked(queueBulkSubmitReports).mock.calls.at(-1)?.at(0), 'report2');
     });
 
     it('leaves out the report of an expense the user deselected on an expenses search', async () => {
@@ -946,7 +1001,51 @@ describe('useSearchBulkActions - Submit under Select all', () => {
         });
 
         // Then the query sent to the backend excludes report2, since submitting it would also submit the deselected expense
-        expect(queueBulkSubmitReports).toHaveBeenCalledWith(expect.stringContaining('report2'));
+        expectQueryToExcludeReport(jest.mocked(queueBulkSubmitReports).mock.calls.at(-1)?.at(0), 'report2');
+    });
+
+    it('queues the bulk submit when one of the selected reports can be submitted', async () => {
+        // Given "Select all" on a reports search, where only one loaded report can be submitted
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: 'report1'})};
+        mockSelectedReports = [
+            {
+                reportID: 'report1',
+                policyID: 'policy1',
+                action: CONST.SEARCH.ACTION_TYPES.SUBMIT,
+                canPay: false,
+                canApprove: false,
+                canSubmit: true,
+                canChangeApprover: false,
+                total: 100,
+                chatReportID: undefined,
+            },
+            {
+                reportID: 'report2',
+                policyID: 'policy1',
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                canPay: false,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
+                total: 100,
+                chatReportID: undefined,
+            },
+        ];
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT)).toBe(true);
+        });
+
+        // When the user selects Submit
+        const submitOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT);
+        await act(async () => {
+            await submitOption?.onSelected?.();
+        });
+
+        // Then the backend gets the search query and skips the report the user can't submit
+        expect(queueBulkSubmitReports).toHaveBeenCalledTimes(1);
     });
 
     it('hides the Submit option when no loaded expense can be submitted', async () => {
