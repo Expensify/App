@@ -23,6 +23,7 @@ import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {
     canMemberWrite,
+    canRoleCreateExpenses,
     filterGuideAndAccountManager,
     getGuideAndAccountManagerInfo,
     getIneligibleInvitees,
@@ -76,7 +77,6 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     const canInviteMembers = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const currentAssigneeFirstName = usePersonalDetailByLogin(issueNewCard?.data?.assigneeEmail, (personalDetail) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return formatPhoneNumber(personalDetail?.firstName || issueNewCard?.data?.assigneeEmail || '');
     });
 
@@ -116,7 +116,6 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
 
         if (isEditing && issueNewCard?.data?.cardTitle === getCardDefaultName(currentAssigneeFirstName)) {
             // If the card title is the default card title, update it with the new assignee's name
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const newAssigneeFirstName = formatPhoneNumber(employeePersonalDetails[assignee?.login ?? '']?.firstName || assignee?.login || '');
             data.cardTitle = getCardDefaultName(newAssigneeFirstName);
         }
@@ -164,7 +163,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     const membersDetails: AssigneeListItem[] = [];
     if (policy?.employeeList) {
         for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
-            if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+            if (isDeletedPolicyEmployee(policyEmployee, isOffline) || (policyEmployee.role && !canRoleCreateExpenses(policyEmployee.role))) {
                 continue;
             }
 

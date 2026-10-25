@@ -3,6 +3,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -10,6 +11,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
+import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -29,6 +31,7 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {mappings, pendingFields, errorFields} = policy?.connections?.quickbooksDesktop?.config ?? {};
 
     const sections: QBDSectionType[] = [
@@ -68,7 +71,7 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
         >
             {sections.map((section) => (
                 <OfflineWithFeedback

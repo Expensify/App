@@ -27,6 +27,7 @@ import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {
     canMemberWrite,
+    canRoleCreateExpenses,
     filterGuideAndAccountManager,
     getGuideAndAccountManagerInfo,
     getIneligibleInvitees,
@@ -142,8 +143,8 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 cardToAssign.cardName = assignCard.cardToAssign.cardName;
                 // Preserve any start date the user already picked based on the saved data rather than `isEditing`.
                 // `isEditing` is false on the header-back-then-Next round trip, so keying off it here would wipe the
-                // chosen date. In a fresh flow `startDate`/`dateOption` are undefined, so both helpers still fall back
-                // to today/CUSTOM.
+                // chosen date. In a fresh flow `useAssignCard` seeds FROM_BEGINNING for CSV feeds. For other feeds
+                // `startDate`/`dateOption` are undefined, so both helpers fall back to today/CUSTOM.
                 cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
                 cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
                 setAssignCardStepAndData({
@@ -232,7 +233,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const membersDetails: AssigneeListItem[] = [];
     if (policy?.employeeList) {
         for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
-            if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+            if (isDeletedPolicyEmployee(policyEmployee, isOffline) || (policyEmployee.role && !canRoleCreateExpenses(policyEmployee.role))) {
                 continue;
             }
 

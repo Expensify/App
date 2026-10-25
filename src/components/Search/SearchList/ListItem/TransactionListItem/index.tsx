@@ -5,12 +5,14 @@ import {
     useOpenReportSubmitToPopover,
     useSearchSubmitPopoverGuard,
 } from '@components/ReportSubmitToPopoverAnchor';
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLiveRowCapabilities';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -28,6 +30,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {
+    getAttendees,
     isDeletedTransaction as isDeletedTransactionUtil,
     isViolationDismissed,
     mergeProhibitedViolations,
@@ -73,7 +76,6 @@ function TransactionListItem<TItem extends ListItem>(props: TransactionListItemP
 
 function TransactionListItemInner<TItem extends ListItem>({
     item,
-    isFocused,
     showTooltip,
     isDisabled,
     canSelectMultiple,
@@ -93,6 +95,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     ownerBillingGracePeriodEnd,
     onUndelete,
 }: TransactionListItemProps<TItem>) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const transactionItem = item as unknown as TransactionListItemType;
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
 
@@ -113,9 +116,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     // Use report's policyID as fallback when transaction doesn't have policyID directly
     // Use moving-expense policy as final fallback for SelfDM tracking expenses.
     // NOTE: Using || instead of ?? to treat empty string "" as falsy
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const explicitPolicyID = transactionItem.policyID || snapshotReport?.policyID;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let policyID = explicitPolicyID || activePolicyIDFromOnyx;
     if (!policyID && transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         policyID = policyForMovingExpensesID;
@@ -162,6 +163,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         conciergeChat,
+        bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -211,7 +213,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         onyxViolations,
         policyCategories,
         transaction?.category ?? transactionItem.category ?? '',
-        transaction?.comment?.attendees ?? transactionItem.attendees,
+        getAttendees(transaction ?? transactionItem),
         currentUserDetails,
         isAttendeeTrackingEnabled(policyForViolations),
         policyForViolations?.type === CONST.POLICY.TYPE.CORPORATE,
@@ -219,6 +221,16 @@ function TransactionListItemInner<TItem extends ListItem>({
     );
 
     const transactionViolations = mergeProhibitedViolations(attendeeOnyxViolations);
+
+    const filteredViolationsCollection: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolations};
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: transactionItem.reportID,
+        report: reportForViolations,
+        policy: policyForViolations,
+        shouldShowMarkAsDoneCopy,
+        transactions: [transaction],
+        violationsCollection: filteredViolationsCollection,
+    });
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -253,6 +265,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            confirmSubmitReportViolations,
             currentUserAccountID,
             currentUserLogin,
             introSelected,
@@ -269,6 +282,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             rules,
             personalDetailsByLogins: getPersonalDetailsByLogin(),
             conciergeChat,
+            bankAccountList,
         });
     };
 

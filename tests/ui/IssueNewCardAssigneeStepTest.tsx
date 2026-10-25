@@ -112,6 +112,7 @@ jest.mock('@libs/PolicyUtils', () => {
     const isExpensifyTeam = (email?: string) => email?.endsWith('@expensify.com') === true || email?.endsWith('@team.expensify.com') === true;
     return {
         canMemberWrite: jest.fn(() => true),
+        canRoleCreateExpenses: jest.fn((role?: string) => role !== 'approveOnly'),
         filterGuideAndAccountManager: (list: unknown) => list,
         getGuideAndAccountManagerInfo: jest.fn(() => ({assignedGuideEmail: undefined, accountManagerLogin: undefined, exclusions: {}})),
         getIneligibleInvitees: jest.fn(() => []),
