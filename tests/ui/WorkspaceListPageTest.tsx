@@ -1,8 +1,11 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
@@ -19,11 +22,16 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@hooks/useResponsiveLayout', () => {
+    const actual = jest.requireActual<{default: typeof useResponsiveLayout}>('@hooks/useResponsiveLayout');
+    return {__esModule: true, default: jest.fn(actual.default)};
+});
+
 const Stack = createPlatformStackNavigator<WorkspaceNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACES_LIST = SCREENS.WORKSPACES_LIST) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -50,6 +58,7 @@ describe('WorkspaceListPage', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        jest.mocked(useResponsiveLayout).mockImplementation(jest.requireActual<{default: typeof useResponsiveLayout}>('@hooks/useResponsiveLayout').default);
     });
 
     it('should not show new workspace button when the restrict creation policy in the group domain is enabled', async () => {
@@ -231,5 +240,84 @@ describe('WorkspaceListPage', () => {
 
         const newWorkspaceButton = screen.queryByAccessibilityHint('New');
         expect(newWorkspaceButton).toBeOnTheScreen();
+    });
+
+    it('should offer the actions of the selected workspaces in the bulk action bar', async () => {
+        const TEST_ACCOUNT_ID = 1;
+        const OTHER_OWNER_ACCOUNT_ID = 2;
+
+        // Given the wide layout, where every row has a checkbox and the actions float in a bar over the table
+        jest.mocked(useResponsiveLayout).mockReturnValue({
+            shouldUseNarrowLayout: false,
+            isSmallScreenWidth: false,
+            isInNarrowPaneModal: false,
+            isExtraSmallScreenHeight: false,
+            isMediumScreenWidth: false,
+            isLargeScreenWidth: true,
+            isExtraLargeScreenWidth: false,
+            isExtraSmallScreenWidth: false,
+            isSmallScreen: false,
+            onboardingIsMediumOrLargerScreenWidth: true,
+            isInLandscapeMode: false,
+        });
+
+        // Given one workspace the user owns and one they administer for someone else
+        await Onyx.set(ONYXKEYS.SESSION, {email: 'test@domain.com', accountID: TEST_ACCOUNT_ID});
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [TEST_ACCOUNT_ID]: {login: 'test@domain.com', accountID: TEST_ACCOUNT_ID, displayName: 'test@domain.com'},
+        });
+        await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, 'other-policy');
+
+        // Given a saved card, which mobile requires before an ownership transfer is offered
+        await Onyx.set(ONYXKEYS.FUND_LIST, {card: {methodID: 1, accountType: CONST.PAYMENT_METHODS.DEBIT_CARD}});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}owned-policy`, {
+            id: 'owned-policy',
+            name: 'Owned Workspace',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: 'test@domain.com',
+            ownerAccountID: TEST_ACCOUNT_ID,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}other-policy`, {
+            id: 'other-policy',
+            name: 'Other Workspace',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: 'owner@domain.com',
+            ownerAccountID: OTHER_OWNER_ACCOUNT_ID,
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        const pressRowCheckbox = (index: number) => {
+            const checkbox = screen.getAllByLabelText('Select').at(index);
+            if (!checkbox) {
+                throw new Error(`No selectable row at index ${index}`);
+            }
+            fireEvent.press(checkbox);
+        };
+
+        // When only the owned workspace is selected, which sorts after the other one by name
+        pressRowCheckbox(1);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the actions that need exactly one workspace are offered, and Transfer owner and Leave are not because the user owns it
+        expect(screen.getByText('1 selected')).toBeOnTheScreen();
+        expect(screen.getByText('Set as default')).toBeOnTheScreen();
+        expect(screen.getByText('Export members')).toBeOnTheScreen();
+        expect(screen.queryByText('Transfer owner')).not.toBeOnTheScreen();
+        expect(screen.queryByText('Leave')).not.toBeOnTheScreen();
+
+        // When the other workspace is selected too
+        pressRowCheckbox(0);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the single workspace actions are dropped and the actions that apply to either workspace are offered
+        expect(screen.getByText('2 selected')).toBeOnTheScreen();
+        expect(screen.queryByText('Set as default')).not.toBeOnTheScreen();
+        expect(screen.getByText('Export members')).toBeOnTheScreen();
+        expect(screen.getByText('Transfer owner')).toBeOnTheScreen();
+        expect(screen.getByText('Leave')).toBeOnTheScreen();
     });
 });

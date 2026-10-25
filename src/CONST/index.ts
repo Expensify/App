@@ -5008,10 +5008,16 @@ const CONST = {
             ACTIVE: 'active',
             ARCHIVED: 'archived',
         },
-        THREE_DOT_MENU_ACTION: {
-            LEAVE: 'leave',
-            TRANSFER_OWNERSHIP: 'transferOwnership',
+        WORKSPACES_BULK_ACTION_TYPES: {
+            SET_AS_DEFAULT: 'setAsDefault',
+            EXPORT_MEMBERS: 'exportMembers',
+            TRANSFER_OWNER: 'transferOwner',
+            COPY_SETTINGS: 'copySettings',
+            DUPLICATE: 'duplicate',
+            ARCHIVE: 'archive',
+            DELETE: 'delete',
             UNARCHIVE: 'unarchive',
+            LEAVE: 'leave',
         },
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
@@ -10506,8 +10512,8 @@ const CONST = {
             LIST: {
                 NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
                 NEW_DOMAIN_BUTTON: 'WorkspaceList-NewDomainButton',
-                THREE_DOT_MENU: 'WorkspaceList-ThreeDotMenu',
                 ROW: 'WorkspaceList-Row',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceList-BulkActionsDropdown',
             },
             INITIAL: {
                 PROFILE: 'WorkspaceInitial-Profile',

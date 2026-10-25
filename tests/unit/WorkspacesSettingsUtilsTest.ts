@@ -1,5 +1,6 @@
 import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
-import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
+import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getLeaveWorkspaceConfirmationPrompt, getWorkspacesBulkActions} from '@libs/WorkspacesSettingsUtils';
+import type {WorkspacesBulkActionContext, WorkspacesBulkActionRow} from '@libs/WorkspacesSettingsUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -285,6 +286,115 @@ describe('WorkspacesSettingsUtils', () => {
         it('returns default key when user has no special role', () => {
             const policy = createMock<Policy>({});
             expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate)).toBe('common.leaveWorkspaceConfirmation');
+        });
+    });
+
+    describe('getWorkspacesBulkActions', () => {
+        const currentUserAccountID = 1;
+        const context: WorkspacesBulkActionContext = {
+            currentUserAccountID,
+            isRestrictedToPreferredPolicy: false,
+            canArchivePolicies: true,
+            canRenderTransferOwnerButton: true,
+        };
+        const buildRow = (overrides: Partial<WorkspacesBulkActionRow>): WorkspacesBulkActionRow => ({
+            policyID: 'owned',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            ownerAccountID: currentUserAccountID,
+            isArchived: false,
+            isDefault: false,
+            isJoinRequestPending: false,
+            isEligibleToCopy: true,
+            ...overrides,
+        });
+        const ownedWorkspace = buildRow({});
+        const otherOwnersWorkspace = buildRow({policyID: 'other', ownerAccountID: 2});
+
+        it('offers every applicable action in the fixed order when one workspace is selected', () => {
+            // Given one selected workspace the user owns and administers
+
+            // When the bulk actions are built
+            const actions = getWorkspacesBulkActions([ownedWorkspace], context);
+
+            // Then the single workspace actions are offered before Archive, and Transfer owner and Leave are left out because the user owns it
+            expect(actions.map((action) => action.type)).toEqual([
+                CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.SET_AS_DEFAULT,
+                CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.EXPORT_MEMBERS,
+                CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.COPY_SETTINGS,
+                CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DUPLICATE,
+                CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.ARCHIVE,
+            ]);
+        });
+
+        it('drops the single workspace actions and keeps the qualifying workspaces when several are selected', () => {
+            // Given one owned workspace and one owned by someone else are selected
+
+            // When the bulk actions are built
+            const actions = getWorkspacesBulkActions([ownedWorkspace, otherOwnersWorkspace], context);
+
+            // Then each action is offered once and runs only on the workspaces it applies to, so the rest are skipped
+            expect(actions).toEqual([
+                {type: CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.EXPORT_MEMBERS, policyIDs: ['owned', 'other']},
+                {type: CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER, policyIDs: ['other']},
+                {type: CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.ARCHIVE, policyIDs: ['owned']},
+                {type: CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE, policyIDs: ['other']},
+            ]);
+        });
+
+        it('offers Delete for one workspace only when archiving is not available', () => {
+            // Given the archive beta is off
+            const contextWithoutArchive = {...context, canArchivePolicies: false};
+
+            // When one owned workspace is selected, and then two
+            const singleSelectionTypes = getWorkspacesBulkActions([ownedWorkspace], contextWithoutArchive).map((action) => action.type);
+            const multipleSelectionTypes = getWorkspacesBulkActions([ownedWorkspace, buildRow({policyID: 'owned2'})], contextWithoutArchive).map((action) => action.type);
+
+            // Then Delete replaces Archive, and like today it works on one workspace at a time
+            expect(singleSelectionTypes).toContain(CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DELETE);
+            expect(singleSelectionTypes).not.toContain(CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.ARCHIVE);
+            expect(multipleSelectionTypes).not.toContain(CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DELETE);
+        });
+
+        it('offers Unarchive and Transfer owner only on an archived workspace', () => {
+            // Given an archived workspace the user owns, and an archived one they only administer
+            const archivedOwned = buildRow({isArchived: true});
+            const archivedAdministered = buildRow({policyID: 'other', ownerAccountID: 2, isArchived: true});
+
+            // When each one is selected on its own
+            const ownedTypes = getWorkspacesBulkActions([archivedOwned], context).map((action) => action.type);
+            const administeredTypes = getWorkspacesBulkActions([archivedAdministered], context).map((action) => action.type);
+
+            // Then the owner can unarchive it and an admin can transfer it, but nothing that changes an archived workspace is offered
+            expect(ownedTypes).toEqual([CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE]);
+            expect(administeredTypes).toEqual([CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER]);
+        });
+
+        it('offers Export members only to roles that can manage members', () => {
+            // Given a workspace where the user is a plain member, and a Collect workspace where they are a People Admin
+            const memberWorkspace = buildRow({policyID: 'member', role: CONST.POLICY.ROLE.USER, ownerAccountID: 2});
+            const peopleAdminOnTeam = buildRow({policyID: 'team', role: CONST.POLICY.ROLE.PEOPLE_ADMIN, type: CONST.POLICY.TYPE.TEAM, ownerAccountID: 2});
+            const peopleAdminOnControl = buildRow({policyID: 'control', role: CONST.POLICY.ROLE.PEOPLE_ADMIN, ownerAccountID: 2});
+
+            // When all three are selected
+            const exportAction = getWorkspacesBulkActions([memberWorkspace, peopleAdminOnTeam, peopleAdminOnControl], context).find(
+                (action) => action.type === CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.EXPORT_MEMBERS,
+            );
+
+            // Then only the Control workspace is exported, matching who sees Download CSV on the Members page
+            expect(exportAction?.policyIDs).toEqual(['control']);
+        });
+
+        it('hides Set as default and Leave for the preferred workspace when the user is restricted to it', () => {
+            // Given the user is restricted to their preferred workspace, which someone else owns
+            const restrictedContext = {...context, isRestrictedToPreferredPolicy: true, preferredPolicyID: 'other'};
+
+            // When that workspace is selected
+            const types = getWorkspacesBulkActions([otherOwnersWorkspace], restrictedContext).map((action) => action.type);
+
+            // Then neither action is offered, as the restriction already prevents both today
+            expect(types).not.toContain(CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.SET_AS_DEFAULT);
+            expect(types).not.toContain(CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE);
         });
     });
 });

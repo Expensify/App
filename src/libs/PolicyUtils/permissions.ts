@@ -322,6 +322,17 @@ function canRoleCreateExpenses(role: string | undefined): boolean {
     return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
 }
 
+/**
+ * Role-only counterpart of `canMemberWrite` for the members feature, for callers that have a workspace's role and type
+ * but not the full policy, such as the workspaces list.
+ */
+function canRoleWriteMembers(role: string | undefined, policyType: string | undefined): boolean {
+    if (isControlPolicyOnlyRole(role) && policyType !== CONST.POLICY.TYPE.CORPORATE) {
+        return false;
+    }
+    return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.MEMBERS] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+}
+
 function canCreateExpensesOnPolicy(policy: OnyxInputOrEntry<Policy>, login?: string): boolean {
     return canRoleCreateExpenses(getPolicyRole(policy, login, false) ?? policy?.role);
 }
@@ -411,6 +422,7 @@ export {
     getHighestPolicyRole,
     canRolePay,
     canRoleCreateExpenses,
+    canRoleWriteMembers,
     canCreateExpensesOnPolicy,
     PAYER_ROLES,
     isPolicyApprover,

@@ -16,6 +16,7 @@ import SCREENS from '@src/SCREENS';
 import React from 'react';
 import {View} from 'react-native';
 
+import Header from './Header';
 import {useDebugTabViewHeight} from './Navigation/DebugTabView';
 import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useTabRootScreenWrapperProps from './Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
@@ -38,6 +39,12 @@ type WorkspaceListLayoutProps = {
     headerComponent?: React.ReactElement;
     activeTabKey: WorkspaceListActiveTabKey;
     scrollHeaderWithTable?: boolean;
+
+    /** Whether the narrow layout is in selection mode, which swaps the top bar for a "Select multiple" header */
+    isSelectionModeEnabled?: boolean;
+
+    /** Called when the "Select multiple" header's back button is pressed */
+    onExitSelectionMode?: () => void;
 };
 
 function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeaderButton = true}: WorkspaceListHeaderContentProps) {
@@ -89,7 +96,15 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     );
 }
 
-function WorkspaceListLayout({children, activeTabKey, headerButton, headerComponent, scrollHeaderWithTable = false}: WorkspaceListLayoutProps) {
+function WorkspaceListLayout({
+    children,
+    activeTabKey,
+    headerButton,
+    headerComponent,
+    scrollHeaderWithTable = false,
+    isSelectionModeEnabled = false,
+    onExitSelectionMode,
+}: WorkspaceListLayoutProps) {
     const styles = useThemeStyles();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.WORKSPACES);
     const StyleUtils = useStyleUtils();
@@ -127,12 +142,19 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
         >
             <View style={[styles.flex1, styles.flexRow]}>
                 <View style={[styles.flex1]}>
-                    <TopBarWithLoadingBar
-                        shouldDisplayHelpButton
-                        breadcrumbLabel={activeTabLabel}
-                    >
-                        {!scrollHeaderWithTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
-                    </TopBarWithLoadingBar>
+                    {isSelectionModeEnabled && shouldUseNarrowLayout ? (
+                        <Header>
+                            <Header.BackButton onPress={onExitSelectionMode} />
+                            <Header.Title title={translate('common.selectMultiple')} />
+                        </Header>
+                    ) : (
+                        <TopBarWithLoadingBar
+                            shouldDisplayHelpButton
+                            breadcrumbLabel={activeTabLabel}
+                        >
+                            {!scrollHeaderWithTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
+                        </TopBarWithLoadingBar>
+                    )}
 
                     {content}
                     {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}

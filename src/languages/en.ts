@@ -217,6 +217,7 @@ const translations = {
         hidden: 'Hidden',
         visible: 'Visible',
         delete: 'Delete',
+        archive: 'Archive',
         // @context UI label indicating that an item is archived. Maintain capitalization consistency across similar status labels.
         archived: 'archived',
         contacts: 'Contacts',
@@ -5126,6 +5127,22 @@ const translations = {
             unarchive: 'Unarchive',
             unarchiveWorkspace: 'Unarchive workspace',
             unarchiveConfirmation: 'Are you sure you want to unarchive this workspace?',
+            setAsDefaultShort: 'Set as default',
+            exportMembers: 'Export members',
+            archiveWorkspacesTitle: () => ({
+                one: 'Archive 1 workspace?',
+                other: (count: number) => `Archive ${count} workspaces?`,
+            }),
+            leaveWorkspacesTitle: () => ({
+                one: 'Leave 1 workspace?',
+                other: (count: number) => `Leave ${count} workspaces?`,
+            }),
+            transferOwnerWorkspacesTitle: () => ({
+                one: 'Transfer owner of 1 workspace?',
+                other: (count: number) => `Transfer owner of ${count} workspaces?`,
+            }),
+            bulkActionAppliesTo: (count: number, total: number) => `This applies to ${count} of the ${total} selected workspaces.`,
+            bulkActionSkippedWorkspaces: (workspaceNames: string) => `These will be skipped: ${workspaceNames}.`,
             deleteWorkspaceTitle: (workspaceName: string) => `Delete ${workspaceName}?`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',

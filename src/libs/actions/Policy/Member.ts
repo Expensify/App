@@ -7,6 +7,8 @@ import type {
     DeleteMembersFromWorkspaceParams,
     OpenPolicyMemberProfilePageParams,
     OpenWorkspaceMembersPageParams,
+    QueueExportPoliciesMembersToCSVParams,
+    RequestPoliciesOwnerChangeParams,
     RequestWorkspaceOwnerChangeParams,
     UpdatePolicyMemberDisplayNameParams,
     UpdateWorkspaceMembersRoleParams,
@@ -18,6 +20,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
@@ -26,6 +29,7 @@ import {canRoleCreateExpenses, getDefaultApprover, getOwnerChangePayerSuccessDat
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
+import {markExportInitiatedLocally} from '@userActions/Export';
 import * as FormActions from '@userActions/FormActions';
 import type {DisplayNamePersonalDetails} from '@userActions/PersonalDetails';
 import {buildOptimisticDisplayNameDetails} from '@userActions/PersonalDetails';
@@ -39,7 +43,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participant} from '@src/types/onyx/Report';
-import type {OnyxData} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -818,6 +822,13 @@ function requestWorkspaceOwnerChange(policy: OnyxEntry<Policy>, currentUserAccou
     API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
 }
 
+// TODO: Placeholder until the backend command lands. Update the command parameters and Onyx data to match it.
+function requestWorkspacesOwnerChange(policyIDs: string[]) {
+    const params: RequestPoliciesOwnerChangeParams = {policyIDList: policyIDs.join(',')};
+
+    API.write(WRITE_COMMANDS.REQUEST_POLICIES_OWNER_CHANGE, params);
+}
+
 function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
     if (!policyID) {
         return;
@@ -1507,6 +1518,45 @@ function downloadMembersCSV(policyID: string, onDownloadFailed: () => void, tran
     fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MEMBERS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+// TODO: Placeholder until the backend command lands. Update the command parameters to match it.
+function queueExportPoliciesMembersToCSV(policyIDs: string[]): string {
+    const exportID = rand64();
+    const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
+
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: onyxKey,
+            value: {
+                state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING,
+                exportType: CONST.EXPORT_DOWNLOAD.TYPE.CSV,
+            },
+        },
+    ];
+
+    const failureData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: onyxKey,
+            value: {
+                state: CONST.EXPORT_DOWNLOAD.STATE.FAILED,
+                exportType: CONST.EXPORT_DOWNLOAD.TYPE.CSV,
+            },
+        },
+    ];
+
+    const params: QueueExportPoliciesMembersToCSVParams = {
+        policyIDList: policyIDs.join(','),
+        exportID,
+    };
+
+    markExportInitiatedLocally(exportID);
+
+    API.write(WRITE_COMMANDS.QUEUE_EXPORT_POLICIES_MEMBERS_TO_CSV, params, {optimisticData, failureData});
+
+    return exportID;
+}
+
 function clearInviteDraft(policyID: string) {
     setWorkspaceInviteMembersDraft(policyID, {});
     clearWorkspaceInviteRoleDraft(policyID);
@@ -1586,6 +1636,7 @@ export {
     buildUpdateWorkspaceMembersRoleOnyxData,
     updateWorkspaceMembersRole,
     requestWorkspaceOwnerChange,
+    requestWorkspacesOwnerChange,
     clearWorkspaceOwnerChangeFlow,
     buildAddMembersToWorkspaceOnyxData,
     addMembersToWorkspace,
@@ -1602,6 +1653,7 @@ export {
     declineJoinRequest,
     importPolicyMembers,
     downloadMembersCSV,
+    queueExportPoliciesMembersToCSV,
     clearInviteDraft,
     buildRoomMembersOnyxData,
     openPolicyMemberProfilePage,

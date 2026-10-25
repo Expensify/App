@@ -1,3 +1,4 @@
+import type {WorkspacesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -8,7 +9,7 @@ import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {getConnectionExporters, isPolicyAdmin, isPolicyApprover, isPolicyAuditor} from './PolicyUtils';
+import {canRoleCreateExpenses, canRoleWriteMembers, canUnarchivePolicy, getConnectionExporters, isPolicyAdmin, isPolicyApprover, isPolicyAuditor} from './PolicyUtils';
 
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
@@ -143,5 +144,101 @@ function getLeaveWorkspaceConfirmationPrompt(
     return translate('common.leaveWorkspaceConfirmation');
 }
 
-export {getChatTabBrickRoadReportID, getBrickRoadForPolicy, getChatTabBrickRoad, getOwnershipChecksDisplayText, getLeaveWorkspaceConfirmationPrompt};
-export type {BrickRoad};
+type WorkspacesBulkActionRow = {
+    policyID: string;
+    role: ValueOf<typeof CONST.POLICY.ROLE>;
+    type: ValueOf<typeof CONST.POLICY.TYPE>;
+    ownerAccountID?: number;
+    isArchived: boolean;
+    isDefault: boolean;
+    isJoinRequestPending: boolean;
+    isEligibleToCopy: boolean;
+};
+
+type WorkspacesBulkActionContext = {
+    currentUserAccountID: number;
+    preferredPolicyID?: string;
+    isRestrictedToPreferredPolicy: boolean;
+    canArchivePolicies: boolean;
+    canRenderTransferOwnerButton: boolean;
+};
+
+type WorkspacesBulkAction = {
+    type: WorkspacesBulkActionType;
+
+    /** The selected workspaces the action applies to. The rest of the selection is skipped. */
+    policyIDs: string[];
+};
+
+const WORKSPACES_BULK_ACTIONS_ORDER: WorkspacesBulkActionType[] = [
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.SET_AS_DEFAULT,
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.EXPORT_MEMBERS,
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER,
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.COPY_SETTINGS,
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DUPLICATE,
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.ARCHIVE,
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DELETE,
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE,
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE,
+];
+
+const SINGLE_WORKSPACE_BULK_ACTIONS = new Set<WorkspacesBulkActionType>([
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.SET_AS_DEFAULT,
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.COPY_SETTINGS,
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DUPLICATE,
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DELETE,
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE,
+]);
+
+function canApplyWorkspacesBulkAction(type: WorkspacesBulkActionType, row: WorkspacesBulkActionRow, context: WorkspacesBulkActionContext): boolean {
+    const isOwner = row.ownerAccountID === context.currentUserAccountID;
+    const isAdmin = row.role === CONST.POLICY.ROLE.ADMIN;
+
+    switch (type) {
+        case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.SET_AS_DEFAULT:
+            // Making the workspace the default would break expense creation routing for members without create-expenses permission.
+            return !row.isArchived && !row.isDefault && !row.isJoinRequestPending && !context.isRestrictedToPreferredPolicy && canRoleCreateExpenses(row.role);
+        case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.EXPORT_MEMBERS:
+            return !row.isArchived && canRoleWriteMembers(row.role, row.type);
+        case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER:
+            return isAdmin && !isOwner && context.canRenderTransferOwnerButton;
+        case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.COPY_SETTINGS:
+            return !row.isArchived && isAdmin && row.isEligibleToCopy;
+        case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DUPLICATE:
+            return !row.isArchived && isAdmin;
+        case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.ARCHIVE:
+            return context.canArchivePolicies && !row.isArchived && isOwner;
+        case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DELETE:
+            return !context.canArchivePolicies && !row.isArchived && isOwner;
+        case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE:
+            return canUnarchivePolicy(row.isArchived, row.ownerAccountID, context.currentUserAccountID, context.canArchivePolicies);
+        case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE:
+            return !row.isArchived && !isOwner && (row.policyID !== context.preferredPolicyID || !context.isRestrictedToPreferredPolicy);
+        default:
+            return false;
+    }
+}
+
+/**
+ * The actions offered for the workspaces selected on the workspaces list, in the order they are shown. An action is
+ * offered when it applies to at least one selected workspace, and runs only on those.
+ */
+function getWorkspacesBulkActions(selectedRows: WorkspacesBulkActionRow[], context: WorkspacesBulkActionContext): WorkspacesBulkAction[] {
+    const actions: WorkspacesBulkAction[] = [];
+
+    for (const type of WORKSPACES_BULK_ACTIONS_ORDER) {
+        if (SINGLE_WORKSPACE_BULK_ACTIONS.has(type) && selectedRows.length !== 1) {
+            continue;
+        }
+
+        const policyIDs = selectedRows.filter((row) => canApplyWorkspacesBulkAction(type, row, context)).map((row) => row.policyID);
+        if (policyIDs.length > 0) {
+            actions.push({type, policyIDs});
+        }
+    }
+
+    return actions;
+}
+
+export {getChatTabBrickRoadReportID, getBrickRoadForPolicy, getChatTabBrickRoad, getOwnershipChecksDisplayText, getLeaveWorkspaceConfirmationPrompt, getWorkspacesBulkActions};
+export type {BrickRoad, WorkspacesBulkAction, WorkspacesBulkActionContext, WorkspacesBulkActionRow};
