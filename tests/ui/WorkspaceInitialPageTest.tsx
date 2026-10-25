@@ -101,7 +101,7 @@ describe('WorkspaceInitialPage', () => {
         const props = createMock<React.ComponentProps<typeof WorkspaceInitialPage>>({route: {params: undefined}});
         render(
             <OnyxListItemProvider>
-                <WorkspaceInitialPage {...props} />{' '}
+                <WorkspaceInitialPage {...props} />
             </OnyxListItemProvider>,
         );
 
