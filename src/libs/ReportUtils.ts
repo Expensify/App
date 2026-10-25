@@ -6226,15 +6226,22 @@ function canEditFieldOfMoneyRequest({
                 return false;
             }
             const isPerDiem = isPerDiemRequest(transaction);
-            const isEligibleDestination = (policy: Policy) => policy.id !== moneyRequestReport.policyID && (!isPerDiem || canSubmitPerDiemExpenseFromWorkspace(policy));
+            const isEligibleDestination = (destinationPolicy: Policy) =>
+                destinationPolicy.id !== moneyRequestReport.policyID && (!isPerDiem || canSubmitPerDiemExpenseFromWorkspace(destinationPolicy));
             const canCreateReportElsewhere = getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail).some(isEligibleDestination);
             return (
                 canCreateReportElsewhere ||
                 policiesArray.some(
-                    (policy) =>
-                        isEligibleDestination(policy) &&
-                        canCreateExpensesOnPolicy(policy, deprecatedCurrentUserEmail) &&
-                        getOutstandingReportsForUser(policy.id, moneyRequestReport.ownerAccountID, rules, reportNameValuePairs, outstandingReportsByPolicyID?.[policy.id] ?? {}).length > 0,
+                    (destinationPolicy) =>
+                        isEligibleDestination(destinationPolicy) &&
+                        canCreateExpensesOnPolicy(destinationPolicy, deprecatedCurrentUserEmail) &&
+                        getOutstandingReportsForUser(
+                            destinationPolicy.id,
+                            moneyRequestReport.ownerAccountID,
+                            rules,
+                            reportNameValuePairs,
+                            outstandingReportsByPolicyID?.[destinationPolicy.id] ?? {},
+                        ).length > 0,
                 )
             );
         }
