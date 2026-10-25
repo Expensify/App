@@ -18,11 +18,11 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
 
+import useAgents from './useAgents';
 import useChatWithAgent from './useChatWithAgent';
 import useCleanupSelectedOptions from './useCleanupSelectedOptions';
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
-import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useRuleBotGuardModal from './useRuleBotGuardModal';
@@ -39,8 +39,6 @@ function handleErrorClose(pendingAction: PendingAction | null | undefined, accou
     }
 }
 
-type AgentForDisplay = AgentRowData;
-
 /**
  * Hook that derives the current user's manageable agent rows from Onyx and exposes selection and bulk-delete helpers for the Agents table.
  */
@@ -53,8 +51,7 @@ function useAgentsTable(shouldOpenAgentsPage: boolean) {
     }, [shouldOpenAgentsPage]);
 
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
-    const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT);
+    const allAgents = useAgents();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetailsList = usePersonalDetails();
     const chatWithAgent = useChatWithAgent();
@@ -64,7 +61,7 @@ function useAgentsTable(shouldOpenAgentsPage: boolean) {
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
     const policiesByAccountID = groupByPolicyAccountIDPoliciesSelector(allPolicies);
 
-    const agents: AgentForDisplay[] = Object.entries(allAgents ?? {}).flatMap(([key, agent]) => {
+    const agents: AgentRowData[] = Object.entries(allAgents ?? {}).flatMap(([key, agent]) => {
         if (!agent) {
             return [];
         }
@@ -75,10 +72,6 @@ function useAgentsTable(shouldOpenAgentsPage: boolean) {
         }
         const pendingAction = agent.pendingAction;
         const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-        if (!isOffline && isPendingDeletion) {
-            return [];
-        }
 
         let ownerDisplayName: string | undefined;
         let ownerPolicyID: string | undefined;
@@ -197,5 +190,4 @@ function useAgentsTable(shouldOpenAgentsPage: boolean) {
     return {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef};
 }
 
-export type {AgentForDisplay};
 export default useAgentsTable;
