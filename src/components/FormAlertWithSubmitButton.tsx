@@ -52,6 +52,9 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     /** The visual variant of the submit button, which controls its color scheme */
     buttonVariant?: ButtonVariant;
 
+    /** Whether the submit button has the neutral color in place of `buttonVariant` */
+    isButtonNeutral?: boolean;
+
     /** Custom content to display in the footer after submit button */
     footerContent?: React.ReactNode;
 
@@ -98,6 +101,7 @@ function FormAlertWithSubmitButton({
     enabledWhenOffline = false,
     disablePressOnEnter = false,
     buttonVariant = CONST.BUTTON_VARIANT.SUCCESS,
+    isButtonNeutral = false,
     footerContent,
     buttonRef,
     buttonStyles,
@@ -116,6 +120,7 @@ function FormAlertWithSubmitButton({
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : undefined, buttonStyles];
+    const variant = isButtonNeutral ? undefined : buttonVariant;
 
     const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
 
@@ -147,7 +152,7 @@ function FormAlertWithSubmitButton({
                     {shouldRenderFooterAboveSubmit && footerContent}
                     {isOffline && !enabledWhenOffline ? (
                         <Button
-                            variant={buttonVariant}
+                            variant={variant}
                             blendOpacity={blendButtonOpacity}
                             isDisabled
                             size={CONST.BUTTON_SIZE.LARGE}
@@ -160,7 +165,7 @@ function FormAlertWithSubmitButton({
                     ) : (
                         <Button
                             ref={buttonRef}
-                            variant={buttonVariant}
+                            variant={variant}
                             blendOpacity={blendButtonOpacity}
                             size={CONST.BUTTON_SIZE.LARGE}
                             style={style}

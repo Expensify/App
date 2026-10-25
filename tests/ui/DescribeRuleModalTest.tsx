@@ -22,6 +22,7 @@ import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockPrompt = '';
+let mockIsSubmitButtonNeutral: boolean | undefined;
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation = jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native');
@@ -77,17 +78,32 @@ jest.mock('@components/Form/FormProvider', () => {
         Pressable: React.ComponentType<{accessibilityLabel?: string; onPress?: () => void; children?: React.ReactNode}>;
         Text: React.ComponentType<{children?: React.ReactNode}>;
     }>('react-native');
-    return ({children, onSubmit, submitButtonText}: {children: React.ReactNode; onSubmit: (values: {prompt: string}) => void; submitButtonText: string}) =>
-        ReactModule.createElement(
+    return ({
+        children,
+        onSubmit,
+        submitButtonText,
+        footerContent,
+        isSubmitButtonNeutral,
+    }: {
+        children: React.ReactNode;
+        onSubmit: (values: {prompt: string}) => void;
+        submitButtonText: string;
+        footerContent?: React.ReactNode;
+        isSubmitButtonNeutral?: boolean;
+    }) => {
+        mockIsSubmitButtonNeutral = isSubmitButtonNeutral;
+        return ReactModule.createElement(
             ReactModule.Fragment,
             null,
             children,
+            footerContent,
             ReactModule.createElement(
                 Pressable,
                 {accessibilityLabel: submitButtonText, onPress: () => onSubmit({prompt: mockPrompt})},
                 ReactModule.createElement(Text, null, submitButtonText),
             ),
         );
+    };
 });
 
 const POLICY_ID = 'policy1';
@@ -263,6 +279,10 @@ describe('DescribeRuleModal', () => {
         expect(screen.getByText(IMPOSSIBLE_ANSWER.explanation)).toBeOnTheScreen();
         expect(screen.getByText(IMPOSSIBLE_ANSWER.suggestedPrompt)).toBeOnTheScreen();
 
+        // And Try this instead is the suggested action, so Next turns neutral
+        expect(screen.getByText('workspace.rules.newRule.impossible.tryThisInstead')).toBeOnTheScreen();
+        expect(mockIsSubmitButtonNeutral).toBe(true);
+
         // And the form stops loading without an error, because the answer is shown in the form
         const form = await getOnyxValue(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
         expect(form?.isLoading).toBe(false);
@@ -308,5 +328,8 @@ describe('DescribeRuleModal', () => {
         // Then the modal shows the general title and no Try this instead button, because there is nothing to try
         expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
         expect(screen.queryByText('workspace.rules.newRule.impossible.tryThisInstead')).toBeNull();
+
+        // And Next stays the suggested action
+        expect(mockIsSubmitButtonNeutral).toBe(false);
     });
 });

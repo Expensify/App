@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -147,6 +148,7 @@ function DescribeRuleForm({
     onFinish,
 }: DescribeRuleFormProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const formRef = useRef<FormRef>(null);
     const inputRef = useRef<AnimatedTextInputRef>(null);
@@ -302,6 +304,22 @@ function DescribeRuleForm({
             shouldUseScrollView={shouldUseScrollView}
             submitFlexEnabled={submitFlexEnabled}
             shouldHideFixErrorsAlert
+            isSubmitButtonNeutral={!!refusalSuggestedPrompt}
+            shouldRenderFooterAboveSubmit
+            footerContent={
+                !!refusalSuggestedPrompt && (
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={() => describeSuggestedRule(refusalSuggestedPrompt)}
+                        isDisabled={isOffline}
+                        style={styles.mb3}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
+                    >
+                        <Button.Text>{translate('workspace.rules.newRule.impossible.tryThisInstead')}</Button.Text>
+                    </Button>
+                )
+            }
             // An empty description sends no request, so nothing would stop a loading state that starts on the press.
             shouldShowLoadingImmediatelyOnPress={!canSkipDescription}
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
@@ -338,19 +356,7 @@ function DescribeRuleForm({
                 <View style={styles.mt4}>
                     <Text style={styles.textStrong}>{translate(IMPOSSIBLE_TITLE_BY_REASON[refusal.reason ?? ''] ?? 'workspace.rules.newRule.impossible.noCapability')}</Text>
                     {!!refusal.explanation && <Text style={[styles.textSupporting, styles.mt1]}>{refusal.explanation}</Text>}
-                    {!!refusalSuggestedPrompt && (
-                        <>
-                            <Text style={styles.mt3}>{refusalSuggestedPrompt}</Text>
-                            <Button
-                                size={CONST.BUTTON_SIZE.SMALL}
-                                onPress={() => describeSuggestedRule(refusalSuggestedPrompt)}
-                                style={[styles.mt2, styles.alignSelfStart]}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
-                            >
-                                <Button.Text>{translate('workspace.rules.newRule.impossible.tryThisInstead')}</Button.Text>
-                            </Button>
-                        </>
-                    )}
+                    {!!refusalSuggestedPrompt && <Text style={styles.mt3}>{refusalSuggestedPrompt}</Text>}
                 </View>
             )}
         </FormProvider>
