@@ -15,6 +15,7 @@ const mockOpenSupportTicketOrConcierge = jest.fn();
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
+    setShouldPopToSidebar: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 jest.mock('@react-navigation/native', () => ({
@@ -34,6 +35,7 @@ jest.mock('@components/ReportActionsSkeletonView', () => () => null);
 
 const mockUseNetwork = jest.mocked(useNetwork);
 const mockGoBack = jest.mocked(Navigation.goBack);
+const mockSetShouldPopToSidebar = jest.mocked(Navigation.setShouldPopToSidebar);
 const mockNavigate = jest.mocked(Navigation.navigate);
 
 async function renderPage() {
@@ -57,6 +59,10 @@ describe('TalkToHumanPage', () => {
 
         // Then it leaves the page first and opens the ticket from the page the link was pressed on
         expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+        // And a pending pop to the sidebar is cleared first, or goBack would consume it and leave this page open
+        expect(mockSetShouldPopToSidebar).toHaveBeenCalledWith(false);
+        expect(mockSetShouldPopToSidebar.mock.invocationCallOrder.at(0)).toBeLessThan(mockGoBack.mock.invocationCallOrder.at(0) ?? 0);
         expect(mockOpenSupportTicketOrConcierge).toHaveBeenCalledTimes(1);
         expect(mockGoBack.mock.invocationCallOrder.at(0)).toBeLessThan(mockOpenSupportTicketOrConcierge.mock.invocationCallOrder.at(0) ?? 0);
         expect(mockNavigate).not.toHaveBeenCalled();

@@ -30,6 +30,9 @@ function TalkToHumanPage() {
                 }
                 hasHandledLink.current = true;
 
+                // A wide to narrow resize leaves a pending pop to the sidebar, which targets the page underneath
+                // rather than this one. goBack would consume it here and leave this page open.
+                Navigation.setShouldPopToSidebar(false);
                 Navigation.goBack();
                 if (isOffline) {
                     Navigation.navigate(ROUTES.SETTINGS_HELP);

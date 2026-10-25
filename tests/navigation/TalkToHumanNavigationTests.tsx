@@ -82,6 +82,26 @@ describe.each([
         expect(Navigation.getActiveRoute()).toBe(`/r/${CHAT_REPORT_ID}`);
     });
 
+    it('still pops when a wide to narrow resize left a pending pop to the sidebar', () => {
+        // Given a chat open in the app and the link pressed
+        render(<TestNavigationContainer initialState={chatState} />);
+        act(() => {
+            Navigation.navigate(ROUTES.TALK_TO_HUMAN);
+        });
+
+        // When the resize flag is pending and the page clears it before leaving, as TalkToHumanPage does
+        act(() => {
+            Navigation.setShouldPopToSidebar(true);
+        });
+        act(() => {
+            Navigation.setShouldPopToSidebar(false);
+            Navigation.goBack();
+        });
+
+        // Then the page is gone, so the ticket does not record this route as its Back target
+        expect(Navigation.getActiveRoute()).toBe(`/r/${CHAT_REPORT_ID}`);
+    });
+
     it('leaves a page behind when the link is opened directly', () => {
         // Given the route opened from a cold link, which has no page of its own to return to
         render(<TestNavigationContainer initialState={getAdaptedStateFromPath(ROUTES.TALK_TO_HUMAN) as InitialState} />);
