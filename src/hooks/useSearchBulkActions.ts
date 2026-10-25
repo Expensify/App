@@ -2726,18 +2726,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         if (areAllMatchingItemsSelected) {
-            // The backend only approves the matching reports the user can approve, so one approvable loaded item is enough to offer it.
-            const hasLoadedApprovableItem = selectedReports.length
-                ? selectedReports.some((report) => report.canApprove)
-                : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE);
-            const shouldShowApproveOptionForAllMatchingItems = !isOffline && (isExpenseType || isExpenseReportType) && !hasSubmitPolicyTransactions && hasLoadedApprovableItem;
-            // The backend only submits the matching reports the user can submit, so one submittable loaded item is enough to offer it.
+            // The backend skips the matching reports the user can't act on, so one loaded item that allows the action is enough to offer it.
+            const hasLoadedItemWith = (reportFlag: 'canApprove' | 'canSubmit', actionType: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>) =>
+                selectedReports.length ? selectedReports.some((report) => report[reportFlag]) : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === actionType);
+            const shouldShowApproveOptionForAllMatchingItems =
+                !isOffline && (isExpenseType || isExpenseReportType) && !hasSubmitPolicyTransactions && hasLoadedItemWith('canApprove', CONST.SEARCH.ACTION_TYPES.APPROVE);
             // Submit plan workspaces pick an approver per report and Mark as done is a different action, so neither is sent to the backend.
-            const hasLoadedSubmittableItem = selectedReports.length
-                ? selectedReports.some((report) => report.canSubmit)
-                : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT);
             const shouldShowSubmitOptionForAllMatchingItems =
-                !isOffline && (isExpenseType || isExpenseReportType) && !doSelectedItemsBelongToSubmitPolicy && noReportsShouldMarkAsDone && hasLoadedSubmittableItem;
+                !isOffline &&
+                (isExpenseType || isExpenseReportType) &&
+                !doSelectedItemsBelongToSubmitPolicy &&
+                noReportsShouldMarkAsDone &&
+                hasLoadedItemWith('canSubmit', CONST.SEARCH.ACTION_TYPES.SUBMIT);
             const submitAllMatchingItemsOption: DropdownOption<SearchHeaderOptionValue> = {
                 icon: expensifyIcons.Send,
                 text: translate('common.submit'),
