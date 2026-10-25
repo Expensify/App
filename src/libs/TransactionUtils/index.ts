@@ -33,7 +33,6 @@ import type {Card, CardList, OnyxInputOrEntry, PersonalDetails, Policy, RecentWa
 import type {Attendee, DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Comment, UnreportedTransaction, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
