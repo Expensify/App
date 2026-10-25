@@ -46,6 +46,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
+type BreakdownRow = {
+    label: TranslationPaths;
+    value: string;
+    show: boolean;
+};
+
 type MoneyReportViewProps = {
     report: OnyxEntry<Report>;
 
@@ -113,6 +119,12 @@ function MoneyReportView({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
+    const breakdownRows: BreakdownRow[] = [
+        {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityRow},
+        {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityRow},
+        {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
+        {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
+    ];
     const isPartiallyPaid = !!report?.pendingFields?.partial;
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
@@ -128,7 +140,7 @@ function MoneyReportView({
     }, [policy?.fieldList, report, reportNameValuePairs]);
 
     const isOnlyTitleFieldEnabled = policyReportFields.every(shouldHideSingleReportField);
-    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
+    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report, transactions.length > 0);
     const shouldDisplayReportFields = shouldDisplayReportFieldsUtils(report, policy);
     const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && shouldDisplayReportFields && !isOnlyTitleFieldEnabled;
 
@@ -206,12 +218,7 @@ function MoneyReportView({
 
                         {!!shouldShowBreakdown && (
                             <>
-                                {[
-                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityRow},
-                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityRow},
-                                    {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
-                                    {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
-                                ]
+                                {breakdownRows
                                     .filter(({show}) => show)
                                     .map(({label, value}) => (
                                         <View
@@ -223,7 +230,7 @@ function MoneyReportView({
                                                     style={[styles.textLabelSupporting, hasPendingAction && styles.opacitySemiTransparent]}
                                                     numberOfLines={1}
                                                 >
-                                                    {translate(label as TranslationPaths)}
+                                                    {translate(label)}
                                                 </Text>
                                             </View>
                                             <View style={[styles.flexRow, styles.justifyContentCenter]}>
