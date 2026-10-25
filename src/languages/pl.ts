@@ -8892,6 +8892,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     retroactive: 'Zasady mają zastosowanie tylko do nowej aktywności.',
                     historyLimit: 'Reguły nie mogą sięgać tak daleko wstecz.',
                     tryThisInstead: 'Spróbuj tego zamiast tego',
+                    createAnyway: 'Utwórz mimo to',
                 },
             },
             expenseDefaultsTable: {

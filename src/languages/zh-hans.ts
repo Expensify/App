@@ -8557,6 +8557,7 @@ ${reportName}`,
                     retroactive: '规则仅适用于新活动。',
                     historyLimit: '规则无法追溯到那么久以前。',
                     tryThisInstead: '试试这个',
+                    createAnyway: '仍然创建',
                 },
             },
             expenseDefaultsTable: {

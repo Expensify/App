@@ -8865,6 +8865,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     retroactive: 'Regels zijn alleen van toepassing op nieuwe activiteit.',
                     historyLimit: 'Regels kunnen niet zo ver terugkijken.',
                     tryThisInstead: 'Probeer dit in plaats daarvan',
+                    createAnyway: 'Toch maken',
                 },
             },
             expenseDefaultsTable: {

@@ -9303,6 +9303,7 @@ const translations = {
                     retroactive: 'Rules only apply to new activity.',
                     historyLimit: "Rules can't look back that far.",
                     tryThisInstead: 'Try this instead',
+                    createAnyway: 'Create anyway',
                 },
             },
             expenseDefaultsTable: {

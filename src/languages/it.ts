@@ -8892,6 +8892,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     retroactive: 'Le regole si applicano solo alla nuova attività.',
                     historyLimit: 'Le regole non possono risalire così indietro.',
                     tryThisInstead: 'Prova questo invece',
+                    createAnyway: 'Crea comunque',
                 },
             },
             expenseDefaultsTable: {

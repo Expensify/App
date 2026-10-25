@@ -8870,6 +8870,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     retroactive: 'As regras se aplicam apenas à nova atividade.',
                     historyLimit: 'As regras não conseguem olhar tão para trás.',
                     tryThisInstead: 'Tente isto em vez disso',
+                    createAnyway: 'Criar mesmo assim',
                 },
             },
             expenseDefaultsTable: {

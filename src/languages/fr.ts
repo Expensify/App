@@ -8961,6 +8961,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     retroactive: 'Les règles ne s’appliquent qu’aux nouvelles activités.',
                     historyLimit: 'Les règles ne peuvent pas remonter aussi loin dans le temps.',
                     tryThisInstead: 'Essayez plutôt ceci',
+                    createAnyway: 'Créer quand même',
                 },
             },
             expenseDefaultsTable: {

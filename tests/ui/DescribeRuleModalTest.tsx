@@ -283,6 +283,9 @@ describe('DescribeRuleModal', () => {
         expect(screen.getByText('workspace.rules.newRule.impossible.tryThisInstead')).toBeOnTheScreen();
         expect(mockIsSubmitButtonNeutral).toBe(true);
 
+        // And the submit button keeps Next, because an editor has no agent rule to create anyway
+        expect(screen.getByLabelText('common.next')).toBeOnTheScreen();
+
         // And the form stops loading without an error, because the answer is shown in the form
         const form = await getOnyxValue(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
         expect(form?.isLoading).toBe(false);

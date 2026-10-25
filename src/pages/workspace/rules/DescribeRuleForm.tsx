@@ -165,6 +165,7 @@ function DescribeRuleForm({
     const generatedAgentRulePrompt = generatedRule?.agentRulePrompt;
     const refusal = generatedRuleState === CONST.GENERATED_RULE.STATE.IMPOSSIBLE && !!generatedRuleID && generatedRuleID === submittedGenerationID ? generatedRule : undefined;
     const refusalSuggestedPrompt = refusal?.suggestedPrompt;
+    const canCreateAnyway = !!refusalSuggestedPrompt && !!onAgentRuleFallback;
     const inputLabel = translate('workspace.rules.newRule.describeRuleInputLabel');
 
     const finish = () => {
@@ -279,6 +280,13 @@ function DescribeRuleForm({
             setNewRulePromptEmptyError();
             return;
         }
+        // The admin keeps their own description over the suggestion. Therefore it goes to the agent rule page and not back to Concierge.
+        if (refusal && refusalSuggestedPrompt && onAgentRuleFallback) {
+            Log.info('[GenerateRule] Created an agent rule after a refusal', false, {policyID, generationID: refusal.generationID, reason: refusal.reason});
+            onAgentRuleFallback(prompt, refusal.generationID, refusal.state);
+            finish();
+            return;
+        }
         describeRule(prompt);
     };
 
@@ -298,7 +306,7 @@ function DescribeRuleForm({
             formID={ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM}
             validate={validate}
             onSubmit={submit}
-            submitButtonText={submitButtonText}
+            submitButtonText={canCreateAnyway ? translate('workspace.rules.newRule.impossible.createAnyway') : submitButtonText}
             style={style}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             shouldUseScrollView={shouldUseScrollView}

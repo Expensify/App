@@ -8946,6 +8946,7 @@ ${reportName}`,
                     retroactive: 'Las reglas solo se aplican a la actividad nueva.',
                     historyLimit: 'Las reglas no pueden mirar tan atrás.',
                     tryThisInstead: 'Prueba esto en su lugar',
+                    createAnyway: 'Crear de todos modos',
                 },
             },
             expenseDefaultsTable: {

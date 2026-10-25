@@ -9028,6 +9028,7 @@ ${reportName}`,
                     retroactive: 'Οι κανόνες ισχύουν μόνο για νέα δραστηριότητα.',
                     historyLimit: 'Οι κανόνες δεν μπορούν να ανατρέξουν τόσο πίσω.',
                     tryThisInstead: 'Δοκιμάστε αυτό αντί για εκείνο',
+                    createAnyway: 'Δημιουργία ούτως ή άλλως',
                 },
             },
             expenseDefaultsTable: {

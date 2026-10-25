@@ -8776,6 +8776,7 @@ ${reportName}`,
                     retroactive: 'ルールは新しいアクティビティにのみ適用されます。',
                     historyLimit: 'ルールはそれほど前までさかのぼることができません。',
                     tryThisInstead: '代わりにこちらをお試しください',
+                    createAnyway: 'このまま作成',
                 },
             },
             expenseDefaultsTable: {
