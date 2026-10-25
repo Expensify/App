@@ -59,8 +59,6 @@ import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListCon
 import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 
-import {readNewestAction} from '@userActions/Report';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -153,7 +151,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const {sessionStartTime} = useSidePanelState();
-    const {setShowFullHistory: setConciergeShowFullHistory} = useConciergeChatHistoryActions();
+    const {collapseHistory: collapseConciergeHistory} = useConciergeChatHistoryActions();
 
     const didLayout = useRef(false);
 
@@ -515,8 +513,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                 <ConciergeChatHistoryToggle
                     isHistoryShown
                     onPress={() => {
-                        setConciergeShowFullHistory(false);
-                        readNewestAction(reportID, true);
+                        collapseConciergeHistory();
                         if (reportActionIDFromRoute) {
                             Navigation.setParams({reportActionID: ''}, route.key);
                         }

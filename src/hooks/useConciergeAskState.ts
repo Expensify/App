@@ -39,7 +39,7 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const shouldKeepMessagesOnScreenSelector = (actions: OnyxEntry<ReportActions>) => {
+    const hasFailedSendSelector = (actions: OnyxEntry<ReportActions>) => {
         if (!isAskConciergeChat || !actions) {
             return false;
         }
@@ -47,8 +47,8 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         // A failed send stays on screen so the user can retry or dismiss it.
         return Object.values(actions).some((action) => !isEmptyObject(action.errors));
     };
-    const [shouldKeepMessagesOnScreen] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        selector: shouldKeepMessagesOnScreenSelector,
+    const [hasFailedSend] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: hasFailedSendSelector,
     });
 
     const hasUnreadMessageFromOthersSelector = (report: OnyxEntry<Report>) =>
@@ -58,7 +58,7 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     });
 
     const isHistoryExpanded = isAskConciergeChat && (showFullHistory || !!route.params?.reportActionID);
-    const shouldShowWelcome = isAskConciergeChat && !isHistoryExpanded && (isHistoryCollapsedByUser || !shouldKeepMessagesOnScreen) && !hasUnreadMessageFromOthers;
+    const shouldShowWelcome = isAskConciergeChat && !isHistoryExpanded && (isHistoryCollapsedByUser || !hasFailedSend) && !hasUnreadMessageFromOthers;
 
     return {
         isHistoryExpanded,

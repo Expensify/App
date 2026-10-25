@@ -1,5 +1,7 @@
 import useOnyx from '@hooks/useOnyx';
 
+import {readNewestAction} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {PropsWithChildren} from 'react';
@@ -17,6 +19,9 @@ type ConciergeChatHistoryStateContextType = {
 
 type ConciergeChatHistoryActionsContextType = {
     setShowFullHistory: (show: boolean) => void;
+
+    /** Hides the earlier conversation and marks the Concierge chat as read */
+    collapseHistory: () => void;
 };
 
 const ConciergeChatHistoryStateContext = createContext<ConciergeChatHistoryStateContextType>({
@@ -26,6 +31,7 @@ const ConciergeChatHistoryStateContext = createContext<ConciergeChatHistoryState
 
 const ConciergeChatHistoryActionsContext = createContext<ConciergeChatHistoryActionsContextType>({
     setShowFullHistory: () => {},
+    collapseHistory: () => {},
 });
 
 function ConciergeChatHistoryProvider({children}: PropsWithChildren) {
@@ -35,6 +41,12 @@ function ConciergeChatHistoryProvider({children}: PropsWithChildren) {
     const setShowFullHistory = (show: boolean) => {
         setShowFullHistoryState(show);
         setIsHistoryCollapsedByUser(!show);
+    };
+
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const collapseHistory = () => {
+        setShowFullHistory(false);
+        readNewestAction(conciergeReportID, true);
     };
 
     // Collapse the history when the user switches accounts.
@@ -47,7 +59,7 @@ function ConciergeChatHistoryProvider({children}: PropsWithChildren) {
     }
 
     const stateValue = {showFullHistory, isHistoryCollapsedByUser};
-    const actionsValue = {setShowFullHistory};
+    const actionsValue = {setShowFullHistory, collapseHistory};
 
     return (
         <ConciergeChatHistoryStateContext.Provider value={stateValue}>

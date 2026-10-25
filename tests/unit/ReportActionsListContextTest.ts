@@ -52,6 +52,7 @@ function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals
         isConciergeHiddenHistory: false,
         showConciergeSidePanelWelcome: false,
         derivedIsEmptyReport: undefined,
+        hasUnreadConciergeMessageFromOthers: false,
         ...overrides,
     };
 }

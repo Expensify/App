@@ -3,14 +3,13 @@ import {canUserPerformWriteAction, isReportTransactionThread as isReportTransact
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
-import {useConciergeChatHistoryActions, useConciergeChatHistoryState} from '@pages/inbox/ConciergeChatHistoryContext';
+import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
 
 import {useRoute} from '@react-navigation/native';
-import {useEffect} from 'react';
 
 import useConciergeAskState from './useConciergeAskState';
 import {useIsAppLoadPending} from './useInFlightRequests';
@@ -62,21 +61,12 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
     const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
 
-    const {showFullHistory: conciergeShowFullHistory} = useConciergeChatHistoryState();
     const {setShowFullHistory: setConciergeShowFullHistory} = useConciergeChatHistoryActions();
     const {
         shouldShowWelcome: shouldShowConciergeWelcome,
         isHistoryExpanded: isConciergeHistoryExpanded,
         hasUnreadMessageFromOthers: hasUnreadConciergeMessageFromOthers,
     } = useConciergeAskState(reportID);
-
-    // Opening the chat marks the unread message as read, so expand the history to keep it on screen afterwards.
-    useEffect(() => {
-        if (!hasUnreadConciergeMessageFromOthers) {
-            return;
-        }
-        setConciergeShowFullHistory(true);
-    }, [hasUnreadConciergeMessageFromOthers, setConciergeShowFullHistory]);
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
@@ -106,7 +96,6 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
             canPerformWriteAction,
             hasOlderActions,
             loadOlderChats,
-            conciergeShowFullHistory,
             setConciergeShowFullHistory,
         });
 
@@ -140,6 +129,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         isConciergeHiddenHistory,
         showConciergeSidePanelWelcome,
         derivedIsEmptyReport,
+        hasUnreadConciergeMessageFromOthers,
     };
 
     // The render state slice on `ReportActionsListStateContext`; this is what drives list re-renders.

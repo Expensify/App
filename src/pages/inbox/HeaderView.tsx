@@ -88,7 +88,7 @@ import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 
-import {joinRoom, readNewestAction} from '@userActions/Report';
+import {joinRoom} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
@@ -161,7 +161,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
-    const {setShowFullHistory: setConciergeShowFullHistory} = useConciergeChatHistoryActions();
+    const {collapseHistory: collapseConciergeHistory} = useConciergeChatHistoryActions();
     const isConciergeThread = !!conciergeReportID && report?.parentReportID === conciergeReportID;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -322,8 +322,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     );
 
     const startNewConciergeChat = () => {
-        setConciergeShowFullHistory(false);
-        readNewestAction(conciergeReportID, true);
+        collapseConciergeHistory();
         Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeReportID}));
     };
 

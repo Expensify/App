@@ -4,11 +4,13 @@ import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsListModel from '@hooks/useReportActionsListModel';
 
+import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
+
 import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import AskConciergeWelcome from './AskConciergeWelcome';
 import {computeReportActionsSkeletonState, ReportActionsListActionsContext, ReportActionsListStateContext} from './ReportActionsListContext';
@@ -40,6 +42,16 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
     // Side effects that must run whenever the chat list is shown, including while the skeleton renders.
     useCopySelectionEvent();
     usePendingConciergeResponse(reportID);
+
+    // Opening the chat marks the unread message as read, so expand the history to keep it on screen afterwards.
+    const {setShowFullHistory: setConciergeShowFullHistory} = useConciergeChatHistoryActions();
+    const {hasUnreadConciergeMessageFromOthers} = readinessSignals;
+    useEffect(() => {
+        if (!hasUnreadConciergeMessageFromOthers) {
+            return;
+        }
+        setConciergeShowFullHistory(true);
+    }, [hasUnreadConciergeMessageFromOthers, setConciergeShowFullHistory]);
 
     useBackfillWhenNoVisibleActions({
         reportID,

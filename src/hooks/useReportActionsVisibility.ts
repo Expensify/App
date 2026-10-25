@@ -24,7 +24,6 @@ type UseReportActionsVisibilityParams = {
     canPerformWriteAction: boolean;
     hasOlderActions: boolean;
     loadOlderChats: (force?: boolean) => void;
-    conciergeShowFullHistory?: boolean;
     setConciergeShowFullHistory?: (show: boolean) => void;
 };
 
@@ -46,7 +45,6 @@ function useReportActionsVisibility({
     canPerformWriteAction,
     hasOlderActions,
     loadOlderChats,
-    conciergeShowFullHistory,
     setConciergeShowFullHistory,
 }: UseReportActionsVisibilityParams): UseReportActionsVisibilityResult {
     const {isOffline} = useNetwork();
@@ -115,8 +113,6 @@ function useReportActionsVisibility({
             loadOlderChats,
         });
 
-    const hasConciergeMainDMHistory = isConciergeMainDM && (hasOlderActions || visibleReportActions.some((action) => !isCreatedAction(action)));
-
     const showConciergeMainDMHistory = () => {
         setConciergeShowFullHistory?.(true);
         loadOlderChats(true);
@@ -128,8 +124,8 @@ function useReportActionsVisibility({
         isConciergeSidePanel,
         isConciergeHiddenHistory,
         showConciergeSidePanelWelcome,
-        showFullHistory: isConciergeMainDM ? !!conciergeShowFullHistory : showFullHistory,
-        hasPreviousMessages: isConciergeMainDM ? hasConciergeMainDMHistory : hasPreviousMessages,
+        showFullHistory,
+        hasPreviousMessages,
         handleShowPreviousMessages: isConciergeMainDM ? showConciergeMainDMHistory : handleShowPreviousMessages,
     };
 }
