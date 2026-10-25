@@ -5,7 +5,6 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PillSelector from '@components/PillSelector';
 import RenderHTML from '@components/RenderHTML';
@@ -27,13 +26,13 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isGroupPolicy, isPendingDeletePolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import type {AutoReportingFrequency} from '@libs/SubmissionScheduleUtils';
-import {getAutoReportingOffsetDisplayName, getFrequencyDisplayName, getSubmissionFrequencyHelperText, getWeekdayKey, isSemiMonthlyOffsetOrderValid} from '@libs/SubmissionScheduleUtils';
+import {getFrequencyDisplayName, getSubmissionFrequencyHelperText, isSemiMonthlyOffsetOrderValid} from '@libs/SubmissionScheduleUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 
-import {clearPolicyErrorField, setWorkspaceAutoReportingFrequency, setWorkspaceAutoReportingMonthlyOffset} from '@userActions/Policy/Policy';
+import {clearPolicyErrorField, setWorkspaceAutoReportingFrequency, setWorkspaceAutoReportingOffset} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +44,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
+import AutoReportingSubmitOnRows from './AutoReportingSubmitOnRows';
 import useSubmissionFrequencyDraft from './useSubmissionFrequencyDraft';
 
 type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY>;
@@ -81,7 +81,7 @@ const getAutoReportingFrequencyDisplayNames = (translate: LocaleContextProps['tr
 };
 
 function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoReportingFrequencyPageProps) {
-    const {translate, toLocaleOrdinal} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
@@ -111,7 +111,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
             setWorkspaceAutoReportingFrequency(policyID, selectedFrequency, policy?.autoReportingFrequency, policy?.harvesting, reviewWorkspaceSettingsTaskData);
         }
         if (offset !== undefined && hasChanges) {
-            setWorkspaceAutoReportingMonthlyOffset(
+            setWorkspaceAutoReportingOffset(
                 policyID,
                 offset,
                 policy?.autoReportingOffset,
@@ -128,65 +128,6 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         key: frequency,
         text: getFrequencyDisplayName(frequency, translate),
     }));
-
-    const renderOffsetRow = (name: string, value: string, onPress: () => void, isSecondOffset = false) => (
-        <OfflineWithFeedback
-            pendingAction={isSecondOffset ? policy?.pendingFields?.autoReportingOffsetSecondSemiMonthly : policy?.pendingFields?.autoReportingOffset}
-            errors={isSecondOffset ? undefined : getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
-            onClose={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
-            errorRowStyles={[styles.ph5]}
-        >
-            <MenuItemField
-                name={name}
-                value={value}
-                onPress={onPress}
-                sentryLabel={isSecondOffset ? CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTO_REPORTING_SECOND_OFFSET : CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTO_REPORTING_OFFSET}
-            />
-        </OfflineWithFeedback>
-    );
-
-    const renderSectionHeader = (title: string) => <Text style={[styles.textStrong, styles.ph5, styles.pv1Half, styles.mt6]}>{title}</Text>;
-
-    const renderSubmitOnRows = () => {
-        switch (selectedFrequency) {
-            case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
-                return (
-                    <>
-                        {renderSectionHeader(translate('workflowsPage.submitOn'))}
-                        {renderOffsetRow(translate('workflowsPage.dayOfTheWeek'), translate(`workflowsPage.daysOfWeek.${getWeekdayKey(Number(offset))}`), () =>
-                            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_WEEKLY_OFFSET.getRoute(policyID)),
-                        )}
-                    </>
-                );
-            case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY:
-                return (
-                    <>
-                        {renderSectionHeader(translate('workflowsPage.firstSubmission'))}
-                        {renderOffsetRow(translate('workflowsPage.dayOfTheMonth'), getAutoReportingOffsetDisplayName(offset, translate, toLocaleOrdinal), () =>
-                            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_SEMI_MONTHLY_OFFSET.getRoute(policyID, CONST.POLICY.SEMI_MONTHLY_SUBMISSIONS.FIRST)),
-                        )}
-                        {renderSectionHeader(translate('workflowsPage.secondSubmission'))}
-                        {renderOffsetRow(
-                            translate('workflowsPage.dayOfTheMonth'),
-                            getAutoReportingOffsetDisplayName(secondOffset, translate, toLocaleOrdinal),
-                            () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_SEMI_MONTHLY_OFFSET.getRoute(policyID, CONST.POLICY.SEMI_MONTHLY_SUBMISSIONS.SECOND)),
-                            true,
-                        )}
-                    </>
-                );
-            case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY:
-                return (
-                    <>
-                        {renderSectionHeader(translate('workflowsPage.submitOn'))}
-                        {renderOffsetRow(translate('workflowsPage.dayOfTheMonth'), getAutoReportingOffsetDisplayName(offset, translate, toLocaleOrdinal), () =>
-                            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.getRoute(policyID)),
-                        )}
-                    </>
-                );
-            default:
-                return null;
-        }
-    };
 
     const timezoneLink = `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID)}`;
 
@@ -225,7 +166,13 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                                 style={[styles.ph5, styles.pv1]}
                             />
                         </OfflineWithFeedback>
-                        {renderSubmitOnRows()}
+                        <AutoReportingSubmitOnRows
+                            policy={policy}
+                            frequency={selectedFrequency}
+                            isSavedFrequencySelected={isSavedFrequencySelected}
+                            offset={offset}
+                            secondOffset={secondOffset}
+                        />
                     </ScrollView>
                     <FixedFooter
                         style={styles.mtAuto}

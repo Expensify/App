@@ -1,3 +1,6 @@
+/**
+ * Helpers for reading, validating and displaying a workspace's submission schedule (auto reporting frequency and offsets).
+ */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';

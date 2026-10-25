@@ -6220,7 +6220,7 @@ describe('actions/Policy', () => {
         });
     });
 
-    describe('setWorkspaceAutoReportingMonthlyOffset', () => {
+    describe('setWorkspaceAutoReportingOffset', () => {
         it('should update auto reporting monthly offset optimistically and succeed', async () => {
             // Given a workspace with offset 1
             const policy = {
@@ -6231,7 +6231,7 @@ describe('actions/Policy', () => {
             mockFetch.pause();
 
             // When setting auto reporting offset to 2
-            Policy.setWorkspaceAutoReportingMonthlyOffset(policy.id, 2, policy.autoReportingOffset);
+            Policy.setWorkspaceAutoReportingOffset(policy.id, 2, policy.autoReportingOffset);
 
             // Then optimistic data should be set in Onyx
             await waitForBatchedUpdates();
@@ -6257,7 +6257,7 @@ describe('actions/Policy', () => {
 
             // When setting auto reporting offset to 2 but fail
             mockFetch.fail();
-            Policy.setWorkspaceAutoReportingMonthlyOffset(policy.id, 2, policy.autoReportingOffset);
+            Policy.setWorkspaceAutoReportingOffset(policy.id, 2, policy.autoReportingOffset);
             await waitForBatchedUpdates();
 
             // Then the offset should be reverted
@@ -6278,7 +6278,7 @@ describe('actions/Policy', () => {
             mockFetch.pause();
 
             // When setting the dates to the 5th and 20th
-            Policy.setWorkspaceAutoReportingMonthlyOffset(policy.id, 5, policy.autoReportingOffset, {}, 20, policy.autoReportingOffsetSecondSemiMonthly);
+            Policy.setWorkspaceAutoReportingOffset(policy.id, 5, policy.autoReportingOffset, {}, 20, policy.autoReportingOffsetSecondSemiMonthly);
 
             // Then both dates should be set optimistically and sent to the API
             await waitForBatchedUpdates();
@@ -6311,7 +6311,7 @@ describe('actions/Policy', () => {
 
             // When setting the dates to the 5th and 20th but fail
             mockFetch.fail();
-            Policy.setWorkspaceAutoReportingMonthlyOffset(policy.id, 5, policy.autoReportingOffset, {}, 20, policy.autoReportingOffsetSecondSemiMonthly);
+            Policy.setWorkspaceAutoReportingOffset(policy.id, 5, policy.autoReportingOffset, {}, 20, policy.autoReportingOffsetSecondSemiMonthly);
             await waitForBatchedUpdates();
 
             // Then both dates should be reverted

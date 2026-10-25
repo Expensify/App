@@ -1011,7 +1011,7 @@ function setWorkspaceCurrencyConversionFeesPreference(policyID: string, shouldPr
     API.write(WRITE_COMMANDS.SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceAutoReportingMonthlyOffset(
+function setWorkspaceAutoReportingOffset(
     policyID: string,
     autoReportingOffset: AutoReportingOffset,
     currentAutoReportingOffset: AutoReportingOffset | undefined,
@@ -1045,7 +1045,7 @@ function setWorkspaceAutoReportingMonthlyOffset(
                 autoReportingOffset: currentAutoReportingOffset ?? null,
                 ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: currentAutoReportingOffsetSecondSemiMonthly ?? null}),
                 pendingFields: {autoReportingOffset: null, ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: null})},
-                errorFields: {autoReportingOffset: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.monthlyOffsetErrorMessage')},
+                errorFields: {autoReportingOffset: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.autoReportingFrequencyErrorMessage')},
             },
         },
     ];
@@ -8285,7 +8285,7 @@ export {
     setWorkspaceAutoHarvesting,
     setWorkspaceAutoReportingFrequency,
     setWorkspaceCurrencyConversionFeesPreference,
-    setWorkspaceAutoReportingMonthlyOffset,
+    setWorkspaceAutoReportingOffset,
     setWorkspaceTimezone,
     updateWorkspaceDescription,
     updateWorkspaceClientID,
