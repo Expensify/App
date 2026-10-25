@@ -340,7 +340,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                                 defaultValue={defaultPrompt}
                                 multiline
                                 // Keep native markdown sizing enabled across rotation so the input retains focus while its height limit changes.
-                                autoGrowHeight={Platform.OS !== 'web'}
+                                autoGrowHeight={shouldAutoGrowPromptInput}
                                 maxAutoGrowHeight={isInLandscapeMode ? landscapePromptHeight : PROMPT_MAX_AUTO_GROW_HEIGHT}
                                 containerStyles={shouldAutoGrowPromptInput ? undefined : [styles.h100]}
                                 touchableInputWrapperStyle={shouldAutoGrowPromptInput ? undefined : [styles.flex1]}
