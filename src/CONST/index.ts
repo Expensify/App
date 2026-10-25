@@ -295,6 +295,21 @@ const CONST = {
         '6674797068657631', // 'ftyphevc' - Typically for HEVC encoded media (common in HEIF)
         '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
     ],
+    // HEIC signatures sit inside the 'ftyp' box, which starts after the 4-byte box size.
+    HEIC_SIGNATURE_OFFSET: 4,
+    // TIFF header, which is also what a DNG (Adobe Digital Negative, e.g. iPhone ProRAW) starts with.
+    TIFF_SIGNATURES: [
+        '49492a00', // 'II*\0' - little-endian TIFF/DNG
+        '4d4d002a', // 'MM\0*' - big-endian TIFF/DNG
+    ],
+    TIFF_SIGNATURE_OFFSET: 0,
+    // How a TIFF/DNG is labelled when the picker does know what it is (Android's gallery and the document picker on both
+    // platforms). iOS gallery picks don't carry these and are recognized from TIFF_SIGNATURES instead. Only DNGs
+    // (DNG_EXTENSION / DNG_MIME_TYPE) are transcoded. Plain TIFFs are an accepted receipt format and are uploaded as-is.
+    TIFF_EXTENSIONS: ['dng', 'tif', 'tiff'],
+    TIFF_MIME_TYPES: ['image/x-adobe-dng', 'image/tiff', 'image/tif'],
+    DNG_EXTENSION: 'dng',
+    DNG_MIME_TYPE: 'image/x-adobe-dng',
     RECENT_WAYPOINTS_NUMBER: 20,
     // Validate-code action errorFields key the missing-personal-details ship-card flow writes its incorrect-magic-code
     // error under, and the ValidateCodeForm reads it back from, so the action and the page stay in sync.
@@ -530,6 +545,7 @@ const CONST = {
         GROUP_CHAT: 'groupChat',
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         ROOM: 'room',
+        TRIP_ROOM: 'tripRoom',
         DEFAULT: 'default',
     },
 
@@ -655,6 +671,14 @@ const CONST = {
             PDF: 'pdf',
             RECEIPTS: 'receipts',
         },
+    },
+    BULK_ACTION: {
+        STATE: {
+            RUNNING: 'running',
+            DONE: 'done',
+            FAILED: 'failed',
+        },
+        DELETE_EXPENSES: 'deleteExpenses',
     },
 
     SECURE_DOWNLOAD_TYPE: {
@@ -2249,6 +2273,7 @@ const CONST = {
                     UPDATE_MULTIPLE_TAGS_APPROVER_RULES: 'POLICYCHANGELOG_UPDATE_MULTIPLE_TAGS_APPROVER_RULES',
                     UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
                     UPDATE_DESCRIPTION: 'POLICYCHANGELOG_UPDATE_DESCRIPTION',
+                    UPDATE_RULES_DOCUMENT: 'POLICYCHANGELOG_UPDATE_RULES_DOCUMENT',
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
                     UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
@@ -2272,6 +2297,8 @@ const CONST = {
                     UPDATE_CARD_FEED_LIABILITY: 'POLICYCHANGELOG_UPDATE_CARD_FEED_LIABILITY',
                     UPDATE_CARD_FEED_STATEMENT_PERIOD: 'POLICYCHANGELOG_UPDATE_CARD_FEED_STATEMENT_PERIOD',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
+                    ARCHIVE_POLICY: 'POLICYCHANGELOG_ARCHIVE_POLICY',
+                    UNARCHIVE_POLICY: 'POLICYCHANGELOG_UNARCHIVE_POLICY',
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     CORPORATE_FORCE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
@@ -2714,6 +2741,28 @@ const CONST = {
         SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT: 'SearchRouter.ModalCloseWait',
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
         SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
+        SPAN_SEARCH_ROUTER_QUERY: 'ManualSearchRouterQuery',
+        SEARCH_ROUTER_QUERY_CANCEL_REASON: {
+            SUPERSEDED: 'superseded',
+            CLEARED: 'cleared',
+            CLOSED: 'closed',
+            UNMOUNTED: 'unmounted',
+            LIST_MOUNT: 'list_mount',
+            TIMED_OUT: 'timed_out',
+            OPTIONS_NOT_READY: 'options_not_ready',
+        },
+        SEARCH_ROUTER_QUERY_LENGTH_BUCKET: {
+            EMPTY: '0-empty',
+            SHORT: '1-short',
+            MEDIUM: '2-medium',
+            LONG: '3-long',
+            VERY_LONG: '4-very-long',
+        },
+        SEARCH_ROUTER_QUERY_AUTOCOMPLETE_KEY: {
+            NONE: 'none',
+        },
+        SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN: 5,
+        SEARCH_ROUTER_QUERY_MAX_DURATION_MS: 10_000,
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW: 'ShareExtensionOpenSubmitFlow',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
@@ -2793,6 +2842,14 @@ const CONST = {
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         ATTRIBUTE_FAILED: 'failed',
         ATTRIBUTE_IS_WARM: 'is_warm',
+        ATTRIBUTE_QUERY_LENGTH_BUCKET: 'query_length_bucket',
+        ATTRIBUTE_HAS_FILTER: 'has_filter',
+        ATTRIBUTE_AUTOCOMPLETE_KEY: 'autocomplete_key',
+        ATTRIBUTE_QUERY_ORDINAL: 'query_ordinal',
+        ATTRIBUTE_LOCAL_RESULT_COUNT: 'local_result_count',
+        ATTRIBUTE_OPTIONS_REBUILT: 'options_rebuilt',
+        ATTRIBUTE_RENDER_DURATION_MS: 'render_duration_ms',
+        ATTRIBUTE_CANCEL_REASON: 'cancel_reason',
         ATTRIBUTE_IS_STARTUP: 'is_startup',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
         // Stamped on the navigate-to-inbox-tab span: wide-layout navigations mount the central report
@@ -3299,7 +3356,7 @@ const CONST = {
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
-    ATTACHMENT_OR_RECEIPT_LOCAL_URL: /^https:\/\/(www\.)?([a-z0-9_-]+\.)*expensify.com(:[0-9]+)?\/(chat-attachments|receipts)/,
+    ATTACHMENT_OR_RECEIPT_LOCAL_URL: /^https:\/\/(www\.)?([a-z0-9_-]+\.)*expensify\.com(:[0-9]+)?\/(chat-attachments\/[0-9]+|receipts)\/[^/?#]+\.[a-z0-9]+([?#]|$)/,
     ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE: 'data-expensify-thumbnail-url',
     ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
     ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
@@ -3436,9 +3493,10 @@ const CONST = {
         FILE_TOO_LARGE: 'fileTooLarge',
         FILE_TOO_SMALL: 'fileTooSmall',
         FILE_CORRUPTED: 'fileCorrupted',
-        HEIC_CONVERSION_FAILED: 'heicConversionFailed',
+        IMAGE_CONVERSION_FAILED: 'imageConversionFailed',
         PROTECTED_FILE: 'protectedFile',
         HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
+        DNG_IMAGE: 'dngImage',
         IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
         FOLDER_NOT_ALLOWED: 'folderNotAllowed',
         MAX_FILE_LIMIT_EXCEEDED: 'maxFileLimitExceeded',
@@ -4408,6 +4466,8 @@ const CONST = {
         NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         DEFAULT_VENDOR_ID: 'defaultVendorID',
         PAYMENT_METHOD_CODE: 'paymentMethodCode',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
         AUTO_SYNC: 'autoSync',
         ACCOUNTING_METHOD: 'accountingMethod',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
@@ -4854,6 +4914,10 @@ const CONST = {
         SUCCESS: 'success',
         ERROR: 'error',
         WARNING: 'warning',
+        POSITION: {
+            TOP: 'top',
+            BOTTOM_RIGHT: 'bottomRight',
+        },
         DURATION: 2000,
         DURATION_LONG: 3500,
         // Longer duration for growls with an actionable button (e.g. "View"), giving the user enough time to tap it.
@@ -4861,10 +4925,6 @@ const CONST = {
         // Pixel distance used to park the growl fully offscreen before it slides in. It only needs to
         // exceed the growl's height + margins; the exact value isn't tied to a measured dimension.
         OFFSCREEN_OFFSET: 255,
-        POSITION: {
-            TOP: 'top',
-            BOTTOM_RIGHT: 'bottomRight',
-        },
     },
 
     LOCALES,
@@ -4937,6 +4997,12 @@ const CONST = {
             CARD_ADMIN: 'cardAdmin',
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
+            APPROVE_ONLY: 'approveOnly',
+        },
+        APPROVE_ONLY_BLOCKED_REASONS: {
+            HAS_CARD_ON_POLICY: 'hasCardOnPolicy',
+            IS_RESTRICTED_BY_DOMAIN_GROUP: 'isRestrictedByDomainGroup',
+            IS_DEFAULT_POLICY: 'isDefaultPolicy',
         },
         WORKSPACE_STATUS: {
             ACTIVE: 'active',
@@ -4969,6 +5035,7 @@ const CONST = {
             REPORT_FIELDS: 'reportFields',
             ACCOUNTING: 'accounting',
             MORE_FEATURES: 'moreFeatures',
+            CREATE_EXPENSES: 'createExpenses',
         },
         POLICY_FEATURE_ACCESS: {
             READ: 'read',
@@ -6000,6 +6067,11 @@ const CONST = {
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR: 'business_central_export_vendor',
+
+            /**
+             * Name of Card NVP for Business Central custom export accounts
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT: 'business_central_export_account',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -6062,6 +6134,11 @@ const CONST = {
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR_POLICY_ID: 'business_central_export_vendor_policy_id',
+
+            /**
+             * Name of Card NVP for Business Central custom export accounts
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT_POLICY_ID: 'business_central_export_account_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -10290,6 +10367,9 @@ const CONST = {
         },
         CATEGORY_PICKER_MODAL: {
             BACK_BUTTON: 'CategoryPickerModal-BackButton',
+        },
+        TAG_PICKER_MODAL: {
+            BACK_BUTTON: 'TagPickerModal-BackButton',
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',

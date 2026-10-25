@@ -172,6 +172,13 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['accountID', 'bank', 'isVirtual', 'cardID'],
         maskList: ['lastFourPAN', 'nameOnCard'],
     },
+    // A parked edit holds the comment the author typed and the message it replaces. maskFragileData only blanks
+    // `text` and `html` under a reportActions key, so without a rule both would be exported verbatim, and a rule
+    // also covers the export taken with fragile-data masking turned off.
+    [ONYXKEYS.DEFERRED_ATTACHMENT_EDITS]: {
+        allowList: ['reportID', 'currentUserAccountID', 'isOriginalReportArchived'],
+        maskList: ['textForNewComment', 'currentUserLogin'],
+    },
 };
 
 // ============================================================
@@ -211,9 +218,11 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING,
     ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE,
     ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE,
+    ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT,
     ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE,
     ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE,
     ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
+    ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_ROW_FOCUS,
     ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION,
     ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
     ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
@@ -402,9 +411,11 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.APPROVAL_WORKFLOW,
     ONYXKEYS.ASSIGN_CARD,
     ONYXKEYS.BILLING_RECEIPT_DETAILS,
+    ONYXKEYS.BLOCKED_ROLE_CHANGE,
     ONYXKEYS.COLLECTION.AGENT,
     ONYXKEYS.COLLECTION.ATTACHMENT,
     ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS,
+    ONYXKEYS.COLLECTION.BULK_ACTION,
     ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION,
     ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST,
     ONYXKEYS.COLLECTION.DOMAIN,
