@@ -7,6 +7,7 @@ import {
     useOpenReportSubmitToPopover,
     useSearchSubmitPopoverGuard,
 } from '@components/ReportSubmitToPopoverAnchor';
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
@@ -37,7 +38,7 @@ import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasVisibleViolations} from '@libs/SearchUIUtils';
 import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
-import {isOnHold, isViolationDismissed, shouldShowViolation, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {getAttendees, isOnHold, isViolationDismissed, shouldShowViolation, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -83,7 +84,6 @@ function ExpenseReportListItem<TItem extends ListItem>(props: ExpenseReportListI
 function ExpenseReportListItemInner<TItem extends ListItem>({
     item,
     isLoading,
-    isFocused,
     showTooltip,
     columns,
     canSelectMultiple,
@@ -99,6 +99,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
 }: ExpenseReportListItemProps<TItem>) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();
@@ -209,7 +210,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                 relevantViolations,
                 policyCategories,
                 transaction.category ?? '',
-                transaction.attendees,
+                getAttendees(transaction),
                 currentUserDetails,
                 isAttendeeTrackingEnabled(policyForViolations),
                 policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
@@ -268,6 +269,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         conciergeChat,
+        bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -341,6 +343,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             rules,
             personalDetailsByLogins: getPersonalDetailsByLogin(),
             conciergeChat,
+            bankAccountList,
         });
     }, [
         currentSearchHash,
@@ -386,6 +389,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         rules,
         getPersonalDetailsByLogin,
         conciergeChat,
+        bankAccountList,
         shouldShowMarkAsDoneCopy,
         confirmSubmitReportViolations,
     ]);
