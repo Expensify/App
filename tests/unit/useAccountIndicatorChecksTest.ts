@@ -493,6 +493,25 @@ describe('useAccountIndicatorChecks', () => {
 
             expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
         });
+
+        it('returns HAS_AGENT_ERRORS when wallet has errors', async () => {
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [`${ONYXKEYS.COLLECTION.AGENT}1` as const]: {
+                            errors: {error: 'Something went wrong'},
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS);
+        });
     });
 
     describe('info statuses', () => {

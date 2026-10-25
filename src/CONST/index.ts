@@ -9510,6 +9510,7 @@ const CONST = {
     ERROR_WINDOW_RELOAD_TIMEOUT: 60000,
 
     INDICATOR_STATUS: {
+        HAS_AGENT_ERRORS: 'hasAgentErrors',
         HAS_USER_WALLET_ERRORS: 'hasUserWalletErrors',
         HAS_PAYMENT_METHOD_ERROR: 'hasPaymentMethodError',
         HAS_POLICY_ERRORS: 'hasPolicyError',

@@ -1,4 +1,5 @@
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
+import {doesAgentHaveErrors} from '@libs/AgentUtils';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
@@ -10,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 
+import useAgents from './useAgents';
 import useCardFeedErrors from './useCardFeedErrors';
 import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
@@ -39,6 +41,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
+    const agents = useAgents();
 
     const {
         companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},
@@ -47,6 +50,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
 
     const accountChecks: Partial<Record<IndicatorStatus, boolean>> = {
+        [CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS]: Object.values(agents ?? {}).some(doesAgentHaveErrors),
         [CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS]: Object.keys(userWallet?.errors ?? {}).length > 0,
         [CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR]: hasPaymentMethodError(bankAccountList, fundList, allCards, session, policies),
         [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS]: hasSubscriptionRedDotError(
