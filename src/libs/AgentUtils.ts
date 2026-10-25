@@ -19,7 +19,8 @@ function getAgentErrors(agent: OnyxEntry<Agent>): Errors | undefined {
 }
 
 function doesAgentHaveErrors(agent: OnyxEntry<Agent>): boolean {
-    return !!getAgentErrors(agent);
+    const agentErrors = getAgentErrors(agent);
+    return Object.keys(agentErrors ?? {}).length > 0;
 }
 
 export {getAgentErrors, doesAgentHaveErrors};

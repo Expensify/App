@@ -93,7 +93,7 @@ function useAgentsTable() {
                 ownerType: agent.ownerType,
                 ownerPolicyID,
                 pendingAction,
-                errors: agentErrors && Object.keys(agentErrors).length > 0 ? agentErrors : undefined,
+                errors: Object.keys(agentErrors ?? {}).length > 0 ? agentErrors : undefined,
                 disabled: isPendingDeletion,
                 canManage: true,
                 action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(accountID))),
