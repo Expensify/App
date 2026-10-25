@@ -13,7 +13,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, Policy as PolicyType} from '@src/types/onyx';
-import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -263,8 +263,8 @@ describe('actions/ReportField', () => {
             // Then the field stays in the list with its error so the user can see which field failed, and the title error is kept
             let policy = await connectToFetchPolicy(fakePolicy.id);
             expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
-            expect(policy?.errorFields?.fieldList).toBeTruthy();
+            expect(policy?.errorFields?.fieldList?.[reportFieldKey]).toBeTruthy();
+            expect(policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]).toBe(titleErrors[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
 
             // When the user dismisses the error
             ReportField.clearReportFieldErrors(policy, reportFieldID);
@@ -273,7 +273,6 @@ describe('actions/ReportField', () => {
             // Then the failed field and its errors are removed, and the title error is untouched
             policy = await connectToFetchPolicy(fakePolicy.id);
             expect(policy?.fieldList?.[reportFieldKey]).toBeUndefined();
-            expect(policy?.errorFields?.[reportFieldKey]).toBeUndefined();
             expect(policy?.errorFields?.fieldList).toEqual(titleErrors);
         });
     });
@@ -301,10 +300,11 @@ describe('actions/ReportField', () => {
             const fakePolicy: PolicyType = {
                 ...createRandomPolicy(0),
                 fieldList: {[reportFieldKey]: reportField},
+                // The server returns report field errors at errorFields.fieldList.<fieldKey>.defaultValue, which ErrorFields doesn't model
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 errorFields: {
-                    [reportFieldKey]: {[errorKey]: 'Generic error'},
-                    fieldList: {[reportFieldKey]: 'Formula field {field:DoesNotExist} not recognized'},
-                },
+                    fieldList: {[reportFieldKey]: {defaultValue: {[errorKey]: 'Formula field {field:DoesNotExist} not recognized'}}},
+                } as unknown as ErrorFields,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
@@ -312,10 +312,9 @@ describe('actions/ReportField', () => {
             ReportField.clearReportFieldErrors(fakePolicy, reportFieldID);
             await waitForBatchedUpdates();
 
-            // Then both errors are cleared and the field is kept, because it already exists on the server
+            // Then the error is cleared and the field is kept, because it already exists on the server
             const policy = await connectToFetchPolicy(fakePolicy.id);
             expect(policy?.fieldList?.[reportFieldKey]).toEqual(reportField);
-            expect(policy?.errorFields?.[reportFieldKey]).toBeUndefined();
             expect(policy?.errorFields?.fieldList?.[reportFieldKey]).toBeUndefined();
         });
     });
@@ -568,7 +567,7 @@ describe('actions/ReportField', () => {
                 [reportFieldKey]: reportField,
             });
             // Check if the policy errors was set
-            expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
+            expect(policy?.errorFields?.fieldList?.[reportFieldKey]).toBeTruthy();
         });
 
         it('reverts optimistic type to text when new initial value is non-formula', async () => {

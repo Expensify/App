@@ -35,7 +35,6 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, PolicyConnectionName} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -148,14 +147,13 @@ function WorkspaceFieldsSection({
             .sort((a, b) => localeCompare(a.name, b.name))
             .map((field) => {
                 const fieldKey = getReportFieldKey(field.fieldID);
-                const defaultValueErrors = getLatestErrorField({errorFields: errorFields?.fieldList?.[fieldKey] ?? {}}, 'defaultValue');
 
                 return {
                     text: field.name,
                     keyForList: String(field.fieldID),
                     fieldID: field.fieldID,
                     pendingAction: field.pendingAction,
-                    errors: isEmptyObject(defaultValueErrors) ? getLatestErrorField({errorFields}, fieldKey) : defaultValueErrors,
+                    errors: getLatestErrorField({errorFields: errorFields?.fieldList?.[fieldKey] ?? {}}, 'defaultValue'),
                     isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
                 };

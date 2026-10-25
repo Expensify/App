@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {WorkspaceReportFieldForm} from '@src/types/form/WorkspaceReportFieldForm';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
-import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -100,11 +100,24 @@ type UpdateReportFieldInitialValueParams = {
  */
 function getReportFieldErrorFieldsToClear(fieldKey: string) {
     return {
-        [fieldKey]: null,
         fieldList: {
             [fieldKey]: null,
         },
     };
+}
+
+/**
+ * Returns the errorFields update that sets a report field's generic failure error at errorFields.fieldList.<fieldKey>.defaultValue, where the server also returns its errors.
+ */
+function getReportFieldFailureErrorFields(fieldKey: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- ErrorFields doesn't model the nested fieldList.<fieldKey>.defaultValue shape the server uses, same as the report title error
+    return {
+        fieldList: {
+            [fieldKey]: {
+                defaultValue: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+            },
+        },
+    } as unknown as ErrorFields;
 }
 
 function openPolicyReportFieldsPage(policyID: string) {
@@ -270,13 +283,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
-                // Keep the failed field in the list so its error shows on its own row until the user dismisses it
-                fieldList: {
-                    [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                },
-                errorFields: {
-                    [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
-                },
+                errorFields: getReportFieldFailureErrorFields(fieldKey),
             },
         },
         ...(policyReportIDs ?? []).map(
@@ -464,9 +471,7 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}:
                     fieldList: {
                         [fieldKey]: {...previousFieldList[fieldKey], pendingAction: null},
                     },
-                    errorFields: {
-                        [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
-                    },
+                    errorFields: getReportFieldFailureErrorFields(fieldKey),
                 },
             },
         ],
