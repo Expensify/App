@@ -15,12 +15,17 @@ import {
     getCalculatedTaxAmount,
     getTag,
     getTaxAmount,
+    getValidWaypoints,
     hasTaxRateWithMatchingValue,
+    isMapDistanceRequest,
     isMerchantMissing,
     isPartiallyEnteredScanExpense,
     isScanRequest as isScanRequestUtil,
+    isZeroCoordinatesWaypoint,
 } from '@libs/TransactionUtils';
 import {isValidInputLength} from '@libs/ValidationUtils';
+
+import {isWaypointEmpty} from '@pages/iou/request/step/IOURequestStepDistance/hooks/useWaypointValidation';
 
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -321,6 +326,19 @@ function useConfirmationValidation({
         }
 
         if (iouType !== CONST.IOU.TYPE.PAY) {
+            if (isDistanceRequest && (isMapDistanceRequest(transaction) || !!transaction?.comment?.waypoints)) {
+                const waypoints = transaction?.comment?.waypoints;
+                const validatedWaypoints = getValidWaypoints(waypoints);
+                const hasZeroCoordinates = Object.values(waypoints ?? {}).some(isZeroCoordinatesWaypoint);
+                const nonEmptyWaypointsCount = Object.keys(waypoints ?? {}).filter((key) => !isWaypointEmpty(waypoints?.[key])).length;
+                if (!hasZeroCoordinates && nonEmptyWaypointsCount >= 2 && Object.keys(validatedWaypoints).length !== nonEmptyWaypointsCount) {
+                    return {errorKey: 'iou.error.duplicateWaypointsErrorMessage'};
+                }
+                if (hasZeroCoordinates || Object.keys(validatedWaypoints).length < 2) {
+                    return {errorKey: 'iou.error.atLeastTwoDifferentWaypoints'};
+                }
+            }
+
             const decimals = getCurrencyDecimals(iouCurrencyCode);
             if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
                 return {errorKey: 'common.error.invalidAmount'};

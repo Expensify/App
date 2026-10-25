@@ -33,6 +33,7 @@ import type {Card, CardList, OnyxInputOrEntry, PersonalDetails, Policy, RecentWa
 import type {Attendee, DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Comment, UnreportedTransaction, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -1290,8 +1291,12 @@ function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
 
-function isWaypointNullIsland(waypoint: RecentWaypoint | Waypoint): boolean {
+function isZeroCoordinatesWaypoint(waypoint: RecentWaypoint | Waypoint): boolean {
     return waypoint.lat === 0 && waypoint.lng === 0;
+}
+
+function isWaypointNullIsland(waypoint: RecentWaypoint | Waypoint): boolean {
+    return isZeroCoordinatesWaypoint(waypoint);
 }
 
 /**
@@ -1930,6 +1935,7 @@ export {
     getWaypointIndex,
     waypointHasValidAddress,
     isWaypointNullIsland,
+    isZeroCoordinatesWaypoint,
     getRecentTransactions,
     hasReservationList,
     hasViolation,
