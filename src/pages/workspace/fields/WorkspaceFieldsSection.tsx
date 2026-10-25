@@ -16,15 +16,17 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
+import {getReportFieldKey} from '@libs/ReportUtils';
 import {getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
+import {clearReportFieldErrors, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -32,7 +34,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, PolicyConnectionName} from '@src/types/onyx';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -46,6 +49,7 @@ type FieldListValue = NonNullable<Policy['fieldList']>[string];
 
 type FieldListItem = {
     fieldID: string;
+    errors: Errors;
     isDisabled: boolean;
     keyForList: string;
     pendingAction?: PendingAction;
@@ -117,6 +121,7 @@ function WorkspaceFieldsSection({
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const fieldList = policy?.fieldList;
+    const errorFields = policy?.errorFields;
     const hasImportedField = useMemo(
         () => Object.values(fieldList ?? {}).some((field) => fieldFilter(field) && isReportFieldImportedFromIntegration(field, policy)),
         [fieldFilter, fieldList, policy],
@@ -141,15 +146,21 @@ function WorkspaceFieldsSection({
         return Object.values(fieldList)
             .filter(fieldFilter)
             .sort((a, b) => localeCompare(a.name, b.name))
-            .map((field) => ({
-                text: field.name,
-                keyForList: String(field.fieldID),
-                fieldID: field.fieldID,
-                pendingAction: field.pendingAction,
-                isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
-            }));
-    }, [fieldFilter, fieldList, localeCompare, translate]);
+            .map((field) => {
+                const fieldKey = getReportFieldKey(field.fieldID);
+                const defaultValueErrors = getLatestErrorField({errorFields: errorFields?.fieldList?.[fieldKey] ?? {}}, 'defaultValue');
+
+                return {
+                    text: field.name,
+                    keyForList: String(field.fieldID),
+                    fieldID: field.fieldID,
+                    pendingAction: field.pendingAction,
+                    errors: isEmptyObject(defaultValueErrors) ? getLatestErrorField({errorFields}, fieldKey) : defaultValueErrors,
+                    isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
+                };
+            });
+    }, [errorFields, fieldFilter, fieldList, localeCompare, translate]);
 
     const navigateToFieldSettings = useCallback(
         (item: FieldListItem) => {
@@ -164,7 +175,12 @@ function WorkspaceFieldsSection({
 
     const renderItem = useCallback(
         ({item}: ListRenderItemInfo<FieldListItem>) => (
-            <OfflineWithFeedback pendingAction={item.pendingAction}>
+            <OfflineWithFeedback
+                pendingAction={item.pendingAction}
+                errors={item.errors}
+                errorRowStyles={[cardPaddingHorizontal, styles.mb2]}
+                onClose={() => clearReportFieldErrors(policy, item.fieldID)}
+            >
                 <MenuItem
                     style={cardPaddingHorizontal}
                     onPress={() => navigateToFieldSettings(item)}
@@ -177,7 +193,7 @@ function WorkspaceFieldsSection({
                 />
             </OfflineWithFeedback>
         ),
-        [canWrite, navigateToFieldSettings, cardPaddingHorizontal, styles.popoverMenuText, styles.textStrong],
+        [canWrite, navigateToFieldSettings, cardPaddingHorizontal, policy, styles.mb2, styles.popoverMenuText, styles.textStrong],
     );
 
     const headerText =

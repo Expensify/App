@@ -22750,6 +22750,40 @@ describe('ReportUtils', () => {
             ]);
             expect(getAvailableReportFields(report, policyFieldList)).toEqual(expectedFieldList);
         });
+
+        it('should skip policy fields pending ADD that are not on the report', async () => {
+            // Given an unsettled report and a policy field that failed to be created, so it is still pending ADD on the policy but was removed from the report
+            const report = createMock<Report>({
+                reportID: '3',
+                policyID: '1',
+                fieldList: fieldList1,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const failedPolicyField = {...fieldList2.expensify_field_id_LIST_POLICY, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+
+            // When getting the available report fields
+            const availableFields = getAvailableReportFields(report, [failedPolicyField]);
+
+            // Then the failed field is not shown on the report
+            expect(availableFields).toEqual(Object.values(fieldList1));
+        });
+
+        it('should keep policy fields pending ADD that are already on the report', async () => {
+            // Given an unsettled report that has an optimistically added field, which is also pending ADD on the policy
+            const report = createMock<Report>({
+                reportID: '4',
+                policyID: '1',
+                fieldList: fieldList1,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const pendingPolicyField = {...fieldList1.expensify_field_id_LIST, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+
+            // When getting the available report fields
+            const availableFields = getAvailableReportFields(report, [pendingPolicyField]);
+
+            // Then the optimistic field is still shown on the report
+            expect(availableFields.map(({fieldID}) => fieldID)).toEqual(['field_id_LIST']);
+        });
     });
 
     describe('getReportFieldMaps', () => {

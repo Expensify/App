@@ -5638,7 +5638,7 @@ function getReportFieldsByPolicyID(policy: OnyxEntry<Policy>): Policy['fieldList
  * Get the report fields that we should display a MoneyReportView gets opened
  */
 
-function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields: PolicyReportField[]): PolicyReportField[] {
+function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields: Array<PolicyReportField & {pendingAction?: PendingAction | null}>): PolicyReportField[] {
     // Get the report fields that are attached to a report. These will persist even if a field is deleted from the policy.
     const reportFields = Object.values(report?.fieldList ?? {});
     const reportIsSettled = isSettled(report?.reportID);
@@ -5650,7 +5650,11 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
 
     // If the report is unsettled, we want to merge the new fields that get added to the policy with the fields that
     // are attached to the report.
-    const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
+    // Skip policy fields pending ADD that aren't on the report yet. Optimistic adds are written to the report too, so this
+    // keeps fields that failed to be created (kept on the policy until their error is dismissed) off reports.
+    const reportFieldIDs = new Set(reportFields.map(({fieldID}) => fieldID));
+    const availablePolicyReportFields = policyReportFields.filter(({fieldID, pendingAction}) => pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || reportFieldIDs.has(fieldID));
+    const mergedFieldIds = Array.from(new Set([...availablePolicyReportFields.map(({fieldID}) => fieldID), ...reportFieldIDs]));
 
     const fields = mergedFieldIds.map((id) => {
         const field = report?.fieldList?.[getReportFieldKey(id)] ?? report?.fieldList?.[id];

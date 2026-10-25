@@ -95,6 +95,18 @@ type UpdateReportFieldInitialValueParams = {
     policy: OnyxEntry<Policy>;
 };
 
+/**
+ * Returns the errorFields update that clears a single report field's errors without wiping other policy errors (such as the report title error).
+ */
+function getReportFieldErrorFieldsToClear(fieldKey: string) {
+    return {
+        [fieldKey]: null,
+        fieldList: {
+            [fieldKey]: null,
+        },
+    };
+}
+
 function openPolicyReportFieldsPage(policyID: string) {
     if (!policyID) {
         Log.warn('openPolicyReportFieldsPage invalid params', {policyID});
@@ -237,7 +249,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 fieldList: {
                     [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                 },
-                errorFields: null,
+                errorFields: getReportFieldErrorFieldsToClear(fieldKey),
             },
         },
         ...(policyReportIDs ?? []).map(
@@ -258,8 +270,9 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
+                // Keep the failed field in the list so its error shows on its own row until the user dismisses it
                 fieldList: {
-                    [fieldKey]: null,
+                    [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                 },
                 errorFields: {
                     [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
@@ -289,7 +302,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                     fieldList: {
                         [fieldKey]: {pendingAction: null},
                     },
-                    errorFields: null,
+                    errorFields: getReportFieldErrorFieldsToClear(fieldKey),
                 },
             },
         ],
@@ -427,7 +440,7 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}:
                     fieldList: {
                         [fieldKey]: {...updatedReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
-                    errorFields: null,
+                    errorFields: getReportFieldErrorFieldsToClear(fieldKey),
                 },
             },
         ],
@@ -439,7 +452,7 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}:
                     fieldList: {
                         [fieldKey]: {pendingAction: null},
                     },
-                    errorFields: null,
+                    errorFields: getReportFieldErrorFieldsToClear(fieldKey),
                 },
             },
         ],
@@ -626,9 +639,36 @@ function removeReportFieldListValue({policy, reportFieldID, valueIndexes}: Remov
     API.write(removeCommand, parameters, onyxData);
 }
 
+/**
+ * Clears a report field's errors. A field that failed to be created is removed from the list.
+ */
+function clearReportFieldErrors(policy: OnyxEntry<Policy>, reportFieldID: string) {
+    if (!policy?.id) {
+        return;
+    }
+
+    const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+    const reportField = policy.fieldList?.[fieldKey];
+
+    if (reportField?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+            fieldList: {
+                [fieldKey]: null,
+            },
+            errorFields: getReportFieldErrorFieldsToClear(fieldKey),
+        });
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+        errorFields: getReportFieldErrorFieldsToClear(fieldKey),
+    });
+}
+
 export type {CreateReportFieldParams};
 
 export {
+    clearReportFieldErrors,
     setInitialCreateReportFieldsForm,
     createReportFieldsListValue,
     renameReportFieldsListValue,
