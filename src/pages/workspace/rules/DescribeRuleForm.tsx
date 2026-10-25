@@ -305,7 +305,9 @@ function DescribeRuleForm({
             submitFlexEnabled={submitFlexEnabled}
             shouldHideFixErrorsAlert
             isSubmitButtonNeutral={!!refusalSuggestedPrompt}
-            shouldRenderFooterAboveSubmit
+            submitButtonAndFooterContainerStyles={refusalSuggestedPrompt ? [styles.flexRow, styles.gap2] : undefined}
+            // The form puts a bottom margin on the submit button when the footer follows it. Side by side, the buttons must line up.
+            submitButtonInnerStyles={refusalSuggestedPrompt ? [styles.flex1, styles.mb0] : undefined}
             footerContent={
                 !!refusalSuggestedPrompt && (
                     <Button
@@ -313,7 +315,7 @@ function DescribeRuleForm({
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={() => describeSuggestedRule(refusalSuggestedPrompt)}
                         isDisabled={isOffline}
-                        style={styles.mb3}
+                        style={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
                     >
                         <Button.Text>{translate('workspace.rules.newRule.impossible.tryThisInstead')}</Button.Text>
