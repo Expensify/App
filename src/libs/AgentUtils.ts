@@ -1,7 +1,7 @@
-import {Agent} from '@src/types/onyx';
+import type {Agent} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {getLatestError} from './ErrorUtils';
 

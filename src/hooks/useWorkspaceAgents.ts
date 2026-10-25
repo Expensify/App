@@ -1,4 +1,3 @@
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Agent, Policy} from '@src/types/onyx';
 
