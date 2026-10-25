@@ -1416,6 +1416,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             queueBulkApproveReports(serializeQueryJSONForBackend(allMatchingQuery));
+            playSound(SOUNDS.SUCCESS);
             clearSelectedTransactions();
             return;
         }
