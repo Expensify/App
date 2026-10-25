@@ -11,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 // Utility page: goes back, then does what the Help page's Talk to a human row does (offline it shows Help instead).
@@ -20,11 +20,12 @@ function TalkToHumanPage() {
     const {isOffline} = useNetwork();
     const {openSupportTicketOrConcierge} = useOpenSupportTicket();
     const hasHandledLink = useRef(false);
+    const isUnmounted = useRef(false);
 
     useFocusEffect(
         useCallback(() => {
             Navigation.isNavigationReady().then(() => {
-                if (hasHandledLink.current) {
+                if (hasHandledLink.current || isUnmounted.current) {
                     return;
                 }
                 hasHandledLink.current = true;
@@ -38,6 +39,13 @@ function TalkToHumanPage() {
             });
         }, [isOffline, openSupportTicketOrConcierge]),
     );
+
+    useEffect(() => {
+        isUnmounted.current = false;
+        return () => {
+            isUnmounted.current = true;
+        };
+    }, []);
 
     return (
         <ScreenWrapper testID="TalkToHumanPage">
