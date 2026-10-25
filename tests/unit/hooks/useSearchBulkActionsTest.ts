@@ -278,6 +278,21 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
     };
 }
 
+function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedReports {
+    return {
+        reportID: 'report1',
+        policyID: 'policy1',
+        action: CONST.SEARCH.ACTION_TYPES.VIEW,
+        canPay: false,
+        canApprove: false,
+        canSubmit: false,
+        canChangeApprover: false,
+        total: 100,
+        chatReportID: undefined,
+        ...overrides,
+    };
+}
+
 function hasSearchFlatFilters(value: unknown): value is {flatFilters: SearchQueryJSON['flatFilters']} {
     return typeof value === 'object' && value !== null && 'flatFilters' in value && Array.isArray(value.flatFilters);
 }
@@ -781,10 +796,11 @@ describe('useSearchBulkActions - Approve under Select all', () => {
     });
 
     it('queues a server-side bulk approval instead of approving per report', async () => {
-        // Given "Select all" is checked with an approvable expense loaded, so the selection can span more reports than are on the page
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.APPROVE})};
+        // Given "Select all" on a reports search with a loaded report the user can approve, so the selection can span more reports than are on the page
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canApprove: true})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)).toBe(true);
@@ -804,8 +820,9 @@ describe('useSearchBulkActions - Approve under Select all', () => {
     });
 
     it('leaves out reports the user deselected from the bulk approval', async () => {
-        // Given "Select all" on a reports search, with one report deselected afterwards
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.APPROVE, reportID: 'report1'})};
+        // Given "Select all" on a reports search, with report2 deselected afterwards
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canApprove: true})];
         mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report2'})};
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
@@ -820,58 +837,14 @@ describe('useSearchBulkActions - Approve under Select all', () => {
             await approveOption?.onSelected?.();
         });
 
-        // Then the query sent to the backend excludes the deselected report, so it isn't approved
+        // Then the query sent to the backend excludes report2, so it isn't approved
         expectQueryToExcludeReport(jest.mocked(queueBulkApproveReports).mock.calls.at(-1)?.at(0), 'report2');
     });
 
-    it('leaves out the report of an expense the user deselected on an expenses search', async () => {
-        // Given "Select all" on an expenses search, with the expense on report2 deselected afterwards
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.APPROVE, reportID: 'report1'})};
-        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report2'})};
-
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
-
-        await waitFor(() => {
-            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)).toBe(true);
-        });
-
-        // When the user selects Approve
-        const approveOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
-        await act(async () => {
-            await approveOption?.onSelected?.();
-        });
-
-        // Then the query sent to the backend excludes report2, since approving it would also approve the deselected expense
-        expectQueryToExcludeReport(jest.mocked(queueBulkApproveReports).mock.calls.at(-1)?.at(0), 'report2');
-    });
-
-    it('queues the bulk approve when one of the selected reports can be approved', async () => {
+    it('queues the bulk approval when one of the selected reports can be approved', async () => {
         // Given "Select all" on a reports search, where only one loaded report can be approved
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: 'report1'})};
-        mockSelectedReports = [
-            {
-                reportID: 'report1',
-                policyID: 'policy1',
-                action: CONST.SEARCH.ACTION_TYPES.APPROVE,
-                canPay: false,
-                canApprove: true,
-                canSubmit: false,
-                canChangeApprover: false,
-                total: 100,
-                chatReportID: undefined,
-            },
-            {
-                reportID: 'report2',
-                policyID: 'policy1',
-                action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                canPay: false,
-                canApprove: false,
-                canSubmit: false,
-                canChangeApprover: false,
-                total: 100,
-                chatReportID: undefined,
-            },
-        ];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canApprove: true}), makeSelectedReport({reportID: 'report2'})];
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
@@ -891,9 +864,11 @@ describe('useSearchBulkActions - Approve under Select all', () => {
 
     it('keeps the Approve option when a loaded expense is held', async () => {
         // Given a held expense on the loaded page, which hides Approve for a normal selection
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.APPROVE, isHeld: true})};
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({isHeld: true})};
+        mockSelectedReports = [makeSelectedReport({canApprove: true})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+        // When the bulk actions are built for a reports search
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then Approve is still offered, because the backend skips reports it cannot approve
         await waitFor(() => {
@@ -901,17 +876,35 @@ describe('useSearchBulkActions - Approve under Select all', () => {
         });
     });
 
-    it('hides the Approve option when no loaded expense can be approved', async () => {
-        // Given nothing on the loaded page is awaiting the user's approval
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.VIEW})};
+    it('hides the Approve option when no loaded report can be approved', async () => {
+        // Given nothing on the loaded page can be approved by the user
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport()];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+        // When the bulk actions are built for a reports search
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
         // Then Approve is not offered
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)).toBe(false);
+    });
+
+    it('hides the Approve option on an expenses search', async () => {
+        // Given "Select all" on an expenses search
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canApprove: true})];
+
+        // When the bulk actions are built for an expenses search
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Approve is not offered, because approve is a report action and expense rows only offer View
         expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)).toBe(false);
     });
 });
@@ -940,10 +933,11 @@ describe('useSearchBulkActions - Submit under Select all', () => {
     });
 
     it('queues a server-side bulk submit instead of submitting per report', async () => {
-        // Given "Select all" is checked with a submittable expense loaded, so the selection can span more reports than are on the page
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.SUBMIT})};
+        // Given "Select all" on a reports search with a loaded report the user can submit, so the selection can span more reports than are on the page
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canSubmit: true})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT)).toBe(true);
@@ -963,8 +957,9 @@ describe('useSearchBulkActions - Submit under Select all', () => {
     });
 
     it('leaves out reports the user deselected from the bulk submit', async () => {
-        // Given "Select all" on a reports search, with one report deselected afterwards
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.SUBMIT, reportID: 'report1'})};
+        // Given "Select all" on a reports search, with report2 deselected afterwards
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canSubmit: true})];
         mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report2'})};
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
@@ -979,58 +974,14 @@ describe('useSearchBulkActions - Submit under Select all', () => {
             await submitOption?.onSelected?.();
         });
 
-        // Then the query sent to the backend excludes the deselected report, so it isn't submitted
-        expectQueryToExcludeReport(jest.mocked(queueBulkSubmitReports).mock.calls.at(-1)?.at(0), 'report2');
-    });
-
-    it('leaves out the report of an expense the user deselected on an expenses search', async () => {
-        // Given "Select all" on an expenses search, with the expense on report2 deselected afterwards
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.SUBMIT, reportID: 'report1'})};
-        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report2'})};
-
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
-
-        await waitFor(() => {
-            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT)).toBe(true);
-        });
-
-        // When the user selects Submit
-        const submitOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT);
-        await act(async () => {
-            await submitOption?.onSelected?.();
-        });
-
-        // Then the query sent to the backend excludes report2, since submitting it would also submit the deselected expense
+        // Then the query sent to the backend excludes report2, so it isn't submitted
         expectQueryToExcludeReport(jest.mocked(queueBulkSubmitReports).mock.calls.at(-1)?.at(0), 'report2');
     });
 
     it('queues the bulk submit when one of the selected reports can be submitted', async () => {
         // Given "Select all" on a reports search, where only one loaded report can be submitted
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: 'report1'})};
-        mockSelectedReports = [
-            {
-                reportID: 'report1',
-                policyID: 'policy1',
-                action: CONST.SEARCH.ACTION_TYPES.SUBMIT,
-                canPay: false,
-                canApprove: false,
-                canSubmit: true,
-                canChangeApprover: false,
-                total: 100,
-                chatReportID: undefined,
-            },
-            {
-                reportID: 'report2',
-                policyID: 'policy1',
-                action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                canPay: false,
-                canApprove: false,
-                canSubmit: false,
-                canChangeApprover: false,
-                total: 100,
-                chatReportID: undefined,
-            },
-        ];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canSubmit: true}), makeSelectedReport({reportID: 'report2'})];
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
@@ -1048,26 +999,14 @@ describe('useSearchBulkActions - Submit under Select all', () => {
         expect(queueBulkSubmitReports).toHaveBeenCalledTimes(1);
     });
 
-    it('hides the Submit option when no loaded expense can be submitted', async () => {
-        // Given nothing on the loaded page is waiting to be submitted
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.VIEW})};
-
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
-
-        await waitFor(() => {
-            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
-        });
-
-        // Then Submit is not offered
-        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT)).toBe(false);
-    });
-
     it('hides the Submit option when offline', async () => {
-        // Given a submittable expense is loaded but the user is offline
+        // Given a submittable report is loaded but the user is offline
         mockIsOffline = true;
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.SUBMIT})};
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canSubmit: true})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+        // When the bulk actions are built for a reports search
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -1078,17 +1017,51 @@ describe('useSearchBulkActions - Submit under Select all', () => {
     });
 
     it('hides the Submit option for a Submit plan workspace, where the approver is picked per report', async () => {
-        // Given the loaded submittable expense belongs to a Submit plan workspace
+        // Given the loaded submittable report belongs to a Submit plan workspace
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {id: 'policy1', type: CONST.POLICY.TYPE.SUBMIT});
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.SUBMIT, policyID: 'policy1'})};
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canSubmit: true})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+        // When the bulk actions are built for a reports search
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
         // Then Submit is not offered, because the backend cannot ask which approver to send each report to
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT)).toBe(false);
+    });
+
+    it('hides the Submit option when no loaded report can be submitted', async () => {
+        // Given nothing on the loaded page can be submitted by the user
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport()];
+
+        // When the bulk actions are built for a reports search
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Submit is not offered
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT)).toBe(false);
+    });
+
+    it('hides the Submit option on an expenses search', async () => {
+        // Given "Select all" on an expenses search
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({canSubmit: true})];
+
+        // When the bulk actions are built for an expenses search
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Submit is not offered, because submit is a report action and expense rows only offer View
         expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT)).toBe(false);
     });
 });
