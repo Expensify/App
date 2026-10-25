@@ -738,8 +738,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    // The backend runs a Select all bulk action only on an expense or report search.
-    const isExpenseOrReportSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || isExpenseReportType;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Download',
         'Export',
@@ -2732,14 +2730,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const hasLoadedApprovableItem = selectedReports.length
                 ? selectedReports.some((report) => report.canApprove)
                 : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE);
-            const shouldShowApproveOptionForAllMatchingItems = !isOffline && isExpenseOrReportSearch && !hasSubmitPolicyTransactions && hasLoadedApprovableItem;
+            const shouldShowApproveOptionForAllMatchingItems = !isOffline && (isExpenseType || isExpenseReportType) && !hasSubmitPolicyTransactions && hasLoadedApprovableItem;
             // The backend only submits the matching reports the user can submit, so one submittable loaded item is enough to offer it.
             // Submit plan workspaces pick an approver per report and Mark as done is a different action, so neither is sent to the backend.
             const hasLoadedSubmittableItem = selectedReports.length
                 ? selectedReports.some((report) => report.canSubmit)
                 : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT);
             const shouldShowSubmitOptionForAllMatchingItems =
-                !isOffline && isExpenseOrReportSearch && !doSelectedItemsBelongToSubmitPolicy && noReportsShouldMarkAsDone && hasLoadedSubmittableItem;
+                !isOffline && (isExpenseType || isExpenseReportType) && !doSelectedItemsBelongToSubmitPolicy && noReportsShouldMarkAsDone && hasLoadedSubmittableItem;
             const submitAllMatchingItemsOption: DropdownOption<SearchHeaderOptionValue> = {
                 icon: expensifyIcons.Send,
                 text: translate('common.submit'),
@@ -3499,7 +3497,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isDuplicateReportOptionVisible,
         invokeDuplicateReportHandler,
         isExpenseReportType,
-        isExpenseOrReportSearch,
         handleDeleteSelectedTransactions,
         undeleteTransactions,
         theme.icon,
