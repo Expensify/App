@@ -9,7 +9,7 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
 import useWorkspaceMembers from './useWorkspaceMembers';
 
 /**
- * Hook that derives the policy's manageable agents plus read-only agent members the policy cannot manage.
+ * Hook that derives the policy's agents, including both agents owned by the policy and member agents.
  */
 function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
     const allAgents = useAgents();
@@ -17,7 +17,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const workspaceMembers = useWorkspaceMembers(policy);
 
-    const manageableWorkspaceAgents = Object.fromEntries(
+    const manageableWorkspaceAgents: OnyxCollection<Agent> = Object.fromEntries(
         Object.entries(allAgents ?? {}).filter(([key, agent]) => {
             if (!agent) {
                 return false;
