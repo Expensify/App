@@ -22,11 +22,10 @@ import {
     isMerchantMissing,
     isPartiallyEnteredScanExpense,
     isScanRequest as isScanRequestUtil,
-    isZeroCoordinatesWaypoint,
 } from '@libs/TransactionUtils';
 import {isValidInputLength} from '@libs/ValidationUtils';
 
-import {isWaypointEmpty} from '@pages/iou/request/step/IOURequestStepDistance/hooks/useWaypointValidation';
+import {getWaypointValidationErrors} from '@pages/iou/request/step/IOURequestStepDistance/hooks/useWaypointValidation';
 
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -327,15 +326,17 @@ function useConfirmationValidation({
         }
 
         if (iouType !== CONST.IOU.TYPE.PAY) {
+            // A map distance request submitted with invalid/duplicate addresses yields zero distance. Block confirmation here
+            // because getValidWaypoints drops invalid and duplicate stops, so fewer validated waypoints than non-empty ones
+            // means some addresses collapsed to the same point (duplicates), and under two validated means no real route.
             if (isDistanceRequest && !isGPSDistanceRequest(transaction) && (isMapDistanceRequest(transaction) || !!transaction?.comment?.waypoints)) {
                 const waypoints = transaction?.comment?.waypoints;
                 const validatedWaypoints = getValidWaypoints(waypoints);
-                const hasZeroCoordinates = Object.values(waypoints ?? {}).some(isZeroCoordinatesWaypoint);
-                const nonEmptyWaypointsCount = Object.keys(waypoints ?? {}).filter((key) => !isWaypointEmpty(waypoints?.[key])).length;
-                if (!hasZeroCoordinates && nonEmptyWaypointsCount >= 2 && Object.keys(validatedWaypoints).length !== nonEmptyWaypointsCount) {
+                const {duplicateWaypointsError, atLeastTwoDifferentWaypointsError} = getWaypointValidationErrors(waypoints, validatedWaypoints);
+                if (duplicateWaypointsError) {
                     return {errorKey: 'iou.error.duplicateWaypointsErrorMessage'};
                 }
-                if (hasZeroCoordinates || Object.keys(validatedWaypoints).length < 2) {
+                if (atLeastTwoDifferentWaypointsError) {
                     return {errorKey: 'iou.error.atLeastTwoDifferentWaypoints'};
                 }
             }
