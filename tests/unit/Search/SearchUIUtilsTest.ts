@@ -7229,7 +7229,7 @@ describe('SearchUIUtils', () => {
                 expect(item?.formattedTotal).toBe(-5000);
             });
 
-            describe('From for deleted card expenses', () => {
+            describe('From for card expenses', () => {
                 const deletedQueryJSON = makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DELETED]);
                 const deletedCardID = 40404040;
                 const cardList = createMock<OnyxTypes.CardList>({
@@ -7249,29 +7249,40 @@ describe('SearchUIUtils', () => {
                     expect(item?.formattedFrom).toBe('Submitter');
                 });
 
-                it('should keep the report owner over the cardholder for an active expense', () => {
+                it('should use card owner over the report owner for an active expense', () => {
                     // Given an active card expense whose report is owned by the admin, while the card belongs to the submitter
                     const data = makeFilterTestData({}, {cardID: deletedCardID});
 
                     // When the sections are built with the card list
                     const [sections] = callGetTransactionsSections(data, {cardList});
 
-                    // Then the report owner still wins, so active expenses don't change
+                    // Then the cardholder wins, because the card owner is the canonical owner of a card expense
                     const item = sections.find((s) => s.transactionID === filterTestTxID);
-                    expect(item?.from.accountID).toBe(adminAccountID);
+                    expect(item?.from.accountID).toBe(submitterAccountID);
                 });
 
-                it('should not use the cardholder for an unreported card expense', () => {
-                    // Given an unreported card expense, which also has no report or IOU action but isn't deleted
+                it('should use the cardholder for an unreported card expense', () => {
+                    // Given an unreported card expense, which has no report or IOU action
                     const data = makeFilterTestData({}, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, cardID: deletedCardID});
 
                     // When the sections are built with the card list
                     const [sections] = callGetTransactionsSections(data, {cardList});
 
-                    // Then From stays empty, because the cardholder fallback only applies to deleted expenses
+                    // Then From shows the cardholder, the same as for any other card expense
                     const item = sections.find((s) => s.transactionID === filterTestTxID);
-                    expect(item).toBeDefined();
-                    expect(item?.from.accountID).toBe(CONST.REPORT.OWNER_ACCOUNT_ID_FAKE);
+                    expect(item?.from.accountID).toBe(submitterAccountID);
+                });
+
+                it('should fall back to the report owner when the card is not in the card list', () => {
+                    // Given an active card expense whose card the viewer hasn't loaded
+                    const data = makeFilterTestData({}, {cardID: deletedCardID});
+
+                    // When the sections are built without that card
+                    const [sections] = callGetTransactionsSections(data, {cardList: {}});
+
+                    // Then From falls back to the report owner
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item?.from.accountID).toBe(adminAccountID);
                 });
 
                 it('should read the cardholder from Onyx personal details when the snapshot does not include them', () => {
