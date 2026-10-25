@@ -17,6 +17,7 @@ import useSearchFilterSync, {shouldDeferSearchFilterSync} from '@hooks/useSearch
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -107,7 +108,12 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
         <FilterPopupButton
             PopoverComponent={filtersPopup}
             // The popover blurs whatever input is focused as it opens, so `autoFocus` would lose to it on the first open.
-            onModalShow={() => filterSearchInputRef.current?.focus()}
+            onModalShow={() => {
+                if (!canFocusInputOnScreenFocus()) {
+                    return;
+                }
+                filterSearchInputRef.current?.focus();
+            }}
             popoverWidth={CONST.ADVANCED_FILTERS_POPOVER_WIDTH}
             popoverAnchorAlignment={{
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,

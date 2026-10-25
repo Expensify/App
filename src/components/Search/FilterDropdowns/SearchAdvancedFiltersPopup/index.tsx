@@ -240,7 +240,14 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
     };
 
     const [filterSearchValue, debouncedFilterSearchValue, setFilterSearchValue] = useDebouncedState<string>('', CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME, {
-        onDebouncedValueChange: showFirstMatchingFilter,
+        onDebouncedValueChange: (searchValue) => {
+            // A cleared search showed the first filter as it was cleared, and the cursor may have picked another since.
+            if (!searchValue.trim()) {
+                return;
+            }
+
+            showFirstMatchingFilter(searchValue);
+        },
     });
     // A cleared input lists every filter at once rather than after the debounce, as in useSearchResults.
     const filters = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, filterSearchValue.trim() ? debouncedFilterSearchValue : '', translate);

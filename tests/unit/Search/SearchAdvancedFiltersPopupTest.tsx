@@ -345,6 +345,23 @@ describe('SearchAdvancedFiltersPopup', () => {
         expect(mockSelectedFilter).toBe(FILTER_KEYS.TYPE);
     });
 
+    it('keeps a filter hovered right after the search is cleared', () => {
+        // Given a cleared search, then a filter hovered before the debounce elapses
+        search('status');
+        act(() => {
+            mockOnSearchValueChange?.('');
+        });
+        hoverAndRest(FILTER_KEYS.AMOUNT);
+
+        // When the debounce of the cleared value elapses
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+        });
+
+        // Then the hovered filter stays, because the clear already showed the first filter
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.AMOUNT);
+    });
+
     it('lets a contact list filter the search lands on derive at once', () => {
         // Given the popover open on Type
         // When a search whose first match is From is typed and the typing pauses
