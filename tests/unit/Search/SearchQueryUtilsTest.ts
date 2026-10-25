@@ -4726,7 +4726,7 @@ describe('SearchQueryUtils', () => {
             );
 
             expect(result).toHaveLength(1);
-            expect(result.at(0)?.value).toBe(translateLocal('search.filters.card.travelInvoicing'));
+            expect(result.at(0)?.value).toBe(translateLocal('search.filters.card.travelBilling'));
         });
 
         it('should fall back to the raw feed key when a non-Plaid feed is not in the display table', () => {

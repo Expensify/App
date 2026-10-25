@@ -43,12 +43,7 @@ function TrackExpensePage() {
                     return;
                 }
                 Navigation.goBack();
-                startMoneyRequest(
-                    CONST.IOU.TYPE.TRACK,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    findSelfDMReportID() || generateReportID(),
-                    draftTransactionIDs,
-                );
+                startMoneyRequest(CONST.IOU.TYPE.TRACK, findSelfDMReportID() || generateReportID(), draftTransactionIDs);
 
                 if (!hasSeenTrackTraining && !isOffline && !shouldSuppressPromotionalUI) {
                     setTimeout(() => {

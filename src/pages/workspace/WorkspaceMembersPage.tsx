@@ -22,6 +22,7 @@ import useMergeSyncResultsPage from '@hooks/useMergeSyncResultsPage';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -45,6 +46,7 @@ import {
     downloadMembersCSV,
     removeMembers,
     setMembersSelectedForRoleChange,
+    setWorkspaceMembersSelectedForBulkEdit,
 } from '@libs/actions/Policy/Member';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
@@ -55,6 +57,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getAssignableOfficeLocations, getMemberOfficeLocation, hasOfficeLocations} from '@libs/OfficeLocationUtils';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
@@ -92,6 +95,7 @@ import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -130,7 +134,7 @@ function resolveMemberAccountID(email: string, policyMemberEmailsToAccountIDs: M
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'UserPencil']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Download', 'FallbackAvatar', 'Location', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'UserPencil']);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const policyMemberEmailsToAccountIDs = useMemo(
         () => getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true),
@@ -143,10 +147,22 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const {isOffline} = useNetwork();
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+    const {isBetaEnabled} = usePermissions();
+    const [membersSelectedForBulkEditCount = 0] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, {selector: (selection) => selection?.accountIDs.length});
+
+    // A bulk office location or work arrangement change clears the members it was given once it is applied, which
+    // ends the selection here too
+    const [prevMembersSelectedForBulkEditCount, setPrevMembersSelectedForBulkEditCount] = useState(membersSelectedForBulkEditCount);
+    if (prevMembersSelectedForBulkEditCount !== membersSelectedForBulkEditCount) {
+        setPrevMembersSelectedForBulkEditCount(membersSelectedForBulkEditCount);
+        if (!membersSelectedForBulkEditCount) {
+            setSelectedEmployees([]);
+        }
+    }
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {showDownloadErrorModal} = useAlertModals();
@@ -373,6 +389,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const hasAnyCustomField2 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeePayrollID), [filteredMembers]);
     const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
     const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
+    const shouldShowOfficeLocations = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && hasOfficeLocations(policy);
+    const shouldShowOfficeLocationColumn = !shouldUseNarrowLayout && shouldShowOfficeLocations;
+    const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
     const shouldShowBankAccountColumn = !shouldUseNarrowLayout && !isMediumScreenWidth && isPolicyAdmin(policy) && arePaymentsEnabled(policy);
 
     // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
@@ -432,6 +451,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 email: memberEmail,
                 employeeUserID: policyEmployee.employeeUserID,
                 employeePayrollID: policyEmployee.employeePayrollID,
+                officeLocationName: shouldShowOfficeLocationColumn ? getMemberOfficeLocation(officeLocations, policyEmployee.officeID)?.name : undefined,
                 bankAccountLastFour: memberBankAccounts?.[accountID]?.bankAccountLastFour,
                 isInteractive: !details.isOptimisticPersonalDetail,
                 isSelectionDisabled:
@@ -470,6 +490,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         firstApproverByMemberEmail,
         approverPendingActionByMemberEmail,
         policyMemberEmailsToAccountIDs,
+        shouldShowOfficeLocationColumn,
+        officeLocations,
         memberBankAccounts,
         invitedPrimaryToSecondaryLogins,
         openMemberDetails,
@@ -575,6 +597,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
     }
 
+    const editSelectedEmployees = (bulkEditRoute: Route) => {
+        setWorkspaceMembersSelectedForBulkEdit(
+            policyID,
+            selectedEmployees.map((login) => policyMemberEmailsToAccountIDs[login]).filter((accountID) => accountID !== undefined),
+        );
+        Navigation.navigate(bulkEditRoute);
+    };
+
     const getBulkActionsButtonOptions = () => {
         const selectedEmployeesRoles = selectedEmployees.map((email) => {
             return policy?.employeeList?.[email]?.role;
@@ -597,6 +627,28 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     setMembersSelectedForRoleChange(policyID, selectedEmployees);
                     Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_ROLE.getRoute(policyID));
                 },
+            });
+        }
+
+        if (isPaidGroupPolicy(policy) && shouldShowOfficeLocations) {
+            options.push({
+                text: translate('workspace.people.changeOfficeLocation'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_OFFICE_LOCATION,
+                icon: icons.Location,
+                onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_OFFICE_LOCATION.getRoute(policyID)),
+            });
+        }
+
+        if (
+            isPaidGroupPolicy(policy) &&
+            policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
+            isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS)
+        ) {
+            options.push({
+                text: translate('workspace.people.changeWorkArrangement'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_WORK_ARRANGEMENT,
+                icon: icons.Building,
+                onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT.getRoute(policyID)),
             });
         }
 
@@ -813,6 +865,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
                         shouldShowApproverColumn={shouldShowApproverColumn}
                         shouldUseOrdinalApproverLabel={shouldUseOrdinalApproverLabel}
+                        shouldShowOfficeLocationColumn={shouldShowOfficeLocationColumn}
                         shouldShowBankAccountColumn={shouldShowBankAccountColumn}
                         onRowSelectionChange={setSelectedEmployees}
                         headerComponent={tableHeaderComponent}

@@ -39,6 +39,9 @@ type WorkspaceMembersTableRowProps = {
     /** Whether the approver column is visible on web screens or not */
     shouldShowApproverColumn: boolean;
 
+    /** Whether the office location column is visible on web screens or not */
+    shouldShowOfficeLocationColumn: boolean;
+
     /** Whether the bank account column is visible on web screens or not */
     shouldShowBankAccountColumn: boolean;
 
@@ -52,6 +55,7 @@ export default function WorkspaceMembersTableRow({
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
     shouldShowApproverColumn,
+    shouldShowOfficeLocationColumn,
     shouldShowBankAccountColumn,
     shouldUseNarrowTableLayout,
     policy,
@@ -146,6 +150,22 @@ export default function WorkspaceMembersTableRow({
                                         text={item.approverDisplayName}
                                     />
                                 </OfflineWithFeedback>
+                            )}
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && shouldShowOfficeLocationColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            {!!item.officeLocationName && (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={item.officeLocationName}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                />
                             )}
                         </View>
                     )}
