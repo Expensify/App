@@ -1,7 +1,7 @@
+import useAgents from '@hooks/useAgents';
 /**
  * Builds the Account and General menu section data shown on the Initial Settings page.
  */
-import useAgentsTable from '@hooks/useAgentsTable';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -13,6 +13,7 @@ import useSignOut from '@hooks/useSignOut';
 
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
+import {doesAgentHaveErrors} from '@libs/AgentUtils';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -87,8 +88,8 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
-    const {agents} = useAgentsTable();
-    const hasAgentErrors = agents.some((agent) => agent.errors);
+    const agents = useAgents();
+    const hasAgentsErrors = Object.values(agents ?? {}).some(doesAgentHaveErrors);
     const privateSubscription = usePrivateSubscription();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
@@ -179,7 +180,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
             return {
                 ...item,
                 badgeText: translate('common.beta'),
-                brickRoadIndicator: hasAgentErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasAgentsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             };
         }
         if (item.screenName === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) {

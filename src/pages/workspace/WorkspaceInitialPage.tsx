@@ -196,7 +196,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     // Agents errors can only exist on manageable agents
     const {manageableWorkspaceAgents} = useWorkspaceAgents(policy);
-    const hasAgentsErrors = Object.values(manageableWorkspaceAgents).some((agent) => doesAgentHaveErrors(agent));
+    const hasAgentsErrors = Object.values(manageableWorkspaceAgents).some(doesAgentHaveErrors);
 
     const workspaceMenuItems = getWorkspaceMenuItems({
         policy,
