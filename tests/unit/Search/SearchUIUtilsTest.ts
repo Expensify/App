@@ -15829,9 +15829,17 @@ describe('getDatePresets', () => {
 
         // Then only the common date presets are returned, without never
         expect(presets).toEqual([
+            CONST.SEARCH.DATE_PRESETS.THIS_WEEK,
             CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
+            CONST.SEARCH.DATE_PRESETS.THIS_QUARTER,
+            CONST.SEARCH.DATE_PRESETS.THIS_YEAR,
+            CONST.SEARCH.DATE_PRESETS.LAST_WEEK,
             CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-            CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
+            CONST.SEARCH.DATE_PRESETS.LAST_QUARTER,
+            CONST.SEARCH.DATE_PRESETS.LAST_YEAR,
+            CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS,
+            CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS,
+            CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS,
             CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
         ]);
         expect(presets).not.toContain(CONST.SEARCH.DATE_PRESETS.NEVER);
