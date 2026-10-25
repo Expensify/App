@@ -5,6 +5,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {setHasRadio} from '@libs/NetworkState';
+import {getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 
 import {ActionListContext} from '@pages/inbox/ActionListContext';
 import {ReactionListContext} from '@pages/inbox/ReactionListContext';
@@ -69,12 +70,15 @@ const signUpWithTestUser = () => {
 
 const sortedReportActions = ReportTestUtils.getMockedSortedReportActions(500);
 const reportActions: ReportActions = Object.fromEntries(sortedReportActions.map((action: ReportAction) => [action.reportActionID, action]));
+const newestPageActionIDs = getSortedReportActionsForDisplay(reportActions, true, true)
+    .slice(0, 50)
+    .map((action) => action.reportActionID);
 const POLICY_ID = 'P1';
 const report = ReportTestUtils.createMockReport({reportID: REPORT_ID, policyID: POLICY_ID, lastVisibleActionCreated: sortedReportActions.at(0)?.created});
 const WRITES_PER_SCENARIO = 10;
 
-// All mock actions share one timestamp, so the initial window is ordered by reportActionID as a string and starts at action 1, then 10..
-const VISIBLE_ACTION_ID = '10';
+// All mock actions share one timestamp, so the newest page starts with the lexicographically highest action ID.
+const VISIBLE_ACTION_ID = '99';
 
 beforeEach(async () => {
     // Initialize the network key for OfflineWithFeedback
@@ -97,6 +101,8 @@ beforeEach(async () => {
             outputCurrency: CONST.CURRENCY.USD,
         });
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions);
+        // Keep all 500 cached actions, but bound the rendered page because LegendList's Jest mock renders every supplied row.
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${REPORT_ID}`, [[CONST.PAGINATION_START_ID, ...newestPageActionIDs]]);
         await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {
             isLoadingInitialReportActions: false,
             hasOnceLoadedReportActions: true,
@@ -136,7 +142,7 @@ function ReportActionsListWrapper() {
     );
 }
 
-async function measureWrites(write: (run: number, index: number) => Promise<unknown>) {
+async function measureWrites(write: (run: number, index: number) => Promise<unknown>, verifyWrite?: (run: number, index: number) => Promise<unknown>) {
     // Reassure runs the scenario several times against one seeded Onyx, so every run writes a value that doesn't exist yet
     let run = 0;
     const scenario = async () => {
@@ -147,6 +153,7 @@ async function measureWrites(write: (run: number, index: number) => Promise<unkn
                 await write(currentRun, index);
                 await waitForBatchedUpdates();
             });
+            await verifyWrite?.(currentRun, index);
         }
         run++;
     };
@@ -156,33 +163,38 @@ async function measureWrites(write: (run: number, index: number) => Promise<unkn
 
 const getTime = (run: number, index: number) => `2030-01-01 00:${String(run % 60).padStart(2, '0')}:${String(index).padStart(2, '0')}.000`;
 
-test('[ReportActionsList] should re-render when one visible action is edited', async () => {
+// The paginated LegendList fixture needs its own baseline instead of comparing against FlashList's virtualized fixture.
+test('[ReportActionsList LegendList] should re-render when one visible action is edited', async () => {
     // Given 500 actions in the report, when the message of one visible action is edited repeatedly
     // Then reassure measures what an edit of one action costs the list
-    await measureWrites((run, index) =>
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[VISIBLE_ACTION_ID]: {message: [{type: 'TEXT', html: `edited ${run}-${index}`, text: `edited ${run}-${index}`}]}}),
+    await measureWrites(
+        (run, index) =>
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [VISIBLE_ACTION_ID]: {message: [{type: 'TEXT', html: `edited ${run}-${index}`, text: `edited ${run}-${index}`}]},
+            }),
+        (run, index) => screen.findByText(`edited ${run}-${index}`),
     );
 });
 
-test('[ReportActionsList] should re-render when only a heartbeat field of the report changes', async () => {
+test('[ReportActionsList LegendList] should re-render when only a heartbeat field of the report changes', async () => {
     // Given 500 actions in the report, when only lastReadTime of the report changes
     // Then reassure measures what a field the rows don't display costs the list
     await measureWrites((run, index) => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {lastReadTime: getTime(run, index)}));
 });
 
-test('[ReportActionsList] should re-render when an unrelated report is written', async () => {
+test('[ReportActionsList LegendList] should re-render when an unrelated report is written', async () => {
     // Given 500 actions in the report, when another report in the account is created or updated
     // Then reassure measures what a write outside the open report costs the list
     await measureWrites((run, index) => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}unrelated${run}_${index}`, {reportID: `unrelated${run}_${index}`, reportName: 'Unrelated'}));
 });
 
-test('[ReportActionsList] should re-render when an unrelated transaction is written', async () => {
+test('[ReportActionsList LegendList] should re-render when an unrelated transaction is written', async () => {
     // Given 500 actions in the report, when a transaction of another report changes
     // Then reassure measures what a write outside the open report costs the list
     await measureWrites((run, index) => Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}T1`, {transactionID: 'T1', reportID: 'unrelated', amount: run * 100 + index}));
 });
 
-test('[ReportActionsList] should re-render when the report name changes', async () => {
+test('[ReportActionsList LegendList] should re-render when the report name changes', async () => {
     // Given 500 actions in the report, when a field every row reads through the stable report changes
     // Then reassure measures the cost of a write that legitimately re-renders all rows
     await measureWrites((run, index) => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportName: `Renamed ${run}-${index}`}));
