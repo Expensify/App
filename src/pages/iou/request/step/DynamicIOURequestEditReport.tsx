@@ -224,11 +224,11 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicy.id));
             return;
         }
-        if (!canCreateReport) {
-            return;
-        }
         if (hasPerDiemTransactions) {
             handleCreateReport();
+            return;
+        }
+        if (!hasPerDiemTransactions && !hasUnreportedManagedCardTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
