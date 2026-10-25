@@ -226,19 +226,20 @@ describe('New rule describe section', () => {
         });
     });
 
-    it('shows the four templates and then the describe section', async () => {
+    it('shows the templates and then the describe section', async () => {
         // Given an admin on the New rule page
         await renderRulesNewPage();
 
         // When the admin looks at the options
         const options = screen.getAllByRole('button');
 
-        // Then the four rule types come first, because the admin can describe the rule in the section below them
+        // Then the four rule types and Describe agent rule come first, because the admin can describe the rule in the section below them
         const expectedOptionNames = [
             'workspace.rules.newRule.restrictCardSpend',
             'workspace.rules.newRule.flagForReview',
             'workspace.rules.newRule.requireFieldsShort',
             'workspace.rules.newRule.applyExpenseDefaults',
+            'workspace.rules.newRule.createAgentRule',
         ];
         expect(options).toHaveLength(expectedOptionNames.length);
         for (const [index, name] of expectedOptionNames.entries()) {
@@ -249,6 +250,17 @@ describe('New rule describe section', () => {
         expect(screen.getByText('workspace.rules.newRule.startWithTemplate')).toBeOnTheScreen();
         expect(screen.getByText('workspace.rules.newRule.describeItBelow')).toBeOnTheScreen();
         expect(screen.getByLabelText('common.next')).toBeOnTheScreen();
+    });
+
+    it('opens the agent rule page from Describe agent rule', async () => {
+        // Given an admin on the New rule page
+        await renderRulesNewPage();
+
+        // When the admin picks Describe agent rule
+        fireEvent.press(screen.getByLabelText('workspace.rules.newRule.createAgentRule'));
+
+        // Then the agent rule page opens, so the admin can write an agent rule without the describe section
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_NEW.getRoute(POLICY_ID));
     });
 
     it('asks for a template or a description when Next is pressed with an empty box', async () => {
@@ -282,8 +294,9 @@ describe('New rule describe section', () => {
         // Given an admin who opens New rule for a category, which the describe section cannot scope a rule to
         await renderRulesNewPage('Meals');
 
-        // Then New rule lists only the rule types, without the describe section
+        // Then New rule lists only the rule types, without the describe section or Describe agent rule
         expect(screen.queryByText('workspace.rules.newRule.describeItBelow')).toBeNull();
+        expect(screen.queryByLabelText('workspace.rules.newRule.createAgentRule')).toBeNull();
         expect(screen.queryByLabelText('common.next')).toBeNull();
         expect(screen.getByText('workspace.rules.newRule.subtitle')).toBeOnTheScreen();
     });

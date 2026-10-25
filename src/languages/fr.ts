@@ -8922,6 +8922,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 flagForReviewDescription: 'Avertir lorsque vos conditions sont remplies',
                 requireFieldsShort: 'Exiger des champs',
                 requireFieldsDescription: 'Reçus, catégories, etc.',
+                createAgentRule: 'Décrire la règle de l’agent',
+                createAgentRuleDescription: 'Créez des règles flexibles qui s’exécutent quand vous en avez besoin.',
                 describeItBelow: 'Ou décrivez-la simplement ci-dessous',
                 describeRulePlaceholder: 'Bloquer toutes les dépenses supérieures à 2 000 $',
                 selectTemplateOrDescribe: 'Sélectionnez un modèle ou décrivez une règle pour continuer',

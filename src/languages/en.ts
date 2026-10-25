@@ -9265,6 +9265,8 @@ const translations = {
                 requireFieldsDescription: 'Receipts, categories, etc.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields automatically',
+                createAgentRule: 'Describe agent rule',
+                createAgentRuleDescription: 'Create flexible rules that run when you need.',
                 describeItBelow: 'Or just describe it below',
                 describeRulePlaceholder: 'Block all spend above $2,000',
                 selectTemplateOrDescribe: 'Select a template or describe a rule to continue',
