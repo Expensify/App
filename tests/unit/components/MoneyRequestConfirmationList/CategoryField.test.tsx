@@ -328,6 +328,25 @@ describe('CategoryField', () => {
             // later one the user never pressed Category for
             expect(mockOpenDropdown).not.toHaveBeenCalled();
         });
+
+        it('forgets an upgrade the user never left the form for once the row is pressed again', async () => {
+            // Given an expense with no workspace, whose category row armed a return to the list, but whose upgrade screen never opened
+            await givenManualExpense();
+            const {rerender} = render(renderDropdownCategoryField({shouldNavigateToUpgradePath: true}));
+            fireEvent.press(screen.getByText('common.category'));
+
+            // When the workspace arrives, the user presses the row again for the full-page Category step, and comes back
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false}));
+            fireEvent.press(screen.getByText('common.category'));
+            mockIsFocused = false;
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false}));
+            mockIsFocused = true;
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false}));
+            await waitForBatchedUpdates();
+
+            // Then the list stays closed: the second press cleared the stale upgrade return, so it can't fire on this trip
+            expect(mockOpenDropdown).not.toHaveBeenCalled();
+        });
     });
 
     it('opens the list in place for a draft workspace, whose categories only exist as drafts', async () => {

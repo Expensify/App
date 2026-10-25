@@ -52,6 +52,7 @@ import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import React, {useEffect, useMemo, useRef} from 'react';
 
 type SearchMoneyRequestPageProps =
@@ -75,6 +76,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {currentSearchResults: snapshot} = useSearchResultsContext();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    // Search results for reports with several expenses aren't copied into Onyx, so the first open reads the policy from the search snapshot
+    const reportPolicyID = report?.policyID ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`]?.policyID;
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(reportPolicyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
 
@@ -214,6 +220,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                 iouReport: report,
                 iouReportAction: iouAction,
                 personalDetails,
+                fullPolicySnapshotLastModified,
             });
             return;
         }
@@ -227,6 +234,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             currentUserAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            fullPolicySnapshot: reportPolicyID && fullPolicySnapshotLastModified ? {policyID: reportPolicyID, lastModified: fullPolicySnapshotLastModified} : undefined,
         });
         isInitialMountRef.current = false;
 
@@ -300,10 +308,12 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             transaction,
             transactionViolations: violations,
             personalDetails,
+            fullPolicySnapshotLastModified,
         });
     }, [
         allReportTransactions,
         allReportViolations,
+        fullPolicySnapshotLastModified,
         introSelected,
         guidedSetupAndTourStatus?.isSelfTourViewed,
         guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,

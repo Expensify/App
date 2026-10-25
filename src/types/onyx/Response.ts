@@ -132,6 +132,15 @@ type Response<TKey extends OnyxKey> = {
      * Returned by the UpdateMoneyRequest commands, which count the edits themselves.
      */
     suggestNewRuleCreation?: boolean;
+
+    /** Whether the ParseExpenseFilters command successfully parsed the natural-language query */
+    success?: boolean;
+
+    /** Search URL returned by ParseExpenseFilters on success */
+    searchURL?: string;
+
+    /** Human-readable summary of the parsed filters returned by ParseExpenseFilters on success */
+    humanReadableSummary?: string;
 };
 
 export default Response;

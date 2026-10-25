@@ -105,14 +105,6 @@ const buildEmptyField = (): OnyxTypes.PolicyReportField => ({
     value: '',
 });
 
-// A field that cannot be deleted must hold a value. Leaving it empty raises a "<name> is required" violation.
-const buildRequiredField = (): OnyxTypes.PolicyReportField => ({
-    ...buildTextField(1),
-    name: 'RequiredField',
-    fieldID: 'requiredField',
-    deletable: false,
-});
-
 const buildListField = (): OnyxTypes.PolicyReportField => ({
     ...buildTextField(1),
     name: 'ListField',
@@ -182,12 +174,7 @@ const buildReport = (reportOnlyFields: OnyxTypes.PolicyReportField[] = []): Onyx
     total: 0,
 });
 
-const renderReportFields = async (
-    fieldCount: number,
-    extraFields: OnyxTypes.PolicyReportField[] = [],
-    shouldUseSingleColumn = false,
-    reportOnlyFields: OnyxTypes.PolicyReportField[] = [],
-) => {
+const renderReportFields = async (fieldCount: number, extraFields: OnyxTypes.PolicyReportField[] = [], reportOnlyFields: OnyxTypes.PolicyReportField[] = []) => {
     const policy = buildPolicy(fieldCount, extraFields);
     const report = buildReport(reportOnlyFields);
 
@@ -202,7 +189,6 @@ const renderReportFields = async (
             <MoneyRequestViewReportFields
                 report={report}
                 policy={policy}
-                shouldUseSingleColumn={shouldUseSingleColumn}
             />
         </ComposeProviders>,
     );
@@ -257,17 +243,6 @@ describe('MoneyRequestViewReportFields', () => {
         expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(4);
     });
 
-    it('shows one field per row on a wide layout when a single column is requested', async () => {
-        // Given a wide layout and a caller asking for a single column, which is how the one-expense report view
-        // renders its fields inside a container too narrow for the grid
-        // When 4 fields are laid out
-        await renderReportFields(4, [], true);
-
-        // Then each one gets its own row, proving `shouldUseSingleColumn` overrides the wide layout rather than only
-        // taking effect when the layout is already narrow
-        expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(4);
-    });
-
     it('renders every field as an input holding its value', async () => {
         // Given a report with 2 fields that already hold values
         await renderReportFields(2);
@@ -298,8 +273,26 @@ describe('MoneyRequestViewReportFields', () => {
         });
     });
 
-    it('saves the empty value when an optional field is cleared', async () => {
-        // Given a report with 2 optional fields that already hold values
+    it('saves once when Enter is pressed and the field then loses focus', async () => {
+        // Given a report with 2 fields
+        await renderReportFields(2);
+
+        // When a new value is typed and submitted with Enter, which on iOS and Android also blurs the input
+        const input = screen.getByLabelText('Field1');
+        fireEvent.changeText(input, 'Updated value');
+        fireEvent(input, 'submitEditing');
+        fireEvent(input, 'blur');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the value is saved only once, because each save posts its own system message to the report
+        expect(updateReportField).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(updateReportField).mock.calls.at(0)?.at(0)).toMatchObject({
+            reportField: {fieldID: 'field1', value: 'Updated value'},
+        });
+    });
+
+    it('saves an empty value when a text field is cleared', async () => {
+        // Given a report with 2 text fields that already hold values
         await renderReportFields(2);
 
         // When the first field is emptied and left
@@ -308,8 +301,8 @@ describe('MoneyRequestViewReportFields', () => {
         fireEvent(input, 'blur');
         await waitForBatchedUpdatesWithAct();
 
-        // Then the empty value is saved, because deliberately clearing an optional field is a real edit and must not
-        // be mistaken for the no-op case where the user tabbed through without changing anything
+        // Then the empty value is saved, because OldDot lets a text field be cleared and the report history then shows
+        // `removed Field1 (previously "Value1")`
         expect(updateReportField).toHaveBeenCalledTimes(1);
         expect(jest.mocked(updateReportField).mock.calls.at(0)?.at(0)).toMatchObject({
             reportField: {fieldID: 'field1', value: ''},
@@ -317,38 +310,21 @@ describe('MoneyRequestViewReportFields', () => {
         });
     });
 
-    it('saves the empty value when a required field is cleared and keeps its violation visible', async () => {
-        // Given a report holding a required field
-        const rendered = await renderReportFields(1, [buildRequiredField()]);
+    it('saves an empty value rather than whitespace when a text field is left holding only spaces', async () => {
+        // Given a report with 2 text fields that already hold values
+        await renderReportFields(2);
 
-        // When the field is emptied and left
-        const input = screen.getByLabelText('RequiredField');
-        fireEvent.changeText(input, '');
+        // When the first field is replaced with spaces and left
+        const input = screen.getByLabelText('Field1');
+        fireEvent.changeText(input, '   ');
         fireEvent(input, 'blur');
         await waitForBatchedUpdatesWithAct();
 
-        // Then the empty value is saved, because like Classic a required field left empty is flagged by a violation
-        // rather than blocked from saving
+        // Then an empty value is saved, so the report never stores a value that looks empty but is not
         expect(updateReportField).toHaveBeenCalledTimes(1);
         expect(jest.mocked(updateReportField).mock.calls.at(0)?.at(0)).toMatchObject({
-            reportField: {fieldID: 'requiredField', value: ''},
-            previousReportField: {fieldID: 'requiredField', value: 'Value1'},
+            reportField: {fieldID: 'field1', value: ''},
         });
-        expect(screen.queryByText('common.error.fieldRequired')).toBeNull();
-
-        // When the report comes back holding the empty value the input just saved
-        rendered.rerender(
-            <ComposeProviders components={[OnyxListItemProvider]}>
-                <MoneyRequestViewReportFields
-                    report={buildReport([{...buildRequiredField(), value: ''}])}
-                    policy={buildPolicy(1, [buildRequiredField()])}
-                />
-            </ComposeProviders>,
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the required violation shows, so the empty value the save created is flagged instead of blocked
-        expect(screen.getByText('RequiredField is required')).toBeOnTheScreen();
     });
 
     it('does not save when the option a list field already holds is picked again', async () => {
@@ -379,6 +355,17 @@ describe('MoneyRequestViewReportFields', () => {
         // Then nothing is saved, because blur is the save trigger now and merely passing through a field must not
         // cost a write
         expect(updateReportField).not.toHaveBeenCalled();
+    });
+
+    it('edits the raw value of a text field whose default refers to another field', async () => {
+        // Given a text field with no value of its own whose default refers to Field1, so the report would display it
+        // computed as "Value1 code"
+        await renderReportFields(1, [{...buildTextField(2), name: 'LinkedField', fieldID: 'linkedField', defaultValue: '{field:Field1} code', value: null}]);
+
+        // When the field is inspected
+        // Then the input holds the raw default, the same as the editor page, so editing it never saves the computed
+        // text over the reference and the field keeps following Field1
+        expect(screen.getByLabelText('LinkedField')).toHaveProp('value', '{field:Field1} code');
     });
 
     it('resets the displayed text when an edit is skipped because it only changed the whitespace', async () => {
@@ -558,7 +545,7 @@ describe('MoneyRequestViewReportFields', () => {
     it('shows a delete button only on a field that was deleted from the workspace', async () => {
         // Given a report holding one field that is still on the workspace and one the admin has since deleted. Both
         // are `deletable`, so the button has to be decided by the field being gone from the workspace
-        await renderReportFields(1, [], false, [buildDeletedField()]);
+        await renderReportFields(1, [], [buildDeletedField()]);
 
         // When the fields are rendered
         // Then the deleted field still shows its value and carries a delete button, because the editor page with its
@@ -573,9 +560,11 @@ describe('MoneyRequestViewReportFields', () => {
     it('shows a delete button on a deleted date field even when its copy on the report is not deletable', async () => {
         // Given a report holding a date field the admin has since deleted from the workspace, whose copy on the report
         // is flagged as not deletable
-        await renderReportFields(1, [], false, [
-            {...buildDeletedField(), name: 'DeletedDateField', fieldID: 'deletedDateField', type: CONST.REPORT_FIELD_TYPES.DATE, value: '2026-10-01', deletable: false},
-        ]);
+        await renderReportFields(
+            1,
+            [],
+            [{...buildDeletedField(), name: 'DeletedDateField', fieldID: 'deletedDateField', type: CONST.REPORT_FIELD_TYPES.DATE, value: '2026-10-01', deletable: false}],
+        );
 
         // When the fields are rendered
         // Then it still carries a delete button, because the field is gone from the workspace and there is no other
@@ -585,7 +574,7 @@ describe('MoneyRequestViewReportFields', () => {
 
     it('deletes the field from the report once the delete is confirmed', async () => {
         // Given a report holding a field that was deleted from the workspace
-        await renderReportFields(1, [], false, [buildDeletedField()]);
+        await renderReportFields(1, [], [buildDeletedField()]);
 
         // When its delete button is pressed and the confirmation is accepted
         fireEvent.press(screen.getByLabelText('workspace.reportFields.delete, DeletedField'));
@@ -599,7 +588,7 @@ describe('MoneyRequestViewReportFields', () => {
 
     it('keeps the field when the delete is cancelled', async () => {
         // Given a report holding a field that was deleted from the workspace
-        await renderReportFields(1, [], false, [buildDeletedField()]);
+        await renderReportFields(1, [], [buildDeletedField()]);
 
         // When its delete button is pressed but the confirmation is dismissed
         mockShowConfirmModal.mockImplementationOnce(() => Promise.resolve({action: 'CLOSE'}));

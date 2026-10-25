@@ -63,7 +63,6 @@ function resolveCardListEntry(card: Card, cardListEntries: Array<[string, string
     const {cardName, encryptedCardNumber, lastFourPAN} = card;
 
     // Using || instead of ?? because an empty-string lastFourPAN should fall through to cardName
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const panSuffix = lastFourPAN || cardName;
 
     const isLinkedByEncrypted = encryptedCardNumber && cardListEntries.some(([, entryEncryptedCardNumber]) => entryEncryptedCardNumber === encryptedCardNumber);
@@ -161,7 +160,6 @@ function buildCompanyCardEntries(
 
 function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProps): UseCompanyCardsResult {
     // If an empty string is passed, we need to use an invalid key to avoid fetching the whole collection.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyIDKey = policyID || CONST.DEFAULT_MISSING_ID;
 
     const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyIDKey}`);
