@@ -1,6 +1,5 @@
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {isCreatedAction} from '@libs/ReportActionsUtils';
 
 import {useConciergeChatHistoryState} from '@pages/inbox/ConciergeChatHistoryContext';
 
@@ -44,20 +43,9 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         if (!isAskConciergeChat || !actions) {
             return false;
         }
-        const allActions = Object.values(actions);
 
         // A failed send stays on screen so the user can retry or dismiss it.
-        if (allActions.some((action) => !isEmptyObject(action.errors))) {
-            return true;
-        }
-
-        // The user's earlier messages may be on an older page.
-        if (!allActions.some((action) => isCreatedAction(action))) {
-            return false;
-        }
-
-        const messages = allActions.filter((action) => !isCreatedAction(action));
-        return messages.length > 0 && !messages.some((action) => action.actorAccountID === currentUserAccountID);
+        return Object.values(actions).some((action) => !isEmptyObject(action.errors));
     };
     const [shouldKeepMessagesOnScreen] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: shouldKeepMessagesOnScreenSelector,

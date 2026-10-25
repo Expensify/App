@@ -77,15 +77,15 @@ describe('useConciergeAskState', () => {
         expect(result.current.isHistoryExpanded).toBe(false);
     });
 
-    it('keeps the messages on screen when the user never messaged Concierge', async () => {
+    it('shows the welcome screen when the user never messaged Concierge', async () => {
         // Given a fully loaded chat with only Concierge's messages, such as onboarding on a new account
         await setReportActions([createdAction, conciergeMessage]);
 
         // When the Concierge chat renders
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
 
-        // Then the messages stay on screen, because `View chat history` would have nothing of the user's to bring back
-        expect(result.current.shouldShowWelcome).toBe(false);
+        // Then the welcome screen shows, and `View chat history` brings back Concierge's messages
+        expect(result.current.shouldShowWelcome).toBe(true);
     });
 
     it('shows the welcome screen while older pages are not loaded', async () => {
