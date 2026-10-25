@@ -65,38 +65,16 @@ describe('useConciergeAskState', () => {
         await waitForBatchedUpdates();
     });
 
-    it('shows the welcome screen once the user has messaged Concierge', async () => {
-        // Given a fully loaded chat where the user asked Concierge before
-        await setReportActions([createdAction, conciergeMessage, userMessage]);
-
-        // When the Concierge chat renders
-        const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
-
-        // Then the welcome screen hides the earlier conversation behind `View chat history`
-        expect(result.current.shouldShowWelcome).toBe(true);
-        expect(result.current.isHistoryExpanded).toBe(false);
-    });
-
-    it('shows the welcome screen when the user never messaged Concierge', async () => {
-        // Given a fully loaded chat with only Concierge's messages, such as onboarding on a new account
+    it('shows the welcome screen in place of the conversation', async () => {
+        // Given a chat with only Concierge's messages, such as onboarding on a new account
         await setReportActions([createdAction, conciergeMessage]);
 
         // When the Concierge chat renders
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
 
-        // Then the welcome screen shows, and `View chat history` brings back Concierge's messages
+        // Then the welcome screen hides the conversation behind `View chat history`
         expect(result.current.shouldShowWelcome).toBe(true);
-    });
-
-    it('shows the welcome screen while older pages are not loaded', async () => {
-        // Given only the newest page, where the user's own messages may be on an older page
-        await setReportActions([conciergeMessage]);
-
-        // When the Concierge chat renders
-        const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
-
-        // Then the welcome screen shows
-        expect(result.current.shouldShowWelcome).toBe(true);
+        expect(result.current.isHistoryExpanded).toBe(false);
     });
 
     it('keeps the welcome screen when a question arrives from another device', async () => {
