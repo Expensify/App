@@ -335,6 +335,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
         flushPendingScrollToBottom,
@@ -365,6 +366,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
     });
+
+    const shouldShowActionBadgePill = !isProduction && (isActionBadgeAboveViewport || isActionBadgeBelowViewport);
 
     const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         trackVerticalScrolling(event);
@@ -553,8 +556,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
-                actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
-                actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
+                actionBadge={shouldShowActionBadgePill ? reportAttributes?.actionBadge : undefined}
+                actionBadgeBrickRoadStatus={shouldShowActionBadgePill ? reportAttributes?.brickRoadStatus : undefined}
+                isActionBadgeTargetBelow={isActionBadgeBelowViewport}
                 onActionBadgePress={scrollToActionBadgeTarget}
                 shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             />
