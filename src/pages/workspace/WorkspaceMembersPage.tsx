@@ -43,6 +43,7 @@ import {
     clearUpdateMemberRoleError,
     clearWorkspaceOwnerChangeFlow,
     downloadMembersCSV,
+    openWorkspaceMembersPage,
     removeMembers,
     setMembersSelectedForRoleChange,
     setWorkspaceMembersSelectedForBulkEdit,
@@ -65,6 +66,7 @@ import {
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
+    canMemberRead,
     canMemberWrite,
     canRolePay,
     getConnectionExporters,
@@ -99,7 +101,7 @@ import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/native';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useEffectEvent, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -131,7 +133,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const {pageGutter} = useLayoutSpacing();
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
-    const {isOffline} = useNetwork();
+    const getWorkspaceMembers = () => {
+        if (!canMemberRead(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS)) {
+            return;
+        }
+        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
+        openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
+    };
+    const {isOffline} = useNetwork({onReconnect: getWorkspaceMembers});
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {isAccountLocked} = useLockedAccountState();
@@ -155,6 +164,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const currentUserLogin = currentUserPersonalDetails.login;
     const canEditWorkspaceSettings = canEditWorkspaceSettingsUtil(policy, currentUserLogin);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    const shouldShowMemberBankAccounts = isPolicyAdmin(policy) && arePaymentsEnabled(policy);
 
     // Group policies (Collect/Control + Submit) allow member management.
     const canManageMembers = isGroupPolicy(policy);
@@ -225,6 +235,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             memberName: formatPhoneNumber(getPersonalDetailsByID(firstSelectedEmployeeAccountID, personalDetails)?.displayName ?? ''),
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails, outstandingReportsForPolicy, privateIsArchivedMap]);
+
+    const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
+
+    // The bank accounts are only returned while the workspace shows them, so load the members again when that changes.
+    useEffect(() => {
+        getWorkspaceMembersEvent();
+    }, [shouldShowMemberBankAccounts]);
 
     /**
      * Open the modal to invite a user
@@ -371,11 +388,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         updateMemberRoleInline(policy, login, accountID, currentRole, newRole);
     };
 
+    const filteredMembers = useWorkspaceMembers(policy);
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
-
-    const filteredMembers = useWorkspaceMembers(policy, true);
-
     const hasAnyCustomField1 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeeUserID), [filteredMembers]);
     const hasAnyCustomField2 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeePayrollID), [filteredMembers]);
     const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
@@ -383,7 +398,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldShowOfficeLocations = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && hasOfficeLocations(policy);
     const shouldShowOfficeLocationColumn = !shouldUseNarrowLayout && shouldShowOfficeLocations;
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
-    const shouldShowBankAccountColumn = !shouldUseNarrowLayout && !isMediumScreenWidth && isPolicyAdmin(policy) && arePaymentsEnabled(policy);
+    const shouldShowBankAccountColumn = !shouldUseNarrowLayout && !isMediumScreenWidth && shouldShowMemberBankAccounts;
 
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);

@@ -1,14 +1,10 @@
-import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
-import {arePaymentsEnabled, shouldFilterExpensifyTeam, isDeletedPolicyEmployee, isExpensifyTeam, isPolicyAdmin, canMemberRead, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {shouldFilterExpensifyTeam, isDeletedPolicyEmployee, isExpensifyTeam, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {generateAccountID} from '@libs/UserUtils';
 
-import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
-
-import {useEffectEvent, useEffect} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
@@ -19,10 +15,8 @@ import {useAllPersonalDetails} from './usePersonalDetails';
 /**
  * Hook that returns a workspace's members joined with personal details, filling in fallback identities when details haven't loaded and filtering out Expensify team members on Expensify-owned policies.
  */
-function useWorkspaceMembers(policy: OnyxEntry<Policy>, shouldOpenWorkspaceMembersPage: boolean) {
-    const policyID = policy?.id;
+function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
     const policyOwner = policy?.owner;
-
     const {formatPhoneNumber} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails.login;
@@ -30,26 +24,7 @@ function useWorkspaceMembers(policy: OnyxEntry<Policy>, shouldOpenWorkspaceMembe
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true);
     const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
     const [personalDetails] = useAllPersonalDetails();
-
-    const getWorkspaceMembers = () => {
-        if (!policyID) {
-            return;
-        }
-        if (!shouldOpenWorkspaceMembersPage) {
-            return;
-        }
-        if (!canMemberRead(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS)) {
-            return;
-        }
-        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
-        openWorkspaceMembersPage(policyID, clientMemberEmails);
-    };
-    const {isOffline} = useNetwork({onReconnect: getWorkspaceMembers});
-    const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
-    const shouldShowMemberBankAccounts = isPolicyAdmin(policy) && arePaymentsEnabled(policy);
-
-    // The bank accounts are only returned while the workspace shows them, so load the members again when that changes.
-    useEffect(() => getWorkspaceMembersEvent(), [shouldShowMemberBankAccounts]);
+    const {isOffline} = useNetwork();
 
     const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
     for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
