@@ -12,12 +12,16 @@ jest.mock('@libs/actions/Report', () => ({
     openSupportTicket: jest.fn(),
     isNoSupportRepAvailableResponse: jest.fn(),
 }));
-jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn(), getActiveRoute: jest.fn(() => '/r/1')}));
+jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn(), getActiveRoute: jest.fn()}));
 jest.mock('@libs/Growl', () => ({error: jest.fn()}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useOpenConciergeAnywhere', () => () => ({openConciergeAnywhere: mockOpenConciergeAnywhere}));
 
 const mockOpenSupportTicket = jest.mocked(openSupportTicket);
+const mockGetActiveRoute = jest.mocked(Navigation.getActiveRoute);
+
+const CHAT_ROUTE = '/r/1';
+const PENDING_TICKET_ROUTE = '/r/2/?isPendingCreation=true';
 const mockIsNoSupportRepAvailableResponse = jest.mocked(isNoSupportRepAvailableResponse);
 
 describe('useOpenSupportTicket', () => {
@@ -28,6 +32,7 @@ describe('useOpenSupportTicket', () => {
     it('returns nothing from the callback so a menu row does not wait on the ticket request', () => {
         // Given a ticket request that has not finished
         mockOpenSupportTicket.mockReturnValue(new Promise(() => {}));
+        mockGetActiveRoute.mockReturnValue(PENDING_TICKET_ROUTE);
         const {result} = renderHook(() => useOpenSupportTicket());
 
         // When the callback runs
@@ -42,6 +47,7 @@ describe('useOpenSupportTicket', () => {
         // Given a ticket request that a rep picks up
         mockOpenSupportTicket.mockResolvedValue(undefined);
         mockIsNoSupportRepAvailableResponse.mockReturnValue(false);
+        mockGetActiveRoute.mockReturnValue(PENDING_TICKET_ROUTE);
         const {result} = renderHook(() => useOpenSupportTicket());
 
         // When the callback runs and the request finishes
@@ -60,7 +66,8 @@ describe('useOpenSupportTicket', () => {
         // Given a ticket request that finds no rep, after its screen has taken itself down
         mockOpenSupportTicket.mockResolvedValue(undefined);
         mockIsNoSupportRepAvailableResponse.mockReturnValue(true);
-        jest.mocked(Navigation.getActiveRoute).mockReturnValue('/r/1');
+        // The ticket screen is open when the request starts, and gone by the time it resolves
+        mockGetActiveRoute.mockReturnValueOnce(PENDING_TICKET_ROUTE).mockReturnValue(CHAT_ROUTE);
         const {result} = renderHook(() => useOpenSupportTicket());
 
         // When the callback runs and the request finishes
@@ -79,7 +86,7 @@ describe('useOpenSupportTicket', () => {
         // Given a ticket request that finds no rep while its screen is still open
         mockOpenSupportTicket.mockResolvedValue(undefined);
         mockIsNoSupportRepAvailableResponse.mockReturnValue(true);
-        jest.mocked(Navigation.getActiveRoute).mockReturnValueOnce('/r/1').mockReturnValue('/r/2?isPendingCreation=true');
+        mockGetActiveRoute.mockReturnValue(PENDING_TICKET_ROUTE);
         const {result} = renderHook(() => useOpenSupportTicket());
 
         // When the callback runs and the request finishes
@@ -105,6 +112,7 @@ describe('useOpenSupportTicket', () => {
     it('ignores a failed ticket request', async () => {
         // Given a ticket request that fails
         mockOpenSupportTicket.mockRejectedValue(new Error('network'));
+        mockGetActiveRoute.mockReturnValue(PENDING_TICKET_ROUTE);
         const {result} = renderHook(() => useOpenSupportTicket());
 
         // When the callback runs and the request settles

@@ -14,8 +14,11 @@ function useOpenSupportTicket() {
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
     const openSupportTicketOrConcierge = () => {
-        const routeBeforeTicket = Navigation.getActiveRoute();
-        openSupportTicket()
+        const request = openSupportTicket();
+
+        // openSupportTicket opens the pending ticket before it resolves, so this is that screen's own route.
+        const pendingTicketRoute = Navigation.getActiveRoute();
+        request
             .then((response) => {
                 if (!isNoSupportRepAvailableResponse(response)) {
                     return;
@@ -23,8 +26,9 @@ function useOpenSupportTicket() {
 
                 Growl.error({bodyText: translate('supportTicket.noSupportRepAvailable')});
 
-                // A ticket that was never created takes its own screen down, and going back again would pop the page behind it.
-                if (Navigation.getActiveRoute() === routeBeforeTicket) {
+                // A ticket that was never created takes its own screen down. Leaving any other screen would pop
+                // the page the customer is on instead.
+                if (Navigation.getActiveRoute() !== pendingTicketRoute) {
                     openConciergeAnywhere({forceConcierge: true});
                     return;
                 }
