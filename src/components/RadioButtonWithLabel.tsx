@@ -1,5 +1,6 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getGroupItemAccessibilityLabel from '@libs/Accessibility/getGroupItemAccessibilityLabel';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type {ReactNode} from 'react';
@@ -30,6 +31,9 @@ type RadioButtonWithLabelProps = ForwardedFSClassProps & {
     /** Specifies the accessibility label for the radio button. Falls back to label if not provided. */
     accessibilityLabel?: string;
 
+    /** The question of the group the button belongs to, read after the label on native */
+    groupAccessibilityLabel?: string;
+
     /** Should the input be styled for errors */
     hasError?: boolean;
 
@@ -50,6 +54,7 @@ function RadioButtonWithLabel({
     style,
     label = '',
     accessibilityLabel,
+    groupAccessibilityLabel,
     hasError = false,
     errorText = '',
     isChecked,
@@ -70,7 +75,7 @@ function RadioButtonWithLabel({
                 <RadioButton
                     isChecked={isChecked}
                     onPress={onPress}
-                    accessibilityLabel={accessibilityLabel ?? label}
+                    accessibilityLabel={getGroupItemAccessibilityLabel(accessibilityLabel ?? label, groupAccessibilityLabel)}
                     hasError={hasError}
                 />
                 <PressableWithFeedback

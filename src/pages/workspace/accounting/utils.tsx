@@ -8,6 +8,7 @@ import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnline
 import ConnectToRilletFlow from '@components/ConnectToRilletFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
+import ConnectToZohoBooksFlow from '@components/ConnectToZohoBooksFlow';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -76,7 +77,8 @@ type AccountingIntegrationIcons = Record<
     | 'RilletSquare'
     | 'DualEntrySquare'
     | 'CampfireSquare'
-    | 'BusinessCentralSquare',
+    | 'BusinessCentralSquare'
+    | 'ZohoBooksSquare',
     IconAsset
 >;
 
@@ -682,6 +684,26 @@ function getAccountingIntegrationData(
                 errorFields: policy?.connections?.campfire?.config?.errorFields,
             };
         }
+        case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+            return {
+                title: translate('workspace.accounting.zohoBooks'),
+                icon: expensifyIcons?.ZohoBooksSquare,
+                setupConnectionFlow: (
+                    <ConnectToZohoBooksFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                // Import, export, and advanced screens are added in later releases.
+                onImportPagePress: () => null,
+                subscribedImportSettings: [],
+                onExportPagePress: () => null,
+                subscribedExportSettings: [],
+                onAdvancedPagePress: () => null,
+                subscribedAdvancedSettings: [],
+                pendingFields: policy?.connections?.zohoBooks?.config?.pendingFields,
+                errorFields: policy?.connections?.zohoBooks?.config?.errorFields,
+            };
         case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
             return {
                 title: translate('workspace.accounting.businessCentral'),
@@ -711,9 +733,31 @@ function getAccountingIntegrationData(
                     CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID,
                     CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE_ACCOUNT,
                     CONST.BUSINESS_CENTRAL_CONFIG.PAYMENT_METHOD_CODE,
+                    CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
+                    ...Object.values(cardFeeds ?? {}).map((program) => `${CONST.BUSINESS_CENTRAL_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`),
                 ],
-                onAdvancedPagePress: () => null,
-                subscribedAdvancedSettings: [],
+                externalSubscribedExportSettingsPendingAction: getCardsCustomExportPendingAction(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT,
+                ),
+                externalSubscribedExportSettingsHasErrorFields: areCardsCustomExportInErrorFields(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT,
+                ),
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [
+                    CONST.BUSINESS_CENTRAL_CONFIG.AUTO_SYNC,
+                    CONST.BUSINESS_CENTRAL_CONFIG.ACCOUNTING_METHOD,
+                    CONST.BUSINESS_CENTRAL_CONFIG.POSTING_MODE,
+                    CONST.BUSINESS_CENTRAL_CONFIG.AUTO_CREATE_ENTITIES,
+                    CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD,
+                    CONST.BUSINESS_CENTRAL_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSEMENT_BANK_ACCOUNT_ID,
+                    CONST.BUSINESS_CENTRAL_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
+                    CONST.BUSINESS_CENTRAL_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
+                ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.businessCentral.alias,
                     backToAfterWorkspaceUpgradeRoute: integrationToDisconnect

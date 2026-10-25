@@ -27,6 +27,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // because jest.mock() is hoisted before variable declarations are evaluated
 const POLICY_ID = 'testPolicy123';
 const WORKSPACE_ACCOUNT_ID = 999888;
+const DOMAIN_ACCOUNT_ID = 8309850;
 
 // jest.mock() factories are hoisted and run before imports/variables are defined.
 // Therefore, they cannot reference variables like POLICY_ID or WORKSPACE_ACCOUNT_ID.
@@ -633,6 +634,37 @@ describe('WorkspaceTravelBillingSection', () => {
             );
 
             // The mocked modal resolves with CONFIRM, so the feature is deactivated
+            expect(deactivateTravelBilling).toHaveBeenCalledWith(POLICY_ID, WORKSPACE_ACCOUNT_ID);
+        });
+
+        it('should deactivate on the workspace account when the domain card program has no travel program', async () => {
+            // Given a domain card program linked to this workspace, and travel billing set up on the workspace account
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(getTravelBillingCardSettingsKey(DOMAIN_ACCOUNT_ID), {
+                    US: {
+                        linkedPolicyIDs: [POLICY_ID],
+                        paymentBankAccountID: 67890,
+                    },
+                });
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 0,
+                        pendingSettlementAmount: 0,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the admin turns travel billing off
+            renderWorkspaceTravelBillingSection();
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByRole('switch'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the toggle was on and the workspace account's travel billing is deactivated
             expect(deactivateTravelBilling).toHaveBeenCalledWith(POLICY_ID, WORKSPACE_ACCOUNT_ID);
         });
 
