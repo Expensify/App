@@ -321,7 +321,6 @@ function DatePicker({
     // the entry in silence.
     const ownError = segmentInput.hasInvalidEntry ? translate('common.error.dateInvalid') : getRangeError(selectedDate);
     // Nullish coalescing would keep an empty errorText, which is a form reporting no error rather than an empty one
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const dateErrorText = errorText || ownError;
 
     // An entry part way through is never handed over, so the field still holds the date from before it. Saving that
