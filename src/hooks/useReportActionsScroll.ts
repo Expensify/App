@@ -249,7 +249,9 @@ function useReportActionsScroll({
             if (!list?.getLayout(0)) {
                 return undefined;
             }
-            return list.computeVisibleIndices();
+            const range = list.computeVisibleIndices();
+            // An empty viewport comes back as {-1, -2}, which would read as "target above", so fall back to the reported items
+            return range.startIndex < 0 ? undefined : range;
         },
         shouldBeAlignedToTop,
     });
