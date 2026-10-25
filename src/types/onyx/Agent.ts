@@ -10,7 +10,7 @@ type AgentOwnerType = ValueOf<typeof CONST.AGENTS.OWNER_TYPE>;
 /** Agent model */
 type Agent = OnyxValueWithOfflineFeedback<{
     /** The system prompt defining the agent's behavior */
-    prompt: string;
+    prompt?: string;
 
     /** The agent owner account ID */
     ownerAccountID?: number;

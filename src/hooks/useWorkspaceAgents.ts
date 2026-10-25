@@ -1,0 +1,54 @@
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Agent, Policy} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import useAgents from './useAgents';
+import useWorkspaceAccountID from './useWorkspaceAccountID';
+import useWorkspaceMembers from './useWorkspaceMembers';
+
+/**
+ * Hook that derives the policy's manageable agents plus read-only agent members the policy cannot manage.
+ */
+function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
+    const allAgents = useAgents();
+    const policyID = policy?.id;
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const workspaceMembers = useWorkspaceMembers(policy);
+
+    const manageableWorkspaceAgents = Object.fromEntries(
+        Object.entries(allAgents ?? {}).filter(([key, agent]) => {
+            if (!agent) {
+                return false;
+            }
+            const accountID = Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length));
+            const isAgentOwnedByWorkspace = agent.ownerAccountID === workspaceAccountID;
+            const isAgentMemberOfWorkspace = !!workspaceMembers.find((member) => member.accountID === accountID);
+            if (!isAgentOwnedByWorkspace && !isAgentMemberOfWorkspace) {
+                return false;
+            }
+            return true;
+        }),
+    );
+    const manageableWorkspaceAgentsIDs = new Set(Object.keys(manageableWorkspaceAgents).map((key) => Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length))));
+
+    const nonManageableWorkspaceAgents: OnyxCollection<Agent> = {};
+    for (const {accountID, details} of workspaceMembers) {
+        if (!details.isCustomAgent) {
+            continue;
+        }
+        if (manageableWorkspaceAgentsIDs.has(accountID)) {
+            continue;
+        }
+        const key = `${ONYXKEYS.COLLECTION.AGENT}${accountID}`;
+        nonManageableWorkspaceAgents[key] = {};
+    }
+
+    return {
+        manageableWorkspaceAgents,
+        nonManageableWorkspaceAgents,
+    };
+}
+
+export default useWorkspaceAgents;
