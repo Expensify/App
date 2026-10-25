@@ -243,7 +243,6 @@ function useReportActionsScroll({
             scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
         },
         actionBadgeTargetIndex,
-        recomputeViewableItems: () => getListRef()?.current?.recomputeViewableItems(),
         getVisibleIndexRange: () => {
             const list = getListRef()?.current;
             // getLayout is the one accessor that does not throw before FlashList has laid out

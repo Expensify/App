@@ -5,7 +5,7 @@ import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 type Args = {
     reportID: string;
@@ -30,9 +30,6 @@ type Args = {
     /** The index of the action badge target report action in the sorted visible actions list (-1 if none) */
     actionBadgeTargetIndex?: number;
 
-    /** Makes the list report its viewable items again, even when the visible positions did not change */
-    recomputeViewableItems?: () => void;
-
     /** Returns the list's visible index range as of now, or undefined before the list has a layout */
     getVisibleIndexRange?: () => {startIndex: number; endIndex: number} | undefined;
 
@@ -52,7 +49,6 @@ export default function useReportUnreadMessageScrollTracking({
     unreadMarkerReportActionIndex,
     isInverted,
     actionBadgeTargetIndex = -1,
-    recomputeViewableItems,
     getVisibleIndexRange,
     shouldBeAlignedToTop = false,
     shouldDisablePillTracking = false,
@@ -200,23 +196,9 @@ export default function useReportUnreadMessageScrollTracking({
         }
     }, [onViewableItemsChanged, unreadMarkerReportActionIndex]);
 
-    const recomputeListViewableItems = useEffectEvent(() => {
-        if (!recomputeViewableItems) {
-            return false;
-        }
-        recomputeViewableItems();
-        return true;
-    });
-
     // When actionBadgeTargetIndex changes, recalculate visibility
     useEffect(() => {
         ref.current.actionBadgeTargetIndex = actionBadgeTargetIndex;
-
-        // Inserted rows leave the cached viewable indexes stale, and the list stays silent when the visible positions are
-        // unchanged, so ask it to report fresh items instead of flashing the pill from the stale ones
-        if (actionBadgeTargetIndex !== -1 && recomputeListViewableItems()) {
-            return;
-        }
         onViewableItemsChanged({viewableItems: ref.current.previousViewableItems, changed: []});
     }, [onViewableItemsChanged, actionBadgeTargetIndex]);
 
