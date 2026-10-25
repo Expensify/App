@@ -12,7 +12,7 @@ jest.mock('@libs/actions/Report', () => ({
     openSupportTicket: jest.fn(),
     isNoSupportRepAvailableResponse: jest.fn(),
 }));
-jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn(), getActiveRoute: jest.fn(() => '/r/1')}));
 jest.mock('@libs/Growl', () => ({error: jest.fn()}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useOpenConciergeAnywhere', () => () => ({openConciergeAnywhere: mockOpenConciergeAnywhere}));
@@ -56,10 +56,11 @@ describe('useOpenSupportTicket', () => {
         expect(mockOpenConciergeAnywhere).not.toHaveBeenCalled();
     });
 
-    it('shows an error and falls back to Concierge when no support rep is available', async () => {
-        // Given a ticket request that finds no available rep
+    it('shows an error and opens Concierge without navigating when the failed ticket screen is already gone', async () => {
+        // Given a ticket request that finds no rep, after its screen has taken itself down
         mockOpenSupportTicket.mockResolvedValue(undefined);
         mockIsNoSupportRepAvailableResponse.mockReturnValue(true);
+        jest.mocked(Navigation.getActiveRoute).mockReturnValue('/r/1');
         const {result} = renderHook(() => useOpenSupportTicket());
 
         // When the callback runs and the request finishes
@@ -68,7 +69,26 @@ describe('useOpenSupportTicket', () => {
             await Promise.resolve();
         });
 
-        // Then the customer sees the error toast and leaves the pending ticket
+        // Then the customer sees the error and stays put, because going back would pop the page behind the ticket
+        expect(Growl.error).toHaveBeenCalledWith({bodyText: 'supportTicket.noSupportRepAvailable'});
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true});
+    });
+
+    it('leaves the failed ticket screen when it is still open, then opens Concierge', async () => {
+        // Given a ticket request that finds no rep while its screen is still open
+        mockOpenSupportTicket.mockResolvedValue(undefined);
+        mockIsNoSupportRepAvailableResponse.mockReturnValue(true);
+        jest.mocked(Navigation.getActiveRoute).mockReturnValueOnce('/r/1').mockReturnValue('/r/2?isPendingCreation=true');
+        const {result} = renderHook(() => useOpenSupportTicket());
+
+        // When the callback runs and the request finishes
+        await act(async () => {
+            result.current.openSupportTicketOrConcierge();
+            await Promise.resolve();
+        });
+
+        // Then the ticket screen is left behind
         expect(Growl.error).toHaveBeenCalledWith({bodyText: 'supportTicket.noSupportRepAvailable'});
         expect(Navigation.goBack).toHaveBeenCalledTimes(1);
 
