@@ -75,6 +75,29 @@ describe('TalkToHumanPage', () => {
         expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
     });
 
+    it('does nothing when the customer leaves before navigation is ready', async () => {
+        // Given navigation that is not ready yet
+        let resolveNavigationReady = () => {};
+        jest.mocked(Navigation.isNavigationReady).mockReturnValue(
+            new Promise<void>((resolve) => {
+                resolveNavigationReady = resolve;
+            }),
+        );
+        const {unmount} = render(<TalkToHumanPage />);
+
+        // When the customer leaves the page and navigation becomes ready afterwards
+        unmount();
+        await act(async () => {
+            resolveNavigationReady();
+            await Promise.resolve();
+        });
+
+        // Then no ticket is opened and nothing navigates behind them
+        expect(mockGoBack).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
+    });
+
     it('does not open a second ticket when it re-renders before it is removed', async () => {
         // Given the page has already handled the link
         const {rerender} = await renderPage();
