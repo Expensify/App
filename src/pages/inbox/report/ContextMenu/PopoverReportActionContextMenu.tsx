@@ -253,7 +253,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             typeRef.current = type;
             reportIDRef.current = reportID;
             reportActionIDRef.current = reportActionID;
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             originalReportIDRef.current = originalReportID || undefined;
             selectionRef.current = selection;
             setIsPopoverVisible(true);
@@ -430,18 +429,19 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             });
         } else if (reportAction) {
             callbackWhenDeleteModalHide.current = () => {
-                deleteReportComment(
+                deleteReportComment({
                     report,
                     reportAction,
                     originalReportActions,
                     reportActions,
-                    ancestorsRef.current,
+                    ancestors: ancestorsRef.current,
                     isReportArchived,
                     isOriginalReportArchived,
-                    email ?? '',
+                    currentEmail: email ?? '',
                     isOffline,
-                    visibleReportActionsData ?? undefined,
-                );
+                    currentUserAccountID,
+                    visibleReportActionsData: visibleReportActionsData ?? undefined,
+                });
             };
         }
 

@@ -53,7 +53,7 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
         oldDotPolicyConnectionsURL,
     } = useConnectedAccountingIntegration(policy, {
         // These settings have nothing to show once the integration is gone
-        onDisconnectConfirmed: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID)),
+        onDisconnectConfirmed: (disconnect) => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID), {afterTransition: disconnect}),
     });
     const connectionsMenuItems = connectionDetails?.settingsMenuItems ?? [];
 

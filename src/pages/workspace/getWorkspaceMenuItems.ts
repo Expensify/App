@@ -3,7 +3,6 @@
  */
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {isAnyRecruitingConnected} from '@libs/merge/RecruitingUtils';
 import {getObjectKeys} from '@libs/ObjectUtils';
@@ -23,6 +22,7 @@ import {
     isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
+    shouldShowQBOReimbursableExportDestinationAccountError,
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
@@ -36,6 +36,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -84,6 +85,7 @@ type WorkspaceMenuItem = WithSentryLabel & {
     getRoute: () => Route;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     screenName: WorkspaceTopLevelScreens;
+    badgeTranslationKey?: TranslationPaths;
     badgeText?: string;
     highlighted?: boolean;
 
@@ -102,6 +104,8 @@ type GetWorkspaceMenuItemsParams = {
     policyID: string | undefined;
     /** Login used to determine the member's feature access. */
     currentUserLogin?: string;
+    /** Personal details used to determine the member's feature access. */
+    currentUserPersonalDetails?: CurrentUserPersonalDetails;
     /** Lazily loaded icons used by the menu items. */
     icons: WorkspaceMenuIconMap;
     /** Whether an accounting connection is currently syncing. */
@@ -122,6 +126,8 @@ type GetWorkspaceMenuItemsParams = {
     isVendorMatchingBetaEnabled?: boolean;
     /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
     isRecruitingBetaEnabled?: boolean;
+    /** Whether the company agents beta is enabled. */
+    isCompanyAgentsBetaEnabled?: boolean;
     /** Whether the unified Connections beta replaces the Accounting, HR, Recruiting, Receipt partners, and MCP items. */
     isUnifiedConnectionsBetaEnabled?: boolean;
     /** Formats the invoice account balance for its menu badge. */
@@ -132,6 +138,7 @@ function getWorkspaceMenuItems({
     policy,
     policyID,
     currentUserLogin,
+    currentUserPersonalDetails,
     icons,
     isConnectionInProgress = false,
     policyCategories,
@@ -142,9 +149,11 @@ function getWorkspaceMenuItems({
     hasApprovalWorkflowWithNonMemberApprover = false,
     isVendorMatchingBetaEnabled = false,
     isRecruitingBetaEnabled = false,
+    isCompanyAgentsBetaEnabled = false,
     isUnifiedConnectionsBetaEnabled = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
+    const isAgentAccount = currentUserPersonalDetails?.isCustomAgent;
     const canReadPolicyFeature = (policyFeature: PolicyFeature) => canMemberRead(policy, currentUserLogin ?? '', policyFeature);
     const canReadMoreFeatures = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const shouldShowProtectedItems = [
@@ -248,6 +257,18 @@ function getWorkspaceMenuItems({
         }
         return canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MEMBERS);
     });
+
+    if (isGroupPolicy(policy) && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.AGENTS) && isCompanyAgentsBetaEnabled && !isAgentAccount) {
+        const membersItemIndex = items.findIndex((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
+        items.splice(membersItemIndex + 1, 0, {
+            translationKey: 'agentsPage.title',
+            icon: icons.Bot,
+            getRoute: () => ROUTES.WORKSPACE_AGENTS.getRoute(policyID),
+            screenName: SCREENS.WORKSPACE.AGENTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.AGENTS,
+            badgeTranslationKey: 'common.beta',
+        });
+    }
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {
