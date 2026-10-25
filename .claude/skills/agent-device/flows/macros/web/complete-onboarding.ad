@@ -8,6 +8,7 @@ context platform=web
 
 press "role=\"button\" label=\"Skip\" || label=\"Skip\""
 wait "role=\"button\" label=\"Something else\"" 15000
+wait stable 1000 10000
 press "role=\"button\" label=\"Something else\" || label=\"Something else\""
 wait "role=\"textbox\" label=\"First name\"" 15000
 fill "role=\"textbox\" label=\"First name\" || label=\"First name\"" "${FIRST_NAME}"
