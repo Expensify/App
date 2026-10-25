@@ -5,6 +5,7 @@ import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -39,6 +40,7 @@ function DatePicker({
     onInputChange,
     onTouched = () => {},
     placeholder,
+    hint,
     value,
     shouldSaveDraft = false,
     formID,
@@ -48,12 +50,20 @@ function DatePicker({
     forwardedFSClass,
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
+    wrapperStyle,
     rightHandSideComponent,
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
+    icon,
+    shouldEnableMonthYearBackdropInNarrowPane = false,
+    textInputContainerStyles,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    // The clear button takes the calendar icon's place once a date is picked, so it gets the same horizontal padding as the icon's
+    // container instead of its own margins. Otherwise the X sits in a different spot than the icon it replaces.
+    const {paddingHorizontal: iconPaddingHorizontal} = StyleUtils.getTextInputIconContainerStyles(true);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -219,13 +229,15 @@ function DatePicker({
         <>
             <View
                 ref={anchorRef}
-                style={styles.mv2}
+                style={[styles.mv2, wrapperStyle]}
             >
                 <TextInput
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate || shouldHideCalendarIcon ? null : icons.Calendar}
+                    // The icon, the clear button and any `rightHandSideComponent` share the right-hand slot. The icon
+                    // gives way when the caller asks for the slot outright, or to a clear button that will actually render.
+                    icon={shouldHideCalendarIcon || (selectedDate && !shouldHideClearButton) ? null : (icon ?? icons.Calendar)}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
@@ -233,6 +245,7 @@ function DatePicker({
                     accessibilityState={{expanded: isModalVisible}}
                     value={selectedDate}
                     placeholder={placeholder ?? translate('common.dateFormat')}
+                    hint={hint}
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
@@ -240,9 +253,10 @@ function DatePicker({
                     onPress={shouldDismissKeyboardBeforeShow ? handlePress : () => showDatePickerModal()}
                     onSubmitEditing={() => showDatePickerModal()}
                     onKeyPress={handleInputKeyPress}
-                    textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
+                    textInputContainerStyles={[textInputContainerStyles, isModalVisible && styles.borderColorFocus]}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
+                    clearButtonStyle={[styles.mh0, {paddingHorizontal: iconPaddingHorizontal}]}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
                     disableKeyboard
@@ -263,6 +277,7 @@ function DatePicker({
                 shouldPositionFromTop={!isInverted}
                 forwardedFSClass={forwardedFSClass}
                 shouldCloseWhenBrowserNavigationChanged
+                shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
         </>
     );

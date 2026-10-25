@@ -1,6 +1,7 @@
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,6 +21,7 @@ import openHomePage from '@libs/actions/HomePage';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentRef} from 'react';
@@ -46,6 +48,8 @@ function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.HOME);
+    const tabRootScrollProps = useTabRootScrollProps([styles.homePageContentContainer, pageGutter], {hasBottomSafeAreaPadding: true, hasOfflineIndicatorPadding: true});
     const {translate} = useLocalize();
     const triggerScrollEvent = useScrollEventEmitter();
     useDocumentTitle(translate('common.home'));
@@ -148,8 +152,7 @@ function HomePage() {
                     shouldShowOfflineIndicatorInWideScreen
                     testID="HomePage"
                     enableEdgeToEdgeBottomSafeAreaPadding={false}
-                    bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.HOME} />}
-                    bottomContentStyle={styles.overflowVisible}
+                    {...tabRootScreenWrapperProps}
                 >
                     <TopBar
                         breadcrumbLabel={translate('common.home')}
@@ -158,8 +161,9 @@ function HomePage() {
                     />
                     <ScrollView
                         style={styles.homePageScrollView}
+                        {...tabRootScrollProps}
                         onScroll={triggerScrollEvent}
-                        contentContainerStyle={[styles.homePageContentContainer, pageGutter]}
+                        scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >
