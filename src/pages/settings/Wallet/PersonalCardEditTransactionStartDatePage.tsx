@@ -9,10 +9,10 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionStartDateValidation from '@hooks/useTransactionStartDateValidation';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -54,14 +54,10 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
         return format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     });
 
-    // A required error belongs after the page has been submitted, and not while the date is still being filled in
-    const [wasSubmittedWithoutDate, setWasSubmittedWithoutDate] = useState(false);
-    // The field reports a date its calendar would never have offered, which only typing can reach
-    const [dateError, setDateError] = useState('');
-    const requiredError = wasSubmittedWithoutDate && !isRequiredFulfilled(startDate) ? translate('common.error.fieldRequired') : '';
+    const {requiredError, onValidationErrorChange, forgetSubmitAttempt, validateOnSubmit} = useTransactionStartDateValidation({dateOption: dateOptionSelected, startDate});
 
-    const handleSelectDateOption = (dateOption: DateOption) => {
-        setWasSubmittedWithoutDate(false);
+    const selectDateOption = (dateOption: DateOption) => {
+        forgetSubmitAttempt();
         setDateOptionSelected(dateOption);
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
             return;
@@ -78,12 +74,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
     };
 
     const submit = () => {
-        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
-            setWasSubmittedWithoutDate(true);
-            return;
-        }
-
-        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && dateError) {
+        if (!validateOnSubmit()) {
             return;
         }
 
@@ -123,7 +114,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
             <View style={styles.flex1}>
                 <SelectionList
                     ListItem={SingleSelectListItem}
-                    onSelectRow={({value}) => handleSelectDateOption(value)}
+                    onSelectRow={({value}) => selectDateOption(value)}
                     data={dateOptions}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={dateOptionSelected}
@@ -149,7 +140,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
                                     onInputChange={setStartDate}
                                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                                     errorText={requiredError}
-                                    onValidationErrorChange={setDateError}
+                                    onValidationErrorChange={onValidationErrorChange}
                                 />
                             </View>
                         ) : null
