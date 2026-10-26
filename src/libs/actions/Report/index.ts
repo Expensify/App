@@ -333,7 +333,15 @@ type ReportError = {
 
 type ParticipantInfo = {
     login: string;
+
+    /** Sent to the server, so only pass it when it's a real accountID */
     accountID?: number;
+
+    /**
+     * The participant's accountID used to build optimistic personal details when a new report is created, so it may be an optimistic one.
+     * It is never sent to the server. Participants without it get no optimistic personal details.
+     */
+    accountIDForOptimisticData?: number;
 };
 
 type OpenReportActionParams = {
@@ -1619,11 +1627,11 @@ type GuidedSetupDataForOpenReport = {
     guidedSetupData: string;
 };
 
-function buildParticipantInfoFromLogins(logins: string[], accountIDs?: number[]): ParticipantInfo[] {
-    return logins.map((login, index) => ({
-        login,
-        accountID: accountIDs?.[index],
-    }));
+function buildParticipantInfoFromAccountIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): ParticipantInfo[] {
+    return accountIDs.flatMap((accountID) => {
+        const login = personalDetails?.[accountID]?.login;
+        return login ? [{login, accountIDForOptimisticData: accountID}] : [];
+    });
 }
 
 /**
@@ -2058,9 +2066,11 @@ function openReport(params: OpenReportActionParams) {
         // Add optimistic personal details for new participants
         const optimisticPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
         const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
-        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
-        for (const [index, login] of participantLoginList.entries()) {
-            const accountID = participantAccountIDs.at(index) ?? -1;
+        for (const {login, accountIDForOptimisticData: accountID} of participants) {
+            if (!login || accountID === undefined) {
+                continue;
+            }
+
             // TODO: getAllPersonalDetails() fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
             const isOptimisticAccount = !(personalDetails ?? getAllPersonalDetails())?.[accountID];
 
@@ -2338,10 +2348,13 @@ function createGroupChat({
     // Add optimistic personal details for new participants
     const optimisticPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
     const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
-    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
+    for (const participant of Object.values(participantsPersonalDetails ?? {})) {
+        const login = participant?.login;
+        if (!login) {
+            continue;
+        }
 
-    for (const [index, login] of participantLoginList.entries()) {
-        const accountID = participantAccountIDs.at(index) ?? -1;
+        const accountID = participant.accountID;
         const isOptimisticAccount = isOptimisticPersonalDetail(accountID);
 
         if (!isOptimisticAccount) {
@@ -2552,8 +2565,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     if (iouReportAction?.actorAccountID && iouReportAction.actorAccountID !== currentUserAccountID) {
         participantAccountIDsForDetails.push(iouReportAction.actorAccountID);
     }
-    const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDsForDetails, personalDetails);
-    const participants = buildParticipantInfoFromLogins(participantLogins);
+    const participants = buildParticipantInfoFromAccountIDs(participantAccountIDsForDetails, personalDetails);
     openReport({
         reportID: optimisticTransactionThreadReportID,
         introSelected,
@@ -2615,7 +2627,8 @@ function navigateToReport(reportID: string | undefined, options?: {shouldDismiss
 }
 
 type NavigateToAndOpenReportParams = {
-    userLogins: string[];
+    login: string;
+    accountID: number;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUserAccountID: number;
     introSelected: OnyxEntry<IntroSelected>;
@@ -2638,10 +2651,11 @@ type NavigateToAndOpenReportParams = {
 };
 
 /**
- * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
+ * This will find an existing chat, or create a new one if none exists, for the given user. It will then navigate to this chat.
  */
 function navigateToAndOpenReport({
-    userLogins,
+    login,
+    accountID,
     personalDetails,
     currentUserAccountID,
     introSelected,
@@ -2656,8 +2670,7 @@ function navigateToAndOpenReport({
     linkToOptions,
     sourceReportID,
 }: NavigateToAndOpenReportParams) {
-    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
-    const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
+    const chat = getChatByParticipants([accountID, currentUserAccountID]);
     const createAndOpenNewOptimisticChat = (sourceCachedReportID?: string) => {
         // The server rejects chat creation during a support session, so block it here instead of letting the agent land on an
         // optimistic report that then fails with a generic error. This has to live inside the create closure (not before the
@@ -2669,7 +2682,7 @@ function navigateToAndOpenReport({
         }
 
         const fallbackChat = buildOptimisticChatReport({
-            participantList: [...participantAccountIDs, currentUserAccountID],
+            participantList: [accountID, currentUserAccountID],
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             currentUserAccountID,
         });
@@ -2682,7 +2695,7 @@ function navigateToAndOpenReport({
             reportID: fallbackChat.reportID,
             introSelected,
             reportActionID: '',
-            participants: buildParticipantInfoFromLogins(userLogins),
+            participants: [{login, accountIDForOptimisticData: accountID}],
             personalDetails,
             newReportObject: fallbackChat,
             isSelfTourViewed,
@@ -2809,10 +2822,9 @@ function navigateToAndCreateGroupChat(params: NavigateToAndCreateGroupChatParams
         return;
     }
 
-    const userLogins = Object.values(participantsPersonalDetails ?? {})
-        .map((participant) => participant?.login)
-        .filter((login): login is string => !!login);
-    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+    const participantAccountIDs = Object.values(participantsPersonalDetails ?? {})
+        .filter((participant): participant is PersonalDetails => !!participant?.login)
+        .map((participant) => participant.accountID);
 
     // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', currentUserAccountID, optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
@@ -3046,8 +3058,7 @@ function createChildReport(
             };
         }
 
-        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs, participantsPersonalDetails);
-        const participants = buildParticipantInfoFromLogins(participantLogins);
+        const participants = buildParticipantInfoFromAccountIDs(participantAccountIDs, participantsPersonalDetails);
 
         openReport({
             reportID: newChat.reportID,
@@ -4207,8 +4218,7 @@ function toggleSubscribeToChildReport({
             currentUserAccountID,
         });
 
-        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs, personalDetails);
-        const participants = buildParticipantInfoFromLogins(participantLogins);
+        const participants = buildParticipantInfoFromAccountIDs(participantAccountIDs, personalDetails);
         openReport({
             reportID: newChat.reportID,
             introSelected,
@@ -4732,7 +4742,8 @@ function navigateToConciergeChat({
                 return;
             }
             navigateToAndOpenReport({
-                userLogins: [CONST.EMAIL.CONCIERGE],
+                login: CONST.EMAIL.CONCIERGE,
+                accountID: CONST.ACCOUNT_ID.CONCIERGE,
                 // The list was captured before onServerDataReady(), so it can be stale when OpenApp only just loaded Concierge.
                 // When Concierge is missing from it, pass undefined so openReport reads the live list instead of treating Concierge
                 // as a new account and merging an optimistic personal detail over the real one.

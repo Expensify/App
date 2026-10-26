@@ -302,21 +302,23 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
 
-        let login = '';
-
+        let participant: OptionWithKey | undefined;
         if (option?.login) {
-            login = option.login;
+            participant = option;
         } else if (latestSelectedOptions.length === 1) {
-            login = latestSelectedOptions.at(0)?.login ?? '';
+            participant = latestSelectedOptions.at(0);
         }
-        if (!login) {
-            Log.warn('Tried to create chat with empty login');
+        const login = participant?.login;
+        const accountID = participant?.accountID;
+        if (!login || !accountID) {
+            Log.warn('Tried to create chat with empty login or accountID');
             return;
         }
         KeyboardUtils.dismiss().then(() => {
             singleExecution(() =>
                 navigateToAndOpenReport({
-                    userLogins: [login],
+                    login,
+                    accountID,
                     personalDetails: allPersonalDetails,
                     currentUserAccountID,
                     introSelected,

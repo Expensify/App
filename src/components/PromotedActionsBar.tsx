@@ -100,9 +100,10 @@ const PromotedActions = {
                 return;
             }
 
-            if (login) {
+            if (login && accountID) {
                 navigateToAndOpenReport({
-                    userLogins: [login],
+                    login,
+                    accountID,
                     personalDetails,
                     currentUserAccountID,
                     introSelected,

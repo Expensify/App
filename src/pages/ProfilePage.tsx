@@ -216,7 +216,8 @@ function ProfilePage({route}: ProfilePageProps) {
             PromotedActions.message({
                 reportID: report?.reportID,
                 personalDetails,
-                accountID,
+                // A profile opened by login has no accountID in the route, so the one resolved from the login is used
+                accountID: details?.accountID ?? accountID,
                 login: loginParams,
                 currentUserAccountID,
                 introSelected,

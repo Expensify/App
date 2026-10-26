@@ -36,6 +36,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            accountID: 42,
             login: 'test@example.com',
             currentUserAccountID: 1,
             personalDetails: {},
@@ -49,7 +50,8 @@ describe('PromotedActions.message', () => {
 
         expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith({
             isSupportalSession: false,
-            userLogins: ['test@example.com'],
+            login: 'test@example.com',
+            accountID: 42,
             personalDetails: {},
             currentUserAccountID: 1,
             introSelected,
@@ -137,7 +139,8 @@ describe('PromotedActions.message', () => {
 
         expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith({
             isSupportalSession: false,
-            userLogins: ['test@example.com'],
+            login: 'test@example.com',
+            accountID: 42,
             personalDetails: {},
             currentUserAccountID: 1,
             introSelected,
@@ -174,6 +177,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            accountID: 42,
             login: 'test@example.com',
             currentUserAccountID: 1,
             personalDetails: {},

@@ -545,9 +545,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             } else {
                 if (item?.reportID) {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
-                } else if ('login' in item) {
+                } else if ('login' in item && item.login && item.accountID) {
                     navigateToAndOpenReport({
-                        userLogins: item.login ? [item.login] : [],
+                        login: item.login,
+                        accountID: item.accountID,
                         personalDetails,
                         currentUserAccountID,
                         introSelected,
