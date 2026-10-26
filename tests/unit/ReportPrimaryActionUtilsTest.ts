@@ -426,8 +426,6 @@ describe('getPrimaryAction', () => {
     });
     it('should not return SUBMIT as the primary action for an approve-only member', async () => {
         // Given an open expense report owned by the current user, who has the approve-only role on the policy
-        // When the primary action is resolved
-        // Then it is not SUBMIT
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -445,21 +443,23 @@ describe('getPrimaryAction', () => {
             reportID: `${REPORT_ID}`,
         });
 
-        expect(
-            getReportPrimaryAction({
-                rules: undefined,
-                currentUserLogin: CURRENT_USER_EMAIL,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                report,
-                ownerLogin: '',
-                chatReport,
-                reportTransactions: [transaction],
-                violations: {},
-                bankAccountList: {},
-                policy,
-                isChatReportArchived: false,
-            }),
-        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+        // When the primary action is resolved
+        const primaryAction = getReportPrimaryAction({
+            rules: undefined,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            ownerLogin: '',
+            chatReport,
+            reportTransactions: [transaction],
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isChatReportArchived: false,
+        });
+
+        // Then it is not SUBMIT
+        expect(primaryAction).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
 
     it('should not return SUBMIT as the primary action for a workflow approver who does not own the report', async () => {

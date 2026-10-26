@@ -145,8 +145,6 @@ describe('getReportPreviewAction', () => {
 
     it('canSubmit should return false for an approve-only member', async () => {
         // Given an open expense report owned by the current user, who has the approve-only role on the policy
-        // When the preview action is resolved
-        // Then it is not SUBMIT
         const report: Report = {
             ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -176,20 +174,22 @@ describe('getReportPreviewAction', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(
-            getReportPreviewAction({
-                isReportArchived: isReportArchived.current,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserLogin: CURRENT_USER_EMAIL,
-                report,
-                policy,
-                transactions: [transaction],
-                bankAccountList: {},
-                reportMetadata: undefined,
-                ownerLogin: CURRENT_USER_EMAIL,
-                rules: undefined,
-            }),
-        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+        // When the preview action is resolved
+        const previewAction = getReportPreviewAction({
+            isReportArchived: isReportArchived.current,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            report,
+            policy,
+            transactions: [transaction],
+            bankAccountList: {},
+            reportMetadata: undefined,
+            ownerLogin: CURRENT_USER_EMAIL,
+            rules: undefined,
+        });
+
+        // Then it is not SUBMIT
+        expect(previewAction).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
     // The submitter keeps the SUBMIT action on a prevent-self-approval workspace, matching isSubmitAction in

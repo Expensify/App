@@ -915,8 +915,6 @@ describe('getSecondaryAction', () => {
 
     it('excludes SUBMIT option for an approve-only member', async () => {
         // Given an open expense report owned by the current user, who has the approve-only role on the policy
-        // When the secondary actions are resolved
-        // Then SUBMIT is excluded
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -935,6 +933,7 @@ describe('getSecondaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
+        // When the secondary actions are resolved
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -949,13 +948,13 @@ describe('getSecondaryAction', () => {
             rules: undefined,
             cardList: undefined,
         });
+
+        // Then SUBMIT is excluded
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
 
     it('includes SUBMIT option for an admin when the report owner has the approve-only role', async () => {
         // Given an open expense report owned by an approve-only member, viewed by the current admin
-        // When the secondary actions are resolved
-        // Then SUBMIT is included
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -974,6 +973,7 @@ describe('getSecondaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
+        // When the secondary actions are resolved
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -988,6 +988,8 @@ describe('getSecondaryAction', () => {
             rules: undefined,
             cardList: undefined,
         });
+
+        // Then SUBMIT is included
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
