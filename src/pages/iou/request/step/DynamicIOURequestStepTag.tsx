@@ -156,7 +156,7 @@ function DynamicIOURequestStepTag({
                         icon={illustrations.EmptyStateExpenses}
                         title={translate('workspace.tags.emptyTags.title')}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
-                        containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                        containerStyle={[styles.flex1, styles.justifyContentCenter, styles.alignSelfCenter]}
                     />
                     {isPolicyAdmin(policy) && (
                         <FixedFooter style={[styles.mtAuto, styles.pt5]}>

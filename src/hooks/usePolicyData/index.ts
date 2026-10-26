@@ -39,6 +39,7 @@ function usePolicyData(policyID?: string): PolicyData {
 
     const [tags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [categories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [vendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelectorCallback});
     const transactionsAndViolations =
         !reports || !allReportsTransactionsAndViolations
@@ -53,6 +54,7 @@ function usePolicyData(policyID?: string): PolicyData {
         transactionsAndViolations,
         tags: tags ?? {},
         categories: categories ?? {},
+        vendors: vendors ?? undefined,
         policy: policy as OnyxValueWithOfflineFeedback<Policy>,
         reports: Object.values(reports ?? {}) as Array<OnyxValueWithOfflineFeedback<Report>>,
     };

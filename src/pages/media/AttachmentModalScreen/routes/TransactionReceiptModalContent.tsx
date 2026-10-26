@@ -11,7 +11,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
@@ -57,7 +56,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {RotationDegrees} from 'react-fast-pdf';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {transactionThreadReportIDSelector} from '@selectors/ReportAction';
+import {getParentReportActionSelector, transactionThreadReportIDSelector} from '@selectors/ReportAction';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -86,6 +85,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const policy = usePolicy(report?.policyID);
     const delegateAccountID = useDelegateAccountID();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -172,17 +172,18 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const source = isOdometerImage ? odometerImageSource : receiptSource;
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
-    const parentReportAction = useParentReportAction(report);
-    const transactionThread = resolveTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction);
-    const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, rules, reportNameValuePairs: undefined});
-    const canDeleteReceipt = canEditFieldOfMoneyRequest({
+    const parentReportAction = getParentReportActionSelector(parentReportActions, report?.parentReportActionID);
+    const receiptFieldParams = {
         reportAction: parentReportAction,
         fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
-        isDeleteAction: true,
         transaction,
         rules,
         reportNameValuePairs: undefined,
-    });
+        reportActions: parentReportActions,
+    };
+    const canEditReceipt = canEditFieldOfMoneyRequest(receiptFieldParams);
+    const transactionThread = resolveTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction);
+    const canDeleteReceipt = canEditFieldOfMoneyRequest({...receiptFieldParams, isDeleteAction: true});
 
     const receiptFilename = transaction?.receipt?.filename;
     // Odometer photos are stitched into the receipt only while the expense is a draft, so a created expense's receipt can be replaced like any other

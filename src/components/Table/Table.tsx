@@ -295,6 +295,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         resolvedColumnWidths,
         dragMinWidths,
         getStoredTableColumnWidths,
+        getTargetColumnWidth,
     } = useDynamicColumnWidths<DataType, ColumnKey>({
         columns,
         data,
@@ -313,6 +314,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         resolvedColumnWidths,
         dragMinWidths,
         getStoredTableColumnWidths,
+        getTargetColumnWidth,
         columnGap: styles.gap3.gap,
     });
 

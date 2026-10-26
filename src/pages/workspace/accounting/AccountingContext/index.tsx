@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyFeatureEnabled, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 
 import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
 
@@ -157,7 +157,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         );
 
         // Connections has no feature toggle, so turn it on here. The Control upgrade only enables the integration's own feature.
-        if (isUnifiedConnectionsBetaEnabled) {
+        const shouldEnableConnections = isUnifiedConnectionsBetaEnabled && !isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+        if (shouldEnableConnections) {
             enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
         }
 
@@ -168,10 +169,16 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             );
             return;
         }
-        setActiveIntegration({
+        const activeIntegrationToStart = {
             ...newActiveIntegration,
             key: Math.random(),
-        });
+        };
+        // The setup pages redirect to More features while Connections is off, so they open a frame later, once the policy shows it on
+        if (shouldEnableConnections) {
+            requestAnimationFrame(() => setActiveIntegration(activeIntegrationToStart));
+        } else {
+            setActiveIntegration(activeIntegrationToStart);
+        }
 
         const integrationToDisconnect = newActiveIntegration.integrationToDisconnect;
         if (!newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting || !integrationToDisconnect) {

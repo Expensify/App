@@ -14,11 +14,12 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useOutstandingReports from '@hooks/useOutstandingReports';
+import useOutstandingReports, {shouldListAllPolicies} from '@hooks/useOutstandingReports';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 
+import {fetchOutstandingReports} from '@libs/actions/OutstandingReports';
 import Navigation from '@libs/Navigation/Navigation';
 import {canCreateExpensesOnPolicy, canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
@@ -34,7 +35,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import StepScreenWrapper from './StepScreenWrapper';
 
@@ -119,8 +120,35 @@ function IOURequestEditReportCommon({
     // When no transactionPolicyID is provided (e.g., from IOURequestEditReport), the hook falls back to the user's default workspace.
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID, isUnreportedManagedCardTransaction);
 
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [hasMoreOutstandingReports] = useOnyx(ONYXKEYS.HAS_MORE_OUTSTANDING_REPORTS_RESULTS);
+    const [isLoadingOutstandingReports] = useOnyx(ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS);
+
+    const outstandingReportsPolicyID = shouldListAllPolicies(selectedPolicyID, personalPolicyID, selectedReport) ? undefined : selectedPolicyID;
+    const outstandingReportsOffset = useRef(0);
+    const loadOutstandingReports = () => {
+        // The list is empty when the expenses have several submitters, so there is nothing to load for it
+        if (hasMultipleSubmitters) {
+            return;
+        }
+        outstandingReportsOffset.current = 0;
+        fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, 0);
+    };
+
+    useEffect(() => {
+        loadOutstandingReports();
+    }, [loadOutstandingReports]);
+
     const {showConfirmModal} = useConfirmModal();
-    const {isOffline} = useNetwork();
+    const {isOffline} = useNetwork({onReconnect: loadOutstandingReports});
+
+    const loadMoreOutstandingReports = () => {
+        if (!hasMoreOutstandingReports || isLoadingOutstandingReports || isOffline) {
+            return;
+        }
+        outstandingReportsOffset.current += CONST.OUTSTANDING_REPORTS_PAGE_SIZE;
+        fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, outstandingReportsOffset.current);
+    };
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest,
         isOdometerDistanceRequest,
@@ -411,6 +439,8 @@ function IOURequestEditReportCommon({
                     ) : undefined
                 }
                 listEmptyContent={listHeaderContent}
+                onEndReached={loadMoreOutstandingReports}
+                onEndReachedThreshold={0.75}
             />
         </StepScreenWrapper>
     );

@@ -5444,6 +5444,18 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/campfire/advanced/travel-billing-payable-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/travel-billing-payable-account` as const,
     },
+    POLICY_ACCOUNTING_DIGITS_OAUTH: {
+        route: 'workspaces/:policyID/accounting/digits/oauth',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/oauth` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/digits/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_IMPORT: {
+        route: 'workspaces/:policyID/accounting/digits/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/import` as const,
+    },
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
         route: 'workspaces/:policyID/accounting/business-central/prerequisites',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/prerequisites` as const,
