@@ -93,6 +93,9 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     }
     const isWaitingForAccountData = !canSwitchAccounts && isAccountSwitchInFlight && wasAbleToSwitchAccounts;
 
+    // Covers the gap between selecting an account and OpenApp starting, before isAccountSwitchInFlight turns on.
+    const [isSwitchRequestPending, setIsSwitchRequestPending] = useState(false);
+
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
         isScreenFocused && canSwitchAccounts,
@@ -109,6 +112,15 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
         });
     };
 
+    const startSwitch = (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
+        const switchPromise = switchAccount();
+        if (!switchPromise) {
+            return;
+        }
+        setIsSwitchRequestPending(true);
+        switchPromise.finally(() => setIsSwitchRequestPending(false));
+    };
+
     const showGpsInProgressModal = async (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
         const result = await showConfirmModal({
             title: translate('gps.switchAccountWarningTripInProgress.title'),
@@ -123,7 +135,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
 
         await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
 
-        switchAccount();
+        startSwitch(switchAccount);
     };
 
     // Anchor the menu to the bottom-left of the Switch button so it opens directly below it.
@@ -185,7 +197,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                             close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
                             return;
                         }
-                        connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                        startSwitch(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID}));
                     },
                 });
             }),
@@ -218,7 +230,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                             return;
                         }
 
-                        disconnect({stashedCredentials, stashedSession});
+                        startSwitch(() => disconnect({stashedCredentials, stashedSession}));
                     },
                 }),
                 currentUserMenuItem,
@@ -281,7 +293,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
           }
         : {
               text: translate('delegate.copilotAccess'),
-              shouldRender: canSwitchAccounts,
+              shouldRender: canSwitchAccounts || isWaitingForAccountData,
           };
 
     if (!canSwitchAccounts && !isWaitingForAccountData) {
@@ -297,7 +309,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                         size={CONST.BUTTON_SIZE.SMALL}
                         ref={buttonRef}
                         onPress={onPressSwitcher}
-                        isDisabled={isWaitingForAccountData}
+                        isDisabled={isWaitingForAccountData || isSwitchRequestPending}
                         stayNormalOnDisable
                         sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
                     >

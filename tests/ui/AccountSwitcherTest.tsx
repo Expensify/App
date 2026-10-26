@@ -66,7 +66,7 @@ jest.mock('@components/SearchBar', () => {
     return MockSearchBar;
 });
 
-TestHelper.setupGlobalFetchMock();
+const mockFetch = TestHelper.setupGlobalFetchMock();
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'test@user.com';
@@ -212,6 +212,35 @@ describe('AccountSwitcher', () => {
         fireEvent.press(screen.getByText(SWITCH_BUTTON_TEXT));
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByText(POPOVER_HEADER_TEXT)).toBeOnTheScreen();
+    });
+
+    it('disables the Switch button as soon as an account is selected, before the account data starts reloading', async () => {
+        // Given a user who can switch accounts, and a server that hasn't answered the switch request yet
+        await addDelegators();
+        mockFetch.pause();
+
+        renderAccountSwitcherButton();
+        await waitForBatchedUpdatesWithAct();
+
+        // When they pick an account to switch to
+        fireEvent.press(screen.getByText(SWITCH_BUTTON_TEXT));
+        await waitForBatchedUpdatesWithAct();
+        // MenuItem ignores presses that carry no event
+        fireEvent.press(screen.getByTestId(`PopoverMenuItem-${DELEGATOR_DISPLAY_NAME}`), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the button stays on screen but is disabled while the request is pending
+        expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeOnTheScreen();
+        expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeDisabled();
+
+        // When the request settles without switching accounts
+        await act(async () => {
+            await mockFetch.resume();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the button is enabled again
+        expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeEnabled();
     });
 
     it('hides the Switch button when the reloaded account data has no account to switch to', async () => {
