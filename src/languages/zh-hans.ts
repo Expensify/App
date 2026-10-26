@@ -11383,6 +11383,7 @@ ${reportName}`,
             aBankAccountIsLocked: '银行账户已锁定',
             completeHrSetup: '完成人力资源设置',
             theresAProblemWithAnHRConnection: 'HR 连接出现问题',
+            theresAProblemWithYourAgent: '您的代理存在问题',
         },
     },
     emptySearchView: {

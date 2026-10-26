@@ -11819,6 +11819,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             aBankAccountIsLocked: 'Een bankrekening is geblokkeerd',
             completeHrSetup: 'HR-configuratie voltooien',
             theresAProblemWithAnHRConnection: 'Er is een probleem met een HR-verbinding',
+            theresAProblemWithYourAgent: 'Er is een probleem met je agent(en)',
         },
     },
     emptySearchView: {
