@@ -61,7 +61,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
         if (Number.isNaN(parsed) || parsed < 0) {
             errors[INPUT_IDS.LIMIT] = translate('iou.error.invalidAmount');
         } else if (isTravelLimitAvailable && convertToBackendAmount(parsed) > travelLimit) {
-            errors[INPUT_IDS.LIMIT] = translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.limitExceedsTravelLimit', {
+            errors[INPUT_IDS.LIMIT] = translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.limitExceedsTravelLimit', {
                 travelLimit: convertToDisplayString(travelLimit, CONST.CURRENCY.USD),
             });
         }
