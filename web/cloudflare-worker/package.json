@@ -17,7 +17,7 @@
         "@types/node": "24.19.0",
         "@types/ws": "8.18.1",
         "typescript": "7.0.2",
-        "wrangler": "4.144.0",
+        "wrangler": "4.152.0",
         "ws": "8.21.0"
     }
 }
