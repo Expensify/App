@@ -122,6 +122,19 @@ describe('useReportActionsNewActionLiveTail', () => {
         mockIsInSidePanel = false;
     });
 
+    it('shows the cached newest window when sending offline from a linked action', () => {
+        // Given an older linked action while offline
+        const params = buildParams({isOffline: true, linkedReportActionID: '2'});
+        const {result} = renderHook(() => useReportActionsNewActionLiveTail(params));
+        // When the current user sends a comment
+        act(() => newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})));
+        // Then reveal the cached live tail and release the override after scrolling
+        expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(true);
+        expect(mockNavigationSetParams.mock.calls).toEqual([[{reportActionID: ''}]]);
+        act(() => result.current.completeLiveTailPruneAfterScrollToBottom());
+        expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(false);
+    });
+
     it('threads the conciergeChat report through to the catch-up openReport call', () => {
         const conciergeChat = {reportID: 'concierge-live-tail-1'};
         renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({conciergeChat})});

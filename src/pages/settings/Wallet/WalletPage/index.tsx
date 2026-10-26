@@ -49,7 +49,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
-import WiseGlobalReimbursementsBanner from '@pages/settings/Wallet/WiseGlobalReimbursementsBanner';
+import WalletWiseGlobalReimbursementsBanner from '@pages/settings/Wallet/WalletWiseGlobalReimbursementsBanner';
 
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, resetPersonalBankAccountForUpdate} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
@@ -312,7 +312,7 @@ function WalletPage() {
             return;
         }
         if (isCollectingDepositAccounts) {
-            Navigation.navigate(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute());
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.COLLECT_DEPOSIT_ACCOUNT.getRoute()));
             return;
         }
         openPersonalBankAccountSetupView({});
@@ -550,6 +550,34 @@ function WalletPage() {
                       },
                   ]
                 : []),
+            ...(shouldShowEnableGlobalReimbursementsButton
+                ? [
+                      {
+                          text: translate('common.enableGlobalReimbursements'),
+                          icon: icons.Globe,
+                          onSelected: () => {
+                              if (isAccountLocked) {
+                                  closeModal(() => showLockedAccountModal());
+                                  return;
+                              }
+                              if (isWiseGlobalReimbursementsEnabled) {
+                                  closeModal(() =>
+                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID))),
+                                  );
+                                  return;
+                              }
+                              closeModal(() =>
+                                  Navigation.navigate(
+                                      ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(
+                                          paymentMethod.selectedPaymentMethod.bankAccountID,
+                                          CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
+                                      ),
+                                  ),
+                              );
+                          },
+                      },
+                  ]
+                : []),
             ...(shouldShowEditNicknameButton
                 ? [
                       {
@@ -608,32 +636,6 @@ function WalletPage() {
                     });
                 },
             },
-            ...(shouldShowEnableGlobalReimbursementsButton
-                ? [
-                      {
-                          text: translate('common.enableGlobalReimbursements'),
-                          icon: icons.Globe,
-                          onSelected: () => {
-                              if (isAccountLocked) {
-                                  closeModal(() => showLockedAccountModal());
-                                  return;
-                              }
-                              if (isWiseGlobalReimbursementsEnabled) {
-                                  closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
-                                  return;
-                              }
-                              closeModal(() =>
-                                  Navigation.navigate(
-                                      ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(
-                                          paymentMethod.selectedPaymentMethod.bankAccountID,
-                                          CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
-                                      ),
-                                  ),
-                              );
-                          },
-                      },
-                  ]
-                : []),
         ],
         [
             shouldUseNarrowLayout,
@@ -782,7 +784,7 @@ function WalletPage() {
                         errors={userWallet?.errors}
                         errorRowStyles={styles.ph6}
                     >
-                        <WiseGlobalReimbursementsBanner />
+                        <WalletWiseGlobalReimbursementsBanner />
                         <Section
                             subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
                             title={translate('common.bankAccounts')}

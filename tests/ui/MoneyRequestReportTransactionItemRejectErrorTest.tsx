@@ -100,8 +100,8 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <MoneyRequestReportTransactionItem
-                            transaction={transaction}
-                            violations={[]}
+                            transactionID={transaction.transactionID}
+                            reportOwnerLogin={undefined}
                             report={report}
                             policy={undefined}
                             isSelectionModeEnabled={false}
