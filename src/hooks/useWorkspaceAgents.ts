@@ -1,9 +1,12 @@
+import {filterDeletedAgents} from '@libs/AgentUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Agent, Policy} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import useAgents from './useAgents';
+import useNetwork from './useNetwork';
+import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 import useWorkspaceMembers from './useWorkspaceMembers';
 
@@ -11,7 +14,10 @@ import useWorkspaceMembers from './useWorkspaceMembers';
  * Hook that derives the policy's agents, including both agents owned by the policy and member agents.
  */
 function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
-    const allAgents = useAgents();
+    const {isOffline} = useNetwork();
+    const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {
+        selector: (agents) => filterDeletedAgents(agents, isOffline),
+    });
     const policyID = policy?.id;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const workspaceMembers = useWorkspaceMembers(policy);
