@@ -24,6 +24,10 @@ function createSpan(op: string, isRoot = true): FakeSpan {
     return {op, isRoot, setAttribute: jest.fn()};
 }
 
+function mockActiveSpans(spans: Record<string, FakeSpan>) {
+    mockGetSpan.mockImplementation((spanId) => spans[spanId]);
+}
+
 function setUpSampler() {
     const options: {profilesSampleRate?: number} = {};
     const listeners: Record<string, (span: FakeSpan) => void> = {};
@@ -45,33 +49,38 @@ describe('searchRouterProfilingSampler', () => {
     });
 
     it('profiles the navigation span started while the Search Router open span is active', () => {
-        // Given an open Search Router span and a winning sample roll
+        // Given open Search Router and page-visible spans and a winning sample roll
         const openSpan = createSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
-        mockGetSpan.mockImplementation((spanId) => (spanId === CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER ? openSpan : undefined));
+        const pageVisibleSpan = createSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE);
+        mockActiveSpans({[CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER]: openSpan, [CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE]: pageVisibleSpan});
         jest.spyOn(Math, 'random').mockReturnValue(0);
         const {options, startSpan} = setUpSampler();
 
         // When the router's navigation span starts
         startSpan(createSpan('navigation'));
 
-        // Then the Hermes profiler samples it, and the open is marked as profiled so overhead can be split out
+        // Then the Hermes profiler samples it, and both spans of the open are marked as profiled, since each is a
+        // separate root the profiler runs inside, so overhead can be split out of both metrics
         expect(options.profilesSampleRate).toBe(1);
         expect(openSpan.setAttribute).toHaveBeenCalledWith(CONST.TELEMETRY.ATTRIBUTE_PROFILED, true);
+        expect(pageVisibleSpan.setAttribute).toHaveBeenCalledWith(CONST.TELEMETRY.ATTRIBUTE_PROFILED, true);
     });
 
     it('marks the open as not profiled when the sample roll loses', () => {
-        // Given an open Search Router span and a losing sample roll
+        // Given open Search Router and page-visible spans and a losing sample roll
         const openSpan = createSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
-        mockGetSpan.mockReturnValue(openSpan);
+        const pageVisibleSpan = createSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE);
+        mockActiveSpans({[CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER]: openSpan, [CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE]: pageVisibleSpan});
         jest.spyOn(Math, 'random').mockReturnValue(0.999);
         const {options, startSpan} = setUpSampler();
 
         // When the router's navigation span starts
         startSpan(createSpan('navigation'));
 
-        // Then nothing is profiled, but the open still carries the attribute, so it lands in the control group
+        // Then nothing is profiled, but both spans still carry the attribute, so they land in the control group
         expect(options.profilesSampleRate).toBe(0);
         expect(openSpan.setAttribute).toHaveBeenCalledWith(CONST.TELEMETRY.ATTRIBUTE_PROFILED, false);
+        expect(pageVisibleSpan.setAttribute).toHaveBeenCalledWith(CONST.TELEMETRY.ATTRIBUTE_PROFILED, false);
     });
 
     it('does not profile navigations outside a Search Router open', () => {
@@ -104,7 +113,7 @@ describe('searchRouterProfilingSampler', () => {
     it('rolls only once per open, so a second navigation during the same open is not profiled', () => {
         // Given an open that already had its navigation sampled
         const openSpan = createSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
-        mockGetSpan.mockReturnValue(openSpan);
+        mockActiveSpans({[CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER]: openSpan});
         jest.spyOn(Math, 'random').mockReturnValue(0);
         const {options, startSpan} = setUpSampler();
         startSpan(createSpan('navigation'));
@@ -135,6 +144,23 @@ describe('searchRouterProfilingSampler', () => {
         const laterSpan = createSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY);
         startSpan(laterSpan);
         expect(laterSpan.setAttribute).not.toHaveBeenCalled();
+    });
+
+    it('does not mark the next root span once the SDK has stopped the profile on its 30 s limit', () => {
+        // Given a profiled navigation span for the open that is still running 30 s later
+        mockGetSpan.mockReturnValue(createSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER));
+        jest.spyOn(Math, 'random').mockReturnValue(0);
+        const now = jest.spyOn(Date, 'now').mockReturnValue(1_000);
+        const {startSpan} = setUpSampler();
+        startSpan(createSpan('navigation'));
+        now.mockReturnValue(31_000);
+
+        // When a query span starts
+        const querySpan = createSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY);
+        startSpan(querySpan);
+
+        // Then it is not marked, since the SDK's own timeout already stopped the profile and no stop runs inside it
+        expect(querySpan.setAttribute).not.toHaveBeenCalled();
     });
 
     it('does not mark root spans that start after the profiled span ended', () => {

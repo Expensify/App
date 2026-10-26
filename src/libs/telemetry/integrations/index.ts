@@ -7,8 +7,8 @@ const tracingIntegration = Sentry.reactNativeTracingIntegration({
     shouldCreateSpanForRequest,
 });
 
-// Only the Search Router open is profiled, see `searchRouterProfilingSampler`. The JS profile is what the open's
-// tail is made of, and leaving the platform profilers off keeps the profiler's own cost out of the measured span.
+// Only the Search Router open is profiled, see `searchRouterProfilingSampler`. Only the JS profiler runs: the platform
+// profilers would add their own cost to the measured spans on top of Hermes sampling.
 const searchRouterProfilingSamplerIntegration = searchRouterProfilingSampler();
 const hermesProfilingIntegration = Sentry.hermesProfilingIntegration({platformProfilers: false});
 
