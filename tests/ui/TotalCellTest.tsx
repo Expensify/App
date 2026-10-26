@@ -352,21 +352,103 @@ describe('TotalCell', () => {
             expect(onSave).toHaveBeenCalledWith(-1500);
         });
 
-        it('keeps the sign of a negative Split Bill amount when a positive amount arrives mid-edit', async () => {
+        it('updates the amount and sign when an external update arrives before the user starts typing', async () => {
+            // Given a negative Split Bill amount being edited
+            const onSave = jest.fn();
+            const createSplitTransaction = (displayAmount: number) => ({...createTrackedTransaction(displayAmount), comment: {source: CONST.IOU.TYPE.SPLIT}});
+            const input = await renderEditingTotalCell(createSplitTransaction(-1000), onSave);
+            expect(screen.getByText('-', {includeHiddenElements: true})).toBeOnTheScreen();
+
+            // When a positive amount arrives while the cell is open and the user has not typed yet
+            screen.rerender(createEditableTotalCell(createSplitTransaction(500), onSave));
+            await waitForBatchedUpdates();
+
+            // Then the input updates to the new amount and drops the fixed negative sign
+            expect(input.props.value).toBe('5.00');
+            expect(screen.queryByText('-', {includeHiddenElements: true})).not.toBeOnTheScreen();
+            expect(input.props.accessibilityLabel).toBe('Amount (USD)');
+
+            // When the user edits the amount and leaves the cell
+            fireEvent.changeText(input, '12');
+            fireEvent(input, 'blur');
+
+            // Then the positive amount is saved without re-adding the negative sign
+            expect(onSave).toHaveBeenCalledWith(1200);
+        });
+
+        it('keeps the sign and draft of a negative Split Bill amount when an external update arrives mid-edit', async () => {
+            // Given a negative Split Bill amount being edited where the user has already typed a draft
+            const onSave = jest.fn();
+            const createSplitTransaction = (displayAmount: number) => ({...createTrackedTransaction(displayAmount), comment: {source: CONST.IOU.TYPE.SPLIT}});
+            const input = await renderEditingTotalCell(createSplitTransaction(-1000), onSave);
+
+            // When the user edits the magnitude
+            fireEvent.changeText(input, '12');
+
+            // And a positive amount arrives from elsewhere while the draft is in progress
+            screen.rerender(createEditableTotalCell(createSplitTransaction(500), onSave));
+            await waitForBatchedUpdates();
+
+            // When the user leaves the cell
+            fireEvent(input, 'blur');
+
+            // Then the draft and the locked negative sign are preserved
+            expect(onSave).toHaveBeenCalledWith(-1200);
+        });
+
+        it('updates the amount and sign when an external update arrives after the user typed an equal amount', async () => {
             // Given a negative Split Bill amount being edited
             const onSave = jest.fn();
             const createSplitTransaction = (displayAmount: number) => ({...createTrackedTransaction(displayAmount), comment: {source: CONST.IOU.TYPE.SPLIT}});
             const input = await renderEditingTotalCell(createSplitTransaction(-1000), onSave);
 
-            // When a positive amount arrives from elsewhere while the cell is open, as from another admin's edit,
-            // and the user then edits the magnitude the input still shows and leaves the cell
+            // When the user types an amount equal to the original, which leaves no unsaved edit to keep
+            fireEvent.changeText(input, '10.0');
+
+            // And a positive amount arrives while the cell is open
             screen.rerender(createEditableTotalCell(createSplitTransaction(500), onSave));
             await waitForBatchedUpdates();
+
+            // Then the input updates to the new amount and drops the fixed negative sign, since the edit state already took the new amount over
+            expect(input.props.value).toBe('5.00');
+            expect(screen.queryByText('-', {includeHiddenElements: true})).not.toBeOnTheScreen();
+
+            // When the user edits the amount and leaves the cell
             fireEvent.changeText(input, '12');
             fireEvent(input, 'blur');
 
-            // Then the edit keeps the sign the editor opened with, because the edited magnitude belongs to that amount
-            expect(onSave).toHaveBeenCalledWith(-1200);
+            // Then the positive amount is saved, not a negative one the user never saw
+            expect(onSave).toHaveBeenCalledWith(1200);
+        });
+
+        it('updates the amount and sign from an external update that arrived mid-edit once the user reverts the draft', async () => {
+            // Given a negative Split Bill amount being edited where the user has already typed a draft
+            const onSave = jest.fn();
+            const createSplitTransaction = (displayAmount: number) => ({...createTrackedTransaction(displayAmount), comment: {source: CONST.IOU.TYPE.SPLIT}});
+            const input = await renderEditingTotalCell(createSplitTransaction(-1000), onSave);
+            fireEvent.changeText(input, '12');
+
+            // When a positive amount arrives while the draft is in progress
+            screen.rerender(createEditableTotalCell(createSplitTransaction(500), onSave));
+            await waitForBatchedUpdates();
+
+            // Then the draft and its negative sign are kept
+            expect(input.props.value).toBe('12');
+            expect(screen.getByText('-', {includeHiddenElements: true})).toBeOnTheScreen();
+
+            // When the user reverts the draft to the amount the editor opened with
+            fireEvent.changeText(input, '10.00');
+            await waitForBatchedUpdates();
+
+            // Then the input takes the newer amount over, because there is no longer a draft to keep
+            expect(input.props.value).toBe('5.00');
+            expect(screen.queryByText('-', {includeHiddenElements: true})).not.toBeOnTheScreen();
+
+            // When the user leaves the cell
+            fireEvent(input, 'blur');
+
+            // Then nothing is saved over the newer amount
+            expect(onSave).not.toHaveBeenCalled();
         });
 
         it('clears the sign when the whole magnitude is replaced with a new number', async () => {

@@ -83,7 +83,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
         return convertToBackendAmount(parsedValue < 0 ? -normalizedValue : normalizedValue);
     };
 
-    const {isEditing, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(
+    const {isEditing, hasUnsavedEdits, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(
         canEdit,
         originalValue,
         onSave
@@ -148,6 +148,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
                     // Seed the edit input as empty for a failed-scan placeholder, matching the blanked display above
                     initialValue={hasFailedScanAmountPlaceholder ? '' : originalValue}
                     onChange={handleAmountChange}
+                    hasUnsavedEdits={hasUnsavedEdits}
                     allowNegative={!isSplitBill && allowNegative}
                     decimals={decimals}
                     currency={currency}

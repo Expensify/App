@@ -18,18 +18,21 @@ import CONST from '@src/CONST';
 import type {ForwardedRef, MouseEvent} from 'react';
 import type {TextInputSelectionChangeEvent} from 'react-native';
 
-import React, {useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 
 const canUseTouchScreen = canUseTouchScreenUtil();
 
 type EditableTotalAmountInputProps = {
-    /** Initial signed amount in the frontend format (e.g. "-12.34"), or an empty string for none. Read on mount only. */
+    /** Initial signed amount in the frontend format (e.g. "-12.34"), or an empty string for none. Followed only while there are no unsaved edits. */
     initialValue: string;
 
     /** Called with the signed amount in the frontend format after each edit. */
     onChange: (value: string) => void;
 
-    /** Whether the user may flip the sign. A negative initial amount keeps its sign when flipping is not allowed. Read on mount only. */
+    /** Whether the edit state holds an edit from this input that differs from the amount it opened with. */
+    hasUnsavedEdits: boolean;
+
+    /** Whether the user may flip the sign. A negative initial amount keeps its sign when flipping is not allowed. Followed only while there are no unsaved edits. */
     allowNegative: boolean;
 
     /** Number of decimal places accepted for the currency. */
@@ -51,13 +54,30 @@ type EditableTotalAmountInputProps = {
     ref?: ForwardedRef<BaseTextInputRef>;
 };
 
+function computeSignState(initialValue: string, allowNegative: boolean) {
+    // Without flipping, a negative amount keeps its sign: only the magnitude is edited and the sign is added back
+    const isSignFixed = !allowNegative && initialValue.startsWith('-');
+    return {canFlipSign: allowNegative, hasFixedNegativeSign: isSignFixed, seedValue: isSignFixed ? initialValue.slice(1) : initialValue};
+}
+
 /**
  * Inline amount editor of the transaction table's total cell. It renders the sign, the currency symbol and the right-aligned
  * auto-growing input as separate texts, so a negative amount reads `-$12.34`, which an input prefix cannot produce.
  * Pressing the cell's empty area keeps the input focused, since the cell saves on blur.
  * The input is the only shrinkable part of the row, so a long amount scrolls inside the input while the sign and currency symbol stay visible.
  */
-function EditableTotalAmountInput({initialValue, onChange, allowNegative, decimals, currency, accessibilityLabel, onBlur, onSubmitEditing, ref}: EditableTotalAmountInputProps) {
+function EditableTotalAmountInput({
+    initialValue,
+    onChange,
+    hasUnsavedEdits,
+    allowNegative,
+    decimals,
+    currency,
+    accessibilityLabel,
+    onBlur,
+    onSubmitEditing,
+    ref,
+}: EditableTotalAmountInputProps) {
     const styles = useThemeStyles();
     const {numberFormat, preferredLocale} = useLocalize();
     const {setMouseDown, setMouseUp} = useMouseActions();
@@ -66,13 +86,14 @@ function EditableTotalAmountInput({initialValue, onChange, allowNegative, decima
     const currencySymbol = getLocalizedCurrencySymbol(preferredLocale, currency) ?? '';
     const hasSymbolSpaceInPreview = hasSpaceBetweenSymbolAndAmount(preferredLocale, currency);
 
-    // The controller keeps editing the value it was seeded with, so the sign handling is fixed together with the seed.
-    // Otherwise an amount or permission update arriving mid-edit would re-add or drop a sign around the edited magnitude.
-    const [{canFlipSign, hasFixedNegativeSign, seedValue}] = useState(() => {
-        // Without flipping, a negative amount keeps its sign: only the magnitude is edited and the sign is added back
-        const isSignFixed = !allowNegative && initialValue.startsWith('-');
-        return {canFlipSign: allowNegative, hasFixedNegativeSign: isSignFixed, seedValue: isSignFixed ? initialValue.slice(1) : initialValue};
-    });
+    // The controller keeps editing the value it was seeded with, so the sign handling is seeded together with it.
+    // An unsaved edit keeps that seed, otherwise an update arriving mid-edit (e.g. via Pusher) would re-add or drop a sign around the edited magnitude.
+    // Without one, the edit state has already taken the update over, so the input is reseeded to match what blur would save.
+    const [seed, setSeed] = useState({initialValue, allowNegative});
+    if (!hasUnsavedEdits && (seed.initialValue !== initialValue || seed.allowNegative !== allowNegative)) {
+        setSeed({initialValue, allowNegative});
+    }
+    const {canFlipSign, hasFixedNegativeSign, seedValue} = computeSignState(seed.initialValue, seed.allowNegative);
 
     const controller = useDetachedSignEditingController({
         value: seedValue,
@@ -80,6 +101,18 @@ function EditableTotalAmountInput({initialValue, onChange, allowNegative, decima
         allowNegative: canFlipSign,
         decimals,
     });
+
+    // The controller ignores later values it is given, so a new seed is pushed into it
+    const syncSeedValue = useEffectEvent(() => {
+        if (controller.getNumber() === seedValue) {
+            return;
+        }
+        controller.updateNumber(seedValue);
+    });
+
+    useEffect(() => {
+        syncSeedValue();
+    }, [seedValue]);
 
     const handlePress = useNumericPressSelection({inputRef, handleSelectionChange: controller.handleSelectionChange});
 
