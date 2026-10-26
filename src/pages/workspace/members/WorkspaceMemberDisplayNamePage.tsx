@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ProfileNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameErrors} from '@libs/ValidationUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -32,12 +32,12 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type WorkspaceMemberDisplayNamePageProps = PlatformStackScreenProps<ProfileNavigatorParamList, typeof SCREENS.DYNAMIC_PROFILE_DISPLAY_NAME>;
+type WorkspaceMemberDisplayNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_MEMBER_DISPLAY_NAME>;
 
 function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const accountID = Number(route.params.memberAccountID);
+    const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
     const [memberPersonalDetails, memberPersonalDetailsResult] = usePersonalDetail(accountID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -45,7 +45,7 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
     const isLoadingMemberPersonalDetails = isLoadingOnyxValue(memberPersonalDetailsResult);
     const hasDisplayNameSet = !!memberPersonalDetails?.firstName || !!memberPersonalDetails?.lastName;
     const isPolicyMember = !!memberLogin && !!policy?.employeeList?.[memberLogin];
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.path);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_MEMBER_DISPLAY_NAME.path);
 
     // Saving sets the name straight away, so without this the page would block itself while it closes.
     const [hasSubmitted, setHasSubmitted] = useState(false);
