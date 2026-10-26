@@ -208,5 +208,6 @@
 - Changes: Adds `resetScrollbarOscillation`, which returns true only when an active width lock was released. A vertical web footer reports layout changes; when its height changes at the same width, it attempts to release the lock and requests a new layout pass only if a lock existed. Loading skeleton exit animations can therefore finish before the actual viewport width is measured again.
 - Width measurements: The inner bounded-size measuring view reports width changes, since scrollbar visibility can resize it without changing the outer viewport. It compares against the last measured window width, preserving any intentional cell-width lock.
 - Files changed: `dist/recyclerview/RecyclerView.js`, `dist/recyclerview/RecyclerViewManager.js`, `dist/recyclerview/RecyclerViewManager.d.ts`, `dist/recyclerview/hooks/useSecondaryProps.js`, `dist/recyclerview/layout-managers/LinearLayoutManager.js`, and `dist/recyclerview/layout-managers/LinearLayoutManager.d.ts`.
+- Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2334 (tracks the underlying web scrollbar oscillation addressed by patch 012; this patch releases the stale width lock after content changes).
 - E/App issue: https://github.com/Expensify/App/issues/103719
-- PR: https://github.com/Expensify/App/pull/104066
+- PR introducing patch: https://github.com/Expensify/App/pull/104066
