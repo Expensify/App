@@ -15,7 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {getCompanyCardFeed, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -76,6 +76,10 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     }, [bulkTransactionStartDateUpdateID, domainOrWorkspaceAccountID]);
 
     const bulkTransactionStartDateUpdateSuccessID = companyCardsLoadingState?.bulkTransactionStartDateUpdateSuccessID;
+    const bulkTransactionStartDateUpdateFeed = companyCardsLoadingState?.bulkTransactionStartDateUpdateFeed;
+    const activeBulkTransactionStartDateUpdateID = bulkTransactionStartDateUpdateFeed
+        ? companyCardsLoadingState?.feeds?.[getCompanyCardFeed(bulkTransactionStartDateUpdateFeed)]?.bulkTransactionStartDateUpdateID
+        : undefined;
     const lastHandledBulkTransactionStartDateUpdateSuccessID = useRef<string | undefined>(undefined);
 
     useEffect(() => {
@@ -85,8 +89,13 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
         lastHandledBulkTransactionStartDateUpdateSuccessID.current = bulkTransactionStartDateUpdateSuccessID;
         clearBulkUpdateTransactionStartDateSuccess(domainOrWorkspaceAccountID);
+        const updatedFeed = bulkTransactionStartDateUpdateFeed ? allCardFeeds?.[bulkTransactionStartDateUpdateFeed] : undefined;
+        if (activeBulkTransactionStartDateUpdateID !== bulkTransactionStartDateUpdateSuccessID || !updatedFeed || updatedFeed.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+
         Growl.success({bodyText: translate('workspace.companyCards.bulkStartDateUpdated'), position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
-    }, [bulkTransactionStartDateUpdateSuccessID, domainOrWorkspaceAccountID, translate]);
+    }, [activeBulkTransactionStartDateUpdateID, allCardFeeds, bulkTransactionStartDateUpdateFeed, bulkTransactionStartDateUpdateSuccessID, domainOrWorkspaceAccountID, translate]);
 
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 

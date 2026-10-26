@@ -1,4 +1,4 @@
-import type {CardFeedWithNumber} from './CardFeeds';
+import type {CardFeedWithNumber, CompanyCardFeedWithDomainID} from './CardFeeds';
 
 /**
  * Session-scoped loading state for an individual company card feed.
@@ -6,6 +6,9 @@ import type {CardFeedWithNumber} from './CardFeeds';
 type CompanyCardsFeedLoadingState = {
     /** Whether this feed has been fetched at least once in this session */
     hasOnceLoaded?: boolean;
+
+    /** Latest bulk update eligible for a success notification; invalidated when this feed is deleted */
+    bulkTransactionStartDateUpdateID?: string;
 };
 
 /**
@@ -20,6 +23,9 @@ type CompanyCardsLoadingState = {
 
     /** Identifies the latest successful bulk transaction start date update */
     bulkTransactionStartDateUpdateSuccessID?: string;
+
+    /** Feed associated with the latest successful bulk transaction start date update */
+    bulkTransactionStartDateUpdateFeed?: CompanyCardFeedWithDomainID;
 
     /** Identifies the latest queued bulk transaction start date update */
     bulkTransactionStartDateUpdateID?: string;

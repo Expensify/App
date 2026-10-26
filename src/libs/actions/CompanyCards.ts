@@ -384,8 +384,14 @@ function deleteWorkspaceCompanyCardFeed(
             | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
             | typeof ONYXKEYS.CARD_LIST
             | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED
+            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE
         >
     > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`,
+            value: {feeds: {[bankName]: {bulkTransactionStartDateUpdateID: null}}},
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
@@ -948,15 +954,23 @@ function bulkUpdateCardTransactionStartDate(
     }
 
     const key = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}` as const;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: optimisticCards}];
+    const bulkTransactionStartDateUpdateID = rand64();
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE>> = [
+        {onyxMethod: Onyx.METHOD.MERGE, key, value: optimisticCards},
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`,
+            value: {feeds: {[bankName]: {bulkTransactionStartDateUpdateID}}},
+        },
+    ];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: finallyCards}];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: failureCards}];
-    const bulkTransactionStartDateUpdateID = rand64();
+    const feedName = getCardFeedWithDomainID(bankName, domainOrWorkspaceAccountID);
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`,
-            value: {bulkTransactionStartDateUpdateSuccessID: bulkTransactionStartDateUpdateID},
+            value: {bulkTransactionStartDateUpdateSuccessID: bulkTransactionStartDateUpdateID, bulkTransactionStartDateUpdateFeed: feedName},
         },
     ];
 
@@ -988,6 +1002,7 @@ function clearBulkUpdateTransactionStartDateUpdate(domainOrWorkspaceAccountID: n
 function clearBulkUpdateTransactionStartDateSuccess(domainOrWorkspaceAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`, {
         bulkTransactionStartDateUpdateSuccessID: null,
+        bulkTransactionStartDateUpdateFeed: null,
     });
 }
 
