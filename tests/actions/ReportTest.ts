@@ -10,6 +10,7 @@ import useAncestors from '@hooks/useAncestors';
 import type {GuidedSetupData, TaskForParameters} from '@libs/actions/Report';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
+import {onServerDataReady} from '@libs/actions/Welcome';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -7426,6 +7427,45 @@ describe('actions/Report', () => {
                 TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
                 const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
                 expect(personalDetailsList?.[CONST.ACCOUNT_ID.CONCIERGE]).toEqual(CONCIERGE_PERSONAL_DETAIL);
+            });
+
+            it('reads Concierge details loaded while waiting for server data', async () => {
+                // Given navigation starts before OpenApp has loaded Concierge, with an empty caller snapshot.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.ACCOUNT_ID.CONCIERGE]: null});
+                await waitForBatchedUpdates();
+                let resolveServerDataReady = () => {};
+                const serverDataReady = new Promise<void>((resolve) => {
+                    resolveServerDataReady = resolve;
+                });
+                jest.mocked(onServerDataReady).mockReturnValueOnce(serverDataReady);
+                setHasRadio(false);
+
+                // When navigation is requested, report creation must wait for OpenApp to finish.
+                const navigationPromise = Report.navigateToConciergeChat({
+                    conciergeReportID: undefined,
+                    introSelected: testIntroSelected,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    conciergePersonalDetails: {},
+                    shouldDismissModal: false,
+                });
+                await waitForBatchedUpdates();
+                expect(PersistedRequests.getAll()).toHaveLength(0);
+
+                // When OpenApp loads the real profile and then signals readiness, the captured snapshot is still empty.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.ACCOUNT_ID.CONCIERGE]: CONCIERGE_PERSONAL_DETAIL});
+                await waitForBatchedUpdates();
+                resolveServerDataReady();
+                await navigationPromise;
+                await waitForBatchedUpdates();
+
+                // Then the queued report uses Concierge's real account and never overwrites its profile optimistically.
+                const openReportRequests = PersistedRequests.getAll().filter((request) => request.command === WRITE_COMMANDS.OPEN_REPORT);
+                expect(openReportRequests).toHaveLength(1);
+                const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+                expect(personalDetailsList?.[CONST.ACCOUNT_ID.CONCIERGE]).toEqual(CONCIERGE_PERSONAL_DETAIL);
+                expect(ReportUtils.buildOptimisticChatReport).toHaveBeenCalledWith(expect.objectContaining({participantList: [CONST.ACCOUNT_ID.CONCIERGE, TEST_USER_ACCOUNT_ID]}));
             });
 
             it('should not create an optimistic personal detail for Concierge when the personal details passed in are stale', async () => {
