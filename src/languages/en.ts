@@ -6643,6 +6643,10 @@ const translations = {
                 label: 'Consolidated Travel Billing payable account',
             },
         },
+        digits: {
+            updateCurrencyTitle: 'Update workspace currency?',
+            updateCurrencyPrompt: 'Digits is currently only available for US-based companies that operate in USD.',
+        },
         zohoBooks: {
             organization: 'Zoho Books organization',
         },
@@ -8791,6 +8795,12 @@ const translations = {
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Campfire integration. Align expense coding dimensions and tax sync with your Campfire setup for clearer financial visibility.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our Campfire integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Digits integration. Align expense coding dimensions with your Digits setup for clearer financial visibility.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our Digits integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',

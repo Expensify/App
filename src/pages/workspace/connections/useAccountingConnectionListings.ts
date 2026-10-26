@@ -53,6 +53,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'BusinessCentralSquare',
         'ZohoBooksSquare',
     ]);
