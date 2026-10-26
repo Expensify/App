@@ -33,7 +33,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceMembersChangeWorkArrangementPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
@@ -53,8 +53,16 @@ function WorkspaceMembersChangeWorkArrangementPage({policy, personalDetails, rou
     // Members picked on another workspace's member list are left out, even when they also belong to this one
     const selectedAccountIDs = selection?.policyID === policyID ? selection.accountIDs : undefined;
 
-    // The selection only lives in memory, so it is gone when the page is opened from a link or after a refresh
-    const hasSelectedMembers = isLoadingOnyxValue(selectionMetadata) || !!selectedAccountIDs?.length;
+    // The selection only lives in memory, so a page opened from a link or after a refresh has nothing to act on and returns to the members
+    const isSelectionLoading = isLoadingOnyxValue(selectionMetadata);
+    const selectedMemberCount = selectedAccountIDs?.length ?? 0;
+    useEffect(() => {
+        if (isSelectionLoading || selectedMemberCount > 0) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+    }, [isSelectionLoading, selectedMemberCount, policyID]);
+
     const canChangeWorkArrangement =
         isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) &&
         canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS) &&
@@ -94,7 +102,7 @@ function WorkspaceMembersChangeWorkArrangementPage({policy, personalDetails, rou
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!canChangeWorkArrangement || !hasSelectedMembers}
+            shouldBeBlocked={!canChangeWorkArrangement}
         >
             <ScreenWrapper
                 testID="WorkspaceMembersChangeWorkArrangementPage"
