@@ -30,7 +30,7 @@ jest.mock('@libs/TransactionUtils', () => ({
         return (taxableAmount * pct) / 100;
     },
     getCategoryTaxCode: () => mockCategoryTaxCode,
-    getDefaultTaxCode: () => 'tax_default',
+    getDefaultTaxCode: (_policy: unknown, transaction: {currency?: string} | undefined, currency?: string) => ((currency ?? transaction?.currency) === 'EUR' ? 'tax_foreign' : 'tax_default'),
     getTaxValue: () => '10%',
     hasTaxRateWithMatchingValue: () => mockHasTaxRateWithMatchingValue,
 }));
@@ -171,6 +171,19 @@ describe('useTaxAmount', () => {
 
         // Then the category rule outranks the workspace default, so the confirmation page opens on the rule's rate
         expect(result.current.defaultTaxCode).toBe('tax_category');
+    });
+
+    it('resolves the tax again when the currency changes and the user had picked the old default', () => {
+        // Given a category rule, and a user who picked the workspace default before switching to a foreign currency
+        mockCategoryTaxCode = 'tax_category';
+        mockHasTaxRateWithMatchingValue = true;
+        const transaction = {...baseTransaction, currency: 'EUR', taxCode: 'tax_default'};
+
+        // When the hook decides whether that selection survives the currency change
+        const {result} = renderHook(() => useTaxAmount({...baseParams, transaction, previousTransactionCurrency: 'USD'}));
+
+        // Then it does not, because the workspace default follows the currency, so the rate is resolved from scratch
+        expect(result.current.shouldKeepCurrentTaxSelection).toBe(false);
     });
 
     it('keeps the workspace default when the user picks it over the category rule rate', () => {

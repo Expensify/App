@@ -64,15 +64,16 @@ function useTaxAmount({
     const workspaceDefaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
     // A category tax rule outranks the workspace default, so resolve it here as well. Otherwise this default overwrites
     // the rule's tax rate on the first render of the confirmation page.
-    // We use || instead of ?? because the category rule can resolve to an empty string.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const defaultTaxCode = getCategoryTaxCode(transaction?.category ?? '', transaction, policy) || workspaceDefaultTaxCode;
+    const defaultTaxCode = getCategoryTaxCode(transaction?.category ?? '', transaction, policy) ?? workspaceDefaultTaxCode;
     const defaultTaxValue = getTaxValue(policy, transaction, defaultTaxCode) ?? null;
-    // Resolved the same way as defaultTaxCode, otherwise picking the workspace default while a category rule is active
-    // reads as "no selection" and the rule's rate is written straight back over it.
-    const previousCategoryTaxCode = getCategoryTaxCode(transaction?.category ?? '', transaction, policy, previousTransactionCurrency);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const previousDefaultTaxCode = previousCategoryTaxCode || getDefaultTaxCode(policy, transaction, previousTransactionCurrency);
+    const previousWorkspaceDefaultTaxCode = getDefaultTaxCode(policy, transaction, previousTransactionCurrency);
+    // Only the workspace default follows the currency, so after a currency change the selection is compared against that
+    // default. The rest of the time it is compared against the category rule's rate, otherwise picking the workspace
+    // default while a rule is active reads as "no selection" and the rule's rate is written straight back over it.
+    const previousDefaultTaxCode =
+        transaction?.currency === previousTransactionCurrency
+            ? (getCategoryTaxCode(transaction?.category ?? '', transaction, policy, previousTransactionCurrency) ?? previousWorkspaceDefaultTaxCode)
+            : previousWorkspaceDefaultTaxCode;
     const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;
 
     const commuterExclusionData = isDistanceRequest
