@@ -1,14 +1,16 @@
 import {act, render} from '@testing-library/react-native';
 
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
-import type {ListFieldRow} from '@components/ListField';
+import type {ListFieldHandle, ListFieldRow} from '@components/ListField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import {clearListItemEdit, startListItemEdit} from '@userActions/DynamicForm';
 
 import type {DynamicFormField, DynamicFormListItem} from '@src/types/onyx';
 
-import React from 'react';
+import type {ComponentRef, RefObject} from 'react';
+
+import React, {createRef} from 'react';
 
 type CapturedListFieldProps = {
     rows: ListFieldRow[];
@@ -16,6 +18,7 @@ type CapturedListFieldProps = {
     onAdd: () => void;
     onEdit: (id: string) => void;
     onRemove: (id: string) => void;
+    ref?: RefObject<ListFieldHandle | null>;
 };
 
 type CapturedModalProps = {
@@ -24,6 +27,7 @@ type CapturedModalProps = {
     keptAnswers: Record<string, unknown>;
     onSave: (answers: Record<string, string>) => void;
     onClose: () => void;
+    onModalHide: () => void;
 };
 
 type ConfirmModalOptions = {
@@ -50,6 +54,26 @@ jest.mock('@userActions/DynamicForm', () => ({startListItemEdit: jest.fn(() => P
 const itemFields: DynamicFormField[] = [{key: 'fullName', type: 'text', required: true}];
 const jane: DynamicFormListItem = {id: 'jane', fullName: 'Jane Doe'};
 const john: DynamicFormListItem = {id: 'john', fullName: 'John Roe'};
+const jack: DynamicFormListItem = {id: 'jack', fullName: 'Jack Poe'};
+
+let frameSpy: jest.SpyInstance | undefined;
+
+function runScreenFramesAtOnce() {
+    frameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+        callback(0);
+        return 0;
+    });
+}
+
+/** Stands in for ListField's focus handle, which the adapter reaches through the ref it passes down */
+function mockListFieldHandle(props: CapturedListFieldProps) {
+    const handle: ListFieldHandle = {focus: jest.fn(), focusRow: jest.fn(), focusAddRow: jest.fn()};
+    const {ref} = props;
+    if (ref) {
+        ref.current = handle;
+    }
+    return handle;
+}
 
 function renderAdapter(value: DynamicFormListItem[], onInputChange: (items: DynamicFormListItem[]) => void, maxItems?: number, isInFlow = true) {
     render(
@@ -74,6 +98,11 @@ function renderAdapter(value: DynamicFormListItem[], onInputChange: (items: Dyna
 }
 
 describe('ListFieldAdapter', () => {
+    afterEach(() => {
+        frameSpy?.mockRestore();
+        frameSpy = undefined;
+    });
+
     it('shows each entry as a row named by its answers', () => {
         // Given two directors
         // When the list renders
@@ -173,5 +202,87 @@ describe('ListFieldAdapter', () => {
 
         // Then the add row is hidden, as a third director could not be submitted
         expect(canAddMore).toBe(false);
+    });
+
+    it.each([
+        ['the next entry', jane, john.id],
+        ['the previous entry when the last one is removed', jack, john.id],
+    ])('moves focus to %s once the user confirms a removal', async (_, removed, focusedID) => {
+        // Given three directors, and screen frames that run at once
+        runScreenFramesAtOnce();
+        const props = renderAdapter([jane, john, jack], jest.fn());
+        const listField = mockListFieldHandle(props);
+
+        // When the user removes one and confirms
+        await act(async () => props.onRemove(removed.id));
+
+        // Then focus goes to the next row, else the previous one, since the removed row's button that had it is gone
+        expect(listField.focusRow).toHaveBeenCalledWith(focusedID);
+    });
+
+    it('moves focus to the add row once the only entry is removed', async () => {
+        // Given a single director, and screen frames that run at once
+        runScreenFramesAtOnce();
+        const props = renderAdapter([jane], jest.fn());
+        const listField = mockListFieldHandle(props);
+
+        // When the user removes them and confirms
+        await act(async () => props.onRemove(jane.id));
+
+        // Then focus goes to the add row, the only thing left to act on
+        expect(listField.focusAddRow).toHaveBeenCalledTimes(1);
+    });
+
+    it('gives focus back to the add row once the modal that added an entry has closed', async () => {
+        // Given the modal editor outside the flow, opened from the add row
+        const props = renderAdapter([jane], jest.fn(), undefined, false);
+        const listField = mockListFieldHandle(props);
+        await act(async () => props.onAdd());
+
+        // When the modal finishes closing
+        act(() => mockModal.mock.lastCall?.[0].onModalHide());
+
+        // Then the add row gets focus, or the last row when the new entry filled the list, since the add row drops focus when pressed
+        expect(listField.focusAddRow).toHaveBeenCalledTimes(1);
+    });
+
+    it('gives focus back to the edited row once the modal has closed', async () => {
+        // Given the modal editor outside the flow, opened from a director's Edit button
+        const props = renderAdapter([jane, john], jest.fn(), undefined, false);
+        const listField = mockListFieldHandle(props);
+        await act(async () => props.onEdit(john.id));
+
+        // When the modal finishes closing
+        act(() => mockModal.mock.lastCall?.[0].onModalHide());
+
+        // Then that director's Edit button gets focus back
+        expect(listField.focusRow).toHaveBeenCalledWith(john.id);
+    });
+
+    it('lets the form focus the list when the user asks to fix the errors', () => {
+        // Given a list the form holds a ref to
+        const ref = createRef<ComponentRef<typeof ListFieldAdapter>>();
+        render(
+            <ListFieldAdapter
+                ref={ref}
+                value={[jane]}
+                itemFields={itemFields}
+                label="Directors"
+                addTitle="Add director"
+                renderFields={jest.fn()}
+            />,
+        );
+        const props = mockListField.mock.lastCall?.[0];
+        if (!props) {
+            throw new Error('ListField did not render');
+        }
+        const listField = mockListFieldHandle(props);
+
+        // When the form focuses the list
+        act(() => ref.current?.focus());
+
+        // Then focus goes into the list, and the form can measure where the list is to scroll to it
+        expect(listField.focus).toHaveBeenCalledTimes(1);
+        expect(ref.current?.measureLayout).toEqual(expect.any(Function));
     });
 });

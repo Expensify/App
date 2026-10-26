@@ -59,11 +59,6 @@ function useOpenReportSubmitToPopover(): OpenReportSubmitToPopover {
     return useContext(ReportSubmitToPopoverContext);
 }
 
-/** The ref the submit-to popover measures, for anchors that can't be wrapped in {@link ReportSubmitToPopoverMeasurableAnchor}. */
-function useReportSubmitToPopoverAnchorRef() {
-    return useContext(ReportSubmitToPopoverAnchorRefContext);
-}
-
 /** Opens the shared Search submit-to popover for a report (e.g. bulk actions outside a list row). */
 function useOpenSearchReportSubmitToPopover() {
     const host = useContext(ReportSubmitToPopoverHostContext);
@@ -327,6 +322,5 @@ export {
     SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
     useOpenReportSubmitToPopover,
     useOpenSearchReportSubmitToPopover,
-    useReportSubmitToPopoverAnchorRef,
     useSearchSubmitPopoverGuard,
 };
