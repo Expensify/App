@@ -186,6 +186,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // QBO (R1), Sage Intacct (R2), Xero (R3), Rillet, DualEntry, and Campfire are GA. Business Central and Certinia require the vendorMatching beta.
     // Certinia is deliberately not in the discovery list. It reaches the row only through
     // getActiveVendorMatchingIntegration's strict FFA gate, so PSA connections never see it.
+    // QBD is also not in the discovery list. It reaches the row only through
+    // getActiveVendorMatchingIntegration when beta + Codat + CREDIT_CARD_CHARGE are all true.
     const vendorMatchingConnection =
         getActiveVendorMatchingIntegration(policy) ??
         getConnectedIntegration(policy, [
