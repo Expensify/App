@@ -28,7 +28,7 @@ jest.mock('@pages/ValidateLoginPage', () => () => null);
 jest.mock('@libs/Navigation/AppNavigator/Navigators/TestToolsModalNavigator', () => () => null);
 jest.mock('@libs/Navigation/AppNavigator/useRootNavigatorScreenOptions', () => () => ({basicModalNavigator: {}}));
 jest.mock('@hooks/useTheme', () => () => ({overlay: '#000000'}));
-jest.mock('@hooks/useStyleUtils', () => () => ({getBackgroundColorWithOpacityStyle: () => ({})}));
+jest.mock('@hooks/useStyleUtils', () => () => ({getBackgroundColorWithOpacityStyle: () => ({}), getSafeAreaInsets: (insets: unknown) => insets}));
 
 describe('Logged-out sign-in page URL', () => {
     it('renders the SignInPage at the root "/" (registered under TAB_NAVIGATOR, which has no path)', () => {
