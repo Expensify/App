@@ -118,13 +118,11 @@ describe.each([
         expect(Navigation.getActiveRoute()).not.toBe(`/${ROUTES.TALK_TO_HUMAN}`);
         expect(navigationRef.current?.getRootState().routes.at(-1)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
     });
-});
 
-describe('Talk to a human deep link', () => {
-    it('resolves to the Talk to a human page rather than Not Found or the Help page', () => {
+    it('resolves the link to the Talk to a human page', () => {
         // Given the link that Concierge replies point to
         // When it is opened as a URL
-        const state = getAdaptedStateFromPath(`/${ROUTES.TALK_TO_HUMAN}`, undefined);
+        const state = getAdaptedStateFromPath(`/${ROUTES.TALK_TO_HUMAN}`);
 
         // Then the focused screen is the Talk to a human page, and the URL survives a round trip
         expect(findFocusedRoute(state)?.name).toBe(SCREENS.TALK_TO_HUMAN);
