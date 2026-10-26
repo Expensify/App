@@ -85,10 +85,15 @@ function updateOnyx(update: () => void) {
     });
 }
 
+// `undefined` means "this report is not a one-transaction expense", so the guard falls back to looking the linked action
+// up in the route's own report. The cases below set it when they need the transaction-thread lookup instead.
+let mockTransactionThreadReportID: string | undefined;
+
 jest.mock('@libs/ReportActionsUtils', () => ({
     __esModule: true,
     isReportActionVisible: () => mockIsReportActionVisible,
     isWhisperAction: () => false,
+    getOneTransactionThreadReportID: () => mockTransactionThreadReportID,
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
@@ -99,7 +104,9 @@ jest.mock('@libs/ReportUtils', () => ({
 // Mock useOnyx to control linked action, report, metadata, and derived values
 type UseOnyxReturn = [unknown, {status: string}];
 let mockLinkedAction: ReportAction | null | undefined;
+let mockLinkedActionInTransactionThread: ReportAction | null | undefined;
 let mockIsLoadingInitialReportActions: boolean;
+let mockIsLoadingTransactionThreadActions: boolean;
 
 jest.mock('@hooks/useOnyx', () => {
     const {useSyncExternalStore} = jest.requireActual<{useSyncExternalStore: (subscribe: (listener: () => void) => () => void, getSnapshot: () => number) => number}>('react');
@@ -113,11 +120,21 @@ jest.mock('@hooks/useOnyx', () => {
 
     function useOnyxMock(key: string): UseOnyxReturn {
         useSyncExternalStore(subscribe, getVersion);
-        if (key.startsWith('reportActions_')) {
+        // The route report's own actions. The guard subscribes to this key twice (raw actions and the linked-action
+        // selector); returning the same value for both is fine because the selector is bypassed by this mock.
+        if (key === 'reportActions_12345') {
             return [mockLinkedAction, {status: 'loaded'}];
         }
-        if (key.startsWith('reportLoadingState_')) {
+        // Any other report's actions is the transaction thread the guard falls back to.
+        if (key.startsWith('reportActions_')) {
+            return [mockLinkedActionInTransactionThread, {status: 'loaded'}];
+        }
+        if (key === 'reportLoadingState_12345') {
             return [mockIsLoadingInitialReportActions, {status: 'loaded'}];
+        }
+        // Any other report's loading state is the transaction thread's, fetched by its own OpenReport.
+        if (key.startsWith('reportLoadingState_')) {
+            return [mockIsLoadingTransactionThreadActions, {status: 'loaded'}];
         }
         if (key.startsWith('report_')) {
             return [{reportID: '12345', type: 'chat'}, {status: 'loaded'}];
@@ -175,6 +192,9 @@ describe('LinkedActionNotFoundGuard', () => {
         mockLinkedAction = createReportAction();
         mockIsLoadingInitialReportActions = false;
         mockIsReportActionVisible = true;
+        mockTransactionThreadReportID = undefined;
+        mockLinkedActionInTransactionThread = null;
+        mockIsLoadingTransactionThreadActions = false;
     });
 
     it('renders children when linked action exists', () => {
@@ -184,6 +204,57 @@ describe('LinkedActionNotFoundGuard', () => {
             </LinkedActionNotFoundGuard>,
         );
 
+        expect(screen.getByTestId('test-children')).toBeTruthy();
+        expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('renders children when the linked action lives in the merged transaction thread instead of the route report', () => {
+        // Given a one-transaction expense link, which resolves to the parent report while the message lives in the thread
+        mockLinkedAction = null;
+        mockLinkedActionInTransactionThread = createReportAction({reportID: '54321'});
+        mockTransactionThreadReportID = '54321';
+
+        // When the guard mounts for that route
+        render(
+            <LinkedActionNotFoundGuard>
+                <TestChildren />
+            </LinkedActionNotFoundGuard>,
+        );
+
+        // Then the link resolves via the thread lookup instead of rendering "comment not found"
+        expect(screen.getByTestId('test-children')).toBeTruthy();
+        expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('waits for the transaction thread to finish loading before treating the linked action as unavailable', () => {
+        // Given both the route report and its transaction thread are still loading
+        mockLinkedAction = null;
+        mockLinkedActionInTransactionThread = null;
+        mockTransactionThreadReportID = '54321';
+        mockIsLoadingInitialReportActions = true;
+        mockIsLoadingTransactionThreadActions = true;
+
+        render(
+            <LinkedActionNotFoundGuard>
+                <TestChildren />
+            </LinkedActionNotFoundGuard>,
+        );
+
+        // When the route report's request finishes while the thread's is still in flight
+        updateOnyx(() => {
+            mockIsLoadingInitialReportActions = false;
+        });
+
+        // Then the still-valid reportActionID is not cleared
+        expect(mockSetParams).not.toHaveBeenCalled();
+
+        // When the thread's actions finally land
+        updateOnyx(() => {
+            mockIsLoadingTransactionThreadActions = false;
+            mockLinkedActionInTransactionThread = createReportAction({reportID: '54321'});
+        });
+
+        // Then the linked action resolves normally
         expect(screen.getByTestId('test-children')).toBeTruthy();
         expect(mockSetParams).not.toHaveBeenCalled();
     });
