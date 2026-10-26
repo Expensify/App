@@ -1,8 +1,8 @@
 diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
-index 9e14f1d..0822107 100644
+index 59ecd66..432f476 100644
 --- a/node_modules/@legendapp/list/react-native.js
 +++ b/node_modules/@legendapp/list/react-native.js
-@@ -1544,6 +1544,19 @@ function getPredictedNativeClamp(state, unresolvedAmount, totalSize) {
+@@ -1642,6 +1642,19 @@ function getPredictedNativeClamp(state, unresolvedAmount, totalSize) {
    }
    return 0;
  }
@@ -22,7 +22,7 @@ index 9e14f1d..0822107 100644
  function getProgressTowardAmount(targetDelta, nativeDelta) {
    return targetDelta < 0 ? -nativeDelta : nativeDelta;
  }
-@@ -1770,6 +1783,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+@@ -1884,6 +1897,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
          now,
          positionDiff
        });
@@ -33,10 +33,10 @@ index 9e14f1d..0822107 100644
          state.pendingNativeMVCPAdjust = {
            amount: positionDiff,
 diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
-index 1f2bcf9..5cc805b 100644
+index 5bf1496..8262cbd 100644
 --- a/node_modules/@legendapp/list/react-native.mjs
 +++ b/node_modules/@legendapp/list/react-native.mjs
-@@ -1523,6 +1523,19 @@ function getPredictedNativeClamp(state, unresolvedAmount, totalSize) {
+@@ -1621,6 +1621,19 @@ function getPredictedNativeClamp(state, unresolvedAmount, totalSize) {
    }
    return 0;
  }
@@ -56,7 +56,7 @@ index 1f2bcf9..5cc805b 100644
  function getProgressTowardAmount(targetDelta, nativeDelta) {
    return targetDelta < 0 ? -nativeDelta : nativeDelta;
  }
-@@ -1749,6 +1762,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+@@ -1863,6 +1876,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
          now,
          positionDiff
        });
