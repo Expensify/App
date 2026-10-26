@@ -135,11 +135,13 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
             payInvoice({
+                bankAccountList,
                 isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: iouReport,
+                invoiceReportTransactions: transactions,
                 introSelected,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: email ?? '',
@@ -172,12 +174,14 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         }
 
         payMoneyRequest({
+            bankAccountList,
             isASAPSubmitBetaEnabled,
             getCurrencyDecimals,
             paymentType: type,
             chatReport: chatReportForPayment,
             isFallbackChatReport,
             iouReport,
+            iouReportTransactions: transactions,
             introSelected,
             currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',

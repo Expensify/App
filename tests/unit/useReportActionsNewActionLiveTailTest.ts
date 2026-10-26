@@ -122,6 +122,19 @@ describe('useReportActionsNewActionLiveTail', () => {
         mockIsInSidePanel = false;
     });
 
+    it('shows the cached newest window when sending offline from a linked action', () => {
+        // Given an older linked action while offline
+        const params = buildParams({isOffline: true, linkedReportActionID: '2'});
+        const {result} = renderHook(() => useReportActionsNewActionLiveTail(params));
+        // When the current user sends a comment
+        act(() => newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})));
+        // Then reveal the cached live tail and release the override after scrolling
+        expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(true);
+        expect(mockNavigationSetParams.mock.calls).toEqual([[{reportActionID: ''}]]);
+        act(() => result.current.completeLiveTailPruneAfterScrollToBottom());
+        expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(false);
+    });
+
     it('threads the conciergeChat report through to the catch-up openReport call', () => {
         const conciergeChat = {reportID: 'concierge-live-tail-1'};
         renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({conciergeChat})});
@@ -208,6 +221,41 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(mockGlobalSetParams).not.toHaveBeenCalled();
         expect(mockNavigationSetParams).not.toHaveBeenCalled();
         expect(setTreatAsNoPaginationAnchor).toHaveBeenCalledWith(true);
+    });
+
+    it('scrolls straight to the bottom when an unread marker is set but the newest actions are already loaded', () => {
+        // Given a report scrolled up with an unread marker from another user's comment, and the newest actions already loaded
+        const setIsFloatingMessageCounterVisible = jest.fn();
+        const {result} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
+            initialProps: buildParams({unreadMarkerReportActionID: '2', hasNewerActions: false, hasNewestReportAction: true, setIsFloatingMessageCounterVisible}),
+        });
+
+        // When the current user sends a comment
+        act(() => {
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+        });
+
+        // Then the list scrolls to the bottom directly, without an openReport round trip
+        expect(mockOpenReport).not.toHaveBeenCalled();
+        expect(setIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
+        expect(reportScrollManager.scrollToBottom).toHaveBeenCalledTimes(1);
+        expect(result.current.isScrollToBottomEnabled).toBe(true);
+    });
+
+    it('still loads the live tail when an unread marker is set and the newest actions are not loaded', () => {
+        // Given an unread marker and a report whose newest actions are not loaded yet
+        renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
+            initialProps: buildParams({unreadMarkerReportActionID: '2', hasNewerActions: false, hasNewestReportAction: false}),
+        });
+
+        // When the current user sends a comment
+        act(() => {
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+        });
+
+        // Then openReport fetches the newest actions before the list scrolls
+        expect(mockOpenReport).toHaveBeenCalledTimes(1);
+        expect(reportScrollManager.scrollToBottom).not.toHaveBeenCalled();
     });
 });
 

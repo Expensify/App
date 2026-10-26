@@ -119,7 +119,7 @@ type PaymentMethodListProps = {
     /** What to do when a menu item is pressed */
     onPress: PaymentMethodPressHandler | CardPressHandler;
 
-    /** The policy invoice's transfer bank accountID */
+    /** The policy invoice's default bank accountID. When it's passed, the Default badge follows it instead of the Wallet default, and 0 means no account gets the badge. */
     invoiceTransferBankAccountID?: number;
 
     /** Whether the bank accounts should be displayed in private and business sections */
@@ -449,7 +449,7 @@ function PaymentMethodList({
                     continue;
                 }
 
-                if (!shouldShowConnectionStatus && assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
+                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
                     const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
                     const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
                     if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
@@ -479,7 +479,6 @@ function PaymentMethodList({
                     card?.nameValuePairs?.issuedBy && card?.lastFourPAN
                         ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`
                         : getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const cardTitle = card?.nameValuePairs?.cardTitle || card.bank;
 
                 let itemDescription = cardDescription;
@@ -602,7 +601,6 @@ function PaymentMethodList({
             const existingBrickRoadIndicator = (paymentMethod as Partial<PaymentMethodItem>).brickRoadIndicator;
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
             // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const bankAccountCurrency = ('bankCurrency' in paymentMethod ? paymentMethod.bankCurrency : undefined) || paymentMethod.accountData?.additionalData?.currency;
             const bankConnectionStatus =
                 shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(getBankAccountState(paymentMethod.accountData), bankAccountCurrency) : undefined;
@@ -691,7 +689,7 @@ function PaymentMethodList({
                 item={item}
                 shouldShowDefaultBadge={shouldShowDefaultBadge(
                     filteredPaymentMethodsWithoutStrings,
-                    invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
+                    invoiceTransferBankAccountID !== undefined ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
                     shouldHideDefaultBadge,
                 )}
                 listItemStyle={listItemStyle}

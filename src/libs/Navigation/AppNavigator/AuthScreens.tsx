@@ -1,3 +1,4 @@
+import BulkActionStatusManager from '@components/BulkActionStatusManager';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import EnableGlobalReimbursementsPayModal from '@components/EnableGlobalReimbursementsPayModal';
@@ -34,7 +35,6 @@ import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import NavBarManager from '@libs/NavBarManager';
-import Navigation from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 
@@ -66,7 +66,6 @@ import DelegatorConnectGuard from './DelegatorConnectGate';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import KeyboardShortcutsHandler from './KeyboardShortcutsHandler';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
-import AIFeaturesPromoModalNavigator from './Navigators/AIFeaturesPromoModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAuthenticationModalNavigator';
@@ -91,6 +90,8 @@ const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
 const loadPreMountBufferPage = () => require<ReactComponentModule>('../../../pages/PreMountBufferPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
+
+const loadDynamicCardAuthenticationPage = () => require<ReactComponentModule>('../../../pages/settings/Subscription/DynamicCardAuthenticationPage').default;
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
@@ -135,7 +136,7 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const {isVisitingSecureLink} = useOnboardingFlowRouter();
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     useGPSTripStateChecker();
     useGPSInProgressModal();
@@ -175,6 +176,7 @@ function AuthScreens() {
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
             <ExportDownloadStatusManager />
+            <BulkActionStatusManager />
             <DelegatorConnectGuard>
                 <ComposeProviders
                     components={[
@@ -278,6 +280,12 @@ function AuthScreens() {
                             listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
+                            name={SCREENS.BILLING_RECEIPT}
+                            options={attachmentModalScreenOptions}
+                            getComponent={loadAttachmentModalScreen}
+                            listeners={modalScreenListeners}
+                        />
+                        <RootStack.Screen
                             name={SCREENS.TRANSACTION_RECEIPT}
                             options={attachmentModalScreenOptions}
                             getComponent={loadAttachmentModalScreen}
@@ -336,11 +344,6 @@ function AuthScreens() {
                             component={SubmitPlanWelcomeModalNavigator}
                         />
                         <RootStack.Screen
-                            name={NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.centeredModalNavigator}
-                            component={AIFeaturesPromoModalNavigator}
-                        />
-                        <RootStack.Screen
                             name={NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR}
                             options={rootNavigatorScreenOptions.basicModalNavigator}
                             component={TestDriveDemoNavigator}
@@ -351,7 +354,12 @@ function AuthScreens() {
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />
-                        {isOnboardingCompleted === false && !shouldSuppressPromotionalUI && !Navigation.isValidateLoginFlow() && (
+                        {/*
+                         * Always registered, like the other modal navigators below, so entering onboarding never toggles this
+                         * screen in and out of the RootStack mid-session (which resets the navigator's state to its initial
+                         * route). OnboardingGuard and useOnboardingFlowRouter gate whether/when a user actually lands here.
+                         */}
+                        {!shouldSuppressPromotionalUI && !isVisitingSecureLink && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                                 options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
@@ -380,6 +388,12 @@ function AuthScreens() {
                             name={SCREENS.BANK_CONNECTION_COMPLETE}
                             options={rootNavigatorScreenOptions.fullScreen}
                             component={ConnectionCompletePage}
+                        />
+                        <RootStack.Screen
+                            name={SCREENS.DYNAMIC_CARD_AUTHENTICATION}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
+                            getComponent={loadDynamicCardAuthenticationPage}
+                            listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
