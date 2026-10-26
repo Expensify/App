@@ -30,26 +30,26 @@ function LinkedActionNotFoundGuard({children}: LinkedActionNotFoundGuardProps) {
     const routeParams = route.params as {reportActionID?: string} | undefined;
     const reportActionIDFromRoute = routeParams?.reportActionID;
 
-    if (!reportActionIDFromRoute) {
-        return children;
-    }
-
+    // Render the gate next to children, not around them, so changing the linked action doesn't remount the report
+    // and lose its state (e.g. composer text). It comes after children so its effects run after theirs.
     return (
-        <LinkedActionNotFoundGate
-            key={reportActionIDFromRoute}
-            reportActionIDFromRoute={reportActionIDFromRoute}
-        >
+        <>
             {children}
-        </LinkedActionNotFoundGate>
+            {!!reportActionIDFromRoute && (
+                <LinkedActionNotFoundGate
+                    key={reportActionIDFromRoute}
+                    reportActionIDFromRoute={reportActionIDFromRoute}
+                />
+            )}
+        </>
     );
 }
 
 type LinkedActionNotFoundGateProps = {
     reportActionIDFromRoute: string;
-    children: ReactNode;
 };
 
-function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedActionNotFoundGateProps) {
+function LinkedActionNotFoundGate({reportActionIDFromRoute}: LinkedActionNotFoundGateProps) {
     const route = useRoute();
     const navigation = useNavigation();
     const navigatorKey = navigation.getState()?.key;
@@ -147,7 +147,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
 
     useAutoNavigateForDeletedLinkedAction(isLinkedActionUnavailable, navigateToEndOfReport);
 
-    return children;
+    return null;
 }
 
 LinkedActionNotFoundGuard.displayName = 'LinkedActionNotFoundGuard';

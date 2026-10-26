@@ -7,7 +7,7 @@ import {setSupportAuthToken} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {OnyxKey, OnyxValue} from 'react-native-onyx';
+import type {OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -25,29 +25,15 @@ export default function addUtilsToWindow() {
             return;
         }
 
-        // We intentionally do not offer an Onyx.get API because we believe it will lead to code patterns we don't want to use in this repo, but we can offer a workaround for the sake of debugging
-        function get<TKey extends OnyxKey>(key: TKey): Promise<OnyxValue<TKey>> {
-            return new Promise((resolve) => {
-                // We have opted for `connectWithoutView` here as this is a debugging utility and does not relate to any view.
-                const connection = Onyx.connectWithoutView({
-                    key,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-        }
-
         function log(key: OnyxKey): void {
-            get(key).then((value) => {
+            window.Onyx.get(key).then((value) => {
                 /* eslint-disable-next-line no-console */
                 console.log(value);
             });
         }
 
-        const onyxWithDebugUtils = Object.assign(Onyx, {get, log});
-        window.Onyx = onyxWithDebugUtils;
+        window.Onyx = Onyx;
+        window.Onyx.log = log;
 
         window.setSupportToken = setSupportAuthToken;
 
@@ -72,7 +58,7 @@ export default function addUtilsToWindow() {
             }
             const transactionID = getStringRouteParam(params, 'transactionID');
             if (transactionID) {
-                const transaction = await onyxWithDebugUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+                const transaction = await window.Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
                 return transaction?.reportID;
             }
             return undefined;
@@ -80,11 +66,11 @@ export default function addUtilsToWindow() {
 
         // Helper to get transactionID from one expense report
         async function getTransactionIDFromReport(reportID: string): Promise<string | undefined> {
-            const report = await onyxWithDebugUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            const report = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
             // First try: Get from parent report action (for transaction thread reports)
             if (report?.parentReportID && report?.parentReportActionID) {
-                const parentReportActions = await onyxWithDebugUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`);
+                const parentReportActions = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`);
                 const parentTransactionID = getLinkedTransactionID(parentReportActions?.[report.parentReportActionID]);
                 if (parentTransactionID) {
                     return parentTransactionID;
@@ -92,7 +78,7 @@ export default function addUtilsToWindow() {
             }
 
             // Fallback: Search the report's own report actions (for expense reports with one transaction)
-            const reportActions = await onyxWithDebugUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const reportActions = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
             for (const action of Object.values(reportActions ?? {})) {
                 const transactionID = getLinkedTransactionID(action);
                 if (transactionID) {
@@ -105,14 +91,14 @@ export default function addUtilsToWindow() {
 
         // Helper to get policyID from report (checks parent report for one expense reports)
         async function getPolicyIDFromReport(reportID: string): Promise<string | undefined> {
-            const report = await onyxWithDebugUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            const report = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
             if (report?.policyID) {
                 return report.policyID;
             }
 
             if (report?.parentReportID) {
-                const parentReport = await onyxWithDebugUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
+                const parentReport = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
                 return parentReport?.policyID;
             }
 
@@ -128,14 +114,14 @@ export default function addUtilsToWindow() {
 
                     const routePolicyID = getStringRouteParam(params, 'policyID');
                     if (routePolicyID) {
-                        return onyxWithDebugUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${routePolicyID}`);
+                        return window.Onyx.get(`${ONYXKEYS.COLLECTION.POLICY}${routePolicyID}`);
                     }
 
                     const reportID = await getReportID(params);
                     if (reportID) {
                         const policyID = await getPolicyIDFromReport(reportID);
                         if (policyID) {
-                            return onyxWithDebugUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+                            return window.Onyx.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                         }
                     }
 
@@ -149,7 +135,7 @@ export default function addUtilsToWindow() {
                     const reportID = await getReportID(params);
 
                     if (reportID) {
-                        return onyxWithDebugUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+                        return window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
                     }
 
                     return undefined;
@@ -162,14 +148,14 @@ export default function addUtilsToWindow() {
 
                     const routeTransactionID = getStringRouteParam(params, 'transactionID');
                     if (routeTransactionID) {
-                        return onyxWithDebugUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${routeTransactionID}`);
+                        return window.Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${routeTransactionID}`);
                     }
 
                     const reportID = getStringRouteParam(params, 'reportID');
                     if (reportID) {
                         const transactionID = await getTransactionIDFromReport(reportID);
                         if (transactionID) {
-                            return onyxWithDebugUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+                            return window.Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
                         }
                     }
 

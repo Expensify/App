@@ -10,7 +10,7 @@ import SCREENS from '@src/SCREENS';
 import addUtilsToWindow from '@src/setup/addUtilsToWindow';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -56,24 +56,6 @@ const modernTransaction = {
 } satisfies Transaction;
 const legacyTransaction = {...modernTransaction, transactionID: 'legacy'} satisfies Transaction;
 const fallbackTransaction = {...modernTransaction, transactionID: 'fallback'} satisfies Transaction;
-
-async function readDebugOnyxOnce<TKey extends OnyxKey>(key: TKey): Promise<OnyxValue<TKey>> {
-    const connect = jest.spyOn(Onyx, 'connectWithoutView');
-    const disconnect = jest.spyOn(Onyx, 'disconnect');
-    const connectsBefore = connect.mock.calls.length;
-    const disconnectsBefore = disconnect.mock.calls.length;
-    const result = window.Onyx.get(key) satisfies Promise<OnyxValue<TKey>>;
-    expect(connect).toHaveBeenCalledTimes(connectsBefore + 1);
-    expect(disconnect).toHaveBeenCalledTimes(disconnectsBefore);
-    const value = await result;
-    expect(disconnect).toHaveBeenCalledTimes(disconnectsBefore + 1);
-    const connection = connect.mock.results.at(connectsBefore);
-    expect(connection?.type).toBe('return');
-    expect(connection?.value).toBeDefined();
-    expect(disconnect.mock.calls.at(disconnectsBefore)).toHaveLength(1);
-    expect(disconnect.mock.calls.at(disconnectsBefore)?.[0]).toBe(connection?.value);
-    return value;
-}
 
 describe('addUtilsToWindow', () => {
     const windowDescriptors = new Map<string, PropertyDescriptor | undefined>();
@@ -128,93 +110,98 @@ describe('addUtilsToWindow', () => {
         expect(debugWindowProperties.map((key) => Object.getOwnPropertyDescriptor(window, key))).toEqual(descriptors);
     });
 
-    it('delivers a member after connect returns and disconnects that exact handle before resolving', async () => {
-        // Given a stored member and the real deferred Onyx subscription, the one-shot read must release its handle.
+    it('exposes the original native Onyx get without replacing it', () => {
+        // Given the native get descriptor saved before installation, the debug API should retain its value.
+        // When nonproduction setup exposes Onyx, it should expose the original object and read function.
+        const exposedGet = window.Onyx.get;
+
+        // Then a replacement wrapper or copied API object cannot satisfy these identity checks.
+        expect(window.Onyx).toBe(Onyx);
+        expect(exposedGet).toEqual(expect.any(Function));
+        expect(exposedGet).toBe(onyxDescriptors.get('get')?.value);
+    });
+
+    it('logs the value read by the native public get', async () => {
+        // Given a populated configured collection, log should print the value from a real native read.
+        const key = ONYXKEYS.COLLECTION.TRANSACTION;
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}modern`, modernTransaction);
+        await waitForBatchedUpdates();
+        const get = jest.spyOn(Onyx, 'get');
+        const consoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+        // When the installed optional log member runs, retain its local reference without an assertion.
+        const log = window.Onyx.log;
+        log?.(key);
+        await waitForBatchedUpdates();
+
+        // Then both the read and the logged value prove the installed log body executed.
+        expect(get).toHaveBeenCalledTimes(1);
+        expect(get).toHaveBeenCalledWith(key);
+        expect(consoleLog).toHaveBeenCalledTimes(1);
+        expect(consoleLog).toHaveBeenCalledWith({[`${ONYXKEYS.COLLECTION.TRANSACTION}modern` satisfies OnyxKey]: modernTransaction});
+    });
+
+    it('reads a stored member through the native public get', async () => {
+        // Given an awaited member write, the native read should return its current stored value.
         const key = `${ONYXKEYS.COLLECTION.TRANSACTION}modern` satisfies OnyxKey;
         await Onyx.set(key, modernTransaction);
         await waitForBatchedUpdates();
-        const disconnect = jest.spyOn(Onyx, 'disconnect');
 
-        // When a debug read starts, connect has returned but the deferred callback has not fired.
-        const result = readDebugOnyxOnce(key) satisfies Promise<OnyxEntry<Transaction>>;
+        // When the exposed native read starts, its promise keeps the member value type.
+        const result = window.Onyx.get(key) satisfies Promise<OnyxEntry<Transaction>>;
         const value = await result;
-        const valueDisconnects = disconnect.mock.calls.length;
 
-        // Then resolution follows one disconnect of the returned handle and later writes have no live subscription.
+        // Then the exact transaction is returned without a debug subscription wrapper.
         expect(value).toEqual(modernTransaction);
-        await Onyx.merge(key, {merchant: 'Updated'});
-        await waitForBatchedUpdates();
-        expect(disconnect).toHaveBeenCalledTimes(valueDisconnects);
     });
 
-    it.each([true, false])('reads a regular key with deferred one-shot delivery, present: %s', async (isPresent) => {
+    it.each([true, false])('reads a regular key through the native public get, present: %s', async (isPresent) => {
         // Given a present or absent session, its creation date follows the Session action writer.
         const storedSession = {accountID: 123, creationDate: 1} satisfies Session;
         if (isPresent) {
             await Onyx.set(ONYXKEYS.SESSION, storedSession);
         }
         await waitForBatchedUpdates();
-        const disconnect = jest.spyOn(Onyx, 'disconnect');
 
-        // When the public read starts, its real connection returns before the deferred initial delivery.
-        const result = readDebugOnyxOnce(ONYXKEYS.SESSION) satisfies Promise<OnyxEntry<Session>>;
+        // When the exposed native read starts, its promise keeps the regular-key value type.
+        const result = window.Onyx.get(ONYXKEYS.SESSION) satisfies Promise<OnyxEntry<Session>>;
         const session = await result;
-        const sessionDisconnects = disconnect.mock.calls.length;
 
-        // Then it resolves only after releasing that handle, and subsequent writes cannot deliver again.
+        // Then presence returns the exact session and absence remains undefined.
         expect(session).toEqual(isPresent ? storedSession : undefined);
-        await Onyx.set(ONYXKEYS.SESSION, {accountID: 456});
-        await waitForBatchedUpdates();
-        expect(disconnect).toHaveBeenCalledTimes(sessionDisconnects);
     });
 
-    it('preserves absent member delivery and releases its exact connection before resolving', async () => {
+    it('preserves absent member reads through the native public get', async () => {
         // Given a missing member, its value is absent without losing the transaction return type.
-        const disconnect = jest.spyOn(Onyx, 'disconnect');
-
-        // When the public read starts, its initial delivery must still follow connect returning.
-        const result = readDebugOnyxOnce(`${ONYXKEYS.COLLECTION.TRANSACTION}missing`) satisfies Promise<OnyxEntry<Transaction>>;
+        // When the exposed native read starts, its promise keeps the member value type.
+        const result = window.Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}missing`) satisfies Promise<OnyxEntry<Transaction>>;
         const missing = await result;
-        const missingDisconnects = disconnect.mock.calls.length;
 
-        // Then absence resolves after one exact-handle disconnect, and creating the member cannot deliver again.
+        // Then a missing member remains undefined rather than an empty collection.
         expect(missing).toBeUndefined();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}missing`, modernTransaction);
-        await waitForBatchedUpdates();
-        expect(disconnect).toHaveBeenCalledTimes(missingDisconnects);
     });
 
     it('preserves initialized empty, populated and empty-after-deletion collection-root snapshots', async () => {
         // Given global Onyx initialization, the configured root is already known and empty before its first write.
         // An unseeded/pre-init root is not reachable through this initialized public seam.
-        const disconnect = jest.spyOn(Onyx, 'disconnect');
-
-        // When each public root read starts, it returns a typed collection promise before initial delivery.
-        const initialResult = readDebugOnyxOnce(ONYXKEYS.COLLECTION.TRANSACTION) satisfies Promise<OnyxCollection<Transaction>>;
+        // When native reads follow awaited writes and deletion, each promise retains its collection category.
+        const initialResult = window.Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION) satisfies Promise<OnyxCollection<Transaction>>;
         const initial = await initialResult;
-        const initialDisconnects = disconnect.mock.calls.length;
         expect(initial).toEqual({});
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}modern`, modernTransaction);
         await waitForBatchedUpdates();
-        expect(disconnect).toHaveBeenCalledTimes(initialDisconnects);
 
-        const populatedResult = readDebugOnyxOnce(ONYXKEYS.COLLECTION.TRANSACTION) satisfies Promise<OnyxCollection<Transaction>>;
+        const populatedResult = window.Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION) satisfies Promise<OnyxCollection<Transaction>>;
         const populated = await populatedResult;
-        const populatedDisconnects = disconnect.mock.calls.length;
         expect(populated).toEqual({[`${ONYXKEYS.COLLECTION.TRANSACTION}modern` satisfies OnyxKey]: modernTransaction});
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}modern`, null);
         await waitForBatchedUpdates();
-        expect(disconnect).toHaveBeenCalledTimes(populatedDisconnects);
 
-        const emptyResult = readDebugOnyxOnce(ONYXKEYS.COLLECTION.TRANSACTION) satisfies Promise<OnyxCollection<Transaction>>;
+        const emptyResult = window.Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION) satisfies Promise<OnyxCollection<Transaction>>;
         const empty = await emptyResult;
-        const emptyDisconnects = disconnect.mock.calls.length;
 
-        // Then snapshots preserve their collection category, and every read releases its own handle exactly once.
+        // Then deletion returns the collection root to an empty object.
         expect(empty).toEqual({});
-        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}modern`, modernTransaction);
-        await waitForBatchedUpdates();
-        expect(disconnect).toHaveBeenCalledTimes(emptyDisconnects);
     });
 
     it.each([

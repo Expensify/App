@@ -177,6 +177,8 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     // other types forces needless full getSections recomputes. Gate it to undefined elsewhere so the dep
     // stays stable.
     const reportAttributesForSections = isChat || isTask ? reportAttributesDerivedValue : undefined;
+    // Same for report name-value pairs: only task sections read them (parent archived state), and OpenReport writes them for the opened report.
+    const reportNameValuePairsForSections = isTask ? reportNameValuePairs : undefined;
 
     const isLoading = !!searchResults?.search?.isLoading;
     const hasMore = !!searchResults?.search?.hasMoreResults;
@@ -224,7 +226,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: currentSearchKey,
-            reportNameValuePairs,
+            reportNameValuePairs: reportNameValuePairsForSections,
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
@@ -258,7 +260,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         validGroupBy,
         exportReportActions,
         currentSearchKey,
-        reportNameValuePairs,
+        reportNameValuePairsForSections,
         queryJSON,
         isActionLoadingSet,
         cardFeeds,
@@ -307,7 +309,9 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
                 formatPhoneNumber,
                 isActionLoadingSet,
                 cardFeeds,
+                cardList: personalAndWorkspaceCards,
                 conciergeReportID,
+                onyxPersonalDetailsList,
                 convertToDisplayString,
                 reportActions: exportReportActions,
                 reportAttributesDerivedValue: undefined,
@@ -334,7 +338,9 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         formatPhoneNumber,
         isActionLoadingSet,
         cardFeeds,
+        personalAndWorkspaceCards,
         conciergeReportID,
+        onyxPersonalDetailsList,
         convertToDisplayString,
         dateFnsLocale,
         exportReportActions,

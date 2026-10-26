@@ -21,7 +21,7 @@ import type {ValueOf} from 'type-fest';
 import {hasAccountingConnections} from './connections';
 import {getPerDiemCustomUnit, isPerDiemEligiblePolicy} from './customUnits';
 import {isTimeTrackingEnabled} from './features';
-import {canEditWorkspaceSettings, canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyOwner, isPolicyUser} from './permissions';
+import {canCreateExpensesOnPolicy, canEditWorkspaceSettings, canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyOwner, isPolicyUser} from './permissions';
 import {isArchivedPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
 
 type WorkspaceDetails = {
@@ -160,6 +160,21 @@ function canCreateCategoryInSitu(policy: OnyxEntry<Policy>, login?: string) {
     return canEditWorkspaceSettings(policy, login) && !hasAccountingConnections(policy) && !!policy?.areCategoriesEnabled;
 }
 
+/**
+ * Whether the policy lets an expense with the given `reimbursable` value show the reimbursable toggle.
+ *
+ * A locked field (`disabledFields.reimbursable`) normally hides the toggle, but an expense that already
+ * disagrees with the policy default has to stay correctable - otherwise it is silently stuck on the wrong value.
+ * An absent `defaultReimbursable` or `isReimbursable` means "reimbursable", matching the expense creation path
+ * and `getReimbursable`.
+ */
+function canShowReimbursableToggleForPolicy(policy: OnyxEntry<Policy>, isReimbursable: boolean | undefined): boolean {
+    if (!policy?.disabledFields?.reimbursable) {
+        return true;
+    }
+    return (isReimbursable ?? true) !== (policy.defaultReimbursable ?? true);
+}
+
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
@@ -267,22 +282,30 @@ function hasAnyPaidPolicy(policies: OnyxCollection<Policy> | null) {
 }
 
 /**
- * Returns the group workspaces where the user can create a report: paid (Team/Corporate) workspaces,
- * plus Submit workspaces. Submit workspaces are free but still support report creation, so they belong
- * here even though they're excluded from `getGroupPaidPolicies`.
+/**
+ * Whether the user can create a report on this workspace: a paid (Team/Corporate) or Submit workspace the user
+ * has a role on. Submit workspaces are free but still support report creation, so they belong here even though
+ * they're excluded from `getGroupPaidPolicies`. A policy stub (e.g. the `{id, name}` the backend sends for a
+ * preferred workspace the user is not a member of) has no type or role and is rejected. Workspaces whose role for the user
+ * cannot create expenses (e.g. approve-only) are excluded.
  */
+function canCreateReportOnPolicy(policy: OnyxEntry<Policy>, currentUserLogin?: string): policy is Policy {
+    return (
+        !!policy &&
+        !policy.isJoinRequestPending &&
+        (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
+        shouldShowPolicy(policy, false, currentUserLogin) &&
+        canCreateExpensesOnPolicy(policy, currentUserLogin) &&
+        !isTeachersUnitePolicyID(policy.id)
+    );
+}
+
+/** Returns the group workspaces where the user can create a report; the collection form of `canCreateReportOnPolicy`. */
 function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy> | null, currentUserLogin?: string) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
     }
-    return Object.values(policies).filter(
-        (policy): policy is Policy =>
-            !!policy &&
-            !policy.isJoinRequestPending &&
-            (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
-            shouldShowPolicy(policy, false, currentUserLogin) &&
-            !isTeachersUnitePolicyID(policy.id),
-    );
+    return Object.values(policies).filter((policy): policy is Policy => canCreateReportOnPolicy(policy, currentUserLogin));
 }
 
 /**
@@ -313,6 +336,7 @@ function getDefaultChatEnabledPolicySelection(policies: OnyxCollection<Policy> |
 
     return {
         defaultChatEnabledPolicyID: getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy)?.id,
+        hasChatEnabledPolicies: groupPoliciesWithChatEnabled.length > 0,
         hasMultipleChatEnabledPolicies: groupPoliciesWithChatEnabled.length > 1,
     };
 }
@@ -404,6 +428,7 @@ export {
     getPoliciesForRoomCreation,
     getOwnedPaidPolicies,
     canCreateCategoryInSitu,
+    canShowReimbursableToggleForPolicy,
     getActiveAdminWorkspaces,
     getActiveEmployeeWorkspaces,
     hasActiveAdminWorkspaces,
@@ -417,6 +442,7 @@ export {
     isPolicyAccessible,
     getGroupPaidPolicies,
     hasAnyPaidPolicy,
+    canCreateReportOnPolicy,
     getGroupPoliciesWhereReportCanBeCreated,
     getDefaultChatEnabledPolicy,
     getDefaultChatEnabledPolicySelection,

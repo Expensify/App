@@ -55,9 +55,9 @@ async function runPatchPackage(patchDirectory: string): Promise<PatchResult> {
     return {exitCode: result.exitCode, output: result.stdout.toString()};
 }
 
-function getFailedPackages(output: string): string[] {
+function getFailedPatchPackages(output: string): string[] {
     const packages = new Set<string>();
-    for (const match of stripANSI(output).matchAll(/The patches for (\S+)/g)) {
+    for (const match of output.matchAll(/(?:The patches for|Failed to apply patch for package)\s+(\S+)/g)) {
         packages.add(match[1]);
     }
     return [...packages];
@@ -96,7 +96,7 @@ async function main(): Promise<number> {
             return 0;
         }
 
-        const failedPackages = getFailedPackages(result.output);
+        const failedPackages = getFailedPatchPackages(stripANSI(result.output));
         if (failedPackages.length === 0) {
             error('patch-package failed');
             return 1;
@@ -131,9 +131,13 @@ async function main(): Promise<number> {
     }
 }
 
-try {
-    process.exitCode = await main();
-} catch (caughtError) {
-    error(caughtError);
-    process.exitCode = 1;
+if (import.meta.main) {
+    try {
+        process.exitCode = await main();
+    } catch (caughtError) {
+        error(caughtError);
+        process.exitCode = 1;
+    }
 }
+
+export default getFailedPatchPackages;
