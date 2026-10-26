@@ -283,42 +283,6 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
         <SafeTriangle submenuRef={filterContentRef}>
             <View style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT))]}>
                 <View style={[styles.typeFiltersPopupContainer, StyleUtils.getWidthStyle(CONST.ADVANCED_FILTERS_POPOVER_WIDTH - CONST.ADVANCED_FILTERS_CONTENT_WIDTH)]}>
-                    {canUseNLFilters && (
-                        <>
-                            <PressableWithFeedback
-                                style={({pressed}) => [styles.typeFilterMenu, getDescribeButtonBackground(pressed)]}
-                                accessible
-                                accessibilityLabel={translate('search.filters.describeSearch.title')}
-                                role={CONST.ROLE.BUTTON}
-                                sentryLabel="SearchAdvancedFiltersPopup-DescribeSearch"
-                                onHoverIn={() => setIsDescribeMode(true)}
-                                onFocus={() => setIsDescribeMode(true)}
-                                onPress={() => setIsDescribeMode(true)}
-                            >
-                                {({pressed}) => (
-                                    <>
-                                        <Icon
-                                            src={icons.Sparkles}
-                                            fill={theme.icon}
-                                            width={variables.iconSizeSmall}
-                                            height={variables.iconSizeSmall}
-                                        />
-                                        <Text style={[styles.flex1]}>{translate('search.filters.describeSearch.title')}</Text>
-                                        <Icon
-                                            src={icons.ArrowRight}
-                                            fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isDescribeMode, isPressed: pressed})})}
-                                            width={variables.iconSizeNormal}
-                                            height={variables.iconSizeNormal}
-                                        />
-                                    </>
-                                )}
-                            </PressableWithFeedback>
-                            <SpacerView
-                                shouldShow
-                                style={[styles.reportHorizontalRule]}
-                            />
-                        </>
-                    )}
                     <FilterList
                         style={[styles.flex1, styles.pt2]}
                         type={searchAdvancedFiltersForm?.type}
@@ -327,6 +291,44 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
                         searchValue={filterSearchValue}
                         onSearchValueChange={changeFilterSearchValue}
                         searchInputRef={filterSearchInputRef}
+                        headerContent={
+                            canUseNLFilters && (
+                                <>
+                                    <PressableWithFeedback
+                                        style={({pressed}) => [styles.typeFilterMenu, getDescribeButtonBackground(pressed)]}
+                                        accessible
+                                        accessibilityLabel={translate('search.filters.describeSearch.title')}
+                                        role={CONST.ROLE.BUTTON}
+                                        sentryLabel="SearchAdvancedFiltersPopup-DescribeSearch"
+                                        onHoverIn={() => setIsDescribeMode(true)}
+                                        onFocus={() => setIsDescribeMode(true)}
+                                        onPress={() => setIsDescribeMode(true)}
+                                    >
+                                        {({pressed}) => (
+                                            <>
+                                                <Icon
+                                                    src={icons.Sparkles}
+                                                    fill={theme.icon}
+                                                    width={variables.iconSizeSmall}
+                                                    height={variables.iconSizeSmall}
+                                                />
+                                                <Text style={[styles.flex1]}>{translate('search.filters.describeSearch.title')}</Text>
+                                                <Icon
+                                                    src={icons.ArrowRight}
+                                                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isDescribeMode, isPressed: pressed})})}
+                                                    width={variables.iconSizeNormal}
+                                                    height={variables.iconSizeNormal}
+                                                />
+                                            </>
+                                        )}
+                                    </PressableWithFeedback>
+                                    <SpacerView
+                                        shouldShow
+                                        style={[styles.reportHorizontalRule]}
+                                    />
+                                </>
+                            )
+                        }
                         onHoverIn={hoverFilter}
                         onPointerMove={trackPointerMovement}
                         onPointerLeave={stopTrackingPointer}

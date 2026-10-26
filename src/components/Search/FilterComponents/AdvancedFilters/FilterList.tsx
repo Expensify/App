@@ -21,7 +21,7 @@ import variables from '@styles/variables';
 
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
-import type {Ref} from 'react';
+import type {ReactNode, Ref} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -50,6 +50,9 @@ type FilterListProps = FilterItemCallbacks & {
 
     /** Ref to the search input above the list. */
     searchInputRef?: Ref<BaseTextInputRef>;
+
+    /** Content between the search input and the list. */
+    headerContent?: ReactNode;
 
     /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
     onPointerMove?: (event: {clientX: number; clientY: number}) => void;
@@ -131,6 +134,7 @@ function FilterList({
     searchValue,
     onSearchValueChange,
     searchInputRef,
+    headerContent,
     onHoverIn,
     onFocus,
     onPress,
@@ -153,6 +157,7 @@ function FilterList({
                 style={styles.mb3}
                 ref={searchInputRef}
             />
+            {headerContent}
             {shouldShowNoResultsFound && (
                 <View style={[styles.ph5, styles.pb5]}>
                     <Text

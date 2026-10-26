@@ -55,45 +55,47 @@ function SearchAdvancedFiltersBase() {
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.filtersHeader')} />
-            {canUseNLFilters && (
-                <>
-                    <PressableWithFeedback
-                        style={({pressed}) => [styles.typeFilterMenu, pressed && styles.buttonHoveredBG]}
-                        accessible
-                        accessibilityLabel={translate('search.filters.describeSearch.title')}
-                        sentryLabel="SearchAdvancedFiltersBase-DescribeSearch"
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_NL_FILTER)}
-                    >
-                        {({pressed}) => (
-                            <>
-                                <Icon
-                                    src={icons.Sparkles}
-                                    fill={theme.icon}
-                                    width={variables.iconSizeSmall}
-                                    height={variables.iconSizeSmall}
-                                />
-                                <Text style={[styles.flex1]}>{translate('search.filters.describeSearch.title')}</Text>
-                                <Icon
-                                    src={icons.ArrowRight}
-                                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isPressed: pressed})})}
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
-                                />
-                            </>
-                        )}
-                    </PressableWithFeedback>
-                    <SpacerView
-                        shouldShow
-                        style={[styles.reportHorizontalRule]}
-                    />
-                </>
-            )}
             <FilterList
                 contentContainerStyle={[styles.pb5]}
                 type={currentDraftFilters.type}
                 filters={filters}
                 searchValue={filterSearchValue}
                 onSearchValueChange={setFilterSearchValue}
+                headerContent={
+                    canUseNLFilters && (
+                        <>
+                            <PressableWithFeedback
+                                style={({pressed}) => [styles.typeFilterMenu, pressed && styles.buttonHoveredBG]}
+                                accessible
+                                accessibilityLabel={translate('search.filters.describeSearch.title')}
+                                sentryLabel="SearchAdvancedFiltersBase-DescribeSearch"
+                                onPress={() => Navigation.navigate(ROUTES.SEARCH_NL_FILTER)}
+                            >
+                                {({pressed}) => (
+                                    <>
+                                        <Icon
+                                            src={icons.Sparkles}
+                                            fill={theme.icon}
+                                            width={variables.iconSizeSmall}
+                                            height={variables.iconSizeSmall}
+                                        />
+                                        <Text style={[styles.flex1]}>{translate('search.filters.describeSearch.title')}</Text>
+                                        <Icon
+                                            src={icons.ArrowRight}
+                                            fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isPressed: pressed})})}
+                                            width={variables.iconSizeNormal}
+                                            height={variables.iconSizeNormal}
+                                        />
+                                    </>
+                                )}
+                            </PressableWithFeedback>
+                            <SpacerView
+                                shouldShow
+                                style={[styles.reportHorizontalRule]}
+                            />
+                        </>
+                    )
+                }
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
             <View style={[isInLandscapeMode ? [styles.flexRow, styles.gap2] : [styles.gap3], styles.ph5, styles.pb5]}>
