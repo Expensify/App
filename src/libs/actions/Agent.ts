@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {PersonalDetails, Policy} from '@src/types/onyx';
 import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
@@ -375,9 +375,11 @@ function updateAgentAvatar(
     write(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, params, {optimisticData, successData, failureData});
 }
 
-function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>, shouldNavigateBack = true, backPath?: Route) {
+function deleteAgent(accountID: number, personalDetails?: PersonalDetails, allPolicies?: OnyxCollection<Policy>, shouldNavigateBack = true, backPath?: Route) {
     // The caller may still hold an optimistic accountID that was already reconciled while its screen was open.
     const agentAccountID = resolveAgentAccountID(accountID);
+    const agentLogin = personalDetails?.login;
+
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -392,7 +394,6 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
             key: `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`,
             value: null,
         },
-        buildPersonalDetailsUpdate({[agentAccountID]: null}),
     ];
 
     const failureData: AnyOnyxUpdate[] = [
@@ -405,6 +406,15 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
             },
         },
     ];
+
+    // Optimistically clear personal details if we can recover it on failing (i.e. we have `personalDetails`)
+    // Otherwise clear the personal details only on success
+    if (personalDetails) {
+        optimisticData.push(buildPersonalDetailsUpdate({[agentAccountID]: null}));
+        failureData.push(buildPersonalDetailsUpdate({[agentAccountID]: personalDetails}));
+    } else {
+        successData.push(buildPersonalDetailsUpdate({[agentAccountID]: null}));
+    }
 
     // Mark the agent's row pending-delete on every policy it belongs to so workflow cards render
     // the agent's approver row with strikethrough/RBR while DELETE_AGENT is in flight.

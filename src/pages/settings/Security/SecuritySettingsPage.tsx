@@ -229,12 +229,11 @@ function SecuritySettingsPage() {
                     // (which restores the owner's session and auth token), and only then delete the agent as the
                     // owner. Skip the delete unless the owner was restored with fresh tokens.
                     const agentAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    const agentLogin = currentUserPersonalDetails.login;
                     const disconnectResult = await disconnect({stashedCredentials, stashedSession});
                     if (disconnectResult !== DISCONNECT_RESULT.RESTORED) {
                         return;
                     }
-                    deleteAgent(agentAccountID, agentLogin, allPolicies, false);
+                    deleteAgent(agentAccountID, currentUserPersonalDetails, allPolicies, false);
                     return;
                 }
                 clearDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);

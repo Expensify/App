@@ -150,8 +150,8 @@ function useAgentsTable() {
     const removeSelectedAgents = () => {
         for (const accountIDString of selectedAgentKeys) {
             const accountID = Number(accountIDString);
-            const agentLogin = personalDetailsList?.[accountID]?.login;
-            deleteAgent(accountID, agentLogin, allPolicies, false);
+            const personalDetail = personalDetailsList?.[accountID] ?? undefined;
+            deleteAgent(accountID, personalDetail, allPolicies, false);
         }
         clearSelectedAgents();
     };
