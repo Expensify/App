@@ -60,9 +60,11 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     frozenDate?: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    canEditName?: boolean;
     canEditLimitType?: boolean;
     canEditLimit?: boolean;
     action: () => void;
+    onRenameName?: (newName: string) => void;
     onChangeLimitType?: (limitType: CardLimitType) => void;
     /** Return false, or a promise of false, to keep the limit editor open until a confirm modal resolves. */
     onChangeLimit?: (newLimit: string) => InlineEditSaveResult;
@@ -331,7 +333,6 @@ export default function WorkspaceExpensifyCardsTable({
             shouldUseDynamicColumns
             columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_EXPENSIFY_CARDS}
             initialSortColumn="name"
-            narrowLayoutSortColumn="name"
             title={translate('workspace.common.expensifyCard')}
             keyExtractor={(item) => item.keyForList}
             selectionEnabled={selectionEnabled}

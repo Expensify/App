@@ -223,9 +223,9 @@ function useFormErrorManagement({
 
     // These reuse the very predicates `useConfirmationValidation` raises `common.error.fieldRequired` from, so the
     // clear side can never drift from the validation side and strand a required error that can no longer be cleared (#96568).
-    const isAmountRequiredMissing = isConfirmationAmountMissing(transaction, canEnterScanFieldsManually);
-    const isDateRequiredMissing = isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly, canEnterScanFieldsManually);
-    const isMerchantRequiredMissing = isConfirmationMerchantMissing(transaction, canEnterScanFieldsManually);
+    const isAmountRequiredMissing = isConfirmationAmountMissing(transaction, canEnterScanFieldsManually, isPolicyExpenseChat);
+    const isDateRequiredMissing = isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly, canEnterScanFieldsManually, isPolicyExpenseChat);
+    const isMerchantRequiredMissing = isConfirmationMerchantMissing(transaction, canEnterScanFieldsManually, isPolicyExpenseChat);
     useEffect(() => {
         // The predicates above only see the transaction on screen, so the ID keeps the error alive while another
         // receipt of a multi-scan is still partially filled.

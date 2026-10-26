@@ -1,11 +1,14 @@
 export {default as useChartLabelLayout} from './useChartLabelLayout';
 export {default as useChartLabelMeasurements} from './useChartLabelMeasurements';
 export {default as useChartParagraphs} from './useChartParagraphs';
-export {useChartFontManager} from '@components/Charts/context/ChartFontsContext';
 export {default as ChartFontsProvider} from '@components/Charts/context/ChartFontsProvider';
-export {useChartInteractions, TOOLTIP_BAR_GAP} from './useChartInteractions';
+export {useChartInteractions, TOOLTIP_BAR_GAP, CHART_GESTURE_TOUCH_ACTION} from './useChartInteractions';
 export type {HitTestArgs, ResolveTargetIndexArgs} from './useChartInteractions';
 export {default as useChartLabelFormats} from './useChartLabelFormats';
 export {default as useDynamicYDomain} from './useDynamicYDomain';
 export {default as useTooltipData} from './useTooltipData';
 export {default as useLabelHitTesting} from './useLabelHitTesting';
+export {default as useReadyCartesianCanvas} from './useReadyCartesianCanvas';
+export type {CartesianCanvasInputs} from './useReadyCartesianCanvas';
+export {default as useSyncPointPositions} from './useSyncPointPositions';
+export {default as useTouchPinnedTooltip} from './useTouchPinnedTooltip';

@@ -1,0 +1,46 @@
+--- a/node_modules/@callstack/repack/dist/commands/rspack/Compiler.js
++++ b/node_modules/@callstack/repack/dist/commands/rspack/Compiler.js
+@@ -17,6 +17,7 @@
+   statsCache = {};
+   resolvers = {};
+   progressSenders = {};
++  lastProgress = {};
+   isCompilationInProgress = {};
+   // late-init
+ 
+@@ -28,7 +29,9 @@
+     this.rootDir = rootDir;
+     const handler = (platform, value) => {
+       if (!this.activePlatforms.has(platform)) return;
+-      const percentage = Math.floor(value * 100);
++      const rawPercentage = Math.floor(value * 100);
++      const percentage = Math.max(rawPercentage, this.lastProgress[platform] ?? 0);
++      this.lastProgress[platform] = percentage;
+       this.progressSenders[platform]?.forEach(sendProgress => {
+         sendProgress({
+           completed: percentage,
+@@ -40,7 +43,7 @@
+         message: [{
+           progress: {
+             platform,
+-            value
++            value: percentage / 100
+           }
+         }],
+         timestamp: Date.now(),
+@@ -104,6 +107,7 @@
+     childCompiler.hooks.watchRun.tap('repack:watch', () => {
+       if (!this.activePlatforms.has(platform)) return;
+       this.isCompilationInProgress[platform] = true;
++      this.lastProgress[platform] = 0;
+       if (platform === 'android') {
+         void (0, _index2.runAdbReverse)({
+           port: this.devServerContext.options.port,
+@@ -121,6 +125,7 @@
+     childCompiler.hooks.invalid.tap('repack:invalid', () => {
+       if (!this.activePlatforms.has(platform)) return;
+       this.isCompilationInProgress[platform] = true;
++      this.lastProgress[platform] = 0;
+       this.devServerContext.notifyBuildStart(platform);
+       this.devServerContext.broadcastToHmrClients({
+         action: 'compiling',
