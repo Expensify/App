@@ -66,6 +66,8 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
 
     const delegate = account?.delegatedAccess?.delegate;
     const delegators = account?.delegatedAccess?.delegators ?? [];
@@ -81,6 +83,18 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
 
     const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = canSwitchAccountsSelector(account);
+
+    // Switching accounts resets ONYXKEYS.ACCOUNT until OpenApp reloads it, which would otherwise make the button
+    // disappear briefly for the length of the reload.
+    const isAccountSwitchInFlight = !!isLoadingApp && !!hasLoadedApp;
+    const [wasAbleToSwitchAccounts, setWasAbleToSwitchAccounts] = useState(canSwitchAccounts);
+    if (!isAccountSwitchInFlight && wasAbleToSwitchAccounts !== canSwitchAccounts) {
+        setWasAbleToSwitchAccounts(canSwitchAccounts);
+    }
+    const isWaitingForAccountData = !canSwitchAccounts && isAccountSwitchInFlight && wasAbleToSwitchAccounts;
+
+    // Covers the gap between selecting an account and OpenApp starting, before isAccountSwitchInFlight turns on.
+    const [isSwitchRequestPending, setIsSwitchRequestPending] = useState(false);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
@@ -98,6 +112,15 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
         });
     };
 
+    const startSwitch = (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
+        const switchPromise = switchAccount();
+        if (!switchPromise) {
+            return;
+        }
+        setIsSwitchRequestPending(true);
+        switchPromise.finally(() => setIsSwitchRequestPending(false));
+    };
+
     const showGpsInProgressModal = async (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
         const result = await showConfirmModal({
             title: translate('gps.switchAccountWarningTripInProgress.title'),
@@ -112,7 +135,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
 
         await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
 
-        switchAccount();
+        startSwitch(switchAccount);
     };
 
     // Anchor the menu to the bottom-left of the Switch button so it opens directly below it.
@@ -174,7 +197,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                             close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
                             return;
                         }
-                        connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                        startSwitch(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID}));
                     },
                 });
             }),
@@ -207,7 +230,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                             return;
                         }
 
-                        disconnect({stashedCredentials, stashedSession});
+                        startSwitch(() => disconnect({stashedCredentials, stashedSession}));
                     },
                 }),
                 currentUserMenuItem,
@@ -270,10 +293,10 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
           }
         : {
               text: translate('delegate.copilotAccess'),
-              shouldRender: canSwitchAccounts,
+              shouldRender: canSwitchAccounts || isWaitingForAccountData,
           };
 
-    if (!canSwitchAccounts) {
+    if (!canSwitchAccounts && !isWaitingForAccountData) {
         return null;
     }
 
@@ -286,6 +309,8 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                         size={CONST.BUTTON_SIZE.SMALL}
                         ref={buttonRef}
                         onPress={onPressSwitcher}
+                        isDisabled={isWaitingForAccountData || isSwitchRequestPending}
+                        stayNormalOnDisable
                         sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
                     >
                         <Button.Text>{translate('delegate.switch')}</Button.Text>

@@ -329,6 +329,7 @@ function DescribeRuleForm({
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={() => describeSuggestedRule(refusalSuggestedPrompt)}
+                        // Like the form's submit button, this button sends GenerateRule, which needs a connection
                         isDisabled={isOffline}
                         style={[styles.flexGrow1, styles.flexBasisAuto]}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
