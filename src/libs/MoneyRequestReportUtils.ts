@@ -3,7 +3,7 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {CardList, OriginalMessageIOU, Policy, PolicyCategories, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -267,8 +267,69 @@ function getVisibleReportRowViolations(
     return visibleViolations.length === 0 ? EMPTY_VIOLATIONS : visibleViolations;
 }
 
+/**
+ * Returns the policy without the fields a report row never reads, such as the member list and the offline feedback
+ * fields. Most policy writes only touch those fields, so after this a row's policy keeps its value through them.
+ * The member list matters to rows only through violation visibility, which is computed from the full policy.
+ */
+function getReportRowPolicy(policy: OnyxEntry<Policy>): OnyxEntry<Policy> {
+    if (!policy) {
+        return policy;
+    }
+    const {employeeList, lastModified, pendingFields, errors, errorFields, isLoading, ...rowPolicy} = policy;
+    return rowPolicy;
+}
+
+/**
+ * Returns only the category of the row's transaction, the one entry a report row reads from the policy categories.
+ */
+function getReportRowPolicyCategories(policyCategories: OnyxEntry<PolicyCategories>, category: string | undefined): PolicyCategories | undefined {
+    const rowCategory = category ? policyCategories?.[category] : undefined;
+    return rowCategory && category ? {[category]: rowCategory} : undefined;
+}
+
+/**
+ * Returns the report without its totals and last-activity fields. Money request report rows never show them, and
+ * they change on almost every write to the report, so after this a row's report keeps its value through those writes.
+ */
+function getReportRowReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
+    if (!report) {
+        return report;
+    }
+    const {
+        total,
+        nonReimbursableTotal,
+        unheldTotal,
+        unheldNonReimbursableTotal,
+        lastReadTime,
+        lastVisibleActionCreated,
+        lastVisibleActionLastModified,
+        lastMessageText,
+        lastMessageHtml,
+        lastActorAccountID,
+        lastActionType,
+        lastMentionedTime,
+        ...rowReport
+    } = report;
+    return rowReport;
+}
+
+const EMPTY_CARDS: CardList = {};
+
+/**
+ * Returns only the card of the row's transaction, the one entry a report row reads from the card list.
+ */
+function getReportRowCards(cards: OnyxEntry<CardList>, cardID: number | undefined): CardList {
+    const card = cardID ? cards?.[cardID] : undefined;
+    return card && cardID ? {[cardID]: card} : EMPTY_CARDS;
+}
+
 export {
     EMPTY_VIOLATIONS,
+    getReportRowCards,
+    getReportRowPolicy,
+    getReportRowPolicyCategories,
+    getReportRowReport,
     getVisibleReportRowViolations,
     isActionVisibleOnMoneyRequestReport,
     getThreadReportIDsForTransactions,

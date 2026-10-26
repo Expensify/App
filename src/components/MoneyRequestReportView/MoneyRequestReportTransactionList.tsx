@@ -25,7 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -209,7 +208,6 @@ function MoneyRequestReportTransactionList({
     const {isOffline} = useNetwork();
     const navigateToTransactionThread = useNavigateToTransactionThread();
 
-    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
 
@@ -362,9 +360,8 @@ function MoneyRequestReportTransactionList({
                         reportOwnerLogin={ownerLogin}
                         shouldBeHighlighted={isReportVisible && highlightedTransactionIDs.has(transaction.transactionID)}
                         columns={columnsToShow}
-                        report={report}
-                        policy={policy}
-                        policyCategories={policyCategories}
+                        reportID={report.reportID}
+                        policyID={report.policyID}
                         policyTagLists={policyTagLists}
                         isSelectionModeEnabled={isMobileSelectionModeEnabled}
                         toggleTransaction={toggleRowTransaction}
@@ -376,7 +373,6 @@ function MoneyRequestReportTransactionList({
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
                         onArrowRightPress={handleArrowRightPress}
-                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? getEmptyObject<OnyxTypes.CardList>()}
                         isLastItem={!showPendingExpensePlaceholder && transaction.transactionID === lastTransactionID}
                         shouldScrollHorizontally={shouldScrollHorizontally}
                         transactionThreadReportID={transactionThreadReportIDByTransactionID.get(transaction.transactionID)}
