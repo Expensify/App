@@ -15,6 +15,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {SafeString} from 'expensify-common';
 import lodashSortBy from 'lodash/sortBy';
 
 function getFieldsMap(corpayFields: OnyxEntry<CorpayFields>): Record<ValueOf<typeof CONST.CORPAY_FIELDS.PAGE_NAME>, CorpayFieldsMap> {
@@ -105,6 +106,11 @@ function testValidation(values: InternationalBankAccountForm, fieldsMap: CorpayF
         if (fieldsMap[fieldName].isRequired && (values[fieldName] ?? '') === '') {
             return false;
         }
+
+        // Optional fields left blank don't need to match the validation rules
+        if (!fieldsMap[fieldName].isRequired && !SafeString(values[fieldName]).trim()) {
+            continue;
+        }
         for (const rule of fieldsMap[fieldName].validationRules) {
             const regExpCheck = new RegExp(rule.regEx);
             if (!regExpCheck.test(values[fieldName] ?? '')) {
@@ -139,6 +145,11 @@ function getValidationErrors(values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERN
     for (const [fieldName, field] of Object.entries(fieldsMap)) {
         if (field.isRequired && values[fieldName] === '') {
             addErrorMessage(errors, fieldName, translate('common.error.fieldRequired'));
+            continue;
+        }
+
+        // Optional fields left blank don't need to match the validation rules
+        if (!field.isRequired && !SafeString(values[fieldName]).trim()) {
             continue;
         }
         for (const rule of field.validationRules) {
