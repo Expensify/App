@@ -66,7 +66,7 @@ let leaderLockRequestID = 0;
 let waitForLeaderLockController: AbortController | undefined;
 
 /**
- * Requests the leader lock. A steal takes it from the current leader right away; otherwise we wait in line until the leader's tab goes away.
+ * Requests the leader lock. A steal takes it from the current leader right away. Otherwise we wait in line until the leader's tab goes away.
  * If we make a new request before an older one is granted, the older one gives the lock back as soon as it gets it.
  */
 const requestLeaderLock = (shouldSteal: boolean) => {
