@@ -140,7 +140,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addCardTermsOfService: 'Termos de Serviço da Expensify',
         perPerson: 'por pessoa',
         reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
-            one: `1 noite • ${nightlyRate} por noite`,
+            one: `${count} noite • ${nightlyRate} por noite`,
             other: `${count} noites • ${nightlyRate} por noite`,
         }),
         phone: 'Telefone',
@@ -4133,9 +4133,9 @@ ${amount} para ${merchant} - ${date}`,
         addItem: ({item}: {item: string}) => `Adicionar ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Remover ${item}?`,
         removeItemPrompt: ({name}: {name: string}) => `Tem certeza de que deseja remover ${name}?`,
-        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} terminando em ${ending}`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} com final ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
-        questionsChanged: 'As perguntas desta página foram alteradas',
+        questionsChanged: 'As perguntas desta página mudaram',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'O SWIFT/BIC deve ter 8 ou 11 caracteres, com 6 letras seguidas de 2 ou 5 letras ou números.',
@@ -4957,7 +4957,7 @@ ${amount} para ${merchant} - ${date}`,
             deleteConfirmation: 'Tem certeza de que deseja excluir este workspace?',
             deleteWithCardsConfirmation: 'Tem certeza de que deseja excluir este workspace? Isso removerá todos os feeds de cartão e cartões atribuídos.',
             deleteOpenExpensifyCardsError: 'Sua empresa ainda tem Cartões Expensify. Por favor, <concierge-link>fale com o Concierge</concierge-link> para removê-los.',
-            deleteTravelBillingError: 'Sua empresa ainda tem o Faturamento Consolidado de Viagens ativado.',
+            deleteTravelBillingError: 'Sua empresa ainda tem o Faturamento de Viagens Consolidado ativado.',
             outstandingBalanceWarning:
                 'Você tem um saldo pendente que precisa ser quitado antes de excluir seu último espaço de trabalho. Acesse as configurações de assinatura para resolver o pagamento.',
             settleBalance: 'Ir para a assinatura',
@@ -5016,7 +5016,7 @@ ${amount} para ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Proprietário';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Admin da área de trabalho';
+                        return 'Admin do workspace';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.GUEST:
@@ -5024,13 +5024,13 @@ ${amount} para ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Admin do cartão';
+                        return 'Admin. do cartão';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administrador de pessoas';
+                        return 'Admin de pessoas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Admin de pagamentos';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
-                        return 'Apenas aprovar';
+                        return 'Somente aprovação';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membro';
                     default:
@@ -5061,8 +5061,8 @@ ${amount} para ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'mês', yearly: 'ano'},
             budgetTypeForNotificationMessage: {tag: 'etiqueta', category: 'categoria'},
             deepDiveExpensifyCard: `<muted-text-label>As transações do Cartão Expensify serão exportadas automaticamente para uma “Conta de Responsabilidade do Cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
-            travelBilling: 'Exportar despesas consolidadas de cobrança de viagens como',
-            travelBillingVendor: 'Fornecedor de viagens',
+            travelBilling: 'Exportar despesas consolidadas de faturamento de viagem como',
+            travelBillingVendor: 'Fornecedor de viagem',
             travelBillingPayableAccount: 'Conta a pagar de viagens',
             hr: 'RH',
             recruiting: 'Recrutamento',
@@ -5071,7 +5071,7 @@ ${amount} para ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gerenciar cartões do workspace.',
             peopleAdminAlternateText: 'Gerencie membros e fluxos de aprovação.',
             paymentsAdminAlternateText: 'Gerencie pagamentos de fluxo de trabalho.',
-            approveOnlyAlternateText: 'Aprovar apenas relatórios.',
+            approveOnlyAlternateText: 'Apenas aprovar relatórios.',
             readOnlyActionTitle: 'Calma aí...',
             readOnlyActionPrompt: 'Sua função no workspace pode ver essas configurações, mas não pode editá-las.',
             noAccessActionPrompt: 'Sua função no espaço de trabalho não tem acesso a essas configurações. Peça a um administrador se você precisar disso.',
@@ -5468,7 +5468,7 @@ ${amount} para ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'As despesas exportadas serão lançadas como transações bancárias na conta bancária Xero abaixo, e as datas das transações corresponderão às datas no seu extrato bancário.',
             bankTransactions: 'Transações bancárias',
-            travelBillingDescription: 'Despesas de viagem serão exportadas como transações bancárias para a conta Xero especificada abaixo.',
+            travelBillingDescription: 'As despesas de viagem serão exportadas como transações bancárias para a conta do Xero especificada abaixo.',
             xeroBankAccount: 'Conta bancária Xero',
             bankAccount: 'Conta bancária',
             xeroBankAccountDescription: 'Escolha onde as despesas serão lançadas como transações bancárias.',
@@ -5569,7 +5569,7 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Faturas de fornecedores',
                 },
             },
-            travelBillingDescription: 'As despesas de viagem serão exportadas como lançamentos de cartão de crédito para a conta do Sage Intacct especificada abaixo.',
+            travelBillingDescription: 'As despesas de viagem serão exportadas como cobranças de cartão de crédito para a conta do Sage Intacct especificada abaixo.',
             creditCardAccount: 'Conta de cartão de crédito',
             defaultVendor: 'Fornecedor padrão',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -6192,7 +6192,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             billPaymentAccount: {label: 'Conta de pagamento de contas', description: 'Escolha de onde pagar as contas e nós vamos criar o pagamento no Rillet.'},
             syncExpensifyCardSettlements: 'Sincronizar liquidações do Cartão Expensify',
             settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no Rillet.'},
-            syncTravelBillingSettlements: 'Sincronizar liquidações de Faturamento Consolidado de Viagens',
+            syncTravelBillingSettlements: 'Sincronizar liquidações de cobrança consolidada de viagens',
             travelBillingSettlementAccount: {
                 label: 'Conta de liquidação de faturamento consolidado de viagens',
                 description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no Rillet.',
@@ -6345,12 +6345,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             },
             syncExpensifyCardSettlements: 'Sincronizar liquidações do Cartão Expensify',
             settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no DualEntry.'},
-            syncTravelBillingSettlements: 'Sincronizar liquidações de Faturamento Consolidado de Viagens',
+            syncTravelBillingSettlements: 'Sincronizar liquidações de Faturamento Consolidado de Viagem',
             travelBillingSettlementAccount: {
-                label: 'Conta de liquidação de cobrança consolidada de viagens',
+                label: 'Conta de liquidação de faturamento consolidado de viagens',
                 description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no DualEntry.',
             },
-            travelBillingPayableAccount: {label: 'Conta a pagar de faturamento de viagens consolidado'},
+            travelBillingPayableAccount: {label: 'Conta a pagar de faturamento consolidado de viagens'},
         },
         type: {
             free: 'Grátis',
@@ -6519,8 +6519,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             startDateDescription: 'Escolha a data inicial de importação. Vamos sincronizar todas as transações a partir desta data.',
             editStartDateDescription: 'Escolha uma nova data de início de transações. Vamos sincronizar todas as transações a partir dessa data, excluindo as que já importamos.',
             bulkEditStartDateDescription:
-                'Escolha uma data inicial de transação para todos os cartões selecionados. Vamos sincronizar as transações a partir dessa data, excluindo as que já tivermos importado.',
-            bulkStartDateUpdated: 'Data de início da transação atualizada',
+                'Escolha uma data de início de transações para todos os cartões selecionados. Vamos sincronizar as transações a partir dessa data, excluindo as que já importamos.',
+            bulkStartDateUpdated: 'Data de início de transações atualizada',
             fromTheBeginning: 'Desde o início',
             customStartDate: 'Data de início personalizada',
             customCloseDate: 'Data de fechamento personalizada',
@@ -7126,7 +7126,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             tagRules: 'Regras de tag',
             approverDescription: 'Aprovador',
             importTags: 'Importar tags',
-            appendCustomTagList: 'Anexar lista de tags personalizadas',
+            appendCustomTagList: 'Anexar lista de tags personalizada',
             importTagsSupportingText: 'Classifique suas despesas com um tipo de etiqueta ou várias.',
             configureMultiLevelTags: 'Configure sua lista de tags para marcação em vários níveis.',
             importMultiLevelTagsSupportingText: `Aqui está uma prévia de suas tags. Se tudo estiver certo, clique abaixo para importá-las.`,
@@ -7299,14 +7299,14 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
         },
         people: {
             genericFailureMessage: 'Ocorreu um erro ao remover um membro do workspace, tente novamente',
-            approveOnlyRoleBlockedTitle: 'Não é possível alterar essa função',
+            approveOnlyRoleBlockedTitle: 'Não é possível alterar esta função',
             approveOnlyRoleBlockedConfirm: 'Entendi',
-            approveOnlyRoleBlockedDescription: 'Membros apenas aprovadores não podem criar despesas neste workspace. Estas precisam ser resolvidas primeiro:',
+            approveOnlyRoleBlockedDescription: 'Membros somente de aprovação não podem criar despesas neste espaço de trabalho. Estes itens precisam ser resolvidos primeiro:',
             approveOnlyRoleBlockedReasons: {
-                hasCardOnPolicy: 'Um cartão está atribuído a essa pessoa neste workspace. Um administrador do workspace ou de cartões precisa removê-lo primeiro.',
+                hasCardOnPolicy: 'Um cartão está atribuído a eles neste espaço de trabalho. Um administrador do espaço de trabalho ou de cartões precisa desatribuí-lo primeiro.',
                 isRestrictedByDomainGroup:
-                    'Este workspace é o workspace preferencial para um grupo de domínio ao qual essa pessoa pertence. Um Administrador de Domínio precisa alterá-lo primeiro.',
-                isDefaultPolicy: 'Esse é o espaço de trabalho padrão deles. Eles precisarão definir outro antes que você possa atualizar o papel deles.',
+                    'Este espaço de trabalho é o espaço de trabalho preferido de um grupo de domínio do qual eles fazem parte. Um administrador de domínio precisa alterá-lo primeiro.',
+                isDefaultPolicy: 'Este é o espaço de trabalho padrão deles. Eles precisarão definir um diferente antes que você possa atualizar a função deles.',
             },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Tem certeza de que deseja remover ${memberName}?`,
@@ -7360,8 +7360,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 genericRemove: 'Houve um problema ao remover esse membro do workspace',
             },
             makeApproveOnly: () => ({
-                one: 'Permitir apenas aprovar',
-                other: 'Permitir que apenas membros aprovem',
+                one: 'Tornar somente de aprovação',
+                other: 'Tornar membros somente de aprovação',
             }),
             addedWithPrimary: 'Alguns membros foram adicionados com seus logins principais.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Adicionado pelo login secundário ${secondaryLogin}.`,
@@ -7385,7 +7385,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             admins: 'Admins do workspace',
             approvers: 'Aprovadores',
             auditors: 'Auditores',
-            approveOnly: 'Apenas aprovar',
+            approveOnly: 'Somente de aprovação',
             guests: 'Convidados',
             editors: 'Editores',
             emptyRoleFilter: {title: 'Nenhum membro corresponde a este filtro', subtitle: 'Convide um membro ou altere o filtro acima.'},
@@ -7408,7 +7408,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             officeLocation: 'Local do escritório',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
             changeOfficeLocation: 'Alterar local do escritório',
-            changeWorkArrangement: 'Alterar modalidade de trabalho',
+            changeWorkArrangement: 'Alterar regime de trabalho',
             changeRole: 'Alterar função',
         },
         card: {
@@ -7810,11 +7810,11 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 chooseBankAccount: 'Escolha a conta bancária na qual os pagamentos do seu Cartão Expensify serão conciliados.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Certifique-se de que esta conta corresponda à sua <a href="${settlementAccountUrl}">conta de liquidação do Cartão Expensify</a> (terminada em ${lastFourPAN}) para que a Reconciliação Contínua funcione corretamente.`,
-                chooseTravelBillingBankAccount: 'Escolha a conta bancária na qual seus pagamentos de Cobrança Consolidada de Viagem serão reconciliados.',
+                chooseTravelBillingBankAccount: 'Escolha a conta bancária na qual seus pagamentos de Faturamento de Viagens Consolidado serão conciliados.',
                 travelBillingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Tenha certeza de que esta conta corresponde à sua conta de liquidação de Faturamento Consolidado de Viagem (terminando em ${lastFourPAN}) para que a Conciliação Contínua funcione corretamente.`,
             },
-            syncTravelBillingSettlements: 'Sincronizar liquidações de Faturamento Consolidado de Viagens',
+            syncTravelBillingSettlements: 'Sincronizar liquidações de Faturamento de Viagens Consolidado',
             syncTravelBillingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
             campfire: 'Campfire',
@@ -9275,12 +9275,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             billPaymentAccount: {label: 'Conta de pagamento de contas', description: 'Escolha a conta de compensação dos créditos Campfire quando o Expensify marcar uma conta como paga.'},
             syncExpensifyCardSettlements: 'Sincronizar liquidações do Cartão Expensify',
             settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e nós vamos criar o pagamento no Campfire.'},
-            syncTravelBillingSettlements: 'Sincronizar liquidações de Faturamento Consolidado de Viagens',
+            syncTravelBillingSettlements: 'Sincronizar liquidações de Faturamento Consolidado de Viagem',
             travelBillingSettlementAccount: {
-                label: 'Conta de liquidação de cobrança consolidada de viagens',
+                label: 'Conta de liquidação de faturamento consolidado de viagens',
                 description: 'Escolha sua conta de liquidação e nós vamos criar o pagamento no Campfire.',
             },
-            travelBillingPayableAccount: {label: 'Conta a pagar de faturamento de viagens consolidado'},
+            travelBillingPayableAccount: {label: 'Conta a pagar de faturamento consolidado de viagens'},
             exportToMultipleAccounts: 'Configurar exportação para várias contas',
             cardProgramAccount: {
                 label: 'Conta do programa de cartão',
@@ -9368,7 +9368,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             },
             exportToMultipleAccounts: 'Configurar exportação para várias contas',
             cardProgramAccount: {
-                label: 'Conta do programa de cartões',
+                label: 'Conta do programa de cartão',
                 description: 'Substituir a conta do workspace para estes programas de cartão.',
                 descriptionLevel2: 'Substituir a conta do workspace para este programa de cartão.',
                 countInfo: ({count}: {count: number}) => {
@@ -9387,7 +9387,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 descriptionLevel2: 'Substituir a conta do programa para estes cartões.',
                 countInfo: ({count}: {count: number}) => {
                     if (!count) {
-                        return 'Todos os cartões usam contas de programa';
+                        return 'Todos os cartões usam contas do programa';
                     }
                     return {
                         one: `${count} cartão com conta personalizada`,
@@ -9684,7 +9684,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             };
         },
         demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
-            `atualizou sua função em ${policyName} de ${oldRole} para ${newRole}. Você foi removido de todos os chats de despesas de autores, exceto do seu próprio.`,
+            `atualizou sua função em ${policyName} de ${oldRole} para ${newRole}. Você foi removido de todos os chats de despesas de solicitantes, exceto do seu próprio.`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `atualizou a moeda padrão para ${newCurrency} (anteriormente ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `atualizou a frequência de preenchimento automático para "${newFrequency}" (antes "${oldFrequency}")`,
@@ -9935,7 +9935,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             setCompanyAddressAsPrimary: 'definir o endereço da empresa como principal',
             removed: ({name}: {name: string}) => `removeu o local do escritório "${name}"`,
             changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
-                `alterou o local de trabalho de ${displayName} para ${officeLocation} (antes ${previousOfficeLocation})`,
+                `alterou o local de trabalho de ${displayName} para ${officeLocation} (anteriormente ${previousOfficeLocation})`,
             quotedName: ({name}: {name: string}) => `"${name}"`,
             companyAddress: 'o endereço da empresa',
             primaryOffice: 'o escritório principal',
@@ -10403,7 +10403,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Todos os ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Todos os cartões CSV importados${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                travelBilling: 'Faturamento consolidado de viagens',
+                travelBilling: 'Faturamento de Viagens Consolidado',
             },
             bankAccount: {banks: 'Contas bancárias', closedBankAccounts: 'Contas bancárias encerradas'},
             workspace: {active: 'Ativo', archived: 'Arquivado', selectAll: 'Selecionar tudo'},
@@ -10709,8 +10709,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     `a conexão Plaid com a sua conta bancária empresarial foi interrompida. Por favor, <a href='${walletRoute}'>reconecte sua conta bancária ${maskedAccountNumber}</a> para continuar usando seus Cartões Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
                     const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
-                    const article = role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.APPROVE_ONLY ? 'um' : 'a';
-                    return didJoinPolicy ? `${email} entrou pelo link de convite do espaço de trabalho` : `adicionou ${email} como ${article} ${translatedRole}`;
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'um' : 'um';
+                    return didJoinPolicy ? `${email} entrou pelo link de convite do workspace` : `adicionou ${email} como ${article} ${translatedRole}`;
                 },
                 updateRole: (email: string, currentRole: string, newRole: string) => `atualizou a função de ${email} para ${newRole} (anteriormente ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
@@ -10931,7 +10931,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         personalCard: 'Cartão pessoal',
         companyCard: 'Cartão corporativo',
         expensifyCard: 'Cartão Expensify',
-        travelBilling: 'Faturamento consolidado de viagens',
+        travelBilling: 'Faturamento de Viagens Consolidado',
         travelCard: 'Cartão de viagem',
     },
     distance: {
@@ -12263,42 +12263,42 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         submittingTitle: 'Enviando relatórios...',
         payingTitle: 'Marcando relatórios como pagos...',
         holdingTitle: 'Retendo despesas...',
-        unholdingTitle: 'Liberando despesas...',
+        unholdingTitle: 'Removendo bloqueio das despesas...',
         rejectingTitle: 'Rejeitando despesas...',
         deletingTitle: 'Excluindo relatórios...',
         deletingExpensesTitle: 'Excluindo despesas...',
-        runningBody: 'Aguarde alguns minutos ou o Concierge pode te enviar uma mensagem quando terminar.',
+        runningBody: 'Espere alguns minutos ou deixe o Concierge avisar você quando terminar.',
         sendFromConcierge: 'Me avise quando terminar',
         conciergeTitle: 'Pode apostar!',
-        conciergeBody: 'O Concierge vai enviar uma mensagem para você quando terminar.',
+        conciergeBody: 'O Concierge vai te enviar uma mensagem quando terminar.',
         goToConcierge: 'Ir para o Concierge',
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Aprovou ${doneCount} de ${count} relatório`,
-            other: `Aprovados ${doneCount} de ${count} relatórios`,
+            one: `Aprovado(s) ${doneCount} de ${count} relatório`,
+            other: `Aprovado(s) ${doneCount} de ${count} relatórios`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Enviou ${doneCount} de ${count} relatório`,
-            other: `Enviou ${doneCount} de ${count} relatórios`,
+            one: `Enviado(s) ${doneCount} de ${count} relatório`,
+            other: `Enviado(s) ${doneCount} de ${count} relatórios`,
         }),
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Marcado(s) ${doneCount} de ${count} relatório(s) como pago(s)`,
-            other: `Marcou ${doneCount} de ${count} relatórios como pagos`,
+            one: `Marcado(s) ${doneCount} de ${count} relatório como pago(s)`,
+            other: `Marcado(s) ${doneCount} de ${count} relatórios como pago(s)`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Despesas retidas em ${doneCount} de ${count} relatórios`,
+            one: `Despesas retidas em ${doneCount} de ${count} relatório`,
             other: `Despesas retidas em ${doneCount} de ${count} relatórios`,
         }),
         unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Despesas não retidas em ${doneCount} de ${count} relatório(s)`,
-            other: `Despesas não retidas em ${doneCount} de ${count} relatórios`,
+            one: `Bloqueio removido das despesas em ${doneCount} de ${count} relatório`,
+            other: `Bloqueio removido das despesas em ${doneCount} de ${count} relatórios`,
         }),
         rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Despesas rejeitadas em ${doneCount} de ${count} relatórios`,
+            one: `Despesas rejeitadas em ${doneCount} de ${count} relatório`,
             other: `Despesas rejeitadas em ${doneCount} de ${count} relatórios`,
         }),
         deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Excluído(s) ${doneCount} de ${count} relatório(s)`,
-            other: `Excluídos ${doneCount} de ${count} relatórios`,
+            one: `Excluído(s) ${doneCount} de ${count} relatório`,
+            other: `Excluído(s) ${doneCount} de ${count} relatórios`,
         }),
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Despesas excluídas em ${doneCount} de ${count} relatório`,
@@ -12322,24 +12322,24 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             other: `${count} relatórios não puderam ser pagos.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
-            one: 'Não foi possível reter as despesas em 1 relatório.',
-            other: `As despesas em ${count} relatórios não puderam ser retidas.`,
+            one: 'As despesas de 1 relatório não puderam ser retidas.',
+            other: `As despesas de ${count} relatórios não puderam ser retidas.`,
         }),
         notUnheldBody: ({count}: {count: number}) => ({
-            one: 'Não foi possível liberar as despesas em 1 relatório.',
-            other: `Não foi possível liberar despesas em ${count} relatórios.`,
+            one: 'As despesas de 1 relatório não puderam ser desbloqueadas.',
+            other: `As despesas de ${count} relatórios não puderam ser desbloqueadas.`,
         }),
         notRejectedBody: ({count}: {count: number}) => ({
-            one: 'Despesas em 1 relatório não puderam ser rejeitadas.',
-            other: `Não foi possível rejeitar despesas em ${count} relatórios.`,
+            one: 'As despesas de 1 relatório não puderam ser rejeitadas.',
+            other: `As despesas de ${count} relatórios não puderam ser rejeitadas.`,
         }),
         notDeletedBody: ({count}: {count: number}) => ({
             one: '1 relatório não pôde ser excluído.',
             other: `${count} relatórios não puderam ser excluídos.`,
         }),
         expensesNotDeletedBody: ({count}: {count: number}) => ({
-            one: 'Não foi possível excluir as despesas em 1 relatório.',
-            other: `Despesas em ${count} relatórios não puderam ser excluídas.`,
+            one: 'As despesas de 1 relatório não puderam ser excluídas.',
+            other: `As despesas de ${count} relatórios não puderam ser excluídas.`,
         }),
     },
     earlyRenewal: {

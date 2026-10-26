@@ -140,7 +140,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addCardTermsOfService: 'Conditions d’utilisation d’Expensify',
         perPerson: 'par personne',
         reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
-            one: `1 nuit • ${nightlyRate} par nuit`,
+            one: `${count} nuit • ${nightlyRate} par nuit`,
             other: `${count} nuits • ${nightlyRate} par nuit`,
         }),
         phone: 'Téléphone',
@@ -584,7 +584,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Erreur de pièce jointe',
         errorWhileSelectingAttachment: 'Une erreur s’est produite lors de la sélection d’une pièce jointe. Veuillez réessayer.',
         errorWhileSelectingCorruptedAttachment: 'Une erreur s’est produite lors de la sélection d’une pièce jointe corrompue. Veuillez essayer un autre fichier.',
-        errorWhileConvertingImage: 'Nous n’avons pas pu traiter cette image. Veuillez réessayer ou téléverser la photo dans un autre format.',
+        errorWhileConvertingImage: 'Nous n’avons pas pu traiter cette image. Veuillez réessayer ou téléverser la photo dans un format différent.',
         takePhoto: 'Prendre une photo',
         retake: 'Reprendre',
         usePhoto: 'Utiliser la photo',
@@ -5004,7 +5004,7 @@ ${amount} pour ${merchant} - ${date}`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
             deleteOpenExpensifyCardsError: 'Votre entreprise a encore des Cartes Expensify. Veuillez <concierge-link>contacter Concierge</concierge-link> pour les supprimer.',
-            deleteTravelBillingError: 'Votre entreprise a toujours la facturation collective des déplacements activée.',
+            deleteTravelBillingError: 'Votre entreprise a toujours la facturation de voyages consolidée activée.',
             outstandingBalanceWarning:
                 'Vous avez un solde impayé qui doit être réglé avant de supprimer votre dernier espace de travail. Veuillez accéder à vos paramètres d’abonnement pour résoudre le paiement.',
             settleBalance: 'Aller à l’abonnement',
@@ -5073,7 +5073,7 @@ ${amount} pour ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrateur de carte';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administration des personnes';
+                        return 'Administrateur des personnes';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrateur des paiements';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
@@ -5108,9 +5108,9 @@ ${amount} pour ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'catégorie'},
             policyExpenseChatName: (displayName: string) => `Dépenses de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions de la Carte Expensify seront automatiquement exportées vers un « compte de passif Carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
-            travelBilling: 'Exporter les dépenses Consolidated Travel Billing en',
-            travelBillingVendor: 'Prestataire de voyage',
-            travelBillingPayableAccount: 'Compte fournisseur voyages',
+            travelBilling: 'Exporter les dépenses de facturation de voyage consolidée en tant que',
+            travelBillingVendor: 'Fournisseur de voyages',
+            travelBillingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
             recruiting: 'Recrutement',
             rooms: 'Salons',
@@ -5118,7 +5118,7 @@ ${amount} pour ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gérer les cartes de l’espace de travail.',
             peopleAdminAlternateText: 'Gérez les membres et les workflows d’approbation.',
             paymentsAdminAlternateText: 'Gérer les paiements de workflow.',
-            approveOnlyAlternateText: 'Approuver uniquement les notes de frais.',
+            approveOnlyAlternateText: 'Approuver uniquement les rapports.',
             readOnlyActionTitle: 'Pas si vite...',
             readOnlyActionPrompt: 'Votre rôle dans cet espace de travail peut afficher ces paramètres, mais ne peut pas les modifier.',
             noAccessActionPrompt: 'Votre rôle dans l’espace de travail n’a pas accès à ces paramètres. Demandez à un administrateur si vous en avez besoin.',
@@ -5413,7 +5413,7 @@ ${amount} pour ${merchant} - ${date}`,
             bankAccountDescription: 'Choisissez d’où envoyer les chèques.',
             creditCardAccount: 'Compte de carte de crédit',
             travelBillingDescription: (integrationName = 'QuickBooks Online') =>
-                `Les frais de déplacement seront exportés comme des frais de carte de crédit vers le compte ${integrationName} indiqué ci-dessous.`,
+                `Les frais de voyage seront exportés comme des débits de carte de crédit vers le compte ${integrationName} indiqué ci-dessous.`,
             companyCardsLocationEnabledDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} ne prend pas en charge les emplacements dans les exports de factures fournisseur lorsque les emplacements sont importés en tant que tags. Comme vous avez des emplacements importés en tant que tags dans votre espace de travail, cette option d’export n’est pas disponible.`,
             outOfPocketTaxEnabledDescription: (integrationName = 'QuickBooks Online') =>
@@ -5520,7 +5520,7 @@ ${amount} pour ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Les dépenses exportées seront enregistrées comme des transactions bancaires sur le compte bancaire Xero ci-dessous, et les dates de transaction correspondront aux dates figurant sur votre relevé bancaire.',
             bankTransactions: 'Transactions bancaires',
-            travelBillingDescription: 'Les frais de déplacement seront exportés comme transactions bancaires vers le compte Xero indiqué ci-dessous.',
+            travelBillingDescription: 'Les frais de voyage seront exportés sous forme de transactions bancaires vers le compte Xero indiqué ci-dessous.',
             xeroBankAccount: 'Compte bancaire Xero',
             bankAccount: 'Compte bancaire',
             xeroBankAccountDescription: 'Choisissez où les dépenses seront enregistrées comme transactions bancaires.',
@@ -5621,7 +5621,7 @@ ${amount} pour ${merchant} - ${date}`,
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Factures fournisseurs',
                 },
             },
-            travelBillingDescription: 'Les frais de déplacement seront exportés comme des frais de carte de crédit vers le compte Sage Intacct indiqué ci-dessous.',
+            travelBillingDescription: 'Les frais de voyage seront exportés comme des débits de carte de crédit vers le compte Sage Intacct indiqué ci-dessous.',
             creditCardAccount: 'Compte de carte de crédit',
             defaultVendor: 'Fournisseur par défaut',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -6401,9 +6401,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.'},
-            syncTravelBillingSettlements: 'Synchroniser les règlements de facturation de voyage consolidée',
+            syncTravelBillingSettlements: 'Synchroniser les règlements de facturation de voyage consolidés',
             travelBillingSettlementAccount: {
-                label: 'Compte de règlement de facturation de voyages consolidée',
+                label: 'Compte de règlement de facturation de voyage consolidée',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.',
             },
             travelBillingPayableAccount: {label: 'Compte fournisseur de facturation de voyage consolidée'},
@@ -7203,7 +7203,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             tagRules: 'Règles de tags',
             approverDescription: 'Approbateur',
             importTags: 'Importer des tags',
-            appendCustomTagList: 'Ajouter une liste de tags personnalisés',
+            appendCustomTagList: 'Ajouter une liste de tags personnalisée',
             importTagsSupportingText: 'Codez vos dépenses avec un seul type de tag ou plusieurs.',
             configureMultiLevelTags: 'Configurez votre liste de tags pour le multi-niveau.',
             importMultiLevelTagsSupportingText: `Voici un aperçu de vos tags. Si tout semble correct, cliquez ci-dessous pour les importer.`,
@@ -7379,14 +7379,12 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             genericFailureMessage: "Une erreur s'est produite lors de la suppression d'un membre de l'espace de travail, veuillez réessayer.",
             approveOnlyRoleBlockedTitle: 'Impossible de modifier ce rôle',
             approveOnlyRoleBlockedConfirm: 'Compris',
-            approveOnlyRoleBlockedDescription:
-                'Les membres avec approbation uniquement ne peuvent pas créer de dépenses dans cet espace de travail. Ces points doivent d’abord être résolus :',
+            approveOnlyRoleBlockedDescription: 'Les membres en approbation uniquement ne peuvent pas créer de dépenses sur cet espace de travail. Ces points doivent d’abord être résolus :',
             approveOnlyRoleBlockedReasons: {
-                hasCardOnPolicy:
-                    'Une carte leur est assignée dans cet espace de travail. Un administrateur d’espace de travail ou un administrateur de cartes doit d’abord retirer cette assignation.',
+                hasCardOnPolicy: 'Une carte leur est attribuée sur cet espace de travail. Un administrateur de l’espace de travail ou des cartes doit d’abord la désattribuer.',
                 isRestrictedByDomainGroup:
-                    'Cet espace de travail est l’espace de travail préféré pour un groupe de domaine dont cette personne fait partie. Un administrateur de domaine doit d’abord le modifier.',
-                isDefaultPolicy: 'Ceci est leur espace de travail par défaut. Ils devront en définir un autre avant que vous puissiez mettre à jour leur rôle.',
+                    'Cet espace de travail est l’espace de travail préféré d’un groupe de domaine dont ils font partie. Un administrateur de domaine doit d’abord le modifier.',
+                isDefaultPolicy: 'C’est leur espace de travail par défaut. Ils devront en définir un autre avant que vous puissiez mettre à jour leur rôle.',
             },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Voulez-vous vraiment supprimer ${memberName} ?`,
@@ -7440,8 +7438,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 genericRemove: 'Un problème est survenu lors de la suppression de ce membre de l’espace de travail',
             },
             makeApproveOnly: () => ({
-                one: 'Rendre uniquement l’approbation',
-                other: 'Autoriser uniquement les membres à approuver',
+                one: 'Définir en approbation uniquement',
+                other: 'Définir en approbation uniquement',
             }),
             addedWithPrimary: 'Certains membres ont été ajoutés avec leurs identifiants principaux.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Ajouté par la connexion secondaire ${secondaryLogin}.`,
@@ -7486,9 +7484,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                     'Le membre travaille à domicile ou se déplace entre plusieurs sites sans bureau fixe, donc les règles relatives aux trajets domicile-travail ne s’appliquent pas.',
                 futureOnlyNote: 'Les modifications s’appliquent uniquement aux calculs de kilométrage futurs. Les dépenses de kilométrage existantes ne sont pas recalculées.',
             },
-            officeLocation: 'Localisation du bureau',
+            officeLocation: 'Lieu de bureau',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
-            changeOfficeLocation: 'Changer de lieu de travail',
+            changeOfficeLocation: 'Modifier le lieu de travail',
             changeWorkArrangement: 'Modifier l’organisation du travail',
             changeRole: 'Modifier le rôle',
         },
@@ -7893,11 +7891,11 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 chooseBankAccount: 'Choisissez le compte bancaire avec lequel les paiements de votre Carte Expensify seront rapprochés.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Assurez-vous que ce compte correspond à votre <a href="${settlementAccountUrl}">compte de règlement Carte Expensify</a> (se terminant par ${lastFourPAN}) afin que la réconciliation continue fonctionne correctement.`,
-                chooseTravelBillingBankAccount: 'Choisissez le compte bancaire avec lequel vos paiements de facturation de voyage consolidée seront rapprochés.',
+                chooseTravelBillingBankAccount: 'Choisissez le compte bancaire sur lequel vos paiements de facturation de voyage consolidée seront rapprochés.',
                 travelBillingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Assurez-vous que ce compte correspond à votre compte de règlement Consolidated Travel Billing (se terminant par ${lastFourPAN}) afin que le rapprochement continu fonctionne correctement.`,
             },
-            syncTravelBillingSettlements: 'Synchroniser les règlements de facturation de voyage consolidée',
+            syncTravelBillingSettlements: 'Synchroniser les règlements de facturation de voyages consolidés',
             syncTravelBillingSettlementsNoAccountTooltip: 'Pour le déverrouiller, définissez un compte pour vos exports.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Pour le déverrouiller, activez la synchronisation automatique.',
             campfire: 'Campfire',
@@ -9378,9 +9376,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.'},
-            syncTravelBillingSettlements: 'Synchroniser les règlements de facturation de voyage consolidée',
+            syncTravelBillingSettlements: 'Synchroniser les règlements de facturation de voyage consolidés',
             travelBillingSettlementAccount: {
-                label: 'Compte de règlement de facturation de voyages consolidée',
+                label: 'Compte de règlement de facturation de voyage consolidée',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.',
             },
             travelBillingPayableAccount: {label: 'Compte fournisseur de facturation de voyage consolidée'},
@@ -9472,7 +9470,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             exportToMultipleAccounts: 'Configurer l’exportation vers plusieurs comptes',
             cardProgramAccount: {
                 label: 'Compte du programme de carte',
-                description: 'Remplacer le compte de l’espace de travail pour ces programmes de carte.',
+                description: 'Remplacer le compte de l’espace de travail pour ces programmes de cartes.',
                 descriptionLevel2: 'Remplacer le compte de l’espace de travail pour ce programme de carte.',
                 countInfo: ({count}: {count: number}) => {
                     if (!count) {
@@ -9487,13 +9485,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             cardAccount: {
                 label: 'Compte par carte',
                 description: 'Remplacez le compte de programme pour des cartes individuelles.',
-                descriptionLevel2: 'Remplacer le compte du programme pour ces cartes.',
+                descriptionLevel2: 'Remplacer le compte de programme pour ces cartes.',
                 countInfo: ({count}: {count: number}) => {
                     if (!count) {
                         return 'Toutes les cartes utilisent des comptes de programme';
                     }
                     return {
-                        one: `${count} carte avec compte personnalisé`,
+                        one: `${count} carte avec un compte personnalisé`,
                         other: `${count} cartes avec comptes personnalisés`,
                     };
                 },
@@ -9792,7 +9790,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             };
         },
         demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
-            `a mis à jour votre rôle dans ${policyName}, de ${oldRole} à ${newRole}. Vous avez été retiré de tous les chats de dépenses des déclarants, sauf du vôtre.`,
+            `a mis à jour votre rôle dans ${policyName}, passant de ${oldRole} à ${newRole}. Vous avez été retiré de toutes les discussions de dépenses des déclarants, sauf de la vôtre.`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `a mis à jour la devise par défaut en ${newCurrency} (auparavant ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `a mis à jour la fréquence de création automatique de notes de frais sur « ${newFrequency} » (auparavant « ${oldFrequency} »)`,
@@ -10046,7 +10044,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             setCompanyAddressAsPrimary: 'définir l’adresse de l’entreprise comme principale',
             removed: ({name}: {name: string}) => `a supprimé le lieu de bureau « ${name} »`,
             changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
-                `a changé le lieu de travail de ${displayName} en ${officeLocation} (précédemment ${previousOfficeLocation})`,
+                `a modifié le lieu de travail de ${displayName} en ${officeLocation} (précédemment ${previousOfficeLocation})`,
             quotedName: ({name}: {name: string}) => `« ${name} »`,
             companyAddress: 'l’adresse de l’entreprise',
             primaryOffice: 'le bureau principal',
@@ -10281,7 +10279,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié le mode de travail par défaut en ${newArrangement} (auparavant ${oldArrangement})`,
         updateRulesDocument: (isReplacement: boolean, overviewURL?: string) => {
             const message = isReplacement ? 'a remplacé le document de politique de dépenses' : 'a ajouté un document de politique de dépenses';
-            return overviewURL ? `${message} dans <a href="${overviewURL}">Espace de travail &gt; Vue d’ensemble</a>` : message;
+            return overviewURL ? `${message} dans <a href="${overviewURL}">Espace de travail &gt; Aperçu</a>` : message;
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `mis à jour « Empêcher de marquer les notes de frais non remboursables comme payées » en « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
@@ -10517,7 +10515,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Tous les ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Toutes les cartes CSV importées${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                travelBilling: 'Facturation consolidée des voyages',
+                travelBilling: 'Facturation de voyages consolidée',
             },
             bankAccount: {banks: 'Comptes bancaires', closedBankAccounts: 'Comptes bancaires fermés'},
             workspace: {active: 'Actif', archived: 'Archivé', selectAll: 'Tout sélectionner'},
@@ -10823,8 +10821,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     `la connexion Plaid à votre compte bancaire professionnel est rompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> afin de pouvoir continuer à utiliser vos Cartes Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
                     const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
-                    const article = role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.APPROVE_ONLY ? 'un' : 'a';
-                    return didJoinPolicy ? `${email} a rejoint via le lien d’invitation à l’espace de travail` : `a ajouté ${email} en tant que ${article} ${translatedRole}`;
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'un' : 'a';
+                    return didJoinPolicy ? `${email} a rejoint via le lien d’invitation de l’espace de travail` : `a ajouté ${email} en tant que ${article} ${translatedRole}`;
                 },
                 updateRole: (email: string, currentRole: string, newRole: string) => `a mis à jour le rôle de ${email} en ${newRole} (précédemment ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
@@ -11045,7 +11043,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         personalCard: 'Carte personnelle',
         companyCard: 'Carte d’entreprise',
         expensifyCard: 'Carte Expensify',
-        travelBilling: 'Facturation consolidée des voyages',
+        travelBilling: 'Facturation de voyages consolidée',
         travelCard: 'Carte de voyage',
     },
     distance: {
@@ -12391,84 +12389,84 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         approvingTitle: 'Approbation des notes de frais...',
         submittingTitle: 'Soumission des notes de frais...',
         payingTitle: 'Marquage des notes de frais comme payées...',
-        holdingTitle: 'Conservation des dépenses...',
-        unholdingTitle: 'Dépenses en cours de déblocage...',
-        rejectingTitle: 'Rejet des dépenses en cours...',
+        holdingTitle: 'Mise en attente des dépenses...',
+        unholdingTitle: 'Suppression de la mise en attente des dépenses...',
+        rejectingTitle: 'Rejet des dépenses...',
         deletingTitle: 'Suppression des notes de frais...',
         deletingExpensesTitle: 'Suppression des dépenses...',
         runningBody: 'Patientez quelques minutes, ou laissez Concierge vous envoyer un message lorsque ce sera terminé.',
-        sendFromConcierge: 'Envoie-moi un message quand ce sera fait',
-        conciergeTitle: 'Bien sûr !',
-        conciergeBody: 'Concierge vous enverra un message quand ce sera terminé.',
+        sendFromConcierge: 'Envoyez-moi un message quand ce sera fait',
+        conciergeTitle: 'Bien sûr !',
+        conciergeBody: 'Concierge vous enverra un message lorsque ce sera terminé.',
         goToConcierge: 'Aller à Concierge',
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Approuvé ${doneCount} note de frais sur ${count}`,
-            other: `${doneCount} notes de frais approuvées sur ${count}`,
+            one: `Approuvé ${doneCount} sur ${count} note de frais`,
+            other: `Approuvé ${doneCount} sur ${count} notes de frais`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Soumis ${doneCount} note de frais sur ${count}`,
-            other: `${doneCount} notes de frais soumises sur ${count}`,
+            one: `Soumis ${doneCount} sur ${count} note de frais`,
+            other: `Soumis ${doneCount} sur ${count} notes de frais`,
         }),
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `${doneCount} note de frais sur ${count} marquée comme payée`,
-            other: `A marqué ${doneCount} note(s) de frais sur ${count} comme payée(s)`,
+            one: `Marqué ${doneCount} sur ${count} note de frais comme payé`,
+            other: `Marqué ${doneCount} sur ${count} notes de frais comme payé`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Dépenses retenues sur ${doneCount} note(s) de frais sur ${count}`,
-            other: `Dépenses retenues sur ${doneCount} des ${count} notes de frais`,
+            one: `Dépenses mises en attente pour ${doneCount} sur ${count} note de frais`,
+            other: `Dépenses mises en attente pour ${doneCount} sur ${count} notes de frais`,
         }),
         unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Dépenses libérées sur ${doneCount} note(s) de frais sur ${count}`,
-            other: `Dépenses libérées sur ${doneCount} des ${count} notes de frais`,
+            one: `Mise en attente supprimée pour ${doneCount} sur ${count} note de frais`,
+            other: `Mise en attente supprimée pour ${doneCount} sur ${count} notes de frais`,
         }),
         rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Dépenses rejetées sur la note de frais ${doneCount} sur ${count}`,
-            other: `Dépenses rejetées sur ${doneCount} des ${count} notes de frais`,
+            one: `Dépenses rejetées pour ${doneCount} sur ${count} note de frais`,
+            other: `Dépenses rejetées pour ${doneCount} sur ${count} notes de frais`,
         }),
         deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Supprimé ${doneCount} note de frais sur ${count}`,
-            other: `${doneCount} note(s) de frais supprimée(s) sur ${count}`,
+            one: `Supprimé ${doneCount} sur ${count} note de frais`,
+            other: `Supprimé ${doneCount} sur ${count} notes de frais`,
         }),
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Dépenses supprimées sur ${doneCount} note(s) de frais sur ${count}`,
-            other: `Dépenses supprimées sur ${doneCount} des ${count} notes de frais`,
+            one: `Dépenses supprimées pour ${doneCount} sur ${count} note de frais`,
+            other: `Dépenses supprimées pour ${doneCount} sur ${count} notes de frais`,
         }),
         noReportsTitle: 'Aucune note de frais correspondante',
         noReportsBody: 'Aucune des notes de frais que vous avez sélectionnées n’avait besoin de cette action.',
         viewFailedReports: 'Afficher les notes de frais',
         failedTitle: 'Un problème est survenu',
-        failedBody: 'Cette action n’a pas pu être lancée. Veuillez réessayer plus tard.',
+        failedBody: 'Cette action n’a pas pu être démarrée. Veuillez réessayer plus tard.',
         notApprovedBody: ({count}: {count: number}) => ({
-            one: '1 note de frais n’a pas pu être approuvée.',
+            one: "1 note de frais n'a pas pu être approuvée.",
             other: `${count} notes de frais n'ont pas pu être approuvées.`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
-            one: '1 note de frais n’a pas pu être soumise.',
+            one: "1 note de frais n'a pas pu être soumise.",
             other: `${count} notes de frais n'ont pas pu être soumises.`,
         }),
         notPaidBody: ({count}: {count: number}) => ({
-            one: '1 note de frais n’a pas pu être payée.',
+            one: "1 note de frais n'a pas pu être payée.",
             other: `${count} notes de frais n'ont pas pu être payées.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
-            one: 'Les dépenses sur 1 note de frais n’ont pas pu être retenues.',
-            other: `Les dépenses sur ${count} notes de frais n’ont pas pu être retenues.`,
+            one: "Les dépenses de 1 note de frais n'ont pas pu être mises en attente.",
+            other: `Les dépenses de ${count} notes de frais n'ont pas pu être mises en attente.`,
         }),
         notUnheldBody: ({count}: {count: number}) => ({
-            one: 'Les dépenses sur 1 note de frais n’ont pas pu être débloquées.',
-            other: `Impossible de débloquer les dépenses sur ${count} notes de frais.`,
+            one: "Les dépenses de 1 note de frais n'ont pas pu être retirées de l'attente.",
+            other: `Les dépenses de ${count} notes de frais n'ont pas pu être retirées de l'attente.`,
         }),
         notRejectedBody: ({count}: {count: number}) => ({
-            one: 'Les dépenses sur 1 note de frais n’ont pas pu être rejetées.',
-            other: `Les dépenses sur ${count} notes de frais n'ont pas pu être rejetées.`,
+            one: "Les dépenses de 1 note de frais n'ont pas pu être rejetées.",
+            other: `Les dépenses de ${count} notes de frais n'ont pas pu être rejetées.`,
         }),
         notDeletedBody: ({count}: {count: number}) => ({
-            one: '1 note de frais n’a pas pu être supprimée.',
+            one: "1 note de frais n'a pas pu être supprimée.",
             other: `${count} notes de frais n'ont pas pu être supprimées.`,
         }),
         expensesNotDeletedBody: ({count}: {count: number}) => ({
-            one: "Les dépenses sur 1 note de frais n'ont pas pu être supprimées.",
-            other: `Les dépenses sur ${count} notes de frais n'ont pas pu être supprimées.`,
+            one: "Les dépenses de 1 note de frais n'ont pas pu être supprimées.",
+            other: `Les dépenses de ${count} notes de frais n'ont pas pu être supprimées.`,
         }),
     },
     earlyRenewal: {

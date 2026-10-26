@@ -143,7 +143,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addCardTermsOfService: 'Όροι χρήσης Expensify',
         perPerson: 'ανά άτομο',
         reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
-            one: `1 νύχτα • ${nightlyRate} ανά νύχτα`,
+            one: `1 διανυκτέρευση • ${nightlyRate} ανά διανυκτέρευση`,
             other: `${count} διανυκτερεύσεις • ${nightlyRate} ανά διανυκτέρευση`,
         }),
         phone: 'Τηλέφωνο',
@@ -4215,7 +4215,7 @@ ${amount} για ${merchant} - ${date}`,
         addItem: ({item}: {item: string}) => `Προσθήκη ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Αφαίρεση ${item};`,
         removeItemPrompt: ({name}: {name: string}) => `Θέλετε σίγουρα να αφαιρέσετε ${name};`,
-        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} που τελειώνει σε ${ending}`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} με κατάληξη ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Οι ερωτήσεις σε αυτή τη σελίδα άλλαξαν',
     },
@@ -5121,7 +5121,7 @@ ${amount} για ${merchant} - ${date}`,
             cardAdminAlternateText: 'Διαχειριστείτε τις κάρτες χώρου εργασίας.',
             peopleAdminAlternateText: 'Διαχειριστείτε μέλη και ροές έγκρισης.',
             paymentsAdminAlternateText: 'Διαχειριστείτε τις πληρωμές ροής εργασιών.',
-            approveOnlyAlternateText: 'Έγκριση μόνο αναφορών.',
+            approveOnlyAlternateText: 'Μόνο έγκριση αναφορών.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Άμεσο',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Κανένα',
@@ -5142,9 +5142,9 @@ ${amount} για ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Διαχείριση κάρτας';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Διαχείριση ατόμων';
+                        return 'Διαχείριση χρηστών';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'Διαχειριστής πληρωμών';
+                        return 'Διαχείριση πληρωμών';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
                         return 'Μόνο έγκριση';
                     case CONST.POLICY.ROLE.USER:
@@ -5181,10 +5181,10 @@ ${amount} για ${merchant} - ${date}`,
             viewTransactions: 'Προβολή συναλλαγών',
             policyExpenseChatName: (displayName: string) => `έξοδα του/της ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Οι συναλλαγές της Κάρτας Expensify θα εξαχθούν αυτόματα σε έναν «Λογαριασμό υποχρέωσης Κάρτας Expensify» που δημιουργείται με <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">την ενσωμάτωσή μας</a>.</muted-text-label>`,
-            travelBilling: 'Εξαγωγή εξόδων ενοποιημένης χρέωσης ταξιδιού ως',
-            travelBillingVendor: 'Πάροχος ταξιδιωτικών υπηρεσιών',
+            travelBilling: 'Εξαγωγή ενοποιημένων εξόδων ταξιδιωτικής τιμολόγησης ως',
+            travelBillingVendor: 'Προμηθευτής ταξιδιών',
             travelBillingPayableAccount: 'Λογαριασμός πληρωτέων ταξιδιών',
-            deleteTravelBillingError: 'Η εταιρεία σας έχει ακόμη ενεργοποιημένη τη συγκεντρωτική χρέωση ταξιδιών.',
+            deleteTravelBillingError: 'Η εταιρεία σας έχει ακόμα ενεργοποιημένη τη συγκεντρωτική χρέωση ταξιδιών.',
             vendors: 'Προμηθευτές',
             noAccessActionPrompt: 'Ο ρόλος σας σε αυτόν τον χώρο εργασίας δεν έχει πρόσβαση σε αυτές τις ρυθμίσεις. Ζητήστε από έναν διαχειριστή να σας δώσει πρόσβαση, αν τη χρειάζεστε.',
             connections: 'Συνδέσεις',
@@ -5584,7 +5584,7 @@ ${amount} για ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Οι εξαγόμενες δαπάνες θα καταχωριστούν ως τραπεζικές συναλλαγές στον παρακάτω τραπεζικό λογαριασμό Xero και οι ημερομηνίες συναλλαγών θα ταιριάζουν με τις ημερομηνίες στο τραπεζικό σας αντίγραφο.',
             bankTransactions: 'Τραπεζικές συναλλαγές',
-            travelBillingDescription: 'Οι δαπάνες ταξιδιού θα εξαχθούν ως τραπεζικές συναλλαγές στον λογαριασμό Xero που καθορίζεται παρακάτω.',
+            travelBillingDescription: 'Τα έξοδα ταξιδιού θα εξαχθούν ως τραπεζικές συναλλαγές στον λογαριασμό Xero που καθορίζεται παρακάτω.',
             xeroBankAccount: 'τραπεζικός λογαριασμός Xero',
             bankAccount: 'Τραπεζικός λογαριασμός',
             xeroBankAccountDescription: 'Επιλέξτε πού θα καταχωρούνται οι δαπάνες ως τραπεζικές συναλλαγές.',
@@ -6343,7 +6343,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 label: 'Λογαριασμός διακανονισμού κάρτας Expensify',
                 description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Rillet.',
             },
-            syncTravelBillingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης τιμολόγησης ταξιδιών',
+            syncTravelBillingSettlements: 'Συγχρονισμός διακανονισμών συγκεντρωτικής χρέωσης ταξιδιών',
             travelBillingSettlementAccount: {
                 label: 'λογαριασμός διακανονισμού ενοποιημένης χρέωσης ταξιδιών',
                 description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Rillet.',
@@ -6496,12 +6496,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
             settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
-            syncTravelBillingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης τιμολόγησης ταξιδιών',
+            syncTravelBillingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
             travelBillingSettlementAccount: {
-                label: 'Λογαριασμός διακανονισμού συγκεντρωτικής χρέωσης ταξιδιών',
+                label: 'λογαριασμός εκκαθάρισης συγκεντρωτικής χρέωσης ταξιδιών',
                 description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.',
             },
-            travelBillingPayableAccount: {label: 'Λογαριασμός πληρωτέων για ενοποιημένη τιμολόγηση ταξιδιών'},
+            travelBillingPayableAccount: {label: 'Λογαριασμός πληρωτέων ενοποιημένης χρέωσης ταξιδιών'},
         },
         type: {
             free: 'Δωρεάν',
@@ -6669,8 +6669,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             editStartDateDescription:
                 'Επιλέξτε μια νέα ημερομηνία έναρξης συναλλαγών. Θα συγχρονίσουμε όλες τις συναλλαγές από αυτήν την ημερομηνία και μετά, εξαιρώντας όσες έχουμε ήδη εισαγάγει.',
             bulkEditStartDateDescription:
-                'Επιλέξτε μια ημερομηνία έναρξης συναλλαγών για όλες τις επιλεγμένες κάρτες. Θα συγχρονίσουμε συναλλαγές από αυτήν την ημερομηνία και μετά, εξαιρώντας όσες έχουμε ήδη εισαγάγει.',
-            bulkStartDateUpdated: 'Ενημερώθηκε η ημερομηνία έναρξης συναλλαγής',
+                'Επιλέξτε ημερομηνία έναρξης συναλλαγών για όλες τις επιλεγμένες κάρτες. Θα συγχρονίσουμε τις συναλλαγές από αυτήν την ημερομηνία και μετά, εξαιρώντας όσες έχουμε ήδη εισαγάγει.',
+            bulkStartDateUpdated: 'Η ημερομηνία έναρξης συναλλαγών ενημερώθηκε',
             fromTheBeginning: 'Από την αρχή',
             customStartDate: 'Προσαρμοσμένη ημερομηνία έναρξης',
             customCloseDate: 'Προσαρμοσμένη ημερομηνία λήξης',
@@ -7299,7 +7299,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             tagRules: 'Κανόνες ετικετών',
             approverDescription: 'Έγκριση',
             importTags: 'Εισαγωγή ετικετών',
-            appendCustomTagList: 'Προσθήκη προσαρμοσμένης λίστας ετικετών',
+            appendCustomTagList: 'Προσάρτηση προσαρμοσμένης λίστας ετικετών',
             importTagsSupportingText: 'Κωδικοποιήστε τα έξοδά σας με έναν τύπο ετικέτας ή με πολλούς.',
             configureMultiLevelTags: 'Ρυθμίστε τη λίστα με τις ετικέτες σας για πολυεπίπεδη επισήμανση.',
             importMultiLevelTagsSupportingText: `Δείτε εδώ μια προεπισκόπηση των ετικετών σας. Αν όλα φαίνονται σωστά, κάντε κλικ παρακάτω για να τις εισαγάγετε.`,
@@ -7479,13 +7479,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         people: {
             genericFailureMessage: 'Παρουσιάστηκε σφάλμα κατά την αφαίρεση μέλους από τον χώρο εργασίας, δοκιμάστε ξανά',
             approveOnlyRoleBlockedTitle: 'Δεν είναι δυνατή η αλλαγή αυτού του ρόλου',
-            approveOnlyRoleBlockedConfirm: 'Το κατάλαβα',
-            approveOnlyRoleBlockedDescription: 'Τα μέλη με μόνο δικαίωμα έγκρισης δεν μπορούν να δημιουργούν δαπάνες σε αυτόν τον χώρο εργασίας. Πρέπει πρώτα να επιλυθούν τα εξής:',
+            approveOnlyRoleBlockedConfirm: 'Κατάλαβα',
+            approveOnlyRoleBlockedDescription: 'Τα μέλη με μόνο έγκριση δεν μπορούν να δημιουργήσουν έξοδα σε αυτόν τον χώρο εργασίας. Αυτά πρέπει να επιλυθούν πρώτα:',
             approveOnlyRoleBlockedReasons: {
-                hasCardOnPolicy: 'Μια κάρτα είναι εκχωρημένη σε αυτούς σε αυτόν τον χώρου εργασίας. Ένας διαχειριστής χώρου εργασίας ή διαχειριστής καρτών πρέπει πρώτα να την αποδεσμεύσει.',
+                hasCardOnPolicy: 'Έχει εκχωρηθεί μια κάρτα σε αυτούς σε αυτόν τον χώρο εργασίας. Ένας διαχειριστής χώρου εργασίας ή καρτών πρέπει πρώτα να την αφαιρέσει.',
                 isRestrictedByDomainGroup:
-                    'Ο συγκεκριμένος χώρος εργασίας είναι ο προτιμώμενος χώρος εργασίας για μια ομαδοποίηση τομέα στην οποία ανήκουν. Πρέπει πρώτα να τον αλλάξει ένας διαχειριστής τομέα.',
-                isDefaultPolicy: 'Αυτός είναι ο προεπιλεγμένος χώρος εργασίας τους. Θα χρειαστεί να ορίσουν έναν διαφορετικό πριν μπορέσετε να ενημερώσετε τον ρόλο τους.',
+                    'Αυτός ο χώρος εργασίας είναι ο προτιμώμενος χώρος εργασίας για μια ομάδα τομέα στην οποία ανήκουν. Ένας διαχειριστής τομέα πρέπει πρώτα να τον αλλάξει.',
+                isDefaultPolicy: 'Αυτός είναι ο προεπιλεγμένος χώρος εργασίας τους. Θα πρέπει να ορίσουν έναν διαφορετικό πριν μπορέσετε να ενημερώσετε τον ρόλο τους.',
             },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Είστε βέβαιοι ότι θέλετε να αφαιρέσετε τον/την ${memberName};`,
@@ -7543,8 +7543,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 genericRemove: 'Προέκυψε πρόβλημα κατά την αφαίρεση αυτού του μέλους του χώρου εργασίας',
             },
             makeApproveOnly: () => ({
-                one: 'Ορίστε μόνο έγκριση',
-                other: 'Κάντε τα μέλη μόνο εγκρίνοντες',
+                one: 'Ορισμός ως μόνο έγκριση',
+                other: 'Ορισμός ως μόνο έγκριση',
             }),
             addedWithPrimary: 'Ορισμένα μέλη προστέθηκαν με τους κύριους λογαριασμούς σύνδεσής τους.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Προστέθηκε από το δευτερεύον στοιχείο σύνδεσης ${secondaryLogin}.`,
@@ -7592,8 +7592,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             officeLocation: 'Τοποθεσία γραφείου',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
-            changeOfficeLocation: 'Αλλάξτε την τοποθεσία γραφείου',
-            changeWorkArrangement: 'Αλλαγή εργασιακής ρύθμισης',
+            changeOfficeLocation: 'Αλλαγή τοποθεσίας γραφείου',
+            changeWorkArrangement: 'Αλλαγή ρύθμισης εργασίας',
             changeRole: 'Αλλαγή ρόλου',
         },
         card: {
@@ -7983,14 +7983,14 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             cardReconciliation: 'Συμφωνία κάρτας',
             reconciliationAccount: 'Λογαριασμός συμφιλίωσης',
             continuousReconciliation: 'Συνεχής συμφωνία',
-            syncTravelBillingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης τιμολόγησης ταξιδιών',
+            syncTravelBillingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
             saveHoursOnReconciliation:
                 'Εξοικονομήστε ώρες σε κάθε λογιστική περίοδο στην συμφωνία λογαριασμών, αφήνοντας το Expensify να συμφωνίζει συνεχώς για εσάς τις καταστάσεις και τους διακανονισμούς της Κάρτας Expensify.',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
                 `<muted-text-label>Για να ενεργοποιήσετε την αυτόματη συμφωνία, ενεργοποιήστε την <a href="${accountingAdvancedSettingsLink}">αυτόματη συγχρονισμό</a> για το ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Επιλέξτε τον τραπεζικό λογαριασμό με τον οποίο θα συμφωνούνται οι πληρωμές της Κάρτας Expensify.',
-                chooseTravelBillingBankAccount: 'Επιλέξτε τον τραπεζικό λογαριασμό με τον οποίο θα συμφωνούνται οι πληρωμές της ενοποιημένης τιμολόγησης ταξιδιών σας.',
+                chooseTravelBillingBankAccount: 'Επιλέξτε τον τραπεζικό λογαριασμό με τον οποίο θα συμφωνούνται οι πληρωμές της ενοποιημένης χρέωσης ταξιδιού σας.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Βεβαιωθείτε ότι αυτός ο λογαριασμός ταιριάζει με τον <a href="${settlementAccountUrl}">λογαριασμό εκκαθάρισης της Κάρτας Expensify</a> (που λήγει σε ${lastFourPAN}), ώστε η συνεχής συμφωνία να λειτουργεί σωστά.`,
                 travelBillingSettlementAccountReconciliation: (lastFourPAN: string) =>
@@ -9514,12 +9514,12 @@ ${reportName}`,
             },
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών Κάρτας Expensify',
             settlementAccount: {label: 'λογαριασμός εκκαθάρισης Κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Campfire.'},
-            syncTravelBillingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης τιμολόγησης ταξιδιών',
+            syncTravelBillingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
             travelBillingSettlementAccount: {
-                label: 'Λογαριασμός διακανονισμού συγκεντρωτικής χρέωσης ταξιδιών',
+                label: 'λογαριασμός εκκαθάρισης συγκεντρωτικής χρέωσης ταξιδιών',
                 description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Campfire.',
             },
-            travelBillingPayableAccount: {label: 'Λογαριασμός πληρωτέων για ενοποιημένη τιμολόγηση ταξιδιών'},
+            travelBillingPayableAccount: {label: 'Λογαριασμός πληρωτέων ενοποιημένης χρέωσης ταξιδιών'},
             exportToMultipleAccounts: 'Ρύθμιση εξαγωγής σε πολλούς λογαριασμούς',
             cardProgramAccount: {
                 label: 'Λογαριασμός προγράμματος κάρτας',
@@ -9605,11 +9605,11 @@ ${reportName}`,
                 label: 'Λογαριασμός εταιρικής κάρτας',
                 description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
             },
-            exportToMultipleAccounts: 'Ρυθμίστε την εξαγωγή σε πολλούς λογαριασμούς',
+            exportToMultipleAccounts: 'Ρύθμιση εξαγωγής σε πολλούς λογαριασμούς',
             cardProgramAccount: {
                 label: 'Λογαριασμός προγράμματος κάρτας',
-                description: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτά τα προγράμματα καρτών.',
-                descriptionLevel2: 'Αντικαταστήστε τον λογαριασμό χώρου εργασίας για αυτό το πρόγραμμα κάρτας.',
+                description: 'Παρακάμψτε τον λογαριασμό χώρου εργασίας για αυτά τα προγράμματα καρτών.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτό το πρόγραμμα κάρτας.',
                 countInfo: ({count}: {count: number}) => {
                     if (!count) {
                         return 'Όλα τα προγράμματα χρησιμοποιούν τον προεπιλεγμένο λογαριασμό';
@@ -9622,7 +9622,7 @@ ${reportName}`,
             },
             cardAccount: {
                 label: 'Λογαριασμός ανά κάρτα',
-                description: 'Παράκαμψη του λογαριασμού προγράμματος για μεμονωμένες κάρτες.',
+                description: 'Παρακάμψτε τον λογαριασμό προγράμματος για μεμονωμένες κάρτες.',
                 descriptionLevel2: 'Παράκαμψη του λογαριασμού προγράμματος για αυτές τις κάρτες.',
                 countInfo: ({count}: {count: number}) => {
                     if (!count) {
@@ -10045,12 +10045,12 @@ ${reportName}`,
             };
         },
         demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
-            `ενημέρωσε τον ρόλο σας στην πολιτική ${policyName} από ${oldRole} σε ${newRole}. Έχετε αφαιρεθεί από όλες τις συνομιλίες εξόδων υποβάλλοντος, εκτός από τη δική σας.`,
+            `ενημέρωσε τον ρόλο σας στην πολιτική ${policyName} από ${oldRole} σε ${newRole}. Έχετε αφαιρεθεί από όλες τις συνομιλίες εξόδων υποβολέων, εκτός από τις δικές σας.`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `ενημέρωσε το προεπιλεγμένο νόμισμα σε ${newCurrency} (προηγουμένως ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `ενημέρωσε τη συχνότητα αυτόματης αναφοράς σε «${newFrequency}» (προηγουμένως «${oldFrequency}»)`,
         updateApprovalMode: (newValue, oldValue) => `ενημέρωσε τη λειτουργία έγκρισης σε «${newValue}» (προηγουμένως «${oldValue}»)`,
         archivedWorkspace: 'αρχειοθέτησε αυτόν τον χώρο εργασίας',
-        unarchivedWorkspace: 'καταργήθηκε η αρχειοθέτηση αυτού του χώρου εργασίας',
+        unarchivedWorkspace: 'ήταν η κατάργηση αρχειοθέτησης αυτού του χώρου εργασίας',
         upgradedWorkspace: 'αναβάθμισε αυτόν τον χώρο εργασίας στο πρόγραμμα Control',
         forcedCorporateUpgrade: `Αυτός ο χώρος εργασίας έχει αναβαθμιστεί στο πλάνο Control. Κάντε κλικ <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">εδώ</a> για περισσότερες πληροφορίες.`,
         downgradedWorkspace: 'υποβίβασε αυτόν τον χώρο εργασίας στο πρόγραμμα Collect',
@@ -10683,7 +10683,7 @@ ${reportName}`,
             },
             card: {
                 expensify: 'Expensify',
-                travelBilling: 'Συγκεντρωτική χρέωση ταξιδιών',
+                travelBilling: 'Ενοποιημένη τιμολόγηση ταξιδιών',
                 individualCards: 'Μεμονωμένες κάρτες',
                 closedCards: 'Κλειστές κάρτες',
                 cardFeeds: 'Ροές καρτών',
@@ -10996,8 +10996,8 @@ ${reportName}`,
                     `η σύνδεση Plaid με τον επαγγελματικό σας τραπεζικό λογαριασμό έχει διακοπεί. Παρακαλούμε <a href='${walletRoute}'>συνδέστε ξανά τον τραπεζικό σας λογαριασμό ${maskedAccountNumber}</a> ώστε να μπορείτε να συνεχίσετε να χρησιμοποιείτε τις Κάρτες Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
                     const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
-                    const article = role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.APPROVE_ONLY ? 'ένα' : 'α';
-                    return didJoinPolicy ? `${email} προστέθηκε μέσω του συνδέσμου πρόσκλησης του χώρου εργασίας` : `προστέθηκε το ${email} ως ${article} ${translatedRole}`;
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'ένα' : 'α';
+                    return didJoinPolicy ? `${email} συμμετείχε μέσω του συνδέσμου πρόσκλησης του χώρου εργασίας` : `προστέθηκε ο/η ${email} ως ${article} ${translatedRole}`;
                 },
                 updateRole: (email, currentRole, newRole) => `ενημέρωσε τον ρόλο του/της ${email} σε ${newRole} (προηγουμένως ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
@@ -11214,7 +11214,7 @@ ${reportName}`,
         personalCard: 'Προσωπική κάρτα',
         companyCard: 'Εταιρική κάρτα',
         expensifyCard: 'Κάρτα Expensify',
-        travelBilling: 'Συγκεντρωτική χρέωση ταξιδιών',
+        travelBilling: 'Ενοποιημένη τιμολόγηση ταξιδιών',
         travelCard: 'Travel Card',
     },
     distance: {
@@ -12582,85 +12582,85 @@ ${reportName}`,
     bulkAction: {
         approvingTitle: 'Γίνεται έγκριση αναφορών...',
         submittingTitle: 'Υποβολή αναφορών...',
-        payingTitle: 'Σήμανση αναφορών ως εξοφλημένων...',
-        holdingTitle: 'Τα έξοδα κρατούνται...',
-        unholdingTitle: 'Ακύρωση παγώματος εξόδων…',
-        rejectingTitle: 'Γίνεται απόρριψη εξόδων...',
-        deletingTitle: 'Διαγραφή αναφορών...',
+        payingTitle: 'Σημειώνονται οι αναφορές ως πληρωμένες...',
+        holdingTitle: 'Τα έξοδα τίθενται σε αναμονή...',
+        unholdingTitle: 'Αφαιρείται η κράτηση των εξόδων...',
+        rejectingTitle: 'Απόρριψη εξόδων...',
+        deletingTitle: 'Γίνεται διαγραφή αναφορών...',
         deletingExpensesTitle: 'Γίνεται διαγραφή εξόδων...',
         runningBody: 'Περιμένετε μερικά λεπτά ή αφήστε το Concierge να σας στείλει μήνυμα όταν ολοκληρωθεί.',
-        sendFromConcierge: 'Στείλτε μου μήνυμα όταν ολοκληρωθεί',
-        conciergeTitle: 'Και βέβαια!',
-        conciergeBody: 'Το Concierge θα σας στείλει μήνυμα όταν ολοκληρωθεί.',
+        sendFromConcierge: 'Στείλτε μου μήνυμα όταν τελειώσει',
+        conciergeTitle: 'Βεβαίως!',
+        conciergeBody: 'Ο Concierge θα σας στείλει μήνυμα όταν ολοκληρωθεί.',
         goToConcierge: 'Μετάβαση στο Concierge',
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Εγκρίθηκε ${doneCount} από ${count} αναφορά`,
+            one: `Εγκρίθηκαν ${doneCount} από ${count} αναφορά`,
             other: `Εγκρίθηκαν ${doneCount} από ${count} αναφορές`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Υποβλήθηκε ${doneCount} από ${count} αναφορά`,
+            one: `Υποβλήθηκαν ${doneCount} από ${count} αναφορά`,
             other: `Υποβλήθηκαν ${doneCount} από ${count} αναφορές`,
         }),
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Σημειώθηκαν ως πληρωμένες ${doneCount} από ${count} αναφορές`,
-            other: `Σημειώθηκαν ${doneCount} από ${count} αναφορές ως πληρωμένες`,
+            one: `Σημειώθηκαν ως πληρωμένες ${doneCount} από ${count} αναφορά`,
+            other: `Σημειώθηκαν ως πληρωμένες ${doneCount} από ${count} αναφορές`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Δεσμευμένες δαπάνες σε ${doneCount} από ${count} αναφορές`,
-            other: `Δαπανηθέντα ποσά σε αναμονή σε ${doneCount} από ${count} αναφορές`,
+            one: `Τέθηκαν σε αναμονή έξοδα σε ${doneCount} από ${count} αναφορά`,
+            other: `Τέθηκαν σε αναμονή έξοδα σε ${doneCount} από ${count} αναφορές`,
         }),
         unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Μη δεσμευμένες δαπάνες σε ${doneCount} από ${count} αναφορές`,
-            other: `Μη δεσμευμένες δαπάνες σε ${doneCount} από ${count} αναφορές`,
+            one: `Αφαιρέθηκε η κράτηση εξόδων σε ${doneCount} από ${count} αναφορά`,
+            other: `Αφαιρέθηκε η κράτηση εξόδων σε ${doneCount} από ${count} αναφορές`,
         }),
         rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Απορρίφθηκαν δαπάνες σε ${doneCount} από ${count} αναφορά`,
-            other: `Απορρίφθηκαν δαπάνες σε ${doneCount} από ${count} αναφορές`,
+            one: `Απορρίφθηκαν έξοδα σε ${doneCount} από ${count} αναφορά`,
+            other: `Απορρίφθηκαν έξοδα σε ${doneCount} από ${count} αναφορές`,
         }),
         deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Διαγράφηκε(αν) ${doneCount} από ${count} αναφορά`,
+            one: `Διαγράφηκαν ${doneCount} από ${count} αναφορά`,
             other: `Διαγράφηκαν ${doneCount} από ${count} αναφορές`,
         }),
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Διαγράφηκαν δαπάνες σε ${doneCount} από ${count} αναφορές`,
-            other: `Διαγράφηκαν δαπάνες σε ${doneCount} από ${count} αναφορές`,
+            one: `Διαγράφηκαν έξοδα σε ${doneCount} από ${count} αναφορά`,
+            other: `Διαγράφηκαν έξοδα σε ${doneCount} από ${count} αναφορές`,
         }),
-        noReportsTitle: 'Δεν υπάρχουν αντίστοιχες αναφορές',
-        noReportsBody: 'Κανένα από τα αναφορικά έγγραφα που επιλέξατε δεν χρειαζόταν αυτήν την ενέργεια.',
+        noReportsTitle: 'Δεν υπάρχουν αντιστοιχίες αναφορών',
+        noReportsBody: 'Καμία από τις αναφορές που επιλέξατε δεν χρειαζόταν αυτή την ενέργεια.',
         viewFailedReports: 'Προβολή αναφορών',
         failedTitle: 'Κάτι πήγε στραβά',
-        failedBody: 'Δεν ήταν δυνατή η έναρξη αυτής της ενέργειας. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
+        failedBody: 'Αυτή η ενέργεια δεν μπόρεσε να ξεκινήσει. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
         notApprovedBody: ({count}: {count: number}) => ({
             one: '1 αναφορά δεν μπόρεσε να εγκριθεί.',
-            other: `Δεν ήταν δυνατή η έγκριση ${count} αναφορών.`,
+            other: `${count} αναφορές δεν ήταν δυνατό να εγκριθούν.`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
-            one: '1 αναφορά δεν ήταν δυνατό να υποβληθεί.',
-            other: `${count} αναφορές δεν ήταν δυνατόν να υποβληθούν.`,
+            one: '1 αναφορά δεν μπόρεσε να υποβληθεί.',
+            other: `${count} αναφορές δεν ήταν δυνατό να υποβληθούν.`,
         }),
         notPaidBody: ({count}: {count: number}) => ({
-            one: '1 αναφορά δεν ήταν δυνατό να πληρωθεί.',
-            other: `Δεν ήταν δυνατή η πληρωμή ${count} αναφορών.`,
+            one: '1 αναφορά δεν μπόρεσε να πληρωθεί.',
+            other: `${count} αναφορές δεν ήταν δυνατό να πληρωθούν.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
-            one: 'Δεν ήταν δυνατή η κράτηση εξόδων σε 1 αναφορά.',
-            other: `Οι δαπάνες σε ${count} αναφορές δεν μπόρεσαν να παρακρατηθούν.`,
+            one: 'Τα έξοδα σε 1 αναφορά δεν ήταν δυνατό να τεθούν σε αναμονή.',
+            other: `Τα έξοδα σε ${count} αναφορές δεν ήταν δυνατό να τεθούν σε αναμονή.`,
         }),
         notUnheldBody: ({count}: {count: number}) => ({
-            one: 'Οι δαπάνες σε 1 αναφορά δεν ήταν δυνατό να αποδεσμευτούν από την αναμονή.',
-            other: `Οι δαπάνες σε ${count} αναφορές δεν μπόρεσαν να αποδεσμευτούν.`,
+            one: 'Τα έξοδα σε 1 αναφορά δεν ήταν δυνατό να αφαιρεθούν από την αναμονή.',
+            other: `Τα έξοδα σε ${count} αναφορές δεν ήταν δυνατό να αφαιρεθούν από την αναμονή.`,
         }),
         notRejectedBody: ({count}: {count: number}) => ({
-            one: 'Οι δαπάνες σε 1 αναφορά δεν ήταν δυνατό να απορριφθούν.',
+            one: 'Τα έξοδα σε 1 αναφορά δεν ήταν δυνατό να απορριφθούν.',
             other: `Τα έξοδα σε ${count} αναφορές δεν ήταν δυνατό να απορριφθούν.`,
         }),
         notDeletedBody: ({count}: {count: number}) => ({
-            one: 'Δεν ήταν δυνατή η διαγραφή 1 αναφοράς.',
-            other: `Δεν ήταν δυνατή η διαγραφή ${count} αναφορών.`,
+            one: '1 αναφορά δεν μπόρεσε να διαγραφεί.',
+            other: `${count} αναφορές δεν ήταν δυνατό να διαγραφούν.`,
         }),
         expensesNotDeletedBody: ({count}: {count: number}) => ({
-            one: 'Τα έξοδα σε 1 αναφορά δεν μπόρεσαν να διαγραφούν.',
-            other: `Τα έξοδα σε ${count} αναφορές δεν μπόρεσαν να διαγραφούν.`,
+            one: 'Τα έξοδα σε 1 αναφορά δεν ήταν δυνατό να διαγραφούν.',
+            other: `Τα έξοδα σε ${count} αναφορές δεν ήταν δυνατό να διαγραφούν.`,
         }),
     },
     emailIssuePage: {

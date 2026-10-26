@@ -4147,7 +4147,7 @@ ${amount} voor ${merchant} - ${date}`,
         removeItemPrompt: ({name}: {name: string}) => `Weet je zeker dat je ${name} wilt verwijderen?`,
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} eindigend op ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
-        questionsChanged: 'De vragen op deze pagina zijn veranderd',
+        questionsChanged: 'De vragen op deze pagina zijn gewijzigd',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens lang zijn, met 6 letters gevolgd door 2 of 5 letters of cijfers.',
@@ -4964,7 +4964,7 @@ ${amount} voor ${merchant} - ${date}`,
             deleteConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen?',
             deleteWithCardsConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen? Hiermee worden alle kaartfeeds en toegewezen kaarten verwijderd.',
             deleteOpenExpensifyCardsError: 'Je bedrijf heeft nog Expensify Kaarten. <concierge-link>Neem contact op met Concierge</concierge-link> om ze te verwijderen.',
-            deleteTravelBillingError: 'Je bedrijf heeft nog steeds Geconsolideerde Reisfacturatie ingeschakeld.',
+            deleteTravelBillingError: 'Je bedrijf heeft nog steeds Geconsolideerde Reisfacturering ingeschakeld.',
             outstandingBalanceWarning:
                 'Je hebt een openstaand saldo dat moet worden vereffend voordat je je laatste werkruimte kunt verwijderen. Ga naar je abonnementsinstellingen om de betaling af te ronden.',
             settleBalance: 'Ga naar abonnement',
@@ -5034,7 +5034,7 @@ ${amount} voor ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Kaartbeheer';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Personeelsbeheer';
+                        return 'Beheer personen';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Beheerder betalingen';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
@@ -5070,8 +5070,8 @@ ${amount} voor ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'categorie'},
             deepDiveExpensifyCard: `<muted-text-label>Transacties met de Expensify Kaart worden automatisch geëxporteerd naar een "Expensify Kaart Passivarekening" dat wordt aangemaakt via <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
             travelBilling: 'Geconsolideerde reiskostenfacturatie exporteren als',
-            travelBillingVendor: 'Reisleverancier',
-            travelBillingPayableAccount: 'Reis crediteurenrekening',
+            travelBillingVendor: 'Reisaanbieder',
+            travelBillingPayableAccount: 'Reiscrediteurenrekening',
             hr: 'HR',
             recruiting: 'Werving',
             rooms: 'Kamers',
@@ -5079,7 +5079,7 @@ ${amount} voor ${merchant} - ${date}`,
             cardAdminAlternateText: 'Werkruimtekaarten beheren.',
             peopleAdminAlternateText: 'Beheer leden en goedkeuringsworkflows.',
             paymentsAdminAlternateText: 'Workflowsbetalingen beheren.',
-            approveOnlyAlternateText: 'Alleen declaraties goedkeuren.',
+            approveOnlyAlternateText: 'Alleen rapporten goedkeuren.',
             readOnlyActionTitle: 'Niet zo snel...',
             readOnlyActionPrompt: 'Je rol in de workspace kan deze instellingen bekijken, maar niet bewerken.',
             noAccessActionPrompt: 'Je rol in deze workspace heeft geen toegang tot deze instellingen. Vraag een admin als je die nodig hebt.',
@@ -5370,7 +5370,7 @@ ${amount} voor ${merchant} - ${date}`,
             bankAccountDescription: 'Kies vanaf waar cheques worden verzonden.',
             creditCardAccount: 'Creditcardrekening',
             travelBillingDescription: (integrationName = 'QuickBooks Online') =>
-                `Reiskosten worden geëxporteerd als creditcardkosten naar de hieronder opgegeven ${integrationName}-rekening.`,
+                `Reiskosten worden als creditcardkosten geëxporteerd naar het hieronder opgegeven ${integrationName}-account.`,
             companyCardsLocationEnabledDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} ondersteunt geen locaties op leveranciersfactuur-exporten wanneer locaties als tags worden geïmporteerd. Omdat je in je werkruimte locaties als tags hebt geïmporteerd, is deze exportoptie niet beschikbaar.`,
             outOfPocketTaxEnabledDescription: (integrationName = 'QuickBooks Online') =>
@@ -5473,7 +5473,7 @@ ${amount} voor ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Geëxporteerde uitgaven worden als banktransacties geboekt op de onderstaande Xero-bankrekening, en transactiedata komen overeen met de data op je bankafschrift.',
             bankTransactions: 'Banktransacties',
-            travelBillingDescription: 'Reiskosten worden geëxporteerd als banktransacties naar de hieronder opgegeven Xero-rekening.',
+            travelBillingDescription: 'Reiskosten worden als banktransacties geëxporteerd naar het hieronder opgegeven Xero-account.',
             xeroBankAccount: 'Xero-bankrekening',
             bankAccount: 'Bankrekening',
             xeroBankAccountDescription: 'Kies waar onkosten als banktransacties worden geboekt.',
@@ -5574,7 +5574,7 @@ ${amount} voor ${merchant} - ${date}`,
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Leveranciersfacturen',
                 },
             },
-            travelBillingDescription: 'Reiskosten worden geëxporteerd als creditcardafschrijvingen naar de Sage Intacct-rekening die hieronder is opgegeven.',
+            travelBillingDescription: 'Reiskosten worden als creditcardkosten geëxporteerd naar het hieronder opgegeven Sage Intacct-account.',
             creditCardAccount: 'Creditcardrekening',
             defaultVendor: 'Standaardleverancier',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -6346,12 +6346,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             syncExpensifyCardSettlements: 'Expensify Kaart-afrekeningen synchroniseren',
             settlementAccount: {label: 'Rekening voor afwikkeling van Expensify Kaart', description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in DualEntry.'},
-            syncTravelBillingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
+            syncTravelBillingSettlements: 'Geconsolideerde reisfactureringsafrekeningen synchroniseren',
             travelBillingSettlementAccount: {
-                label: 'Verzamelrekening voor geconsolideerde reisfacturering',
+                label: 'Rekening voor afwikkeling van geconsolideerde reisfacturatie',
                 description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in DualEntry.',
             },
-            travelBillingPayableAccount: {label: 'Verzamelrekening voor te betalen reiskosten'},
+            travelBillingPayableAccount: {label: 'Samengevoegde reisfacturatie te betalen rekening'},
         },
         type: {
             free: 'Gratis',
@@ -6522,8 +6522,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             editStartDateDescription:
                 'Kies een nieuwe startdatum voor transacties. We synchroniseren alle transacties vanaf die datum, met uitzondering van transacties die we al hebben geïmporteerd.',
             bulkEditStartDateDescription:
-                'Kies een startdatum voor transacties voor alle geselecteerde kaarten. We synchroniseren transacties vanaf die datum, exclusief de transacties die we al hebben geïmporteerd.',
-            bulkStartDateUpdated: 'Startdatum transactie bijgewerkt',
+                'Kies een startdatum voor transacties voor alle geselecteerde kaarten. We synchroniseren transacties vanaf die datum, met uitzondering van transacties die we al hebben geïmporteerd.',
+            bulkStartDateUpdated: 'Startdatum voor transacties bijgewerkt',
             fromTheBeginning: 'Vanaf het begin',
             customStartDate: 'Aangepaste startdatum',
             customCloseDate: 'Aangepaste sluitingsdatum',
@@ -7299,13 +7299,13 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
         },
         people: {
             genericFailureMessage: 'Er is een fout opgetreden bij het verwijderen van een lid uit de werkruimte, probeer het opnieuw.',
-            approveOnlyRoleBlockedTitle: 'Deze rol kan niet worden gewijzigd',
+            approveOnlyRoleBlockedTitle: 'Kan deze rol niet wijzigen',
             approveOnlyRoleBlockedConfirm: 'Begrepen',
-            approveOnlyRoleBlockedDescription: 'Alleen-goedgekeuringsleden kunnen geen uitgaven maken in deze workspace. Deze moeten eerst worden opgelost:',
+            approveOnlyRoleBlockedDescription: 'Leden met alleen goedkeuren kunnen geen uitgaven aanmaken in deze werkruimte. Deze moeten eerst worden opgelost:',
             approveOnlyRoleBlockedReasons: {
-                hasCardOnPolicy: 'Er is een kaart aan hen toegewezen in deze workspace. Een Workspace Admin of Card Admin moet die eerst loskoppelen.',
-                isRestrictedByDomainGroup: 'Deze workspace is de voorkeursworkspace voor een domeingroep waar ze in zitten. Een domeinbeheerder moet dit eerst wijzigen.',
-                isDefaultPolicy: 'Dit is hun standaardwerkruimte. Ze moeten eerst een andere instellen voordat jij hun rol kunt bijwerken.',
+                hasCardOnPolicy: 'Er is een kaart aan hen toegewezen in deze werkruimte. Een werkruimte- of kaartbeheerder moet deze eerst ontkoppelen.',
+                isRestrictedByDomainGroup: 'Deze werkruimte is de voorkeurswerkruimte voor een domeingroep waarvan ze deel uitmaken. Een domeinbeheerder moet dit eerst wijzigen.',
+                isDefaultPolicy: 'Dit is hun standaardwerkruimte. Ze moeten een andere instellen voordat je hun rol kunt bijwerken.',
             },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Weet je zeker dat je ${memberName} wilt verwijderen?`,
@@ -7359,8 +7359,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 genericRemove: 'Er is een probleem opgetreden bij het verwijderen van dat werkpleklid',
             },
             makeApproveOnly: () => ({
-                one: 'Alleen goedkeuren',
-                other: 'Goedkeuren alleen voor leden',
+                one: 'Alleen goedkeuren maken',
+                other: 'Alleen goedkeuren maken',
             }),
             addedWithPrimary: 'Sommige leden zijn toegevoegd met hun primaire login.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Toegevoegd door secundair login ${secondaryLogin}.`,
@@ -7406,7 +7406,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             },
             officeLocation: 'Kantoorlocatie',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
-            changeOfficeLocation: 'Kantoorlocatie wijzigen',
+            changeOfficeLocation: 'Locatie kantoor wijzigen',
             changeWorkArrangement: 'Werkregeling wijzigen',
             changeRole: 'Rol wijzigen',
         },
@@ -7809,13 +7809,13 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 chooseBankAccount: 'Kies de bankrekening waarop de betalingen met je Expensify Kaart worden afgestemd.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Zorg ervoor dat deze rekening overeenkomt met je <a href="${settlementAccountUrl}">Expensify Kaart-afwikkelingsrekening</a> (eindigend op ${lastFourPAN}), zodat Continue Afstemming goed werkt.`,
-                chooseTravelBillingBankAccount: 'Kies de bankrekening waarop je betalingen voor Geconsolideerde Reiskostenafrekening worden afgestemd.',
+                chooseTravelBillingBankAccount: 'Kies de bankrekening waarop je betalingen voor geconsolideerde reiskostenfacturatie worden afgestemd.',
                 travelBillingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Zorg ervoor dat deze rekening overeenkomt met je Consolidated Travel Billing-afwikkelingsrekening (eindigend op ${lastFourPAN}), zodat Continuous Reconciliation goed werkt.`,
             },
             syncTravelBillingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
-            syncTravelBillingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exports.',
-            syncTravelBillingSettlementsNoAutoSyncTooltip: 'Ontgrendel door autosynchronisatie in te schakelen.',
+            syncTravelBillingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
+            syncTravelBillingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
             campfire: 'Campfire',
             digits: 'Digits',
             zohoBooks: 'Zoho Books',
@@ -9273,9 +9273,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             syncExpensifyCardSettlements: 'Expensify Kaartafrekeningen synchroniseren',
             settlementAccount: {label: 'Expensify Kaart-verrekeningsrekening', description: 'Kies je afrekenrekening en we maken de betaling aan in Campfire.'},
-            syncTravelBillingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
-            travelBillingSettlementAccount: {label: 'Verzamelrekening voor geconsolideerde reisfacturering', description: 'Kies je afrekenrekening en we maken de betaling aan in Campfire.'},
-            travelBillingPayableAccount: {label: 'Verzamelrekening voor te betalen reiskosten'},
+            syncTravelBillingSettlements: 'Geconsolideerde reisfactureringsafrekeningen synchroniseren',
+            travelBillingSettlementAccount: {
+                label: 'Rekening voor afwikkeling van geconsolideerde reisfacturatie',
+                description: 'Kies je afrekenrekening en we maken de betaling aan in Campfire.',
+            },
+            travelBillingPayableAccount: {label: 'Samengevoegde reisfacturatie te betalen rekening'},
             exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
             cardProgramAccount: {
                 label: 'Kaartprogramma-account',
@@ -9361,11 +9364,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 label: 'Bedrijfskaartrekening',
                 description: 'Kies waarheen transacties met bedrijfspassen worden geëxporteerd.',
             },
-            exportToMultipleAccounts: 'Exporteren naar meerdere rekeningen configureren',
+            exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
             cardProgramAccount: {
                 label: 'Kaartprogramma-account',
-                description: 'Overschrijf de werkruimte-account voor deze kaartprogramma’s.',
-                descriptionLevel2: 'Overschrijf de workspace-rekening voor dit kaartprogramma.',
+                description: 'Overschrijf de werkruimteaccount voor deze kaartprogramma’s.',
+                descriptionLevel2: 'Overschrijf de workspace-account voor dit kaartprogramma.',
                 countInfo: ({count}: {count: number}) => {
                     if (!count) {
                         return 'Alle programma’s gebruiken de standaardrekening';
@@ -9382,7 +9385,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 descriptionLevel2: 'Overschrijf de programmarekening voor deze kaarten.',
                 countInfo: ({count}: {count: number}) => {
                     if (!count) {
-                        return 'Alle kaarten gebruiken programma-accounts';
+                        return 'Alle kaarten gebruiken programmarekeningen';
                     }
                     return {
                         one: `${count} kaart met aangepast account`,
@@ -9684,13 +9687,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             };
         },
         demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
-            `heeft je rol in ${policyName} bijgewerkt van ${oldRole} naar ${newRole}. Je bent verwijderd uit alle declaratiechats van indieners, behalve je eigen.`,
+            `heeft je rol in ${policyName} bijgewerkt van ${oldRole} naar ${newRole}. Je bent verwijderd uit alle inzendingsdeclaratiechats, behalve uit je eigen.`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `heeft de standaardvaluta bijgewerkt naar ${newCurrency} (voorheen ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `heeft de frequentie van automatisch rapporteren gewijzigd naar ‘${newFrequency}’ (voorheen ‘${oldFrequency}’)`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `heeft de goedkeuringsmodus gewijzigd naar ‘${newValue}’ (voorheen ‘${oldValue}’)`,
         archivedWorkspace: 'heeft deze workspace gearchiveerd',
-        unarchivedWorkspace: 'heeft deze workspace uit het archief gehaald',
+        unarchivedWorkspace: 'heeft deze werkruimte gearchiveerd',
         upgradedWorkspace: 'heeft deze workspace geüpgraded naar het Control-abonnement',
         forcedCorporateUpgrade: `Deze werkruimte is geüpgraded naar het Control-abonnement. Klik <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">hier</a> voor meer informatie.`,
         downgradedWorkspace: 'heeft deze workspace teruggezet naar het Collect-abonnement',
@@ -10170,7 +10173,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `heeft de standaardwerkregeling gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
         updateRulesDocument: (isReplacement: boolean, overviewURL?: string) => {
-            const message = isReplacement ? 'heeft het onkostenbeleiddocument vervangen' : 'heeft een onkostendeclaratiebeleid-document toegevoegd';
+            const message = isReplacement ? 'heeft het onkostendeclaratiebeleid-document vervangen' : 'heeft een onkostendeclaratiebeleid-document toegevoegd';
             return overviewURL ? `${message} in <a href="${overviewURL}">Werkruimte &gt; Overzicht</a>` : message;
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
@@ -10713,8 +10716,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     `de Plaid-verbinding met je zakelijke bankrekening is verbroken. <a href='${walletRoute}'>Verbind je bankrekening ${maskedAccountNumber} opnieuw</a> zodat je je Expensify Kaarten kunt blijven gebruiken.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
                     const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
-                    const article = role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.APPROVE_ONLY ? 'een' : 'een';
-                    return didJoinPolicy ? `${email} is via de werkruimte-uitnodigingslink lid geworden` : `${email} toegevoegd als ${article} ${translatedRole}`;
+                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'een' : 'een';
+                    return didJoinPolicy ? `${email} is lid geworden via de uitnodigingslink voor de workspace` : `${email} toegevoegd als ${article} ${translatedRole}`;
                 },
                 updateRole: (email: string, currentRole: string, newRole: string) => `heeft de rol van ${email} bijgewerkt naar ${newRole} (voorheen ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
@@ -12270,52 +12273,52 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
     },
     bulkAction: {
         approvingTitle: 'Rapporten goedkeuren...',
-        submittingTitle: 'Rapporten indienen...',
-        payingTitle: 'Rapporten als betaald markeren...',
-        holdingTitle: 'Onkosten vasthouden...',
-        unholdingTitle: 'Onthouden van uitgaven ongedaan maken...',
-        rejectingTitle: 'Declaraties worden afgewezen...',
+        submittingTitle: 'Rapporten worden ingediend...',
+        payingTitle: 'Rapporten markeren als betaald...',
+        holdingTitle: 'Uitgaven vasthouden...',
+        unholdingTitle: 'Blokkering van uitgaven opheffen...',
+        rejectingTitle: 'Uitgaven afwijzen...',
         deletingTitle: 'Rapporten verwijderen...',
-        deletingExpensesTitle: 'Bezig met verwijderen van uitgaven...',
-        runningBody: 'Wacht een paar minuten, of Concierge kan je een bericht sturen zodra het klaar is.',
+        deletingExpensesTitle: 'Uitgaven verwijderen...',
+        runningBody: 'Wacht een paar minuten, of laat Concierge je een bericht sturen zodra het klaar is.',
         sendFromConcierge: 'Stuur me een bericht als het klaar is',
         conciergeTitle: 'Zeker weten!',
-        conciergeBody: 'Concierge stuurt je een bericht als het klaar is.',
+        conciergeBody: 'Concierge stuurt je een bericht zodra het klaar is.',
         goToConcierge: 'Ga naar Concierge',
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `${doneCount} van de ${count} rapporten goedgekeurd`,
-            other: `${doneCount} van de ${count} rapporten goedgekeurd`,
+            one: `${doneCount} van ${count} rapport goedgekeurd`,
+            other: `${doneCount} van ${count} rapporten goedgekeurd`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${doneCount} van ${count} rapport ingediend`,
-            other: `${doneCount} van de ${count} declaraties ingediend`,
+            other: `${doneCount} van ${count} rapporten ingediend`,
         }),
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `${doneCount} van de ${count} rapporten als betaald gemarkeerd`,
-            other: `${doneCount} van de ${count} rapporten als betaald gemarkeerd`,
+            one: `${doneCount} van ${count} rapport als betaald gemarkeerd`,
+            other: `${doneCount} van ${count} rapporten als betaald gemarkeerd`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Afgehouden uitgaven in ${doneCount} van ${count} rapporten`,
-            other: `Onverwerkte uitgaven op ${doneCount} van ${count} rapporten`,
+            one: `Uitgaven vastgehouden in ${doneCount} van ${count} rapport`,
+            other: `Uitgaven vastgehouden in ${doneCount} van ${count} rapporten`,
         }),
         unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Niet-ingehouden uitgaven op ${doneCount} van ${count} rapporten`,
-            other: `Niet-ingehouden uitgaven op ${doneCount} van ${count} rapporten`,
+            one: `Blokkering van uitgaven opgeheven in ${doneCount} van ${count} rapport`,
+            other: `Blokkering van uitgaven opgeheven in ${doneCount} van ${count} rapporten`,
         }),
         rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Afgekeurde uitgaven op ${doneCount} van ${count} rapporten`,
-            other: `Afgekeurde uitgaven op ${doneCount} van ${count} rapporten`,
+            one: `Uitgaven afgewezen in ${doneCount} van ${count} rapport`,
+            other: `Uitgaven afgewezen in ${doneCount} van ${count} rapporten`,
         }),
         deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `${doneCount} van de ${count} rapporten verwijderd`,
-            other: `${doneCount} van de ${count} rapporten verwijderd`,
+            one: `${doneCount} van ${count} rapport verwijderd`,
+            other: `${doneCount} van ${count} rapporten verwijderd`,
         }),
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Verwijderde uitgaven op ${doneCount} van ${count} rapporten`,
-            other: `Verwijderde uitgaven op ${doneCount} van ${count} rapporten`,
+            one: `Uitgaven verwijderd in ${doneCount} van ${count} rapport`,
+            other: `Uitgaven verwijderd in ${doneCount} van ${count} rapporten`,
         }),
         noReportsTitle: 'Geen overeenkomende rapporten',
-        noReportsBody: 'Geen van de door jou geselecteerde rapporten had deze actie nodig.',
+        noReportsBody: 'Geen van de rapporten die je hebt geselecteerd had deze actie nodig.',
         viewFailedReports: 'Rapporten bekijken',
         failedTitle: 'Er is iets misgegaan',
         failedBody: 'Deze actie kon niet worden gestart. Probeer het later opnieuw.',
@@ -12332,24 +12335,24 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             other: `${count} rapporten konden niet worden betaald.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
-            one: 'On 1 rapport konden uitgaven niet worden vastgehouden.',
-            other: `Uitgaven op ${count} rapporten konden niet worden vastgehouden.`,
+            one: 'Uitgaven in 1 rapport konden niet worden vastgehouden.',
+            other: `Uitgaven in ${count} rapporten konden niet worden vastgehouden.`,
         }),
         notUnheldBody: ({count}: {count: number}) => ({
-            one: 'Declaraties op 1 rapport konden niet worden vrijgegeven.',
-            other: `Declaraties in ${count} rapporten konden niet worden vrijgegeven.`,
+            one: 'De blokkering van uitgaven in 1 rapport kon niet worden opgeheven.',
+            other: `De blokkering van uitgaven in ${count} rapporten kon niet worden opgeheven.`,
         }),
         notRejectedBody: ({count}: {count: number}) => ({
-            one: 'Onkosten op 1 rapport konden niet worden afgewezen.',
-            other: `Declaraties op ${count} rapporten konden niet worden afgewezen.`,
+            one: 'Uitgaven in 1 rapport konden niet worden afgewezen.',
+            other: `Uitgaven in ${count} rapporten konden niet worden afgewezen.`,
         }),
         notDeletedBody: ({count}: {count: number}) => ({
             one: '1 rapport kon niet worden verwijderd.',
             other: `${count} rapporten konden niet worden verwijderd.`,
         }),
         expensesNotDeletedBody: ({count}: {count: number}) => ({
-            one: 'Declaraties op 1 rapport konden niet worden verwijderd.',
-            other: `Uitgaven op ${count} rapporten konden niet worden verwijderd.`,
+            one: 'Uitgaven in 1 rapport konden niet worden verwijderd.',
+            other: `Uitgaven in ${count} rapporten konden niet worden verwijderd.`,
         }),
     },
     earlyRenewal: {
