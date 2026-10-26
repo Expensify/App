@@ -18,6 +18,7 @@ import useTransactionViolation from '@hooks/useTransactionViolation';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -220,7 +221,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         <MenuItemField
                             name={translate('common.name')}
                             onPress={canWriteDistanceRates ? editRateName : undefined}
-                            value={rate.name}
+                            value={DistanceRequestUtils.getRateDisplayName(rate)}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
