@@ -198,8 +198,8 @@ function getActiveUserCount(purchase: Purchase): number | undefined {
             return count;
         }
     } else if (message.totalActorCount !== undefined) {
-        const count = Number(message.totalActorCount);
-        if (!Number.isNaN(count)) {
+        const count = Number(message.totalActorCount ?? 0);
+        if (count > 0) {
             return count;
         }
     }
