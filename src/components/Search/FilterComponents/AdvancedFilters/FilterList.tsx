@@ -51,7 +51,7 @@ type FilterListProps = FilterItemCallbacks & {
     /** Ref to the search input above the list. */
     searchInputRef?: Ref<BaseTextInputRef>;
 
-    /** Content between the search input and the list. */
+    /** Content between the search input and the list. Pass a falsy value when the search hides it, so the list knows nothing is listed. */
     headerContent?: ReactNode;
 
     /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
@@ -144,7 +144,7 @@ function FilterList({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const noResultsFoundText = translate('common.noResultsFound');
-    const shouldShowNoResultsFound = filters.length === 0;
+    const shouldShowNoResultsFound = filters.length === 0 && !headerContent;
 
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldShowNoResultsFound, searchValue);
 

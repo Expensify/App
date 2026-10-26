@@ -6234,8 +6234,12 @@ function getFilterViewLabelKey(filterKey: keyof typeof FILTER_VIEW_MAP, type?: S
     return FILTER_VIEW_MAP[filterKey].labelKey;
 }
 
+function isLabelMatchingSearchValue(label: string, searchValue: string): boolean {
+    return label.toLowerCase().includes(searchValue.trim().toLowerCase());
+}
+
 function isFilterMatchingSearchValue(filterKey: keyof typeof FILTER_VIEW_MAP, type: SearchDataTypes | undefined, searchValue: string, translate: LocalizedTranslate): boolean {
-    return translate(getFilterViewLabelKey(filterKey, type)).toLowerCase().includes(searchValue.trim().toLowerCase());
+    return isLabelMatchingSearchValue(translate(getFilterViewLabelKey(filterKey, type)), searchValue);
 }
 
 /** Keeps the filters whose label contains the search value, dropping the sections left empty. */
@@ -7565,6 +7569,7 @@ export {
     RECONCILIATION_SEARCH_KEYS,
     FILTER_VIEW_MAP,
     getFilterViewLabelKey,
+    isLabelMatchingSearchValue,
     isFilterMatchingSearchValue,
     getMatchingFilters,
     isCreatedDateType,

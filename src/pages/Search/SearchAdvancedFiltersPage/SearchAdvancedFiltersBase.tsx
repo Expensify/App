@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMatchingFilters} from '@libs/SearchUIUtils';
+import {getMatchingFilters, isLabelMatchingSearchValue} from '@libs/SearchUIUtils';
 
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 
@@ -45,7 +45,9 @@ function SearchAdvancedFiltersBase() {
     const [filterSearchValue, debouncedFilterSearchValue, setFilterSearchValue] = useDebouncedState('', CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     const allFilters = useAdvancedSearchFilters(currentDraftFilters.type);
     // A cleared input lists every filter at once rather than after the debounce, as in useSearchResults.
-    const filters = getMatchingFilters(allFilters, currentDraftFilters.type, filterSearchValue.trim() ? debouncedFilterSearchValue : '', translate);
+    const listedSearchValue = filterSearchValue.trim() ? debouncedFilterSearchValue : '';
+    const filters = getMatchingFilters(allFilters, currentDraftFilters.type, listedSearchValue, translate);
+    const isDescribeSearchListed = canUseNLFilters && isLabelMatchingSearchValue(translate('search.filters.describeSearch.title'), listedSearchValue);
 
     return (
         <ScreenWrapper
@@ -62,7 +64,7 @@ function SearchAdvancedFiltersBase() {
                 searchValue={filterSearchValue}
                 onSearchValueChange={setFilterSearchValue}
                 headerContent={
-                    canUseNLFilters && (
+                    isDescribeSearchListed && (
                         <>
                             <PressableWithFeedback
                                 style={({pressed}) => [styles.typeFilterMenu, pressed && styles.buttonHoveredBG]}

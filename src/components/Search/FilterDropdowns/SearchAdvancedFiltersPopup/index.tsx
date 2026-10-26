@@ -26,7 +26,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMatchingFilters, hasFilterContentValuesChanged} from '@libs/SearchUIUtils';
+import {getMatchingFilters, hasFilterContentValuesChanged, isLabelMatchingSearchValue} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -226,13 +226,17 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
         markShownFilterReady();
     };
 
+    const isDescribeSearchMatching = (searchValue: string) => canUseNLFilters && isLabelMatchingSearchValue(translate('search.filters.describeSearch.title'), searchValue);
+
     // Like a selection list, a search shows its first match. The typing has stopped, so its content loads at once.
+    // Describe your search is never picked as that match, because its input would take the focus from the search.
     const showFirstMatchingFilter = (searchValue: string) => {
         const firstMatchingFilter = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, searchValue, translate).at(0)?.at(0);
-        if (isDescribeMode || !firstMatchingFilter) {
+        if ((isDescribeMode && isDescribeSearchMatching(searchValue)) || !firstMatchingFilter) {
             return;
         }
 
+        setIsDescribeMode(false);
         cancelReadyWait();
         showFilter(firstMatchingFilter);
         markShownFilterReady();
@@ -249,8 +253,10 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
         },
     });
     // A cleared input lists every filter at once rather than after the debounce, as in useSearchResults.
-    const filters = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, filterSearchValue.trim() ? debouncedFilterSearchValue : '', translate);
+    const listedSearchValue = filterSearchValue.trim() ? debouncedFilterSearchValue : '';
+    const filters = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, listedSearchValue, translate);
     const isActiveFilterListed = filters.some((section) => section.includes(activeFilter));
+    const isDescribeSearchListed = isDescribeSearchMatching(listedSearchValue);
 
     // A cleared input lists every filter without waiting, so the content goes back to the first one with it.
     const changeFilterSearchValue = (searchValue: string) => {
@@ -292,7 +298,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
                         onSearchValueChange={changeFilterSearchValue}
                         searchInputRef={filterSearchInputRef}
                         headerContent={
-                            canUseNLFilters && (
+                            isDescribeSearchListed && (
                                 <>
                                     <PressableWithFeedback
                                         style={({pressed}) => [styles.typeFilterMenu, getDescribeButtonBackground(pressed)]}
@@ -339,31 +345,29 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
                     ref={filterContentRef}
                     style={[styles.filterContentContainer]}
                 >
-                    {!isDescribeMode && !isActiveFilterListed && (
+                    {(isDescribeMode ? !isDescribeSearchListed : !isActiveFilterListed) && (
                         <BlockingView
                             icon={illustrations.Filters}
                             title={translate('search.filters.noFiltersSelected')}
                         />
                     )}
-                    {isDescribeMode ? (
-                        <SearchNLFilterContent onSuccess={handleNLSuccess} />
-                    ) : (
-                        mountedFilters.map((filterKey) => (
-                            // `Activity` keeps a hidden content mounted while taking it out of layout and unmounting its
-                            // effects, so it holds no Onyx subscriptions until it is shown again.
-                            <Activity
-                                key={`${filterKey}-${contentVersions[filterKey] ?? 0}`}
-                                mode={filterKey === activeFilter && isActiveFilterListed ? 'visible' : 'hidden'}
-                            >
-                                <MountedFilterContent
-                                    filterKey={filterKey}
-                                    values={filterKey === activeFilter ? searchAdvancedFiltersForm : formWhileHidden[filterKey]}
-                                    ready={mayDeriveContent(filterKey)}
-                                    onChange={updateFilterQueryParams}
-                                />
-                            </Activity>
-                        ))
-                    )}
+                    {isDescribeMode
+                        ? isDescribeSearchListed && <SearchNLFilterContent onSuccess={handleNLSuccess} />
+                        : mountedFilters.map((filterKey) => (
+                              // `Activity` keeps a hidden content mounted while taking it out of layout and unmounting its
+                              // effects, so it holds no Onyx subscriptions until it is shown again.
+                              <Activity
+                                  key={`${filterKey}-${contentVersions[filterKey] ?? 0}`}
+                                  mode={filterKey === activeFilter && isActiveFilterListed ? 'visible' : 'hidden'}
+                              >
+                                  <MountedFilterContent
+                                      filterKey={filterKey}
+                                      values={filterKey === activeFilter ? searchAdvancedFiltersForm : formWhileHidden[filterKey]}
+                                      ready={mayDeriveContent(filterKey)}
+                                      onChange={updateFilterQueryParams}
+                                  />
+                              </Activity>
+                          ))}
                 </View>
             </View>
         </SafeTriangle>

@@ -1,10 +1,12 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+
+import type {ReactNode} from 'react';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
@@ -40,7 +42,7 @@ let mockOnSearchValueChange: ((searchValue: string) => void) | undefined;
 /** The form served by the useOnyx mock. Reassigned by tests to change filter values. */
 let mockFiltersForm: Partial<SearchAdvancedFiltersForm> | undefined;
 
-// Stand-in for the filter list: it renders no rows and only hands the tests what the popup gave it.
+// Stand-in for the filter list: it renders no rows, only the content the popup puts above them, and hands the tests what the popup gave it.
 jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () => ({
     __esModule: true,
     default: (props: {
@@ -50,6 +52,7 @@ jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () =
         onPointerLeave: (event: {clientX: number}) => void;
         selectedFilter: string;
         onSearchValueChange: (searchValue: string) => void;
+        headerContent: ReactNode;
     }) => {
         mockOnHoverIn = props.onHoverIn;
         mockOnFocus = props.onFocus;
@@ -58,8 +61,18 @@ jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () =
         mockSelectedFilter = props.selectedFilter;
         mockOnSearchValueChange = props.onSearchValueChange;
 
-        return null;
+        return props.headerContent;
     },
+}));
+
+jest.mock('@components/Search/FilterComponents/AdvancedFilters/SearchNLFilterContent', () => ({
+    __esModule: true,
+    default: () => <MockView testID="describe-search-content" />,
+}));
+
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: () => true}),
 }));
 
 // Stand-in for the filter content, the expensive part being mounted or kept alive.
@@ -145,6 +158,11 @@ function search(searchValue: string) {
     act(() => {
         jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     });
+}
+
+/** Picks the Describe your search row. */
+function pressDescribeSearch() {
+    fireEvent.press(screen.getByLabelText('Describe your search'));
 }
 
 /** Moves the keyboard focus onto a filter row. */
@@ -379,5 +397,51 @@ describe('SearchAdvancedFiltersPopup', () => {
 
         // Then the content gives way to the empty state, so it does not show a filter missing from the list
         expect(screen.getByText('No filters selected')).toBeOnTheScreen();
+    });
+
+    it('shows the empty state when Describe your search is shown and the search matches nothing', () => {
+        // Given Describe your search shown
+        pressDescribeSearch();
+
+        // When a search that neither it nor any filter matches is typed
+        search('unicorn');
+
+        // Then its row and content go and the empty state shows, as for any filter the search hides
+        expect(screen.queryByLabelText('Describe your search')).toBeNull();
+        expect(screen.queryByTestId('describe-search-content')).toBeNull();
+        expect(screen.getByText('No filters selected')).toBeOnTheScreen();
+    });
+
+    it('moves from Describe your search to the first match when the search hides it', () => {
+        // Given Describe your search shown
+        pressDescribeSearch();
+
+        // When a search that only filters match is typed
+        search('status');
+
+        // Then Status, the first match, takes over the content
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.STATUS);
+        expect(screen.queryByTestId('describe-search-content')).toBeNull();
+    });
+
+    it('keeps Describe your search shown while the search still matches it', () => {
+        // Given Describe your search shown
+        pressDescribeSearch();
+
+        // When a search that matches it is typed
+        search('describe');
+
+        // Then it stays, because the search has not hidden it
+        expect(screen.getByTestId('describe-search-content')).toBeOnTheScreen();
+    });
+
+    it('never opens Describe your search as the first match', () => {
+        // Given the popover open on Type
+        // When a search that only Describe your search matches is typed
+        search('describe');
+
+        // Then its row is listed but its content stays closed, because its input would take the focus from the search
+        expect(screen.getByLabelText('Describe your search')).toBeOnTheScreen();
+        expect(screen.queryByTestId('describe-search-content')).toBeNull();
     });
 });
