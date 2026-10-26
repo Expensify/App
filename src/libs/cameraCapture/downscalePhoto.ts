@@ -31,24 +31,46 @@ function getDownscaledSize({width, height}: PhotoSize): PhotoSize | undefined {
 }
 
 function downscalePhoto(photo: CapturedPhoto): Promise<CapturedPhoto | undefined> {
-    const size = getDownscaledSize(photo);
-    if (!size) {
+    if (!getDownscaledSize(photo)) {
         return Promise.resolve(undefined);
     }
 
-    // The manipulator applies the file's rotation metadata while decoding, so resize in the display frame `photo` reports.
-    const context = ImageManipulator.manipulate(getPhotoSource(photo.path)).resize(size);
-    return context
-        .renderAsync()
-        .then((image) => image.saveAsync({compress: JPEG_QUALITY, format: SaveFormat.JPEG}).finally(() => releaseQuietly(image)))
-        .then((result) => {
-            Log.info('[downscalePhoto] shrank the captured photo', false, {
-                source: `${photo.width}x${photo.height}`,
-                result: `${result.width}x${result.height}`,
-            });
-            return {path: result.uri, width: result.width, height: result.height, orientation: photo.orientation};
+    const sourceUri = getPhotoSource(photo.path);
+    const nativeHandles: Array<{release: () => void}> = [];
+    // Starts inside a promise so a synchronous throw from the native module reaches the caller's fallback.
+    return Promise.resolve()
+        .then(() => {
+            const decodeContext = ImageManipulator.manipulate(sourceUri);
+            nativeHandles.push(decodeContext);
+            return decodeContext.renderAsync();
         })
-        .finally(() => releaseQuietly(context));
+        .then((decoded) => {
+            nativeHandles.push(decoded);
+            // The loader applies the file's orientation metadata, including the transposed one a mirrored front-camera photo
+            // carries, so size from the decoded bitmap rather than the capture's reported size.
+            const size = getDownscaledSize(decoded);
+            if (!size) {
+                return undefined;
+            }
+
+            const resizeContext = ImageManipulator.manipulate(decoded).resize(size);
+            nativeHandles.push(resizeContext);
+            return resizeContext
+                .renderAsync()
+                .then((image) => image.saveAsync({compress: JPEG_QUALITY, format: SaveFormat.JPEG}).finally(() => releaseQuietly(image)))
+                .then((result) => {
+                    Log.info('[downscalePhoto] shrank the captured photo', false, {
+                        source: `${decoded.width}x${decoded.height}`,
+                        result: `${result.width}x${result.height}`,
+                    });
+                    return {path: result.uri, width: result.width, height: result.height, orientation: photo.orientation};
+                });
+        })
+        .finally(() => {
+            for (const handle of nativeHandles) {
+                releaseQuietly(handle);
+            }
+        });
 }
 
 export default downscalePhoto;
