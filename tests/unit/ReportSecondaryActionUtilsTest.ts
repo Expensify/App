@@ -851,7 +851,6 @@ describe('getSecondaryAction', () => {
                 enabled: true,
             },
             type: CONST.POLICY.TYPE.CORPORATE,
-            role: CONST.POLICY.ROLE.USER,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const TRANSACTION_ID = 'TRANSACTION_ID';

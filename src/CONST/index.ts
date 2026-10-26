@@ -4997,12 +4997,6 @@ const CONST = {
             CARD_ADMIN: 'cardAdmin',
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
-            APPROVE_ONLY: 'approveOnly',
-        },
-        APPROVE_ONLY_BLOCKED_REASONS: {
-            HAS_CARD_ON_POLICY: 'hasCardOnPolicy',
-            IS_RESTRICTED_BY_DOMAIN_GROUP: 'isRestrictedByDomainGroup',
-            IS_DEFAULT_POLICY: 'isDefaultPolicy',
         },
         WORKSPACE_STATUS: {
             ACTIVE: 'active',
@@ -5035,7 +5029,6 @@ const CONST = {
             REPORT_FIELDS: 'reportFields',
             ACCOUNTING: 'accounting',
             MORE_FEATURES: 'moreFeatures',
-            CREATE_EXPENSES: 'createExpenses',
         },
         POLICY_FEATURE_ACCESS: {
             READ: 'read',

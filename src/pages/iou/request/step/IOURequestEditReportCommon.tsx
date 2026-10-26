@@ -20,7 +20,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {canCreateExpensesOnPolicy, canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
@@ -165,18 +165,12 @@ function IOURequestEditReportCommon({
             return [];
         }
 
-        const reportOwnerLogin = personalDetails?.[resolvedReportOwnerAccountID]?.login;
-
         return outstandingReports
             .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare))
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .filter((report) => {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-
-                if (!canCreateExpensesOnPolicy(policy, reportOwnerLogin)) {
-                    return false;
-                }
 
                 if (isTimeRequest && !isTimeTrackingEnabled(policy)) {
                     return false;
@@ -216,7 +210,6 @@ function IOURequestEditReportCommon({
         localeCompare,
         allPolicies,
         currentUserPersonalDetails.accountID,
-        resolvedReportOwnerAccountID,
         hasMultipleSubmitters,
         isPerDiemRequest,
         isTimeRequest,

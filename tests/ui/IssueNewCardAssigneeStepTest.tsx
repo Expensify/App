@@ -94,7 +94,6 @@ jest.mock('@hooks/usePersonalDetailSearchSelector', () =>
 
 jest.mock('@libs/PolicyUtils', () => ({
     canMemberWrite: jest.fn(() => true),
-    canRoleCreateExpenses: jest.fn((role?: string) => role !== 'approveOnly'),
     filterGuideAndAccountManager: (list: unknown) => list,
     getGuideAndAccountManagerInfo: jest.fn(() => ({assignedGuideEmail: undefined, accountManagerLogin: undefined, exclusions: {}})),
     getIneligibleInvitees: jest.fn(() => []),

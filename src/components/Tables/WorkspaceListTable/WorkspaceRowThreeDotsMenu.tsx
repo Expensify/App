@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
-import {canRoleCreateExpenses, canUnarchivePolicy} from '@libs/PolicyUtils';
+import {canUnarchivePolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 
 import UnarchiveWorkspaceFlow from '@pages/workspace/archiveWorkspace/UnarchiveWorkspaceFlow';
@@ -135,8 +135,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             }
         }
 
-        // Making the workspace the default would break expense creation routing for members without create-expenses permission.
-        if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy && canRoleCreateExpenses(item.role)) {
+        if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
             menuItems.push({
                 icon: icons.Star,
                 text: translate('workspace.common.setAsDefault'),

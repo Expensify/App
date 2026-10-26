@@ -18,7 +18,7 @@ import useWorkspaceList from '@hooks/useWorkspaceList';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canCreateExpensesOnPolicy, isGroupPolicy} from '@libs/PolicyUtils';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 
 import type {MoneyRequestNavigatorParamList} from '@navigation/types';
 
@@ -78,7 +78,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         shouldSortSelectedToTop: false,
         searchTerm: debouncedSearchTerm,
         localeCompare,
-        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy) && canCreateExpensesOnPolicy(newPolicy),
+        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy),
     });
 
     const confirmButtonOptions = {

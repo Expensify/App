@@ -4946,8 +4946,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         return 'メンバー管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '支払い管理者';
-                    case CONST.POLICY.ROLE.APPROVE_ONLY:
-                        return '承認のみ';
                     case CONST.POLICY.ROLE.USER:
                         return 'メンバー';
                     default:
@@ -4988,7 +4986,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             cardAdminAlternateText: 'ワークスペースカードを管理します。',
             peopleAdminAlternateText: 'メンバーと承認ワークフローを管理します。',
             paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
-            approveOnlyAlternateText: 'レポートの承認のみ。',
             readOnlyActionTitle: 'ちょっと待ってください…',
             readOnlyActionPrompt: 'このワークスペースでのあなたのロールは、これらの設定を表示できますが、編集することはできません。',
             noAccessActionPrompt: 'このワークスペースでのあなたのロールでは、これらの設定にアクセスできません。必要な場合は管理者に依頼してください。',
@@ -7167,14 +7164,6 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
         },
         people: {
             genericFailureMessage: 'ワークスペースからメンバーを削除する際にエラーが発生しました。もう一度お試しください',
-            approveOnlyRoleBlockedTitle: 'この役割は変更できません',
-            approveOnlyRoleBlockedConfirm: '了解',
-            approveOnlyRoleBlockedDescription: '承認のみのメンバーはこのワークスペースで経費を作成できません。先に以下を解決する必要があります：',
-            approveOnlyRoleBlockedReasons: {
-                hasCardOnPolicy: 'このワークスペースでカードが割り当てられています。ワークスペース管理者またはカード管理者が先に割り当てを解除する必要があります。',
-                isRestrictedByDomainGroup: 'このワークスペースは、彼らが所属するドメイングループの優先ワークスペースです。ドメイン管理者が先に変更する必要があります。',
-                isDefaultPolicy: 'これは彼らのデフォルトのワークスペースです。役割を更新する前に、別のワークスペースを設定する必要があります。',
-            },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `${memberName} さんを削除してもよろしいですか？`,
                 other: 'これらのメンバーを本当に削除しますか？',
@@ -7226,10 +7215,6 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 cannotRemove: '自分自身またはワークスペースのオーナーを削除することはできません',
                 genericRemove: 'そのワークスペースメンバーを削除する際に問題が発生しました',
             },
-            makeApproveOnly: () => ({
-                one: '承認のみに設定',
-                other: '承認のみに設定',
-            }),
             addedWithPrimary: '一部のメンバーは、プライマリーログインで追加されました。',
             invitedBySecondaryLogin: (secondaryLogin: string) => `セカンダリログイン${secondaryLogin}によって追加されました。`,
             workspaceMembersCount: (count: number) => `ワークスペースメンバー合計：${count}`,
@@ -7252,7 +7237,6 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             admins: 'ワークスペース管理者',
             approvers: '承認者',
             auditors: '監査担当者',
-            approveOnly: '承認のみ',
             guests: 'ゲスト',
             editors: '編集者',
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
@@ -9500,8 +9484,8 @@ ${reportName}`,
                 other: `${joinedNames} の承認ワークフローと経費チャットからあなたを削除しました。これまでに提出されたレポートは、引き続き受信トレイで承認可能です。`,
             };
         },
-        demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
-            `${policyName} でのあなたのロールを ${oldRole} から${newRole}に更新しました。あなた自身のものを除き、すべての申請者経費チャットから削除されました。`,
+        demotedFromWorkspace: (policyName: string, oldRole: string) =>
+            `${policyName} でのあなたのロールを ${oldRole} からユーザーに更新しました。あなた自身のものを除き、すべての申請者経費チャットから削除されました。`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `デフォルト通貨を${newCurrency}（以前は${oldCurrency}）に更新しました`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `自動レポート頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `承認モードを「${newValue}」（以前は「${oldValue}」）に更新しました`,

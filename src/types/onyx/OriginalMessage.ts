@@ -1458,9 +1458,6 @@ type OriginalMessageDemotedFromWorkspace = {
     /** The old role of the employee that is being demoted */
     oldRole: string;
 
-    /** The new role of the employee that is being demoted. Missing on actions created before the role was included */
-    newRole?: string;
-
     /** The accountID of the member who was demoted from workspace */
     whisperedTo: number[];
 };

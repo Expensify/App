@@ -22,7 +22,7 @@ import Parser from '@libs/Parser';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {canRoleCreateExpenses, getDefaultApprover, getOwnerChangePayerSuccessData, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getDefaultApprover, getOwnerChangePayerSuccessData, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -723,7 +723,8 @@ function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEma
     if (!policy?.id) {
         return;
     }
-    // Submit workspaces lock everyone to the Editor role, so role changes are not allowed.
+    // Submit workspaces lock everyone to the Editor role — role changes are not allowed.
+    // This guard prevents any future code path from bypassing the UI-level blocks.
     if (isSubmitPolicy(policy)) {
         return;
     }
@@ -874,17 +875,15 @@ function buildAddMembersToWorkspaceOnyxData(
         doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
     }
 
-    // Roles that cannot create expenses don't get a workspace chat, so don't build an optimistic one.
-    const membersChats = canRoleCreateExpenses(effectiveRole)
-        ? createPolicyExpenseChats({
-              policyID,
-              invitedEmailsToAccountIDs,
-              currentUser,
-              reportActionsList,
-              notificationPreference: policyExpenseChatNotificationPreference,
-              doesPersonalDetailExistByAccountID,
-          })
-        : {onyxSuccessData: [], onyxOptimisticData: [], onyxFailureData: [], reportCreationData: {}};
+    // create onyx data for policy expense chats for each new member
+    const membersChats = createPolicyExpenseChats({
+        policyID,
+        invitedEmailsToAccountIDs,
+        currentUser,
+        reportActionsList,
+        notificationPreference: policyExpenseChatNotificationPreference,
+        doesPersonalDetailExistByAccountID,
+    });
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -1286,10 +1285,6 @@ function clearUpdateMemberRoleError(policyID: string, login: string) {
     });
 }
 
-function clearBlockedRoleChange() {
-    Onyx.set(ONYXKEYS.BLOCKED_ROLE_CHANGE, null);
-}
-
 function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceMembersPage invalid params', {policyID, clientMemberEmails});
@@ -1592,7 +1587,6 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     clearUpdateMemberRoleError,
-    clearBlockedRoleChange,
     openWorkspaceMembersPage,
     setWorkspaceInviteMembersDraft,
     inviteMemberToWorkspace,
