@@ -17,7 +17,7 @@ import type {Policy} from '@src/types/onyx';
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import Animated from 'react-native-reanimated';
 
 import TaxPicker from '.';
@@ -92,11 +92,12 @@ function TaxPickerModal({
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const [taxRatesSummary] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: taxRatesSummarySelector});
-    const [renderedRowCount, setRenderedRowCount] = useState<number>();
     const enabledTaxRatesCount = taxRatesSummary?.enabledCount ?? 0;
 
     const {popoverDimensions, innerContainerStyle, outerStyle, avoidKeyboard, contentStyle} = useSelectionListPopoverLayout({
-        optionCount: renderedRowCount ?? enabledTaxRatesCount,
+        // The list shows one row per enabled rate. A rate the expense holds that the workspace since removed adds a row the
+        // sheet is not sized for, and the list scrolls that one row.
+        optionCount: enabledTaxRatesCount,
         // The list shows its search input from the standard limit, and sizes itself the same way.
         isSearchable: enabledTaxRatesCount >= CONST.STANDARD_LIST_ITEM_LIMIT,
         popoverWidth,
@@ -141,7 +142,6 @@ function TaxPickerModal({
                     />
                 )}
                 <TaxPicker
-                    onRenderedRowCountChange={setRenderedRowCount}
                     policyID={policyID}
                     transactionID={transactionID}
                     selectedTaxRate={selectedTaxRate}

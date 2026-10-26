@@ -22,7 +22,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 
 type TaxPickerProps = {
     /** The selected tax rate of an expense */
@@ -48,9 +48,6 @@ type TaxPickerProps = {
 
     /** Whether the search input should auto-focus when the picker mounts. Only opted into by the anchored pop-over. */
     shouldAutoFocusSearchInput?: boolean;
-
-    /** Reports how many rows the unfiltered list renders, so a container can size itself to them */
-    onRenderedRowCountChange?: (rowCount: number) => void;
 };
 
 function TaxPicker({
@@ -64,7 +61,6 @@ function TaxPicker({
     addBottomSafeAreaPadding,
     allowDeselect = false,
     shouldAutoFocusSearchInput = false,
-    onRenderedRowCountChange,
 }: TaxPickerProps) {
     const {translate, localeCompare} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -165,15 +161,6 @@ function TaxPicker({
               data: [...section.data.filter((item) => item.code !== deletedTaxOption.code), deletedTaxOption],
           }))
         : sections;
-
-    const renderedRowCount = updatedSections.reduce((total, section) => total + section.data.length, 0);
-
-    useEffect(() => {
-        if (searchValue) {
-            return;
-        }
-        onRenderedRowCountChange?.(renderedRowCount);
-    }, [renderedRowCount, searchValue, onRenderedRowCountChange]);
 
     return (
         <SelectionListWithSections
