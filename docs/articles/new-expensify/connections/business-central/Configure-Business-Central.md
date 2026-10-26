@@ -10,65 +10,65 @@ sitemap: false
 
 # Configure Dynamics 365 Business Central
 
-Configure how Expensify imports accounting data from Dynamics 365 Business Central and exports reports back to it. You can:
+Configure how Expensify imports accounting data from Dynamics 365 Business Central and exports reports back to it. 
+
+If you haven't connected Business Central yet, learn how to [connect to Dynamics 365 Business Central](/articles/new-expensify/connections/business-central/Connect-to-Business-Central).
+
+Once configured, you can:
 
 - Import accounts and items as categories, and dimensions as tags.
 - Export reimbursable and company card expenses as general journal entries or purchase invoices.
 - Sync automatically, post entries automatically, and write payments back to Business Central.
 
-If you haven't connected Business Central yet, learn how to [connect to Dynamics 365 Business Central](/articles/new-expensify/connections/business-central/Connect-to-Business-Central).
-
----
-
-## Who can configure Dynamics 365 Business Central
-
-You must be a workspace admin on a workspace that's connected to Dynamics 365 Business Central. The integration is available on the Control plan.
-
 ---
 
 ## Where to find Dynamics 365 Business Central settings
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Accounting**.
-2. Under **Dynamics 365 Business Central**, select **Import**, **Export**, or **Advanced**.
+Each workspace has its own Dynamics 365 Business Central integration. To view or update the configuration settings:
+
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Accounting**.
+3. Under **Dynamics 365 Business Central**, select **Import**, **Export**, or **Advanced**.
 
 ---
 
 ## How to configure Dynamics 365 Business Central import settings
 
-Select **Import** to choose which data Expensify imports from Business Central:
+The **Import** tab controls which accounting data is imported from Dynamics 365 Business Central into Expensify.
 
-- **Chart of accounts** – Imports your Business Central accounts as categories. This setting is always on. Expensify only imports accounts that allow direct posting and aren't blocked.
-- **Items** – Imports your service and non-inventory items as categories. This is off by default.
-- **Enable newly imported categories** – Makes new Business Central accounts available as categories as soon as they're imported. This is on by default.
-- **Projects** and **Customers** – Import Business Central projects and customers as tags. You can only enable these when at least one export option is **Purchase invoices**.
+- **Chart of accounts** – Your Dynamics 365 Business Central accounts import as categories. Expensify only imports accounts that allow direct posting and aren't blocked.
+- **Items** – Imports your service and non-inventory items as categories.
+- **Enable newly imported categories** – Makes new Business Central accounts available as categories as soon as they're imported. 
+- **Projects** and **Customers** – Import Business Central projects and customers as tags. You can only enable these when **Purchase invoices** is selected on the **Export** tab in Expensify.
 - **Dimensions** – Each Business Central dimension appears with its own toggle. Enable a dimension to import its values as tags. Dimensions aren't imported until you enable them.
-- **Taxes** – Imports your VAT posting setups as tax rates. This only appears when your Business Central company has VAT posting setups, so US companies usually don't see it.
+- **Taxes** – Imports your VAT posting setups as tax rates. This only appears when your Business Central company has VAT posting setups. 
 
-Business Central categories replace any categories you created manually in the workspace.
+![Accounting tab showing Dynamics 365 Business Central connection with the Import configuration tab open]({{site.url}}/assets/images/Dynamics_Import.png.png){:width="100%"}
 
 ---
 
 ## How vendors are matched to Dynamics 365 Business Central company card expenses
 
-Expensify imports your Business Central vendors and matches each company card expense to a vendor by merchant name. If a matched vendor is later blocked or removed in Business Central, the expense shows a **Vendor no longer valid** error.
-
-Learn how to [manage vendor matching for Dynamics 365 Business Central](/articles/new-expensify/connections/business-central/Manage-Vendor-Matching-for-Business-Central).
+Expensify imports your Business Central vendors and matches each company card expense to a vendor by merchant name. Learn how to [manage vendor matching for Dynamics 365 Business Central](/articles/new-expensify/connections/business-central/Manage-Vendor-Matching-for-Business-Central).
 
 ---
 
 ## How to configure Dynamics 365 Business Central export settings
 
-Select **Export** to choose how reports export to Business Central:
+The **Export** tab determines how Expensify sends data to Business Central:
 
 - **Preferred exporter** – Choose the workspace admin who receives reports to export. This defaults to the workspace owner.
 - **Transaction date** – Choose **Date of last expense**, **Export date**, or **Submitted date**.
 - **Export reimbursable expenses as** – Choose **General journal** or **Purchase invoices**. The default is **General journal**.
 - **Reimbursable account** – Choose where reimbursable expenses export. This only appears when reimbursable expenses export as **General journal**.
 - **Export company card expenses as** – Choose **General journal** or **Purchase invoices**. The default is **Purchase invoices**.
-- **Default company card vendor** – Choose the vendor used for company card expenses that don't match a vendor automatically. This is required.
+- **Default company card vendor** – Choose the vendor used for company card expenses that don't match a vendor automatically. 
 - **Company card account** – Choose where company card expenses export. This only appears when company card expenses export as **General journal**.
 - **Configure exporting to multiple accounts** – Export different card programs or individual cards to different accounts. Set **Card program account** for each program and **Per-card account** for individual cards.
 - **Payment method** – Optionally choose a payment method for purchase invoices, so Business Central can reconcile them with your bank. This doesn't appear when both export options are **General journal**.
+
+![Accounting tab showing Dynamics 365 Business Central connection with the Export configuration tab open]({{site.url}}/assets/images/Dynamics_Export.png.png){:width="100%"}
 
 ---
 
@@ -105,19 +105,21 @@ If Business Central rejects the export, the error appears on the report.
 
 ## How to configure Dynamics 365 Business Central advanced settings
 
-Select **Advanced** to control syncing, posting, and payments:
+The **Advanced** tab controls settings like sync frequency, reimbursement, and settlement automation: 
 
-- **Auto-sync** – Syncs Business Central and Expensify automatically every day. This is off by default.
+- **Auto-sync** – Automatically sync Business Central and Expensify daily, with reports exported in realtime. 
 - **Export method** – Choose when reports export automatically. This only appears when **Auto-sync** is enabled.
   - **Accrual** exports out-of-pocket expenses when they're final approved.
   - **Cash** exports out-of-pocket expenses when they're paid.
-- **Posting mode** – Choose **Create and post** to post entries automatically on export, or **Create only** to review and post them manually in Business Central. The default is **Create and post**.
-- **Auto-create employees/vendors** – Creates missing employees and vendors in Business Central during export. This is on by default.
+- **Posting mode** – Choose **Create and post** to post entries automatically on export, or **Create only** to review and post them manually in Business Central.
+- **Auto-create employees/vendors** – Creates missing employees and vendors in Business Central during export.
 - **Export to next open period** – Exports a report dated in a closed Business Central period to the next open period. This is off by default.
-- **Sync reimbursed reports** – When a report is paid by ACH, Expensify creates a general journal line in Business Central to close the employee payable. Choose the **Payment bank account** to pay from. This is on by default.
+- **Sync reimbursed reports** – When a report is reimbursed in Expensify, Expensify creates a general journal line in Business Central to close the employee payable. Choose the **Payment bank account** to pay from. 
 - **Sync Expensify Card settlements** – Writes Expensify Card settlements back to Business Central. Choose the **Expensify Card settlement account**. This only appears when the Expensify Card is set up on the workspace.
 
 When **Posting mode** is **Create and post**, Expensify posts every open journal in the General Journal batch chosen during the Business Central extension setup, not just the journals Expensify created. Use a batch that's only for Expensify.
+
+![Accounting tab showing Dynamics 365 Business Central connection with the Advanced configuration tab open]({{site.url}}/assets/images/Dynamics_Advanced.png){:width="100%"}
 
 ---
 
