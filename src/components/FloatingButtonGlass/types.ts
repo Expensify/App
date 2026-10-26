@@ -1,8 +1,6 @@
-import type {ColorValue} from 'react-native';
-
 type FloatingButtonGlassProps = {
-    /** Solid color drawn in the middle of the button, which leaves the glass as a ring around it */
-    centerColor?: ColorValue;
+    /** The button's own color, which tints the glass behind its icon */
+    tintColor: string;
 };
 
 export default FloatingButtonGlassProps;

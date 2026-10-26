@@ -2051,11 +2051,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusCircle,
         },
 
-        floatingButtonGlassCenter: {
-            margin: variables.floatingButtonGlassRingWidth,
-            borderRadius: variables.componentBorderRadiusCircle,
-        },
-
         floatingCameraButton: {
             position: 'absolute',
             // floatingActionButton top property value (componentSizeLarge + 16) +

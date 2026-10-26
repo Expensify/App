@@ -125,7 +125,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                             ]}
                             testID="fab-animated-container"
                         >
-                            <FloatingButtonGlass />
+                            <FloatingButtonGlass tintColor={buttonDefaultBG} />
                             <Svg
                                 width={fabSize}
                                 height={fabSize}

@@ -116,7 +116,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
                 style={[styles.floatingActionButton, isFloatingButtonGlassAvailable && styles.floatingActionButtonGlass]}
                 testID="floating-camera-button-container"
             >
-                <FloatingButtonGlass centerColor={success} />
+                <FloatingButtonGlass tintColor={success} />
                 <Icon
                     fill={textLight}
                     src={icon}
