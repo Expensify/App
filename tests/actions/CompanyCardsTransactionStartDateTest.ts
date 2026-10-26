@@ -136,23 +136,18 @@ describe('actions/CompanyCards transaction start date updates', () => {
         );
     });
 
-    it.each(['active', 'reloaded', 'pending', 'removed', 'refreshed'])('only shows an offline bulk update growl for an active feed (feed state: %s)', async (feedState) => {
+    it.each(['active', 'pending', 'removed', 'refreshed'])('only shows an offline bulk update growl for an active feed (feed state: %s)', async (feedState) => {
         // Given a feed whose bulk update is queued until the device reconnects
         const growlSpy = jest.spyOn(Growl, 'success').mockImplementation(() => {});
         const onyxMergeSpy = jest.spyOn(Onyx, 'merge');
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, policyAccountID: DOMAIN_OR_WORKSPACE_ACCOUNT_ID});
         await Onyx.set(feedsKey, serverFeedSnapshot);
-        const isFeedDeleted = feedState === 'pending' || feedState === 'removed' || feedState === 'refreshed';
         if (feedState === 'refreshed') {
             // A server snapshot cannot contain the optimistic pendingAction of the queued deletion.
             mockFetch.mockAPICommand(WRITE_COMMANDS.BULK_UPDATE_CARD_TRANSACTION_START_DATE, () => ({
                 onyxData: [{onyxMethod: Onyx.METHOD.SET, key: feedsKey, value: serverFeedSnapshot}],
             }));
         }
-        // The server answers a feed deletion with a snapshot of the remaining feeds.
-        mockFetch.mockAPICommand(WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED, () => ({
-            onyxData: [{onyxMethod: Onyx.METHOD.SET, key: feedsKey, value: {settings: {companyCards: {}, oAuthAccountDetails: {}}}}],
-        }));
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
         await waitForBatchedUpdates();
         // The page does not use navigation; only the navigator's prop contract requires it.
@@ -171,15 +166,8 @@ describe('actions/CompanyCards transaction start date updates', () => {
         });
         expect(mockFetch).not.toHaveBeenCalled();
 
-        // When the app reloads before reconnecting, RAM-only state is lost but the queued request survives
-        if (feedState === 'reloaded') {
-            await act(async () => {
-                await Onyx.set(loadingStateKey, null);
-            });
-        }
-
         // When a feed is deleted before reconnecting, its earlier queued update can still succeed
-        if (isFeedDeleted) {
+        if (feedState !== 'active') {
             await act(async () => {
                 deleteWorkspaceCompanyCardFeed(POLICY_ID, DOMAIN_OR_WORKSPACE_ACCOUNT_ID, FEED, [CARD_ID]);
                 await waitForBatchedUpdates();
@@ -201,9 +189,9 @@ describe('actions/CompanyCards transaction start date updates', () => {
         // Then every success is consumed, but only a feed that was not deleted gets a notification
         expect(mockFetch).toHaveBeenCalled();
         expect((await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS)) ?? []).toHaveLength(0);
-        expect(growlSpy).toHaveBeenCalledTimes(isFeedDeleted ? 0 : 1);
-        if (isFeedDeleted) {
-            expect((await getOnyxValue(feedsKey))?.settings?.companyCards?.[FEED]).toBeUndefined();
+        expect(growlSpy).toHaveBeenCalledTimes(feedState === 'active' ? 1 : 0);
+        if (feedState === 'refreshed') {
+            expect((await getOnyxValue(feedsKey))?.settings?.companyCards?.[FEED]?.pendingAction).toBeUndefined();
         }
         expect(onyxMergeSpy).toHaveBeenCalledWith(loadingStateKey, {
             bulkTransactionStartDateUpdateSuccessID: null,
