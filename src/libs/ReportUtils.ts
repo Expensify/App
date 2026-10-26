@@ -4823,7 +4823,10 @@ function getQueuedPaymentPayeeAccountID(report: OnyxEntry<Report>): number | und
 /**
  * Returns the message for a queued payment. A bill's vendor needs a business deposit account, so its message doesn't ask for a personal bank account.
  */
-function getReimbursementQueuedMessageKey(report: OnyxEntry<Report>, paymentType: string | undefined): TranslationPaths {
+function getReimbursementQueuedMessageKey(
+    report: OnyxEntry<Report>,
+    paymentType: string | undefined,
+): 'iou.waitingOnEnabledWallet' | 'iou.waitingOnVendorBankAccount' | 'iou.waitingOnBankAccount' {
     if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
         return 'iou.waitingOnEnabledWallet';
     }
