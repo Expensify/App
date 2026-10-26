@@ -91,6 +91,20 @@ describe('useProactiveAppReview', () => {
         });
     });
 
+    it('returns shouldShowModal false when 2FA is required, even if a trigger is set', async () => {
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {
+            needsTwoFactorAuthSetup: true,
+            requiresTwoFactorAuth: false,
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useProactiveAppReview());
+
+        await waitFor(() => {
+            expect(result.current.shouldShowModal).toBe(false);
+        });
+    });
+
     it('re-prompts a negative responder once 30 days have passed since the local prompt record', async () => {
         const thirtyOneDaysAgo = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000);
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
