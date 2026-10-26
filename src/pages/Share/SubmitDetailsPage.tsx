@@ -42,14 +42,14 @@ import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPositionWithinCap from '@libs/getCurrentPosition/getCurrentPositionWithinCap';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
+import {getDefaultReimbursableForPolicy, getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
@@ -324,7 +324,7 @@ function SubmitDetailsPage({
                   reportAttributesDerived,
                   reportDraft,
                   currentUserAccountID: currentUserPersonalDetails.accountID,
-                  localize: {translate, dateFnsLocale, convertToDisplayString},
+                  localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                   rules,
                   // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
                   pendingDeleteMemberAccountIDs: undefined,
@@ -335,22 +335,21 @@ function SubmitDetailsPage({
     const policyExpenseChatPolicyID = participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
     const senderPolicyID = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
     const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const isGroupPolicyExpenseChat = isPolicyExpenseChat && isGroupPolicy(policy);
     const isDestinationPolicyReady = isPolicyExpenseChat ? !!policy?.id && policy.id === report?.policyID : !isCreatingTrackExpense || !!policy?.id;
 
     // Personal destinations do not inherit workspace defaults. `policy` can briefly refer to the previous workspace
     // while transaction participants update, so reading it for a P2P destination would leak a stale billable value.
     const defaultBillable = getDefaultBillableForDestination(isPolicyExpenseChat, isCreatingTrackExpense, policy?.defaultBillable);
+    const defaultReimbursable = getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: !!isPolicyExpenseChat, isCreatingTrackExpense});
     useEffect(() => {
         if (!hasCapturedInitialDestinationRef.current || !destinationKey || lastHandledDestinationKeyRef.current === destinationKey || !report?.reportID || !isDestinationPolicyReady) {
             return;
         }
         lastHandledDestinationKeyRef.current = destinationKey;
 
-        const defaultReimbursable = isGroupPolicyExpenseChat || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultBillable);
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
-    }, [defaultBillable, destinationKey, isDestinationPolicyReady, isGroupPolicyExpenseChat, isCreatingTrackExpense, policy?.defaultReimbursable, report?.reportID]);
+    }, [defaultBillable, defaultReimbursable, destinationKey, isDestinationPolicyReady, report?.reportID]);
 
     const setBillable = useCallback((billable: boolean) => {
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, billable);
@@ -639,7 +638,7 @@ function SubmitDetailsPage({
 
     const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
         const receipt: Receipt = file;
-        receipt.state = hasAllManuallyEnteredScanFields(transaction) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
+        receipt.state = hasAllManuallyEnteredScanFields(transaction, !!isPolicyExpenseChat) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
         // The share flow builds the receipt here by hand and skips buildReceiptFiles, so this is the only place to stamp
         // the trace id and log the capture.
         const receiptTraceId = mintAndStampReceiptTraceId(receipt);
@@ -778,7 +777,7 @@ function SubmitDetailsPage({
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policy?.id}
                         isConfirming={isConfirming}
-                        onConfirm={() => onConfirm(!hasAllManuallyEnteredScanFields(transaction))}
+                        onConfirm={() => onConfirm(!hasAllManuallyEnteredScanFields(transaction, !!isPolicyExpenseChat))}
                         reportID={reportOrAccountID}
                         // The share flow always creates a Scan expense from the shared file: it is never a split, never
                         // a moved tracked expense and never a test receipt, so the amount / merchant / date are always

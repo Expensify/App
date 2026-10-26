@@ -7,7 +7,7 @@ import {getChildTransactions} from '@libs/TransactionUtils';
 
 import signalExpenseAddedGrowl from '@userActions/IOU/signalExpenseAddedGrowl';
 import type {UpdateSplitTransactionsParams} from '@userActions/IOU/SplitTransactionUpdate';
-import {hasEditableSplitExpenseLeft, updateSplitTransactions} from '@userActions/IOU/SplitTransactionUpdate';
+import {hasEditableSplitExpenseLeft, updateSplitTransactions, willSplitUpdateEmptyExpenseReport} from '@userActions/IOU/SplitTransactionUpdate';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -32,7 +32,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const hasEditableSplitExpensesLeft = hasEditableSplitExpenseLeft(splitExpenses, params.allTransactionsList, params.allReportsList, currentSnapshotDataForSplits);
 
     // Unfiltered, so a pure selfDM 2-split still collapses via REVERT_SPLIT_TRANSACTION. The mixed
-    // workspace/selfDM case is guarded below via reverseSplitKeepsOriginalInExpenseReport instead.
+    // workspace/selfDM case is guarded below by willSplitUpdateEmptyExpenseReport instead.
     const isReverseSplitOperation = splitExpenses.length === 1 && allChildTransactions.length > 0 && hasEditableSplitExpensesLeft;
 
     // Newly created split transaction IDs, excluding ones already present in allChildTransactions.
@@ -48,14 +48,10 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // splits belonging to the current expense report, or the only remaining split moved to selfDM.
     // In any of these cases we must navigate away from the soon-to-be-empty report so the user
     // isn't stranded on a "Not Found" page.
-    const expenseReportTransactions = expenseReportID ? Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID) : [];
-    const areAllExpenseReportTransactionsSplitChildren =
-        expenseReportTransactions.length > 0 && expenseReportTransactions.every((itemTransaction) => itemTransaction?.comment?.originalTransactionID === originalTransactionID);
-    const anyRemainingSplitStaysInExpenseReport = splitExpenses.some((expense) => expense.reportID === expenseReportID);
-    const reverseSplitKeepsOriginalInExpenseReport = isReverseSplitOperation && splitExpenses.at(0)?.reportID === expenseReportID;
-    const willExpenseReportBecomeEmpty =
-        !!expenseReportID && areAllExpenseReportTransactionsSplitChildren && !anyRemainingSplitStaysInExpenseReport && !reverseSplitKeepsOriginalInExpenseReport;
-    const isLastTransactionInReport = willExpenseReportBecomeEmpty || (isReverseSplitOperation && !reverseSplitKeepsOriginalInExpenseReport && expenseReportTransactions.length === 1);
+    // Same check updateSplitTransactions uses to delete the report, so we never navigate back into a report it removes. It covers
+    // the reverse split too and skips transactions already pending deletion, so both sides agree on when the report is emptied.
+    // Creating splits never removes the report, so it's skipped here just like in updateSplitTransactions.
+    const isLastTransactionInReport = allChildTransactions.length > 0 && willSplitUpdateEmptyExpenseReport(expenseReportID, originalTransactionID, splitExpenses, params.allTransactionsList);
     const fallbackReportID = params.expenseReport?.chatReportID ?? params.expenseReport?.parentReportID;
 
     if (isLastTransactionInReport && fallbackReportID) {

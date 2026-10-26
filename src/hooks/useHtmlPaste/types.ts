@@ -2,7 +2,7 @@ import type {ComponentRef, RefObject} from 'react';
 import type {TextInput} from 'react-native';
 
 type UseHtmlPaste = (
-    textInputRef: RefObject<(HTMLTextAreaElement & ComponentRef<typeof TextInput>) | ComponentRef<typeof TextInput> | null>,
+    textInputRef: RefObject<(HTMLElement & Pick<TextInput, 'isFocused'>) | ComponentRef<typeof TextInput> | null>,
     preHtmlPasteCallback?: (event: ClipboardEvent) => boolean,
     isActive?: boolean,
     maxLength?: number, // Maximum length of the text input value after pasting
