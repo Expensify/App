@@ -22,6 +22,7 @@ import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailO
 import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
+    canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
     getCountOfEnabledTagsOfList,
@@ -1938,6 +1939,7 @@ function isValidReport(
         isDefaultRoomsBetaEnabled = false,
         includeMultipleParticipantReports = false,
         includeOwnedWorkspaceChats = false,
+        excludeWorkspacesWithoutCreateExpensePermission = false,
         includeThreads = false,
         includeTasks = false,
         includeMoneyRequests = false,
@@ -1999,6 +2001,10 @@ function isValidReport(
     }
 
     if (isPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+        return false;
+    }
+
+    if (isPolicyExpenseChat && excludeWorkspacesWithoutCreateExpensePermission && !canCreateExpensesOnPolicy(policy)) {
         return false;
     }
 
