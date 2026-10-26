@@ -101,7 +101,7 @@ import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
@@ -629,6 +629,12 @@ function Search({
     const carouselSource = CAROUSEL_SOURCE.search(hash);
     const hasSeededCarouselRef = useRef(false);
 
+    // Read at press time rather than closed over, so rebuilding the rows doesn't give onSelectRow (and every row) a new identity.
+    const carouselSiblingTransactionIDsRef = useRef(carouselSiblingTransactionIDs);
+    useLayoutEffect(() => {
+        carouselSiblingTransactionIDsRef.current = carouselSiblingTransactionIDs;
+    }, [carouselSiblingTransactionIDs]);
+
     // Hands this list's expenses to the carousel for the expense the user is opening in *this* tab.
     //
     // It is called at each in-tab navigation rather than once at the top of `onSelectRow`, because a Cmd/Ctrl+click
@@ -636,8 +642,9 @@ function Search({
     // open in the RHP, which then paged through unrelated Spend results. Releasing is scoped to this source for the
     // same reason - the unscoped clear used to wipe a carousel another screen owned.
     const seedCarouselForOpenedExpense = useCallback(() => {
-        if (carouselSiblingTransactionIDs.length > 1) {
-            setActiveTransactionIDs(carouselSiblingTransactionIDs, {source: carouselSource, snapshotHash: hash});
+        const siblingTransactionIDs = carouselSiblingTransactionIDsRef.current;
+        if (siblingTransactionIDs.length > 1) {
+            setActiveTransactionIDs(siblingTransactionIDs, {source: carouselSource, snapshotHash: hash});
             // Mark the seed so the release effect below knows this instance owns a carousel. Without it an instance
             // that only ever seeded from a row press skipped its own cleanup and stranded `search:<hash>` behind.
             hasSeededCarouselRef.current = true;
@@ -645,7 +652,7 @@ function Search({
         }
         clearActiveTransactionIDsForSource(carouselSource);
         hasSeededCarouselRef.current = false;
-    }, [carouselSiblingTransactionIDs, carouselSource, hash]);
+    }, [carouselSource, hash]);
 
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
