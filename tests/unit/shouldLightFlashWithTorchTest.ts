@@ -1,4 +1,4 @@
-import shouldLightFlashWithTorch, {getTorchFallbackReason, TORCH_SETTLE_MS} from '@pages/iou/request/step/IOURequestStepScan/utils/shouldLightFlashWithTorch';
+import shouldLightFlashWithTorch, {getTorchFallbackReason, getTorchModeProp, TORCH_SETTLE_MS} from '@pages/iou/request/step/IOURequestStepScan/utils/shouldLightFlashWithTorch';
 
 const mockPlatformConfig = {canLightFlashWithTorch: true};
 
@@ -23,28 +23,18 @@ describe('shouldLightFlashWithTorch', () => {
         expect(shouldLightFlashWithTorch(ALL_MET)).toBe(true);
     });
 
-    it('keeps the flash photo where the torch-lit snapshot would not be upgraded', () => {
-        // Given multi-scan and the scan paths without the photo upgrade, which would keep the snapshot as the receipt
+    it.each([
+        ['flash is off', {flash: false}],
+        ['the phone has no flash', {hasFlash: false}],
+        ['the phone has no torch', {hasTorch: false}],
+        ['the beta is off', {isBetaEnabled: false}],
+        ['multi-scan is on, which skips the photo upgrade', {isMultiScanEnabled: true}],
+        ['the screen has no photo upgrade', {canUpgradeReceiptQuality: false}],
+    ])('keeps the flash photo when %s', (_, override) => {
+        // Given one condition for the torch path is missing
         // When the capture mode is decided
-        // Then the torch stays off and the flash photo is kept
-        expect(shouldLightFlashWithTorch({...ALL_MET, isMultiScanEnabled: true})).toBe(false);
-        expect(shouldLightFlashWithTorch({...ALL_MET, canUpgradeReceiptQuality: false})).toBe(false);
-    });
-
-    it('keeps the flash photo outside the beta and on phones without a torch', () => {
-        // Given the beta off, and separately a phone with a flash but no torch
-        // When the capture mode is decided
-        // Then the torch stays off
-        expect(shouldLightFlashWithTorch({...ALL_MET, isBetaEnabled: false})).toBe(false);
-        expect(shouldLightFlashWithTorch({...ALL_MET, hasTorch: false})).toBe(false);
-    });
-
-    it('never turns the torch on when flash is off or unavailable', () => {
-        // Given flash turned off, and separately a phone without a flash
-        // When the capture mode is decided
-        // Then the torch stays off
-        expect(shouldLightFlashWithTorch({...ALL_MET, flash: false})).toBe(false);
-        expect(shouldLightFlashWithTorch({...ALL_MET, hasFlash: false})).toBe(false);
+        // Then the torch stays off, because without it, or without the upgrade, the snapshot would be dark or final
+        expect(shouldLightFlashWithTorch({...ALL_MET, ...override})).toBe(false);
     });
 
     it('keeps the flash photo on iOS, which has no snapshot', () => {
@@ -79,5 +69,16 @@ describe('getTorchFallbackReason', () => {
         // When the shutter is pressed
         // Then a snapshot would still be dark, so the capture does not count on the torch
         expect(getTorchFallbackReason({torchMode: 'on', msSinceTorchRequested: TORCH_SETTLE_MS - 1})).toBe('settling');
+    });
+});
+
+describe('getTorchModeProp', () => {
+    it('sends no torch mode to a camera without a torch, and on or off to one with a torch', () => {
+        // Given a camera with no flash unit, where CameraX rejects any torch call, and a camera with a torch
+        // When the torch mode prop is chosen
+        // Then the torch-less camera gets none, so it never errors on start, and the other always gets one, so flash off turns the torch off
+        expect(getTorchModeProp(false, true)).toBeUndefined();
+        expect(getTorchModeProp(true, true)).toBe('on');
+        expect(getTorchModeProp(true, false)).toBe('off');
     });
 });

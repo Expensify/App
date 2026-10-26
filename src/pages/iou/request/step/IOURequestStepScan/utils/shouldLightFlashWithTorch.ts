@@ -1,3 +1,6 @@
+/**
+ * Decides when an Android flash scan can use the torch and a snapshot instead of a slow flash photo.
+ */
 import cameraPlatformConfig from '@libs/cameraCapture/platformConfig';
 
 import type {TorchMode} from 'react-native-vision-camera';
@@ -38,5 +41,13 @@ function getTorchFallbackReason({torchMode, msSinceTorchRequested}: TorchReadine
     return undefined;
 }
 
+/** CameraX rejects any torch call, even 'off', on a camera without a flash unit. */
+function getTorchModeProp(hasTorch: boolean, isTorchOn: boolean): TorchMode | undefined {
+    if (!hasTorch) {
+        return undefined;
+    }
+    return isTorchOn ? 'on' : 'off';
+}
+
 export default shouldLightFlashWithTorch;
-export {getTorchFallbackReason, TORCH_SETTLE_MS};
+export {getTorchFallbackReason, getTorchModeProp, TORCH_SETTLE_MS};

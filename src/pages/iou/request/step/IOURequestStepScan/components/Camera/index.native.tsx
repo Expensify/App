@@ -104,6 +104,18 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         torchRequestedAt.current = Date.now();
     }, [isTorchRequested]);
 
+    // CameraX turns the torch off whenever the session stops, and VisionCamera only re-applies `torchMode` when the prop
+    // changes, so a restarted session would stay dark with flash still on.
+    const relightTorchAfterRestart = () => {
+        if (!isTorchRequested) {
+            return;
+        }
+        torchRequestedAt.current = Date.now();
+        camera.current?.controller?.setTorchMode('on').catch((error: unknown) => {
+            Log.info('[Camera] could not turn the torch back on after the camera restarted', false, {error: getErrorMessage(error)});
+        });
+    };
+
     const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput(cameraPlatformConfig.scanQualityPrioritization, isInLandscapeMode);
     const outputs = [photoOutput];
 
@@ -298,6 +310,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             didCapturePhoto={didCapturePhoto}
                             hasPendingPhotoCapture={hasPendingPhotoCapture}
                             onConfigured={finishCameraSetup}
+                            onStarted={relightTorchAfterRestart}
                             onSessionConfigSelected={handleSessionConfigSelected}
                             shouldShowFlashButton={canUseMultiScan}
                             cameraPermissionStatus={cameraPermissionStatus}
