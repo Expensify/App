@@ -45,8 +45,8 @@ function filterDeletedAgents(agents: OnyxCollection<Agent>, isOffline: boolean):
     );
 }
 
-function agentAccountIDsSelector(agents: OnyxCollection<Agent>): Set<number> {
-    return new Set(Object.keys(agents ?? {}).map((key) => Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length))));
+function agentAccountIDsSelector(agents: OnyxCollection<Agent>): number[] {
+    return Object.keys(agents ?? {}).map((key) => Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length)));
 }
 
 export {getAgentErrors, doesAgentHaveErrors, hasAgentErrorsSelector, filterDeletedAgents, agentAccountIDsSelector};
