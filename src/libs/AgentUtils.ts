@@ -1,4 +1,3 @@
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Agent} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
