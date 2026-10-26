@@ -10,7 +10,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
-import {useAllPersonalDetails} from './usePersonalDetails';
+import {usePersonalDetailsByIDs} from './usePersonalDetails';
 
 /**
  * Hook that returns a workspace's members joined with personal details, filling in fallback identities when details haven't loaded and filtering out Expensify team members on Expensify-owned policies.
@@ -22,8 +22,9 @@ function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
     const currentUserLogin = currentUserPersonalDetails.login;
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true);
+    const policyMemberAccountIDs = Object.values(policyMemberEmailsToAccountIDs);
     const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
-    const [personalDetails] = useAllPersonalDetails();
+    const [personalDetails] = usePersonalDetailsByIDs(policyMemberAccountIDs);
     const {isOffline} = useNetwork();
 
     const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
