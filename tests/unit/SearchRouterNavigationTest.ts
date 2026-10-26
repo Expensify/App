@@ -197,6 +197,7 @@ const spendIcons = {
     ThumbsUp: mockIcon,
     CheckCircle: mockIcon,
     UserEye: mockIcon,
+    Plane: mockIcon,
 };
 const workspaceIcons = {
     Building: mockIcon,
@@ -710,10 +711,12 @@ describe('Workspace Search Router navigation source', () => {
             policies: Object.fromEntries(policies.map((policy) => [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy])),
             policyCategories: undefined,
             currentUserLogin: workspaceCurrentUserLogin,
+            currentUserPersonalDetails: {accountID: 1},
             icons: workspaceIcons,
             isOffline,
             isVendorMatchingBetaEnabled: false,
             isRecruitingBetaEnabled: false,
+            isCompanyAgentsBetaEnabled: false,
             isUnifiedConnectionsBetaEnabled,
             shouldUseNarrowLayout: false,
             convertToDisplayString: () => '$0.00',

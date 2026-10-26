@@ -40,6 +40,12 @@ defaultFilter
 
       const isNegated = !!neg && !nonNegatableKeys.has(key);
 
+      // The "contains" operator is only supported for the merchant field
+      if (op === "contains" && (neg || key !== "merchant")) {
+        autocomplete = null;
+        return;
+      }
+
       if (!value) {
         autocomplete = {
           key,
@@ -105,10 +111,13 @@ autocompleteKey "key"
       / view
       / reimbursable
       / billable
+      / declined
+      / held
       / policyID
       / action
       / date
       / submitted
+      / anyApproval
       / approved
       / paid
       / exportedTo

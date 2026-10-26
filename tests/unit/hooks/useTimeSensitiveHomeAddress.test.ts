@@ -17,6 +17,7 @@ const POLICY_ID = '1';
 function makeHomeAndOfficePolicy(isOfficeWorkArrangement?: boolean, hasOfficeWorkArrangement?: boolean): Policy {
     return {
         ...createRandomPolicy(Number(POLICY_ID)),
+        areDistanceRatesEnabled: true,
         commuterExclusions: {
             method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
             ...(isOfficeWorkArrangement === undefined ? {} : {isOfficeWorkArrangement}),
@@ -63,6 +64,19 @@ describe('useTimeSensitiveHomeAddress', () => {
         const {result} = renderHook(() => useTimeSensitiveHomeAddress());
 
         // Then the task appears, because such a workspace measured every member's commute
+        await waitFor(() => {
+            expect(result.current.shouldShowAddHomeAddress).toBe(true);
+        });
+    });
+
+    it('asks for an address when Distance rates are disabled but home and office exclusions remain active', async () => {
+        // Given a workspace whose saved commuter setting is still enforced by the server
+        await setUpWorkspace({...makeHomeAndOfficePolicy(true), areDistanceRatesEnabled: false});
+
+        // When the time sensitive items are resolved
+        const {result} = renderHook(() => useTimeSensitiveHomeAddress());
+
+        // Then the task appears because disabling Distance rates does not remove the commuter setting
         await waitFor(() => {
             expect(result.current.shouldShowAddHomeAddress).toBe(true);
         });

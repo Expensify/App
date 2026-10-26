@@ -76,7 +76,6 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
                 accessibilityRole={CONST.ROLE.BUTTON}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 accessibilityLabel={item.file?.name || translate('attachmentView.unknownFilename')}
                 sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.ITEM}
             >
