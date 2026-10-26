@@ -67,6 +67,8 @@ function TestDriveDemo() {
             if (conciergeReportID && !hasCalledOpenReportRef.current) {
                 hasCalledOpenReportRef.current = true;
                 openReport({
+                    // Existing reports do not create participant personal details.
+                    personalDetails: undefined,
                     reportID: conciergeReportID,
                     introSelected,
                     conciergeChat,

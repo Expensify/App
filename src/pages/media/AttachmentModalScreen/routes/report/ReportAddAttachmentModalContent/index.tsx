@@ -82,6 +82,8 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
 
     const fetchReport = useCallback(() => {
         openReport({
+            // Existing reports do not create participant personal details.
+            personalDetails: undefined,
             reportID,
             introSelected,
             conciergeChat,

@@ -218,6 +218,8 @@ function AddPersonalBankAccountPage() {
         }
         hasRefreshedExitReport.current = true;
         openReport({
+            // Existing reports do not create participant personal details.
+            personalDetails: undefined,
             reportID: exitReportID,
             hasReportActions: hasExitReportActions,
             shouldMarkAsRead: false,

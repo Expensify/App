@@ -141,6 +141,8 @@ function DynamicReviewPage() {
             return;
         }
         openReport({
+            // Existing reports do not create participant personal details.
+            personalDetails: undefined,
             reportID: route.params.reportID,
             introSelected,
             conciergeChat,
