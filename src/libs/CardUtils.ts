@@ -248,7 +248,7 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
         return '';
     }
     if (isTravelCard(card)) {
-        return translate('cardTransactions.travelInvoicing');
+        return translate('cardTransactions.travelBilling');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
@@ -268,7 +268,7 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
  */
 function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTranslate, displayName?: string) {
     if (isTravelCard(card)) {
-        return translate('cardTransactions.travelInvoicing');
+        return translate('cardTransactions.travelBilling');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
@@ -289,7 +289,7 @@ function getCompanyCardDescription(translate: LocalizedTranslate, transactionCar
     // feedCountry travels with the transaction, so a travel card belonging to another member (absent from the viewer's card
     // list) still shows the localized travel name instead of the server string.
     if (isTravelCardTransaction(feedCountry, card)) {
-        return translate('cardTransactions.travelInvoicing');
+        return translate('cardTransactions.travelBilling');
     }
 
     if (!card) {
@@ -861,7 +861,7 @@ function filterCardsByPersonalDetails(card: Card, searchQuery: string, personalD
     );
 }
 
-function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | undefined, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardFeedIcons): IconAsset {
+function getCardFeedIcon(cardFeed: string | undefined, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardFeedIcons): IconAsset {
     if (cardFeed === undefined) {
         return illustrations.GenericCompanyCardLarge;
     }
@@ -890,16 +890,18 @@ function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | u
         return companyCardIllustrations.ExpensifyCardImage;
     }
 
-    const feedIcon = feedIcons[cardFeed as keyof typeof feedIcons];
+    const feedEntries = Object.entries(feedIcons);
+    // Raw bank text can match inherited property names, so only owned feed entries can supply an icon.
+    const [, feedIcon] = feedEntries.find(([feed]) => feed === cardFeed) ?? [];
     if (feedIcon) {
         return feedIcon;
     }
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, cdfbmo
-    const feedKey = (Object.keys(feedIcons) as Array<keyof typeof feedIcons>).find((feed) => cardFeed.startsWith(feed));
+    const feedEntry = feedEntries.find(([feed]) => cardFeed.startsWith(feed));
 
-    if (feedKey) {
-        return feedIcons[feedKey];
+    if (feedEntry) {
+        return feedEntry[1];
     }
 
     if (cardFeed.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
@@ -1109,7 +1111,6 @@ function getCustomOrFormattedFeedName(
 
     // Custom feed name can be empty. Fallback to default feed name
     // Fallback to feed key name for unknown feeds
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return customFeedName || formattedFeedName || feed;
 }
 
@@ -1179,7 +1180,7 @@ function getFeedNameForDisplay(
 
     // Travel Billing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
     if (feed === CONST.EXPENSIFY_CARD.BANK && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
-        return translate('search.filters.card.travelInvoicing');
+        return translate('search.filters.card.travelBilling');
     }
 
     const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed as CompanyCardFeed);

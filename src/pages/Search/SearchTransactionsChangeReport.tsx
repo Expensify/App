@@ -1,8 +1,8 @@
-import DecisionModal from '@components/DecisionModal';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useAlertModals from '@hooks/useAlertModals';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -10,23 +10,22 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
 import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {createNewReport} from '@libs/actions/Report';
 import {autoReportTransactions, changeTransactionsReport} from '@libs/actions/Transaction';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import getAllMatchingQueryParams from '@libs/getAllMatchingQueryParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getSelectedTransactionOwnerAccountID from '@libs/getSelectedTransactionOwnerAccountID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
-import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {generateReportID, getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     isDistanceRequest as isDistanceRequestUtil,
@@ -43,7 +42,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -57,12 +56,8 @@ function SearchTransactionsChangeReport() {
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
-    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+    const {showOfflineModal} = useAlertModals();
 
     const allMatchingQueryParams = getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
 
@@ -134,22 +129,18 @@ function SearchTransactionsChangeReport() {
             return ownerFromSelection;
         }
 
-        const reportIDWithOwner = selectedTransactionsKeys
-            .map((transactionKey) => selectedTransactions[transactionKey]?.reportID)
-            .find((reportID) => reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
-
-        if (!reportIDWithOwner) {
-            return undefined;
-        }
-
-        const report = getReportOrDraftReport(reportIDWithOwner, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithOwner}`]);
-        return report?.ownerAccountID;
-    }, [selectedTransactions, selectedTransactionsKeys, allReports]);
+        // Then the cardholder of an unreported card expense, or the report owner, so another cardholder's expenses
+        // are not moved onto the current user's reports
+        return selectedTransactionsKeys
+            .map((transactionKey) => getSelectedTransactionOwnerAccountID(transactionKey, selectedTransactions[transactionKey], {cardList, nonPersonalAndWorkspaceCards, allReports}))
+            .find((ownerID) => typeof ownerID === 'number');
+    }, [selectedTransactions, selectedTransactionsKeys, allReports, cardList, nonPersonalAndWorkspaceCards]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
     // Kept separate from `targetOwnerAccountID`, which stops at the first owner it finds. Counting needs them all.
     // Only distinct resolved owners count. An owner we cannot resolve must not stand in for a second submitter: for an
-    // unreported expense the report lookup can never resolve one (its reportID is `0`), so a search snapshot missing
-    // the money-request action would otherwise file one cardholder's bulk selection as mixed and strip its report list.
+    // unreported expense whose card we cannot find, the report lookup can never resolve one (its reportID is `0`), so a
+    // search snapshot missing the money-request action would otherwise file one cardholder's bulk selection as mixed
+    // and strip its report list.
     // "Auto report" resolves each destination through the expense's card. A card this user cannot resolve, because
     // it is missing or on a feed they do not administer, fails the whole request.
     const areAllManagedCardsResolvable =
@@ -160,10 +151,7 @@ function SearchTransactionsChangeReport() {
         const ownerAccountIDs = new Set<number>();
 
         for (const transactionKey of selectedTransactionsKeys) {
-            const selection = selectedTransactions[transactionKey];
-            const reportID = selection?.reportID;
-            const ownerAccountID =
-                selection?.ownerAccountID ?? getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])?.ownerAccountID;
+            const ownerAccountID = getSelectedTransactionOwnerAccountID(transactionKey, selectedTransactions[transactionKey], {cardList, nonPersonalAndWorkspaceCards, allReports});
 
             if (typeof ownerAccountID === 'number') {
                 ownerAccountIDs.add(ownerAccountID);
@@ -171,7 +159,7 @@ function SearchTransactionsChangeReport() {
         }
 
         return ownerAccountIDs.size > 1;
-    }, [selectedTransactions, selectedTransactionsKeys, allReports]);
+    }, [selectedTransactions, selectedTransactionsKeys, allReports, cardList, nonPersonalAndWorkspaceCards]);
 
     useHydrateReportsFromSnapshot(currentSearchResults, allReports);
 
@@ -231,7 +219,7 @@ function SearchTransactionsChangeReport() {
 
     const createReport = () => {
         if (shouldBlockOfflineAllMatchingMove()) {
-            setIsOfflineModalVisible(true);
+            showOfflineModal();
             return;
         }
 
@@ -291,7 +279,7 @@ function SearchTransactionsChangeReport() {
             return;
         }
         if (shouldBlockOfflineAllMatchingMove()) {
-            setIsOfflineModalVisible(true);
+            showOfflineModal();
             return;
         }
 
@@ -342,7 +330,7 @@ function SearchTransactionsChangeReport() {
             return;
         }
         if (shouldBlockOfflineAllMatchingMove()) {
-            setIsOfflineModalVisible(true);
+            showOfflineModal();
             return;
         }
         const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
@@ -372,37 +360,26 @@ function SearchTransactionsChangeReport() {
     };
 
     return (
-        <>
-            <IOURequestEditReportCommon
-                backTo={undefined}
-                transactionIDs={selectedTransactionsKeys}
-                isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
-                isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
-                isDistanceRequest={transactions.some(isDistanceRequestUtil)}
-                selectedReportID={selectedReportID}
-                selectReport={selectReport}
-                removeFromReport={removeFromReport}
-                createReport={createReport}
-                isEditing
-                isUnreported={areAllTransactionsUnreported}
-                targetOwnerAccountID={targetOwnerAccountID}
-                transactionPolicyID={selectedReportPolicyID}
-                isPerDiemRequest={hasPerDiemTransactions}
-                isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
-                hasMultipleSubmitters={hasMultipleSubmitters}
-                areAllManagedCardsResolvable={areAllManagedCardsResolvable}
-                autoReport={autoReport}
-            />
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isOfflineModalVisible}
-                onClose={() => setIsOfflineModalVisible(false)}
-            />
-        </>
+        <IOURequestEditReportCommon
+            backTo={undefined}
+            transactionIDs={selectedTransactionsKeys}
+            isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
+            isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
+            isDistanceRequest={transactions.some(isDistanceRequestUtil)}
+            selectedReportID={selectedReportID}
+            selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            createReport={createReport}
+            isEditing
+            isUnreported={areAllTransactionsUnreported}
+            targetOwnerAccountID={targetOwnerAccountID}
+            transactionPolicyID={selectedReportPolicyID}
+            isPerDiemRequest={hasPerDiemTransactions}
+            isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
+            hasMultipleSubmitters={hasMultipleSubmitters}
+            areAllManagedCardsResolvable={areAllManagedCardsResolvable}
+            autoReport={autoReport}
+        />
     );
 }
 

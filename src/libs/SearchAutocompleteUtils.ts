@@ -287,6 +287,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD:
             return booleanList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
@@ -302,6 +303,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR:
             return range.value.length > 0;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
             return exportedToList.get().includes(range.value);

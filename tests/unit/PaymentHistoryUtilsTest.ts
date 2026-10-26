@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {
     formatDate,
+    getActiveUserAccountIDs,
     getBadgeText,
     getPaymentDetailsBadge,
     getPaymentHistoryRow,
@@ -133,6 +134,85 @@ describe('getPaymentHistoryRows', () => {
 
         // Then the repeated person is counted once
         expect(rows.at(0)?.activeUserCount).toBe(2);
+    });
+
+    it('counts members only on bills that were on Collect 2025 pricing', () => {
+        // Given a bill on Collect 2025 pricing and an older bill that wasn't
+        const purchaseList = [createPurchase(1, '2026-02-01'), createPurchase(2, '2026-08-01', {isTeam2025Pricing: true})];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then each row follows its own bill's pricing, so a plan change doesn't relabel past bills
+        expect(rows.find((row) => row.purchaseID === 2)?.countsMembers).toBe(true);
+        expect(rows.find((row) => row.purchaseID === 1)?.countsMembers).toBe(false);
+    });
+
+    it('uses totalActorCount on a legacy bill even when totalUniqueMembersCount is higher', () => {
+        // Given a legacy bill where totalUniqueMembersCount counts every member of every workspace (including archived),
+        // while totalActorCount reflects the users actually billed — Classic shows the billed count, so we must too.
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {
+                isTeam2025Pricing: false,
+                totalActorCount: 2,
+                totalUniqueMembersCount: 5,
+                billablePolicies: {
+                    first: {actorList: 'ada@example.com', corporate: true},
+                    second: {actorList: 'bob@example.com', corporate: false},
+                },
+            }),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then the row shows the billed-actor count, matching the details page
+        expect(rows.at(0)?.activeUserCount).toBe(2);
+    });
+
+    it('uses the larger of teamActorCount and totalUniqueMembersCount on a Team 2025 bill', () => {
+        // Given a Team 2025 bill where a force-upgraded policy inflated teamActorCount above totalUniqueMembersCount
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {
+                isTeam2025Pricing: true,
+                teamActorCount: 7,
+                totalUniqueMembersCount: 4,
+            }),
+            createPurchase(2, '2026-03-01', {
+                isTeam2025Pricing: true,
+                teamActorCount: 2,
+                totalUniqueMembersCount: 6,
+            }),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then each row uses the larger count — team actors in the first case, unique members in the second
+        expect(rows.find((row) => row.purchaseID === 1)?.activeUserCount).toBe(7);
+        expect(rows.find((row) => row.purchaseID === 2)?.activeUserCount).toBe(6);
+    });
+
+    it('coerces string actor counts from Auth into numbers', () => {
+        // Given counts that arrive as strings from Auth (totalActorCount / teamActorCount are serialized as strings there)
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {
+                isTeam2025Pricing: false,
+                totalActorCount: '3',
+            }),
+            createPurchase(2, '2026-03-01', {
+                isTeam2025Pricing: true,
+                teamActorCount: '4',
+                totalUniqueMembersCount: 2,
+            }),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then the counts are numeric and compared correctly
+        expect(rows.find((row) => row.purchaseID === 1)?.activeUserCount).toBe(3);
+        expect(rows.find((row) => row.purchaseID === 2)?.activeUserCount).toBe(4);
     });
 });
 
@@ -428,5 +508,25 @@ describe('getReceiptFileName', () => {
         // When extracting the filename
         // Then it falls back to receipt-{purchaseID}
         expect(getReceiptFileName('https://expensify.com/', 7)).toBe('receipt-7');
+    });
+});
+
+describe('getActiveUserAccountIDs', () => {
+    it('dedupes users billed under more than one workspace', () => {
+        // Given a purchase whose active users repeat, because one person was billed under two workspaces
+        const purchase = {...createPurchase(1, '2026-02-01'), activeUsers: [10, 20, 10, 30]};
+
+        // When the active users for the Activity list are read
+        // Then each person is listed once, so the count under the Activity header matches the list
+        expect(getActiveUserAccountIDs(purchase)).toEqual([10, 20, 30]);
+    });
+
+    it('returns no users when the details have not loaded or nobody was billed', () => {
+        // Given a missing purchase, a purchase without active users, and a purchase with an empty list
+        // When the active users are read
+        // Then the list is empty, so the page hides the Activity section
+        expect(getActiveUserAccountIDs(undefined)).toEqual([]);
+        expect(getActiveUserAccountIDs(createPurchase(1, '2026-02-01'))).toEqual([]);
+        expect(getActiveUserAccountIDs({...createPurchase(1, '2026-02-01'), activeUsers: []})).toEqual([]);
     });
 });
