@@ -10,6 +10,7 @@ describe('SearchAmountFilterUtils', () => {
         {amount: '-0.5', currency: 'EUR', expected: '-0.50 EUR'},
         {amount: '0', currency: 'JPY', expected: '0.00 JPY'},
         {amount: '12.50', currency: '', expected: '1250'},
+        {amount: '0.10', currency: '', expected: '10'},
         {amount: '', currency: 'USD', expected: ''},
     ])('serializes $amount with currency $currency as $expected', ({amount, currency, expected}) => {
         // Given an amount entered in major units and an optional comparison currency.
@@ -22,6 +23,7 @@ describe('SearchAmountFilterUtils', () => {
 
     it.each([
         {value: '1250', amount: '12.50', currency: undefined},
+        {value: '10', amount: '0.10', currency: undefined},
         {value: '11.99 GBP', amount: '11.99', currency: 'GBP'},
         {value: '-0.50 EUR', amount: '-0.50', currency: 'EUR'},
         {value: '0.00 JPY', amount: '0.00', currency: 'JPY'},

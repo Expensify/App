@@ -24,6 +24,7 @@ jest.mock('@components/AmountWithoutCurrencyInput', () => jest.fn(() => null));
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => () => ({didScreenTransitionEnd: true}));
 jest.mock('@hooks/useShouldFooterBeInsideList', () => () => false);
 jest.mock('@hooks/useDefaultExpensePolicy', () => jest.fn(() => undefined));
+jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -107,25 +108,31 @@ describe('AmountFilterContent currency selection', () => {
         expect(onChange).toHaveBeenCalledWith({amountEqualTo: '1200', amountGreaterThan: undefined, amountLessThan: undefined});
     });
 
-    it('clears the currency without changing the entered amount', () => {
+    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('selects Any currency without changing the %s amount', (baseFilterKey) => {
         // Given a saved currency-qualified amount and a GBP workspace default.
         jest.mocked(useDefaultExpensePolicy).mockReturnValue(createMock<Policy>({outputCurrency: 'GBP'}));
         const onChange = jest.fn();
         render(
             <AmountFilterContent
-                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
-                value={{EqualTo: '12.00 USD', GreaterThan: undefined, LessThan: undefined}}
+                baseFilterKey={baseFilterKey}
+                value={{EqualTo: '0.10 USD', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
             />,
         );
 
-        // When the picker clears its selection and the filter is confirmed.
+        // When Any currency is selected and the filter is confirmed.
         expect(jest.mocked(IOURequestStepCurrencyModal).mock.calls.at(-1)?.[0].shouldAllowEmptySelection).toBe(true);
         act(() => jest.mocked(IOURequestStepCurrencyModal).mock.calls.at(-1)?.[0].onInputChange?.(''));
         fireEvent.press(screen.getByRole('button'));
 
-        // Then the amount returns to the original bare hundredths format.
-        expect(onChange).toHaveBeenCalledWith({amountEqualTo: '1200', amountGreaterThan: undefined, amountLessThan: undefined});
+        // Then the selection is labeled clearly and the amount returns to bare hundredths.
+        expect(jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0]).toMatchObject({
+            value: '0.10',
+            currency: '',
+            currencyButtonLabel: 'common.anyCurrency',
+        });
+        expect(jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0].currencyButtonAccessibilityLabel).toContain('common.anyCurrency');
+        expect(onChange).toHaveBeenCalledWith({[`${baseFilterKey}EqualTo`]: '10', [`${baseFilterKey}GreaterThan`]: undefined, [`${baseFilterKey}LessThan`]: undefined});
     });
 
     it('keeps the saved operand when the currency picker is dismissed', () => {
@@ -197,6 +204,26 @@ describe('AmountFilterContent currency selection', () => {
         expect(onChange).toHaveBeenCalledWith({purchaseAmountEqualTo: undefined, purchaseAmountGreaterThan: '10.00 USD', purchaseAmountLessThan: '20.00 GBP'});
     });
 
+    it('selects Any currency for one range bound without changing the other', () => {
+        // Given a saved range whose bounds have different currencies.
+        const onChange = jest.fn();
+        render(
+            <AmountFilterContent
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                value={{EqualTo: undefined, GreaterThan: '0.10 USD', LessThan: '20.00 GBP'}}
+                onChange={onChange}
+            />,
+        );
+
+        // When only the lower bound switches to Any currency.
+        const [lowerBoundPicker] = jest.mocked(IOURequestStepCurrencyModal).mock.calls;
+        act(() => lowerBoundPicker?.[0].onInputChange?.(''));
+        fireEvent.press(screen.getByRole('button'));
+
+        // Then the lower bound uses legacy hundredths and the upper bound retains GBP.
+        expect(onChange).toHaveBeenCalledWith({amountEqualTo: undefined, amountGreaterThan: '10', amountLessThan: '20.00 GBP'});
+    });
+
     it('does not offer currency selection for report totals', () => {
         // Given a GBP policy and an amount-like filter that does not support FX comparisons.
         jest.mocked(useDefaultExpensePolicy).mockReturnValue(createMock<Policy>({outputCurrency: 'GBP'}));
@@ -249,7 +276,12 @@ describe('AmountPopup currency selection', () => {
         expect(updateFilterForm).toHaveBeenCalledWith({purchaseAmountEqualTo: '11.99 GBP', purchaseAmountGreaterThan: '', purchaseAmountLessThan: ''});
     });
 
-    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('uses the money-request picker for the %s popup', (baseFilterKey) => {
+    it.each([
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, currency: 'USD', expected: '12.00 USD'},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT, currency: 'USD', expected: '12.00 USD'},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, currency: '', expected: '1200'},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT, currency: '', expected: '1200'},
+    ])('uses the money-request picker for the $baseFilterKey popup with currency "$currency"', ({baseFilterKey, currency, expected}) => {
         // Given a quick filter popup holding a bare amount.
         const updateFilterForm = jest.fn();
         render(
@@ -266,16 +298,16 @@ describe('AmountPopup currency selection', () => {
             throw new Error('Expected amount comparison options');
         }
 
-        // When the equal-to editor selects USD using the shared picker and both popup steps are applied.
+        // When the shared picker selects a currency or Any currency and both popup steps are applied.
         fireEvent.press(equalTo, {nativeEvent: {}});
         act(() => jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0].onCurrencyButtonPress?.());
         expect(jest.mocked(IOURequestStepCurrencyModal).mock.calls.at(-1)?.[0].isPickerVisible).toBe(true);
-        act(() => jest.mocked(IOURequestStepCurrencyModal).mock.calls.at(-1)?.[0].onInputChange?.('USD'));
+        act(() => jest.mocked(IOURequestStepCurrencyModal).mock.calls.at(-1)?.[0].onInputChange?.(currency));
         act(() => jest.mocked(BasePopup).mock.calls.at(-1)?.[0].onApply());
         act(() => jest.mocked(BasePopup).mock.calls.at(-1)?.[0].onApply());
 
-        // Then quick filters use the same decimal-major-unit operand as advanced filters.
-        expect(updateFilterForm).toHaveBeenCalledWith({[`${baseFilterKey}EqualTo`]: '12.00 USD', [`${baseFilterKey}GreaterThan`]: '', [`${baseFilterKey}LessThan`]: ''});
+        // Then quick filters preserve the qualified or legacy format used by advanced filters.
+        expect(updateFilterForm).toHaveBeenCalledWith({[`${baseFilterKey}EqualTo`]: expected, [`${baseFilterKey}GreaterThan`]: '', [`${baseFilterKey}LessThan`]: ''});
     });
 });
 
@@ -297,7 +329,7 @@ describe('Amount filter currency defaults', () => {
         rerender(undefined);
         expect(result.current.currency).toBe('GBP');
 
-        // When None is chosen, then later policy updates do not re-enable FX.
+        // When Any currency is chosen, then later policy updates do not re-enable FX.
         act(() => result.current.setCurrency(''));
         jest.mocked(useDefaultExpensePolicy).mockReturnValue(createMock<Policy>({outputCurrency: 'USD'}));
         rerender(undefined);

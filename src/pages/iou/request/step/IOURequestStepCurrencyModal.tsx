@@ -81,7 +81,7 @@ function IOURequestStepCurrencyModal({
                     >
                         <MenuItem.Row>
                             <MenuItem.Content>
-                                <MenuItem.Title>{translate('common.none')}</MenuItem.Title>
+                                <MenuItem.Title>{translate('common.anyCurrency')}</MenuItem.Title>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
