@@ -22,6 +22,7 @@ import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getReportAction, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
 import {
+    buildOptimisticCreatedReportAction,
     buildOptimisticIOUReportAction,
     buildTransactionThread,
     getReportOrDraftReport,
@@ -762,14 +763,18 @@ function mergeTransactionRequest({
         },
     );
 
-    const optimisticData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION>> = [
+    const optimisticData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
         ...(onyxTargetTransactionData.optimisticData ?? []),
         optimisticMergeTransactionData,
         ...optimisticTransactionViolations,
         ...sourceTransactionOptimisticData,
     ];
 
-    const failureData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys>> = [...(onyxTargetTransactionData.failureData ?? []), ...failureTransactionViolations, ...sourceTransactionFailureData];
+    const failureData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
+        ...(onyxTargetTransactionData.failureData ?? []),
+        ...failureTransactionViolations,
+        ...sourceTransactionFailureData,
+    ];
 
     const successData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys>> = [];
     successData.push(...sourceTransactionSuccessData);
@@ -800,47 +805,103 @@ function mergeTransactionRequest({
             // Reattach the transaction thread to the new IOU action on the destination report.
             newIOUAction.childReportID = targetTransactionThreadReportID;
 
-            // The thread can be one that was never opened, so Onyx has no report for it even though we hold a copy
-            // from the Search snapshot. Merging only the parent fields onto that key would leave a report with no
-            // reportID, and we navigate straight to it after the merge, so the screen would show a skeleton that
-            // offline never clears. Seed the whole report in that case instead.
+            // The thread can be one that was never opened, so Onyx has no report for it even though the confirmation
+            // page holds a copy from the Search snapshot. A report saved by an earlier merge counts as missing too:
+            // it holds the two parent fields and nothing else, so it has no reportID and would otherwise never heal.
+            // Merging the parent fields onto either leaves a report the screen reads as unloaded, and we navigate
+            // straight to this thread after the merge, so it is what the user lands on.
             const threadReportInOnyx = getReportOrDraftReport(targetTransactionThreadReportID);
-            const reattachedThreadFields = {
-                parentReportID: optimisticDestinationReportID,
-                parentReportActionID: newIOUAction.reportActionID,
-            };
+            const threadReportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`;
+            const threadReportActionsKey: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}` = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransactionThreadReportID}`;
+            const threadLoadingStateKey: `${typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${string}` = `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${targetTransactionThreadReportID}`;
 
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`,
-                value: threadReportInOnyx
-                    ? reattachedThreadFields
-                    : {
-                          ...buildTransactionThread(
-                              newIOUAction,
-                              getReportOrDraftReport(optimisticDestinationReportID) ?? selfDMReport,
-                              currentUserAccountIDParam,
-                              undefined,
-                              targetTransactionThreadReportID,
-                          ),
-                          ...targetTransactionThreadReport,
-                          reportID: targetTransactionThreadReportID,
-                          ...reattachedThreadFields,
-                      },
-            });
+            if (threadReportInOnyx?.reportID) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: threadReportKey,
+                    value: {
+                        parentReportID: optimisticDestinationReportID,
+                        parentReportActionID: newIOUAction.reportActionID,
+                    },
+                });
 
-            failureData.push({
-                // Onyx held nothing before the merge in the seeded case, so a failure drops the report rather than
-                // restoring fields onto one that should not exist.
-                onyxMethod: threadReportInOnyx ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`,
-                value: threadReportInOnyx
-                    ? {
-                          parentReportID: threadReportInOnyx.parentReportID ?? targetTransaction.reportID,
-                          parentReportActionID: threadReportInOnyx.parentReportActionID ?? targetIOUActionOnOriginalReport?.reportActionID,
-                      }
-                    : null,
-            });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: threadReportKey,
+                    value: {
+                        parentReportID: threadReportInOnyx.parentReportID ?? targetTransaction.reportID,
+                        parentReportActionID: threadReportInOnyx.parentReportActionID ?? targetIOUActionOnOriginalReport?.reportActionID,
+                    },
+                });
+            } else {
+                // The snapshot copy, when there is one, carries the thread's real fields, so it is the better base.
+                const seededThreadReport = {
+                    ...buildTransactionThread(
+                        newIOUAction,
+                        getReportOrDraftReport(optimisticDestinationReportID) ?? selfDMReport,
+                        currentUserAccountIDParam,
+                        undefined,
+                        targetTransactionThreadReportID,
+                    ),
+                    ...targetTransactionThreadReport,
+                    reportID: targetTransactionThreadReportID,
+                    parentReportID: optimisticDestinationReportID,
+                    parentReportActionID: newIOUAction.reportActionID,
+                };
+                const seededCreatedAction = buildOptimisticCreatedReportAction({
+                    emailCreatingAction: currentUserEmailParam,
+                    currentUserAccountID: currentUserAccountIDParam,
+                    currentUserEmail: currentUserEmailParam,
+                });
+
+                optimisticData.push(
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: threadReportKey,
+                        value: seededThreadReport,
+                    },
+                    {
+                        // An empty thread still reads as loading, so the placeholder keeps the screen off the skeleton.
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: threadReportActionsKey,
+                        value: {[seededCreatedAction.reportActionID]: seededCreatedAction},
+                    },
+                    {
+                        // Only an OpenReport response clears these, and offline that response never arrives.
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: threadLoadingStateKey,
+                        value: {hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false},
+                    },
+                );
+
+                // The response carries the thread's real actions, so the placeholder is dropped rather than left
+                // alongside them.
+                successData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: threadReportActionsKey,
+                    value: {[seededCreatedAction.reportActionID]: null},
+                });
+
+                // Nothing usable was stored before the merge, so a failure drops the thread instead of restoring
+                // fields onto a report that should not exist.
+                failureData.push(
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: threadReportKey,
+                        value: null,
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: threadReportActionsKey,
+                        value: null,
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: threadLoadingStateKey,
+                        value: null,
+                    },
+                );
+            }
         }
 
         // For a Self-DM destination the server creates its own TRACK action instead of reusing
