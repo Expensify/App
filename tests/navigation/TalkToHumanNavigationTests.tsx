@@ -118,7 +118,9 @@ describe.each([
         expect(Navigation.getActiveRoute()).not.toBe(`/${ROUTES.TALK_TO_HUMAN}`);
         expect(navigationRef.current?.getRootState().routes.at(-1)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
     });
+});
 
+describe('Talk to a human deep link', () => {
     it('resolves the link to the Talk to a human page', () => {
         // Given the link that Concierge replies point to
         // When it is opened as a URL
