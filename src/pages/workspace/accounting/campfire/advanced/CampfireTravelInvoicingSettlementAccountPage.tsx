@@ -63,7 +63,7 @@ function CampfireTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnec
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.campfire.travelInvoicingSettlementAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.campfire.travelBillingSettlementAccount.description')}</Text>
         </View>
     );
 
@@ -92,7 +92,7 @@ function CampfireTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnec
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={shouldBeBlocked}
             displayName="CampfireTravelInvoicingSettlementAccountPage"
-            title="workspace.campfire.travelInvoicingSettlementAccount.label"
+            title="workspace.campfire.travelBillingSettlementAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             headerContent={headerContent}
