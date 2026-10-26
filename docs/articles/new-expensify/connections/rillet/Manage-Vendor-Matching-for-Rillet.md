@@ -38,6 +38,7 @@ The **Vendor** field appears only on non-reimbursable expenses. It isn't shown o
 2. Select **Vendor**.
 3. Search for the vendor by name.
 4. Select the vendor you want to assign.
+5. Select **Save**.
 
 Once a vendor is selected manually, Expensify preserves that selection and won't overwrite it with automatic matching.
 
