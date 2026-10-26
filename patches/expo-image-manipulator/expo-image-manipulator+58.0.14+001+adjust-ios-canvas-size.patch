@@ -1,0 +1,129 @@
+diff --git a/node_modules/expo-image-manipulator/build/web/utils.web.js b/node_modules/expo-image-manipulator/build/web/utils.web.js
+index 754bd05..0d10e8d 100644
+--- a/node_modules/expo-image-manipulator/build/web/utils.web.js
++++ b/node_modules/expo-image-manipulator/build/web/utils.web.js
+@@ -6,6 +6,11 @@ export function getContext(canvas) {
+     }
+     return ctx;
+ }
++const SAFARI_MOBILE_CANVAS_LIMIT = 4096;
++const isMobileIOS = () => {
++    const userAgent = navigator.userAgent;
++    return /iP(ad|od|hone)/i.test(userAgent) && /(WebKit|CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent);
++};
+ export async function blobToBase64String(blob) {
+     const dataURL = await new Promise((resolve, reject)=>{
+         const reader = new FileReader();
+@@ -15,6 +20,32 @@ export async function blobToBase64String(blob) {
+     });
+     return dataURL.replace(/^data:image\/\w+;base64,/, '');
+ }
++function getAdjustedCanvasSize(originalWidth, originalHeight) {
++    if (!isMobileIOS()) return { width: originalWidth, height: originalHeight };
++    const aspectRatio = originalWidth / originalHeight;
++    let newWidth;
++    let newHeight;
++    if (originalWidth <= SAFARI_MOBILE_CANVAS_LIMIT && originalHeight <= SAFARI_MOBILE_CANVAS_LIMIT) {
++        return { width: originalWidth, height: originalHeight };
++    }
++    if (aspectRatio > 1) {
++        newWidth = SAFARI_MOBILE_CANVAS_LIMIT;
++        newHeight = Math.round(newWidth / aspectRatio);
++    }
++    else {
++        newHeight = SAFARI_MOBILE_CANVAS_LIMIT;
++        newWidth = Math.round(newHeight * aspectRatio);
++    }
++    if (newWidth > SAFARI_MOBILE_CANVAS_LIMIT) {
++        newWidth = SAFARI_MOBILE_CANVAS_LIMIT;
++        newHeight = Math.round(newWidth / aspectRatio);
++    }
++    else if (newHeight > SAFARI_MOBILE_CANVAS_LIMIT) {
++        newHeight = SAFARI_MOBILE_CANVAS_LIMIT;
++        newWidth = Math.round(newHeight * aspectRatio);
++    }
++    return { width: newWidth, height: newHeight };
++}
+ export function releaseCanvas(canvas) {
+     canvas.width = 0;
+     canvas.height = 0;
+@@ -25,7 +56,8 @@ export function loadImageAsync(uri, options) {
+         imageSource.crossOrigin = 'anonymous';
+         const canvas = document.createElement('canvas');
+         imageSource.onload = ()=>{
+-            const { width, height } = boundedSize(imageSource.naturalWidth, imageSource.naturalHeight, options?.maxWidth, options?.maxHeight);
++            const boundedCanvasSize = boundedSize(imageSource.naturalWidth, imageSource.naturalHeight, options?.maxWidth, options?.maxHeight);
++            const { width, height } = getAdjustedCanvasSize(boundedCanvasSize.width, boundedCanvasSize.height);
+             canvas.width = width;
+             canvas.height = height;
+             const context = getContext(canvas);
+diff --git a/node_modules/expo-image-manipulator/src/web/utils.web.ts b/node_modules/expo-image-manipulator/src/web/utils.web.ts
+index 11a20b4..7b53bcf 100644
+--- a/node_modules/expo-image-manipulator/src/web/utils.web.ts
++++ b/node_modules/expo-image-manipulator/src/web/utils.web.ts
+@@ -10,6 +10,13 @@ export function getContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D
+   return ctx;
+ }
+ 
++const SAFARI_MOBILE_CANVAS_LIMIT = 4096; 
++
++const isMobileIOS = () => {
++    const userAgent = navigator.userAgent;
++    return /iP(ad|od|hone)/i.test(userAgent) && /(WebKit|CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent);
++};
++
+ export async function blobToBase64String(blob: Blob): Promise<string> {
+   const dataURL = await new Promise<string>((resolve, reject) => {
+     const reader = new FileReader();
+@@ -21,6 +28,36 @@ export async function blobToBase64String(blob: Blob): Promise<string> {
+   return dataURL.replace(/^data:image\/\w+;base64,/, '');
+ }
+ 
++function getAdjustedCanvasSize(originalWidth, originalHeight) {
++    if(!isMobileIOS()) return { width: originalWidth, height: originalHeight };
++
++    const aspectRatio = originalWidth / originalHeight;
++    let newWidth;
++    let newHeight;
++
++    if (originalWidth <= SAFARI_MOBILE_CANVAS_LIMIT && originalHeight <= SAFARI_MOBILE_CANVAS_LIMIT) {
++        return { width: originalWidth, height: originalHeight };
++    }
++
++    if (aspectRatio > 1) {
++        newWidth = SAFARI_MOBILE_CANVAS_LIMIT;
++        newHeight = Math.round(newWidth / aspectRatio);
++    } else {
++        newHeight = SAFARI_MOBILE_CANVAS_LIMIT;
++        newWidth = Math.round(newHeight * aspectRatio);
++    }
++
++    if (newWidth > SAFARI_MOBILE_CANVAS_LIMIT) {
++        newWidth = SAFARI_MOBILE_CANVAS_LIMIT;
++        newHeight = Math.round(newWidth / aspectRatio);
++    } else if (newHeight > SAFARI_MOBILE_CANVAS_LIMIT) {
++        newHeight = SAFARI_MOBILE_CANVAS_LIMIT;
++        newWidth = Math.round(newHeight * aspectRatio);
++    }
++
++    return { width: newWidth, height: newHeight };
++}
++
+ export function releaseCanvas(canvas: HTMLCanvasElement): void {
+   canvas.width = 0;
+   canvas.height = 0;
+@@ -35,12 +72,13 @@ export function loadImageAsync(
+     imageSource.crossOrigin = 'anonymous';
+     const canvas = document.createElement('canvas');
+     imageSource.onload = () => {
+-      const { width, height } = boundedSize(
++      const boundedCanvasSize = boundedSize(
+         imageSource.naturalWidth,
+         imageSource.naturalHeight,
+         options?.maxWidth,
+         options?.maxHeight
+       );
++      const { width, height } = getAdjustedCanvasSize(boundedCanvasSize.width, boundedCanvasSize.height);
+       canvas.width = width;
+       canvas.height = height;
+ 

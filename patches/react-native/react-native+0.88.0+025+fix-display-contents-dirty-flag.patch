@@ -1,0 +1,18 @@
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp
+index eaf72fd..977b9b7 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp
+@@ -146,6 +146,13 @@ YogaLayoutableShadowNode::YogaLayoutableShadowNode(
+     updateYogaChildren();
+   }
+ 
++  for (const auto& layoutableChild : yogaLayoutableChildren_) {
++    if (static_cast<YGDisplay>(layoutableChild->yogaNode_.style().display()) == YGDisplayContents) {
++      yogaNode_.setDirty(true);
++      break;
++    }
++  }
++
+   ensureConsistency();
+ }
+ 
