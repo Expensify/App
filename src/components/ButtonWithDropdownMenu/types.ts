@@ -64,7 +64,7 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     switchProps?: SwitchProps;
 
     /** Tooltip shown on hover over the toggle row, e.g. to explain why a toggle is locked */
-    switchTooltipText?: string;
+    tooltipText?: string;
 
     /** Errors to display under the option (e.g. when an inline toggle's save fails) */
     errors?: Errors | null;

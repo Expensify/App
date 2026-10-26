@@ -363,6 +363,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                       // The row is the toggle and the only focus target, so it owns the switch role and state.
                                       role: CONST.ROLE.SWITCH,
                                       accessibilityState: {checked: item.switchProps.isOn, disabled: isSwitchDisabled},
+                                      // The tooltip is web-only, so fold its reason into the row's accessible name for native and screen reader users.
+                                      accessibilityLabel: item.tooltipText ? `${item.text}, ${item.tooltipText}` : undefined,
                                       // Mirror the disabled state so the row (and Enter) can't flip a disabled toggle.
                                       disabled: isSwitchDisabled,
                                       shouldGreyOutWhenDisabled: false,
