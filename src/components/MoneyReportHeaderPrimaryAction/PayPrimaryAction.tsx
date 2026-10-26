@@ -164,6 +164,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
                 delegateAccountID,
                 isTrackIntentUser,
                 rules,
+                isChatIOUReportArchived: isChatReportArchived,
             });
         } else {
             startAnimation();
@@ -192,6 +193,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
                 isTrackIntentUser,
                 conciergeChat,
                 rules,
+                isChatIOUReportArchived: isChatReportArchived,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

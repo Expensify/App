@@ -44,6 +44,7 @@ import usePaymentOptions from './usePaymentOptions';
 import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
+import useReportIsArchived from './useReportIsArchived';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useVerifyAccountAndResume from './useVerifyAccountAndResume';
 
@@ -117,6 +118,7 @@ function useSelectionModePayment({
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
 
@@ -212,6 +214,7 @@ function useSelectionModePayment({
                 delegateAccountID,
                 isTrackIntentUser,
                 rules,
+                isChatIOUReportArchived: isChatReportArchived,
             });
         } else {
             payMoneyRequest({
@@ -239,6 +242,7 @@ function useSelectionModePayment({
                 isTrackIntentUser,
                 conciergeChat,
                 rules,
+                isChatIOUReportArchived: isChatReportArchived,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,

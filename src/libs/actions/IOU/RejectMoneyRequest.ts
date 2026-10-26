@@ -811,6 +811,8 @@ function prepareRejectMoneyRequestData({
             currentUserAccountIDParam,
             allTransactionViolations,
             undefined,
+            // TODO: Thread the chat report's archived state from the UI. Until then treat the chat as not archived. See https://github.com/Expensify/App/issues/66422
+            false,
         );
 
         if (policyExpenseChat.hasOutstandingChildRequest !== shouldHaveOutstandingChildRequest) {

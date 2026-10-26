@@ -235,7 +235,7 @@ type DeleteTrackExpenseParams = {
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     isSingleTransactionView: boolean | undefined;
     isChatReportArchived: boolean | undefined;
-    isChatIOUReportArchived: boolean | undefined;
+    isChatIOUReportArchived: boolean;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
     currentUserEmail: string;

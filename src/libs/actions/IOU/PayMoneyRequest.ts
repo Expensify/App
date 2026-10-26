@@ -84,6 +84,7 @@ type PayInvoiceArgs = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isChatIOUReportArchived: boolean;
 };
 
 type PayMoneyRequestData = {
@@ -129,6 +130,7 @@ type PayMoneyRequestFunctionParams = {
     isFallbackChatReport?: boolean;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isChatIOUReportArchived: boolean;
 };
 
 function getPayMoneyRequestParams({
@@ -160,6 +162,7 @@ function getPayMoneyRequestParams({
     getCurrencyDecimals,
     isFallbackChatReport,
     rules,
+    isChatIOUReportArchived,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -189,6 +192,7 @@ function getPayMoneyRequestParams({
     isFallbackChatReport?: boolean;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isChatIOUReportArchived: boolean;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -308,7 +312,15 @@ function getPayMoneyRequestParams({
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmailParam, currentUserAccountIDParam, allTransactionViolations, undefined),
+        hasOutstandingChildRequest: hasOutstandingChildRequest(
+            chatReport,
+            iouReport?.reportID,
+            currentUserEmailParam,
+            currentUserAccountIDParam,
+            allTransactionViolations,
+            undefined,
+            isChatIOUReportArchived,
+        ),
         iouReportID: null,
         lastMessageText: getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
@@ -907,6 +919,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         isFallbackChatReport,
         rules,
         bankAccountList,
+        isChatIOUReportArchived,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -947,6 +960,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         getCurrencyDecimals,
         isFallbackChatReport,
         rules,
+        isChatIOUReportArchived,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -1011,7 +1025,16 @@ function markReportPaymentReceived(
             value: {
                 ...chatReport,
                 iouReportID: null,
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport.reportID, currentUserEmail, currentUserAccountID, allTransactionViolations, undefined),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(
+                    chatReport,
+                    iouReport.reportID,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    allTransactionViolations,
+                    undefined,
+                    // TODO: Thread the chat report's archived state from the UI. Until then treat the chat as not archived. See https://github.com/Expensify/App/issues/66422
+                    false,
+                ),
                 lastMessageText: getReportActionText(optimisticIOUReportAction),
                 lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
             },
@@ -1155,6 +1178,7 @@ function payInvoice({
     getCurrencyDecimals,
     rules,
     bankAccountList,
+    isChatIOUReportArchived,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -1196,6 +1220,7 @@ function payInvoice({
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        isChatIOUReportArchived,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;

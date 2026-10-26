@@ -17,7 +17,6 @@ import {
     getReportTransactions,
     getUnheldReimbursableTotal,
     hasOutstandingChildRequest,
-    isArchivedReport,
     isExpenseReport,
     isInvoiceReport,
     isReportTotalPending,
@@ -48,7 +47,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate}
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
-import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllTransactions, getAllTransactionViolations} from '.';
+import {getAllReportActionsFromIOU, getAllTransactions, getAllTransactionViolations} from '.';
 import {getReportPreviewReportAction, maybeUpdateReportNameForFormulaTitle} from './MoneyRequestBuilder';
 import {getGroupPendingDeleteOnyxUpdate} from './SearchUpdate';
 
@@ -75,7 +74,7 @@ type DeleteMoneyRequestFunctionParams = {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     iouReportTransactions: OnyxTypes.Transaction[];
     chatReport: OnyxEntry<OnyxTypes.Report>;
-    isChatIOUReportArchived?: boolean | undefined;
+    isChatIOUReportArchived: boolean;
     isSingleTransactionView?: boolean;
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
@@ -406,7 +405,7 @@ type CleanUpMoneyRequestParams = {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     iouReportTransactions: OnyxTypes.Transaction[];
     chatReport: OnyxEntry<OnyxTypes.Report>;
-    isChatIOUReportArchived: boolean | undefined;
+    isChatIOUReportArchived: boolean;
     originalReportID: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     isOffline: boolean;
@@ -652,7 +651,7 @@ function getCleanUpTransactionThreadReportOnyxData({
 }: {
     transactionThreadID?: string;
     shouldDeleteTransactionThread: boolean;
-    isChatIOUReportArchived?: boolean;
+    isChatIOUReportArchived: boolean;
     updatedReportPreviewAction?: ReportAction;
     shouldAddUpdatedReportPreviewActionToOnyxData?: boolean;
     currentUserAccountID: number;
@@ -672,8 +671,6 @@ function getCleanUpTransactionThreadReportOnyxData({
               chatReport?: OnyxEntry<OnyxTypes.Report>;
           }
     )) {
-    const allReportNameValuePairs = getAllReportNameValuePairs();
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -744,10 +741,7 @@ function getCleanUpTransactionThreadReportOnyxData({
     ) {
         let canUserPerformWriteAction = true;
         if (chatReport) {
-            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
-            const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
-
-            canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatIOUReportArchived ?? isArchivedExpenseReport);
+            canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatIOUReportArchived);
         }
         const lastVisibleAction = getLastVisibleAction(iouReportID, canUserPerformWriteAction, {}, undefined, undefined, currentUserAccountID);
 

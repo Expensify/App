@@ -284,6 +284,8 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     getAllTransactionViolations(),
                     undefined,
+                    // TODO: Thread the chat report's archived state from the UI. Until then treat the chat as not archived. See https://github.com/Expensify/App/issues/66422
+                    false,
                 ),
             },
         });

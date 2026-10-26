@@ -29010,7 +29010,7 @@ describe('hasOutstandingChildRequest', () => {
     it('should return true when the chat has an invoice preview the current user can pay', () => {
         // When checking the chat for outstanding child requests
         // Then the payable invoice counts as an outstanding child request
-        expect(hasOutstandingChildRequest(invoiceChatReport, invoiceReport, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
+        expect(hasOutstandingChildRequest(invoiceChatReport, invoiceReport, currentUserEmail, currentUserAccountID, undefined, undefined, false)).toBe(true);
     });
 
     it('should return false when the invoice chat report is archived', () => {
@@ -29023,6 +29023,6 @@ describe('hasOutstandingChildRequest', () => {
         // When the invoice report is passed by ID, it is excluded from the check (callers use this to ask
         // "does the chat have any OTHER outstanding children")
         // Then no other child remains, so there is no outstanding child request
-        expect(hasOutstandingChildRequest(invoiceChatReport, invoiceReportID, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
+        expect(hasOutstandingChildRequest(invoiceChatReport, invoiceReportID, currentUserEmail, currentUserAccountID, undefined, undefined, false)).toBe(false);
     });
 });

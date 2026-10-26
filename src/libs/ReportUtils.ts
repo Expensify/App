@@ -3459,7 +3459,7 @@ function getBadgeFromIOUReport(
     currentUserAccountID: number,
     iouReportActions: OnyxEntry<ReportActions>,
     allViolations: OnyxCollection<TransactionViolations> | undefined,
-    isChatReportArchived = false,
+    isChatReportArchived: boolean,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -3532,7 +3532,7 @@ type GetIOUReportActionWithBadgeParams = {
     allViolations?: OnyxCollection<TransactionViolations>;
     allReports?: OnyxCollection<Report>;
     allReportActionsParam?: OnyxCollection<ReportActions>;
-    isChatReportArchived?: boolean;
+    isChatReportArchived: boolean;
 };
 
 function getIOUReportActionWithBadge({
@@ -3546,7 +3546,7 @@ function getIOUReportActionWithBadge({
     allViolations,
     allReports,
     allReportActionsParam,
-    isChatReportArchived = false,
+    isChatReportArchived,
 }: GetIOUReportActionWithBadgeParams): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
@@ -3571,7 +3571,7 @@ function getIOUReportActionWithBadge({
         if (!iouReport) {
             // Fallback for p2p IOUs when the IOU report isn't loaded in Onyx yet (e.g. right after login).
             // Use the REPORTPREVIEW action's child* fields to determine PAY badge without the full report.
-            if (chatReport?.hasOutstandingChildRequest && canPayIOUFromReportAction(action, chatReport, currentUserAccountID)) {
+            if (chatReport?.hasOutstandingChildRequest && !isChatReportArchived && canPayIOUFromReportAction(action, chatReport, currentUserAccountID)) {
                 if (!earliestAction || isOlderReportAction(action, earliestAction)) {
                     earliestAction = action;
                     actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
@@ -3616,7 +3616,7 @@ function hasOutstandingChildRequest(
     currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
-    isChatReportArchived = false,
+    isChatReportArchived: boolean,
 ) {
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -5200,6 +5200,7 @@ function getReasonAndReportActionThatRequiresAttention({
                 currentUserAccountID,
                 reportActions,
                 transactionViolations,
+                isReportArchived,
             );
             return {
                 reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,

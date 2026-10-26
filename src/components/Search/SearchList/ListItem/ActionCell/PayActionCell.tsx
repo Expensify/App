@@ -159,6 +159,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 delegateAccountID,
                 isTrackIntentUser,
                 rules,
+                isChatIOUReportArchived: isChatReportArchived,
             });
             return;
         }
@@ -199,6 +200,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             isTrackIntentUser,
             conciergeChat,
             rules,
+            isChatIOUReportArchived: isChatReportArchived,
         });
     };
 

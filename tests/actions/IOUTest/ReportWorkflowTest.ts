@@ -5396,6 +5396,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 chatReportActions: MOCK_REPORT_ACTIONS,
                 allViolations: undefined,
+                isChatReportArchived: false,
             });
             expect(result.reportAction).toMatchObject(validReportAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
@@ -5464,6 +5465,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 chatReportActions: mockChatReportActions,
                 allViolations: undefined,
+                isChatReportArchived: false,
             });
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
@@ -5538,6 +5540,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 chatReportActions: mockChatReportActions,
                 allViolations: undefined,
+                isChatReportArchived: false,
             });
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
@@ -5612,6 +5615,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 chatReportActions: mockChatReportActions,
                 allViolations: undefined,
+                isChatReportArchived: false,
             });
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.SUBMIT);
@@ -5692,6 +5696,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 allViolations: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${fakeTransaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}],
                 },
+                isChatReportArchived: false,
             });
 
             // Then no report action gets a badge, since SUBMIT was the only candidate
@@ -5806,6 +5811,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 chatReportActions: mockChatReportActions,
                 allViolations: undefined,
+                isChatReportArchived: false,
             });
             expect(result.actionBadge).toBeUndefined();
         });
@@ -5881,6 +5887,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 chatReportActions: mockChatReportActions,
                 allViolations: undefined,
+                isChatReportArchived: false,
             });
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
@@ -5965,6 +5972,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 chatReportActions: mockChatReportActions,
                 allViolations: undefined,
                 allReports,
+                isChatReportArchived: false,
             });
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
@@ -6044,6 +6052,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 chatReportActions: mockChatReportActions,
                 allViolations: undefined,
+                isChatReportArchived: false,
             });
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
@@ -6121,6 +6130,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 chatReportActions: mockChatReportActions,
                 allViolations: undefined,
+                isChatReportArchived: false,
             });
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
@@ -6221,6 +6231,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 chatReportActions: mockChatReportActions,
                 allViolations: undefined,
+                isChatReportArchived: false,
             });
             expect(result.reportAction).toMatchObject(olderReportPreview);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
@@ -6290,6 +6301,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 chatReportActions: mockChatReportActions,
                 allViolations: undefined,
+                isChatReportArchived: false,
             });
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
@@ -6335,6 +6347,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 chatReportActions: mockChatReportActions,
                 allViolations: undefined,
+                isChatReportArchived: false,
             });
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
@@ -6378,6 +6391,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 chatReportActions: mockChatReportActions,
                 allViolations: undefined,
+                isChatReportArchived: false,
             });
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
@@ -6421,6 +6435,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 chatReportActions: mockChatReportActions,
                 allViolations: undefined,
+                isChatReportArchived: false,
             });
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
@@ -6470,7 +6485,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined, false);
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
 
@@ -6522,7 +6537,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined, false);
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
@@ -6578,7 +6593,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined, false);
             expect(result).toBeUndefined();
         });
 
@@ -6643,7 +6658,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeNonReimbursableTransaction.transactionID}`, fakeNonReimbursableTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined, false);
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
@@ -6702,7 +6717,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined, false);
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
@@ -6738,7 +6753,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined, false);
             expect(result).toBeUndefined();
         });
 
@@ -6799,7 +6814,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // RORY_EMAIL is not the designated payer, so they should not get the PAY badge
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined, false);
             expect(result).toBeUndefined();
         });
 
@@ -6819,7 +6834,9 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // When the chat report is not archived
             // Then the invoice is payable, so the PAY badge is returned
-            expect(getBadgeFromIOUReport(iouReport, chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined)).toBe(CONST.REPORT.ACTION_BADGE.PAY);
+            expect(getBadgeFromIOUReport(iouReport, chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, undefined, false)).toBe(
+                CONST.REPORT.ACTION_BADGE.PAY,
+            );
 
             // When the chat report is archived
             // Then no badge is returned because the archived chat blocks paying the invoice
