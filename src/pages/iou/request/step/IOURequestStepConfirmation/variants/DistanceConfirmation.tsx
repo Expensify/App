@@ -52,7 +52,8 @@ function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: 
         isOdometerDistanceRequest,
     });
 
-    const createTransaction = guardSubmission(submitLock, isSelfDMDestination ? trackSubmission.createTransaction : distanceSubmission.createTransaction, blockDistanceRequestIfNeeded);
+    const shouldTrack = iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination;
+    const createTransaction = guardSubmission(submitLock, shouldTrack ? trackSubmission.createTransaction : distanceSubmission.createTransaction, blockDistanceRequestIfNeeded);
 
     return (
         <SubmitExpenseOrchestrator
