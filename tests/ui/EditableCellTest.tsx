@@ -196,6 +196,18 @@ describe('EditableCell', () => {
         expect(screen.queryByTestId('mock-edit-button')).not.toBeOnTheScreen();
     });
 
+    it('is not editable on a phone in landscape inside a Wide RHP', async () => {
+        // Given a cell in a Wide RHP on a phone browser in landscape, wider than the large-screen breakpoint
+        mockedUseResponsiveLayout.mockReturnValue({...PHONE_LANDSCAPE_LAYOUT, isInNarrowPaneModal: true});
+
+        // When the cell renders
+        renderCell(WIDE_RHP_STATE);
+        await waitForBatchedUpdates();
+
+        // Then the edit pencil is not shown, because a phone uses the narrow layout even when the route is registered as Wide
+        expect(screen.queryByTestId('mock-edit-button')).not.toBeOnTheScreen();
+    });
+
     it('does not re-render in the main pane when the Wide RHP state changes', async () => {
         // Given a cell in the main pane that has finished rendering
         mockedUseResponsiveLayout.mockReturnValue(MAIN_PANE_LAYOUT);

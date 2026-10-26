@@ -1,6 +1,7 @@
 import {useWideRHPState, WideRHPStateContext} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import {useRoute} from '@react-navigation/native';
 import {use} from 'react';
@@ -10,10 +11,10 @@ import type ResponsiveLayoutOnWideRHPResult from './types';
 /**
  * Reads the Wide RHP state only inside the RHP, so screens outside it don't re-render when that state changes.
  */
-function useIsDisplayedInWideRHP(isInNarrowPaneModal: boolean): boolean {
+function useIsDisplayedInWideRHP({isSmallScreenWidth, isInNarrowPaneModal}: Pick<ResponsiveLayoutResult, 'isSmallScreenWidth' | 'isInNarrowPaneModal'>): boolean {
     const route = useRoute();
 
-    if (!isInNarrowPaneModal) {
+    if (isSmallScreenWidth || !isInNarrowPaneModal) {
         return false;
     }
 
