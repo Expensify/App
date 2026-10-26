@@ -12,6 +12,7 @@ function resolvePadding(
     rightAxisSize: ProcessNodeResult['rightAxisSize'],
     bottomAxisSize: ProcessNodeResult['bottomAxisSize'],
     topAxisSize: ProcessNodeResult['topAxisSize'],
+    isHorizontal: ProcessNodeResult['isHorizontal'],
 ): ProcessNodeResult['padding'] {
     if (!padding) {
         return;
@@ -29,7 +30,7 @@ function resolvePadding(
 
     // Shrink `padding.left` down to the left axis's measured label width (plus a small edge buffer)
     // whenever the configured padding is wider than the label content actually needs.
-    if (leftAxisSize && resolvedPadding.left) {
+    if (isHorizontal && leftAxisSize && resolvedPadding.left) {
         resolvedPadding.left = Math.min(resolvedPadding.left, leftAxisSize + LEFT_AXIS_LABEL_PADDING);
     }
 

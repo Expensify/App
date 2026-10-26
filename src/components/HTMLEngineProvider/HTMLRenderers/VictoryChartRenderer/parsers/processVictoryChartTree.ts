@@ -155,7 +155,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         yAxis,
         domain,
         domainPadding,
-        padding: resolvePadding(padding, xAxis, yAxis, leftAxisSize, rightAxisSize, bottomAxisSize, topAxisSize),
+        padding: resolvePadding(padding, xAxis, yAxis, leftAxisSize, rightAxisSize, bottomAxisSize, topAxisSize, isHorizontal),
         leftAxisSize,
         rightAxisSize,
         bottomAxisSize,
