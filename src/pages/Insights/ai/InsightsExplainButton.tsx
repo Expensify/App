@@ -17,7 +17,7 @@ type InsightsExplainButtonProps = {
 
     insightsScope: InsightsScope;
 
-    /** Tints the glyph and label with the link colour instead of the muted one */
+    /** Tints the glyph and label with the link color instead of the muted one */
     isAccented?: boolean;
 };
 
