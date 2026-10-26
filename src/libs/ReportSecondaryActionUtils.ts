@@ -8,6 +8,7 @@ import type {
     Policy,
     Report,
     ReportAction,
+    ReportActions,
     ReportMetadata,
     ReportNameValuePairs,
     Rule,
@@ -1264,6 +1265,7 @@ function getSecondaryTransactionThreadActions({
     currentUserAccountID,
     parentReport,
     parentReportOwnerLogin,
+    parentReportActions,
     reportTransaction,
     reportAction,
     originalTransaction,
@@ -1287,6 +1289,8 @@ function getSecondaryTransactionThreadActions({
      * See https://github.com/Expensify/App/issues/66413.
      */
     parentReportOwnerLogin?: string;
+    /** Actions of the parent report, so the delete check can see whether it was forwarded since its last submit */
+    parentReportActions: OnyxEntry<ReportActions>;
     reportTransaction: Transaction;
     reportAction: ReportAction | undefined;
     originalTransaction: OnyxEntry<Transaction>;
@@ -1382,7 +1386,7 @@ function getSecondaryTransactionThreadActions({
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, parentReportOwnerLogin, policy, cardList, reportAction ? [reportAction] : [])) {
+    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, parentReportOwnerLogin, policy, cardList, Object.values(parentReportActions ?? {}))) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 

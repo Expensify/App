@@ -4226,6 +4226,7 @@ describe('getSecondaryAction', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: createMock<Transaction>({}),
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -5496,6 +5497,39 @@ describe('getReportAccountingExportActions', () => {
 });
 
 describe('getSecondaryTransactionThreadActions', () => {
+    it('passes the parent report actions it was given to the delete check', () => {
+        // Given a transaction thread whose parent report's actions are handed to the function
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            policyID: POLICY_ID,
+        });
+        const parentReportActions = {[actionR14932.reportActionID]: actionR14932};
+        const canDeleteMoneyRequestReportSpy = jest.spyOn(ReportUtils, 'canDeleteMoneyRequestReport').mockReturnValue(true);
+
+        // When building the thread's secondary actions
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            parentReportActions,
+            reportTransaction: createMock<Transaction>({transactionID: originalMessageR14932.IOUTransactionID}),
+            reportAction: actionR14932,
+            originalTransaction: createMock<Transaction>({}),
+            policy: createMock<Policy>({}),
+            isChatReportArchived: false,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the delete check receives the parent's full action list, so the forwarded-since-last-submit check inside
+        // isAwaitingFirstLevelApproval reads the parent report's own history rather than the module-level Onyx cache
+        expect(canDeleteMoneyRequestReportSpy.mock.calls.at(0)?.[2]).toEqual([actionR14932]);
+        expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
+        canDeleteMoneyRequestReportSpy.mockRestore();
+    });
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -5520,6 +5554,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 parentReport: report,
+                parentReportActions: undefined,
                 reportTransaction: createMock<Transaction>({}),
                 reportAction: undefined,
                 originalTransaction: createMock<Transaction>({}),
@@ -5552,6 +5587,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -5580,6 +5616,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: transaction,
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -5597,6 +5634,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: transaction,
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -5626,6 +5664,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: createMock<Transaction>({}),
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -5687,6 +5726,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: transaction,
             reportAction: undefined,
             originalTransaction,
@@ -5789,6 +5829,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -5852,6 +5893,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: survivingSplit,
             reportAction: actionR14932,
             originalTransaction,
@@ -5900,6 +5942,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -5948,6 +5991,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -5999,6 +6043,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6030,6 +6075,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: selfDMReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6062,6 +6108,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 parentReport: createMock<Report>({chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}),
+                parentReportActions: {[actionR14932.reportActionID]: actionR14932},
                 reportTransaction: createMock<Transaction>({}),
                 reportAction: actionR14932,
                 originalTransaction: createMock<Transaction>({}),
@@ -6132,6 +6179,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: transactionThreadReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6164,6 +6212,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: nonExpenseReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6197,6 +6246,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6235,6 +6285,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),

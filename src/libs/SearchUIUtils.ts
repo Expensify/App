@@ -7366,16 +7366,18 @@ function shouldShowDeleteOption(
               }
               const parentReportID = transaction.reportID;
               const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
-              const reportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
+              const snapshotReportActions = Object.values(currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {});
               const parentReportAction =
-                  Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
+                  snapshotReportActions.find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
                   selectedTransactions[id].reportAction;
+              // The delete check needs the report's whole history to see submits and forwards, and keeps the row's own action in case the snapshot lacks it
+              const parentReportActions = parentReportAction && !snapshotReportActions.includes(parentReportAction) ? [...snapshotReportActions, parentReportAction] : snapshotReportActions;
 
               const parentReportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`];
               return canDeleteMoneyRequestReport(
                   parentReport,
                   [transaction],
-                  parentReportAction ? [parentReportAction] : [],
+                  parentReportActions,
                   currentUserAccountID,
                   rules,
                   getLoginByAccountID(parentReport?.ownerAccountID, personalDetails),

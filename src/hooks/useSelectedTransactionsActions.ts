@@ -619,12 +619,22 @@ function useSelectedTransactionsActions({
             const action = getTransactionIOUAction(transaction, transaction.transactionID);
 
             // Some reported expenses have no IOU action, and the API still deletes them by transactionID, so the report-level delete rules decide.
-            // Passing no report actions is safe: they only decide ownership on unreported and IOU reports, which then fail closed, while expense reports check the submitter.
+            // The report's own actions carry no IOU action for this expense, so ownership still fails closed on unreported and IOU reports while expense reports
+            // check the submitter, and they let the check see whether the report was forwarded since its last submit.
             if (!action) {
                 return (
                     !!report &&
                     typeof session?.accountID === 'number' &&
-                    canDeleteMoneyRequestReport(report, [transaction], [], session.accountID, rules, getLoginByAccountID(report?.ownerAccountID, personalDetails), policy, cardList)
+                    canDeleteMoneyRequestReport(
+                        report,
+                        [transaction],
+                        reportActions,
+                        session.accountID,
+                        rules,
+                        getLoginByAccountID(report?.ownerAccountID, personalDetails),
+                        policy,
+                        cardList,
+                    )
                 );
             }
 
