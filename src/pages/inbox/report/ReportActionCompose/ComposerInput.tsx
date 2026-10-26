@@ -11,6 +11,7 @@ import {
     chatIncludesChronos,
     chatIncludesConcierge,
     isMoneyRequestReport,
+    isOneTransactionReport,
     isReportTransactionThread,
 } from '@libs/ReportUtils';
 
@@ -71,7 +72,8 @@ function ComposerInput() {
     const isGroupPolicyReport = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
     const isExpenseRelatedReport = isReportTransactionThread(report) || isMoneyRequestReport(report);
     // An expense view keeps the left and right arrow keys for moving between expenses, so its composer isn't auto-focused.
-    const isExpenseView = isReportTransactionThread(report);
+    // A report with a single expense is shown as that expense's view, and Search can still page between those reports.
+    const isExpenseView = isReportTransactionThread(report) || isOneTransactionReport(report);
     const isEnglishLocale = (preferredLocale ?? CONST.LOCALES.DEFAULT) === CONST.LOCALES.EN;
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
 
