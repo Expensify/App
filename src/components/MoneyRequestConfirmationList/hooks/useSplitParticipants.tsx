@@ -10,6 +10,7 @@ import {resetSplitShares, setIndividualShare} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail} from '@libs/OptionsListUtils';
+import {getTransactionSplits} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -93,7 +94,7 @@ function useSplitParticipants({
                 let amount: number | undefined = 0;
                 if (iouAmount > 0) {
                     amount =
-                        transaction?.comment?.splits?.find((split) => split.accountID === participantOption.accountID)?.amount ??
+                        getTransactionSplits(transaction).find((split) => split.accountID === participantOption.accountID)?.amount ??
                         calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer, false, getCurrencyDecimals);
                 }
                 return {

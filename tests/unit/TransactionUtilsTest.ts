@@ -6753,4 +6753,37 @@ describe('buildOptimisticTransaction distance customUnit', () => {
         expect(existingTransaction.comment?.customUnit?.customUnitRateID).toBe(existingRateID);
         expect(existingTransaction.comment?.customUnit?.quantity).toBe(10);
     });
+
+    describe('getTransactionSplits', () => {
+        it('returns empty array when transaction or comment or splits is null/undefined', () => {
+            expect(TransactionUtils.getTransactionSplits(undefined)).toEqual([]);
+            expect(TransactionUtils.getTransactionSplits(generateTransaction({}))).toEqual([]);
+        });
+
+        it('returns splits unchanged when comment.splits is already an array', () => {
+            const splitArray = [
+                {accountID: 1, amount: 500},
+                {accountID: 2, amount: 500},
+            ];
+            const transaction = generateTransaction({
+                comment: {splits: splitArray as any},
+            });
+            expect(TransactionUtils.getTransactionSplits(transaction)).toEqual(splitArray);
+        });
+
+        it('normalizes comment.splits when it is an object/dictionary (receipt scan / OCR payload)', () => {
+            const splitMap = {
+                0: {accountID: 101, amount: 1500},
+                1: {accountID: 102, amount: 1500},
+            };
+            const transaction = generateTransaction({
+                comment: {splits: splitMap as any},
+            });
+            expect(TransactionUtils.getTransactionSplits(transaction)).toEqual([
+                {accountID: 101, amount: 1500},
+                {accountID: 102, amount: 1500},
+            ]);
+        });
+    });
 });
+

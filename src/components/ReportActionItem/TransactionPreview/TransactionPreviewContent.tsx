@@ -34,7 +34,7 @@ import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isRepor
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
+import {getTransactionSplits, isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 
 import {fontScale} from '@styles/typography';
@@ -237,7 +237,8 @@ function TransactionPreviewContent({
             return 0;
         }
 
-        const splitAmount = transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount;
+        const transactionSplits = getTransactionSplits(transaction);
+        const splitAmount = transactionSplits.find((split) => split.accountID === sessionAccountID)?.amount;
         if (splitAmount !== undefined) {
             return splitAmount;
         }
@@ -246,7 +247,7 @@ function TransactionPreviewContent({
 
         if (isBillSplit) {
             // Try to get the participant count from transaction splits data
-            const transactionSplitsCount = transaction?.comment?.splits?.length;
+            const transactionSplitsCount = transactionSplits.length;
             if (transactionSplitsCount && transactionSplitsCount > 0) {
                 originalParticipantCount = transactionSplitsCount;
             } else if (isMoneyRequestAction(action)) {

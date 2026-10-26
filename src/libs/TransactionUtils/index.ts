@@ -30,7 +30,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, OnyxInputOrEntry, PersonalDetails, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
-import type {Attendee, DistanceExpenseType} from '@src/types/onyx/IOU';
+import type {Attendee, DistanceExpenseType, Split} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Comment, UnreportedTransaction, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -1509,6 +1509,24 @@ const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>
     return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: isExpenseSplit(transaction, originalTransaction), originalTransaction: originalTransaction ?? transaction};
 };
 
+/**
+ * Safely retrieves splits from a transaction, normalizing object-shaped or array-shaped comment.splits payloads.
+ */
+function getTransactionSplits(transaction?: OnyxEntry<Transaction>): Split[] {
+    const splits = transaction?.comment?.splits;
+    if (!splits) {
+        return [];
+    }
+    if (Array.isArray(splits)) {
+        return splits;
+    }
+    if (typeof splits === 'object') {
+        return Object.values(splits);
+    }
+    return [];
+}
+
+
 function shouldRedirectDeleteToSplitExpenseEdit(transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>, isSelfDMSplit?: boolean): boolean {
     const {isExpenseSplit: isExpenseSplitTransaction, originalTransaction: sourceTransaction} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
@@ -2023,6 +2041,7 @@ export {
     isUnreportedManagedCardTransaction,
     getReservationNights,
     isTransactionOwner,
+    getTransactionSplits,
 };
 
 export type {ManuallyEnteredScanFields};
