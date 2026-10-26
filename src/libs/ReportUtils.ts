@@ -13038,7 +13038,6 @@ function canLeaveChat(
     isAnonymousUser: boolean,
     isReportArchived = false,
 ): boolean {
-    // A track expense thread can't be rejoined (see canJoinChat), so it can't be left either
     if (isTrackExpenseReportNew(report, parentReport, parentReportAction)) {
         return false;
     }
