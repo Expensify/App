@@ -7,11 +7,13 @@ import type {ValueOf} from 'type-fest';
 import {
     arePaymentsEnabled,
     canAdminPayReport,
+    canCreateExpensesOnPolicy,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
     isArchivedOrPendingDeletePolicy,
+    isGroupPolicy,
     isPreferredExporter,
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
@@ -50,6 +52,11 @@ function canSubmit(
     // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
     // (e.g. the submitter was unshared from the policy) can still move through the workflow.
     if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
+    // A role that cannot create expenses, such as approve-only, cannot submit the expenses it owns either.
+    if (isGroupPolicy(policy) && !canCreateExpensesOnPolicy(policy, currentUserEmail)) {
         return false;
     }
 

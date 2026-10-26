@@ -177,3 +177,43 @@ describe('canSubmitReport reportOwnerLogin', () => {
         expect(withoutOwnerLogin).toBe(false);
     });
 });
+
+describe('canSubmitReport approve-only role', () => {
+    const openExpenseReport: Report = {
+        ...createExpenseReport(4),
+        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+    };
+    const transaction: Transaction = {
+        transactionID: '3',
+        reportID: openExpenseReport.reportID,
+        amount: 1000,
+        currency: CONST.CURRENCY.USD,
+        created: '2024-01-01 12:00:00.000',
+        merchant: 'Test merchant',
+        status: CONST.TRANSACTION.STATUS.POSTED,
+        reimbursable: true,
+    };
+    const approveOnlyPolicy: Policy = {...basePolicy, type: CONST.POLICY.TYPE.CORPORATE, role: CONST.POLICY.ROLE.APPROVE_ONLY};
+
+    beforeAll(async () => {
+        Onyx.init({keys: ONYXKEYS});
+        await Onyx.set(ONYXKEYS.SESSION, {email: 'user@test.com', accountID: CURRENT_USER_ACCOUNT_ID});
+        return waitForBatchedUpdates();
+    });
+
+    it('returns false when the report owner has the approve-only role', () => {
+        expect(canSubmitReport(openExpenseReport, 'user@test.com', approveOnlyPolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID)).toBe(false);
+    });
+
+    it('returns true when a member with the user role submits their own report', () => {
+        expect(canSubmitReport(openExpenseReport, 'user@test.com', basePolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID)).toBe(true);
+    });
+
+    it('returns true when an admin submits the report of an approve-only member', () => {
+        const reportOwnedByMember: Report = {...openExpenseReport, ownerAccountID: OTHER_USER_ACCOUNT_ID, managerID: CURRENT_USER_ACCOUNT_ID};
+        const adminPolicy: Policy = {...approveOnlyPolicy, role: CONST.POLICY.ROLE.ADMIN};
+        expect(canSubmitReport(reportOwnedByMember, 'other.user@test.com', adminPolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID)).toBe(true);
+    });
+});

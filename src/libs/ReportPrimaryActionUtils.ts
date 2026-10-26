@@ -8,6 +8,7 @@ import type {ValueOf} from 'type-fest';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
+    canCreateExpensesOnPolicy,
     getManagerAccountID,
     getSubmitToAccountID,
     getValidConnectedIntegration,
@@ -166,6 +167,11 @@ function isSubmitAction(
         !!ownerLogin &&
         !isSubmitAndClose(policy) &&
         currentUserAccountID === getManagerAccountID(policy, ownerLogin, rules, report.total ?? 0);
+    // A role that cannot create expenses, such as approve-only, cannot submit the report it owns. Workflow approvers
+    // still submit on the owner's behalf, so the gate only covers the owner's own submit action.
+    if (isReportSubmitter && isGroupPolicy(policy) && !canCreateExpensesOnPolicy(policy, currentUserEmail)) {
+        return false;
+    }
     const canBeSubmitter = isReportSubmitter || isWorkflowApprover;
     return isExpenseReport && canBeSubmitter && isOpenReport && reportTransactions.length !== 0;
 }

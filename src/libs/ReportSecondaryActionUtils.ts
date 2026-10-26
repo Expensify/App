@@ -23,6 +23,7 @@ import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
+    canCreateExpensesOnPolicy,
     canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
@@ -276,6 +277,12 @@ function isSubmitAction({
         currentUserAccountID === getManagerAccountID(policy, ownerLogin, rules, report.total ?? 0);
 
     if (!isReportSubmitter && !isAdmin && !isWorkflowApprover) {
+        return false;
+    }
+
+    // A role that cannot create expenses, such as approve-only, cannot submit the report it owns. Admins and workflow
+    // approvers still submit on the owner's behalf, so the gate only covers the owner's own submit action.
+    if (isReportSubmitter && isGroupPolicy(policy) && !canCreateExpensesOnPolicy(policy, currentUserLogin)) {
         return false;
     }
 

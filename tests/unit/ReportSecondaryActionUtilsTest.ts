@@ -887,6 +887,79 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            type: CONST.POLICY.TYPE.CORPORATE,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
+    });
+
+    it('excludes SUBMIT option for an approve-only member', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            type: CONST.POLICY.TYPE.CORPORATE,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+    });
+
+    it('includes SUBMIT option for an admin when the report owner has the approve-only role', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: APPROVER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -958,6 +1031,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -998,6 +1072,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1186,6 +1261,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1230,6 +1306,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1268,6 +1345,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1338,6 +1416,7 @@ describe('getSecondaryAction', () => {
             total: 0,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1380,6 +1459,7 @@ describe('getSecondaryAction', () => {
             total: 0,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -2503,7 +2583,12 @@ describe('getSecondaryAction', () => {
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
             reportData: {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, total: 10},
-            policyData: {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, harvesting: {enabled: true}, type: CONST.POLICY.TYPE.CORPORATE},
+            policyData: {
+                role: CONST.POLICY.ROLE.USER,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                harvesting: {enabled: true},
+                type: CONST.POLICY.TYPE.CORPORATE,
+            },
         },
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
@@ -2582,7 +2667,12 @@ describe('getSecondaryAction', () => {
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
             reportData: {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, total: 10},
-            policyData: {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, harvesting: {enabled: true}, type: CONST.POLICY.TYPE.CORPORATE},
+            policyData: {
+                role: CONST.POLICY.ROLE.USER,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                harvesting: {enabled: true},
+                type: CONST.POLICY.TYPE.CORPORATE,
+            },
         },
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
