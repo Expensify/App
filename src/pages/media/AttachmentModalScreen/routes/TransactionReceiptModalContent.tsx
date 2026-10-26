@@ -176,24 +176,17 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = getParentReportActionSelector(parentReportActions, report?.parentReportActionID);
-    const canEditReceipt = canEditFieldOfMoneyRequest({
+    const receiptFieldParams = {
         reportAction: parentReportAction,
         fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
         transaction,
         rules,
         reportNameValuePairs: undefined,
         reportActions: parentReportActions,
-    });
+    };
+    const canEditReceipt = canEditFieldOfMoneyRequest(receiptFieldParams);
     const transactionThread = resolveTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction);
-    const canDeleteReceipt = canEditFieldOfMoneyRequest({
-        reportAction: parentReportAction,
-        fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
-        isDeleteAction: true,
-        transaction,
-        rules,
-        reportNameValuePairs: undefined,
-        reportActions: parentReportActions,
-    });
+    const canDeleteReceipt = canEditFieldOfMoneyRequest({...receiptFieldParams, isDeleteAction: true});
 
     const receiptFilename = transaction?.receipt?.filename;
     // Odometer photos are stitched into the receipt only while the expense is a draft, so a created expense's receipt can be replaced like any other
