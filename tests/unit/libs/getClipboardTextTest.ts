@@ -20,10 +20,8 @@ describe('getClipboardText', () => {
         jest.clearAllMocks();
     });
 
-    // In the jest-expo test environment, platform resolution prefers .native files,
-    // so getClipboardText resolves to the native implementation (htmlToMarkdown).
-    // The web implementation (htmlToText) is structurally identical and tested via
-    // useCopySelectionHelper and ContextMenuActions integration tests.
+    // Jest prefers the native module, which keeps Markdown. The web module inserts block breaks
+    // and is covered by formatClipboardContentTest and SelectionScraperTest via requireActual.
     it('calls Parser.htmlToMarkdown with the selection', () => {
         mockedParser.htmlToMarkdown.mockReturnValue('[Expensify](https://expensify.com)');
 

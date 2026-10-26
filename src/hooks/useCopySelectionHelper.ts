@@ -1,5 +1,5 @@
 import Clipboard from '@libs/Clipboard';
-import getClipboardText from '@libs/Clipboard/getClipboardText';
+import formatClipboardContent from '@libs/Clipboard/formatClipboardContent';
 import SelectionScraper from '@libs/SelectionScraper';
 
 import CONST from '@src/CONST';
@@ -11,12 +11,15 @@ function copySelectionToClipboard() {
     if (!selection) {
         return;
     }
-    const clipboardText = getClipboardText(selection);
-    if (!Clipboard.canSetHtml()) {
-        Clipboard.setString(clipboardText);
+    const {html, plainText} = formatClipboardContent({html: selection});
+    if (!plainText) {
         return;
     }
-    Clipboard.setHtml(selection, clipboardText);
+    if (!html || !Clipboard.canSetHtml()) {
+        Clipboard.setString(plainText);
+        return;
+    }
+    Clipboard.setHtml(html, plainText);
 }
 
 export default function useCopySelectionHelper() {

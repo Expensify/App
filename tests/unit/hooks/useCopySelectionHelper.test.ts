@@ -2,7 +2,6 @@ import {renderHook} from '@testing-library/react-native';
 
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 
-import getClipboardText from '@libs/Clipboard/getClipboardText';
 import type {CanSetHtml, SetHtml, SetString} from '@libs/Clipboard/types';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import SelectionScraper from '@libs/SelectionScraper';
@@ -16,11 +15,6 @@ jest.mock('@libs/Clipboard', () => ({
         setString: jest.fn<ReturnType<SetString>, Parameters<SetString>>(),
         setHtml: jest.fn<ReturnType<SetHtml>, Parameters<SetHtml>>(),
     },
-}));
-
-jest.mock('@libs/Clipboard/getClipboardText', () => ({
-    __esModule: true,
-    default: jest.fn(),
 }));
 
 jest.mock('@libs/KeyboardShortcut', () => ({
@@ -44,7 +38,6 @@ type ClipboardMock = {
 };
 
 const mockClipboard = jest.requireMock<{default: ClipboardMock}>('@libs/Clipboard').default;
-const mockGetClipboardText = jest.mocked(getClipboardText);
 const mockSubscribe = jest.mocked(KeyboardShortcut.subscribe);
 const mockGetCurrentSelection = jest.mocked(SelectionScraper.getCurrentSelection);
 
@@ -87,28 +80,25 @@ describe('useCopySelectionHelper', () => {
     it('sets plain text clipboard when html clipboard is unavailable', () => {
         const selection = '<a href="https://expensify.com">Expensify</a>';
         mockGetCurrentSelection.mockReturnValue(selection);
-        mockGetClipboardText.mockReturnValue('Expensify');
         mockClipboard.canSetHtml.mockReturnValue(false);
 
         renderHook(() => useCopySelectionHelper());
         triggerCopyShortcut();
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(selection);
-        expect(mockClipboard.setString).toHaveBeenCalledWith('Expensify');
+        // Jest loads the native clipboard text module, which keeps Markdown so links survive a native paste.
+        expect(mockClipboard.setString).toHaveBeenCalledWith('[Expensify](https://expensify.com)');
         expect(mockClipboard.setHtml).not.toHaveBeenCalled();
     });
 
     it('sets html clipboard payload when html clipboard is available', () => {
         const selection = '<a href="https://expensify.com">Expensify</a>';
         mockGetCurrentSelection.mockReturnValue(selection);
-        mockGetClipboardText.mockReturnValue('Expensify');
         mockClipboard.canSetHtml.mockReturnValue(true);
 
         renderHook(() => useCopySelectionHelper());
         triggerCopyShortcut();
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(selection);
-        expect(mockClipboard.setHtml).toHaveBeenCalledWith(selection, 'Expensify');
+        expect(mockClipboard.setHtml).toHaveBeenCalledWith(selection, '[Expensify](https://expensify.com)');
         expect(mockClipboard.setString).not.toHaveBeenCalled();
     });
 
@@ -118,7 +108,6 @@ describe('useCopySelectionHelper', () => {
         renderHook(() => useCopySelectionHelper());
         triggerCopyShortcut();
 
-        expect(mockGetClipboardText).not.toHaveBeenCalled();
         expect(mockClipboard.setString).not.toHaveBeenCalled();
         expect(mockClipboard.setHtml).not.toHaveBeenCalled();
     });

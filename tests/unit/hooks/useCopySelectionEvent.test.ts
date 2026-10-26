@@ -2,13 +2,11 @@ import {renderHook} from '@testing-library/react-native';
 
 import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 
-import getClipboardText from '@libs/Clipboard/getClipboardText';
+import type * as ClipboardTextWebModule from '@libs/Clipboard/getClipboardText/index';
 import SelectionScraper from '@libs/SelectionScraper';
 
-jest.mock('@libs/Clipboard/getClipboardText', () => ({
-    __esModule: true,
-    default: jest.fn(),
-}));
+// This listener only runs on web, so the plain-text flavor must be the web formatter, not native Markdown.
+jest.mock('@libs/Clipboard/getClipboardText', () => jest.requireActual<typeof ClipboardTextWebModule>('@libs/Clipboard/getClipboardText/index.ts'));
 
 jest.mock('@libs/SelectionScraper', () => ({
     __esModule: true,
@@ -17,7 +15,6 @@ jest.mock('@libs/SelectionScraper', () => ({
     },
 }));
 
-const mockGetClipboardText = jest.mocked(getClipboardText);
 const mockGetCurrentSelection = jest.mocked(SelectionScraper.getCurrentSelection);
 
 describe('useCopySelectionEvent', () => {
@@ -53,7 +50,6 @@ describe('useCopySelectionEvent', () => {
         // Given two selectable views are mounted with independent copy listeners
         const selection = 'Draft Expense Report TJS 10.00';
         mockGetCurrentSelection.mockReturnValue(selection);
-        mockGetClipboardText.mockReturnValue(selection);
         const firstConsumer = renderHook(() => useCopySelectionEvent());
         const secondConsumer = renderHook(() => useCopySelectionEvent());
 
@@ -64,6 +60,7 @@ describe('useCopySelectionEvent', () => {
         // Then the remaining listener still normalizes the selected row exactly once
         expect(event.defaultPrevented).toBe(true);
         expect(mockGetCurrentSelection).toHaveBeenCalledTimes(1);
+        expect(clipboardData.setData).toHaveBeenCalledTimes(2);
         expect(clipboardData.setData).toHaveBeenNthCalledWith(1, 'text/html', selection);
         expect(clipboardData.setData).toHaveBeenNthCalledWith(2, 'text/plain', selection);
         secondConsumer.unmount();
@@ -73,7 +70,6 @@ describe('useCopySelectionEvent', () => {
         // Given the scraper returns a formatted selection
         const selection = '<strong>Expense description</strong>';
         mockGetCurrentSelection.mockReturnValue(selection);
-        mockGetClipboardText.mockReturnValue('Expense description');
         renderHook(() => useCopySelectionEvent());
 
         // When the browser dispatches a copy event
@@ -82,7 +78,6 @@ describe('useCopySelectionEvent', () => {
         // Then the scraper output is written once in both clipboard formats
         expect(event.defaultPrevented).toBe(true);
         expect(mockGetCurrentSelection).toHaveBeenCalledTimes(1);
-        expect(mockGetClipboardText).toHaveBeenCalledWith(selection);
         expect(clipboardData.clearData).toHaveBeenCalledTimes(1);
         expect(clipboardData.setData).toHaveBeenNthCalledWith(1, 'text/html', selection);
         expect(clipboardData.setData).toHaveBeenNthCalledWith(2, 'text/plain', 'Expense description');
@@ -92,15 +87,15 @@ describe('useCopySelectionEvent', () => {
         // Given the scraper returns a plain copyable field value
         const selection = 'Merchant';
         mockGetCurrentSelection.mockReturnValue(selection);
-        mockGetClipboardText.mockReturnValue(selection);
         renderHook(() => useCopySelectionEvent());
 
         // When the browser dispatches a copy event
         const {clipboardData, event} = dispatchCopyEvent();
 
-        // Then the plain selection is written through the same clipboard path
+        // Then a plain selection is written as both flavors, with the same readable text
         expect(event.defaultPrevented).toBe(true);
         expect(mockGetCurrentSelection).toHaveBeenCalledTimes(1);
+        expect(clipboardData.setData).toHaveBeenCalledTimes(2);
         expect(clipboardData.setData).toHaveBeenNthCalledWith(1, 'text/html', selection);
         expect(clipboardData.setData).toHaveBeenNthCalledWith(2, 'text/plain', selection);
     });
@@ -131,7 +126,6 @@ describe('useCopySelectionEvent', () => {
 
         // Then native copy behavior is left unchanged
         expect(event.defaultPrevented).toBe(false);
-        expect(mockGetClipboardText).not.toHaveBeenCalled();
         expect(clipboardData.clearData).not.toHaveBeenCalled();
         expect(clipboardData.setData).not.toHaveBeenCalled();
     });
@@ -162,7 +156,6 @@ describe('useCopySelectionEvent', () => {
         input.setSelectionRange(0, 0);
         const selection = 'Oct 6 Draft Expense Report TJS 10.00';
         mockGetCurrentSelection.mockReturnValue(selection);
-        mockGetClipboardText.mockReturnValue(selection);
         renderHook(() => useCopySelectionEvent());
 
         // When the browser targets the stale focused input for the copy event
@@ -171,6 +164,7 @@ describe('useCopySelectionEvent', () => {
         // Then the selected row is normalized instead of falling back to native rich-text copying
         expect(event.defaultPrevented).toBe(true);
         expect(mockGetCurrentSelection).toHaveBeenCalledTimes(1);
+        expect(clipboardData.setData).toHaveBeenCalledTimes(2);
         expect(clipboardData.setData).toHaveBeenNthCalledWith(1, 'text/html', selection);
         expect(clipboardData.setData).toHaveBeenNthCalledWith(2, 'text/plain', selection);
         input.remove();
@@ -210,7 +204,6 @@ describe('useCopySelectionEvent', () => {
         const browserSelection = window.getSelection();
         browserSelection?.addRange(range);
         mockGetCurrentSelection.mockReturnValue(row.textContent);
-        mockGetClipboardText.mockReturnValue(row.textContent);
         renderHook(() => useCopySelectionEvent());
 
         // When the stale editable element dispatches the copy event
@@ -219,6 +212,7 @@ describe('useCopySelectionEvent', () => {
         // Then the report row is normalized instead of using native rich-text copying
         expect(event.defaultPrevented).toBe(true);
         expect(mockGetCurrentSelection).toHaveBeenCalledTimes(1);
+        expect(clipboardData.setData).toHaveBeenCalledTimes(2);
         expect(clipboardData.setData).toHaveBeenNthCalledWith(1, 'text/html', row.textContent);
         expect(clipboardData.setData).toHaveBeenNthCalledWith(2, 'text/plain', row.textContent);
         editor.remove();
