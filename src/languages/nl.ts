@@ -7692,6 +7692,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Campfire-gegevens synchroniseren';
                         case 'campfireSyncConnection':
                             return 'Verbinding met Campfire initialiseren';
+                        case 'zohoBooksSyncTitle':
+                            return 'Zoho Books-gegevens synchroniseren';
                         case 'zohoBooksSyncConnection':
                             return 'Verbinding met Zoho Books initialiseren';
                         case 'campfireSyncImportData':
