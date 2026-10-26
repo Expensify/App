@@ -45,9 +45,12 @@ type WorkspaceRoomsTableProps = {
 
     /** Content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
+
+    /** Whether the workspace is archived, in which case all of its rooms are archived and hidden */
+    isPolicyArchived?: boolean;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onSortingChange, headerComponent}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onSortingChange, headerComponent, isPolicyArchived = false}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -154,6 +157,10 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStri
             ListFooterComponent={listFooterComponent}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
+            <Table.EmptyState
+                title={translate('workspace.common.emptyRoomsTitle')}
+                subtitleText={translate(isPolicyArchived ? 'workspace.common.emptyRoomsArchivedSubtitle' : 'workspace.common.emptyRoomsSubtitle')}
+            />
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
