@@ -106,7 +106,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/104284
 - PR introducing patch: [#104368](https://github.com/Expensify/App/pull/104368)
 
-### [react-native-screens+4.28.0+006+fix-android-tab-screen-removals.patch](react-native-screens+4.28.0+006+fix-android-tab-screen-removals.patch)
+### [react-native-screens+4.28.0+007+fix-android-tab-screen-removals.patch](react-native-screens+4.28.0+007+fix-android-tab-screen-removals.patch)
 
 - Reason:
 
