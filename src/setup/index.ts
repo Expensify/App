@@ -66,6 +66,7 @@ export default function () {
             [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: false,
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
+            [ONYXKEYS.BLOCKED_ROLE_CHANGE]: null,
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
             // Without a default this server-owned NVP has no row until it arrives, and its loading status holds the Search router behind a skeleton
             [ONYXKEYS.RECENT_SEARCHES]: {},
@@ -94,6 +95,7 @@ export default function () {
             ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA,
             ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION,
             ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
+            ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_ROW_FOCUS,
             ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
             ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE,
             ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION,

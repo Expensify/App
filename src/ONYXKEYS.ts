@@ -160,6 +160,9 @@ const ONYXKEYS = {
     /** Object containing contact method that's going to be added */
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
+    /** Reasons the backend refused an approve-only role change, shown to the requesting client in a modal */
+    BLOCKED_ROLE_CHANGE: 'blockedRoleChange',
+
     /** Store the information of validateCode */
     VALIDATE_ACTION_CODE: 'validateActionCode',
 
@@ -1028,6 +1031,9 @@ const ONYXKEYS = {
         /** Paginated tag search results, keyed by policyIDs.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS: 'searchTagFiltersResults_',
+        /** Whether a Search list row has keyboard focus, keyed by the row's keyForList, so only the rows whose focus flips re-render.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_SEARCH_ROW_FOCUS: 'searchRowFocus_',
         /** Session-scoped loading flags for a policy's on-demand categories read, keyed by policyID.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE: 'policyCategoriesLoadingState_',
@@ -1667,6 +1673,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE]: OnyxTypes.ExpensifyCardLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]: OnyxTypes.SearchTagFiltersPaginationState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS]: OnyxTypes.SearchTagFilterItem[];
+    [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_ROW_FOCUS]: boolean;
     [ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE]: OnyxTypes.PolicyDataLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE]: OnyxTypes.PolicyDataLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT]: OnyxTypes.FullPolicySnapshot;
@@ -1940,6 +1947,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED]: boolean;
     [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: OnyxTypes.SupportalPermissionDenied | null;
+    [ONYXKEYS.BLOCKED_ROLE_CHANGE]: OnyxTypes.BlockedRoleChange | null;
     [ONYXKEYS.RESET_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;
