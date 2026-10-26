@@ -47,6 +47,7 @@ const translations: TranslationDeepObject<typeof en> = {
         paymentFailed: 'We konden deze factuur niet betalen. Probeer het opnieuw.',
         createFailed: 'We konden deze factuur niet maken. Probeer het opnieuw.',
         payBills: ({count}) => ({one: '1 factuur betalen', other: `${count} facturen betalen`}),
+        approveBills: ({count}) => ({one: '1 factuur goedkeuren', other: `${count} facturen goedkeuren`}),
         primaryContactHint: (domain) =>
             `De primaire contactpersoon is het aanspreekpunt voor ${domain} en ontvangt facturen die naar het factuuradres van dit domein ${domain}@expensify.cash worden gestuurd.`,
     },

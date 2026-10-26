@@ -47,6 +47,7 @@ const translations: TranslationDeepObject<typeof en> = {
         paymentFailed: 'Diese Rechnung konnte nicht bezahlt werden. Bitte versuche es erneut.',
         createFailed: 'Diese Rechnung konnte nicht erstellt werden. Bitte versuche es erneut.',
         payBills: ({count}) => ({one: '1 Rechnung bezahlen', other: `${count} Rechnungen bezahlen`}),
+        approveBills: ({count}) => ({one: '1 Rechnung genehmigen', other: `${count} Rechnungen genehmigen`}),
         primaryContactHint: (domain) =>
             `Der Hauptkontakt ist die zentrale Kontaktperson für ${domain} und erhält Rechnungen, die an die Rechnungsadresse dieser Domain ${domain}@expensify.cash gesendet werden.`,
     },

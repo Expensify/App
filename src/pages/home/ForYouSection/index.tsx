@@ -59,6 +59,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
     const submitCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
     const approveCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE];
     const payCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY];
+    const billApproveCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE] ?? 0;
     const billPayCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.BILLS_PAY] ?? 0;
     const exportCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT];
 
@@ -154,6 +155,13 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
                     ),
                 },
                 {
+                    key: 'billsApprove',
+                    count: billApproveCount,
+                    icon: icons.ThumbsUp,
+                    translationKey: 'billPay.approveBills' as const,
+                    handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.APPROVE, {type: CONST.SEARCH.DATA_TYPES.BILL, to: [`${accountID}`]}, CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE),
+                },
+                {
                     key: 'billsPay',
                     count: billPayCount,
                     icon: icons.MoneyBag,
@@ -184,6 +192,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
             icons.ThumbsUp,
             icons.UserShield,
             payCount,
+            billApproveCount,
             billPayCount,
             singleReportIDs,
             submitCount,
