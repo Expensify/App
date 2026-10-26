@@ -111,6 +111,7 @@ import ReportActionItemFrame from './ReportActionItemFrame';
 import ReportActionItemThread from './ReportActionItemThread';
 import SearchActionHeader from './SearchActionHeader';
 import TripSummary from './TripSummary';
+import useExpandedSystemMessageFocus from './useExpandedSystemMessageFocus';
 import useShouldEditInComposer from './useShouldEditInComposer';
 import WhisperBanner from './WhisperBanner';
 
@@ -255,15 +256,7 @@ function ReportActionItem({
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
     const popoverAnchorRef = useRef<ComponentRef<typeof View>>(null);
 
-    useEffect(() => {
-        if (!onExpandedSystemMessageReady) {
-            return;
-        }
-
-        // A recycled host may not emit a new layout event. Wait for the committed row instead.
-        const frame = requestAnimationFrame(() => onExpandedSystemMessageReady(popoverAnchorRef.current));
-        return () => cancelAnimationFrame(frame);
-    }, [action.reportActionID, onExpandedSystemMessageReady]);
+    useExpandedSystemMessageFocus(action.reportActionID, popoverAnchorRef, onExpandedSystemMessageReady);
     const downloadedPreviews = useRef<string[]>([]);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
