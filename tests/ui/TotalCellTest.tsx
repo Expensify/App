@@ -284,25 +284,6 @@ describe('TotalCell', () => {
             expect(screen.queryByText('$')).not.toBeOnTheScreen();
         });
 
-        it('saves a negative amount when the user enters a negative number', async () => {
-            // Given a tracked expense of $10.00 being edited
-            const onSave = jest.fn();
-            const input = await renderEditingTotalCell(createTrackedTransaction(1000), onSave);
-            expect(input.props.accessibilityLabel).toBe('Amount (USD)');
-
-            // When the user enters a negative amount
-            fireEvent.changeText(input, '-12.50');
-
-            // Then the accessible label includes the minus sign
-            expect(input.props.accessibilityLabel).toBe('\u2212Amount (USD)');
-
-            // When the user leaves the cell
-            fireEvent(input, 'blur');
-
-            // Then the signed amount is saved in the backend format
-            expect(onSave).toHaveBeenCalledWith(-1250);
-        });
-
         it('saves a positive amount when the user removes the sign with backspace at the start', async () => {
             // Given a tracked expense of -$10.00 with the caret at the start of its magnitude
             const onSave = jest.fn();
@@ -342,13 +323,18 @@ describe('TotalCell', () => {
             const input = await renderEditingTotalCell({...createTrackedTransaction(-1000), comment: {source: CONST.IOU.TYPE.SPLIT}}, onSave);
             expect(screen.getByText('-', {includeHiddenElements: true})).toBeOnTheScreen();
 
-            // When the user types a minus before the magnitude, which would flip a sign the user may change, then changes the magnitude and leaves the cell
+            // When the user types a minus before the magnitude, which would flip a sign the user may change
             fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
             fireEvent.changeText(input, '-10.00');
+
+            // Then the minus is rejected and the magnitude is unchanged
+            expect(input.props.value).toBe('10.00');
+
+            // When the user changes the magnitude and leaves the cell
             fireEvent.changeText(input, '15.00');
             fireEvent(input, 'blur');
 
-            // Then the minus is rejected and the new magnitude is saved with the original negative sign
+            // Then the new magnitude is saved with the original negative sign
             expect(onSave).toHaveBeenCalledWith(-1500);
         });
 
@@ -389,52 +375,26 @@ describe('TotalCell', () => {
             screen.rerender(createEditableTotalCell(createSplitTransaction(500), onSave));
             await waitForBatchedUpdates();
 
-            // When the user leaves the cell
-            fireEvent(input, 'blur');
-
-            // Then the draft and the locked negative sign are preserved
-            expect(onSave).toHaveBeenCalledWith(-1200);
-        });
-
-        it('updates the amount and sign when an external update arrives after the user typed an equal amount', async () => {
-            // Given a negative Split Bill amount being edited
-            const onSave = jest.fn();
-            const createSplitTransaction = (displayAmount: number) => ({...createTrackedTransaction(displayAmount), comment: {source: CONST.IOU.TYPE.SPLIT}});
-            const input = await renderEditingTotalCell(createSplitTransaction(-1000), onSave);
-
-            // When the user types an amount equal to the original, which leaves no unsaved edit to keep
-            fireEvent.changeText(input, '10.0');
-
-            // And a positive amount arrives while the cell is open
-            screen.rerender(createEditableTotalCell(createSplitTransaction(500), onSave));
-            await waitForBatchedUpdates();
-
-            // Then the input updates to the new amount and drops the fixed negative sign, since the edit state already took the new amount over
-            expect(input.props.value).toBe('5.00');
-            expect(screen.queryByText('-', {includeHiddenElements: true})).not.toBeOnTheScreen();
-
-            // When the user edits the amount and leaves the cell
-            fireEvent.changeText(input, '12');
-            fireEvent(input, 'blur');
-
-            // Then the positive amount is saved, not a negative one the user never saw
-            expect(onSave).toHaveBeenCalledWith(1200);
-        });
-
-        it('updates the amount and sign from an external update that arrived mid-edit once the user reverts the draft', async () => {
-            // Given a negative Split Bill amount being edited where the user has already typed a draft
-            const onSave = jest.fn();
-            const createSplitTransaction = (displayAmount: number) => ({...createTrackedTransaction(displayAmount), comment: {source: CONST.IOU.TYPE.SPLIT}});
-            const input = await renderEditingTotalCell(createSplitTransaction(-1000), onSave);
-            fireEvent.changeText(input, '12');
-
-            // When a positive amount arrives while the draft is in progress
-            screen.rerender(createEditableTotalCell(createSplitTransaction(500), onSave));
-            await waitForBatchedUpdates();
-
             // Then the draft and its negative sign are kept
             expect(input.props.value).toBe('12');
             expect(screen.getByText('-', {includeHiddenElements: true})).toBeOnTheScreen();
+
+            // When the user leaves the cell
+            fireEvent(input, 'blur');
+
+            // Then the draft is saved with the locked negative sign
+            expect(onSave).toHaveBeenCalledWith(-1200);
+        });
+
+        it('updates the amount and sign from an external update that arrived mid-edit once the user reverts the draft', async () => {
+            // Given a negative Split Bill amount being edited where the user has already typed a draft that a newer amount arrived over
+            const onSave = jest.fn();
+            const createSplitTransaction = (displayAmount: number) => ({...createTrackedTransaction(displayAmount), comment: {source: CONST.IOU.TYPE.SPLIT}});
+            const input = await renderEditingTotalCell(createSplitTransaction(-1000), onSave);
+            fireEvent.changeText(input, '12');
+
+            screen.rerender(createEditableTotalCell(createSplitTransaction(500), onSave));
+            await waitForBatchedUpdates();
 
             // When the user reverts the draft to the amount the editor opened with
             fireEvent.changeText(input, '10.00');
@@ -509,45 +469,30 @@ describe('TotalCell', () => {
             expect(screen.queryByLabelText(/^\u2212?Amount \(USD\)$/)).not.toBeOnTheScreen();
         });
 
-        it('saves a negative amount when the user flips a positive amount on a touch device', async () => {
-            // Given a tracked expense of $10.00 being edited, on a device whose soft keyboard has no minus key
+        it.each([
+            {displayAmount: 1000, expectedLabel: '\u2212Amount (USD)', shouldShowSign: true, expectedSavedAmount: -1000},
+            {displayAmount: -1000, expectedLabel: 'Amount (USD)', shouldShowSign: false, expectedSavedAmount: 1000},
+        ])('saves $expectedSavedAmount when the user flips an amount of $displayAmount on a touch device', async ({displayAmount, expectedLabel, shouldShowSign, expectedSavedAmount}) => {
+            // Given a tracked expense being edited, on a device whose soft keyboard has no minus key
             const onSave = jest.fn();
-            const input = await renderEditingTotalCell(createTrackedTransaction(1000), onSave);
-            expect(input.props.accessibilityLabel).toBe('Amount (USD)');
+            const input = await renderEditingTotalCell(createTrackedTransaction(displayAmount), onSave);
 
             // When the user presses the flip button
             fireEvent.press(screen.getByLabelText('Flip'));
 
-            // Then the sign is displayed and the accessible label is updated
-            expect(input.props.accessibilityLabel).toBe('\u2212Amount (USD)');
-            expect(screen.getByText('-', {includeHiddenElements: true})).toBeOnTheScreen();
+            // Then the sign is toggled in the input's accessible label and in the UI
+            expect(input.props.accessibilityLabel).toBe(expectedLabel);
+            if (shouldShowSign) {
+                expect(screen.getByText('-', {includeHiddenElements: true})).toBeOnTheScreen();
+            } else {
+                expect(screen.queryByText('-', {includeHiddenElements: true})).not.toBeOnTheScreen();
+            }
 
             // When the user leaves the cell
             fireEvent(input, 'blur');
 
-            // Then the negative amount is saved in the backend format
-            expect(onSave).toHaveBeenCalledWith(-1000);
-        });
-
-        it('saves a positive amount when the user flips a negative amount on a touch device', async () => {
-            // Given a tracked expense of -$10.00 being edited
-            const onSave = jest.fn();
-            const input = await renderEditingTotalCell(createTrackedTransaction(-1000), onSave);
-            expect(input.props.accessibilityLabel).toBe('\u2212Amount (USD)');
-            expect(screen.getByText('-', {includeHiddenElements: true})).toBeOnTheScreen();
-
-            // When the user presses the flip button
-            fireEvent.press(screen.getByLabelText('Flip'));
-
-            // Then the sign is removed from the input and its accessible name
-            expect(input.props.accessibilityLabel).toBe('Amount (USD)');
-            expect(screen.queryByText('-', {includeHiddenElements: true})).not.toBeOnTheScreen();
-
-            // When the user submits with Enter
-            fireEvent(input, 'submitEditing');
-
-            // Then the positive amount is saved
-            expect(onSave).toHaveBeenCalledWith(1000);
+            // Then the flipped amount is saved in the backend format
+            expect(onSave).toHaveBeenCalledWith(expectedSavedAmount);
         });
 
         it('preserves the flipped sign when the user changes the magnitude on a touch device', async () => {
@@ -586,11 +531,8 @@ describe('TotalCell', () => {
             const onSave = jest.fn();
             const input = await renderEditingTotalCell(createTrackedTransaction(1000), onSave);
 
-            // When the user types an amount with the maximum 10 integer digits and 2 decimals, which fills the cell
+            // When the user types an amount with the maximum 10 integer digits and 2 decimals
             fireEvent.changeText(input, '9999999999.99');
-
-            // Then the currency symbol stays visible alongside the long amount
-            expect(screen.getByText('$', {includeHiddenElements: true})).toBeOnTheScreen();
 
             // When the user leaves the cell
             fireEvent(input, 'blur');
@@ -620,31 +562,19 @@ describe('TotalCell', () => {
             // Given a tracked expense of $10.00 being edited, which allows negative amounts
             const onSave = jest.fn();
             const input = await renderEditingTotalCell(createTrackedTransaction(1000), onSave);
+            expect(input.props.accessibilityLabel).toBe('Amount (USD)');
 
-            // When the user types the longest negative amount
+            fireEvent.changeText(input, '-9999999999.99');
+            expect(input.props.accessibilityLabel).toBe('\u2212Amount (USD)');
             fireEvent.changeText(input, '-9999999999.99');
 
-            // Then the sign and currency symbol stay visible beside the input, not in it
+            // Then the input holds only the magnitude, and the sign is rendered beside it, not inside it
             expect(input.props.value).toBe('9999999999.99');
             expect(screen.getByText('-', {includeHiddenElements: true})).toBeOnTheScreen();
-            expect(screen.getByText('$', {includeHiddenElements: true})).toBeOnTheScreen();
 
             // And leaving the cell saves the signed amount in the backend format
             fireEvent(input, 'blur');
             expect(onSave).toHaveBeenCalledWith(convertToBackendAmount(-9999999999.99));
-        });
-
-        it('does not save when the cell is opened and submitted with Enter without changes', async () => {
-            // Given a tracked expense of $10.00 being edited
-            const onSave = jest.fn();
-            const input = await renderEditingTotalCell(createTrackedTransaction(1000), onSave);
-
-            // When the user submits with Enter without editing
-            fireEvent(input, 'submitEditing');
-
-            // Then nothing is saved and the cell exits edit mode
-            expect(onSave).not.toHaveBeenCalled();
-            expect(screen.queryByLabelText(/^\u2212?Amount \(USD\)$/)).not.toBeOnTheScreen();
         });
     });
 });

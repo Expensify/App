@@ -103,7 +103,10 @@ describe('Numeric buttons', () => {
     ])('%s.FlipButton', (name, NumericComponent) => {
         const FLIP_TEST_ID = 'flip-button';
 
-        const renderFlipButton = ({allowNegative = true, value = '12', isDisabled = false} = {}, onInputChange = jest.fn()) => {
+        const renderFlipButton = (
+            {allowNegative = true, value = '12', isDisabled = false, shouldShowLabel}: {allowNegative?: boolean; value?: string; isDisabled?: boolean; shouldShowLabel?: boolean} = {},
+            onInputChange = jest.fn(),
+        ) => {
             renderWithProviders(
                 <NumericComponent
                     value={value}
@@ -112,6 +115,7 @@ describe('Numeric buttons', () => {
                 >
                     <NumericComponent.FlipButton
                         isDisabled={isDisabled}
+                        shouldShowLabel={shouldShowLabel}
                         testID={FLIP_TEST_ID}
                     />
                 </NumericComponent>,
@@ -134,17 +138,7 @@ describe('Numeric buttons', () => {
         it('hides the text label when shouldShowLabel is false, keeping the accessible name', async () => {
             // Given a numeric flip button configured not to display its text label
             // When the component is rendered
-            renderWithProviders(
-                <NumericComponent
-                    value="12"
-                    allowNegative
-                >
-                    <NumericComponent.FlipButton
-                        shouldShowLabel={false}
-                        testID={FLIP_TEST_ID}
-                    />
-                </NumericComponent>,
-            );
+            renderFlipButton({shouldShowLabel: false});
             await waitForBatchedUpdatesWithAct();
 
             // Then the text label is hidden from the UI to save space, but the accessible name is preserved

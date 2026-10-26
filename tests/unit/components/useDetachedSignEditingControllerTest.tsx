@@ -65,6 +65,7 @@ describe('useDetachedSignEditingController', () => {
         expect(result.current.formattedNumber).toBe('-12');
         expect(result.current.isNegative).toBe(false);
     });
+
     it('makes a positive value negative when a minus is typed before the magnitude', () => {
         // Given a positive value with the caret at the start
         const {result, onInputChange} = renderController({value: '12'});
@@ -93,15 +94,15 @@ describe('useDetachedSignEditingController', () => {
     });
 
     it('keeps the sign of a pasted negative number instead of toggling it', () => {
-        // Given a negative value whose whole magnitude is selected
+        // Given a negative value with only part of its magnitude selected
         const {result} = renderController({value: '-12'});
-        act(() => result.current.handleSelectionChange(0, 2));
+        act(() => result.current.handleSelectionChange(0, 1));
 
-        // When a negative number is pasted over it
-        act(() => result.current.setNumber('-34'));
+        // When a negative number is pasted over the selection, which is not a lone minus typed at the start
+        act(() => result.current.setNumber('-32'));
 
-        // Then the pasted sign is kept, because a paste sets the sign rather than typing it
-        expect(result.current.value).toBe('-34');
+        // Then the pasted sign is kept instead of being toggled off, because a paste sets the sign rather than typing it
+        expect(result.current.value).toBe('-32');
     });
 
     it('rejects a minus typed inside the magnitude', () => {
@@ -149,7 +150,7 @@ describe('useDetachedSignEditingController', () => {
         // When the user presses backspace, which has no digit to delete before the caret
         act(() => result.current.handleKeyPress(buildKeyPressEvent('Backspace')));
 
-        // Then the sign is deleted instead
+        // Then the sign is cleared and the magnitude is untouched, so a native deletion is not doubled by the controller
         expect(result.current.value).toBe('12');
         expect(onInputChange).toHaveBeenLastCalledWith('12');
     });
