@@ -33,4 +33,4 @@ function agentAccountIDsSelector(agents: OnyxCollection<Agent>): number[] {
     return Object.keys(agents ?? {}).map((key) => Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length)));
 }
 
-export {getAgentErrors, doesAgentHaveErrors, hasAgentErrorsSelector, agentAccountIDsSelector};
+export {getAgentErrors, hasAgentErrorsSelector, agentAccountIDsSelector};

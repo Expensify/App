@@ -33,7 +33,7 @@ import useWorkspaceAgents from '@hooks/useWorkspaceAgents';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {getRules} from '@libs/actions/Policy/Rules';
-import {doesAgentHaveErrors} from '@libs/AgentUtils';
+import {hasAgentErrorsSelector} from '@libs/AgentUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -196,7 +196,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     // Agents errors can only exist on manageable agents
     const {manageableWorkspaceAgents} = useWorkspaceAgents(policy);
-    const hasAgentErrors = Object.values(manageableWorkspaceAgents).some(doesAgentHaveErrors);
+    const hasAgentErrors = hasAgentErrorsSelector(manageableWorkspaceAgents);
 
     const workspaceMenuItems = getWorkspaceMenuItems({
         policy,
