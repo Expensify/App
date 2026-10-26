@@ -42,7 +42,7 @@ function CustomFlatList<T>({
         [onMomentumScrollEnd],
     );
 
-    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: !enableAnimatedKeyboardDismissal, inverted: restProps.inverted});
+    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: !enableAnimatedKeyboardDismissal && !!restProps.inverted});
     const handleScroll = useCallback(
         (e: NativeSyntheticEvent<NativeScrollEvent>) => {
             onScrollProp?.(e);

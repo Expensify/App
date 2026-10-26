@@ -10,12 +10,17 @@ function toStatus(permission: NotificationPermission): NotificationPermissionSta
     return 'default';
 }
 
+function getStatusSync(): NotificationPermissionStatus {
+    if (typeof window === 'undefined' || !window.Notification) {
+        return 'denied';
+    }
+    return toStatus(Notification.permission);
+}
+
 const NotificationPermission: NotificationPermissionModule = {
+    getStatusSync,
     getStatus(): Promise<NotificationPermissionStatus> {
-        if (typeof window === 'undefined' || !window.Notification) {
-            return Promise.resolve('denied');
-        }
-        return Promise.resolve(toStatus(Notification.permission));
+        return Promise.resolve(getStatusSync());
     },
 
     request(): Promise<NotificationPermissionStatus> {

@@ -16,6 +16,8 @@ const NAVIGATOR_KEY = 'test-navigator-key';
 const mockSetParams = jest.fn();
 const mockCleanStaleBackToParam = jest.fn();
 const mockIsNavigationReady = jest.fn(() => Promise.resolve());
+const mockChildrenMount = jest.fn();
+const mockChildrenUnmount = jest.fn();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -43,7 +45,7 @@ jest.mock('@react-navigation/native', () => {
         useRoute: () => ({
             key: ROUTE_KEY,
             name: 'Report',
-            params: mockRouteParams,
+            params: {...mockRouteParams},
         }),
         useNavigation: () => ({
             getState: () => ({key: NAVIGATOR_KEY}),
@@ -145,6 +147,10 @@ function createReportAction(overrides: Partial<ReportAction> = {}): ReportAction
 }
 
 function TestChildren() {
+    React.useEffect(() => {
+        mockChildrenMount();
+        return () => mockChildrenUnmount();
+    }, []);
     return <View testID="test-children" />;
 }
 
@@ -170,11 +176,36 @@ describe('LinkedActionNotFoundGuard', () => {
         mockSetParams.mockReset();
         mockCleanStaleBackToParam.mockClear();
         mockIsNavigationReady.mockClear();
+        mockChildrenMount.mockClear();
+        mockChildrenUnmount.mockClear();
         mockRouteParams.reportID = REPORT_ID;
         mockRouteParams.reportActionID = REPORT_ACTION_ID;
         mockLinkedAction = createReportAction();
         mockIsLoadingInitialReportActions = false;
         mockIsReportActionVisible = true;
+    });
+
+    it('preserves the report content when a link is cleared or a different link is opened', () => {
+        // Given a linked report has mounted its list and composer.
+        const view = render(
+            <LinkedActionNotFoundGuard>
+                <TestChildren />
+            </LinkedActionNotFoundGuard>,
+        );
+
+        // When sending clears the link, and the reader subsequently opens another link.
+        for (const reportActionID of ['', 'another-action', undefined, REPORT_ACTION_ID]) {
+            mockRouteParams.reportActionID = reportActionID;
+            view.rerender(
+                <LinkedActionNotFoundGuard>
+                    <TestChildren />
+                </LinkedActionNotFoundGuard>,
+            );
+
+            // Then the report keeps its mounted list, editor, and keyboard state.
+            expect(mockChildrenMount).toHaveBeenCalledTimes(1);
+            expect(mockChildrenUnmount).not.toHaveBeenCalled();
+        }
     });
 
     it('renders children when linked action exists', () => {
