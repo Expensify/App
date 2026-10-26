@@ -3279,7 +3279,11 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(
     const newApprover = stringNewValue ? formatPhoneNumber(stringNewValue) : '';
     const previousApprover = stringOldValue ? formatPhoneNumber(stringOldValue) : undefined;
 
-    if (field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.SUBMITS_TO && newApprover) {
+    if (field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.SUBMITS_TO) {
+        // An empty submitsTo (for example, a blank Submit To value in a member import) sends the member's reports to the default approver
+        if (!newApprover) {
+            return translate('workspaceActions.changedSubmitsToDefault', {members: email, previousApprover});
+        }
         return translate('workspaceActions.changedSubmitsToApprover', {members: email, approver: newApprover, previousApprover});
     }
 

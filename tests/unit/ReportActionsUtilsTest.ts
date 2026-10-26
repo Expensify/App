@@ -3387,6 +3387,30 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(translateLocal('workspaceActions.changedSubmitsToApprover', {members: email, approver: newApprover, previousApprover}));
         });
 
+        it('should show a default approver message when submitsTo is cleared', () => {
+            // Given an employee update where submitsTo was cleared, like a member import with a blank Submit To value
+            const email = 'employee@example.com';
+            const previousApprover = 'old.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.SUBMITS_TO,
+                    newValue: '',
+                    oldValue: previousApprover,
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then it says reports now go to the default approver, because an empty submitsTo means the member uses the default approver
+            expect(actual).toBe(translateLocal('workspaceActions.changedSubmitsToDefault', {members: email, previousApprover}));
+        });
+
         it('should show a stopped forwarding message when forwardsTo is cleared', () => {
             // Given an employee update where forwardsTo was removed
             const email = 'approver@example.com';
