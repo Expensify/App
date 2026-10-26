@@ -1221,7 +1221,14 @@ const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
 ]);
-const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+// Keys whose change alone doesn't offer Save. The Spend footer's selections are still saved with a search, but changing
+// them is undone from the footer's own Reset, so they offer neither Save nor Reset in the header.
+const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
+]);
 
 function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
     const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
@@ -3129,7 +3136,9 @@ function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | und
     }
 
     const queryFilterKeys = new Set(queryJSON.flatFilters.map((filter) => filter.key));
-    const defaultQueryFilterKeys = new Set(defaultQueryJSON.flatFilters.map((filter) => filter.key));
+    // The Spend footer's keys pick what the footer shows, not which rows match, and a default choice is left out of the
+    // query. So they never decide whether a last query still belongs to its default one.
+    const defaultQueryFilterKeys = new Set(defaultQueryJSON.flatFilters.map((filter) => filter.key).filter((key) => !FOOTER_FILTER_KEYS.has(key)));
 
     return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON.type === defaultQueryJSON.type;
 }
