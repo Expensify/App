@@ -15,6 +15,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
+import {isDomainSessionRevocationActive} from '@libs/DomainSessionRevocation';
 import Log from '@libs/Log';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
@@ -186,6 +187,7 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
     const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [sessionRevocation, sessionRevocationMetadata] = useOnyx(ONYXKEYS.DOMAIN_SESSION_REVOCATION);
     const isAccountValidated = account?.validated;
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [isAuthenticatingWithShortLivedToken] = useOnyx(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN);
@@ -254,9 +256,14 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
         isAuthenticatingWithShortLivedToken: !!isAuthenticatingWithShortLivedToken,
     });
 
-    if (shouldInitiateSAMLLogin) {
+    if (shouldInitiateSAMLLogin && sessionRevocationMetadata.status === 'loaded' && !sessionRevocation) {
         setHasInitiatedSAMLLogin(true);
-        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.SAML_SIGN_IN));
+        Navigation.isNavigationReady().then(() => {
+            if (isDomainSessionRevocationActive()) {
+                return;
+            }
+            Navigation.navigate(ROUTES.SAML_SIGN_IN);
+        });
     }
 
     let welcomeHeader = '';

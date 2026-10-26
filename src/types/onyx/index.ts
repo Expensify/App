@@ -84,6 +84,7 @@ import type {DomainSecurityGroup, SamlMetadata, UserSecurityGroupData} from './D
 import type DomainErrors from './DomainErrors';
 import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
+import type DomainSessionRevocation from './DomainSessionRevocation';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type {
@@ -539,6 +540,7 @@ export type {
     AppReviewLastPrompt,
     SamlMetadata,
     DomainErrors,
+    DomainSessionRevocation,
     DomainHighlightItems,
     DomainPendingActions,
     DomainSecurityGroup,

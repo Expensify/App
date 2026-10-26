@@ -219,7 +219,8 @@ describe('maskOnyxState', () => {
             expect(report.nextStep.actorEmail).not.toBe('user@example.com');
         });
 
-        it('should remove sensitive and transient keys from export', () => {
+        it.each([true, false])('should remove sensitive and transient keys from export with masking=%s', (isMaskingFragileDataEnabled) => {
+            // Given sensitive credentials and a live completion capability
             const input = {
                 session: mockSession,
                 [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'sensitive-id',
@@ -227,15 +228,19 @@ describe('maskOnyxState', () => {
                 [ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN]: 'plaid-token',
                 [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: true,
                 [ONYXKEYS.ONFIDO_TOKEN]: 'onfido-token',
+                [ONYXKEYS.DOMAIN_SESSION_REVOCATION]: {completionHandle: 'ab'.repeat(32), status: 'running'},
             };
-            const result = maskOnyxState(input);
 
-            // Sensitive keys should be removed
+            // When the state is exported with either masking setting
+            const result = maskOnyxState(input, isMaskingFragileDataEnabled);
+
+            // Then sensitive keys are removed even when optional masking is disabled
             expect(result[ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]).toBeUndefined();
             expect(result[ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]).toBeUndefined();
             expect(result[ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN]).toBeUndefined();
             expect(result[ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]).toBeUndefined();
             expect(result[ONYXKEYS.ONFIDO_TOKEN]).toBeUndefined();
+            expect(result[ONYXKEYS.DOMAIN_SESSION_REVOCATION]).toBeUndefined();
 
             // Session should still be present
             expect(result.session).toBeDefined();

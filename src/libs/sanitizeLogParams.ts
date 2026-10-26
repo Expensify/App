@@ -1,5 +1,6 @@
 const SENSITIVE_KEYS = new Set([
     'authToken',
+    'completionHandle',
     'encryptedAuthToken',
     'password',
     'partnerUserSecret',

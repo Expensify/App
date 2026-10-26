@@ -1,3 +1,4 @@
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Reauthentication from '@libs/Middleware/Reauthentication';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
 import reauthenticate from '@libs/Reauthentication';
@@ -46,6 +47,24 @@ beforeEach(() => {
 });
 
 describe('Reauthentication middleware', () => {
+    test.each([
+        [SIDE_EFFECT_REQUEST_COMMANDS.GET_DOMAIN_SESSION_REVOCATION_STATUS, {}],
+        [SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_DOMAIN_MEMBER_SESSIONS, {shouldRetry: false, skipReauthentication: true}],
+        [SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_ALL_DOMAIN_MEMBER_SESSIONS, {shouldRetry: false, skipReauthentication: true}],
+    ])('never reauthenticates or replays %s after an expired session', async (command, parameters) => {
+        // Given a security action or a capability-only status lookup
+        const request: OnyxRequest<typeof ONYXKEYS.SESSION> = {
+            command,
+            data: {...parameters, apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS},
+        };
+
+        // When the backend reports an expired session
+        const response = await Reauthentication(Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}), request, false);
+
+        // Then the original failure reaches the action without reauthentication or replay
+        expect(response?.jsonCode).toBe(CONST.JSON_CODE.NOT_AUTHENTICATED);
+        expect(reauthenticate).not.toHaveBeenCalled();
+    });
     test('clears original request failure updates when failed reauthentication redirects to sign-in', () => {
         jest.mocked(reauthenticate).mockResolvedValueOnce({wasSuccessful: false});
 
