@@ -6,6 +6,8 @@ import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRendere
  */
 function resolvePadding(
     padding: ProcessNodeResult['padding'],
+    xAxis: ProcessNodeResult['xAxis'],
+    yAxis: ProcessNodeResult['yAxis'],
     leftAxisSize: ProcessNodeResult['leftAxisSize'],
     rightAxisSize: ProcessNodeResult['rightAxisSize'],
     bottomAxisSize: ProcessNodeResult['bottomAxisSize'],
@@ -25,18 +27,23 @@ function resolvePadding(
         };
     }
 
+    // Shrink `padding.left` down to the left axis's measured label width (plus a small edge buffer)
+    // whenever the configured padding is wider than the label content actually needs.
     if (leftAxisSize && resolvedPadding.left) {
-        // Shrinks `padding.left` down to the left axis's measured label width (plus a small edge buffer)
-        // whenever the configured padding is wider than the label content actually needs.
-        resolvedPadding.left = Math.min(resolvedPadding.left, leftAxisSize + LEFT_AXIS_LABEL_PADDING) - leftAxisSize;
+        resolvedPadding.left = Math.min(resolvedPadding.left, leftAxisSize + LEFT_AXIS_LABEL_PADDING);
     }
-    if (rightAxisSize && resolvedPadding.right) {
+
+    // Shrink the paddings further to take into account the axis labels size
+    if (yAxis?.[0].tickCount && leftAxisSize && resolvedPadding.left) {
+        resolvedPadding.left -= leftAxisSize;
+    }
+    if (yAxis?.[0].tickCount && rightAxisSize && resolvedPadding.right) {
         resolvedPadding.right -= rightAxisSize;
     }
-    if (bottomAxisSize && resolvedPadding.bottom) {
+    if (xAxis?.tickCount && bottomAxisSize && resolvedPadding.bottom) {
         resolvedPadding.bottom -= bottomAxisSize;
     }
-    if (topAxisSize && resolvedPadding.top) {
+    if (xAxis?.tickCount && topAxisSize && resolvedPadding.top) {
         resolvedPadding.top -= topAxisSize;
     }
 

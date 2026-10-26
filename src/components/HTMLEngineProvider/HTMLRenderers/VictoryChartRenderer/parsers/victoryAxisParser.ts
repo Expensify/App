@@ -131,7 +131,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
 
     // The axis size is used to reduce the size of the padding since the axis labels consume part of the drawing window
     // and we need to compensate for that otherwise the chart will look smaller
-    if (axisSide && tickCount) {
+    if (axisSide) {
         const axisSize = computeAxisSize(axisSide, labelsForMeasurement, font, labelOffset);
         switch (axisSide) {
             case 'left':
