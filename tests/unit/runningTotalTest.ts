@@ -99,8 +99,8 @@ describe('applyRunningTotal', () => {
         expect(points.map((p) => p.count)).toEqual([2, 5]);
     });
 
-    it('accumulates the Average snapshot like any compared series, pairing it by bucket key', () => {
-        // Given three uneven months compared against an Average snapshot carrying a value per bucket, keyed to the current rows
+    it('keeps the Average snapshot flat while the current line accumulates', () => {
+        // Given three uneven months compared against an Average snapshot carrying the same value per bucket, keyed to the current rows
         const data = [monthGroup(2026, 1, 100000), monthGroup(2026, 2, 500000), monthGroup(2026, 3, 300000)];
         const comparison: ChartComparison = {
             data: [monthGroup(2026, 1, 200000), monthGroup(2026, 2, 200000), monthGroup(2026, 3, 200000)],
@@ -111,8 +111,8 @@ describe('applyRunningTotal', () => {
         // When the points are turned into a running total
         const rows = runningRows(data, comparison);
 
-        // Then the Average line accumulates its own snapshot bucket by bucket, pairing point for point with the current line
-        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2000, 4000, 6000]);
+        // Then the Average keeps its per-bucket value, drawing a horizontal reference line under the climbing running total
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2000, 2000, 2000]);
         expect(rows.at(-1)?.point.values[CHART_SERIES_KEY.PRIMARY]).toBe(9000);
     });
 
@@ -163,7 +163,7 @@ describe('applyRunningTotal', () => {
         // When the points are turned into a running total
         const rows = runningRows(data, comparison);
 
-        // Then the single running point pairs the month with its Average snapshot
+        // Then the single running point pairs the month with its untouched Average snapshot
         expect(rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 1000}]);
     });
 });

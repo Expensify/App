@@ -61,9 +61,9 @@ function InsightsGroupByDropdown({groupBy, options, onChange}: InsightsGroupByDr
 
     return (
         <DropdownButton
-            // Running total isn't a bucket the chart groups by, so its pill drops the `Group by` prefix and reads `Running total` alone
-            label={isRunningTotal ? runningTotalText : label}
-            value={isRunningTotal ? null : pillText}
+            // The pill reads the selection alone, without a `Group by` prefix, so `label` only titles the popup
+            label={isRunningTotal ? runningTotalText : pillText}
+            value={null}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_GROUP_BY}
             wrapperStyle={[styles.getWidgetHeaderButtonOverflowStyle(variables.componentSizeSmall), styles.flexShrink1]}
             innerStyles={styles.bgTransparent}

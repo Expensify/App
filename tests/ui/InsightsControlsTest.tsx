@@ -130,7 +130,7 @@ describe('Insights controls', () => {
         );
 
         // When the user picks Quarter and applies it
-        await openPill(/: Month$/);
+        await openPill(/^(Month|search\.filters\.groupBy\.month)$/);
         fireEvent.press(screen.getByText(/^(Quarter|search\.filters\.groupBy\.quarter)$/));
         fireEvent.press(screen.getByText(APPLY));
         await waitForBatchedUpdatesWithAct();
@@ -151,7 +151,7 @@ describe('Insights controls', () => {
         );
 
         // When the user resets the control
-        await openPill(/: Quarter$/);
+        await openPill(/^(Quarter|search\.filters\.groupBy\.quarter)$/);
         fireEvent.press(screen.getByText(RESET));
         await waitForBatchedUpdatesWithAct();
 
@@ -171,7 +171,7 @@ describe('Insights controls', () => {
         );
 
         // When the user opens the control
-        await openPill(/: Week$/);
+        await openPill(/^(Week|search\.filters\.groupBy\.week)$/);
 
         // Then the groupings that would plot a single point are hidden
         expect(screen.getByText(/^(Day|search\.filters\.groupBy\.day)$/)).toBeOnTheScreen();
@@ -192,7 +192,7 @@ describe('Insights controls', () => {
         );
 
         // When the user resets the control
-        await openPill(/: Day$/);
+        await openPill(/^(Day|search\.filters\.groupBy\.day)$/);
         fireEvent.press(screen.getByText(RESET));
         await waitForBatchedUpdatesWithAct();
 
@@ -212,7 +212,7 @@ describe('Insights controls', () => {
         );
 
         // When the user picks Running total and applies it
-        await openPill(/: Month$/);
+        await openPill(/^(Month|search\.filters\.groupBy\.month)$/);
         fireEvent.press(screen.getByText(/^(Running total|insightsPage\.runningTotal)$/));
         fireEvent.press(screen.getByText(APPLY));
         await waitForBatchedUpdatesWithAct();
@@ -232,7 +232,7 @@ describe('Insights controls', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        // Then the pill reads Running total alone, without the Group by prefix a time bucket gets
+        // Then the pill reads Running total alone, the same prefix-free way every grouping labels it
         expect(screen.getByText(/^(Running total|insightsPage\.runningTotal)$/)).toBeOnTheScreen();
     });
 
