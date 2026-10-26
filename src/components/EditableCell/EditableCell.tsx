@@ -83,10 +83,10 @@ function EditableCell({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {isLargeScreenWidth, isInNarrowPaneModal} = useResponsiveLayout();
+    const {isLargeScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const isDisplayedInWideRHP = useIsDisplayedInWideRHP(isInNarrowPaneModal);
     const [isEditIconFocused, setIsEditIconFocused] = useState(false);
-    const isEditable = isLargeScreenWidth && (!isInNarrowPaneModal || isDisplayedInWideRHP);
+    const isEditable = isLargeScreenWidth && (!shouldUseNarrowLayout || isDisplayedInWideRHP);
     const cellId = useId();
     const {setIsEditingCell, setFocusedCellId} = useEditingCellActions();
     const isInteractive = useDeferredValue(true, false);

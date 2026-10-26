@@ -8,8 +8,7 @@ import {use} from 'react';
 import type ResponsiveLayoutOnWideRHPResult from './types';
 
 /**
- * Whether the caller's screen is shown in a Wide/Super Wide RHP. Reads the Wide RHP state only inside the RHP, so screens
- * outside it don't re-render every time that state changes.
+ * Reads the Wide RHP state only inside the RHP, so screens outside it don't re-render when that state changes.
  */
 function useIsDisplayedInWideRHP(isInNarrowPaneModal: boolean): boolean {
     const route = useRoute();
