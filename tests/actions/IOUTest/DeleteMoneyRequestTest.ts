@@ -553,6 +553,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             if (transaction && createIOUAction && iouReport?.reportID) {
                 cleanUpMoneyRequest({
                     transactionID: transaction.transactionID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     reportAction: createIOUAction,
                     reportID: iouReport.reportID,
                     transactionThreadReport: thread,
