@@ -11724,6 +11724,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 one: '1 utilisateur actif',
                 other: `${count} utilisateurs actifs`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 membre',
+                other: `${count} membres`,
+            }),
             state: {paid: 'Payé', cleared: 'Compensé', failed: 'Échec', refunded: 'Remboursé', disputed: 'Contesté', balanceTransfer: 'Virement de solde'},
             details: 'Détails du paiement',
             badge: {
@@ -11738,6 +11742,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             billedTo: 'Facturé à',
             activity: 'Activité',
             findActiveUser: 'Rechercher un utilisateur actif',
+            findMember: 'Rechercher un membre',
             viewReceipt: 'Voir le reçu',
             viewInvoice: 'Voir la facture',
         },
