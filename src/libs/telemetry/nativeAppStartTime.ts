@@ -1,14 +1,21 @@
-let nativeAppStartTimeMs: number | undefined;
+// Elapsed time uses performance.now() because Date.now() jumps when the device clock is corrected.
+let appStartAgeAtSetupMs: number | undefined;
+let performanceNowAtSetupMs = 0;
 
 function setNativeAppStartTime(timestampMs: number | undefined) {
-    nativeAppStartTimeMs = timestampMs;
+    if (timestampMs === undefined) {
+        appStartAgeAtSetupMs = undefined;
+        return;
+    }
+    appStartAgeAtSetupMs = Date.now() - timestampMs;
+    performanceNowAtSetupMs = performance.now();
 }
 
 function getMsSinceNativeAppStart(): number | undefined {
-    if (nativeAppStartTimeMs === undefined) {
+    if (appStartAgeAtSetupMs === undefined) {
         return undefined;
     }
-    return Math.round(Date.now() - nativeAppStartTimeMs);
+    return Math.round(appStartAgeAtSetupMs + performance.now() - performanceNowAtSetupMs);
 }
 
 export {getMsSinceNativeAppStart, setNativeAppStartTime};

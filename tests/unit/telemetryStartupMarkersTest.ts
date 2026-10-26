@@ -39,6 +39,7 @@ describe('telemetry startup markers (native)', () => {
         jest.clearAllMocks();
         // Keep "now" close to the mocked appStartTime so the prewarm staleness guard accepts it.
         jest.spyOn(Date, 'now').mockReturnValue(2_000);
+        jest.spyOn(performance, 'now').mockReturnValue(10_000);
         global.requestAnimationFrame = jest.fn();
         mockMarkers.mockReturnValue({});
         activeSpansMock.startSpan.mockReturnValue({setAttribute: jest.fn()});
@@ -116,9 +117,21 @@ describe('telemetry startup markers (native)', () => {
         setupTelemetry();
 
         // When a span starts 500ms after setup
-        jest.spyOn(Date, 'now').mockReturnValue(2_500);
+        jest.spyOn(performance, 'now').mockReturnValue(10_500);
 
         // Then it can read the time since the native app start
+        expect(getMsSinceNativeAppStart()).toBe(1_500);
+    });
+
+    it('ignores wall-clock corrections after setup when reporting the time since the native app start', () => {
+        // Given a native start time one second before telemetry setup
+        setupTelemetry();
+
+        // When the device clock is set back an hour and a span starts 500ms after setup
+        jest.spyOn(Date, 'now').mockReturnValue(2_500 - 60 * 60 * 1000);
+        jest.spyOn(performance, 'now').mockReturnValue(10_500);
+
+        // Then the duration follows the monotonic clock instead of going negative
         expect(getMsSinceNativeAppStart()).toBe(1_500);
     });
 
