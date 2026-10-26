@@ -17,7 +17,7 @@ import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspa
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {hasAcceptedTravelTerms, isPaidGroupPolicy, isPolicyAccessible, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
-import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {generateReportID} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,7 +42,6 @@ function QuickCreationActionsBar() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
@@ -53,7 +52,8 @@ function QuickCreationActionsBar() {
     const {isBetaEnabled} = usePermissions();
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+    // A new report has no expenses yet, so it can't have violations.
+    const hasViolations = false;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
