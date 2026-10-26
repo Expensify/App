@@ -39,7 +39,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
     );
     const manageableWorkspaceAgentsIDs = new Set(Object.keys(manageableWorkspaceAgents).map((key) => Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length))));
 
-    const nonManageableWorkspaceAgents: OnyxCollection<Agent> = {};
+    const nonManageableWorkspaceAgentsIDs: number[] = [];
     for (const {accountID, details} of workspaceMembers) {
         if (!details.isCustomAgent) {
             continue;
@@ -47,13 +47,12 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
         if (manageableWorkspaceAgentsIDs.has(accountID)) {
             continue;
         }
-        const key = `${ONYXKEYS.COLLECTION.AGENT}${accountID}`;
-        nonManageableWorkspaceAgents[key] = {};
+        nonManageableWorkspaceAgentsIDs.push(accountID);
     }
 
     return {
         manageableWorkspaceAgents,
-        nonManageableWorkspaceAgents,
+        nonManageableWorkspaceAgentsIDs,
     };
 }
 

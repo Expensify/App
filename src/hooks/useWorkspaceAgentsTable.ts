@@ -21,7 +21,7 @@ function useWorkspaceAgentsTable(policy: OnyxEntry<Policy>) {
     const workspaceMembers = useWorkspaceMembers(policy);
 
     const {agents, ...rest} = useAgentsTable();
-    const {manageableWorkspaceAgents, nonManageableWorkspaceAgents} = useWorkspaceAgents(policy);
+    const {manageableWorkspaceAgents, nonManageableWorkspaceAgentsIDs} = useWorkspaceAgents(policy);
 
     const workspaceAgents: AgentRowData[] = [];
     for (const key of Object.keys(manageableWorkspaceAgents)) {
@@ -42,8 +42,7 @@ function useWorkspaceAgentsTable(policy: OnyxEntry<Policy>) {
 
         workspaceAgents.push(agent);
     }
-    for (const key of Object.keys(nonManageableWorkspaceAgents)) {
-        const accountID = Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length));
+    for (const accountID of nonManageableWorkspaceAgentsIDs) {
         const agentMembership = workspaceMembers.find((member) => member.accountID === accountID);
 
         if (!agentMembership) {
