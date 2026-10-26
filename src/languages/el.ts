@@ -2564,8 +2564,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Είστε βέβαιοι ότι θέλετε να συγχωνεύσετε λογαριασμούς;',
-            lossOfUnsubmittedData: (login: string) =>
-                `Η συγχώνευση των λογαριασμών σας είναι μη αναστρέψιμη και θα έχει ως αποτέλεσμα την απώλεια τυχόν μη υποβληθέντων εξόδων για τον/την <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Η συγχώνευση των λογαριασμών σας είναι μη αναστρέψιμη. Όλες οι δαπάνες και οι αναφορές από τον λογαριασμό <strong>${login}</strong>, συμπεριλαμβανομένων των προσχεδίων και των μη καταχωρισμένων δαπανών, θα μετακινηθούν στον λογαριασμό που διατηρείτε.`,
             errors: {
                 fallback: 'Κάτι πήγε στραβά. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
                 incorrectSecurityCode: 'Εσφαλμένος ή μη έγκυρος κωδικός ασφαλείας. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
@@ -6899,6 +6899,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             currentTravelSpendInvoiceQueued: 'Θα δημιουργηθεί ένα νέο τιμολόγιο για τις ταξιδιωτικές σας δαπάνες και θα σας αποσταλεί σύντομα.',
                             currentTravelSpendInvoicePending: (amount: string) => `Ένα τιμολόγιο για ${amount} έχει αποσταλεί και αναμένει πληρωμή.`,
                             sendInvoiceNowCta: 'Στείλτε το τιμολόγιο τώρα',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `Το μηνιαίο όριο δαπανών ανά μέλος δεν μπορεί να υπερβαίνει το τρέχον όριο ταξιδιού των ${travelLimit}.`,
                         },
                         setUpNewFeed: 'Ρυθμίστε μια νέα ροή ταξιδιών',
                         feedSelectorIntro:
