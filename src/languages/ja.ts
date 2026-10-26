@@ -4779,6 +4779,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             inputLabel: '法人納税者番号',
             error: {required: '法的事業体の納税者番号を入力してください。'},
         },
+        travelMembers: {
+            headline: '出張を予約できるのは誰ですか？',
+            subtitle: 'このワークスペースで出張を予約できるメンバーを選択してください。メンバーページからいつでも変更できます。',
+            everyone: 'このワークスペースの全員',
+        },
         nudge: {
             airfareManual:
                 'Expensify で直接フライトを予約しても、マイレージプログラムでマイルを獲得できることをご存じでしたか？ 次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください ✈️',
@@ -4800,6 +4805,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
             hotelBlockCard:
                 'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
+        },
+        memberAccessDisabledModal: {
+            title: 'まだ出張機能が有効になっていません',
+            message: 'ワークスペース管理者があなたのExpensify Travelをまだ有効にしていません。アクセスするには管理者にお問い合わせください。',
         },
         defaultWorkspaceTravelDisabled: {
             title: '出張機能は有効になっていません',
@@ -6624,6 +6633,34 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         title: 'コーディングを Expensify Travel と同期する',
                         subtitle: 'このワークスペースのカテゴリ、タグ、レポートフィールドを Expensify Travel にプッシュして、出張者が予約時にそれらに回答できるようにします。',
                     },
+                    autoEnableNewMembers: {
+                        title: '新しいメンバーの出張を自動でオンにする',
+                        subtitle: 'このワークスペースに参加したメンバーはすぐに出張を予約できます。',
+                    },
+                },
+                members: {
+                    travelRole: '出張ロール',
+                    traveler: '出張者',
+                    travelAdmin: '出張管理者',
+                    travelerDescription: '自分の出張を予約・管理できます',
+                    travelAdminDescription: '会社の出張設定と出張も管理できます',
+                    off: 'オフ',
+                    offDescription: '出張を予約できません',
+                    on: 'オン',
+                    onDescription: '出張を予約できます',
+                    travel: '出張',
+                    travelAccess: '出張へのアクセス',
+                    changeTravelAccess: '出張へのアクセスを変更',
+                    turnOnTravel: '出張をオンにする',
+                    turnOnTravelDescription: 'メンバーは現在の出張ロールのまま予約します',
+                    turnOffTravel: '出張をオフにする',
+                    turnOffTravelDescription: 'メンバーは Expensify Travel を開けません',
+                    makeTravelAdmins: '出張管理者にする',
+                    makeTravelAdminsDescription: '出張をオンにし、メンバーは会社の出張設定と出張を管理できます',
+                    makeTravelers: '出張者にする',
+                    makeTravelersDescription: '出張をオンにし、メンバーは自分の出張を予約・管理できます',
+                    manageMembers: 'メンバーを管理',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `出張を予約できるメンバー: ${totalCount}人中${enabledCount}人`,
                 },
                 travelBilling: {
                     travelBookingSection: {
@@ -7735,6 +7772,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             confirmDetails: '詳細を確認',
             inviteMessagePrompt: '招待をさらに特別なものにするために、下にメッセージを追加しましょう！',
             personalMessagePrompt: 'メッセージ',
+            turnOnTravel: '出張をオンにする',
             genericFailureMessage: 'ワークスペースにメンバーを招待する際にエラーが発生しました。もう一度お試しください。',
             inviteNoMembersError: '招待するメンバーを少なくとも1人選択してください',
             joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `${user} が ${workspaceName} への参加をリクエストしました`,

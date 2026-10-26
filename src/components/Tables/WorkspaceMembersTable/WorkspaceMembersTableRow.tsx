@@ -3,11 +3,14 @@ import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
+import TravelMemberPickerCell from '@components/TravelMemberPickerCell';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getTravelMemberAccessName, getTravelMemberAccessOptions} from '@libs/TravelMemberOptionUtils';
 
 import variables from '@styles/variables';
 
@@ -39,6 +42,9 @@ type WorkspaceMembersTableRowProps = {
     /** Whether the bank account column is visible on web screens or not */
     shouldShowBankAccountColumn: boolean;
 
+    /** Whether the travel column is visible on web screens or not */
+    shouldShowTravelColumn: boolean;
+
     /** Policy used to determine which roles can be assigned from the inline editor */
     policy: OnyxEntry<Policy>;
 };
@@ -50,6 +56,7 @@ export default function WorkspaceMembersTableRow({
     shouldShowCustomField2Column,
     shouldShowOfficeLocationColumn,
     shouldShowBankAccountColumn,
+    shouldShowTravelColumn,
     shouldUseNarrowTableLayout,
     policy,
 }: WorkspaceMembersTableRowProps) {
@@ -64,7 +71,11 @@ export default function WorkspaceMembersTableRow({
     const roleLabel = translate('workspace.common.roleName', item.role);
     const bankAccountLabel =
         !shouldUseNarrowTableLayout && shouldShowBankAccountColumn && item.bankAccountLastFour ? `${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}` : '';
-    const accessibilityLabel = [item.name, item.email, bankAccountLabel, roleLabel].filter(Boolean).join(', ');
+    const travelLabel =
+        shouldShowTravelColumn && item.travelAccessValue
+            ? `${translate('workspace.moreFeatures.travel.members.travel')}: ${getTravelMemberAccessName(translate, item.travelAccessValue)}`
+            : '';
+    const accessibilityLabel = [item.name, item.email, bankAccountLabel, roleLabel, travelLabel].filter(Boolean).join(', ');
     const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;
 
     return (
@@ -195,6 +206,24 @@ export default function WorkspaceMembersTableRow({
                                 canEdit={item.canEditRole}
                                 onSave={item.onChangeRole}
                             />
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && shouldShowTravelColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.editableCellColumn]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            {!!item.travelAccessValue && (
+                                <TravelMemberPickerCell
+                                    value={item.travelAccessValue}
+                                    label={getTravelMemberAccessName(translate, item.travelAccessValue)}
+                                    options={getTravelMemberAccessOptions(translate, item.travelAccessValue)}
+                                    canEdit={!!item.canEditTravelAccess}
+                                    isValueStored={item.isTravelAccessStored ?? true}
+                                    onSave={(value) => item.onChangeTravelAccess?.(value)}
+                                />
+                            )}
                         </View>
                     )}
 

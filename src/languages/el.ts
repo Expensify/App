@@ -4850,6 +4850,11 @@ ${amount} για ${merchant} - ${date}`,
                 required: 'Παρακαλούμε εισαγάγετε το φορολογικό αριθμό της νομικής σας οντότητας.',
             },
         },
+        travelMembers: {
+            headline: 'Ποιος μπορεί να κλείνει ταξίδια;',
+            subtitle: 'Επιλέξτε ποιοι σε αυτόν τον χώρο εργασίας μπορούν να κλείνουν ταξίδια. Μπορείτε να το αλλάξετε οποιαδήποτε στιγμή από τη σελίδα Μέλη.',
+            everyone: 'Όλοι σε αυτόν τον χώρο εργασίας',
+        },
         domainPermissionInfo: {
             title: 'Τομέας',
             restriction: (domain: string) =>
@@ -4925,6 +4930,10 @@ ${amount} για ${merchant} - ${date}`,
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
             hotelBlockCard:
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
+        },
+        memberAccessDisabledModal: {
+            title: 'Τα ταξίδια δεν έχουν ενεργοποιηθεί ακόμη για εσάς',
+            message: 'Ο διαχειριστής του χώρου εργασίας σας δεν έχει ενεργοποιήσει ακόμη το Expensify Travel για εσάς. Επικοινωνήστε με τον διαχειριστή σας για να αποκτήσετε πρόσβαση.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Η ταξιδιωτική λειτουργία δεν είναι ενεργοποιημένη',
@@ -6868,6 +6877,34 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         subtitle:
                             'Σπρώξτε τις κατηγορίες, τις ετικέτες και τα πεδία αναφοράς αυτού του χώρου εργασίας στο Expensify Travel, ώστε οι ταξιδιώτες να τα απαντούν κατά την ώρα της κράτησης.',
                     },
+                    autoEnableNewMembers: {
+                        title: 'Αυτόματη ενεργοποίηση ταξιδιών για νέα μέλη',
+                        subtitle: 'Όποιος συμμετέχει σε αυτόν τον χώρο εργασίας μπορεί να κλείνει ταξίδια αμέσως.',
+                    },
+                },
+                members: {
+                    travelRole: 'Ρόλος ταξιδιών',
+                    traveler: 'Ταξιδιώτης',
+                    travelAdmin: 'Διαχειριστής ταξιδιών',
+                    travelerDescription: 'Μπορεί να κάνει κρατήσεις και να διαχειρίζεται τα δικά του ταξίδια',
+                    travelAdminDescription: 'Μπορεί επίσης να διαχειρίζεται τις ρυθμίσεις και τα ταξίδια της εταιρείας',
+                    off: 'Απενεργοποιημένο',
+                    offDescription: 'Δεν μπορεί να κάνει κρατήσεις ταξιδιών',
+                    on: 'Ενεργοποιημένο',
+                    onDescription: 'Μπορεί να κάνει κρατήσεις ταξιδιών',
+                    travel: 'Ταξίδια',
+                    travelAccess: 'Πρόσβαση σε ταξίδια',
+                    changeTravelAccess: 'Αλλαγή πρόσβασης σε ταξίδια',
+                    turnOnTravel: 'Ενεργοποίηση ταξιδιών',
+                    turnOnTravelDescription: 'Τα μέλη κάνουν κρατήσεις με τον ρόλο ταξιδιών που ήδη έχουν',
+                    turnOffTravel: 'Απενεργοποίηση ταξιδιών',
+                    turnOffTravelDescription: 'Τα μέλη δεν μπορούν να ανοίξουν το Expensify Travel',
+                    makeTravelAdmins: 'Ορισμός ως διαχειριστές ταξιδιών',
+                    makeTravelAdminsDescription: 'Ενεργοποιεί τα ταξίδια και τα μέλη μπορούν να διαχειρίζονται τις ρυθμίσεις ταξιδιών και τα ταξίδια της εταιρείας',
+                    makeTravelers: 'Ορισμός ως ταξιδιώτες',
+                    makeTravelersDescription: 'Ενεργοποιεί τα ταξίδια και τα μέλη μπορούν να κάνουν κρατήσεις και να διαχειρίζονται τα δικά τους ταξίδια',
+                    manageMembers: 'Διαχείριση μελών',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Μπορούν να κλείνουν ταξίδια: ${enabledCount} από ${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {
@@ -8170,6 +8207,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             confirmDetails: 'Επιβεβαιώστε τα στοιχεία',
             inviteMessagePrompt: 'Κάντε την πρόσκλησή σας ακόμα πιο ξεχωριστή προσθέτοντας ένα μήνυμα παρακάτω!',
             personalMessagePrompt: 'Μήνυμα',
+            turnOnTravel: 'Ενεργοποίηση ταξιδιών',
             genericFailureMessage: 'Προέκυψε σφάλμα κατά την πρόσκληση του μέλους στον χώρο εργασίας. Παρακαλούμε δοκιμάστε ξανά.',
             inviteNoMembersError: 'Παρακαλούμε επιλέξτε τουλάχιστον ένα μέλος για πρόσκληση',
             joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `Ο/Η ${user} ζήτησε να συμμετάσχει στο ${workspaceName}`,
