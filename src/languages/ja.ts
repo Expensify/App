@@ -2485,7 +2485,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: '本当にアカウントを統合してもよろしいですか？',
-            lossOfUnsubmittedData: (login: string) => `アカウントの統合は元に戻せず、<strong>${login}</strong> の未提出経費はすべて失われます。`,
+            mergeIsIrreversible: (login: string) =>
+                `アカウントを統合すると元に戻すことはできません。下書きや未報告の経費を含む<strong>${login}</strong>のすべての経費とレポートは、引き続きご利用になるアカウントに移動します。`,
             enterSecurityCode: (login: string) => `続行するには、<strong>${login}</strong> に送信されたセキュリティコードを入力してください。`,
             errors: {
                 incorrectSecurityCode: 'セキュリティコードが正しくないか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
