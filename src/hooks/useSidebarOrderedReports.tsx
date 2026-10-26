@@ -399,6 +399,10 @@ function SidebarOrderedReportsContextProvider({
             if (activeTab === CONST.INBOX_TAB.ALL) {
                 return;
             }
+            if (!reportID) {
+                setStickyReport(null);
+                return;
+            }
             setStickyReport({reportID, tab: activeTab});
         },
         [activeTab],

@@ -48,7 +48,7 @@ function InboxTabSelector() {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const {activeTab, inboxTabCounts, hasStaleUnreadReport} = useSidebarOrderedReportsState();
-    const {setActiveTab, getReportIDsForTab} = useSidebarOrderedReportsActions();
+    const {setActiveTab, getReportIDsForTab, setStickyReportID} = useSidebarOrderedReportsActions();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
     const reportAttributesDerived = useReportAttributes();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Feed', 'ChatBubbleUnread', 'Task']);
@@ -105,6 +105,7 @@ function InboxTabSelector() {
             }
             // From the To-dos tab only the chats listed there are marked read. The All and Unread tabs both cover every
             // unread chat, so they mark all of them.
+            setStickyReportID('');
             markAllMessagesAsRead(reportNameValuePairs, isTodoTab ? getReportIDsForTab(CONST.INBOX_TAB.TODO) : undefined, reportAttributesDerived);
         });
     };

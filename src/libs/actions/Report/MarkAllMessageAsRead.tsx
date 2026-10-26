@@ -72,6 +72,13 @@ function markAllMessagesAsRead(
         optimisticReports[reportKey] = {lastReadTime: newLastReadTime};
         failureReports[reportKey] = {lastReadTime: report.lastReadTime ?? null};
         reportIDList.push(report.reportID);
+
+        if (oneTransactionThreadReportID && isUnread(oneTransactionThreadReport, undefined, false, reportAttributesDerived?.[oneTransactionThreadReportID]?.isEmpty)) {
+            const childReportKey = `${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`;
+            optimisticReports[childReportKey] = {lastReadTime: newLastReadTime};
+            failureReports[childReportKey] = {lastReadTime: oneTransactionThreadReport?.lastReadTime ?? null};
+            reportIDList.push(oneTransactionThreadReportID);
+        }
     }
 
     if (reportIDList.length === 0) {
