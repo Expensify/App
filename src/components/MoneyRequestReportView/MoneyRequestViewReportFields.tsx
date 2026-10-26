@@ -77,7 +77,7 @@ function ReportFieldView(
     styles: ThemeStyles,
     onSaveValue: (reportField: PolicyReportField, value: string) => void,
     onDelete: (reportField: EnrichedPolicyReportField) => Promise<void>,
-    pendingAction?: PendingAction,
+    fieldPendingAction?: PendingAction,
 ) {
     return (
         <View
@@ -87,8 +87,7 @@ function ReportFieldView(
             style={styles.flex1}
         >
             <OfflineWithFeedback
-                // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-                pendingAction={pendingAction ? undefined : report?.pendingFields?.[reportField.fieldKey as keyof typeof report.pendingFields]}
+                pendingAction={fieldPendingAction}
                 errors={report?.errorFields?.[reportField.fieldKey]}
                 onClose={() => clearReportFieldKeyErrors(report?.reportID, reportField.fieldKey)}
             >
@@ -190,6 +189,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
         return null;
     }
 
+    const pendingFieldsByKey = new Map(Object.entries(report?.pendingFields ?? {}));
     const columnCount = shouldUseNarrowLayout || shouldUseSingleColumn ? 1 : CONST.REPORT_FIELDS_PER_ROW;
     const fieldRows: EnrichedPolicyReportField[][] = [];
     for (let index = 0; index < sortedPolicyReportFields.length; index += columnCount) {
@@ -209,7 +209,18 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
                         // message grows downwards instead of stretching the cells beside it and shifting their inputs.
                         style={[styles.flexRow, styles.gap3, styles.alignItemsStart]}
                     >
-                        {fieldRow.map((reportField) => ReportFieldView(reportField, report, policy, styles, saveReportField, deleteField, pendingAction))}
+                        {fieldRow.map((reportField) =>
+                            ReportFieldView(
+                                reportField,
+                                report,
+                                policy,
+                                styles,
+                                saveReportField,
+                                deleteField,
+                                // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+                                pendingAction ? undefined : pendingFieldsByKey.get(reportField.fieldKey),
+                            ),
+                        )}
                         {/* A partly filled last row is padded out so its fields stay the same width as the rows above it. */}
                         {Array.from({length: columnCount - fieldRow.length}, (_unused, index) => (
                             <View
