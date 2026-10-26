@@ -13,6 +13,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import getTransactionFromTransactionListItem from '@libs/getTransactionFromTransactionListItem';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -20,14 +21,7 @@ import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getDistanceRateCustomUnitRate, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
-import {
-    getAllReportActions,
-    getIOUActionForReportID,
-    getIOUActionForTransactionID,
-    getOriginalMessage,
-    getTrackExpenseActionableWhisper,
-    isModifiedExpenseAction,
-} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isModifiedExpenseAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
     buildOptimisticDismissedViolationReportAction,
@@ -50,7 +44,6 @@ import {
 } from '@libs/ReportUtils';
 import {
     getDistanceInMeters,
-    hasPendingRTERViolation,
     hasSubmissionBlockingViolationInList,
     isDeletedTransaction,
     isDistanceRequest,
@@ -98,6 +91,7 @@ import lodashClone from 'lodash/clone';
 import Onyx from 'react-native-onyx';
 
 import {getSearchOnyxUpdate} from './IOU/SearchUpdate';
+import {removeActiveTransactionIDsForReport} from './TransactionThreadNavigation';
 
 type SaveWaypointProps = {
     transactionID: string;
@@ -834,26 +828,6 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
     return API.write(WRITE_COMMANDS.MARK_AS_CASH, parameters, onyxData);
 }
 
-/**
- * Marks all transactions that have pending RTER violations as cash.
- */
-function markPendingRTERTransactionsAsCash(transactions: Array<OnyxEntry<Transaction>>, violationsCollection: OnyxCollection<TransactionViolations>, reportActions: ReportAction[]) {
-    for (const t of transactions) {
-        if (!t?.transactionID) {
-            continue;
-        }
-        const txViolations = violationsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`];
-        if (!hasPendingRTERViolation(txViolations)) {
-            continue;
-        }
-        const action = getIOUActionForTransactionID(reportActions, t.transactionID);
-        const threadReportID = action?.childReportID;
-        if (threadReportID) {
-            markAsCash(t.transactionID, threadReportID, txViolations ?? []);
-        }
-    }
-}
-
 function openDraftDistanceExpense() {
     const onyxData: OnyxData<typeof ONYXKEYS.NVP_RECENT_WAYPOINTS> = {
         optimisticData: [
@@ -1076,6 +1050,8 @@ function getChangeTransactionsReportOnyxData({
     // The transactions that are actually moved to the destination report. Transactions already in the destination are
     // skipped below, so this excludes them from the transactionList sent to the backend (which does not filter them out).
     const movedTransactionIDs: string[] = [];
+    // The moved transactions grouped by the report they leave, so a carousel seeded from that report can drop them.
+    const movedTransactionIDsByOldReportID: Record<string, string[]> = {};
     let shouldFixViolations = false;
 
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
@@ -1165,6 +1141,7 @@ function getChangeTransactionsReportOnyxData({
         movedTransactionIDs.push(transaction.transactionID);
 
         const oldReportID = isUnreportedExpense ? CONST.REPORT.UNREPORTED_REPORT_ID : transaction.reportID;
+        (movedTransactionIDsByOldReportID[oldReportID] ??= []).push(transaction.transactionID);
         const oldReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
         const sourceCurrency = oldReport?.currency;
         const shouldClearAmount = shouldClearConvertedAmount(transaction, sourceCurrency, destinationCurrency);
@@ -1204,7 +1181,8 @@ function getChangeTransactionsReportOnyxData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                ...transaction,
+                // Callers can pass Search row items, whose display-only fields must not be saved on the real transaction
+                ...getTransactionFromTransactionListItem(transaction),
                 reportID,
                 comment,
                 originalAmount: shouldCopyOriginalAmount ? transaction.originalAmount : null,
@@ -2161,7 +2139,18 @@ function getChangeTransactionsReportOnyxData({
         updatedReportReimbursableTotals,
         updatedReportUnheldReimbursableTotals,
         movedTransactionIDs,
+        movedTransactionIDsByOldReportID,
     };
+}
+
+/**
+ * Drops moved expenses from a carousel seeded from the report they left. Every move goes through
+ * `changeTransactionsReport`, so doing it here covers all entry points at once.
+ */
+function removeMovedTransactionsFromCarousel(movedTransactionIDsByOldReportID: Record<string, string[]> | undefined) {
+    for (const [oldReportID, transactionIDs] of Object.entries(movedTransactionIDsByOldReportID ?? {})) {
+        removeActiveTransactionIDsForReport(transactionIDs, oldReportID);
+    }
 }
 
 function changeTransactionsReport(props: ChangeTransactionsReportProps) {
@@ -2216,6 +2205,7 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         };
 
         API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, queryParameters, {optimisticData, successData, failureData});
+        removeMovedTransactionsFromCarousel(loadedTransactionsOnyxData?.movedTransactionIDsByOldReportID);
         return;
     }
 
@@ -2223,8 +2213,15 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
     if (!changeTransactionsReportOnyxData) {
         return;
     }
-    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, transactionIDToUpdatedCustomUnitRateID, movedTransactionIDs} =
-        changeTransactionsReportOnyxData;
+    const {
+        optimisticData,
+        successData,
+        failureData,
+        transactionIDToReportActionAndThreadData,
+        transactionIDToUpdatedCustomUnitRateID,
+        movedTransactionIDs,
+        movedTransactionIDsByOldReportID,
+    } = changeTransactionsReportOnyxData;
 
     // If every selected transaction is already in the destination report, there is nothing to move, so skip the API call.
     if (movedTransactionIDs.length === 0) {
@@ -2247,6 +2244,7 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         successData,
         failureData,
     });
+    removeMovedTransactionsFromCarousel(movedTransactionIDsByOldReportID);
 }
 
 /**
@@ -2311,7 +2309,6 @@ export {
     clearError,
     clearErrorWithOriginalTransactionError,
     markAsCash,
-    markPendingRTERTransactionsAsCash,
     dismissDuplicateTransactionViolation,
     generateTransactionID,
     setReviewDuplicatesKey,

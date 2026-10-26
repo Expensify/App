@@ -6,15 +6,13 @@ import SearchChartView from '@components/Search/SearchChartView';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
-import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setNameValuePair} from '@libs/actions/User';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 import type {SearchKey} from '@libs/SearchKeyUtils';
@@ -28,14 +26,13 @@ import {View} from 'react-native';
 
 import InsightTitleDropdown from './InsightTitleDropdown';
 import useHomeInsightConfigs from './useHomeInsightConfigs';
+import useInsightChartPaddingStyle from './useInsightChartPaddingStyle';
 import useInsightData from './useInsightData';
 
 function InsightsSectionContent() {
-    const styles = useThemeStyles();
-    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
+    const chartPaddingStyle = useInsightChartPaddingStyle();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
     const isInsightsPageEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
 
@@ -92,7 +89,7 @@ function InsightsSectionContent() {
             {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID="insightsSectionEmptyState" />}
             {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={retry} />}
             {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={[cardPaddingHorizontal, cardPaddingBottom, !shouldUseNarrowLayout && styles.pt3]}>
+                <View style={chartPaddingStyle}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}
@@ -100,7 +97,7 @@ function InsightsSectionContent() {
                         data={data}
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
                         shouldShowSinglePointAsBar={isInsightsPageEnabled}
-                        shouldShowGroupLabels={!isInsightsPageEnabled}
+                        shouldUseResponsiveLabels
                         shouldDrillDownOnPress={!isInsightsPageEnabled}
                     />
                 </View>
@@ -108,7 +105,7 @@ function InsightsSectionContent() {
         </WidgetContainer>
     );
 
-    if (!isInsightsPageEnabled) {
+    if (!isInsightsPageEnabled || canUseTouchScreen()) {
         return widget;
     }
 

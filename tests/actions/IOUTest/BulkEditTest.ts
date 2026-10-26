@@ -2,6 +2,7 @@ import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkE
 
 import CONST from '@src/CONST';
 import * as API from '@src/libs/API';
+import {WRITE_COMMANDS} from '@src/libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportActions} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -18,6 +19,8 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import {getCurrencyDecimalsLocal, getCurrencySymbolLocal, getRequiredOnyxUpdates, getRequiredWriteCall} from '../../utils/TestHelper';
 import {isObject, parseJSONRecord} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({isHybridApp: () => false}));
 
 const RORY_ACCOUNT_ID = 3;
 
@@ -545,6 +548,79 @@ describe('actions/IOU/BulkEdit', () => {
             expect(updates.merchant).toBe('New merchant');
 
             writeSpy.mockRestore();
+        });
+
+        it('saves changes for a reported expense with no IOU action on a report the current user submitted', async () => {
+            // Given an expense with no IOU action anywhere, on an open expense report the current user submitted, in a workspace where they aren't an admin
+            const transactionID = 'transaction-actionless';
+            const expenseReportID = 'expense-actionless';
+            const policy: Policy = {...createRandomPolicy(11, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.USER};
+            const expenseReport: Report = {
+                ...createRandomReport(11, undefined),
+                reportID: expenseReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                managerID: 999,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: expenseReport,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(11),
+                transactionID,
+                reportID: expenseReportID,
+                transactionThreadReportID: undefined,
+                amount: -500,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Old merchant',
+                managedCard: false,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            // canEditFieldOfMoneyRequest is not mocked, so this goes through the same per-field permission check as the real save
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // Clean up in `finally` so a failed assertion doesn't leave the session, report and policy in Onyx for the next test
+            try {
+                // When the merchant is bulk edited
+                updateMultipleMoneyRequests({
+                    isVendorMatchingBetaEnabled: false,
+                    personalDetailsList: undefined,
+                    transactionIDs: [transactionID],
+                    changes: {merchant: 'New merchant'},
+                    policy,
+                    reports,
+                    transactions,
+                    reportActions: {},
+                    policyCategories: undefined,
+                    policyTags: {},
+                    violations: undefined,
+                    hash: undefined,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    delegateAccountID: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                    rules: undefined,
+                });
+
+                // Then UpdateMoneyRequest is sent with the new merchant, so Edit multiple doesn't silently save nothing for this expense
+                expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, expect.objectContaining({transactionID}), expect.anything());
+                expect(getBulkEditUpdates(writeSpy).merchant).toBe('New merchant');
+            } finally {
+                writeSpy.mockRestore();
+                await Onyx.clear();
+            }
         });
 
         it('does not add violations for unreported expenses during bulk edit', async () => {
@@ -2261,7 +2337,7 @@ describe('actions/IOU/BulkEdit', () => {
             });
 
             expect(writeSpy).toHaveBeenCalled();
-            const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const [, parameters, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
 
             // An optimistic thread report should be created via SET
@@ -2274,6 +2350,12 @@ describe('actions/IOU/BulkEdit', () => {
                 throw new Error('Expected an optimistic thread report SET update');
             }
             const optimisticThreadReportID = String(optimisticReportSet.key).replace(ONYXKEYS.COLLECTION.REPORT, '');
+            expect(onyxData.bulkEditActionContext).toMatchObject({
+                actionID: parameters.reportActionID,
+                threadReportID: optimisticThreadReportID,
+                parentReportID: iouReportID,
+                isOptimisticThread: true,
+            });
 
             // The transaction optimistic data should link back to the new thread via transactionThreadReportID
             const transactionMerge = optimisticData.find((entry) => isObject(entry) && entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -2297,6 +2379,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportID: childReportID,
                 parentReportID: iouReportID,
                 policyID: policy.id,
+                ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             };
             const transactionThread: Report = {
                 ...createRandomReport(22, undefined),
@@ -2373,6 +2456,7 @@ describe('actions/IOU/BulkEdit', () => {
             expect(writeSpy).toHaveBeenCalled();
             const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
+            expect(onyxData.bulkEditActionContext).toMatchObject({threadReportID: childReportID, isOptimisticThread: true});
 
             // No optimistic thread report should be created — the existing thread from childReportID should be used
             const optimisticReportSet = optimisticData.find(
@@ -3090,6 +3174,17 @@ describe('actions/IOU/BulkEdit', () => {
                 transactionID,
                 reportID: iouReportID,
                 attendees: JSON.stringify([{avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'}]),
+            });
+            const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(isObject(onyxData.bulkEditActionContext)).toBe(true);
+            if (!isObject(onyxData.bulkEditActionContext)) {
+                throw new Error('Missing bulk edit action context');
+            }
+            expect(typeof onyxData.bulkEditActionContext.actionID).toBe('string');
+            expect(typeof onyxData.bulkEditActionContext.threadReportID).toBe('string');
+            expect(onyxData.bulkEditActionContext).toMatchObject({
+                parentReportID: iouReportID,
+                isOptimisticThread: true,
             });
 
             writeSpy.mockRestore();

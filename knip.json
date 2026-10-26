@@ -41,9 +41,12 @@
             "ignore": [
                 ".github/actions/**/index.js",
                 "tests/perf-test/**",
+                "tests/perf-local/**",
                 "web/snippets/gib.js",
+                "web/cloudflare-worker/**",
                 "src/libs/actions/connections/FinancialForce.ts",
                 "src/libs/actions/connections/ZohoBooks.ts",
+                "src/libs/actions/connections/Digits.ts",
                 "src/setup/telemetry/noopExpoUpdates.ts"
             ],
             "eslint": {

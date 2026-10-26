@@ -161,6 +161,9 @@ You can also describe the rule in plain English under **Or just describe it belo
 If Concierge can't build your description as one of the template rules, it drafts an agent rule instead. Review the draft and select **Create rule**. Nothing is saved until you do.
 
 You can also select **Describe** next to **Save rule** in any rule you're creating from a template. Describe the rule and select **Next**, and Concierge fills in that form.
+- **Set field requirements** – Receipts, categories, etc.
+- **Apply expense defaults** – Update fields automatically.
+- **Describe agent rule** – Create flexible rules that run when you need.
 
 ---
 
