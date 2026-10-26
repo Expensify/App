@@ -12,8 +12,8 @@ import TextCell from '@components/Search/SearchList/ListItem/TextCell';
 import AmountCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
+import YesNoCell from '@components/Search/SearchList/ListItem/YesNoCell';
 import type {SearchColumnType} from '@components/Search/types';
-import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -185,12 +185,7 @@ function TransactionItemRowWide({
             key={columnName}
             style={[getSearchColumnStyles(columnName)]}
         >
-            <Text
-                selectable
-                dataSet={COPYABLE_TEXT_DATA_SET}
-            >
-                {value ? translate('common.yes') : translate('common.no')}
-            </Text>
+            <YesNoCell value={value} />
         </View>
     );
 
