@@ -10796,6 +10796,7 @@ const translations = {
         noCategory: 'No category',
         noMerchant: 'No merchant',
         noTag: 'No tag',
+        noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
         receiptTypeValues: {
@@ -12281,6 +12282,7 @@ const translations = {
         downloadStatementPDF: 'Download statement',
         basicExport: 'Basic export',
         currentView: 'Current view',
+        currentViewGroupsOnly: 'Current view (groups only)',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
         multipleTaxExport: 'Canadian Multiple Tax Export',

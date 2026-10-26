@@ -29,15 +29,7 @@ import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 import {canCreateExpensesOnPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
-import {
-    canCreateTaskInReport,
-    getPayeeName,
-    hasViolations as hasViolationsReportUtils,
-    isPolicyExpenseChat,
-    isReportOwner,
-    isTeachersUniteReport,
-    temporary_getMoneyRequestOptions,
-} from '@libs/ReportUtils';
+import {canCreateTaskInReport, getPayeeName, isPolicyExpenseChat, isReportOwner, isTeachersUniteReport, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
@@ -167,12 +159,12 @@ function AttachmentPickerWithMenuItems({
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {accountID} = currentUserPersonalDetails;
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
+    // A new report has no expenses yet, so it can't have violations.
+    const hasViolations = false;
     const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID, !isMenuVisible);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);

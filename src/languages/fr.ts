@@ -10555,6 +10555,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         noCategory: 'Aucune catégorie',
         noMerchant: 'Aucun commerçant',
         noTag: 'Aucun tag',
+        noVendor: 'Aucun fournisseur',
         expenseType: 'Type de dépense',
         receiptType: 'Type de reçu',
         receiptTypeValues: {
@@ -12046,6 +12047,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
         currentView: 'Vue actuelle',
+        currentViewGroupsOnly: 'Vue actuelle (groupes uniquement)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

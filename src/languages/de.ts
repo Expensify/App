@@ -10529,6 +10529,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         noCategory: 'Keine Kategorie',
         noMerchant: 'Kein Händler',
         noTag: 'Kein Tag',
+        noVendor: 'Kein Lieferant',
         expenseType: 'Ausgabenart',
         receiptType: 'Belegart',
         receiptTypeValues: {
@@ -12020,6 +12021,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         exportInProgress: 'Export wird ausgeführt',
         conciergeWillSend: 'Concierge wird dir die Datei in Kürze senden.',
         currentView: 'Aktuelle Ansicht',
+        currentViewGroupsOnly: 'Aktuelle Ansicht (nur Gruppen)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
