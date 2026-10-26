@@ -134,8 +134,13 @@ function computeSplitSaveErrorMessage({
 
     // A distance split on a $0 rate is always $0, so it's only invalid when it has no distance either
     const isValidZeroRateSplit = (item: SplitExpense) => isDistance && !!item.customUnit?.quantity && !!zeroRateSplitTransactionIDs?.has(item.transactionID);
-    if (splitExpenses.find((item) => item.amount === 0 && !isValidZeroRateSplit(item))) {
-        return translate(isDistance ? 'iou.splitExpenseZeroDistance' : 'iou.splitExpenseZeroAmount');
+    const invalidZeroAmountSplits = splitExpenses.filter((item) => item.amount === 0 && !isValidZeroRateSplit(item));
+    if (invalidZeroAmountSplits.length > 0) {
+        // A distance split can have a real, positive distance and still round to $0 on a low (but nonzero) rate —
+        // that's an amount problem, not a distance one, so only blame the distance when one of the invalid splits
+        // genuinely has none, regardless of which invalid split happens to come first.
+        const hasGenuinelyInvalidDistance = isDistance && invalidZeroAmountSplits.some((item) => !item.customUnit?.quantity);
+        return translate(hasGenuinelyInvalidDistance ? 'iou.splitExpenseZeroDistance' : 'iou.splitExpenseZeroAmount');
     }
 
     return '';

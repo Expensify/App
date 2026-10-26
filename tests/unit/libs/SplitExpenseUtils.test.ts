@@ -268,7 +268,7 @@ describe('computeSplitSaveErrorMessage', () => {
         });
 
         // Then the $0 split is rejected, since its amount doesn't match its distance
-        expect(result).toBe('iou.splitExpenseZeroDistance');
+        expect(result).toBe('iou.splitExpenseZeroAmount');
     });
 
     it('rejects a $0 distance split without any distance with the distance error', () => {
