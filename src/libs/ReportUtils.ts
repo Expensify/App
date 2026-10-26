@@ -6634,6 +6634,7 @@ function getReportPreviewMessage(
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     params: GetReportPreviewMessageBaseParams,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
     const {
         reportOrID,
@@ -6729,7 +6730,7 @@ function getReportPreviewMessage(
         : getDisplayNameForParticipant({
               accountID: report.managerID,
               shouldUseShortForm: !isPreviewMessageForParentChatReport,
-              formatPhoneNumber: formatPhoneNumberPhoneUtils,
+              formatPhoneNumber,
               hiddenTranslation: translate('common.hidden'),
           });
 
@@ -6792,7 +6793,7 @@ function getReportPreviewMessage(
                 : getDisplayNameForParticipant({
                       accountID: payerAccountID,
                       shouldUseShortForm: true,
-                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      formatPhoneNumber,
                       hiddenTranslation: translate('common.hidden'),
                   });
 
@@ -6829,7 +6830,7 @@ function getReportPreviewMessage(
             getDisplayNameForParticipant({
                 accountID: report.ownerAccountID,
                 shouldUseShortForm: true,
-                formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                formatPhoneNumber,
                 hiddenTranslation: translate('common.hidden'),
             }) ?? '';
         return translate('iou.waitingOnBankAccount', submitterDisplayName);
@@ -6863,7 +6864,7 @@ function getReportPreviewMessage(
                 ? getDisplayNameForParticipant({
                       accountID: lastActorID,
                       shouldUseShortForm: !isPreviewMessageForParentChatReport,
-                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      formatPhoneNumber,
                       hiddenTranslation: translate('common.hidden'),
                   })
                 : '';
@@ -6874,7 +6875,7 @@ function getReportPreviewMessage(
         return translate(
             'iou.payerSpentAmount',
             formattedAmount,
-            getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, hiddenTranslation: translate('common.hidden')}) ?? '',
+            getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '',
         );
     }
     return translate('iou.payerOwesAmount', formattedAmount, payerName ?? '', comment);

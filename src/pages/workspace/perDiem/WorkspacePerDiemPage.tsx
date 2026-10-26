@@ -39,13 +39,13 @@ import showInlineEditError from '@libs/showInlineEditError';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {close} from '@userActions/Modal';
-import {deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
+import {clearPerDiemRateError, deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
@@ -55,6 +55,7 @@ import {View} from 'react-native';
 
 type SubRateData = {
     pendingAction?: PendingAction;
+    errors?: Errors | null;
     destination: string;
     subRateName: string;
     rate: number;
@@ -72,9 +73,11 @@ function getSubRatesData(customUnitRates: Rate[]) {
     for (const rate of customUnitRates) {
         const subRates = rate.subRates;
         if (subRates) {
-            for (const subRate of subRates) {
+            for (const [index, subRate] of subRates.entries()) {
                 subRatesData.push({
                     pendingAction: rate.pendingAction,
+                    // Rate-level errors appear once; subrate errors appear on the row that was edited.
+                    errors: rate.errorFields?.[subRate.id] ?? (index === 0 ? rate.errors : undefined),
                     destination: rate.name ?? '',
                     subRateName: subRate.name,
                     rate: subRate.rate,
@@ -199,6 +202,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         formattedAmount: convertAmountToDisplayString(subRate.rate, subRate.currency),
                         disabled: isDeleting,
                         pendingAction: subRate.pendingAction,
+                        errors: subRate.errors,
                         canEditDestination: canEdit,
                         canEditSubrate: canEdit,
                         canEditAmount: canEdit,
@@ -209,6 +213,12 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             showInlineEditError(renamePerDiemSubrateInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName)),
                         onChangeAmount: (newAmount: string) =>
                             showInlineEditError(updatePerDiemAmountInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount)),
+                        dismissError: () => {
+                            if (!customUnit) {
+                                return;
+                            }
+                            clearPerDiemRateError(policyID, customUnit.customUnitID, subRate.rateID, subRate.subRateID);
+                        },
                     };
                 }),
         [allSubRates, isOffline, openSubRateDetails, canWritePerDiem, isSelectionModeActive, policyID, customUnit, translate],
