@@ -2759,7 +2759,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: '输入您的企业信息',
                 legalName: '企业法定名称',
-                taxID: '税号',
                 website: '公司网站',
                 companyType: '公司类型',
                 companyTypeLimitedLiabilityCompany: '有限责任公司（LLC）',

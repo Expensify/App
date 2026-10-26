@@ -18,7 +18,8 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import {openReimbursementAccountPage} from '@userActions/BankAccounts';
-import {clearDraftAnswers, clearSensitiveAnswers, saveDraftAnswers} from '@userActions/DynamicForm';
+import {clearSensitiveAnswers, saveDraftAnswers} from '@userActions/DynamicForm';
+import {clearDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -101,7 +102,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         if (!isDraftForOtherAccount) {
             return;
         }
-        clearDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
+        clearDraftValues(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
     }, [isDraftForOtherAccount]);
 

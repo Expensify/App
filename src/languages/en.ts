@@ -2942,7 +2942,6 @@ const translations = {
             business: {
                 title: 'Enter your business info',
                 legalName: 'Legal business name',
-                taxID: 'Tax ID number',
                 website: 'Company website',
                 companyType: 'Company type',
                 companyTypeLimitedLiabilityCompany: 'Limited liability company (LLC)',

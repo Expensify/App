@@ -72,12 +72,7 @@ const REIMBURSEMENT_ACCOUNT: BusinessReimbursementAccount = {
     achData: {
         bankAccountID: BANK_ACCOUNT_ID,
         companyName: 'Boulder Development Inc.',
-        companyTaxID: '123456789',
         website: 'https://boulder.dev',
-        addressStreet: '100 Pearl St',
-        addressCity: 'Boulder',
-        addressState: 'CO',
-        addressZipCode: '80302',
         incorporationType: CONST.INCORPORATION_TYPES.CORPORATION,
     },
 };
@@ -227,13 +222,7 @@ describe('WiseBusinessOnboardingPage', () => {
             ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM,
             expect.objectContaining({
                 companyName: 'Boulder Development Inc.',
-                companyTaxID: '123456789',
                 website: 'https://boulder.dev',
-                addressStreet: '100 Pearl St',
-                addressCity: 'Boulder',
-                addressState: 'CO',
-                addressZipCode: '80302',
-                addressCountry: CONST.COUNTRY.US,
                 companyType: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION,
             }),
         );
@@ -288,10 +277,11 @@ describe('WiseBusinessOnboardingPage', () => {
         // When the visit opens and the read returns
         await renderPage({readResponse: otherAccount});
 
-        // Then no detail of the other account reaches the draft, the fixed country is filled, and the flow still opens
+        // Then no detail of the other account reaches the draft, and the flow still opens
         const prefill = jest.mocked(saveDraftAnswers).mock.lastCall?.[1];
-        expect(prefill).toMatchObject({addressCountry: CONST.COUNTRY.US});
+        expect(prefill).toMatchObject({bankAccountID: String(BANK_ACCOUNT_ID)});
         expect(prefill).not.toHaveProperty('companyName');
+        expect(prefill).not.toHaveProperty('website');
         expect(prefill).not.toHaveProperty('companyType');
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
     });

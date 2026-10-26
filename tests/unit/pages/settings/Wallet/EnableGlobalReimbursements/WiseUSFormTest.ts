@@ -32,22 +32,16 @@ function getBusinessField(key: string): DynamicFormField {
 }
 
 describe('Wise US onboarding form', () => {
-    it('asks for the twelve business keys the business step saves, with the bank account details read-only', () => {
+    it('asks only for what the admin can act on, with the legal name and website read-only', () => {
         // Given the business page of the US form
 
         // When its fields are listed
         const fields = BUSINESS_FIELDS.map((field) => [field.key, !!field.readonly]);
 
-        // Then they are the business step's keys in order, and only the admin's own answers can be edited
+        // Then the tax ID and address the bank account already holds are left out, and only the admin's own answers can be edited
         expect(fields).toEqual([
             ['companyName', true],
-            ['companyTaxID', true],
             ['website', true],
-            ['addressStreet', true],
-            ['addressCity', true],
-            ['addressState', true],
-            ['addressZipCode', true],
-            ['addressCountry', true],
             ['companyType', false],
             ['companyRole', false],
             ['industryCategories', false],
@@ -76,19 +70,6 @@ describe('Wise US onboarding form', () => {
         expect(Object.keys(errors)).toEqual(['companyType']);
     });
 
-    it('shows the state and the country of the business by name', () => {
-        // Given the business address as the bank account stores it, by code
-        const values = {addressState: 'CO', addressCountry: CONST.COUNTRY.US};
-
-        // When the read-only rows show it
-        const state = formatDynamicFieldValue(getBusinessField('addressState'), values, translateLocal);
-        const country = formatDynamicFieldValue(getBusinessField('addressCountry'), values, translateLocal);
-
-        // Then the rows show the translated names, which the test translations give as their paths, while the codes stay the answers
-        expect(state).toBe('allStates.CO.stateName');
-        expect(country).toBe(`allCountries.${CONST.COUNTRY.US}`);
-    });
-
     it('shows an industry category by its translated name', () => {
         // Given an industry category answer, stored as Wise's key
         const values = {industryCategories: ['SOFTWARE_DEVELOPMENT_PUBLISHING']};
@@ -102,7 +83,7 @@ describe('Wise US onboarding form', () => {
 
     it('lists the read-only rows on the confirmation page without a way to edit them', () => {
         // Given the bank account details and the admin's answers
-        const values = {companyName: 'Boulder Development Inc.', companyTaxID: '123456789', addressCountry: CONST.COUNTRY.US, ...EDITABLE_ANSWERS};
+        const values = {companyName: 'Boulder Development Inc.', website: 'https://boulder.dev', ...EDITABLE_ANSWERS};
 
         // When the confirmation page lists the business section
         const groups = getConfirmationItems(PAGES, ALL_FIELDS, values, translateLocal, jest.fn(), jest.fn());

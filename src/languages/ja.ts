@@ -2833,7 +2833,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: '会社情報を入力',
                 legalName: '正式な会社名',
-                taxID: '税務識別番号',
                 website: '会社のウェブサイト',
                 companyType: '会社の種類',
                 companyTypeLimitedLiabilityCompany: '有限責任会社（LLC）',
