@@ -15,11 +15,11 @@ import {StyleSheet, View} from 'react-native';
 
 import OptionRowLHN from './OptionRowLHN';
 
+/** Kept apart from `OptionRowLHNData` because React Compiler does not memoize `getOptionData` when it is called there. */
 type OptionRowLHNContentProps = Pick<OptionRowLHNProps, 'onSelectRow' | 'onLayout' | 'testID' | 'hasDraftComment'> & {
-    /** Everything `getOptionData` needs, read by `OptionRowLHNData` */
     optionDataParams: Parameters<typeof SidebarUtils.getOptionData>[0];
 
-    /** Whether the row's report is the one currently open */
+    /** Whether focus is enabled for the row and its report is the open one. An empty focused row renders nothing instead of a placeholder. */
     isReportFocused: boolean;
 
     viewMode: NonNullable<OptionRowLHNProps['viewMode']>;
@@ -30,12 +30,6 @@ type OptionRowLHNContentProps = Pick<OptionRowLHNProps, 'onSelectRow' | 'onLayou
     reportPreviewSenderID: number | undefined;
 };
 
-/**
- * Builds the row's option data and renders the row.
- * This is a separate component from `OptionRowLHNData` so React Compiler memoizes `getOptionData`.
- * Called inline there, after all of its hooks, the compiler does not memoize the call, so every row render
- * produced a new `optionItem` and re-rendered the whole `OptionRowLHN` subtree.
- */
 function OptionRowLHNContent({optionDataParams, isReportFocused, viewMode, isIOUReport, reportPreviewSenderID, hasDraftComment, ...propsToForward}: OptionRowLHNContentProps) {
     const styles = useThemeStyles();
 
