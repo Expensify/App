@@ -24,6 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {capturePhotoToPath} from '@libs/cameraCapture';
+import downscalePhoto from '@libs/cameraCapture/downscalePhoto';
 import {getZoomProp} from '@libs/cameraCapture/getWideLensZoom';
 import selectWideCameraDevice from '@libs/cameraCapture/selectWideCameraDevice';
 import {getFileName} from '@libs/fileDownload/FileUtils';
@@ -178,18 +179,33 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
             .then((photo) => {
                 if (!isActiveRef.current) {
                     discardPhoto(photo.path);
-                    return;
+                    return undefined;
                 }
-                const uri = getPhotoSource(photo.path);
-                const fileName = getFileName(photo.path) || `photo_${Date.now()}.jpg`;
+                return downscalePhoto(photo)
+                    .catch((error: unknown) => {
+                        Log.warn('[AttachmentCamera] could not shrink the captured photo, using the original', {error: error instanceof Error ? error.message : String(error)});
+                        return undefined;
+                    })
+                    .then((downscaledPhoto) => {
+                        if (downscaledPhoto) {
+                            discardPhoto(photo.path);
+                        }
+                        const finalPhoto = downscaledPhoto ?? photo;
+                        if (!isActiveRef.current) {
+                            discardPhoto(finalPhoto.path);
+                            return;
+                        }
+                        const uri = getPhotoSource(finalPhoto.path);
+                        const fileName = getFileName(finalPhoto.path) || `photo_${Date.now()}.jpg`;
 
-                setCapturedPhoto({
-                    uri,
-                    fileName,
-                    type: 'image/jpeg',
-                    width: photo.width,
-                    height: photo.height,
-                });
+                        setCapturedPhoto({
+                            uri,
+                            fileName,
+                            type: 'image/jpeg',
+                            width: finalPhoto.width,
+                            height: finalPhoto.height,
+                        });
+                    });
             })
             .catch((error: Error) => {
                 if (!isActiveRef.current) {
