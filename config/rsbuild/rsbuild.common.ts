@@ -369,7 +369,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 // which can only classify frames when it did.
                 __SENTRY_APPLICATION_KEY_STAMPED__: !!sentryWebpackPlugin,
             },
-            entry: {main: './index.js'},
+            // fonts.css is bundled rather than copied as a static file, so its font paths resolve to the same
+            // content-hashed font files the charts import, and the browser downloads each font only once.
+            entry: {main: ['./assets/css/fonts.css', './index.js']},
         },
         output: {
             target: 'web',
@@ -410,8 +412,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 {from: 'web/robots.txt'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
-                {from: 'assets/css', to: 'css'},
-                {from: 'assets/fonts/web', to: 'fonts'},
+                {from: 'assets/css/pdf.css', to: 'css/pdf.css'},
                 {from: 'assets/sounds', to: 'sounds'},
                 {from: 'assets/pdfs', to: 'pdfs'},
                 {from: 'node_modules/react-pdf/dist/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
@@ -442,7 +443,6 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             // Rsbuild's default exclusion, plus the `.br` twins BrotliCompressionPlugin emits below: listing them would
             // double the report with a meaningless "gzipped size" of already-Brotli-compressed bytes.
             printFileSize: {exclude: (asset) => /\.(?:map|LICENSE\.txt|d\.(?:ts|mts|cts)|br)$/.test(asset.name)},
-            // We have to load the whole lottie player to get the player to work in offline mode
             // heic-to library is used sparsely so we load it as a separate chunk to reduce initial bundle size
             // ExpensifyIcons/illustrations chunks are loaded eagerly for offline support
             // Vendor: extract all 3rd party deps (~75% of App) to a separate js file for better caching
@@ -450,11 +450,6 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 strategy: 'custom',
                 splitChunks: {
                     cacheGroups: {
-                        lottiePlayer: {
-                            test: /[\\/]node_modules[\\/](@dotlottie\/react-player)[\\/]/,
-                            name: 'lottiePlayer',
-                            chunks: 'all',
-                        },
                         heicTo: {
                             test: /[\\/]node_modules[\\/](heic-to)[\\/]/,
                             name: 'heicTo',

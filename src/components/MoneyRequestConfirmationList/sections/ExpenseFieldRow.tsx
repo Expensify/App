@@ -1,7 +1,9 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
+import {MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT, useMenuItemAccessibilityAnnouncement} from '@components/MenuItem/MenuItemAccessibilityContext';
 
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -57,7 +59,7 @@ type ExpenseFieldRowProps = {
     hintText?: string;
 
     /** Opens the field's list, either in the container anchored to this row or on its own page */
-    onPress: () => void;
+    onPress?: () => void;
 
     /** Measured to place the container a dropdown field opens. Sits on the bordered box, not the outer wrapper, so the container lines up with the border. */
     anchorRef?: RefObject<ComponentRef<typeof View> | null>;
@@ -72,7 +74,7 @@ type ExpenseFieldRowProps = {
     isInteractive?: boolean;
 
     /**
-     * Styles for the `Animated.View` wrapping the row, e.g. the highlight animation `HighlightableExpenseFieldRow`
+     * Styles for the `Animated.View` wrapping the row, e.g. the highlight animation `useFieldRowHighlightStyle`
      * runs. It is a layer of its own because the row paints its own background over anything drawn behind it, and
      * being the row's parent it fades the row's content along with the fill.
      */
@@ -81,6 +83,16 @@ type ExpenseFieldRowProps = {
     sentryLabel?: string;
     testID?: string;
 };
+
+/**
+ * Tells screen readers that the row needs a review, the way `MenuItem.BrickRoadIndicator` does on a push row.
+ * The error message sits outside the focusable row and this layout draws no dot, so nothing else announces it.
+ */
+function ExpenseFieldRowReviewRequiredAnnouncement() {
+    const {translate} = useLocalize();
+    useMenuItemAccessibilityAnnouncement(MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.REVIEW_REQUIRED, translate('common.yourReviewIsRequired'));
+    return null;
+}
 
 /**
  * A selectable row of the expense form, rendered as one of the form's bordered fields rather than as a push row:
@@ -191,6 +203,7 @@ function ExpenseFieldRow({
                 sentryLabel={sentryLabel}
                 testID={testID}
             >
+                {!!errorText && <ExpenseFieldRowReviewRequiredAnnouncement />}
                 {row}
             </MenuItem.Root>
         </Animated.View>

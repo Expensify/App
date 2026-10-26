@@ -1,10 +1,8 @@
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -17,7 +15,7 @@ import type {ListItem, ListItemProps} from './types';
 import SelectableListItem from './SelectableListItem';
 
 /**
- * A compact single-line row with avatar, display name, and handle side by side. Used for
+ * A compact row with avatar, display name, and primary login below it. Used for
  * user selection in search participant filters.
  */
 function UserSelectionListItem<TItem extends ListItem>({
@@ -35,19 +33,18 @@ function UserSelectionListItem<TItem extends ListItem>({
     shouldSyncFocus,
 }: ListItemProps<TItem>) {
     const styles = useThemeStyles();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {formatPhoneNumber, translate} = useLocalize();
-
-    const login = item.login ?? '';
-
-    // When the emails share a private domain we can strip the domain and show just the username. Otherwise show the full email.
-    const userHandle = areEmailsFromSamePrivateDomain(login, currentUserPersonalDetails.login ?? '') ? login.split('@').at(0) : formatPhoneNumber(login);
 
     const userDisplayName = getDisplayNameForParticipant({
         accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
         formatPhoneNumber,
         hiddenTranslation: translate('common.hidden'),
     });
+
+    const primaryLogin = formatPhoneNumber(item.login ?? '');
+
+    // Users without a name already show their login as the display name
+    const subtitle = primaryLogin !== userDisplayName ? primaryLogin : '';
 
     const icon = item.icons?.at(0);
 
@@ -67,21 +64,18 @@ function UserSelectionListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
         >
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.h13, styles.gap3]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.mnh13, styles.gap3]}>
                 {!!icon && <ListItemComposed.CompactAvatar icon={icon} />}
 
-                <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.flexShrink1, styles.alignItemsCenter]}>
+                <ListItemComposed.TextColumn>
                     <ListItemComposed.Title
                         text={userDisplayName}
-                        style={styles.flexShrink0}
+                        // The login takes the second line, so the name stays on one
+                        style={subtitle ? styles.mb1 : styles.preWrap}
+                        numberOfLines={subtitle ? 1 : 2}
                     />
-                    {!!userHandle && (
-                        <ListItemComposed.Subtitle
-                            text={`@${userHandle}`}
-                            style={styles.flexShrink1}
-                        />
-                    )}
-                </View>
+                    {!!subtitle && <ListItemComposed.Subtitle text={subtitle} />}
+                </ListItemComposed.TextColumn>
             </View>
         </SelectableListItem>
     );

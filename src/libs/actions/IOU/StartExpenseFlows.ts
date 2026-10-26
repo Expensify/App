@@ -183,17 +183,22 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
         },
     ]);
     setMoneyRequestReportID(transactionID, expenseChatReportID);
-    if (isCategorizing) {
-        Navigation.navigate(
-            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: expenseChatReportID})),
-        );
-    } else {
+    // The participants and reportID above are written with Onyx.merge, which lands a microtask after this press handler.
+    // Navigating synchronously would render the confirmation screen before the merge, so it would see no participants and
+    // auto-open the Choose recipient picker. Defer navigation by a microtask plus an animation frame so the merge is applied first.
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        if (isCategorizing) {
+            Navigation.navigate(
+                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: expenseChatReportID})),
+            );
+            return;
+        }
         // The confirmation route needs a `:reportID`, so it points at the (draft) workspace expense chat to resolve the
         // draft policy/destination. That report only lives in REPORT_DRAFT. Send back to the origin report (e.g. the
         // self-DM the track expense came from) so navigateBack returns there instead of the draft report's start step.
         const backTo = backToReportID ? ROUTES.REPORT_WITH_ID.getRoute(backToReportID) : undefined;
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true, backTo));
-    }
+    });
 }
 
 type CreateDraftTransactionParams = {
@@ -457,9 +462,16 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             }
         }
 
+        const isSubmittingToFriend = actionName === CONST.IOU.ACTION.SUBMIT && submitDestination === CONST.IOU.SUBMIT_DESTINATION.FRIEND;
         Navigation.navigate(
             createDynamicRoute(
-                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID}),
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                    action: actionName,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    reportID,
+                    shouldExcludeWorkspaces: isSubmittingToFriend,
+                }),
                 ROUTES.REPORT_WITH_ID.getRoute(reportID),
             ),
         );

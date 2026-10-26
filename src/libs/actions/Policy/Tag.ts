@@ -16,6 +16,7 @@ import type {
     SetPolicyTagsRequired,
     SetPolicyShowTagGLCodesParams,
     UpdatePolicyTagGLCodeParams,
+    SetPolicyRequiresTag,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
@@ -32,7 +33,8 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 
-import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
+import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
+import {getFinishOnboardingTaskOnyxData, withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -899,6 +901,10 @@ function setImportedSpreadsheetIsImportingIndependentMultiLevelTags(isImportingI
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isImportingIndependentMultiLevelTags});
 }
 
+function setImportedSpreadsheetIsAppendingToExistingLists(isAppendingToExistingLists: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isAppendingToExistingLists});
+}
+
 function setImportedSpreadsheetIsFirstLineHeader(containsHeader: boolean) {
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {containsHeader});
 }
@@ -914,6 +920,19 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
 
     const importFinalModalID = getImportFinalModalID();
     const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [
+        getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal()),
+    ];
+    // When appending, the accounting connection tag lists are kept, so a failed append shouldn't change whether the policy has multiple tag lists
+    if (!spreadsheet.isAppendingToExistingLists) {
+        failureData.unshift({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                hasMultipleTagLists: false,
+            },
+        });
+    }
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
@@ -925,16 +944,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
             },
             getImportFinalModalOnyxData(importFinalModalID, getImportMultiLevelTagsFinalModal()),
         ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    hasMultipleTagLists: false,
-                },
-            },
-            getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal()),
-        ],
+        failureData,
     };
 
     return new Promise((resolve) => {
@@ -947,6 +957,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                     isFirstLineHeader: spreadsheet.containsHeader,
                     isIndependent: spreadsheet.isImportingIndependentMultiLevelTags,
                     isGLAdjacent: spreadsheet.isGLAdjacent,
+                    appendToExistingLists: !!spreadsheet.isAppendingToExistingLists,
                     file,
                 };
 
@@ -1019,7 +1030,13 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
 }
 
 /** extraPolicyUpdate folds a caller's same-save requiresCategory change into this action's single violation recompute. */
-function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean, isVendorMatchingBetaEnabled: boolean | undefined, extraPolicyUpdate: Partial<Policy> = {}) {
+function setPolicyRequiresTag(
+    policyData: PolicyData,
+    requiresTag: boolean,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    extraPolicyUpdate: Partial<Policy> = {},
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
 
     const policyOptimisticData: Partial<Policy> = {
@@ -1091,12 +1108,13 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean, isVe
     onyxData.successData?.push(getUpdatedTagsOnyxData(requiresTag));
 
     pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, policyOptimisticData, {}, getUpdatedTagsData(requiresTag));
-    const parameters = {
+    const parameters: SetPolicyRequiresTag = {
         policyID,
         requiresTag,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyShowTagGLCodes(policyID: string | undefined, showTagGLCodes: boolean, currentShowTagGLCodes: boolean | undefined) {
@@ -1533,6 +1551,7 @@ export {
     cleanPolicyTags,
     setImportedSpreadsheetIsImportingMultiLevelTags,
     setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
+    setImportedSpreadsheetIsAppendingToExistingLists,
     setImportedSpreadsheetIsFirstLineHeader,
     setImportedSpreadsheetIsGLAdjacent,
     importMultiLevelTags,

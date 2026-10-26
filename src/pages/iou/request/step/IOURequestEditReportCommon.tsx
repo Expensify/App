@@ -20,7 +20,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
@@ -64,8 +64,8 @@ type Props = {
     isUnreportedManagedCardTransaction?: boolean;
     /** Whether the expenses being moved belong to more than one submitter */
     hasMultipleSubmitters?: boolean;
-    /** Whether every expense being moved sits on a managed card, which "Auto report" needs to resolve a destination */
-    areAllManagedCardTransactions?: boolean;
+    /** Whether every expense being moved sits on a card this user can resolve, which "Auto report" requires */
+    areAllManagedCardsResolvable?: boolean;
     /** Lets the backend pick a destination report per expense. Required to offer the action to multiple submitters */
     autoReport?: () => void;
 };
@@ -90,7 +90,7 @@ function IOURequestEditReportCommon({
     isTimeRequest = false,
     isUnreportedManagedCardTransaction = false,
     hasMultipleSubmitters = false,
-    areAllManagedCardTransactions = false,
+    areAllManagedCardsResolvable = false,
     autoReport,
 }: Props) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document', 'DocumentMagicWand']);
@@ -165,12 +165,18 @@ function IOURequestEditReportCommon({
             return [];
         }
 
+        const reportOwnerLogin = personalDetails?.[resolvedReportOwnerAccountID]?.login;
+
         return outstandingReports
             .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare))
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .filter((report) => {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+
+                if (!canCreateExpensesOnPolicy(policy, reportOwnerLogin)) {
+                    return false;
+                }
 
                 if (isTimeRequest && !isTimeTrackingEnabled(policy)) {
                     return false;
@@ -210,6 +216,7 @@ function IOURequestEditReportCommon({
         localeCompare,
         allPolicies,
         currentUserPersonalDetails.accountID,
+        resolvedReportOwnerAccountID,
         hasMultipleSubmitters,
         isPerDiemRequest,
         isTimeRequest,
@@ -373,9 +380,9 @@ function IOURequestEditReportCommon({
             return undefined;
         }
 
-        // The backend resolves each destination through the expense's card, so an expense without one fails the whole
-        // request with "404 Card not found".
-        if (!areAllManagedCardTransactions) {
+        // A card this user cannot resolve, because it is missing or on a feed they do not administer, fails the
+        // whole move.
+        if (!areAllManagedCardsResolvable) {
             return undefined;
         }
 
@@ -396,7 +403,7 @@ function IOURequestEditReportCommon({
         );
     }, [
         icons.DocumentMagicWand,
-        areAllManagedCardTransactions,
+        areAllManagedCardsResolvable,
         autoReport,
         handleAutoReport,
         hasMultipleSubmitters,

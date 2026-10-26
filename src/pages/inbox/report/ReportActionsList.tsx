@@ -11,7 +11,10 @@ import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
+import useReportScrollManager from '@hooks/useReportScrollManager';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,7 +28,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
-    getLatestConciergeFeedbackActionID,
+    getFeedbackPromptActionIDs,
     getReportActionMessage,
     isConsecutiveActionMadeByPreviousActor,
     isDeletedParentAction,
@@ -42,7 +45,9 @@ import {
     isHarvestCreatedExpenseReport,
     isInvoiceReport,
     isIOUReport,
+    isResolvedSupportTicket,
     isTaskReport,
+    isSupportTicket,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
@@ -57,13 +62,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
+import {getCustomAgentAccountIDs} from '@selectors/AgentZeroChat';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {accountIDSelector} from '@selectors/Session';
 import React, {useEffect, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
@@ -75,6 +83,7 @@ import ReportActionsListPaddingView from './ReportActionsListPaddingView';
 import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
+import useScrollToEditingReportAction from './useScrollToEditingReportAction';
 
 type ReportActionsListContentProps = {
     /** The ID of the report to display actions for */
@@ -175,6 +184,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
+    const reportsParentHierarchy = useReportsParentHierarchy(reportID);
 
     const linkedReportActionID = reportActionIDFromRoute;
 
@@ -214,7 +224,13 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
           )
         : undefined;
 
-    const renderedVisibleReportActions = (() => {
+    const shouldHideSupportTicketSurvey = isSupportTicket(report) && (!isResolvedSupportTicket(report) || !!reportNameValuePairs?.reopenedAsReportID);
+    const latestResolvedSupportTicketAction = sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+    const latestSupportTicketSurveyAction = latestResolvedSupportTicketAction
+        ? sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && action.created >= latestResolvedSupportTicketAction.created)
+        : undefined;
+
+    const visibleReportActions = (() => {
         if (!draftReportAction) {
             return sortedVisibleReportActions;
         }
@@ -231,6 +247,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
         for (const [index, action] of sortedVisibleReportActions.entries()) {
             if (action.reportActionID === draftReportAction.reportActionID) {
+                // Completed local replies can retain their pending add flag after the server merges followups.
+                if (!isDraftPendingCompletion) {
+                    return sortedVisibleReportActions;
+                }
+
                 const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
                 visibleReportActionsWithDraft[index] = draftReportAction;
                 return visibleReportActionsWithDraft;
@@ -246,6 +267,21 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         visibleReportActionsWithDraft.push(draftReportAction);
         return visibleReportActionsWithDraft;
     })();
+
+    const shouldFilterSupportTicketSurveys =
+        isSupportTicket(report) &&
+        visibleReportActions.some(
+            (action) =>
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY &&
+                (shouldHideSupportTicketSurvey || action.reportActionID !== latestSupportTicketSurveyAction?.reportActionID),
+        );
+    const renderedVisibleReportActions = shouldFilterSupportTicketSurveys
+        ? visibleReportActions.filter(
+              (action) =>
+                  action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY ||
+                  (!shouldHideSupportTicketSurvey && action.reportActionID === latestSupportTicketSurveyAction?.reportActionID),
+          )
+        : visibleReportActions;
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
@@ -269,6 +305,24 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         // Reconcile by action ID even when its HTML is byte-identical to the last streamed draft.
         revealDraftFromReportAction(persistedDraftReportAction);
     }, [draftReportAction, isDraftPendingCompletion, persistedDraftReportAction, revealDraftFromReportAction]);
+
+    const reportScrollManager = useReportScrollManager();
+
+    // Which rows are on screen, tracked so an edit started on a message the user can already see doesn't move the list.
+    const viewableRowIndexesRef = useRef<Set<number>>(new Set());
+
+    // The rendered indexes are known here, so scrolling the row into view mounts it and keeps the message visible while it's edited.
+    useScrollToEditingReportAction({
+        visibleReportActions: renderedVisibleReportActions,
+        scrollToIndex: (index) => {
+            // Already on screen, so its editor has mounted and taken focus — scrolling would only yank the user.
+            if (viewableRowIndexesRef.current.has(index)) {
+                return;
+            }
+
+            reportScrollManager.scrollToIndex(index, {animated: false, viewPosition: 0.5});
+        },
+    });
 
     // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
     const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
@@ -317,6 +371,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         setHasScrolledOverThreshold(event.nativeEvent.contentOffset.y >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
     };
 
+    const trackViewableRowIndexes = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+        viewableRowIndexesRef.current = new Set(info.viewableItems.map((token) => token.index).filter((index) => index !== null));
+        onViewableItemsChanged(info);
+    };
+
     const loadOlderChatsOnEndReached = () => {
         if (showHiddenHistory) {
             return;
@@ -339,11 +398,17 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
 
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+
+    // An agent account can be opened through Copilot, and the agent must not rate its own replies
+    const actorAccountIDs = [...new Set(renderedVisibleReportActions.map((action) => action.actorAccountID))].filter((accountID) => accountID !== currentUserAccountID);
+    const [customAgentAccountIDs = getEmptyArray<number>()] = usePersonalDetailsByIDs(actorAccountIDs, getCustomAgentAccountIDs);
+
     // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
-    const latestConciergeFeedbackActionID =
+    const latestConciergeFeedbackActionIDs =
         reportNameValuePairs?.conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
-            ? undefined
-            : getLatestConciergeFeedbackActionID(renderedVisibleReportActions, allReportActionIDs);
+            ? getEmptyArray<string>()
+            : getFeedbackPromptActionIDs(renderedVisibleReportActions, allReportActionIDs, customAgentAccountIDs);
 
     useFollowActionBadgeTarget({
         reportID,
@@ -374,6 +439,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
             return !isCanceledTaskReport(report, parentReportAction);
         }
 
+        if (isSupportTicket(report)) {
+            return true;
+        }
+
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     })();
 
@@ -401,10 +470,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
                     shouldDisplayReplyDivider={renderedVisibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                    isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
+                    isLatestConciergeFeedbackAction={latestConciergeFeedbackActionIDs.includes(reportAction.reportActionID)}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                     isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
                     shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+                    reportsParentHierarchy={reportsParentHierarchy}
                 />
                 {!!reportStable?.reportID && (
                     <ShowPreviousMessagesButton
@@ -427,7 +497,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         draftReportActionID,
         draftMessageHTML,
         isDraftPendingCompletion,
-        latestConciergeFeedbackActionID,
+        latestConciergeFeedbackActionIDs,
     ];
 
     const listHeaderComponent = (
@@ -516,7 +586,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                         flushPendingScrollToBottom();
                     }}
                     onScroll={trackScrollPositionAndThreshold}
-                    onViewableItemsChanged={onViewableItemsChanged}
+                    onViewableItemsChanged={trackViewableRowIndexes}
                     extraData={extraData}
                     key={listID}
                     overrideProps={{
@@ -530,6 +600,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     onLoad={onLoad}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
+                        flushPendingScrollToBottom();
                     }}
                 />
             </ReportActionsListPaddingView>

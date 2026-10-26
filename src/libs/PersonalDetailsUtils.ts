@@ -191,15 +191,6 @@ function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | 
 }
 
 /**
- * Returns the accountID for a login only when it exists in personal details.
- * Unlike getAccountIDsByLogins, does not fabricate optimistic account IDs for unknown logins.
- */
-function getKnownAccountIDByLogin(login: string | undefined): number | undefined {
-    const accountID = getPersonalDetailByEmail(login)?.accountID;
-    return accountID !== undefined ? Number(accountID) : undefined;
-}
-
-/**
  * Given a list of logins, find the associated personal detail and return related accountIDs.
  *
  * @param logins Array of user logins
@@ -540,7 +531,6 @@ export {
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
     getPersonalDetailByEmail,
-    getKnownAccountIDByLogin,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,

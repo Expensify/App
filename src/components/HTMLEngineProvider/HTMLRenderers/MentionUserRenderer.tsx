@@ -10,6 +10,7 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAccountIDsByLogins, temporaryGetDisplayNameOrDefault, getShortMentionIfFound} from '@libs/PersonalDetailsUtils';
@@ -103,21 +104,22 @@ type MentionUserLoginLinkProps = Omit<MentionUserRendererProps, 'TDefaultRendere
 };
 
 function MentionUserLoginLink({tnode, currentUserPersonalDetails, ...props}: MentionUserLoginLinkProps) {
-    const htmlAttribAccountID = tnode.attributes.accountid;
+    const htmlAttributeAccountID = tnode.attributes.accountid;
     // We need to remove the LTR unicode and leading @ from data as it is not part of the login
     const login = tnode.data.replace(CONST.UNICODE.LTR, '').slice(1);
     const accountID = usePersonalDetailsByLogins([login], (personalDetailsByLogins) => getAccountIDsByLogins([login], personalDetailsByLogins).at(0) ?? CONST.DEFAULT_NUMBER_ID);
 
     const tnodeClone = cloneDeep(tnode);
     // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer
-    asMutable(tnodeClone).data = tnodeClone.data.replace(login, Str.removeSMSDomain(getShortMentionIfFound(login, htmlAttribAccountID, currentUserPersonalDetails) ?? ''));
+    const shortMention = getShortMentionIfFound(login, htmlAttributeAccountID, currentUserPersonalDetails) ?? '';
+    asMutable(tnodeClone).data = tnodeClone.data.replace(login, Str.isSMSLogin(shortMention) ? formatPhoneNumber(shortMention) : shortMention);
 
     return (
         <MentionUserLink
             {...props}
             tnode={tnodeClone}
             accountID={accountID}
-            mentionDisplayText={Str.removeSMSDomain(login)}
+            mentionDisplayText={Str.isSMSLogin(login) ? formatPhoneNumber(login) : login}
             navigationRoute={createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID, login), Navigation.getReportRHPActiveRoute())}
             currentUserAccountID={currentUserPersonalDetails.accountID}
         />
