@@ -107,7 +107,7 @@ You can use the following operators to filter reports:
 | `amount-debited:` | Filter by the amount the company was debited when a report was reimbursed across currencies, in the settlement currency. Supports `=`, `>`, `<`, `>=`, `<=` | `amount-debited:>1000` |
 | `amount-reimbursed:` | Filter by the amount the member was reimbursed when a report was paid across currencies, in their deposit account's currency. Supports `=`, `>`, `<`, `>=`, `<=` | `amount-reimbursed:>1000` |
 | `withdrawn:` | Filter by ACH withdrawal date | `withdrawn:2024-01-15` |
-| `withdrawal-type:` | Filter by withdrawal type (`reimbursement`, `expensify-card`, `central-travel-invoicing`) | `withdrawal-type:reimbursement` |
+| `withdrawal-type:` | Filter by withdrawal type (`reimbursement`, `expensify-card`, `central-travel-billing`) | `withdrawal-type:reimbursement` |
 | `paid-status:` | Filter by how the report was paid (`markedAsPaid`, `withdrawing`, `confirmed`). Combine multiple values with commas | `paid-status:markedAsPaid,confirmed` |
 | `declined:` | Filter by whether a report was rejected (`yes` or `no`). Matches the **Rejected** filter | `declined:yes` |
 | `paid-by:` | Filter by the member who paid the report (email, phone, display name, or `me`). Combine multiple members with commas. Reports that have not been paid never match. This operator also works on expense, invoice, and trip searches | `paid-by:me,alice@acme.com` |
