@@ -9,7 +9,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type React from 'react';
-import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, View, ViewStyle} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, Insets, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type ButtonEventsProps = {
@@ -117,6 +117,8 @@ type BaseButtonProps = WithSentryLabel &
         /** Accessibility state to pass to the pressable */
         accessibilityState?: AccessibilityState;
 
+        /** Extends the touch area past the button's edges, for a button smaller than the 44x44 minimum */
+        hitSlop?: Insets;
         /** What the button opens, for a button that opens a menu or a dialog rather than acting straight away */
         accessibilityHasPopup?: AccessibilityHasPopup;
 

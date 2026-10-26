@@ -12,3 +12,9 @@ export default function useResponsiveLayoutOnWideRHP(): ResponsiveLayoutOnWideRH
         isSuperWideRHPDisplayedOnWideLayout: false,
     };
 }
+
+function useIsDisplayedInWideRHP(): boolean {
+    return false;
+}
+
+export {useIsDisplayedInWideRHP};

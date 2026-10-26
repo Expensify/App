@@ -26,7 +26,7 @@ import React from 'react';
 
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
-type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2' | 'bankAccount';
+type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'officeLocation' | 'customField1' | 'customField2' | 'bankAccount';
 
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
@@ -34,6 +34,7 @@ type WorkspaceMemberRowData = TableData & {
     role?: ValueOf<typeof CONST.POLICY.ROLE>;
     employeeUserID?: string;
     employeePayrollID?: string;
+    officeLocationName?: string;
     bankAccountLastFour?: string;
     name: string;
     email: string;
@@ -57,6 +58,7 @@ type WorkspaceMembersTableProps = {
     selectedKeys: string[];
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
+    shouldShowOfficeLocationColumn: boolean;
     shouldShowBankAccountColumn: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
@@ -67,6 +69,7 @@ type WorkspaceMembersTableProps = {
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
+    APPROVE_ONLY: 'approveOnly',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
     CARD_ADMINS: 'cardAdmins',
@@ -84,6 +87,7 @@ export default function WorkspaceMembersTable({
     selectedKeys,
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
+    shouldShowOfficeLocationColumn,
     shouldShowBankAccountColumn,
     members,
     onRowSelectionChange,
@@ -112,6 +116,18 @@ export default function WorkspaceMembersTable({
             },
         },
 
+        ...(shouldShowOfficeLocationColumn
+            ? [
+                  {
+                      sortable: true,
+                      key: 'officeLocation' as const,
+                      label: translate('workspace.people.officeLocation'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.officeLocationName ? [{text: item.officeLocationName, fontSize: fontScale.text}] : []),
+                      },
+                  },
+              ]
+            : []),
         ...(shouldShowCustomField1Column
             ? [
                   {
@@ -186,6 +202,10 @@ export default function WorkspaceMembersTable({
             return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, memberNameComparison);
         }
 
+        if (activeSorting.columnKey === 'officeLocation') {
+            return compareOptionalValues(item1.officeLocationName, item2.officeLocationName, localeCompare, orderMultiplier, memberNameComparison);
+        }
+
         if (activeSorting.columnKey === 'customField1') {
             return compareOptionalValues(item1.employeeUserID, item2.employeeUserID, localeCompare, orderMultiplier, memberNameComparison);
         }
@@ -247,6 +267,11 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
+        const isApproveOnly = item.role === CONST.POLICY.ROLE.APPROVE_ONLY;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVE_ONLY) && isApproveOnly) {
+            return true;
+        }
+
         const isEditor = item.role === CONST.POLICY.ROLE.EDITOR;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.EDITORS) && isEditor) {
             return true;
@@ -302,6 +327,11 @@ export default function WorkspaceMembersTable({
             label: translate('workspace.people.guests'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.GUESTS,
         });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.approveOnly'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVE_ONLY,
+        });
     }
 
     if (isSubmitPolicy(policy)) {
@@ -324,6 +354,7 @@ export default function WorkspaceMembersTable({
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 shouldShowCustomField1Column={shouldShowCustomField1Column}
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
+                shouldShowOfficeLocationColumn={shouldShowOfficeLocationColumn}
                 shouldShowBankAccountColumn={shouldShowBankAccountColumn}
                 policy={policy}
             />

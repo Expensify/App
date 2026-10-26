@@ -919,6 +919,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT_SELECTOR.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_ACCOUNT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_ACCOUNT_CARD_LIST]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_ACCOUNT_CARD_LIST.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ACCOUNTING_METHOD]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ACCOUNTING_METHOD.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED_POSTING_MODE]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED_POSTING_MODE.route},
@@ -987,6 +991,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE.route,
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT]: DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path,
@@ -1093,6 +1100,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBERS_IMPORT]: {
                             path: ROUTES.WORKSPACE_MEMBERS_IMPORT.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBERS_CHANGE_OFFICE_LOCATION]: {
+                            path: ROUTES.WORKSPACE_MEMBERS_CHANGE_OFFICE_LOCATION.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBERS_CHANGE_WORK_ARRANGEMENT]: {
+                            path: ROUTES.WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT.route,
+                        },
                         [SCREENS.WORKSPACE.WORKFLOWS_IMPORT]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_IMPORT.route,
                         },
@@ -1180,6 +1193,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: {
                             path: ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION]: {
+                            path: ROUTES.WORKSPACE_MEMBER_OFFICE_LOCATION.route,
                         },
                         [SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT]: {
                             path: DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path,
@@ -2469,6 +2485,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.HELP]: {
                             path: ROUTES.SETTINGS_HELP,
+                            // The Talk to a human link in Concierge replies lands on the Help page, where the Talk to a human row is.
+                            alias: [{path: ROUTES.TALK_TO_HUMAN, exact: true}],
                             exact: true,
                         },
                         [SCREENS.SETTINGS.TROUBLESHOOT]: {

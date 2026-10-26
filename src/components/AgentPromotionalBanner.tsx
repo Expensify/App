@@ -75,7 +75,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
         }
         if (shouldUseNarrowLayout && !isInLandscapeMode) {
             return (
-                <View style={[styles.flex0, styles.flexBasis100, styles.maxWidth100Percentage, styles.justifyContentCenter]}>
+                <View style={[styles.w100, styles.justifyContentCenter]}>
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={onCtaPress}
