@@ -141,9 +141,9 @@ The **Agents** tab holds agent rules, which are written in plain language and ru
 **Add rule** stays in the top-right corner of the **Rules** page on every tab. It opens the **New rule** page, where you choose what the rule should do:
 
 - **Restrict card spend** – Block or limit spend at the point of sale.
-- **Flag for review** – Notify approvers when expenses exceed category limits.
-- **Set field requirements** – Require specific expense fields or waive requiring them.
-- **Apply expense defaults** – Update fields without the submitter doing anything.
+- **Flag for review** – Notify when your conditions are met.
+- **Set field requirements** – Receipts, categories, etc.
+- **Apply expense defaults** – Update fields automatically.
 - **Describe agent rule** – Create flexible rules that run when you need.
 
 ---
