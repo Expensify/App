@@ -612,6 +612,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
 
+        /** The ID of the workspace the transaction belongs to, as sent by the server */
+        policyID?: string;
+
         /**
          * The report a failed reject was attempted from.
          */

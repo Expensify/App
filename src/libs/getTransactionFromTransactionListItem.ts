@@ -26,7 +26,6 @@ const SEARCH_TRANSACTION_ROW_ONLY_FIELDS: Record<Exclude<keyof TransactionListIt
     actionElement: true,
     icons: true,
     invitedSecondaryLogin: true,
-    policyID: true,
     searchText: true,
     brickRoadIndicator: true,
     footerContent: true,
