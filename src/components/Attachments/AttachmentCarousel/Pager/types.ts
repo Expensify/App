@@ -1,9 +1,9 @@
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 
 import type {ForwardedRef} from 'react';
+import type {FlatList} from 'react-native';
 import type {NativeGesture, PanGesture} from 'react-native-gesture-handler';
 import type PagerView from 'react-native-pager-view';
-import type Animated from 'react-native-reanimated';
 import type {AnimatedRef, SharedValue} from 'react-native-reanimated';
 
 /** The pager items array is used within the pager to render and navigate between the images */
@@ -29,7 +29,7 @@ type AttachmentCarouselPagerStateContextType = {
     activePage: number;
 
     /** Ref to the pager: the PagerView on native and the attachment list on web */
-    pagerRef?: ForwardedRef<PagerView> | AnimatedRef<Animated.FlatList<Attachment>>;
+    pagerRef?: ForwardedRef<PagerView> | AnimatedRef<FlatList<Attachment>>;
 
     /** The pan gesture that swipes between attachments on web. The pan gesture of the attachment needs to work simultaneously with it */
     pagerGesture?: PanGesture;
