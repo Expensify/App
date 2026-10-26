@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@libs/actions/Link';
+import {isAttachmentAnchor} from '@libs/AttachmentAnchorUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import CONST from '@src/CONST';
@@ -36,16 +37,20 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const htmlAttribs = tnode.attributes;
     const {environmentURL} = useEnvironment();
     const {hovered, bind} = useHover();
-    // An auth token is needed to download Expensify chat attachments
-    const isAttachment = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-    const tNodeChild = tnode?.domNode?.children?.at(0);
-    const displayName = tNodeChild && 'data' in tNodeChild && typeof tNodeChild.data === 'string' ? tNodeChild.data : '';
+    // An auth token is needed to download Expensify chat attachments. An edited comment comes back without the source
+    // attribute, so the comment fragment restores the ID before this runs.
+    const isAttachment = isAttachmentAnchor(htmlAttribs.href, htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE], htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE]);
+    // An edited label such as `my_file.csv` can come back wrapped in `<em>`, so the name is gathered from every text node.
+    const displayName = getTextContent(tnode);
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
     const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
     const internalNewExpensifyPath = getInternalNewExpensifyPath(attrHref);
     const internalExpensifyPath = getInternalExpensifyPath(attrHref);
     const isVideo = attrHref && Str.isVideo(attrHref);
     const linkHasImage = tnode.tagName === 'a' && tnode.children.some((child) => child.tagName === 'img');
+    // A file card is drawn from the anchor's own label, so an anchor wrapping a picture or a clip has no name to show
+    // and renders the media itself. An edit keeps the attachment ID on the anchor even when its label becomes an image.
+    const holdsMedia = tnode.children.some((child) => child.tagName === 'img' || child.tagName === 'video');
 
     const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
@@ -130,7 +135,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         );
     }
 
-    if (isAttachment && !isVideo) {
+    if (isAttachment && !isVideo && !holdsMedia) {
         return (
             <AnchorForAttachmentsOnly
                 source={tryResolveUrlFromApiRoot(attrHref)}

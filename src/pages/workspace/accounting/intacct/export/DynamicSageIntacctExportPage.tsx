@@ -65,7 +65,7 @@ function DynamicSageIntacctExportPage({policy}: WithPolicyProps) {
             ? [
                   {
                       title: travelPayableAccount?.name,
-                      description: translate('workspace.common.travelInvoicing'),
+                      description: translate('workspace.common.travelBilling'),
                       action: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION.path)),
                       subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
                   },
