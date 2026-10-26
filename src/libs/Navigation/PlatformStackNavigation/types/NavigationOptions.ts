@@ -30,6 +30,9 @@ type GeneralPlatformStackNavigationOptions = {
     // Set it on a navigator (screenOptions) or on a single screen. The underlying stack ignores it, and the
     // navigator reads it back from the screen's descriptor.
     nonTopScreenBehavior?: NonTopScreenBehavior;
+
+    // Set it on a root screen that places the horizontal safe area itself, so ScreenLayout doesn't wrap it in one.
+    hasOwnHorizontalSafeArea?: boolean;
 };
 
 // Combines common and general platform-specific options for PlatformStackNavigation.

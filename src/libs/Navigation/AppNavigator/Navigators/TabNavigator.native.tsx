@@ -18,7 +18,8 @@ import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
-import TabBarShapeProbe, {TabBarShapeContext} from './NativeTabNavigator/TabBarShapeProbe';
+import TabBarShapeProbe from './NativeTabNavigator/TabBarShapeProbe';
+import TabBarShapeContext from './NativeTabNavigator/TabBarShapeProbe/TabBarShapeContext';
 import TabHostHorizontalSafeArea from './NativeTabNavigator/TabHostHorizontalSafeArea';
 import TabScreenHorizontalSafeArea from './NativeTabNavigator/TabScreenHorizontalSafeArea';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';

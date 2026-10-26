@@ -84,6 +84,8 @@ const useRootNavigatorScreenOptions = () => {
         },
         centeredModalNavigator: {
             presentation: Presentation.TRANSPARENT_MODAL,
+            // The backdrop spans the window so that it covers the side insets too.
+            hasOwnHorizontalSafeArea: true,
             native: {
                 contentStyle: {
                     ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
@@ -113,6 +115,8 @@ const useRootNavigatorScreenOptions = () => {
         },
         fullScreenTabPage: {
             ...commonScreenOptions,
+            // The native tab bar may sit in a side inset, so the tab navigator places the horizontal safe area itself.
+            hasOwnHorizontalSafeArea: true,
             // We need to turn off animation for the full screen to avoid delay when closing screens.
             animation: Animations.NONE,
             web: {
