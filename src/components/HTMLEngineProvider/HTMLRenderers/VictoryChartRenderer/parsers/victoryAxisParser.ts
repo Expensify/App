@@ -43,7 +43,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     const orientation = parseAttributeAsString(tnode.attributes.orientation);
     const rawTickValues = parseAttributeAsNumberArray(tnode.attributes.tickvalues);
     const tickValues = Array.isArray(rawTickValues) ? rawTickValues : undefined;
-    const tickCount = parseAttributeAsNumber(tnode.attributes.tickcount) ?? tickValues?.length;
+    const tickCount = parseAttributeAsNumber(tnode.attributes.tickcount) ?? tickValues?.length ?? 0;
     const rawTickFormat = parseAttributeAsStringArray(tnode.attributes.tickformat);
     const tickFormat = Array.isArray(rawTickFormat) ? rawTickFormat : undefined;
     const formatLabel = (label: string | number) => tickFormat?.[tickValues?.indexOf(Number(label)) ?? -1] ?? String(label);
