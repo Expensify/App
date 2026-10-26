@@ -49,7 +49,6 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
 
     const accountChecks: Partial<Record<IndicatorStatus, boolean>> = {
-        [CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS]: !!hasAgentError,
         [CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS]: Object.keys(userWallet?.errors ?? {}).length > 0,
         [CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR]: hasPaymentMethodError(bankAccountList, fundList, allCards, session, policies),
         [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS]: hasSubscriptionRedDotError(
@@ -71,6 +70,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
         [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS]: !isPolicyAdmin ? hasCompanyCardFeedErrors : false,
         [CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT]: Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED),
         [CONST.INDICATOR_STATUS.HAS_DEVICE_MANAGEMENT_ERROR]: hasDeviceManagementErrorValue,
+        [CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS]: !!hasAgentError,
     };
 
     const infoChecks: Partial<Record<IndicatorStatus, boolean>> = {

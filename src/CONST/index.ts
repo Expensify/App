@@ -9510,7 +9510,6 @@ const CONST = {
     ERROR_WINDOW_RELOAD_TIMEOUT: 60000,
 
     INDICATOR_STATUS: {
-        HAS_AGENT_ERRORS: 'hasAgentErrors',
         HAS_USER_WALLET_ERRORS: 'hasUserWalletErrors',
         HAS_PAYMENT_METHOD_ERROR: 'hasPaymentMethodError',
         HAS_POLICY_ERRORS: 'hasPolicyError',
@@ -9538,6 +9537,7 @@ const CONST = {
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
         HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
         HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER: 'hasApprovalWorkflowNonMemberApprover',
+        HAS_AGENT_ERRORS: 'hasAgentErrors',
     },
 
     DEBUG: {
