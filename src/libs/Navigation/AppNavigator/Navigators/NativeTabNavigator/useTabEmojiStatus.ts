@@ -17,7 +17,7 @@ import {Image} from 'react-native';
 
 import type {TabIconEmojiStatus} from './tabIconRasterizer';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- require() of a bundled asset is untyped; Metro resolves it to an asset ID
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- require() of a bundled asset is untyped. Metro resolves it to an asset ID.
 const CUSTOM_EMOJI_FONT = require('@assets/fonts/native/CustomEmojiNativeFont.ttf') as number;
 
 /** Held outside any component, so the font is read from disk once and a remounted navigator reuses it. */
