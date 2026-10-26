@@ -481,7 +481,7 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
     const shouldWrite = anyChanged && !options.frozen && !options.readOnly;
     if (pruned > 0) {
         const verb = shouldWrite ? 'removed' : 'would remove';
-        // stderr, not stdout: --format=json writes the report to stdout and this would corrupt it.
+        // stdout carries the --format=json report.
         console.error(`eslint-seatbelt: ${verb} ${pruned} baseline row(s) for deleted files`);
     }
     if (shouldWrite) {

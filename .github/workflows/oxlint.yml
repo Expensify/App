@@ -28,13 +28,9 @@ jobs:
       - name: Lint JavaScript and TypeScript with Oxlint
         id: oxlint
         continue-on-error: true
-        # oxlint runs JS plugins on one thread (oxc#26621), so OxlintLinter fans them across 4
-        # single-threaded shards and runs the type-aware rules in one multi-threaded process: 8 vCPU.
-        # While oxlint is a non-blocking shadow job, the post-merge run on main absorbs new findings into the
-        # baseline as well as removing fixed ones, so later PRs are only warned about findings they add.
-        # Runs started by OSBotify's own baseline commit only tighten, so a finding that flickers between
-        # runs cannot make every run commit again. Remove this when oxlint becomes the blocking linter:
-        # from then on main only tightens, like ESLint.
+        # oxlint runs JS plugins on one thread (oxc#26621), so OxlintLinter splits them into 4 shards on this 8 vCPU runner.
+        # While oxlint is a non-blocking check, the post-merge run both adds and removes entries from the oxlint.seatbelt.tsv.
+        # Remove this once oxlint becomes the blocking linter.
         env:
           SEATBELT_INCREASE: ${{ github.event_name == 'push' && github.event.head_commit.author.name != 'OSBotify' && 'all' || '' }}
         run: npm run lint -- --linter=oxlint --shards=4

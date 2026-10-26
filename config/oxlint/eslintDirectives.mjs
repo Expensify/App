@@ -1,7 +1,9 @@
-// A rule hosted through oxlint's `jsPlugins` cannot take a native plugin's prefix (`react-hooks`,
-// `@typescript-eslint`, `react`, `import` are reserved), so an existing `eslint-disable-next-line
-// @typescript-eslint/naming-convention` does not suppress `hosted/naming-convention`. This makes a
-// hosted rule answer to the id ESLint uses, by dropping the reports ESLint would have dropped.
+/**
+ * oxlint runs some ESLint rules as JS plugins under a new name. For example,
+ * `@typescript-eslint/naming-convention` becomes `hosted/naming-convention`. oxlint doesn't know the
+ * two are the same rule, so an existing `eslint-disable-next-line @typescript-eslint/naming-convention`
+ * comment wouldn't hide its report. The wrappers here read those comments and drop what ESLint would hide.
+ */
 
 const JUSTIFICATION = /\s-{2,}\s/;
 const KINDS = ['eslint-disable-next-line', 'eslint-disable-line', 'eslint-disable', 'eslint-enable'];
@@ -9,6 +11,12 @@ const ALL_RULES = ' all';
 
 const cache = new Map();
 
+/**
+ * Turns a comment like `eslint-disable-next-line rule-a, rule-b -- reason` into its kind and the rules
+ * it names. A directive that names no rule applies to every rule.
+ * @param {{type: 'Line' | 'Block', value: string, loc?: {start: {line: number, column: number}, end: {line: number, column: number}}}} comment
+ * @returns {{kind: string, ruleIds: string[]} | null} null when the comment is not a directive
+ */
 function parseComment(comment) {
     const text = String(comment.value ?? '').trim();
     const kind = KINDS.find((candidate) => text === candidate || (text.startsWith(candidate) && /^\s/.test(text.slice(candidate.length))));
@@ -23,6 +31,13 @@ function parseComment(comment) {
     return {kind, ruleIds: ruleIds.length ? ruleIds : [ALL_RULES]};
 }
 
+/**
+ * Collects a file's disable comments in a form that is quick to check for each report. A
+ * `-line`/`-next-line` comment becomes the line it covers. `eslint-disable`/`eslint-enable` comments
+ * stay in source order, because the last one before a report decides.
+ * @param {Array<Parameters<typeof parseComment>[0]>} comments
+ * @returns {{lines: Map<string, Set<number>>, blocks: Array<{line: number, column: number, ruleId: string, disable: boolean}>}}
+ */
 function parseDirectives(comments) {
     const lines = new Map();
     const blocks = [];
@@ -41,8 +56,8 @@ function parseDirectives(comments) {
         }
         for (const ruleId of parsed.ruleIds) {
             if (parsed.kind === 'eslint-disable-next-line' || parsed.kind === 'eslint-disable-line') {
-                // ESLint rejects only a multi-line `-line` directive; a multi-line `-next-line` is
-                // applied to the line after the comment closes, which is why the target is `end`.
+                // ESLint ignores a multi-line `-line` directive but applies a multi-line `-next-line`
+                // to the line after the comment ends.
                 if (parsed.kind === 'eslint-disable-line' && start !== end) {
                     continue;
                 }
@@ -59,6 +74,12 @@ function parseDirectives(comments) {
     return {lines, blocks};
 }
 
+/**
+ * Every wrapped rule checks the same file's comments, so they are parsed once per file.
+ * @param {string | undefined} filename
+ * @param {Array<Parameters<typeof parseComment>[0]>} comments
+ * @returns {ReturnType<typeof parseDirectives>}
+ */
 function directivesFor(filename, comments) {
     const key = filename ?? '<unknown>';
     if (!cache.has(key)) {
@@ -67,9 +88,15 @@ function directivesFor(filename, comments) {
     return cache.get(key);
 }
 
-// Mirrors ESLint: the last block directive before the report, by line and then column, that names the
-// rule (or no rule) decides. A bare `eslint-disable` followed by `eslint-enable foo` therefore
-// re-enables `foo` alone, and a bare `eslint-enable` re-enables every rule.
+/**
+ * Tells whether ESLint would hide a report of `eslintRuleId` at `position`. As in ESLint, the last
+ * `eslint-disable`/`eslint-enable` before the report, by line and then column, that names the rule
+ * (or no rule) wins.
+ * @param {ReturnType<typeof parseDirectives>} directives
+ * @param {string} eslintRuleId
+ * @param {{line: number, column: number} | null} position
+ * @returns {boolean}
+ */
 function isSuppressed(directives, eslintRuleId, position) {
     if (position == null) {
         return false;
@@ -89,6 +116,12 @@ function isSuppressed(directives, eslintRuleId, position) {
     return disabled;
 }
 
+/**
+ * Finds the line and column a report points at, to check it against the disable comments. Rules pass
+ * either a descriptor with `loc` or `node`, or a node in the legacy `report(node, message)` form.
+ * @param {unknown[]} args
+ * @returns {{line: number, column: number} | null}
+ */
 function reportPosition(args) {
     const first = args[0];
     const candidates = [first?.loc?.start, first?.loc, first?.node?.loc?.start, first?.node?.loc];
@@ -96,14 +129,21 @@ function reportPosition(args) {
     return point ? {line: point.line, column: typeof point.column === 'number' ? point.column : 0} : null;
 }
 
-function withEslintDirectiveIds(rule, eslintRuleId) {
+/**
+ * Makes an oxlint JS plugin rule respect `eslint-disable` comments written for the ESLint rule it
+ * copies. Without it, `// eslint-disable-next-line react-hooks/exhaustive-deps` would not hide the
+ * oxlint copy's report, because oxlint calls that copy `hosted/exhaustive-deps`.
+ * @param {import('eslint').Rule.RuleModule} rule
+ * @param {string} eslintRuleId the ID ESLint reports this rule under, like `react-hooks/exhaustive-deps`
+ * @returns {import('eslint').Rule.RuleModule}
+ */
+function withEslintDirectiveIDs(rule, eslintRuleId) {
     return {
         ...rule,
         create(context) {
             const filteredContext = Object.create(context, {
                 report: {
-                    // Forwarded as-is rather than as one descriptor: ESLint also accepts the legacy
-                    // `report(node, message)` form, and dropping the extra arguments would change the message.
+                    // Keeps every argument: ESLint also accepts the legacy `report(node, message)` form.
                     value(...args) {
                         const position = reportPosition(args);
                         if (position != null) {
@@ -122,8 +162,15 @@ function withEslintDirectiveIds(rule, eslintRuleId) {
     };
 }
 
-function withEslintDirectiveIdsFor(rules, toEslintId) {
-    return Object.fromEntries(Object.entries(rules).map(([name, rule]) => [name, withEslintDirectiveIds(rule, toEslintId(name))]));
+/**
+ * withEslintDirectiveIDs for a whole plugin at once. `toEslintId` gives the ESLint name of each rule,
+ * like `naming-convention` to `@typescript-eslint/naming-convention`.
+ * @param {Record<string, import('eslint').Rule.RuleModule>} rules
+ * @param {(name: string) => string} toEslintId maps an oxlint rule name to its ESLint ID
+ * @returns {Record<string, import('eslint').Rule.RuleModule>}
+ */
+function withEslintDirectiveIDsFor(rules, toEslintId) {
+    return Object.fromEntries(Object.entries(rules).map(([name, rule]) => [name, withEslintDirectiveIDs(rule, toEslintId(name))]));
 }
 
-export {withEslintDirectiveIds, withEslintDirectiveIdsFor};
+export {withEslintDirectiveIDs, withEslintDirectiveIDsFor};

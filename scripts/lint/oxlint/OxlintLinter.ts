@@ -12,8 +12,8 @@ import {LINT_SEVERITY} from '../types';
 
 const OXLINT_FILE_COUNT_KEY = 'number_of_files' as const;
 const OXLINT_CONFIG_FILE = 'oxlint.config.mts';
-// Not `npx`: it passes the command to `sh -c` as one string, and Linux caps a single argv element at
-// 128 KB, so a shard's file list fails to exec with E2BIG (exit 249). macOS has no per-element cap.
+// `npx` passes the command to `sh -c` as one string, and Linux caps a single argv element at 128 KB,
+// so a shard's file list would fail with E2BIG (exit 249).
 const OXLINT_BIN = path.join('node_modules', '.bin', 'oxlint');
 
 type OxlintSpan = {
@@ -79,14 +79,14 @@ const JS_PLUGIN_CRASH_MESSAGE = 'Error running JS plugin';
 const OXLINT_WARNING_SEVERITIES = new Set(['warning', 'advice']);
 const GIB = 1073741824;
 
-// Workaround for oxlint running every JS plugin on one thread (oxc#26621): JS-plugin rules are fanned
-// across `--threads=1` processes with type information off, and type-aware rules run once in a separate
-// process, because each oxlint process spawns its own multi-GB `oxlint-tsgolint` type program.
+// oxlint runs every JS plugin on one thread (oxc#26621), so JS-plugin rules are split across
+// `--threads=1` processes without type information. Type-aware rules run in one separate process,
+// because each oxlint process spawns its own multi-GB `oxlint-tsgolint` type program.
 const JS_SHARD_MEM_GB = 2;
 const TYPE_AWARE_MEM_GB = 10;
 
-// On macOS `os.freemem()` counts only free pages and ignores the inactive, speculative and purgeable
-// pages the kernel reclaims on demand, so it reads a few GB on an idle machine with tens of GB available.
+// On macOS `os.freemem()` ignores inactive, speculative and purgeable pages the kernel reclaims on
+// demand, so it reads a few GB on an idle machine with tens of GB available.
 function availableMemoryBytes(): number {
     if (process.platform === 'darwin') {
         const vmStat = Bun.spawnSync(['vm_stat']);
@@ -103,6 +103,8 @@ function availableMemoryBytes(): number {
 }
 
 function defaultShardCount(cpus = os.availableParallelism(), availableBytes = availableMemoryBytes()): number {
+    // Half the cores for single-threaded shards leaves the rest to the multi-threaded type-aware leg.
+    // Measured on 14 cores: 7 shards 40-41 s, 4 shards 44 s, 10 shards 46-47 s, 14 shards 49-50 s.
     const byCpu = Math.floor(cpus / 2);
     const byMem = Math.floor((availableBytes / GIB - TYPE_AWARE_MEM_GB) / JS_SHARD_MEM_GB);
     return Math.max(1, Math.min(byCpu, byMem));
@@ -162,16 +164,14 @@ function deriveLegConfigs(config: OxlintConfig): {
         }),
     };
     delete typeAware.jsPlugins;
-    // typeAware: false also disables typed native rules (e.g. typescript/no-unsafe-assignment), so only the
-    // type-aware leg reports them.
+    // With typeAware off, oxlint skips the type-aware rules in the shards, so only the type-aware process reports them.
     return {
         jsPlugins: {...config, options: {...config.options, typeAware: false}},
         typeAware,
     };
 }
 
-// Both legs run the native rules, so the type-aware leg repeats the shards' native findings; this key drops
-// the second copy per file.
+// Native rules run in both the shards and the type-aware process; mergeShardResults uses this key to report each finding once.
 function messageKey(message: LintMessage): string {
     return [message.ruleID, message.severity, message.line, message.column, message.message].join('\u0000');
 }
@@ -212,12 +212,11 @@ function normalizeSeverity(severity: string | undefined): LintSeverity {
     return OXLINT_WARNING_SEVERITIES.has(severity ?? '') ? LINT_SEVERITY.WARNING : LINT_SEVERITY.ERROR;
 }
 
-/** Oxlint splits a finding across `message`, `help` and `note`; ESLint has only `message`. */
 function joinDiagnosticText(diagnostic: OxlintDiagnostic): string {
     return [diagnostic.message, diagnostic.help, diagnostic.note].filter(Boolean).join('\n');
 }
 
-/** Oxlint reports cwd-relative paths. They must be absolute or every seatbelt row silently misses. */
+/** Oxlint reports cwd-relative paths, which every seatbelt row would silently miss. */
 function toAbsolute(projectRoot: string, filename: string): string {
     return path.isAbsolute(filename) ? filename : path.resolve(projectRoot, filename);
 }
@@ -244,10 +243,7 @@ function toParseErrorMessage(projectRoot: string, diagnostic: OxlintDiagnostic):
     return {...message, message: `Parsing error: ${message.message}`};
 }
 
-/**
- * `lintedFiles` comes from a separate `--debug=files` pass because oxlint's JSON omits every file
- * that produced no diagnostic.
- */
+/** `lintedFiles` comes from a separate `--debug=files` pass because oxlint's JSON omits clean files. */
 function normalizeOxlintDiagnostics(diagnostics: OxlintDiagnostic[], projectRoot: string, lintedFiles: readonly string[]): LintFileResult[] {
     const byFile = new Map<string, LintMessage[]>();
     for (const filePath of lintedFiles) {
@@ -296,7 +292,6 @@ function isOxlintConfig(value: unknown): value is OxlintConfig {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** The config is a TypeScript module, so it is imported rather than parsed; bun runs `.mts` natively. */
 async function loadOxlintConfig(projectRoot: string): Promise<OxlintConfig> {
     const loaded: unknown = await import(path.join(projectRoot, OXLINT_CONFIG_FILE));
     const config = typeof loaded === 'object' && loaded !== null && 'default' in loaded ? loaded.default : undefined;
@@ -311,9 +306,9 @@ function isOxlintReport(value: unknown): value is OxlintJSONReport {
 }
 
 /**
- * Oxlint exits 1 for findings, for no files matched, and for a config that failed to parse. Only
- * the first is a normal run, and `LintPipeline` treats everything at or below 1 as one, so the
- * other two are promoted here. A config error is recognizable by producing no JSON at all.
+ * Oxlint exits 1 for findings, for no matched files, and for a config that failed to parse.
+ * `LintPipeline` treats exit 1 as a normal run, so the other two are promoted here. A config error
+ * produces no JSON.
  */
 function parseOxlintStdout(stdout: string, stderr: string, exitCode: number, projectRoot: string, lintedFiles: readonly string[]): LinterResult {
     const jsonText = extractJSONObject(stdout);
@@ -350,10 +345,13 @@ function parseOxlintStdout(stdout: string, stderr: string, exitCode: number, pro
 }
 
 /**
- * `--type-aware` is not passed: `oxlint.config.mts` already sets `options.typeAware`.
- * `--no-error-on-unmatched-pattern` is not passed either, because it turns a mistyped path into a
- * silent clean pass; the empty-file-list case is detected explicitly instead.
- * Oxlint has no `--cache`, so the pipeline's `--no-cache` flag has no effect here.
+ * Runs oxlint for `npm run lint -- --linter=oxlint` and turns its JSON report into the same
+ * LinterResult ESLintLinter returns, so seatbelt and the formatters work for both. It can split the
+ * files into JS-plugin shards plus one type-aware process.
+ *
+ * `--no-error-on-unmatched-pattern` is left off because it turns a mistyped path into a silent clean
+ * pass; the empty-file-list case is detected explicitly instead. Oxlint has no `--cache`, so
+ * `--no-cache` has no effect here.
  */
 class OxlintLinter extends Linter {
     readonly name = 'oxlint';
@@ -389,7 +387,7 @@ class OxlintLinter extends Linter {
         remove: () => void;
     }> {
         const {jsPlugins, typeAware} = deriveLegConfigs(await loadOxlintConfig(this.options.projectRoot));
-        // Written beside oxlint.config.mts because oxlint resolves jsPlugin specifiers relative to the config file.
+        // Written to the repo root: oxlint resolves the `./config/oxlint/...` plugin paths relative to the config file.
         const jsPluginsConfig = `.oxlintrc.js-plugins.${process.pid}.json`;
         const typeAwareConfig = `.oxlintrc.type-aware.${process.pid}.json`;
         fs.writeFileSync(path.join(this.options.projectRoot, jsPluginsConfig), JSON.stringify(jsPlugins));
@@ -466,6 +464,7 @@ class OxlintLinter extends Linter {
                     }));
                     legs.push({
                         label: 'type-aware process',
+                        // Same files and findings as passing lintedFiles (measured), with a far shorter argv.
                         args: ['-c', configs.typeAwareConfig, ...baseArgs, ...targets],
                         lintedFiles,
                     });

@@ -15,7 +15,7 @@ import path from 'node:path';
 import process from 'node:process';
 import {fileURLToPath} from 'node:url';
 
-import {withEslintDirectiveIds} from '../config/oxlint/eslintDirectives.mjs';
+import {withEslintDirectiveIDs} from '../config/oxlint/eslintDirectives.mjs';
 
 const ESLINT_RULE_ID = 'eqeqeq';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -82,7 +82,7 @@ function commentsOf(source) {
 function moduleLines(source, filename) {
     const reported = [];
     let innerContext;
-    const rule = withEslintDirectiveIds(
+    const rule = withEslintDirectiveIDs(
         {
             meta: {schema: []},
             create(context) {

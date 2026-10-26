@@ -1,13 +1,15 @@
-// Plain .mjs so the bun lint pipeline and oxlint's JS plugin runtime can both read one copy; only the
-// first of those can load TypeScript.
+/**
+ * oxlint and ESLint name some rules differently. This maps between the two, so oxlint findings show up
+ * under ESLint's rule IDs and hosted-rules.mjs knows which ESLint plugin each hosted rule comes from.
+ * It's plain `.mjs` because oxlint's JS plugins can't load TypeScript.
+ */
 const OXLINT_RULE_RENAMES = {
     'no-object-constructor': 'no-new-object',
     'no-new-native-nonconstructor': 'no-new-symbol',
 };
 
-// A rule hosted through oxlint's `jsPlugins` cannot take a native plugin's prefix (`react`,
-// `import`, `react-hooks` and `@typescript-eslint` are reserved), so it is registered bare under
-// `hosted` and this table is what gives it back its ESLint identity.
+// oxlint reserves native plugin prefixes (`react`, `import`, `react-hooks`, `@typescript-eslint`), so
+// hosted rules register under `hosted` and this maps each back to its ESLint plugin.
 const HOSTED_RULE_ORIGIN = {
     'jsx-no-bind': 'react',
     'function-component-definition': 'react',
@@ -51,17 +53,29 @@ const HOSTED_RULE_ORIGIN = {
     'use-storybook-testing-library': 'storybook',
 };
 
-// Repo-written hosted rules that report under an existing ESLint rule id.
 const HOSTED_RULE_ESLINT_ID = {
     'no-deprecated-self-closing-jsx': '@typescript-eslint/no-deprecated',
 };
 
 const OXLINT_DIAGNOSTIC_CODE = /^([\w@/.-]+)\((.+)\)$/;
 
+/**
+ * Lists the hosted rules copied from one ESLint plugin, so hosted-rules.mjs knows which rules to load
+ * from that package.
+ * @param {string} eslintPrefix an ESLint plugin name, like `react`
+ * @returns {string[]}
+ */
 function hostedRuleNames(eslintPrefix) {
     return Object.keys(HOSTED_RULE_ORIGIN).filter((name) => HOSTED_RULE_ORIGIN[name] === eslintPrefix);
 }
 
+/**
+ * Converts oxlint's name for a finding, like `typescript(no-explicit-any)`, to ESLint's rule ID, like
+ * `@typescript-eslint/no-explicit-any`, so the lint output and the oxlint seatbelt baseline use the
+ * same rule names as ESLint. A code that does not look like `plugin(rule)` comes back unchanged.
+ * @param {string} code
+ * @returns {string}
+ */
 function oxlintCodeToESLintRuleID(code) {
     const match = OXLINT_DIAGNOSTIC_CODE.exec(code);
     if (!match) {

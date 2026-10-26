@@ -1,3 +1,8 @@
+/**
+ * Loads every rule from eslint-plugin-expensify and eslint-plugin-local-rules into oxlint, under the
+ * `rulesdir` name ESLint uses. Two rules change: no-inline-useOnyx-selector stays quiet in files React
+ * Compiler memoizes, and prefer-locale-compare-from-context is swapped for a copy that needs no type info.
+ */
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
 import path from 'node:path';
@@ -31,8 +36,7 @@ const plugin = {
     rules: {
         ...rules,
         'no-inline-useOnyx-selector': withFullGating(rules['no-inline-useOnyx-selector']),
-        // ESLint's copy calls getParserServices at create() time, which throws in a jsPlugin, so a
-        // type-free rewrite stands in for it.
+        // ESLint's copy calls getParserServices in create(), which throws in a jsPlugin.
         'prefer-locale-compare-from-context': {create: preferLocaleCompareCreate, meta: preferLocaleCompareMeta},
     },
 };
