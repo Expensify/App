@@ -37,6 +37,7 @@ type MockReportActionRendererProps = {
     reportAction: ReportAction;
     displayAsGroup: boolean;
     shouldDisplayNewMarker: boolean;
+    onExpandedSystemMessageReady?: (target: React.ComponentRef<typeof View> | null) => void;
 };
 
 const mockReportActionRenderer = jest.fn((props: MockReportActionRendererProps) => (
@@ -330,5 +331,15 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
         expect(screen.getByTestId('report-action-system-anchor').props.accessibilityLabel).toBe('single');
         expect(screen.getByTestId('report-action-legacy-system').props.accessibilityLabel).toBe('grouped');
         expect(screen.getByTestId('report-action-chat-boundary').props.accessibilityLabel).toBe('grouped');
+
+        // Only the first revealed update receives the manual focus request, not another row or header
+        const latestPropsFor = (id: string) =>
+            mockReportActionRenderer.mock.calls
+                .filter(([props]) => props.reportAction.reportActionID === id)
+                .at(-1)
+                ?.at(0);
+        expect(latestPropsFor('system-anchor')?.onExpandedSystemMessageReady).toEqual(expect.any(Function));
+        expect(latestPropsFor('legacy-system')?.onExpandedSystemMessageReady).toBeUndefined();
+        expect(latestPropsFor('chat-boundary')?.onExpandedSystemMessageReady).toBeUndefined();
     });
 });

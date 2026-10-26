@@ -197,7 +197,15 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
     });
 
-    const {displayReportActions, runsByAnchorReportActionID, expandedSystemMessageReportActionIDs, unreadMarkerReportActionIndex, expandSystemMessageRun} = useReportActionsPresentation({
+    const {
+        displayReportActions,
+        runsByAnchorReportActionID,
+        expandedSystemMessageReportActionIDs,
+        unreadMarkerReportActionIndex,
+        expandSystemMessageRun,
+        focusRequestedReportActionID,
+        onExpandedSystemMessageReady,
+    } = useReportActionsPresentation({
         visibleReportActions,
         linkedReportActionID,
         unreadMarkerReportActionID,
@@ -300,6 +308,9 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                             shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
                             isLatestConciergeFeedbackAction={latestConciergeFeedbackActionIDs.includes(reportAction.reportActionID)}
                             reportsParentHierarchy={reportsParentHierarchy}
+                            onExpandedSystemMessageReady={
+                                reportAction.reportActionID === focusRequestedReportActionID ? (target) => onExpandedSystemMessageReady(reportAction.reportActionID, target) : undefined
+                            }
                         />
                     )}
                 </ReportActionPositionContextProvider>
@@ -307,7 +318,14 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         );
     };
 
-    const reportActionsExtraData = [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionIDs, expandedSystemMessageReportActionIDs, unreadMarkerReportActionID];
+    const reportActionsExtraData = [
+        draftReportActionID,
+        isDraftPendingCompletion,
+        latestConciergeFeedbackActionIDs,
+        expandedSystemMessageReportActionIDs,
+        unreadMarkerReportActionID,
+        focusRequestedReportActionID,
+    ];
 
     /**
      * Runs when the FlatList finishes laying out
@@ -388,6 +406,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         renderReportAction={renderReportAction}
                         reportActionsExtraData={reportActionsExtraData}
                         linkedReportActionID={linkedReportActionID}
+                        focusRequestedReportActionID={focusRequestedReportActionID}
                         listRef={listRef}
                         onLastItemIndexChange={updateLastItemIndex}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}

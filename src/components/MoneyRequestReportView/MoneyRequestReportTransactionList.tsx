@@ -127,6 +127,9 @@ type MoneyRequestReportTransactionListProps = {
     /** Report action ID the unified list should initially scroll to, when deep-linked. */
     linkedReportActionID: string | undefined;
 
+    /** First revealed action to mount for a manual expansion's focus handoff. */
+    focusRequestedReportActionID?: string;
+
     /** Ref forwarded to the underlying FlashList. */
     listRef: FlatListRefType;
 
@@ -185,6 +188,7 @@ function MoneyRequestReportTransactionList({
     renderReportAction,
     reportActionsExtraData,
     linkedReportActionID,
+    focusRequestedReportActionID,
     listRef,
     onLastItemIndexChange,
     accessibilityLabel,
@@ -480,6 +484,7 @@ function MoneyRequestReportTransactionList({
                 renderReportAction={renderReportAction}
                 reportActionsExtraData={reportActionsExtraData}
                 linkedReportActionID={linkedReportActionID}
+                focusRequestedReportActionID={focusRequestedReportActionID}
                 newTransactionID={isReportVisible ? newTransactions.at(0)?.transactionID : undefined}
                 listRef={listRef}
                 onLastItemIndexChange={onLastItemIndexChange}

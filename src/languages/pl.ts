@@ -10596,7 +10596,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         noActivityYet: 'Brak aktywności',
         collapsedSystemMessages: () => ({
             one: 'pokaż 1 aktualizację',
-            other: (count: number) => `pokaż ${count} ${count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? 'aktualizacje' : 'aktualizacji'}`,
+            few: (count: number) => `pokaż ${count} aktualizacje`,
+            many: (count: number) => `pokaż ${count} aktualizacji`,
+            other: (count: number) => `pokaż ${count} aktualizacji`,
         }),
         connectionSettings: 'Ustawienia połączenia',
         actions: {

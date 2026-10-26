@@ -18,6 +18,8 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 
+import {useActionListRef} from '@pages/inbox/ActionListContext';
+import type * as ActionListContextModule from '@pages/inbox/ActionListContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
@@ -31,10 +33,12 @@ import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaDa
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
+import type {FlatList} from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import {buildSystemAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -52,6 +56,11 @@ jest.mock('@react-navigation/native', () => {
         }),
     };
 });
+
+jest.mock('@pages/inbox/ActionListContext', () => ({
+    ...jest.requireActual<typeof ActionListContextModule>('@pages/inbox/ActionListContext'),
+    useActionListRef: jest.fn(() => ({current: null})),
+}));
 
 jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@hooks/useInFlightRequests', () => ({
@@ -526,6 +535,38 @@ describe('ReportActionsList (body)', () => {
             renderSystemActions(CONST.REPORT.TYPE.CHAT);
 
             expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'system-older', 'chat-boundary']);
+        });
+
+        it('mounts the off-screen oldest update and gives only that row a manual focus request in the inverted list', () => {
+            // Given a newest-first group whose collapsed anchor is its newest member
+            const scrollToIndex = jest.fn();
+            jest.mocked(useActionListRef).mockReturnValue({current: createMock<FlatList>({scrollToIndex})});
+            const frames: FrameRequestCallback[] = [];
+            const frameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => frames.push(callback));
+            try {
+                renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
+                const anchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
+                const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(anchor, CollapsedSystemMessages);
+                expect(summary).toBeDefined();
+
+                // When the user presses the summary
+                act(() => summary?.props.onPress());
+
+                // Then the oldest revealed message owns focus, independent of the inverted data index
+                const oldest = getCapturedListProps()?.renderItem?.({item: getSystemAction(1), index: 1});
+                const newest = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
+                expect(findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(oldest, ReportActionsListItemRenderer)?.props.onExpandedSystemMessageReady).toEqual(
+                    expect.any(Function),
+                );
+                expect(
+                    findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(newest, ReportActionsListItemRenderer)?.props.onExpandedSystemMessageReady,
+                ).toBeUndefined();
+                act(() => frames.forEach((callback) => callback(0)));
+                expect(scrollToIndex).toHaveBeenCalledWith({index: 1, animated: false, viewPosition: 0.5});
+            } finally {
+                frameSpy.mockRestore();
+                jest.mocked(useActionListRef).mockReturnValue({current: null});
+            }
         });
 
         it('keeps the unread target aligned with a synthetic draft in ordinary chats', () => {

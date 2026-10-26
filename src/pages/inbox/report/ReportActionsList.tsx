@@ -293,12 +293,20 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         : visibleReportActions;
 
     const shouldCollapseSystemMessages = isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isTransactionThread(parentReportAction);
-    const {displayReportActions, runsByAnchorReportActionID, reportActionIDToDisplayIndex, expandedSystemMessageReportActionIDs, unreadMarkerReportActionIndex, expandSystemMessageRun} =
-        useReportActionsPresentation({
-            visibleReportActions: shouldCollapseSystemMessages ? renderedVisibleReportActions : [],
-            linkedReportActionID,
-            unreadMarkerReportActionID,
-        });
+    const {
+        displayReportActions,
+        runsByAnchorReportActionID,
+        reportActionIDToDisplayIndex,
+        expandedSystemMessageReportActionIDs,
+        unreadMarkerReportActionIndex,
+        expandSystemMessageRun,
+        focusRequestedReportActionID,
+        onExpandedSystemMessageReady,
+    } = useReportActionsPresentation({
+        visibleReportActions: shouldCollapseSystemMessages ? renderedVisibleReportActions : [],
+        linkedReportActionID,
+        unreadMarkerReportActionID,
+    });
     const displayedReportActions = shouldCollapseSystemMessages ? displayReportActions : renderedVisibleReportActions;
     const canonicalIndexByReportActionID = new Map(renderedVisibleReportActions.map((action, index) => [action.reportActionID, index]));
     const displayedUnreadMarkerIndex = shouldCollapseSystemMessages
@@ -332,6 +340,17 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     // Which rows are on screen, tracked so an edit started on a message the user can already see doesn't move the list.
     const viewableRowIndexesRef = useRef<Set<number>>(new Set());
+
+    const expandedFocusIndex = focusRequestedReportActionID ? (reportActionIDToDisplayIndex.get(focusRequestedReportActionID) ?? -1) : -1;
+    useEffect(() => {
+        if (expandedFocusIndex < 0 || viewableRowIndexesRef.current.has(expandedFocusIndex)) {
+            return;
+        }
+
+        // An off-window revealed message must mount before it can hand off focus.
+        const frame = requestAnimationFrame(() => listRef.current?.scrollToIndex({index: expandedFocusIndex, animated: false, viewPosition: 0.5}));
+        return () => cancelAnimationFrame(frame);
+    }, [expandedFocusIndex, focusRequestedReportActionID, listRef]);
 
     // The rendered indexes are known here, so scrolling the row into view mounts it and keeps the message visible while it's edited.
     useScrollToEditingReportAction({
@@ -517,6 +536,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                         isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                         isLatestConciergeFeedbackAction={latestConciergeFeedbackActionIDs.includes(reportAction.reportActionID)}
                         reportsParentHierarchy={reportsParentHierarchy}
+                        onExpandedSystemMessageReady={
+                            reportAction.reportActionID === focusRequestedReportActionID ? (target) => onExpandedSystemMessageReady(reportAction.reportActionID, target) : undefined
+                        }
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
                         shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
@@ -545,6 +567,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         isDraftPendingCompletion,
         latestConciergeFeedbackActionIDs,
         expandedSystemMessageReportActionIDs,
+        focusRequestedReportActionID,
     ];
 
     const listHeaderComponent = (

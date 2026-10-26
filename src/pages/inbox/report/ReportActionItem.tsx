@@ -87,7 +87,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
-import type {GestureResponderEvent, TextInput} from 'react-native';
+import type {ComponentRef} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
@@ -98,8 +99,6 @@ import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
-
-import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
 
 import ActionContentRouter from './actionContents/ActionContentRouter';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
@@ -170,6 +169,9 @@ type ReportActionItemProps = {
 
     /** Parent links of the report and its ancestors, used to clear related errors on dismiss */
     reportsParentHierarchy: OnyxCollection<ReportHierarchyInfo>;
+
+    /** Consumes an explicit expansion's focus request after this message has laid out. */
+    onExpandedSystemMessageReady?: (target: ComponentRef<typeof View> | null) => void;
 };
 
 function ReportActionItem({
@@ -194,6 +196,7 @@ function ReportActionItem({
     shouldHighlight = false,
     isHarvestCreatedExpenseReport = false,
     reportsParentHierarchy,
+    onExpandedSystemMessageReady,
 }: ReportActionItemProps) {
     const reportID = report?.reportID ?? action?.reportID;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -250,7 +253,17 @@ function ReportActionItem({
     const [isHidden, setIsHidden] = useState(false);
     const {isActiveReportAction: isActiveReactionListReportAction, hideReactionList} = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
-    const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
+    const popoverAnchorRef = useRef<ComponentRef<typeof View>>(null);
+
+    useEffect(() => {
+        if (!onExpandedSystemMessageReady) {
+            return;
+        }
+
+        // A recycled host may not emit a new layout event. Wait for the committed row instead.
+        const frame = requestAnimationFrame(() => onExpandedSystemMessageReady(popoverAnchorRef.current));
+        return () => cancelAnimationFrame(frame);
+    }, [action.reportActionID, onExpandedSystemMessageReady]);
     const downloadedPreviews = useRef<string[]>([]);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);

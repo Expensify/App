@@ -35,6 +35,8 @@ import type {BankAccountList, DecisionName, Report, ReportAction} from '@src/typ
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 
+import type {View} from 'react-native';
+
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
@@ -147,8 +149,8 @@ describe('ReportActionItem', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false) {
-        return render(
+    function getItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false, onExpandedSystemMessageReady?: (target: React.ComponentRef<typeof View> | null) => void) {
+        return (
             <ComposeProviders
                 components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider, PlaybackContextProvider]}
             >
@@ -165,12 +167,83 @@ describe('ReportActionItem', () => {
                             shouldDisplayNewMarker={false}
                             isFirstVisibleReportAction={false}
                             isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
+                            onExpandedSystemMessageReady={onExpandedSystemMessageReady}
                         />
                     </PortalProvider>
                 </ScreenWrapper>
-            </ComposeProviders>,
+            </ComposeProviders>
         );
     }
+
+    function renderItemWithAction(
+        action: ReportAction,
+        isLatestConciergeFeedbackAction = false,
+        onExpandedSystemMessageReady?: (target: React.ComponentRef<typeof View> | null) => void,
+        focusTarget?: React.ComponentRef<typeof View>,
+    ) {
+        return render(getItemWithAction(action, isLatestConciergeFeedbackAction, onExpandedSystemMessageReady), focusTarget ? {createNodeMock: () => focusTarget} : undefined);
+    }
+
+    it('hands a recycled message host to the expansion request without requiring another layout event', async () => {
+        // Given a mounted row with no expansion request, as in a warmed FlashList recycle pool
+        const target = createMock<React.ComponentRef<typeof View>>({focus: jest.fn()});
+        const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {});
+        const {rerender} = renderItemWithAction(action, false, undefined, target);
+        await waitForBatchedUpdatesWithAct();
+        const frames = new Map<number, FrameRequestCallback>();
+        let frameID = 0;
+        const frameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+            frames.set(++frameID, callback);
+            return frameID;
+        });
+        const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((id) => frames.delete(id));
+        const onReady = jest.fn();
+        try {
+            // When the retained row is assigned the first revealed update, with unchanged geometry
+            rerender(getItemWithAction({...action, reportActionID: 'revealed-oldest'}, false, onReady));
+            expect(onReady).not.toHaveBeenCalled();
+            act(() => {
+                for (const callback of [...frames.values()]) {
+                    callback(0);
+                }
+            });
+
+            // Then its existing labeled host receives the handoff after commit, without a synthetic layout
+            expect(onReady).toHaveBeenCalledTimes(1);
+            expect(onReady).toHaveBeenCalledWith(target);
+        } finally {
+            frameSpy.mockRestore();
+            cancelSpy.mockRestore();
+        }
+    });
+
+    it('cancels the handoff if the message is recycled before the next frame', async () => {
+        const target = createMock<React.ComponentRef<typeof View>>({focus: jest.fn()});
+        const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {});
+        const {rerender} = renderItemWithAction(action, false, undefined, target);
+        await waitForBatchedUpdatesWithAct();
+        const frames = new Map<number, FrameRequestCallback>();
+        let frameID = 0;
+        const frameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+            frames.set(++frameID, callback);
+            return frameID;
+        });
+        const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((id) => frames.delete(id));
+        const onReady = jest.fn();
+        try {
+            rerender(getItemWithAction({...action, reportActionID: 'revealed-oldest'}, false, onReady));
+            rerender(getItemWithAction({...action, reportActionID: 'another-message'}));
+            act(() => {
+                for (const callback of [...frames.values()]) {
+                    callback(0);
+                }
+            });
+            expect(onReady).not.toHaveBeenCalled();
+        } finally {
+            frameSpy.mockRestore();
+            cancelSpy.mockRestore();
+        }
+    });
 
     describe('Edited file attachments', () => {
         const attachmentURL = 'https://www.expensify.com/chat-attachments/12345/w_abc.csv';
