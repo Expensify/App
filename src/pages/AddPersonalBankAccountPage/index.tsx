@@ -27,10 +27,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {getReportPolicyID} from '@selectors/Report';
-import React, {useContext, useEffect, useRef} from 'react';
+import React, {useContext, useEffect, useEffectEvent, useRef} from 'react';
 
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
@@ -64,6 +64,7 @@ const VALIDATE_CODE_ERROR_SUBSTRINGS = ['magic code', 'failed attempts'];
 function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
     const route = useRoute();
+    const navigation = useNavigation();
     const isFocused = useIsFocused();
     const urlSubPage = (route.params as {subPage?: string} | undefined)?.subPage;
 
@@ -76,6 +77,10 @@ function AddPersonalBankAccountPage() {
 
     // Each substep is a separate screen, so on the magic code screen this tracks whether a code was submitted from it
     const hasSubmittedValidateCode = useRef(false);
+
+    // Whether this substep moved the flow on to the success step, and whether it was out of focus once the bank account was added, like under the success step
+    const hasMovedToSuccess = useRef(false);
+    const wasUnfocusedAfterSuccess = useRef(false);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
@@ -230,22 +235,38 @@ function AddPersonalBankAccountPage() {
         prevPage();
     };
 
-    // Advance to the success step once the bank account has been added successfully. This can resolve while the user
-    // has navigated back to an earlier substep, so jump straight to success rather than relying on the current page.
-    // Every substep the user passed through stays mounted under the focused one, so only the focused substep moves on. When another screen covers the flow, it moves on once the
-    // user returns to it.
-    useEffect(() => {
-        if (!shouldShowSuccess || currentPageName === SUB_PAGE_NAMES.SUCCESS || !isFocused) {
-            return;
-        }
-
+    const moveToSuccess = useEffectEvent(() => {
         // Replace the magic code step, so going back from success lands on the confirmation step instead of a code form that would send another magic code
         if (currentPageName === SUB_PAGE_NAMES.VALIDATE_CODE) {
             Navigation.navigate(successRoute, {forceReplace: true});
             return;
         }
         moveTo(successIndex, false);
-    }, [shouldShowSuccess, currentPageName, isFocused, successRoute, moveTo, successIndex]);
+    });
+    const leaveFlow = useEffectEvent(() => exitFlow());
+
+    // Advance to the success step once the bank account has been added successfully. This can resolve while the user has navigated back to an earlier substep, so jump straight to
+    // success rather than relying on the current page. Every substep the user passed through stays mounted under the one on top of the flow, so only that one moves on, even while
+    // another screen covers the flow, so the success step is there when the user closes it.
+    // A substep that comes back into focus after the bank account was added is one the user went back to from the success step. The bank account is already added, so that leaves
+    // the flow, like the success step's back button.
+    useEffect(() => {
+        if (!shouldShowSuccess || currentPageName === SUB_PAGE_NAMES.SUCCESS) {
+            return;
+        }
+        if (!isFocused) {
+            wasUnfocusedAfterSuccess.current = true;
+        } else if (wasUnfocusedAfterSuccess.current) {
+            wasUnfocusedAfterSuccess.current = false;
+            leaveFlow();
+            return;
+        }
+        if (hasMovedToSuccess.current || navigation.getState()?.routes.at(-1)?.key !== route.key) {
+            return;
+        }
+        hasMovedToSuccess.current = true;
+        moveToSuccess();
+    }, [shouldShowSuccess, currentPageName, isFocused, navigation, route.key]);
 
     // Refresh the report the flow was opened from once the account is added, since that changes its server-owned fields.
     // Doing it here instead of on exit covers every way of closing the flow. The report may not be on screen, so don't mark it as read.

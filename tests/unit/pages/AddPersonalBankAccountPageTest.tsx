@@ -12,7 +12,7 @@ import type {AddPersonalBankAccountNavigatorParamList, RightModalNavigatorParamL
 
 import AddPersonalBankAccountPage from '@pages/AddPersonalBankAccountPage';
 
-import {addPersonalBankAccount, clearPersonalBankAccountErrors} from '@userActions/BankAccounts';
+import {addPersonalBankAccount, clearPersonalBankAccount, clearPersonalBankAccountErrors} from '@userActions/BankAccounts';
 import {openReport} from '@userActions/Report';
 import {requestValidateCodeAction} from '@userActions/User';
 
@@ -384,7 +384,7 @@ describe('AddPersonalBankAccountPage', () => {
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.SUCCESS, undefined), {forceReplace: true});
         });
 
-        it('moves on to the success step once the user returns to the flow, when the bank account is added while another screen covers it', async () => {
+        it('moves on to the success step when the bank account is added while another screen covers the flow', async () => {
             // Given a user who confirmed the bank account and opened another screen on top of the flow, such as the search router, while it was loading
             await act(async () => {
                 await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
@@ -396,18 +396,45 @@ describe('AddPersonalBankAccountPage', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // When the bank account is added, and the user then closes the screen on top
+            // When the bank account is added
             await act(async () => {
                 await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {shouldShowSuccess: true});
             });
-            expect(navigateSpy).not.toHaveBeenCalled();
+
+            // Then the flow moves on to the success step under the screen on top, so the user sees it when they close that screen, instead of a confirmation step that would submit
+            // the same bank account again
+            expect(navigateSpy).toHaveBeenCalledTimes(1);
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.SUCCESS, undefined));
+        });
+
+        it.each([SUB_PAGE_NAMES.CONFIRMATION, SUB_PAGE_NAMES.VALIDATE_CODE])('leaves the flow when the user goes back from the success step to the step under it: %s', async (subPage) => {
+            // Given a user on the confirmation step, or on the magic code step it opened, whose bank account was added
+            jest.mocked(clearPersonalBankAccount).mockImplementationOnce(() => {
+                Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {shouldShowSuccess: null});
+            });
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
+            });
+            await renderPageOverTab(settingsTabIndex, subPage);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {shouldShowSuccess: true});
+            });
+
+            // When a screen is opened on top of the step and closed again, as when the user goes back to it from the success step
+            act(() => {
+                navigationRef.current?.navigate(SCREENS.SEARCH_ROUTER.ROOT);
+            });
+            await waitForBatchedUpdatesWithAct();
             act(() => {
                 navigationRef.current?.goBack();
             });
             await waitForBatchedUpdatesWithAct();
 
-            // Then the flow moves on to the success step, so the confirmation step isn't left there to submit the same bank account again
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.SUCCESS, undefined));
+            // Then the flow is left, like with the success step's back button, instead of moving on to the success step again
+            expect(navigateSpy).toHaveBeenCalledTimes(1);
+            expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET);
+            expect(clearPersonalBankAccount).toHaveBeenCalledTimes(1);
         });
 
         it('requests the magic code for updating personal details, the reason the backend verifies it against', async () => {
