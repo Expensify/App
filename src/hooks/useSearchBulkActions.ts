@@ -138,7 +138,9 @@ import type {ValueOf} from 'type-fest';
 
 /* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef} from 'react';
+
+import type {RejectModalAction} from './useHoldRejectEducationalModal';
 
 import useAllTransactions from './useAllTransactions';
 import useBulkPayOptions from './useBulkPayOptions';
@@ -151,6 +153,8 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useExpensifyCardStatementPDFDownloadModal from './useExpensifyCardStatementPDFDownloadModal';
+import useHoldRejectEducationalModal from './useHoldRejectEducationalModal';
+import useHoldSubmitterEducationalModal from './useHoldSubmitterEducationalModal';
 import useIsVendorColumnAvailable from './useIsVendorColumnAvailable';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLoadSearchCardData from './useLoadSearchCardData';
@@ -720,10 +724,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const openSearchReportSubmitToPopover = useOpenSearchReportSubmitToPopover();
     const {showReportPDFDownloadModal} = useReportPDFDownloadModal();
     const {showExpensifyCardStatementPDFDownloadModal, closeExpensifyCardStatementPDFDownloadModal} = useExpensifyCardStatementPDFDownloadModal();
-    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
-    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
-        typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
-    > | null>(null);
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
@@ -765,6 +765,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',
         'Pencil',
@@ -956,6 +957,32 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const shouldCalculateTotalsOnRefresh = useSearchShouldCalculateTotals(currentSearchKey, true);
     const isExpenseType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+
+    const dismissModalAndUpdateUseHold = useCallback(() => {
+        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
+        if (hash && selectedTransactionsKeys.length > 0) {
+            navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
+        }
+    }, [hash, selectedTransactionsKeys.length, isOffline]);
+
+    const dismissRejectModalBasedOnAction = useCallback(
+        (rejectModalAction: RejectModalAction) => {
+            if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
+                dismissRejectUseExplanation();
+                if (hash && selectedTransactionsKeys.length > 0) {
+                    navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                }
+            } else {
+                dismissRejectUseExplanation();
+                Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+            }
+        },
+        [hash, selectedTransactionsKeys.length],
+    );
+
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal();
+    const {showHoldSubmitterEducationalModal} = useHoldSubmitterEducationalModal();
+
     // Use currentSearchResults, not the lastNonEmpty fallback: the export scope must reflect the query on screen now,
     // so an empty current result yields no selection rather than one derived from the previous query's settlements.
     const expensifyCardStatementSelection = useMemo(
@@ -2804,7 +2831,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (dismissedRejectUseExplanation) {
                         Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
                     } else {
-                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                        showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT));
                     }
                 },
             });
@@ -3058,6 +3085,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 selectedMergeReports,
                 currentUserPersonalDetails.accountID,
                 rules,
+                getLoginByAccountID(selectedMergeReports.at(0)?.ownerAccountID, personalDetails),
                 allReportNameValuePairs,
                 policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedMergeReports.at(0)?.policyID}`],
             )
@@ -3172,9 +3200,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (isDismissed) {
                         navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
                     } else if (shouldShowHoldEducationalModal) {
-                        setIsHoldEducationalModalVisible(true);
+                        showHoldSubmitterEducationalModal({isDM: areAllTransactionsFromDMReports}).finally(dismissModalAndUpdateUseHold);
                     } else {
-                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
+                        showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD));
                     }
                 },
             });
@@ -3222,7 +3250,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
             const {transactions: searchedTransactions, reports, policies: transactionPolicies} = getTransactionsAndReportsFromSearch(searchResults, selectedTransactionsKeys);
 
-            if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, rules, accountID)) {
+            if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, rules, personalDetails, accountID)) {
                 const transactionID = searchedTransactions.at(0)?.transactionID;
                 if (transactionID) {
                     options.push({
@@ -3241,7 +3269,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
         const firstTransactionMeta = firstTransactionKey ? selectedTransactions[firstTransactionKey] : undefined;
-        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, cardList, selectedReports, queryJSON?.type);
+        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, personalDetails, cardList, selectedReports, queryJSON?.type);
 
         const isSplittable = !!firstTransactionMeta?.canSplit;
         const isAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
@@ -3392,6 +3420,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         areAllTransactionsFromSubmitter,
         areAllTransactionsFromDMReports,
         dismissedHoldUseExplanation,
+        showHoldOrRejectEducationalModal,
+        showHoldSubmitterEducationalModal,
+        dismissRejectModalBasedOnAction,
+        dismissModalAndUpdateUseHold,
         localeCompare,
         firstTransaction,
         isDuplicateOptionVisible,
@@ -3451,27 +3483,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         dropdownButtonsOptions.length > 0 && dropdownButtonsOptions.every((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT && !option.subMenuItems);
     const bulkActionsMenuHeaderText = isShowingExportOptionsDirectly ? translate('common.export') : undefined;
 
-    const dismissModalAndUpdateUseHold = useCallback(() => {
-        setIsHoldEducationalModalVisible(false);
-        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
-        if (hash && selectedTransactionsKeys.length > 0) {
-            navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
-        }
-    }, [hash, selectedTransactionsKeys.length, isOffline]);
-
-    const dismissRejectModalBasedOnAction = useCallback(() => {
-        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
-            dismissRejectUseExplanation();
-            if (hash && selectedTransactionsKeys.length > 0) {
-                navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
-            }
-        } else {
-            dismissRejectUseExplanation();
-            Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
-        }
-        setRejectModalAction(null);
-    }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
-
     return {
         headerButtonsOptions,
         dropdownButtonsOptions,
@@ -3481,11 +3492,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedReportIDs,
         businessBankAccountOptions,
         confirmPayment: stableOnBulkPaySelected,
-        isHoldEducationalModalVisible,
-        areAllTransactionsFromDMReports,
-        rejectModalAction,
-        dismissModalAndUpdateUseHold,
-        dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,
         isDuplicateReportOptionVisible,

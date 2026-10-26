@@ -47,6 +47,12 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.MEMBERS_IMPORT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBERS_CHANGE_OFFICE_LOCATION]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBERS_CHANGE_WORK_ARRANGEMENT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.WORKFLOWS_IMPORT]: {
         policyID: string;
     };
@@ -442,6 +448,10 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         accountID: string;
     };
+    [SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION]: {
+        policyID: string;
+        accountID: string;
+    };
     [SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT]: {
         policyID: string;
     };
@@ -657,6 +667,9 @@ type WorkspaceSettingsParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_SETUP]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_OAUTH]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {
@@ -1225,6 +1238,20 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT_SELECTOR]: {
+        policyID: string;
+        feed: CardFeedWithDomainID;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_ACCOUNT_CARD_LIST]: {
+        policyID: string;
+        feed: CardFeedWithDomainID;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED]: {
         policyID: string;
     };
@@ -1296,8 +1323,13 @@ type WorkspaceSettingsParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE]: {
         policyID: string;
-        feed: string;
+        feed: CompanyCardFeedWithDomainID;
         cardID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE]: {
+        policyID: string;
+        feed: CompanyCardFeedWithDomainID;
+        cardIDs?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT]: {
         policyID: string;

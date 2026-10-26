@@ -2,6 +2,7 @@ import ImportSpreadsheet from '@components/ImportSpreadsheet';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -32,6 +33,13 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORT;
     const backTo = isQuickSettingsFlow && 'backTo' in route.params ? route.params.backTo : undefined;
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const {isBetaEnabled} = usePermissions();
+    const isAppendingToExistingLists =
+        !isQuickSettingsFlow &&
+        hasAccountingConnections &&
+        isBetaEnabled(CONST.BETAS.INDIRECT_TAG_UPLOADS) &&
+        !!spreadsheet?.isImportingMultiLevelTags &&
+        !!spreadsheet?.isAppendingToExistingLists;
 
     const workspaceTagsListBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_TAGS_IMPORT.path);
     const workspaceGoToImportedPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_IMPORTED.path, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
@@ -39,7 +47,7 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
     }
-    if (hasAccountingConnections) {
+    if (hasAccountingConnections && !isAppendingToExistingLists) {
         return <NotFoundPage />;
     }
 
@@ -65,6 +73,7 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
                     return workspaceGoToImportedPath;
                 })()}
                 isImportingMultiLevelTags={spreadsheet?.isImportingMultiLevelTags}
+                isAppendingToExistingLists={isAppendingToExistingLists}
                 shouldForceReplaceNavigation={!isQuickSettingsFlow && !spreadsheet?.isImportingMultiLevelTags}
             />
         </AccessOrNotFoundWrapper>
