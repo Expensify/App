@@ -31,7 +31,7 @@ import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockPrompt = '';
-let mockIsDescribeRuleBetaEnabled = true;
+const mockScrollTo = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation = jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native');
@@ -50,11 +50,6 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
-    })),
-);
-jest.mock('@hooks/usePermissions', () =>
-    jest.fn(() => ({
-        isBetaEnabled: (beta: string) => beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.DESCRIBE_RULE && mockIsDescribeRuleBetaEnabled,
     })),
 );
 jest.mock('@hooks/usePolicy', () => jest.fn());
@@ -124,15 +119,30 @@ jest.mock('@components/Button', () => {
     MockButton.Text = ({children}: {children: React.ReactNode}) => ReactModule.createElement(Text, null, children);
     return MockButton;
 });
-jest.mock('@components/Form/InputWrapper', () => () => null);
+jest.mock('@components/Form/InputWrapper', () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {TextInput} = jest.requireActual<{TextInput: React.ComponentType<{accessibilityLabel?: string; onFocus?: () => void}>}>('react-native');
+    return ({accessibilityLabel, onFocus}: {accessibilityLabel: string; onFocus?: () => void}) => ReactModule.createElement(TextInput, {accessibilityLabel, onFocus});
+});
 jest.mock('@components/Form/FormProvider', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<{
         Pressable: React.ComponentType<{accessibilityLabel?: string; onPress?: () => void; children?: React.ReactNode}>;
         Text: React.ComponentType<{children?: React.ReactNode}>;
     }>('react-native');
-    return ({children, onSubmit, submitButtonText}: {children: React.ReactNode; onSubmit: (values: {prompt: string}) => void; submitButtonText: string}) =>
-        ReactModule.createElement(
+    function MockFormProvider({
+        children,
+        onSubmit,
+        submitButtonText,
+        ref,
+    }: {
+        children: React.ReactNode;
+        onSubmit: (values: {prompt: string}) => void;
+        submitButtonText: string;
+        ref: React.Ref<{scrollTo: (y: number) => void}>;
+    }) {
+        ReactModule.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo}));
+        return ReactModule.createElement(
             ReactModule.Fragment,
             null,
             children,
@@ -142,6 +152,8 @@ jest.mock('@components/Form/FormProvider', () => {
                 ReactModule.createElement(Text, null, submitButtonText),
             ),
         );
+    }
+    return MockFormProvider;
 });
 
 type RulesNewPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_NEW>;
@@ -203,7 +215,6 @@ describe('New rule describe section', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockPrompt = '';
-        mockIsDescribeRuleBetaEnabled = true;
         writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
         setAdminPolicy();
     });
@@ -216,7 +227,7 @@ describe('New rule describe section', () => {
     });
 
     it('shows the four templates and then the describe section', async () => {
-        // Given an admin with the describeRule beta on the New rule page
+        // Given an admin on the New rule page
         await renderRulesNewPage();
 
         // When the admin looks at the options
@@ -226,7 +237,7 @@ describe('New rule describe section', () => {
         const expectedOptionNames = [
             'workspace.rules.newRule.restrictCardSpend',
             'workspace.rules.newRule.flagForReview',
-            'workspace.rules.newRule.requireFieldsShort',
+            'workspace.rules.newRule.requireFields',
             'workspace.rules.newRule.applyExpenseDefaults',
         ];
         expect(options).toHaveLength(expectedOptionNames.length);
@@ -254,42 +265,27 @@ describe('New rule describe section', () => {
         expect(writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.GENERATE_RULE)).toHaveLength(0);
     });
 
+    it('scrolls to the describe box when it gets focus', async () => {
+        // Given an admin on New rule, where the describe box sits below the templates
+        await renderRulesNewPage();
+        const input = screen.getByLabelText('workspace.rules.newRule.describeRuleInputLabel');
+        fireEvent(input, 'layout', {nativeEvent: {layout: {x: 0, y: 420, width: 300, height: 96}}});
+
+        // When the admin taps the describe box, which opens the keyboard
+        fireEvent(input, 'focus');
+
+        // Then the form scrolls to the top of the box, because iOS and Android do not scroll it above the keyboard
+        expect(mockScrollTo).toHaveBeenCalledWith(420);
+    });
+
     it('hides the describe section when New rule opens for a category', async () => {
-        // Given an admin with the describeRule beta who opens New rule for a category, which the describe section cannot scope a rule to
+        // Given an admin who opens New rule for a category, which the describe section cannot scope a rule to
         await renderRulesNewPage('Meals');
 
         // Then New rule lists only the rule types, without the describe section
         expect(screen.queryByText('workspace.rules.newRule.describeItBelow')).toBeNull();
         expect(screen.queryByLabelText('common.next')).toBeNull();
         expect(screen.getByText('workspace.rules.newRule.subtitle')).toBeOnTheScreen();
-    });
-
-    it('keeps Describe agent rule in place of the describe section without the beta', async () => {
-        // Given an admin without the describeRule beta, who must see the New rule options that exist without the feature
-        mockIsDescribeRuleBetaEnabled = false;
-        await renderRulesNewPage();
-
-        // When the admin looks at the options
-        const options = screen.getAllByRole('button');
-
-        // Then the four rule types come first and Describe agent rule comes last, with no describe section
-        const expectedOptionNames = [
-            'workspace.rules.newRule.restrictCardSpend',
-            'workspace.rules.newRule.flagForReview',
-            'workspace.rules.newRule.requireFields',
-            'workspace.rules.newRule.applyExpenseDefaults',
-            'workspace.rules.newRule.createAgentRule',
-        ];
-        expect(options).toHaveLength(expectedOptionNames.length);
-        for (const [index, name] of expectedOptionNames.entries()) {
-            expect(options.at(index)).toHaveAccessibleName(name);
-        }
-
-        expect(screen.queryByText('workspace.rules.newRule.describeItBelow')).toBeNull();
-
-        // And Describe agent rule opens the agent rule page
-        fireEvent.press(screen.getByLabelText('workspace.rules.newRule.createAgentRule'));
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_NEW.getRoute(POLICY_ID));
     });
 
     it('seeds the draft of the generated rule type and opens its editor', async () => {

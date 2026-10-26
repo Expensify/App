@@ -28,6 +28,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
+import {getReportPolicyID} from '@selectors/Report';
 import React, {useContext, useEffect, useRef} from 'react';
 
 import Address from './substeps/AddressStep';
@@ -84,6 +86,10 @@ function AddPersonalBankAccountPage() {
     const shouldShowSuccess = fullPersonalBankAccount?.shouldShowSuccess ?? false;
     const exitReportID = fullPersonalBankAccount?.exitReportID;
     const [hasExitReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(exitReportID)}`, {selector: Boolean});
+    const [exitReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(exitReportID)}`, {selector: getReportPolicyID});
+    const [exitReportFullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(exitReportPolicyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const openReport = useOpenReport();
 
     const exit = () => {
@@ -250,8 +256,14 @@ function AddPersonalBankAccountPage() {
             return;
         }
         hasRefreshedExitReport.current = true;
-        openReport({reportID: exitReportID, hasReportActions: hasExitReportActions, shouldMarkAsRead: false});
-    }, [shouldShowSuccess, exitReportID, currentPageName, openReport, hasExitReportActions]);
+        openReport({
+            reportID: exitReportID,
+            hasReportActions: hasExitReportActions,
+            shouldMarkAsRead: false,
+            fullPolicySnapshot:
+                exitReportPolicyID && exitReportFullPolicySnapshotLastModified ? {policyID: exitReportPolicyID, lastModified: exitReportFullPolicySnapshotLastModified} : undefined,
+        });
+    }, [shouldShowSuccess, exitReportID, currentPageName, openReport, hasExitReportActions, exitReportPolicyID, exitReportFullPolicySnapshotLastModified]);
 
     // Once the user sees an account ownership mismatch on the confirmation step, the next submission confirms the details shown there. Each substep is a separate screen, and the
     // error is cleared before the magic code step, so the confirmation is kept in the form draft, where every substep and later retry reads it. An error that arrives while a details

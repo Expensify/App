@@ -27,6 +27,7 @@ import {
     getAddedOfficeLocationMessage,
     getUpdatedOfficeLocationMessage,
     getDeletedOfficeLocationMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getUnassignedCompanyCardMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
@@ -43,7 +44,7 @@ import {
     getWelcomeMessage,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
-import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewReportActionMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
+import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
 import {isScanning} from '@libs/TransactionUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -61,7 +62,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -472,6 +473,37 @@ describe('ReportAlternateTextUtils', () => {
         });
     });
 
+    it.each([
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ARCHIVE_POLICY, 'archived this workspace'],
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNARCHIVE_POLICY, 'unarchived this workspace'],
+    ] as const)('localizes workspace history previews for %s', (actionName, expectedMessage) => {
+        // Given a changelog whose backend fallback text differs from the localized message.
+        const report = makeReport();
+        const lastAction = makeAction(actionName, {originalMessage: {}});
+
+        // When report and sidebar previews resolve the action.
+        const lastMessage = getLastMessageTextForReport({
+            dateFnsLocale: undefined,
+            conciergeReportID: undefined,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            personalDetails: undefined,
+            translate: translateLocal,
+            convertToDisplayString,
+            report,
+            lastActorDetails: null,
+            isReportArchived: false,
+            lastAction,
+            currentUserLogin: CURRENT_USER_LOGIN,
+            formatPhoneNumber,
+            rules: undefined,
+        });
+        const alternateText = getAlternateText({report, lastAction});
+
+        // Then both previews use the localized changelog instead of the fallback.
+        expect(lastMessage).toBe(expectedMessage);
+        expect(alternateText).toContain(expectedMessage);
+    });
+
     describe('getLastMessageTextForReport', () => {
         it('formats an agent prompt update from its original message', () => {
             const report: Report = createRandomReport(0, undefined);
@@ -561,7 +593,9 @@ describe('ReportAlternateTextUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                const reportPreviewMessage = getReportPreviewMessage(
+                    translateLocal,
+                    convertToDisplayString,
                     {
                         reportOrID: iouReport,
                         iouReportAction: iouAction,
@@ -570,7 +604,7 @@ describe('ReportAlternateTextUtils', () => {
                         isForListPreview: true,
                         originalReportAction: reportPreviewAction,
                     },
-                    getCurrencyDecimalsLocal,
+                    formatPhoneNumber,
                 );
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');
@@ -1639,6 +1673,11 @@ describe('ReportAlternateTextUtils', () => {
                 getUpdatedOfficeLocationMessage,
             ],
             [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION, {officeID: 'OFFICE1', name: 'Headquarters'}, getDeletedOfficeLocationMessage],
+            [
+                CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+                {accountID: 1, email: 'member@test.com', name: 'Member One', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+                getUpdatedEmployeeOfficeLocationMessage,
+            ],
         ] as const)('%s action', async (actionName, originalMessage, getMessage) => {
             // Given an office location change log, whose stored text is Auth's English message
             const report: Report = createRandomReport(0, undefined);
