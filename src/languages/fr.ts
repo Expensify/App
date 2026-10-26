@@ -5028,6 +5028,8 @@ ${amount} pour ${merchant} - ${date}`,
                         return 'Administrateur des personnes';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrateur des paiements';
+                    case CONST.POLICY.ROLE.TRAVEL_ADMIN:
+                        return 'Administrateur voyage';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
                         return 'Approbation uniquement';
                     case CONST.POLICY.ROLE.USER:
@@ -5070,6 +5072,7 @@ ${amount} pour ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gérer les cartes de l’espace de travail.',
             peopleAdminAlternateText: 'Gérez les membres et les workflows d’approbation.',
             paymentsAdminAlternateText: 'Gérer les paiements de workflow.',
+            travelAdminAlternateText: 'Gérer qui peut réserver des voyages et les paramètres d’Expensify Travel.',
             approveOnlyAlternateText: 'Approuver uniquement les rapports.',
             readOnlyActionTitle: 'Pas si vite...',
             readOnlyActionPrompt: 'Votre rôle dans cet espace de travail peut afficher ces paramètres, mais ne peut pas les modifier.',
@@ -7453,6 +7456,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             cardAdmins: 'Administrateurs de cartes',
             peopleAdmins: 'Administrateurs des personnes',
             paymentsAdmins: 'Administrateurs des paiements',
+            travelAdmins: 'Administrateurs voyage',
             members: 'Membres',
             workArrangement: 'Modalités de travail',
             officeBased: 'Basé au bureau',

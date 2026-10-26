@@ -50,6 +50,7 @@ import {
     getCertiniaVendors,
     getEligibleBankAccountShareRecipientEmails,
     getExcludedUsers,
+    getHighestPolicyRole,
     getExpensifyTeamExclusions,
     getForwardsToAccount,
     getForwardsToFromRules,
@@ -72,6 +73,7 @@ import {
     getOwnerChangePayerSuccessData,
     getOwnedPaidPolicies,
     getSageIntacctVendors,
+    getSelectableRoles,
     arePaymentsEnabled,
     getReimbursementChoice,
     isPolicyPayer,
@@ -1522,6 +1524,69 @@ describe('PolicyUtils', () => {
 
                 expect(canMemberRead(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
                 expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(false);
+            });
+
+            it('gives travel admins member access plus write access to travel', () => {
+                // Given a travel admin and a member on a Control workspace
+                const travelAdminPolicy = buildPolicy(CONST.POLICY.ROLE.TRAVEL_ADMIN);
+                const memberPolicy = buildPolicy(CONST.POLICY.ROLE.USER);
+
+                for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                    // When we check each feature
+                    const isTravel = feature === CONST.POLICY.POLICY_FEATURE.TRAVEL;
+
+                    // Then the travel admin can do what a member can, and also manage travel, matching the role bundle in Auth
+                    expect(canMemberRead(travelAdminPolicy, memberLogin, feature)).toBe(isTravel || canMemberRead(memberPolicy, memberLogin, feature));
+                    expect(canMemberWrite(travelAdminPolicy, memberLogin, feature)).toBe(isTravel || canMemberWrite(memberPolicy, memberLogin, feature));
+                }
+            });
+
+            it.each([
+                [CONST.POLICY.ROLE.ADMIN, true],
+                [CONST.POLICY.ROLE.EDITOR, true],
+                [CONST.POLICY.ROLE.TRAVEL_ADMIN, true],
+                [CONST.POLICY.ROLE.AUDITOR, false],
+                [CONST.POLICY.ROLE.PEOPLE_ADMIN, false],
+                [CONST.POLICY.ROLE.USER, false],
+            ])('gives %s write=%s on the travel feature', (role, canWrite) => {
+                // Given a member with the role
+                const policy = buildPolicy(role);
+
+                // When we check whether they can choose who books travel
+                // Then only workspace admins, editors, and travel admins can, matching Auth
+                expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.TRAVEL)).toBe(canWrite);
+            });
+
+            it('stops a travel admin from managing travel after the workspace is downgraded to Team', () => {
+                // Given a travel admin whose control-only role is still stored after the policy type changed to Team
+                const policy = {...buildPolicy(CONST.POLICY.ROLE.TRAVEL_ADMIN), type: CONST.POLICY.TYPE.TEAM};
+
+                // When we check whether they can manage travel
+                // Then the role no longer applies
+                expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.TRAVEL)).toBe(false);
+            });
+
+            it('lets only full admins of Control workspaces assign the travel admin role', () => {
+                // Given a workspace admin and a People Admin of a Control workspace, and a workspace admin of a Team workspace
+                const adminPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+                const peopleAdminPolicy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
+                const teamAdminPolicy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), type: CONST.POLICY.TYPE.TEAM};
+
+                // When we check who can assign the travel admin role
+                // Then only the Control workspace admin can, since it is an elevated, Control-only role
+                expect(canMemberAssignRole(adminPolicy, memberLogin, CONST.POLICY.ROLE.TRAVEL_ADMIN)).toBe(true);
+                expect(getSelectableRoles(adminPolicy, memberLogin)).toContain(CONST.POLICY.ROLE.TRAVEL_ADMIN);
+                expect(canMemberAssignRole(peopleAdminPolicy, memberLogin, CONST.POLICY.ROLE.TRAVEL_ADMIN)).toBe(false);
+                expect(getSelectableRoles(peopleAdminPolicy, memberLogin)).not.toContain(CONST.POLICY.ROLE.TRAVEL_ADMIN);
+                expect(canMemberAssignRole(teamAdminPolicy, memberLogin, CONST.POLICY.ROLE.TRAVEL_ADMIN)).toBe(false);
+            });
+
+            it('ranks travel admins below People Admins and above auditors', () => {
+                // Given a member who holds the travel admin role on one workspace and another role on a second
+                // When we find their highest role
+                // Then it follows the role hierarchy in Auth
+                expect(getHighestPolicyRole([{role: CONST.POLICY.ROLE.TRAVEL_ADMIN}, {role: CONST.POLICY.ROLE.AUDITOR}])).toBe(CONST.POLICY.ROLE.TRAVEL_ADMIN);
+                expect(getHighestPolicyRole([{role: CONST.POLICY.ROLE.TRAVEL_ADMIN}, {role: CONST.POLICY.ROLE.PEOPLE_ADMIN}])).toBe(CONST.POLICY.ROLE.PEOPLE_ADMIN);
             });
 
             it('allows creating expenses only for roles with create-expenses write access', () => {

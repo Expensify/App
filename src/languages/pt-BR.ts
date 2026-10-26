@@ -4983,6 +4983,8 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Admin de pessoas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Admin de pagamentos';
+                    case CONST.POLICY.ROLE.TRAVEL_ADMIN:
+                        return 'Administrador de viagens';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
                         return 'Somente aprovação';
                     case CONST.POLICY.ROLE.USER:
@@ -5025,6 +5027,7 @@ ${amount} para ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gerenciar cartões do workspace.',
             peopleAdminAlternateText: 'Gerencie membros e fluxos de aprovação.',
             paymentsAdminAlternateText: 'Gerencie pagamentos de fluxo de trabalho.',
+            travelAdminAlternateText: 'Gerencie quem pode reservar viagens e as configurações do Expensify Travel.',
             approveOnlyAlternateText: 'Apenas aprovar relatórios.',
             readOnlyActionTitle: 'Calma aí...',
             readOnlyActionPrompt: 'Sua função no workspace pode ver essas configurações, mas não pode editá-las.',
@@ -7377,6 +7380,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             cardAdmins: 'Administradores de cartões',
             peopleAdmins: 'Administradores de pessoas',
             paymentsAdmins: 'Administradores de pagamentos',
+            travelAdmins: 'Administradores de viagens',
             members: 'Membros',
             workArrangement: 'Arranjo de trabalho',
             officeBased: 'Baseado em escritório',

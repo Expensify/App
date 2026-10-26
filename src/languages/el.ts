@@ -5076,6 +5076,7 @@ ${amount} για ${merchant} - ${date}`,
             cardAdminAlternateText: 'Διαχειριστείτε τις κάρτες χώρου εργασίας.',
             peopleAdminAlternateText: 'Διαχειριστείτε μέλη και ροές έγκρισης.',
             paymentsAdminAlternateText: 'Διαχειριστείτε τις πληρωμές ροής εργασιών.',
+            travelAdminAlternateText: 'Διαχειριστείτε ποιος μπορεί να κάνει κρατήσεις ταξιδιών και τις ρυθμίσεις του Expensify Travel.',
             approveOnlyAlternateText: 'Μόνο έγκριση αναφορών.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Άμεσο',
@@ -5100,6 +5101,8 @@ ${amount} για ${merchant} - ${date}`,
                         return 'Διαχείριση χρηστών';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Διαχείριση πληρωμών';
+                    case CONST.POLICY.ROLE.TRAVEL_ADMIN:
+                        return 'Διαχειριστής ταξιδιών';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
                         return 'Μόνο έγκριση';
                     case CONST.POLICY.ROLE.USER:
@@ -7539,6 +7542,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             cardAdmins: 'Διαχειριστές κάρτας',
             peopleAdmins: 'Διαχειριστές προσωπικού',
             paymentsAdmins: 'Διαχειριστές πληρωμών',
+            travelAdmins: 'Διαχειριστές ταξιδιών',
             approvers: 'Εγκρίνοντες',
             auditors: 'Ελεγκτές',
             approveOnly: 'Μόνο έγκριση',

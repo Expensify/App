@@ -5200,6 +5200,7 @@ const translations = {
             cardAdminAlternateText: 'Manage workspace cards.',
             peopleAdminAlternateText: 'Manage members and approval workflows.',
             paymentsAdminAlternateText: 'Manage workflow payments.',
+            travelAdminAlternateText: 'Manage who can book travel and Expensify Travel settings.',
             approveOnlyAlternateText: 'Approve reports only.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
@@ -5224,6 +5225,8 @@ const translations = {
                         return 'People admin';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Payments admin';
+                    case CONST.POLICY.ROLE.TRAVEL_ADMIN:
+                        return 'Travel admin';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
                         return 'Approve-only';
                     case CONST.POLICY.ROLE.USER:
@@ -7858,6 +7861,7 @@ const translations = {
             cardAdmins: 'Card Admins',
             peopleAdmins: 'People Admins',
             paymentsAdmins: 'Payments Admins',
+            travelAdmins: 'Travel Admins',
             approvers: 'Approvers',
             auditors: 'Auditors',
             approveOnly: 'Approve-only',

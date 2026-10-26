@@ -4992,6 +4992,8 @@ ${amount} voor ${merchant} - ${date}`,
                         return 'Beheer personen';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Beheerder betalingen';
+                    case CONST.POLICY.ROLE.TRAVEL_ADMIN:
+                        return 'Reisbeheerder';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
                         return 'Alleen goedkeuren';
                     case CONST.POLICY.ROLE.USER:
@@ -5034,6 +5036,7 @@ ${amount} voor ${merchant} - ${date}`,
             cardAdminAlternateText: 'Werkruimtekaarten beheren.',
             peopleAdminAlternateText: 'Beheer leden en goedkeuringsworkflows.',
             paymentsAdminAlternateText: 'Workflowsbetalingen beheren.',
+            travelAdminAlternateText: 'Beheren wie reizen kan boeken en de instellingen van Expensify Travel.',
             approveOnlyAlternateText: 'Alleen rapporten goedkeuren.',
             readOnlyActionTitle: 'Niet zo snel...',
             readOnlyActionPrompt: 'Je rol in de workspace kan deze instellingen bekijken, maar niet bewerken.',
@@ -7377,6 +7380,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             cardAdmins: 'Kaartbeheerders',
             peopleAdmins: 'People-beheerders',
             paymentsAdmins: 'Betalingsbeheerders',
+            travelAdmins: 'Reisbeheerders',
             members: 'Leden',
             workArrangement: 'Werkregeling',
             officeBased: 'Op kantoor',

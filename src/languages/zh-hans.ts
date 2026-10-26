@@ -4837,6 +4837,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         return '人员管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '付款管理员';
+                    case CONST.POLICY.ROLE.TRAVEL_ADMIN:
+                        return '差旅管理员';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
                         return '仅审批';
                     case CONST.POLICY.ROLE.USER:
@@ -4878,6 +4880,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             cardAdminAlternateText: '管理工作区卡片。',
             peopleAdminAlternateText: '管理成员和审批流程。',
             paymentsAdminAlternateText: '管理工作流付款。',
+            travelAdminAlternateText: '管理谁可以预订差旅以及 Expensify Travel 设置。',
             approveOnlyAlternateText: '仅审批报告。',
             readOnlyActionTitle: '别急……',
             readOnlyActionPrompt: '你的工作区角色可以查看这些设置，但不能编辑。',
@@ -7119,6 +7122,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             cardAdmins: '卡片管理员',
             peopleAdmins: '人员管理员',
             paymentsAdmins: '付款管理员',
+            travelAdmins: '差旅管理员',
             members: '成员',
             workArrangement: '工作安排',
             officeBased: '以办公室为基地',

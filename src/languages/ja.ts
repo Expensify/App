@@ -4955,6 +4955,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         return 'メンバー管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '支払い管理者';
+                    case CONST.POLICY.ROLE.TRAVEL_ADMIN:
+                        return '出張管理者';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
                         return '承認のみ';
                     case CONST.POLICY.ROLE.USER:
@@ -4997,6 +4999,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             cardAdminAlternateText: 'ワークスペースカードを管理します。',
             peopleAdminAlternateText: 'メンバーと承認ワークフローを管理します。',
             paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
+            travelAdminAlternateText: '出張を予約できるメンバーとExpensify Travelの設定を管理します。',
             approveOnlyAlternateText: 'レポートの承認のみ。',
             readOnlyActionTitle: 'ちょっと待ってください…',
             readOnlyActionPrompt: 'このワークスペースでのあなたのロールは、これらの設定を表示できますが、編集することはできません。',
@@ -7299,6 +7302,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             cardAdmins: 'カード管理者',
             peopleAdmins: 'People 管理者',
             paymentsAdmins: '支払い管理者',
+            travelAdmins: '出張管理者',
             members: 'メンバー',
             workArrangement: '勤務形態',
             officeBased: 'オフィス勤務',
