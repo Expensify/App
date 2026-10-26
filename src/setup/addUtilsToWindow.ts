@@ -56,12 +56,11 @@ export default function addUtilsToWindow() {
             return navigationRef.current?.getCurrentRoute()?.params;
         }
 
-        function getStringRouteParam(params: ReturnType<typeof getRouteParams>, key: 'reportID' | 'transactionID' | 'policyID'): string | undefined {
+        function getStringRouteParam(params: unknown, key: 'reportID' | 'transactionID' | 'policyID'): string | undefined {
             if (!isRecord(params)) {
                 return undefined;
             }
-            const recordParams: Record<string, unknown> = params;
-            const value = recordParams[key];
+            const value = params[key];
             return typeof value === 'string' && value ? value : undefined;
         }
 
