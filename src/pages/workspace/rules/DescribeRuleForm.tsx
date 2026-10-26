@@ -166,6 +166,12 @@ function DescribeRuleForm({
     const refusal = generatedRuleState === CONST.GENERATED_RULE.STATE.IMPOSSIBLE && !!generatedRuleID && generatedRuleID === submittedGenerationID ? generatedRule : undefined;
     const refusalSuggestedPrompt = refusal?.suggestedPrompt;
     const canCreateAnyway = !!refusalSuggestedPrompt && !!onAgentRuleFallback;
+    let refusalDetail = refusal?.explanation;
+    if (refusalSuggestedPrompt) {
+        refusalDetail = refusal?.explanation
+            ? translate('workspace.rules.newRule.impossible.explanationWithSuggestion', refusal.explanation)
+            : translate('workspace.rules.newRule.impossible.trySuggestionBelow');
+    }
     const inputLabel = translate('workspace.rules.newRule.describeRuleInputLabel');
 
     const finish = () => {
@@ -313,9 +319,10 @@ function DescribeRuleForm({
             submitFlexEnabled={submitFlexEnabled}
             shouldHideFixErrorsAlert
             isSubmitButtonNeutral={!!refusalSuggestedPrompt}
-            submitButtonAndFooterContainerStyles={refusalSuggestedPrompt ? [styles.flexRow, styles.gap2] : undefined}
+            // The buttons share a row and wrap to two rows when a translated label does not fit beside the other one
+            submitButtonAndFooterContainerStyles={refusalSuggestedPrompt ? [styles.flexRow, styles.flexWrap, styles.gap2] : undefined}
             // The form puts a bottom margin on the submit button when the footer follows it. Side by side, the buttons must line up.
-            submitButtonInnerStyles={refusalSuggestedPrompt ? [styles.flex1, styles.mb0] : undefined}
+            submitButtonInnerStyles={refusalSuggestedPrompt ? [styles.flexGrow1, styles.flexBasisAuto, styles.mb0] : undefined}
             footerContent={
                 !!refusalSuggestedPrompt && (
                     <Button
@@ -323,10 +330,10 @@ function DescribeRuleForm({
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={() => describeSuggestedRule(refusalSuggestedPrompt)}
                         isDisabled={isOffline}
-                        style={styles.flex1}
+                        style={[styles.flexGrow1, styles.flexBasisAuto]}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
                     >
-                        <Button.Text>{translate('workspace.rules.newRule.impossible.tryThisInstead')}</Button.Text>
+                        <Button.Text>{translate('workspace.rules.newRule.impossible.useSuggestion')}</Button.Text>
                     </Button>
                 )
             }
@@ -365,8 +372,8 @@ function DescribeRuleForm({
             {!!refusal && (
                 <View style={styles.mt4}>
                     <Text style={styles.textStrong}>{translate(IMPOSSIBLE_TITLE_BY_REASON[refusal.reason ?? ''] ?? 'workspace.rules.newRule.impossible.noCapability')}</Text>
-                    {!!refusal.explanation && <Text style={[styles.textSupporting, styles.mt1]}>{refusal.explanation}</Text>}
-                    {!!refusalSuggestedPrompt && <Text style={styles.mt3}>{refusalSuggestedPrompt}</Text>}
+                    {!!refusalDetail && <Text style={[styles.textSupporting, styles.mt1]}>{refusalDetail}</Text>}
+                    {!!refusalSuggestedPrompt && <Text style={styles.mt3}>{translate('workspace.rules.newRule.impossible.quotedSuggestion', refusalSuggestedPrompt)}</Text>}
                 </View>
             )}
         </FormProvider>

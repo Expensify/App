@@ -50,7 +50,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: (key: string) => key,
+        translate: (key: string, ...params: unknown[]) => [key, ...params].join(' '),
     })),
 );
 jest.mock('@hooks/usePermissions', () =>
@@ -499,7 +499,7 @@ describe('New rule describe section', () => {
 
         // Then New rule shows the reason and the suggestion, and nothing opens, because no rule can be drafted
         expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
-        expect(screen.getByText('Comment on the report when it is submitted')).toBeOnTheScreen();
+        expect(screen.getByText('workspace.rules.newRule.impossible.quotedSuggestion Comment on the report when it is submitted')).toBeOnTheScreen();
         expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toBeUndefined();
     });
@@ -519,7 +519,7 @@ describe('New rule describe section', () => {
         });
         const generateRuleRequestCount = writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.GENERATE_RULE).length;
 
-        // When the admin keeps their own description and taps Create anyway, the button that replaces Next next to Try this instead
+        // When the admin keeps their own description and taps Create anyway, the button that replaces Next next to Use suggestion
         fireEvent.press(screen.getByLabelText('workspace.rules.newRule.impossible.createAnyway'));
         await waitForBatchedUpdatesWithAct();
 

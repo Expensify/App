@@ -35,7 +35,7 @@ jest.mock('@react-navigation/native', () => {
 });
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: (key: string) => key,
+        translate: (key: string, ...params: unknown[]) => [key, ...params].join(' '),
     })),
 );
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: false, shouldUseNarrowLayout: false})));
@@ -276,11 +276,11 @@ describe('DescribeRuleModal', () => {
         expect(onRuleGenerated).not.toHaveBeenCalled();
         expect(onClose).not.toHaveBeenCalled();
         expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
-        expect(screen.getByText(IMPOSSIBLE_ANSWER.explanation)).toBeOnTheScreen();
-        expect(screen.getByText(IMPOSSIBLE_ANSWER.suggestedPrompt)).toBeOnTheScreen();
+        expect(screen.getByText(`workspace.rules.newRule.impossible.explanationWithSuggestion ${IMPOSSIBLE_ANSWER.explanation}`)).toBeOnTheScreen();
+        expect(screen.getByText(`workspace.rules.newRule.impossible.quotedSuggestion ${IMPOSSIBLE_ANSWER.suggestedPrompt}`)).toBeOnTheScreen();
 
-        // And Try this instead is the suggested action, so Next turns neutral
-        expect(screen.getByText('workspace.rules.newRule.impossible.tryThisInstead')).toBeOnTheScreen();
+        // And Use suggestion is the suggested action, so Next turns neutral
+        expect(screen.getByText('workspace.rules.newRule.impossible.useSuggestion')).toBeOnTheScreen();
         expect(mockIsSubmitButtonNeutral).toBe(true);
 
         // And the submit button keeps Next, because an editor has no agent rule to create anyway
@@ -292,15 +292,15 @@ describe('DescribeRuleModal', () => {
         expect(await getPromptErrors()).toEqual([]);
     });
 
-    it('describes the suggested rule when the admin taps Try this instead', async () => {
+    it('describes the suggested rule when the admin taps Use suggestion', async () => {
         // Given Concierge answered that the description cannot be done and suggested another one
         const logSpy = jest.spyOn(Log, 'info');
         await renderFlagForReviewModal(jest.fn(), jest.fn());
         const generationID = describeRule(writeSpy, 'Text the approver when a report is submitted');
         await answerGeneration({...IMPOSSIBLE_ANSWER, generationID});
 
-        // When the admin taps Try this instead
-        fireEvent.press(screen.getByText('workspace.rules.newRule.impossible.tryThisInstead'));
+        // When the admin taps Use suggestion
+        fireEvent.press(screen.getByText('workspace.rules.newRule.impossible.useSuggestion'));
         await waitForBatchedUpdatesWithAct();
 
         // Then Concierge gets the suggested description for the same editor, so the admin does not retype it
@@ -310,7 +310,7 @@ describe('DescribeRuleModal', () => {
         expect(logSpy).toHaveBeenCalledWith('[GenerateRule] Tried the suggested description', false, {policyID: POLICY_ID, generationID, reason: IMPOSSIBLE_ANSWER.reason});
 
         // And the refusal goes away, because it belongs to the earlier description
-        expect(screen.queryByText(IMPOSSIBLE_ANSWER.explanation)).toBeNull();
+        expect(screen.queryByText(`workspace.rules.newRule.impossible.explanationWithSuggestion ${IMPOSSIBLE_ANSWER.explanation}`)).toBeNull();
         logSpy.mockRestore();
     });
 
@@ -328,9 +328,9 @@ describe('DescribeRuleModal', () => {
             suggestedPrompt: '',
         });
 
-        // Then the modal shows the general title and no Try this instead button, because there is nothing to try
+        // Then the modal shows the general title and no Use suggestion button, because there is nothing to try
         expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
-        expect(screen.queryByText('workspace.rules.newRule.impossible.tryThisInstead')).toBeNull();
+        expect(screen.queryByText('workspace.rules.newRule.impossible.useSuggestion')).toBeNull();
 
         // And Next stays the suggested action
         expect(mockIsSubmitButtonNeutral).toBe(false);
