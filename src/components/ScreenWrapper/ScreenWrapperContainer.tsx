@@ -12,6 +12,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import getPlatform from '@libs/getPlatform';
 import addViewportResizeListener from '@libs/VisualViewport';
 
 import toggleTestToolsModal from '@userActions/TestTool';
@@ -113,7 +114,11 @@ function ScreenWrapperContainer({
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
-    const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
+    // On native the window height is the root view's own size, so capping to it does nothing until a rotation, where
+    // the cap keeps the old height for the frames before the dimensions re-render and bares the screen below the page.
+    // Only web needs it, where the visual viewport shrinks under the keyboard while the layout viewport does not.
+    const isNativePlatform = getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID;
+    const maxHeight = shouldEnableMaxHeight && !isNativePlatform ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
     const {isBlurred} = useInputBlurState();
     const {setIsBlurred} = useInputBlurActions();
