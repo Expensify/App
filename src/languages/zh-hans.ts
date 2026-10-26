@@ -5893,9 +5893,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             noAccountsFound: '未找到账户',
             noAccountsFoundDescription: '请在 Rillet 中添加账户并重新同步连接',
             exportDescription: '配置 Expensify 数据导出到 Rillet 的方式。',
-            exportReimbursable: {label: '将可报销费用导出为', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: '供应商账单'}}},
+            exportReimbursable: {
+                label: '将可报销费用导出为',
+                values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: '供应商账单'}, REIMBURSEMENT: {label: '报销'}},
+                description: '我们会为每份 Expensify 报告创建逐项列明的供应商账单或报销单。如果会计期间已结账，我们会记入下一个未结期间。',
+            },
             exportDate: {
-                label: '供应商账单日期',
+                label: '总账影响日期',
                 description: '将报表导出到 Rillet 时使用此日期。',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -5932,7 +5936,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             syncReimbursedReports: '同步已报销报表',
             syncReimbursedReportsDescription: '当报销单通过 ACH 支付时，将在此账户中生成一笔账单付款。',
-            billPaymentAccount: {label: '账单支付账户', description: '选择从哪里支付账单，我们会在 Rillet 中创建付款。'},
             syncExpensifyCardSettlements: '同步 Expensify 卡结算',
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
             syncTravelInvoicingSettlements: '同步合并差旅结算',
@@ -5967,6 +5970,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 },
             },
             fxExpenseAccount: {label: 'Rillet 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 Rillet 中将该成本作为一条日记账分录记入此科目。'},
+            reimbursementAccount: {label: '报销账户', description: '选择可报销费用的导出位置。'},
+            achPaymentAccount: {label: 'ACH 付款账户', description: '选择用于支付报销报告的账户，我们会在 Rillet 中创建付款。'},
         },
         dualEntry: {
             dualEntrySetup: 'DualEntry 设置',
@@ -6072,7 +6077,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 },
             },
             syncReimbursedReports: '同步已报销报表',
-            syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
+            syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔付款。',
             billPaymentAccount: {label: '账单付款账户', description: '选择从哪里支付账单，我们会在 DualEntry 中创建该付款。'},
             fxExpenseAccount: {label: 'DualEntry 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 DualEntry 中将该成本作为一条日记账分录记入此科目。'},
             syncExpensifyCardSettlements: '同步 Expensify 卡结算',

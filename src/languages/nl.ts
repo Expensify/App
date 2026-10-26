@@ -6094,9 +6094,14 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg alsjeblieft rekeningen toe in Rillet en synchroniseer de verbinding opnieuw',
             exportDescription: 'Stel in hoe Expensify-gegevens worden geëxporteerd naar Rillet.',
-            exportReimbursable: {label: 'Vergoedbare uitgaven exporteren als', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Leveranciersfacturen'}}},
+            exportReimbursable: {
+                label: 'Vergoedbare uitgaven exporteren als',
+                values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Leveranciersfacturen'}, REIMBURSEMENT: {label: 'Vergoedingen'}},
+                description:
+                    'We maken een gespecificeerde leveranciersfactuur of terugbetaling voor elk Expensify-rapport. Als de periode is afgesloten, boeken we naar de eerstvolgende open periode.',
+            },
             exportDate: {
-                label: 'Factuurdatum leverancier',
+                label: 'Datum van impact op grootboek',
                 description: 'Gebruik deze datum bij het exporteren van rapporten naar Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6133,7 +6138,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             syncReimbursedReports: 'Vergoede rapporten synchroniseren',
             syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er een rekeningbetaling in deze rekening aangemaakt.',
-            billPaymentAccount: {label: 'Rekening voor het betalen van rekeningen', description: 'Kies van waar je rekeningen wilt betalen en we maken de betaling aan in Rillet.'},
             syncExpensifyCardSettlements: 'Expensify Kaartafrekeningen synchroniseren',
             settlementAccount: {label: 'Rekening voor verrekening van Expensify Kaart', description: 'Kies je vereffeningsrekening en we maken de betaling voor je aan in Rillet.'},
             syncTravelInvoicingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
@@ -6175,6 +6179,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description:
                     'Wanneer je bedrijf de kosten voor valutaomrekening dekt voor een betaling in het buitenland, boeken we die kosten in Rillet op deze rekening als een journaalpost.',
             },
+            reimbursementAccount: {label: 'Vergoedingsrekening', description: 'Kies waar je declareerbare uitgaven wilt exporteren.'},
+            achPaymentAccount: {label: 'ACH-betaalrekening', description: 'Kies vanwaar je rapporten wilt betalen en we maken de betaling in Rillet aan.'},
         },
         dualEntry: {
             dualEntrySetup: 'DualEntry-configuratie',
@@ -6280,7 +6286,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 },
             },
             syncReimbursedReports: 'Terugbetaalde rapporten synchroniseren',
-            syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er een rekeningbetaling in deze rekening gegenereerd.',
+            syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er in deze rekening een betaling gegenereerd.',
             billPaymentAccount: {label: 'Rekening voor rekeningbetalingen', description: 'Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in DualEntry.'},
             fxExpenseAccount: {
                 label: 'DualEntry-valutaconversiekostenrekening',

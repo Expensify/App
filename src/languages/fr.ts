@@ -6140,9 +6140,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             noAccountsFound: 'Aucun compte trouvé',
             noAccountsFoundDescription: 'Veuillez ajouter des comptes dans Rillet et synchroniser à nouveau la connexion',
             exportDescription: 'Configurez comment les données Expensify sont exportées vers Rillet.',
-            exportReimbursable: {label: 'Exporter les dépenses remboursables en tant que', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Factures fournisseurs'}}},
+            exportReimbursable: {
+                label: 'Exporter les dépenses remboursables en tant que',
+                values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Factures fournisseurs'}, REIMBURSEMENT: {label: 'Remboursements'}},
+                description:
+                    'Nous créerons une facture fournisseur détaillée ou un remboursement pour chaque note de frais Expensify. Si la période est close, nous la comptabiliserons sur la prochaine période ouverte.',
+            },
             exportDate: {
-                label: 'Date de la facture fournisseur',
+                label: "Date d'effet dans le grand livre",
                 description: 'Utiliser cette date lors de l’exportation des notes de frais vers Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6185,7 +6190,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
             syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par virement ACH, un règlement de facture est généré sur ce compte.',
-            billPaymentAccount: {label: 'Compte de paiement des factures', description: 'Choisissez d’où payer les factures et nous créerons le paiement dans Rillet.'},
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.'},
             syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage consolidée',
@@ -6227,6 +6231,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description:
                     'Lorsque votre entreprise prend en charge les frais de conversion de devise sur un paiement effectué à l’étranger, nous comptabiliserons ces frais sur ce compte dans Rillet sous forme d’écriture de journal.',
             },
+            reimbursementAccount: {label: 'Compte de remboursement', description: 'Choisissez où exporter les dépenses remboursables.'},
+            achPaymentAccount: {label: 'Compte de paiement ACH', description: 'Choisissez d’où payer les notes de frais et nous créerons le paiement dans Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Configuration DualEntry',
@@ -6332,7 +6338,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 },
             },
             syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
-            syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par ACH, un paiement de facture sera généré dans ce compte.',
+            syncReimbursedReportsDescription: "Lorsqu'une note de frais est payée par ACH, un paiement sera généré sur ce compte.",
             billPaymentAccount: {label: 'Compte de paiement des factures', description: 'Choisissez d’où payer les factures et nous créerons le paiement dans DualEntry.'},
             fxExpenseAccount: {
                 label: 'Compte de frais de conversion de devise DualEntry',

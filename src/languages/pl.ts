@@ -6126,9 +6126,14 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             noAccountsFound: 'Nie znaleziono kont',
             noAccountsFoundDescription: 'Dodaj proszę konta w Rillet i zsynchronizuj połączenie ponownie',
             exportDescription: 'Skonfiguruj sposób eksportowania danych Expensify do Rillet.',
-            exportReimbursable: {label: 'Eksportuj wydatki podlegające zwrotowi jako', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Faktury od dostawców'}}},
+            exportReimbursable: {
+                label: 'Eksportuj wydatki podlegające zwrotowi jako',
+                values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Faktury od dostawców'}, REIMBURSEMENT: {label: 'Zwroty kosztów'}},
+                description:
+                    'Utworzymy pozycjonowaną fakturę od dostawcy lub zwrot kosztów dla każdego raportu Expensify. Jeśli okres jest zamknięty, zaksięgujemy w następnym otwartym okresie.',
+            },
             exportDate: {
-                label: 'Data rachunku od dostawcy',
+                label: 'Data księgowania w GL',
                 description: 'Użyj tej daty podczas eksportowania raportów do Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6206,6 +6211,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 label: 'Konto opłaty za przewalutowanie Rillet',
                 description: 'Gdy twoja firma pokrywa koszt przewalutowania przy płatności dokonanej za granicą, zaksięgujemy ten koszt na tym koncie w Rillet jako zapis w dzienniku.',
             },
+            reimbursementAccount: {label: 'Konto do zwrotów', description: 'Wybierz, dokąd wyeksportować wydatki podlegające zwrotowi.'},
+            achPaymentAccount: {label: 'Konto płatności ACH', description: 'Wybierz, z którego konta opłacać raporty, a my utworzymy płatność w Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Konfiguracja DualEntry',
@@ -6311,7 +6318,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 },
             },
             syncReimbursedReports: 'Synchronizuj rozliczone raporty',
-            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, w tym koncie zostanie wygenerowana płatność rachunku.',
+            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, na tym koncie zostanie wygenerowana płatność.',
             billPaymentAccount: {label: 'Konto do płatności rachunków', description: 'Wybierz, z którego konta chcesz opłacać rachunki, a my utworzymy płatność w DualEntry.'},
             fxExpenseAccount: {
                 label: 'Konto opłaty za przewalutowanie DualEntry',

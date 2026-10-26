@@ -6007,9 +6007,14 @@ ${amount} para ${merchant} - ${date}`,
             noAccountsFound: 'No se encontraron cuentas',
             noAccountsFoundDescription: 'Por favor, añade cuentas en Rillet y sincroniza la conexión de nuevo',
             exportDescription: 'Configura cómo se exportan los datos de Expensify a Rillet.',
-            exportReimbursable: {label: 'Exportar gastos reembolsables como', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Facturas de proveedor'}}},
+            exportReimbursable: {
+                label: 'Exportar gastos reembolsables como',
+                values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Facturas de proveedor'}, REIMBURSEMENT: {label: 'Reembolsos'}},
+                description:
+                    'Crearemos una factura de proveedor o un reembolso detallado para cada informe de Expensify. Si el período está cerrado, lo registraremos en el siguiente período abierto.',
+            },
             exportDate: {
-                label: 'Fecha de factura del proveedor',
+                label: 'Fecha de impacto en el libro mayor',
                 description: 'Usa esta fecha al exportar informes a Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6052,7 +6057,6 @@ ${amount} para ${merchant} - ${date}`,
             },
             syncReimbursedReports: 'Sincronizar informes reembolsados',
             syncReimbursedReportsDescription: 'Cuando se pague un informe mediante ACH, se generará un pago de factura en esta cuenta.',
-            billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en Rillet.'},
             syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
@@ -6094,6 +6098,8 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     'Cuando tu empresa cubra el coste de conversión de divisa en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en Rillet como un asiento contable.',
             },
+            reimbursementAccount: {label: 'Cuenta de reembolso', description: 'Elige dónde exportar los gastos reembolsables.'},
+            achPaymentAccount: {label: 'Cuenta de pago ACH', description: 'Elige desde dónde pagar los informes y crearemos el pago en Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Configuración de DualEntry',
@@ -6199,7 +6205,7 @@ ${amount} para ${merchant} - ${date}`,
                 },
             },
             syncReimbursedReports: 'Sincronizar informes reembolsados',
-            syncReimbursedReportsDescription: 'Cuando un informe se pague mediante ACH, se generará un pago de factura en esta cuenta.',
+            syncReimbursedReportsDescription: 'Cuando se paga un informe mediante ACH, se generará un pago en esta cuenta.',
             billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en DualEntry.'},
             fxExpenseAccount: {
                 label: 'Cuenta de comisión por conversión de divisa de DualEntry',
