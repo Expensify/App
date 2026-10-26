@@ -6617,7 +6617,7 @@ function getReportPreviewMessage(
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
         // This covers group chats where the last action is a split expense action
         // The split transaction belongs to SPLIT_REPORT_ID, not to `report`, so it isn't in `allReportTransactions` and the caller has to pass it.
-        const linkedTransaction = getLinkedTransaction(iouReportAction, linkedTransactionParam ? [linkedTransactionParam] : undefined);
+        const linkedTransaction = linkedTransactionParam ?? getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
             return reportActionMessage;
         }
@@ -6640,7 +6640,7 @@ function getReportPreviewMessage(
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && !isExpenseReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
         // This covers group chats where the last action is a track expense action
         // The tracked transaction is unreported, not part of `report`, so it isn't in `allReportTransactions` and the caller has to pass it.
-        const linkedTransaction = getLinkedTransaction(iouReportAction, linkedTransactionParam ? [linkedTransactionParam] : undefined);
+        const linkedTransaction = linkedTransactionParam ?? getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
             const originalMessage = getOriginalMessage(iouReportAction);
             const amount = originalMessage?.amount;
@@ -6853,7 +6853,13 @@ function getReportPreviewReportActionMessage(
     // TODO: Remove the `Omit` and make `policy` required once all callers pass it, issue https://github.com/Expensify/App/issues/66415
     params: Omit<
         GetReportPreviewMessageBaseParams,
-        'policy' | 'iouReportAction' | 'originalReportAction' | 'shouldConsiderScanningReceiptOrPendingRoute' | 'isPreviewMessageForParentChatReport' | 'isForListPreview' | 'linkedTransaction'
+        | 'policy'
+        | 'iouReportAction'
+        | 'originalReportAction'
+        | 'shouldConsiderScanningReceiptOrPendingRoute'
+        | 'isPreviewMessageForParentChatReport'
+        | 'isForListPreview'
+        | 'linkedTransaction'
     > & {
         policy?: OnyxInputOrEntry<Policy>;
         iouReportAction?: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;

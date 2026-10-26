@@ -523,7 +523,7 @@ function getLastMessageTextForReport({
     policyForMovingExpensesID?: string;
     reportMetadata?: OnyxEntry<ReportMetadata>;
     visibleReportActionsDataParam?: VisibleReportActionsDerivedValue;
-    lastAction?: OnyxEntry<ReportAction>;
+    lastAction: OnyxEntry<ReportAction>;
     reportAttributesDerived?: ReportNamesDerivedValue;
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin?: string;
