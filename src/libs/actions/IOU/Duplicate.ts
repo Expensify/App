@@ -25,6 +25,7 @@ import {
     generateReportID,
     getReimbursableTotal,
     getTransactionDetails,
+    isExpenseReport,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
@@ -1362,6 +1363,8 @@ function bulkDuplicateExpenses({
     // module-level allReports in IOU/index.ts is not yet updated when iteration 2 runs.
     let currentTargetReport = targetReport;
     let optimisticIOUReport: OnyxEntry<OnyxTypes.Report>;
+    // The iouReportID patching only applies to a chat target. An expense report target is the report itself.
+    const isTargetExpenseReport = isExpenseReport(targetReport);
 
     // When instant-submit + submit-and-close is active AND the duplicated
     // expenses are all non-reimbursable (or the policy disables reimbursement
@@ -1400,7 +1403,7 @@ function bulkDuplicateExpenses({
             currentOptimisticIOUReportID = generateReportID();
             currentReportPreviewActionID = NumberUtils.rand64();
             reportWasSplit = true;
-            if (currentTargetReport) {
+            if (currentTargetReport && !isTargetExpenseReport) {
                 currentTargetReport = {...currentTargetReport, iouReportID: currentOptimisticIOUReportID};
             }
         }
@@ -1454,7 +1457,7 @@ function bulkDuplicateExpenses({
             lastDuplicateTransactionID = result.transactionID;
         }
 
-        if (currentTargetReport && !currentTargetReport.iouReportID) {
+        if (currentTargetReport && !isTargetExpenseReport && !currentTargetReport.iouReportID) {
             currentTargetReport = {...currentTargetReport, iouReportID: currentOptimisticIOUReportID};
         }
     }

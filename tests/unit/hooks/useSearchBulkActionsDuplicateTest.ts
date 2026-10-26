@@ -1159,6 +1159,114 @@ describe('useSearchBulkActions - duplicate option', () => {
     });
 });
 
+describe('useBulkDuplicateAction - source report target', () => {
+    const defaultPolicy = createMock<Policy>({id: 'DEFAULT_POLICY', type: CONST.POLICY.TYPE.TEAM, name: 'Default WS', role: CONST.POLICY.ROLE.USER});
+    const sourcePolicy = createMock<Policy>({id: 'SOURCE_POLICY', type: CONST.POLICY.TYPE.TEAM, name: 'Source WS', role: CONST.POLICY.ROLE.USER, autoReporting: false});
+    const defaultPolicyExpenseChat: Report = {
+        reportID: 'default_pec',
+        policyID: defaultPolicy.id,
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        iouReportID: 'newest_report',
+    };
+    const sourceChatReport: Report = {
+        reportID: 'source_chat',
+        policyID: sourcePolicy.id,
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+    };
+    const sourceReport: Report = {
+        reportID: 'source_report',
+        policyID: sourcePolicy.id,
+        chatReportID: sourceChatReport.reportID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+    };
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        mockDefaultExpensePolicy = defaultPolicy;
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${defaultPolicyExpenseChat.reportID}`, defaultPolicyExpenseChat);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${sourceChatReport.reportID}`, sourceChatReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`, sourceReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}`, sourcePolicy);
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+    });
+
+    it('should target the source report and its policy when every selected expense is on it and it can accept them', async () => {
+        // Given two expenses selected on an open expense report that is not the one the default workspace chat points at
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}3000`]: {...createRandomTransaction(1), transactionID: '3000', reportID: sourceReport.reportID},
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}3001`]: {...createRandomTransaction(2), transactionID: '3001', reportID: sourceReport.reportID},
+        };
+
+        // When the selection is bulk duplicated from that report
+        const {result} = renderHookWithProvider(() =>
+            useBulkDuplicateAction({
+                selectedTransactionsKeys: ['3000', '3001'],
+                allTransactions,
+                allReports: undefined,
+                searchData: undefined,
+                sourceReport,
+                sourceChatReport,
+                sourcePolicy,
+            }),
+        );
+        await waitFor(() => expect(result.current).toBeDefined());
+        result.current();
+
+        // Then the copies go to the source report on its own policy, like the single-expense duplicate
+        expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
+            expect.objectContaining({
+                targetReport: expect.objectContaining({reportID: sourceReport.reportID}),
+                targetPolicy: expect.objectContaining({id: sourcePolicy.id}),
+            }),
+        );
+    });
+
+    it('should fall back to the default workspace chat when a selected expense is not on the source report', async () => {
+        // Given a selection where one expense lives on a different report
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}3100`]: {...createRandomTransaction(1), transactionID: '3100', reportID: sourceReport.reportID},
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}3101`]: {...createRandomTransaction(2), transactionID: '3101', reportID: 'other_report'},
+        };
+
+        // When the selection is bulk duplicated
+        const {result} = renderHookWithProvider(() =>
+            useBulkDuplicateAction({
+                selectedTransactionsKeys: ['3100', '3101'],
+                allTransactions,
+                allReports: undefined,
+                searchData: undefined,
+                sourceReport,
+                sourceChatReport,
+                sourcePolicy,
+            }),
+        );
+        await waitFor(() => expect(result.current).toBeDefined());
+        result.current();
+
+        // Then the copies keep the existing routing to the default workspace chat and policy
+        expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
+            expect.objectContaining({
+                targetReport: expect.objectContaining({reportID: defaultPolicyExpenseChat.reportID}),
+                targetPolicy: expect.objectContaining({id: defaultPolicy.id}),
+            }),
+        );
+    });
+});
+
 describe('useSearchBulkActions - duplicate report option', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
