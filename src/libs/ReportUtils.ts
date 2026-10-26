@@ -3440,8 +3440,7 @@ function canSubmitReport(
     const isReportOpen = isOpenExpenseReport(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isReportSubmitter = report?.ownerAccountID === currentUserAccountID;
-    // A role that cannot create expenses, such as approve-only, cannot submit the report it owns. Managers and admins
-    // still submit on the owner's behalf, so the gate only covers the owner's own submit action.
+    // A role that cannot create expenses cannot submit its own report. Managers and admins still submit on the owner's behalf.
     const canSubmitterCreateExpenses = !isGroupPolicyPolicyUtils(policy) || canCreateExpensesOnPolicy(policy, currentUserEmailParam);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, reportOwnerLogin, policy);
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(

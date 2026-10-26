@@ -280,8 +280,7 @@ function isSubmitAction({
         return false;
     }
 
-    // A role that cannot create expenses, such as approve-only, cannot submit the report it owns. Admins and workflow
-    // approvers still submit on the owner's behalf, so the gate only covers the owner's own submit action.
+    // A role that cannot create expenses cannot submit its own report. Admins and workflow approvers still submit on the owner's behalf.
     if (isReportSubmitter && isGroupPolicy(policy) && !canCreateExpensesOnPolicy(policy, currentUserLogin)) {
         return false;
     }

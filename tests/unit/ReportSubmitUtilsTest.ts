@@ -204,14 +204,23 @@ describe('canSubmitReport approve-only role', () => {
     });
 
     it('returns false when the report owner has the approve-only role', () => {
+        // Given an open expense report owned by the current user on a policy where they have the approve-only role
+        // When the owner submits it
+        // Then the submit is not allowed
         expect(canSubmitReport(openExpenseReport, 'user@test.com', approveOnlyPolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID)).toBe(false);
     });
 
     it('returns true when a member with the user role submits their own report', () => {
+        // Given the same report on a policy where the current user has the user role
+        // When the owner submits it
+        // Then the submit is allowed
         expect(canSubmitReport(openExpenseReport, 'user@test.com', basePolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID)).toBe(true);
     });
 
     it('returns true when an admin submits the report of an approve-only member', () => {
+        // Given an open expense report owned by an approve-only member, managed by the current admin
+        // When the admin submits it on the member's behalf
+        // Then the submit is allowed
         const reportOwnedByMember: Report = {...openExpenseReport, ownerAccountID: OTHER_USER_ACCOUNT_ID, managerID: CURRENT_USER_ACCOUNT_ID};
         const adminPolicy: Policy = {...approveOnlyPolicy, role: CONST.POLICY.ROLE.ADMIN};
         expect(canSubmitReport(reportOwnedByMember, 'other.user@test.com', adminPolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID)).toBe(true);

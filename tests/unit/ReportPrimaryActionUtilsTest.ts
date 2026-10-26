@@ -425,6 +425,9 @@ describe('getPrimaryAction', () => {
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
     it('should not return SUBMIT as the primary action for an approve-only member', async () => {
+        // Given an open expense report owned by the current user, who has the approve-only role on the policy
+        // When the primary action is resolved
+        // Then it is not SUBMIT
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,

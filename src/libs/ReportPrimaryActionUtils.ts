@@ -167,8 +167,7 @@ function isSubmitAction(
         !!ownerLogin &&
         !isSubmitAndClose(policy) &&
         currentUserAccountID === getManagerAccountID(policy, ownerLogin, rules, report.total ?? 0);
-    // A role that cannot create expenses, such as approve-only, cannot submit the report it owns. Workflow approvers
-    // still submit on the owner's behalf, so the gate only covers the owner's own submit action.
+    // A role that cannot create expenses cannot submit its own report. Workflow approvers still submit on the owner's behalf.
     if (isReportSubmitter && isGroupPolicy(policy) && !canCreateExpensesOnPolicy(policy, currentUserEmail)) {
         return false;
     }

@@ -144,6 +144,9 @@ describe('getReportPreviewAction', () => {
     });
 
     it('canSubmit should return false for an approve-only member', async () => {
+        // Given an open expense report owned by the current user, who has the approve-only role on the policy
+        // When the preview action is resolved
+        // Then it is not SUBMIT
         const report: Report = {
             ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
