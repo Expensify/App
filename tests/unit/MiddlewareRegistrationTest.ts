@@ -1,4 +1,5 @@
 import {
+    DiscardStaleSearchSnapshot,
     FailureTracking,
     FraudMonitoring,
     GlobalReimbursementPayError,
@@ -40,6 +41,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     RecordFullReconnectTime,
     LoadPostDataForOpenOrReconnect,
     HandleMovedScanFailedExpenses,
+    DiscardStaleSearchSnapshot,
     SaveResponseInOnyx,
     FraudMonitoring,
 ];
@@ -56,9 +58,9 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 16 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(16);
-        expect(new Set(registered).size).toBe(16);
+    it('registers all 17 middlewares with no duplicates', () => {
+        expect(registered).toHaveLength(17);
+        expect(new Set(registered).size).toBe(17);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {
@@ -68,6 +70,7 @@ describe('Middleware registration', () => {
         expect(indexOf(RecordFullReconnectTime)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(LoadPostDataForOpenOrReconnect)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(HandleMovedScanFailedExpenses)).toBeLessThan(indexOf(SaveResponseInOnyx));
+        expect(indexOf(DiscardStaleSearchSnapshot)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(FraudMonitoring)).toBeGreaterThan(indexOf(SaveResponseInOnyx));
     });
 });

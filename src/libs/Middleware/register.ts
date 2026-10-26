@@ -1,6 +1,7 @@
 import {addMiddleware} from '@libs/Request';
 
 import {
+    DiscardStaleSearchSnapshot,
     FailureTracking,
     FraudMonitoring,
     GlobalReimbursementPayError,
@@ -76,6 +77,9 @@ function registerMiddlewares() {
     // HandleMovedScanFailedExpenses - Retires the optimistic report built for scan-failed expenses moved on payment once the backend answers
     // with the report it created for them. Must run before SaveResponseInOnyx so its updates are applied with the response.
     addMiddleware(HandleMovedScanFailedExpenses);
+
+    // DiscardStaleSearchSnapshot - Drops the snapshot from a Search response that writes were queued behind, so it can't overwrite their optimistic data. Must run before SaveResponseInOnyx.
+    addMiddleware(DiscardStaleSearchSnapshot);
 
     // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
     // (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.

@@ -36,6 +36,7 @@ import getTransactionFromTransactionListItem from '@libs/getTransactionFromTrans
 import HttpUtils from '@libs/HttpUtils';
 import isTransactionGroupListItemType from '@libs/isTransactionGroupListItemType';
 import Log from '@libs/Log';
+import {guardSearchAgainstStaleSnapshot, releaseStaleSnapshotGuard} from '@libs/Middleware/DiscardStaleSearchSnapshot';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -1325,6 +1326,7 @@ function search({
     skipWaitForWrites = false,
     shouldSaveRecentSearch = false,
     shouldShowLoading = true,
+    shouldDiscardStaleSnapshot = false,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
@@ -1350,6 +1352,12 @@ function search({
     skipWaitForWrites?: boolean;
     /** When false, the request leaves `search.isLoading` unset, so the current results stay on screen without a loading state. */
     shouldShowLoading?: boolean;
+    /**
+     * When true, the response's snapshot is dropped if writes were queued while the request was in flight, and the search runs
+     * again once they land. Used by the refetch that follows an edit, so a quick second edit (e.g. inline editing a table cell)
+     * isn't flipped back to its old value by the results of a search sent before it.
+     */
+    shouldDiscardStaleSnapshot?: boolean;
 }): Promise<string | number | undefined> | undefined {
     if (isLoading || shouldPreventSearchAPI) {
         return;
@@ -1388,6 +1396,7 @@ function search({
                     // A re-fire that only adds the save flag returns the same results the finished request just showed,
                     // so it must not show loading again (the footer would flash its skeleton over the totals).
                     shouldShowLoading: !inFlightRequest.didSucceed || inFlightRequest.pendingShouldCalculateTotals !== inFlightRequest.shouldCalculateTotals,
+                    shouldDiscardStaleSnapshot,
                 });
         }
         return needsBreakdownRefire ? inFlightRequest.promise : undefined;
@@ -1447,6 +1456,24 @@ function search({
                 // To-do responses list the other collections first and the snapshot last.
                 const response = result?.onyxData?.find((update) => update.key === snapshotKey)?.value as OnyxSearchResponse | undefined;
                 inFlightRequestState.didSucceed = result?.jsonCode === CONST.JSON_CODE.SUCCESS;
+
+                // The snapshot was dropped because writes were queued behind this search, so run it again once they land.
+                if (shouldDiscardStaleSnapshot && releaseStaleSnapshotGuard(queryJSON.hash)) {
+                    inFlightRequestState.pendingUpgradeRequest ??= () =>
+                        search({
+                            queryJSON,
+                            searchKey,
+                            offset,
+                            shouldCalculateTotals,
+                            prevReportsLength,
+                            isLoading: false,
+                            shouldUpdateLastSearchParams,
+                            shouldSaveRecentSearch,
+                            shouldShowLoading: false,
+                            shouldDiscardStaleSnapshot,
+                        });
+                    return result?.jsonCode;
+                }
 
                 // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
                 if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
@@ -1520,6 +1547,9 @@ function search({
                 throw error;
             })
             .finally(() => {
+                if (shouldDiscardStaleSnapshot) {
+                    releaseStaleSnapshotGuard(queryJSON.hash);
+                }
                 inFlightSearchRequests.delete(dedupeKey);
                 return inFlightRequestState.pendingUpgradeRequest?.();
             });
@@ -1556,6 +1586,9 @@ function search({
     inFlightRequestState.promise = waitForWrites(READ_COMMANDS.SEARCH)
         .then(() => {
             endSpan(queueSpanId);
+            if (shouldDiscardStaleSnapshot) {
+                guardSearchAgainstStaleSnapshot(queryJSON.hash);
+            }
             return startRequest();
         })
         .catch((error: unknown) => {
