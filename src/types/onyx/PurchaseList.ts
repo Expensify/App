@@ -101,12 +101,12 @@ type Message = {
     subscription?: Subscription;
 
     /** Actor count for Team policy type */
-    teamActorCount?: number;
+    teamActorCount?: number | string;
 
     /** Amount charged for Team policy type */
     teamRevenue?: number;
 
-    totalActorCount?: number;
+    totalActorCount?: number | string;
     totalFreebieCredits?: number;
     totalPlatformSpend?: number;
     totalRevenue?: number;

@@ -184,15 +184,23 @@ function getDisplayAmount(purchase: Purchase): number {
 }
 
 function getActiveUserCount(purchase: Purchase): number | undefined {
-    if (purchase.message.totalUniqueMembersCount !== undefined) {
-        return purchase.message.totalUniqueMembersCount;
-    }
-    if (purchase.message.totalActorCount !== undefined) {
-        return purchase.message.totalActorCount;
+    const message = purchase.message;
+    if (message.isTeam2025Pricing) {
+        const teamActors = Number(message.teamActorCount ?? 0);
+        const uniqueMembers = Number(message.totalUniqueMembersCount ?? 0);
+        const count = Math.max(teamActors, uniqueMembers);
+        if (count > 0) {
+            return count;
+        }
+    } else if (message.totalActorCount !== undefined) {
+        const count = Number(message.totalActorCount);
+        if (!Number.isNaN(count)) {
+            return count;
+        }
     }
 
     const emails = new Set<string>();
-    for (const policy of Object.values(purchase.message.billablePolicies ?? {})) {
+    for (const policy of Object.values(message.billablePolicies ?? {})) {
         for (const email of policy.actorList?.split(',') ?? []) {
             const trimmed = email.trim();
             if (trimmed) {
