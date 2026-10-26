@@ -9,6 +9,7 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
@@ -33,7 +34,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useEffectEvent} from 'react';
 import {View} from 'react-native';
 
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
@@ -67,8 +68,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
         const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
         openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
     };
-
-    useEffect(() => {
+    const fetchAgentsAndMembers = () => {
         openAgentsPage();
 
         // The OpenAgentsPage is only returning the owned agents
@@ -76,7 +76,13 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
         // are not displayed unless the user visit the Members page first
         // Will be removed in https://github.com/Expensify/Expensify/issues/694677
         getWorkspaceMembers();
-    }, [getWorkspaceMembers]);
+    };
+    const fetchAgentsAndMembersEvent = useEffectEvent(() => fetchAgentsAndMembers());
+
+    useEffect(() => {
+        fetchAgentsAndMembersEvent();
+    }, []);
+    useNetwork({onReconnect: fetchAgentsAndMembers});
 
     useWorkspaceDocumentTitle(policy?.name, 'agentsPage.title');
 
