@@ -24,7 +24,7 @@ function doesAgentHaveErrors(agent: OnyxEntry<Agent>): boolean {
     return Object.keys(agentErrors ?? {}).length > 0;
 }
 
-function hasErrorsSelector(agents: OnyxCollection<Agent>): boolean {
+function hasAgentErrorsSelector(agents: OnyxCollection<Agent>): boolean {
     return Object.values(agents ?? {}).some(doesAgentHaveErrors);
 }
 
@@ -44,4 +44,4 @@ function filterDeletedAgents(agents: OnyxCollection<Agent>, isOffline: boolean):
     );
 }
 
-export {getAgentErrors, doesAgentHaveErrors, hasErrorsSelector, filterDeletedAgents};
+export {getAgentErrors, doesAgentHaveErrors, hasAgentErrorsSelector, filterDeletedAgents};
