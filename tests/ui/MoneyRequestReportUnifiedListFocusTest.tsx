@@ -41,9 +41,10 @@ describe('MoneyRequestReportUnifiedList expansion focus', () => {
             return frameID;
         });
         const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((id) => {
-            if (typeof id === 'number') {
-                frames.delete(id);
+            if (typeof id !== 'number') {
+                return;
             }
+            frames.delete(id);
         });
         const actions = [
             buildSystemAction('earlier', {actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, created: '2026-01-01 10:00:00.000'}),

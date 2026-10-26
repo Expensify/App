@@ -15,7 +15,6 @@ import {openLink} from '@libs/actions/Link';
 import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
-import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import type * as UrlType from '@libs/Url';
 
 import PaymentContent from '@pages/inbox/report/actionContents/PaymentContent';
@@ -29,7 +28,6 @@ import type CONFIGType from '@src/CONFIG';
 import type CONSTType from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, DecisionName, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
@@ -123,7 +121,6 @@ describe('ReportActionItem', () => {
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
         jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({key: '', name: ''});
-        jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(getIOUActionForReportID);
     });
 
     beforeEach(async () => {
@@ -213,9 +210,10 @@ describe('ReportActionItem', () => {
             return frameID;
         });
         const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((id) => {
-            if (typeof id === 'number') {
-                frames.delete(id);
+            if (typeof id !== 'number') {
+                return;
             }
+            frames.delete(id);
         });
         const onReady = jest.fn();
         try {
@@ -249,9 +247,10 @@ describe('ReportActionItem', () => {
             return frameID;
         });
         const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((id) => {
-            if (typeof id === 'number') {
-                frames.delete(id);
+            if (typeof id !== 'number') {
+                return;
             }
+            frames.delete(id);
         });
         const onReady = jest.fn();
         try {
