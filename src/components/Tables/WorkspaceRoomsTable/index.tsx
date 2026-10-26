@@ -50,7 +50,16 @@ type WorkspaceRoomsTableProps = {
     isPolicyArchived?: boolean;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onSortingChange, headerComponent, isPolicyArchived = false}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({
+    rooms,
+    policyID,
+    highlightedReportID,
+    onSearchStringChange,
+    onEndReached,
+    onSortingChange,
+    headerComponent,
+    isPolicyArchived = false,
+}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
