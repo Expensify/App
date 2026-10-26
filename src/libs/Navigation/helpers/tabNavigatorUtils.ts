@@ -50,11 +50,16 @@ function isReportsTabPreloaded(rootState: RootNavigationState): boolean {
     return isTabPreloaded(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 }
 
+function getFocusedTabRouteName(rootState: RootNavigationState): string | undefined {
+    const tabState = getTabNavigatorState(rootState);
+    return tabState?.index === undefined ? undefined : tabState.routes.at(tabState.index)?.name;
+}
+
 /** Undefined when preloading would be pure cost: a preloaded key drops `shouldFreeze`, with nothing to warm in return. */
 function getTabPreloadTarget(rootState: RootNavigationState, tabRouteName: string): string | undefined {
     const tabState = getTabNavigatorState(rootState);
     const tabRoute = tabState?.routes.findLast((route) => route.name === tabRouteName);
-    const focusedRouteName = tabState?.index === undefined ? undefined : tabState.routes.at(tabState.index)?.name;
+    const focusedRouteName = getFocusedTabRouteName(rootState);
 
     if (!tabState?.key || !tabRoute || tabRoute.state || focusedRouteName === tabRouteName) {
         return undefined;
@@ -79,6 +84,7 @@ function getTabScreenParam(route: NavigationPartialRoute | {name: string; params
 }
 
 export {
+    getFocusedTabRouteName,
     getTabState,
     getTabScreenParam,
     getTabNavigatorRoute,

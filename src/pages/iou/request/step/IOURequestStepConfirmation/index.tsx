@@ -198,7 +198,7 @@ function IOURequestStepConfirmationContent({
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     // isConfirming, selectedParticipantList, and startLocationPermissionFlow state
     // moved to SubmitExpenseOrchestrator.
@@ -236,9 +236,6 @@ function IOURequestStepConfirmationContent({
         iouType !== CONST.IOU.TYPE.SPLIT &&
         !transaction?.receipt?.isTestReceipt &&
         !transaction?.receipt?.isTestDriveReceipt;
-
-    // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
-    const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually))?.transactionID;
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && isScanRequest(transaction);
     const headerTitle = useMemo(() => {
@@ -288,7 +285,7 @@ function IOURequestStepConfirmationContent({
                           reportAttributesDerived,
                           reportDraft: participantReportDraft,
                           currentUserAccountID: currentUserPersonalDetails.accountID,
-                          localize: {translate, dateFnsLocale, convertToDisplayString},
+                          localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                           rules,
                           // Passing pendingDeleteMemberAccountIDs as undefined is intentional, isValidReport keeps group chats out of this list because the config here leaves includeMultipleParticipantReports false.
                           pendingDeleteMemberAccountIDs: undefined,
@@ -308,6 +305,7 @@ function IOURequestStepConfirmationContent({
             translate,
             convertToDisplayString,
             currentUserPersonalDetails.accountID,
+            formatPhoneNumber,
             rules,
         ],
     );
@@ -358,6 +356,9 @@ function IOURequestStepConfirmationContent({
 
         return hasPolicyExpenseChat(defaultParticipants);
     }, [report, transaction?.participants, defaultParticipants, reportDrafts]);
+
+    // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
+    const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually, isPolicyExpenseChat))?.transactionID;
 
     const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
 
@@ -516,6 +517,12 @@ function IOURequestStepConfirmationContent({
             Navigation.goBack(backTo);
             return;
         }
+        // If the transaction was seeded by reusing a previous route, go back to the previous screen in the stack
+        // (e.g. the reuse route list) instead of navigating to the start money request step.
+        if (transaction?.isReusedRoute) {
+            Navigation.goBack();
+            return;
+        }
         // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
         // We don't need to subscribe to policy_ collection as we only need to check on the latest collection value
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
@@ -547,7 +554,6 @@ function IOURequestStepConfirmationContent({
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
                 Navigation.goBack(
                     createDynamicRoute(
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action, iouType, transactionID: initialTransactionID, reportID: transaction?.reportID || reportID}),
                         ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport),
                     ),
@@ -569,6 +575,7 @@ function IOURequestStepConfirmationContent({
         isPerDiemRequest,
         isCreatingTrackExpense,
         transaction?.isFromGlobalCreate,
+        transaction?.isReusedRoute,
         transaction?.receipt?.isTestReceipt,
         transaction?.participantsAutoAssigned,
         transaction?.reportID,
@@ -703,6 +710,7 @@ function IOURequestStepConfirmationContent({
                 draftTransactionIDs={draftTransactionIDs}
                 isReceiptReady={!isOdometerDistanceRequest || isOdometerReady}
                 canEnterScanFieldsManually={canEnterScanFieldsManually}
+                isPolicyExpenseChat={isPolicyExpenseChat}
                 onReceiptFilesChange={setReceiptFiles}
             />
             <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>

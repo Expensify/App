@@ -27,7 +27,7 @@ function BaseSearchList({
     const tabRootScrollProps = useTabRootScrollProps(contentContainerStyle);
     const renderItemWithoutKeyboardFocus = useCallback(
         ({item, index}: {item: SearchListItem; index: number}) => {
-            return renderItem(item, index, false, undefined);
+            return renderItem(item, index, undefined);
         },
         [renderItem],
     );
