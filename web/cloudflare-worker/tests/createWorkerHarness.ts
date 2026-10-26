@@ -1,12 +1,16 @@
 import {cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
+import {brotliCompressSync} from 'node:zlib';
 import {createTestHarness, experimental_readRawConfig} from 'wrangler';
 
 const WORKER_DIR = path.resolve(import.meta.dirname, '..');
 
+const MAIN_BUNDLE = 'window.fixtureBundle = true;';
+const SERVICE_WORKER = 'self.fixtureServiceWorker = true;';
+
 /** A minimal stand-in for `dist/`, with one file per naming scheme or behavior the Worker treats differently. */
-const FAKE_WEB_BUILD: Record<string, string> = {
+const FAKE_WEB_BUILD: Record<string, string | Uint8Array> = {
     'index.html': [
         '<!doctype html>',
         '<html>',
@@ -20,18 +24,32 @@ const FAKE_WEB_BUILD: Record<string, string> = {
         '    </body>',
         '</html>',
     ].join('\n'),
-    'main-0123456789abcdef.bundle.js': 'window.fixtureBundle = true;',
-    'main-0123456789abcdef.bundle.js.br': 'stands in for a Brotli twin',
+    'main-0123456789abcdef.bundle.js': MAIN_BUNDLE,
+    'main-0123456789abcdef.bundle.js.br': brotliCompressSync(MAIN_BUNDLE),
     'main.0123456789.css': '#root {}',
     'merged-source-map.js.map': '{"version":3,"sources":[],"mappings":""}',
-    'service-worker.js': 'self.fixtureServiceWorker = true;',
+    'service-worker.js': SERVICE_WORKER,
+    'service-worker.js.br': brotliCompressSync(SERVICE_WORKER),
     'workbox-01234567.js': 'self.fixtureWorkbox = true;',
     'version.json': '{"version":"1.0.0-0"}',
     '.well-known/apple-app-site-association': '{"applinks":{"details":[]}}',
 };
 
+type PreviousBuildFile = {
+    path: string;
+    contents: string | Uint8Array;
+    contentType: string;
+};
+
+/** The part of the R2 binding the tests use; the full Workers types conflict with Node's globals in this project. */
+type PreviousBuildsEnv = {
+    PREVIOUS_BUILDS?: {put: (key: string, value: string | Uint8Array, options: {httpMetadata: {contentType: string}}) => Promise<unknown>};
+};
+
 type WorkerHarness = {
     server: ReturnType<typeof createTestHarness>;
+    /** Stores files in the Worker's local PREVIOUS_BUILDS bucket, as a deploy of an earlier build would have. */
+    addPreviousBuildFiles: (files: PreviousBuildFile[]) => Promise<void>;
     cleanup: () => Promise<void>;
 };
 
@@ -70,8 +88,18 @@ function createWorkerHarness(env?: 'test-staging' | 'staging' | 'production', {o
     );
 
     const server = createTestHarness({workers: [{configPath, env}]});
+    const workerName = (env ? rawConfig.env?.[env]?.name : undefined) ?? rawConfig.name ?? '';
     return {
         server,
+        addPreviousBuildFiles: async (files) => {
+            const {PREVIOUS_BUILDS: previousBuilds} = await server.getWorker<PreviousBuildsEnv>(workerName).getEnv();
+            if (!previousBuilds) {
+                throw new Error(`The ${env ?? 'default'} environment has no PREVIOUS_BUILDS binding`);
+            }
+            for (const file of files) {
+                await previousBuilds.put(file.path, file.contents, {httpMetadata: {contentType: file.contentType}});
+            }
+        },
         cleanup: async () => {
             await server.close();
             rmSync(tempDir, {recursive: true, force: true});

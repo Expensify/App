@@ -137,6 +137,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.billable',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.HELD,
+        translationKey: 'search.filters.held',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MCC,
         translationKey: 'common.mcc',
     },
@@ -339,6 +343,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED,
         translationKey: 'common.amountReimbursed',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+        translationKey: 'common.withdrawalID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,

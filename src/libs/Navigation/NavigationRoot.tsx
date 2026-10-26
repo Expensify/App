@@ -5,7 +5,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
-import useThemePreference from '@hooks/useThemePreference';
 
 import FS from '@libs/Fullstory';
 import {buildPageViewedEvent, trackFullstoryEvent} from '@libs/Fullstory/utils';
@@ -137,14 +136,12 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     ]);
 
     const firstRenderRef = useRef(true);
-    const themePreference = useThemePreference();
     const theme = useTheme();
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
     const {updateCurrentReportID} = useCurrentReportIDActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
@@ -164,10 +161,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             });
 
             return getAdaptedStateFromPath(lastVisitedPath);
-        }
-
-        if (!account || account.isFromPublicDomain) {
-            return;
         }
 
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
@@ -196,7 +189,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(() => {
-        const defaultNavigationTheme = getNavigationBaseTheme(themePreference);
+        const defaultNavigationTheme = getNavigationBaseTheme(theme.colorScheme);
 
         return {
             ...defaultNavigationTheme,
@@ -212,7 +205,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 background: shouldUseNarrowLayout ? theme.appBG : 'transparent',
             },
         };
-    }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
+    }, [shouldUseNarrowLayout, theme.appBG, theme.colorScheme]);
 
     useEffect(() => {
         if (firstRenderRef.current) {
