@@ -11894,7 +11894,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             theresAReportWithErrors: 'Es gibt einen Bericht mit Fehlern',
             theresAWorkspaceWithCustomUnitsErrors: 'Es gibt einen Workspace mit Fehlern bei benutzerdefinierten Einheiten',
             theresAProblemWithAWorkspaceMember: 'Es gibt ein Problem mit einem Workspace-Mitglied',
-            theresAProblemWithAWorkspaceQBOExport: 'Es gab ein Problem mit einer Exporteinstellung für die Workspace-Verbindung.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Es gab ein Problem mit einer Exporteinstellung für die Workspace-Verbindung.',
             theresAProblemWithAContactMethod: 'Es gibt ein Problem mit einer Kontaktmethode',
             aContactMethodRequiresVerification: 'Eine Kontaktmethode erfordert eine Verifizierung',
             theresAProblemWithAPaymentMethod: 'Es gibt ein Problem mit einer Zahlungsmethode',

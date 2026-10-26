@@ -11920,7 +11920,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             theresAReportWithErrors: 'Il y a une note de frais avec des erreurs',
             theresAWorkspaceWithCustomUnitsErrors: 'Il existe un espace de travail avec des erreurs d’unités personnalisées',
             theresAProblemWithAWorkspaceMember: 'Il y a un problème avec un membre de l’espace de travail',
-            theresAProblemWithAWorkspaceQBOExport: 'Un problème s’est produit avec un paramètre d’exportation de connexion d’espace de travail.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Un problème s’est produit avec un paramètre d’exportation de connexion d’espace de travail.',
             theresAProblemWithAContactMethod: 'Un problème est survenu avec une méthode de contact',
             aContactMethodRequiresVerification: 'Une méthode de contact nécessite une vérification',
             theresAProblemWithAPaymentMethod: 'Un problème est survenu avec un moyen de paiement',
