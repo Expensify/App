@@ -612,7 +612,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
 
-        /** The ID of the workspace the transaction belongs to, as sent by the server */
+        /** Only set by the server; missing on optimistic transactions. Prefer the parent report's policyID */
         policyID?: string;
 
         /**
