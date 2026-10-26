@@ -221,15 +221,14 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, emoj
     // With an emoji, the dot and badge sit on an avatar-sized box even over the glyph, because the badge is sized to clear the dot on the avatar.
     const badgeBoxSize = avatar || emojiStatus ? layout.avatarSize * scale : contentSize;
     const paragraph = label ? makeLabelParagraph(label, scale) : undefined;
-    const {canvasWidth, canvasHeight, contentLeft: badgeBoxLeft, contentTop: badgeBoxTop, labelLeft, labelTop} = getTabIconFrame(
-        layout,
-        badgeBoxSize,
-        (label?.gap ?? 0) * scale,
-        paragraph?.getLongestLine() ?? 0,
-        paragraph?.getHeight() ?? 0,
-        !!label,
-        scale,
-    );
+    const {
+        canvasWidth,
+        canvasHeight,
+        contentLeft: badgeBoxLeft,
+        contentTop: badgeBoxTop,
+        labelLeft,
+        labelTop,
+    } = getTabIconFrame(layout, badgeBoxSize, (label?.gap ?? 0) * scale, paragraph?.getLongestLine() ?? 0, paragraph?.getHeight() ?? 0, !!label, scale);
 
     const surface = Skia.Surface.Make(canvasWidth, canvasHeight);
     if (!surface) {
