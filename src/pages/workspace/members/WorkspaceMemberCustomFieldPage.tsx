@@ -61,6 +61,7 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            shouldBeBlocked={!member}
         >
             <ScreenWrapper
                 testID="WorkspaceMemberCustomFieldPage"

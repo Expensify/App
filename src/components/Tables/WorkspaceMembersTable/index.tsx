@@ -69,6 +69,7 @@ type WorkspaceMembersTableProps = {
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
+    APPROVE_ONLY: 'approveOnly',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
     CARD_ADMINS: 'cardAdmins',
@@ -266,6 +267,11 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
+        const isApproveOnly = item.role === CONST.POLICY.ROLE.APPROVE_ONLY;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVE_ONLY) && isApproveOnly) {
+            return true;
+        }
+
         const isEditor = item.role === CONST.POLICY.ROLE.EDITOR;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.EDITORS) && isEditor) {
             return true;
@@ -320,6 +326,11 @@ export default function WorkspaceMembersTable({
         filterConfig.role.options.push({
             label: translate('workspace.people.guests'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.GUESTS,
+        });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.approveOnly'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVE_ONLY,
         });
     }
 

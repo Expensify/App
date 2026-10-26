@@ -157,11 +157,13 @@ describe('WorkspaceMemberDetailsRolePage', () => {
         const {unmount} = renderPage({policyID: policy.id, accountID: String(staleOptimisticAccountID)});
         await waitForBatchedUpdatesWithAct();
 
-        // When the admin picks a new role for the member
+        // When the admin picks a new role for the member and saves it
         await waitFor(() => {
             expect(screen.getByText('Workspace admin')).toBeOnTheScreen();
         });
         fireEvent.press(screen.getByText('Workspace admin'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.save')));
         await waitForBatchedUpdatesWithAct();
 
         // Then the update targets the member's real accountID, not the stale optimistic one, so the backend receives a valid member
@@ -177,11 +179,13 @@ describe('WorkspaceMemberDetailsRolePage', () => {
         const {unmount} = renderPage({policyID: policy.id, accountID: String(staleOptimisticAccountID)});
         await waitForBatchedUpdatesWithAct();
 
-        // When the admin picks a new role for the member
+        // When the admin picks a new role for the member and saves it
         await waitFor(() => {
             expect(screen.getByText('Workspace admin')).toBeOnTheScreen();
         });
         fireEvent.press(screen.getByText('Workspace admin'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.save')));
         await waitForBatchedUpdatesWithAct();
 
         // Then going back targets the details route with the stale accountID, so it pops to the details screen below instead of
