@@ -56,6 +56,10 @@ const pendingDeleteMemberAccountIDsByReportIDSelector = (reportMetadata: OnyxCol
 const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
     reportMetadata ? {pendingExpenseAction: reportMetadata.pendingExpenseAction} : undefined;
 
+/** The metadata fields an LHN row's option data reads: members pending removal and a pending DEW submit or approve. */
+const optionRowReportMetadataSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
+    reportMetadata ? {pendingChatMembers: reportMetadata.pendingChatMembers, pendingExpenseAction: reportMetadata.pendingExpenseAction} : undefined;
+
 const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingNewTransactionIDs;
 
 const isOptimisticReportSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.isOptimisticReport;
@@ -70,6 +74,7 @@ export {
     pendingNewTransactionIDsSelector,
     pendingChatMembersSelector,
     pendingExpenseActionSelector,
+    optionRowReportMetadataSelector,
     pendingDeleteMemberAccountIDsSelector,
     pendingDeleteMemberAccountIDsByReportIDSelector,
 };

@@ -2748,7 +2748,7 @@ function isClosedReport(report: OnyxInputOrEntry<Report>): boolean {
 /**
  * Whether the provided report is the admin's room
  */
-function isJoinRequestInAdminRoom(report: OnyxEntry<Report>, currentUserLogin: string | undefined): boolean {
+function isJoinRequestInAdminRoom(report: OnyxEntry<Report>, currentUserLogin: string | undefined, hasPendingJoinRequest?: boolean): boolean {
     if (!report) {
         return false;
     }
@@ -2762,7 +2762,7 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>, currentUserLogin: s
             return false;
         }
     }
-    return isActionableJoinRequestPending(report.reportID);
+    return hasPendingJoinRequest ?? isActionableJoinRequestPending(report.reportID);
 }
 
 /**

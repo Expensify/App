@@ -19,6 +19,7 @@ import {
     getOriginalMessage,
     getReportActionActorAccountID,
     isActionableJoinRequest,
+    isActionableJoinRequestPendingReportAction,
     isActionableMentionWhisper,
     isActionableTrackExpense,
     isInviteOrRemovedAction,
@@ -37,6 +38,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/PersonalDetails';
 import {reportNamesByIDsSelector} from '@selectors/ReportAttributes';
+import {optionRowReportMetadataSelector} from '@selectors/ReportMetaData';
 import React from 'react';
 
 import OptionRowLHNContent from './OptionRowLHNContent';
@@ -130,6 +132,7 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: optionRowReportMetadataSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -227,6 +230,7 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const hasDraftComment = !!draftComment && !draftComment.match(CONST.REGEX.EMPTY_COMMENT);
     const lastMessageTextFromReport = whisperTransactionID && !whisperTransaction ? '' : undefined;
+    const hasPendingJoinRequest = Object.values(reportActions ?? {}).some(isActionableJoinRequestPendingReportAction);
 
     return (
         <OptionRowLHNContent
@@ -267,6 +271,8 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
                 formatPhoneNumber,
                 rules,
                 bankAccountList,
+                reportMetadata,
+                hasPendingJoinRequest,
             }}
         />
     );

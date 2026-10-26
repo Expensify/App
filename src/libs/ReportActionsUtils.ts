@@ -5583,6 +5583,7 @@ export {
     isActionOfType,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
+    isActionableJoinRequestPendingReportAction,
     getActionableJoinRequestPendingReportAction,
     isActionableMentionWhisper,
     isActionableMentionInviteToSubmitExpenseConfirmWhisper,
