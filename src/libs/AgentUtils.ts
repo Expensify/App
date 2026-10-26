@@ -29,24 +29,8 @@ function hasAgentErrorsSelector(agents: OnyxCollection<Agent>): boolean {
     return Object.values(agents ?? {}).some(doesAgentHaveErrors);
 }
 
-function filterDeletedAgents(agents: OnyxCollection<Agent>, isOffline: boolean): OnyxCollection<Agent> {
-    return Object.fromEntries(
-        Object.entries(agents ?? {}).filter(([, agent]) => {
-            if (!agent) {
-                return false;
-            }
-            const pendingAction = agent.pendingAction;
-            const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            if (isPendingDeletion && !isOffline) {
-                return false;
-            }
-            return true;
-        }),
-    );
-}
-
 function agentAccountIDsSelector(agents: OnyxCollection<Agent>): number[] {
     return Object.keys(agents ?? {}).map((key) => Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length)));
 }
 
-export {getAgentErrors, doesAgentHaveErrors, hasAgentErrorsSelector, filterDeletedAgents, agentAccountIDsSelector};
+export {getAgentErrors, doesAgentHaveErrors, hasAgentErrorsSelector, agentAccountIDsSelector};

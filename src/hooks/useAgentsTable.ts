@@ -5,7 +5,7 @@ import type {AgentRowData, AgentsTableColumnKey} from '@components/Tables/Agents
 
 import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent} from '@libs/actions/Agent';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
-import {filterDeletedAgents, getAgentErrors} from '@libs/AgentUtils';
+import {getAgentErrors} from '@libs/AgentUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -45,9 +45,7 @@ function handleErrorClose(pendingAction: PendingAction | null | undefined, accou
 function useAgentsTable() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {
-        selector: (agents) => filterDeletedAgents(agents, isOffline),
-    });
+    const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetailsList = usePersonalDetails();
     const chatWithAgent = useChatWithAgent();
@@ -68,6 +66,9 @@ function useAgentsTable() {
         }
         const pendingAction = agent.pendingAction;
         const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        if (isPendingDeletion && !isOffline) {
+            return [];
+        }
 
         let ownerDisplayName: string | undefined;
         let ownerPolicyID: string | undefined;

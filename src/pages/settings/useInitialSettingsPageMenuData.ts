@@ -5,7 +5,6 @@ import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -13,7 +12,7 @@ import useSignOut from '@hooks/useSignOut';
 
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
-import {filterDeletedAgents, hasAgentErrorsSelector} from '@libs/AgentUtils';
+import {hasAgentErrorsSelector} from '@libs/AgentUtils';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -76,7 +75,6 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [ownerTravelBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END);
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const {signOut: signOutInteractively, signOutImmediately} = useSignOut();
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasLockedBankAccount = bankAccountList ? Object.values(bankAccountList).some((bankAccount) => bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) : false;
@@ -89,9 +87,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
-    const [hasAgentError] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {
-        selector: (agents) => hasAgentErrorsSelector(filterDeletedAgents(agents, isOffline)),
-    });
+    const [hasAgentError] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: hasAgentErrorsSelector});
     const privateSubscription = usePrivateSubscription();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);

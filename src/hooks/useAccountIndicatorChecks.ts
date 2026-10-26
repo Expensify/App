@@ -1,5 +1,5 @@
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
-import {filterDeletedAgents, hasAgentErrorsSelector} from '@libs/AgentUtils';
+import {hasAgentErrorsSelector} from '@libs/AgentUtils';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
@@ -12,7 +12,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 
 import useCardFeedErrors from './useCardFeedErrors';
-import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
 
@@ -22,7 +21,6 @@ type AccountIndicatorChecksResult = {
 };
 
 function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
-    const {isOffline} = useNetwork();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
@@ -42,9 +40,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
-    const [hasAgentError] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {
-        selector: (agents) => hasAgentErrorsSelector(filterDeletedAgents(agents, isOffline)),
-    });
+    const [hasAgentError] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: hasAgentErrorsSelector});
 
     const {
         companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},

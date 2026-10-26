@@ -1,5 +1,4 @@
-import {filterDeletedAgents} from '@libs/AgentUtils';
-
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Agent, Policy} from '@src/types/onyx';
 
@@ -15,9 +14,7 @@ import useWorkspaceMembers from './useWorkspaceMembers';
  */
 function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
     const {isOffline} = useNetwork();
-    const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {
-        selector: (agents) => filterDeletedAgents(agents, isOffline),
-    });
+    const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT);
     const policyID = policy?.id;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const workspaceMembers = useWorkspaceMembers(policy);
@@ -25,6 +22,10 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
     const manageableWorkspaceAgents: OnyxCollection<Agent> = Object.fromEntries(
         Object.entries(allAgents ?? {}).filter(([key, agent]) => {
             if (!agent) {
+                return false;
+            }
+            const isPendingDeletion = agent.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            if (isPendingDeletion && !isOffline) {
                 return false;
             }
             const accountID = Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length));

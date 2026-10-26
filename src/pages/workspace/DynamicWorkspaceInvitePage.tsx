@@ -20,7 +20,7 @@ import {openAgentsPage} from '@libs/actions/Agent';
 import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {clearErrors, openWorkspaceInvitePage as policyOpenWorkspaceInvitePage} from '@libs/actions/Policy/Policy';
 import {searchUserInServer} from '@libs/actions/Report';
-import {agentAccountIDsSelector, filterDeletedAgents} from '@libs/AgentUtils';
+import {agentAccountIDsSelector} from '@libs/AgentUtils';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
@@ -61,7 +61,6 @@ type WorkspaceInvitePageContentProps = PlatformStackScreenProps<SettingsNavigato
 function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccountIDsDraft}: WorkspaceInvitePageContentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {isOffline} = useNetwork();
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE.path);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
@@ -69,9 +68,7 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     const [personalDetails] = useAllPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const [agentsAccountIDs] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {
-        selector: (agents) => agentAccountIDsSelector(filterDeletedAgents(agents, isOffline)),
-    });
+    const [agentsAccountIDs] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: agentAccountIDsSelector});
 
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails);
