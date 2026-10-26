@@ -2251,7 +2251,7 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
 
 /**
  * Restore trashed card expenses to unreported. Routes through the dedicated UndeleteTransactions
- * command so the backend records the caller as the actor on the UNDELETEDTRANSACTION action,
+ * command so the backend records the caller as the actor on the UNDELETED_TRANSACTION action,
  * even when the caller is a card admin acting on another member's expense. The optimistic action
  * mirrors that by attributing to the current user.
  */

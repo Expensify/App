@@ -1,5 +1,3 @@
-import type {TransactionThreadInfo} from './ChangeTransactionsReportParams';
-
 type UndeleteTransactionsParams = {
     transactionList: string;
 
@@ -9,4 +7,4 @@ type UndeleteTransactionsParams = {
     transactionIDToReportActionAndThreadData: string;
 };
 
-export type {UndeleteTransactionsParams, TransactionThreadInfo};
+export type {UndeleteTransactionsParams};
