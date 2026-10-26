@@ -1,4 +1,3 @@
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -7,6 +6,7 @@ import type {NativeTabName} from '@libs/Navigation/AppNavigator/Navigators/Nativ
 import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import useTabAvatarImage from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabAvatarImage';
+import useTabEmojiStatus from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabEmojiStatus';
 
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
@@ -46,8 +46,7 @@ const LANDSCAPE_TAB_ICON_LAYOUT: TabIconLayout = {
 function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
     const avatar = useTabAvatarImage(isAccountAvatarShown);
-    const emojiCode = useCurrentUserPersonalDetails().status?.emojiCode;
-    const emojiStatus = emojiCode ? {emoji: emojiCode, backgroundColor: theme.border} : undefined;
+    const emojiStatus = useTabEmojiStatus();
     const {windowWidth} = useWindowDimensions();
     const {isInLandscapeMode} = useResponsiveLayout();
     const tabIconLayout = isInLandscapeMode ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT;

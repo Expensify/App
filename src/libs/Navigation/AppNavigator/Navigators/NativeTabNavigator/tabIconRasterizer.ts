@@ -2,7 +2,7 @@ import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 
 import type {NativeBottomTabIcon, NativeBottomTabNavigationOptions} from '@react-navigation/bottom-tabs/unstable';
-import type {SkCanvas, SkImage, SkParagraph, SkPath} from '@shopify/react-native-skia';
+import type {SkCanvas, SkImage, SkParagraph, SkPath, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 
 import {BlendMode, ClipOp, FillType, FilterMode, FontWeight, ImageFormat, MipmapMode, Skia, TextAlign} from '@shopify/react-native-skia';
 import {PixelRatio} from 'react-native';
@@ -39,6 +39,8 @@ type TabIconLabel = {
 type TabIconEmojiStatus = {
     emoji: string;
     backgroundColor: string;
+    /** The custom emoji font, given only for a private use area emoji, which the system fonts can't draw. */
+    fontManager?: SkTypefaceFontProvider;
 };
 
 type TabIconParams = {
@@ -147,7 +149,7 @@ function drawStatusDot(canvas: SkCanvas, right: number, top: number, scale: numb
 }
 
 /** Drawn inside the content box, opposite the status dot, because anything past the canvas is cut off. */
-function drawEmojiStatus(canvas: SkCanvas, layout: TabIconLayout, right: number, bottom: number, scale: number, {emoji, backgroundColor}: TabIconEmojiStatus) {
+function drawEmojiStatus(canvas: SkCanvas, layout: TabIconLayout, right: number, bottom: number, scale: number, {emoji, backgroundColor, fontManager}: TabIconEmojiStatus) {
     const radius = layout.emojiStatusRadius * scale;
     const centerX = right - radius;
     const centerY = bottom - radius;
@@ -160,9 +162,12 @@ function drawEmojiStatus(canvas: SkCanvas, layout: TabIconLayout, right: number,
     canvas.drawCircle(centerX, centerY, radius, paint);
     paint.dispose();
 
-    // A paragraph, so the emoji falls back to the system's color emoji font.
-    const paragraph = Skia.ParagraphBuilder.Make({maxLines: 1, textAlign: TextAlign.Center})
-        .pushStyle({fontSize: layout.emojiStatusFontSize * scale})
+    // A paragraph, so the emoji falls back to the system's color emoji font. A custom emoji font is tried first.
+    const paragraph = Skia.ParagraphBuilder.Make({maxLines: 1, textAlign: TextAlign.Center}, fontManager)
+        .pushStyle({
+            fontFamilies: fontManager ? [FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT.fontFamily] : undefined,
+            fontSize: layout.emojiStatusFontSize * scale,
+        })
         .addText(emoji)
         .build();
     paragraph.layout(radius * 2);
@@ -289,4 +294,4 @@ function getTabBarIcon(layout: TabIconLayout, getParams: (isSelected: boolean) =
 }
 
 export default getTabBarIcon;
-export type {TabIconLayout};
+export type {TabIconLayout, TabIconEmojiStatus};
