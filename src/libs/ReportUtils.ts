@@ -143,6 +143,7 @@ import {getPolicyReimburserAccountID} from './PolicyPaymentUtils';
 import {
     arePaymentsEnabled,
     canMemberWrite as canMemberWritePolicyUtils,
+    canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
@@ -3178,6 +3179,10 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCol
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(moneyRequestReport?.policyID);
+
+    if (policy && !canCreateExpensesOnPolicy(policy)) {
+        return false;
+    }
 
     if (isExpenseReport(moneyRequestReport) && (!isCurrentUserSubmitter(moneyRequestReport) || !isGroupPolicyPolicyUtils(policy))) {
         return false;
@@ -11581,6 +11586,11 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         return false;
     }
 
+    // Members without create-expenses permission get no create options in the workspace chats and reports.
+    if (!!policy?.id && report?.policyID === policy.id && !canCreateExpensesOnPolicy(policy)) {
+        return false;
+    }
+
     const isOwnPolicyExpenseChat = report?.isOwnPolicyExpenseChat ?? false;
 
     // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't submit expenses from such report.
@@ -14312,6 +14322,10 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
     if (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
         return false;
     }
+    // Moving a report creates expenses there, so the submitter must hold create-expenses permission.
+    if (!canCreateExpensesOnPolicy(newPolicy, submitterEmail)) {
+        return false;
+    }
     return !!newPolicy.role && !isPendingDeletePolicy(newPolicy);
 }
 
@@ -15433,6 +15447,7 @@ export {
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
     getParsedComment,
+    getParticipantIcon,
     getParticipantsAccountIDsForDisplay,
     getParticipantsChatKey,
     getParticipantsList,

@@ -402,6 +402,8 @@ type OpenReportActionParams = {
     /** The Concierge chat report used to build the guided setup onboarding data */
     conciergeChat: OnyxEntry<Report>;
 
+    /** The report policy's last full policy snapshot, so the server can leave out the members, tags and categories the client already has */
+    fullPolicySnapshot?: {policyID: string; lastModified: number};
     /** The accountID of the copilot acting on behalf of the current user, if any */
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
     delegateAccountID?: number;
@@ -1731,6 +1733,7 @@ function openReport(params: OpenReportActionParams) {
         shouldMarkAsRead = true,
         shouldKeepManualUnreadMarker = false,
         conciergeChat,
+        fullPolicySnapshot,
         delegateAccountID,
     } = params;
     if (!reportID) {
@@ -1871,6 +1874,8 @@ function openReport(params: OpenReportActionParams) {
         includePartiallySetupBankAccounts: true,
         useLastUnreadReportAction: shouldMarkAsRead ? true : undefined,
         includeLockedBankAccounts: true,
+        fullPolicySnapshotPolicyID: fullPolicySnapshot?.policyID,
+        fullPolicySnapshotLastModified: fullPolicySnapshot?.lastModified,
     };
 
     if (optimisticSelfDMReport) {
@@ -2477,6 +2482,8 @@ type CreateTransactionThreadReportParams = {
 
     conciergeChat: OnyxEntry<Report>;
 
+    /** The lastModified of the expense report policy's cached full policy snapshot, so the server can leave out the collections the client already has */
+    fullPolicySnapshotLastModified?: number;
     /** The accountID of the copilot acting on behalf of the current user, if any */
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
     delegateAccountID?: number;
@@ -2495,6 +2502,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         conciergeChat,
+        fullPolicySnapshotLastModified,
         delegateAccountID,
     } = params;
 
@@ -2564,6 +2572,8 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         hasReportActions: false,
+        fullPolicySnapshot:
+            !selfDMReportID && reportToUse.policyID && fullPolicySnapshotLastModified ? {policyID: reportToUse.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
         delegateAccountID,
     });
     return optimisticTransactionThread;
