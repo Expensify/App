@@ -229,6 +229,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
             <Animated.View
                 style={[styles.chartContent, shouldUseResponsiveLegend && StyleUtils.getWidthStyle(donutWidth), isHoveringOverPie && styles.cursorPointer]}
                 onTouchStart={onChartTouchStart}
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
                 {processedSlices.length > 0 && (
                     <PolarChart
