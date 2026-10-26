@@ -5861,6 +5861,39 @@ describe('actions/Policy', () => {
             expect(apiWriteSpy).not.toHaveBeenCalled();
             apiWriteSpy.mockRestore();
         });
+
+        it('should mark the connections as fetched when it turns Connections on for a workspace that is still being created', async () => {
+            // Given a workspace whose create request hasn't finished, so it can't have connections yet
+            const policy: PolicyType = {
+                ...createRandomPolicy(20, CONST.POLICY.TYPE.CORPORATE),
+                areConnectionsEnabled: false,
+                connections: undefined,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When connecting an integration from the Connections page turns Connections on
+            Policy.enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+            await waitForBatchedUpdates();
+
+            // Then the open Connections page has nothing to fetch, so it keeps showing instead of a loader
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`)).toBe(true);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`))?.areConnectionsEnabled).toBe(true);
+        });
+
+        it('should leave the connections to be fetched for an existing workspace', async () => {
+            // Given an existing workspace with Connections off, which can still hold connections that haven't loaded,
+            // like an integration only supported on OldDot
+            const policy: PolicyType = {...createRandomPolicy(21, CONST.POLICY.TYPE.CORPORATE), areConnectionsEnabled: false, connections: undefined, pendingAction: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When connecting an integration from the Connections page turns Connections on
+            Policy.enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+            await waitForBatchedUpdates();
+
+            // Then the connections are not marked as fetched, so the page still loads any that exist
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`)).toBeUndefined();
+        });
     });
 
     describe('enablePolicyTaxes', () => {

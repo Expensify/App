@@ -7985,6 +7985,7 @@ const translations = {
             rillet: 'Rillet',
             dualEntry: 'DualEntry',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             businessCentral: 'Dynamics 365 Business Central',
             sap: 'SAP',
@@ -8010,6 +8011,8 @@ const translations = {
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -8260,6 +8263,18 @@ const translations = {
                         case 'campfireSyncCardSettlements':
                             return 'Syncing card settlements';
                         case 'campfireSyncTravelSettlements':
+                            return 'Syncing travel settlements';
+                        case 'digitsSyncTitle':
+                            return 'Syncing Digits data';
+                        case 'digitsSyncConnection':
+                            return 'Initializing connection to Digits';
+                        case 'digitsSyncImportData':
+                            return 'Loading data';
+                        case 'digitsSyncPayments':
+                            return 'Syncing vendor payments';
+                        case 'digitsSyncCardSettlements':
+                            return 'Syncing card settlements';
+                        case 'digitsSyncTravelSettlements':
                             return 'Syncing travel settlements';
                         case 'businessCentralSyncTitle':
                             return 'Syncing Dynamics 365 Business Central data';
@@ -12014,6 +12029,10 @@ const translations = {
                 one: '1 active user',
                 other: `${count} active users`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 member',
+                other: `${count} members`,
+            }),
             state: {
                 paid: 'Paid',
                 cleared: 'Cleared',
@@ -12035,6 +12054,7 @@ const translations = {
             billedTo: 'Billed to',
             activity: 'Activity',
             findActiveUser: 'Find an active user',
+            findMember: 'Find a member',
             viewReceipt: 'View receipt',
             viewInvoice: 'View invoice',
         },

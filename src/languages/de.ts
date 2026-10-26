@@ -7569,6 +7569,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7814,6 +7816,18 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                             return 'Kartenausgleiche werden synchronisiert';
                         case 'campfireSyncTravelSettlements':
                             return 'Reiseabrechnungen werden synchronisiert';
+                        case 'digitsSyncTitle':
+                            return 'Digits-Daten werden synchronisiert';
+                        case 'digitsSyncConnection':
+                            return 'Verbindung zu Digits wird initialisiert';
+                        case 'digitsSyncImportData':
+                            return 'Daten werden geladen';
+                        case 'digitsSyncPayments':
+                            return 'Lieferantenzahlungen werden synchronisiert';
+                        case 'digitsSyncCardSettlements':
+                            return 'Kartenausgleiche werden synchronisiert';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Reiseabrechnungen werden synchronisiert';
                         case 'businessCentralSyncTitle':
                             return 'Dynamics 365 Business Central-Daten werden synchronisiert';
                         case 'businessCentralSyncConnection':
@@ -7863,6 +7877,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             syncTravelBillingSettlementsNoAccountTooltip: 'Zum Freischalten richten Sie ein Konto für Ihre Exporte ein.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Zum Entsperren automatische Synchronisierung aktivieren.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Die fortlaufende Abstimmung wird pro Kartenfeed konfiguriert. Wählen Sie einen Feed aus, um zu ändern, welchen Sie konfigurieren.</muted-text-label>',
@@ -11748,6 +11763,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 one: '1 aktiver Benutzer',
                 other: `${count} aktive Benutzer`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 Mitglied',
+                other: `${count} Mitglieder`,
+            }),
             state: {paid: 'Bezahlt', cleared: 'Ausgeglichen', failed: 'Fehlgeschlagen', refunded: 'Erstattet', disputed: 'Angefochten', balanceTransfer: 'Saldoübertrag'},
             details: 'Zahlungsdetails',
             badge: {
@@ -11761,7 +11780,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
             billedTo: 'Abgerechnet an',
             activity: 'Aktivität',
-            findActiveUser: 'Aktive:n Benutzer:in finden',
+            findActiveUser: 'Aktiven Benutzer suchen',
+            findMember: 'Mitglied suchen',
             viewReceipt: 'Beleg anzeigen',
             viewInvoice: 'Rechnung anzeigen',
         },

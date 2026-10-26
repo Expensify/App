@@ -7536,6 +7536,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7781,6 +7783,18 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                             return 'Synchronizowanie rozliczeń karty';
                         case 'campfireSyncTravelSettlements':
                             return 'Synchronizowanie rozliczeń podróży';
+                        case 'digitsSyncTitle':
+                            return 'Synchronizowanie danych Digits';
+                        case 'digitsSyncConnection':
+                            return 'Inicjowanie połączenia z Digits';
+                        case 'digitsSyncImportData':
+                            return 'Wczytywanie danych';
+                        case 'digitsSyncPayments':
+                            return 'Synchronizowanie płatności dla dostawców';
+                        case 'digitsSyncCardSettlements':
+                            return 'Synchronizowanie rozliczeń karty';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Synchronizowanie rozliczeń podróży';
                         case 'businessCentralSyncTitle':
                             return 'Synchronizowanie danych Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
@@ -7829,6 +7843,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             syncTravelBillingSettlementsNoAccountTooltip: 'Aby odblokować, ustaw konto dla swoich eksportów.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Aby odblokować, włącz automatyczną synchronizację.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Ciągłe uzgadnianie jest konfigurowane dla każdego źródła kart osobno. Wybierz źródło, aby zmienić, które konfigurujesz.</muted-text-label>',
@@ -11682,7 +11697,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             empty: 'Brak płatności.',
             activeUsers: ({count}: {count: number}) => ({
                 one: '1 aktywny użytkownik',
-                other: `${count} aktywnych użytkowników`,
+                few: `${count} aktywni użytkownicy`,
+                many: `${count} aktywnych użytkowników`,
+                other: `${count} aktywnego użytkownika`,
+            }),
+            members: ({count}: {count: number}) => ({
+                one: '1 członek',
+                few: `${count} członkowie`,
+                many: `${count} członków`,
+                other: `${count} członka`,
             }),
             state: {paid: 'Opłacone', cleared: 'Rozliczono', failed: 'Niepowodzenie', refunded: 'Zwrócono', disputed: 'Kwestionowana', balanceTransfer: 'Przelew salda'},
             details: 'Szczegóły płatności',
@@ -11698,6 +11721,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             billedTo: 'Obciążono',
             activity: 'Aktywność',
             findActiveUser: 'Znajdź aktywnego użytkownika',
+            findMember: 'Znajdź członka',
             viewReceipt: 'Wyświetl paragon',
             viewInvoice: 'Wyświetl fakturę',
         },

@@ -7695,6 +7695,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7941,6 +7943,18 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Συγχρονισμός διακανονισμών κάρτας';
                         case 'campfireSyncTravelSettlements':
                             return 'Συγχρονισμός εκκαθαρίσεων ταξιδιών';
+                        case 'digitsSyncTitle':
+                            return 'Γίνεται συγχρονισμός δεδομένων Digits';
+                        case 'digitsSyncConnection':
+                            return 'Γίνεται αρχικοποίηση σύνδεσης με το Digits';
+                        case 'digitsSyncImportData':
+                            return 'Φόρτωση δεδομένων';
+                        case 'digitsSyncPayments':
+                            return 'Συγχρονισμός πληρωμών προμηθευτών';
+                        case 'digitsSyncCardSettlements':
+                            return 'Συγχρονισμός διακανονισμών κάρτας';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Συγχρονισμός εκκαθαρίσεων ταξιδιών';
                         case 'businessCentralSyncTitle':
                             return 'Συγχρονισμός δεδομένων Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
@@ -7990,6 +8004,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncTravelBillingSettlementsNoAccountTooltip: 'Για να το ενεργοποιήσετε, ορίστε έναν λογαριασμό για τις εξαγωγές σας.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Η συνεχής συμφωνία είναι ρυθμισμένη ανά ροή καρτών. Επιλέξτε μια ροή για να αλλάξετε ποια ρυθμίζετε.</muted-text-label>',
@@ -11962,6 +11977,10 @@ ${reportName}`,
                 one: '1 ενεργός χρήστης',
                 other: `${count} ενεργοί χρήστες`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 μέλος',
+                other: `${count} μέλη`,
+            }),
             state: {paid: 'Πληρωμένο', cleared: 'Εκκαθαρισμένο', failed: 'Απέτυχε', refunded: 'Επιστράφηκε', disputed: 'Αμφισβητούμενη', balanceTransfer: 'Μεταφορά υπολοίπου'},
             details: 'Στοιχεία πληρωμής',
             badge: {
@@ -11975,7 +11994,8 @@ ${reportName}`,
             },
             billedTo: 'Χρέωση σε',
             activity: 'Δραστηριότητα',
-            findActiveUser: 'Βρείτε έναν ενεργό χρήστη',
+            findActiveUser: 'Εύρεση ενεργού χρήστη',
+            findMember: 'Εύρεση μέλους',
             viewReceipt: 'Προβολή απόδειξης',
             viewInvoice: 'Προβολή τιμολογίου',
         },

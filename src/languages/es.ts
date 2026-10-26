@@ -7366,6 +7366,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7612,6 +7614,18 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Sincronizando liquidaciones de tarjetas';
                         case 'campfireSyncTravelSettlements':
                             return 'Sincronizando liquidaciones de viaje';
+                        case 'digitsSyncTitle':
+                            return 'Sincronizando datos de Digits';
+                        case 'digitsSyncConnection':
+                            return 'Iniciando conexión con Digits';
+                        case 'digitsSyncImportData':
+                            return 'Cargando datos';
+                        case 'digitsSyncPayments':
+                            return 'Sincronizando pagos a proveedores';
+                        case 'digitsSyncCardSettlements':
+                            return 'Sincronizando liquidaciones de tarjetas';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Sincronizando liquidaciones de viaje';
                         case 'businessCentralSyncTitle':
                             return 'Sincronizando datos de Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
@@ -7661,6 +7675,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             syncTravelBillingSettlementsNoAccountTooltip: 'Para desbloquearlo, establece una cuenta para tus exportaciones.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Para desbloquearlo, habilita la sincronización automática.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>La conciliación continua se configura por cada fuente de tarjetas. Selecciona una fuente para cambiar cuál estás configurando.</muted-text-label>',
@@ -11936,6 +11951,10 @@ ${reportName}`,
                 one: '1 usuario activo',
                 other: `${count} usuarios activos`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 miembro',
+                other: `${count} miembros`,
+            }),
             state: {paid: 'Pagado', cleared: 'Borrado', failed: 'Error', refunded: 'Reembolsado', disputed: 'En disputa', balanceTransfer: 'Transferencia de saldo'},
             details: 'Detalles del pago',
             badge: {
@@ -11949,7 +11968,8 @@ ${reportName}`,
             },
             billedTo: 'Facturado a',
             activity: 'Actividad',
-            findActiveUser: 'Encontrar un usuario activo',
+            findActiveUser: 'Buscar un usuario activo',
+            findMember: 'Buscar un miembro',
             viewReceipt: 'Ver recibo',
             viewInvoice: 'Ver factura',
         },
