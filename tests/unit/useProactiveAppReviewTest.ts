@@ -92,6 +92,7 @@ describe('useProactiveAppReview', () => {
     });
 
     it('returns shouldShowModal false when 2FA is required, even if a trigger is set', async () => {
+        await Onyx.merge(ONYXKEYS.NVP_APP_REVIEW, {trigger: 'submit', response: 'negative', lastPrompt: '2026-01-29 17:16:19.172'});
         await Onyx.merge(ONYXKEYS.ACCOUNT, {
             needsTwoFactorAuthSetup: true,
             requiresTwoFactorAuth: false,
