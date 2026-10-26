@@ -28,7 +28,7 @@ function hasErrorsSelector(agents: OnyxCollection<Agent>): boolean {
     return Object.values(agents ?? {}).some(doesAgentHaveErrors);
 }
 
-function filterDeletedAgents(agents: OnyxCollection<Agent>, isOffline: boolean) {
+function filterDeletedAgents(agents: OnyxCollection<Agent>, isOffline: boolean): OnyxCollection<Agent> {
     return Object.fromEntries(
         Object.entries(agents ?? {}).filter(([, agent]) => {
             if (!agent) {
