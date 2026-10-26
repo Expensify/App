@@ -29,6 +29,6 @@ type AttachmentDetails = {
     sourceURL: null | string;
     originalFileName: null | string;
 };
-type GetAttachmentDetails = (html: string) => AttachmentDetails;
+type GetAttachmentDetails = (html: string, reportActionID?: string) => AttachmentDetails;
 
 export type {SplitExtensionFromFileName, GetAttachmentDetails, ReadFileAsync, FileDownload, GetImageResolution};

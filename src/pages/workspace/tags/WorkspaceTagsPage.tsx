@@ -43,6 +43,8 @@ import {
     downloadMultiLevelTagsCSV,
     downloadTagsCSV,
     openPolicyTagsPage,
+    setImportedSpreadsheetIsAppendingToExistingLists,
+    setImportedSpreadsheetIsImportingMultiLevelTags,
     setPolicyShowTagGLCodes,
     setPolicyTagsRequired,
     setWorkspaceTagEnabled,
@@ -108,8 +110,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {pageGutter} = useLayoutSpacing();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {isBetaEnabledOrUnknown} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
+    const isIndirectTagUploadsBetaEnabled = isBetaEnabled(CONST.BETAS.INDIRECT_TAG_UPLOADS);
     const {showConfirmModal} = useConfirmModal();
     const {showDownloadErrorModal} = useAlertModals();
     const {backTo, policyID} = route.params;
@@ -474,7 +477,26 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     }, [backTo, isOffline, isQuickSettingsFlow, policyID, showConfirmModal, translate]);
 
+    const navigateToAppendCustomTagList = useCallback(() => {
+        if (isOffline) {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: true,
+            });
+            return;
+        }
+        // Appending keeps the accounting connection tag lists, so we skip the import options page and its override warnings
+        setImportedSpreadsheetIsImportingMultiLevelTags(true);
+        setImportedSpreadsheetIsAppendingToExistingLists(true);
+        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_IMPORT.path));
+    }, [buildDynamicRoute, isOffline, showConfirmModal, translate]);
+
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+    // Same as Classic, a custom tag list can only be appended to single-level or independent multi-level tags
+    const shouldShowAppendCustomTagList = canWriteTags && hasAccountingConnections && isIndirectTagUploadsBetaEnabled && !isQuickSettingsFlow && (!isMultiLevelTags || hasIndependentTags);
     const secondaryActions = useMemo(() => {
         const menuItems = [];
         // The former Settings page's rows are surfaced directly in this menu (the dedicated Settings page was removed).
@@ -529,6 +551,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             });
         }
 
+        if (shouldShowAppendCustomTagList) {
+            menuItems.push({
+                icon: expensifyIcons.Table,
+                text: translate('workspace.tags.appendCustomTagList'),
+                onSelected: navigateToAppendCustomTagList,
+                value: CONST.POLICY.SECONDARY_ACTIONS.APPEND_CUSTOM_TAG_LIST,
+            });
+        }
+
         if (hasVisibleTags) {
             menuItems.push({
                 icon: expensifyIcons.Download,
@@ -560,6 +591,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [
         translate,
         hasAccountingConnections,
+        shouldShowAppendCustomTagList,
+        navigateToAppendCustomTagList,
         hasVisibleTags,
         navigateToImportSpreadsheet,
         isOffline,

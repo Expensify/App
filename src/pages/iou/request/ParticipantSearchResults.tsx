@@ -199,14 +199,14 @@ function ParticipantSearchResults({
 
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const activeAdminWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin);
-
-    const includeOwnedWorkspaceChats =
-        !shouldExcludeWorkspaces && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK);
+    const canUseWorkspaceChats = iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK;
+    const includeOwnedWorkspaceChats = !shouldExcludeWorkspaces && canUseWorkspaceChats;
 
     const getValidOptionsConfig = {
         selectedOptions: participants as Participant[],
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeOwnedWorkspaceChats,
+        excludeWorkspacesWithoutCreateExpensePermission: canUseWorkspaceChats,
         excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
         includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
         includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,

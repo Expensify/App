@@ -45,7 +45,15 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {arePolicyRulesEnabled, getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {
+    arePolicyRulesEnabled,
+    canShowReimbursableToggleForPolicy,
+    getDistanceRateCustomUnitRate,
+    getTagLists,
+    hasAnyPaidPolicy,
+    isGroupPolicyByType,
+    isTaxTrackingEnabled,
+} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -265,10 +273,9 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
 
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!splitExpenseDraftTransactionDetails?.billable || isBillableEnabledOnPolicy(effectivePolicy));
     const currentReimbursable = splitExpenseDraftTransaction?.reimbursable ?? transaction?.reimbursable;
-    const isReimbursableDifferentFromPolicyDefault = effectivePolicy?.defaultReimbursable !== undefined && !!currentReimbursable !== effectivePolicy.defaultReimbursable;
     const shouldShowReimbursable =
         (isPolicyExpenseChat || (isExpenseUnreported && !!effectivePolicy)) &&
-        (effectivePolicy?.disabledFields?.reimbursable !== true || isReimbursableDifferentFromPolicyDefault) &&
+        canShowReimbursableToggleForPolicy(effectivePolicy, currentReimbursable) &&
         !isManagedCardTransaction(transaction);
 
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
