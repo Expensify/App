@@ -65,6 +65,10 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const {adjustExpensifyLinksForEnv} = useEnvironmentActions();
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
+    // Desktop web: the message box has to fill the row. Chrome only starts a drag on the element
+    // under the pointer, and a shrink-wrapped text node leaves the empty space beside a short message unselectable.
+    const canSelectMessageText = !canUseTouchScreen() || !shouldUseNarrowLayout;
+    const messageSelectionStyle = canSelectMessageText ? [styles.userSelectText, styles.alignSelfStretch, styles.w100] : styles.userSelectNone;
 
     const processedTextArray = splitTextWithEmojis(message);
 
@@ -102,7 +106,10 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
         htmlWithTag = adjustExpensifyLinksForEnv(wrapAttachmentAnchorsInBlocks(getHtmlWithAttachmentID(htmlWithTag, reportActionID), reportActionID));
 
         return (
-            <View onLayout={endSendMessageVisibleSpanOnLayout}>
+            <View
+                onLayout={endSendMessageVisibleSpanOnLayout}
+                style={messageSelectionStyle}
+            >
                 <RenderCommentHTML
                     containsOnlyEmojis={containsOnlyEmojis}
                     source={source}
@@ -115,13 +122,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     return (
         <Text
             onLayout={endSendMessageVisibleSpanOnLayout}
-            style={[
-                containsOnlyEmojis && styles.onlyEmojisText,
-                styles.ltr,
-                style,
-                !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
-                styles.overflowVisible,
-            ]}
+            style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style, messageSelectionStyle, styles.overflowVisible]}
         >
             <ZeroWidthView
                 text={text}

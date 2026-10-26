@@ -22,10 +22,12 @@ function ReportActionItemBasicMessage({message, children}: ReportActionItemBasic
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const messageContainsCustomEmojiWithText = useMemo(() => containsCustomEmoji(message) && !containsOnlyCustomEmoji(message), [message]);
-    const selectableStyle = !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone;
+    // Desktop web: stretch the message so a drag can start in the empty space beside a short line.
+    const canSelectMessageText = !canUseTouchScreen() || !shouldUseNarrowLayout;
+    const selectableStyle = canSelectMessageText ? [styles.userSelectText, styles.alignSelfStretch, styles.w100] : styles.userSelectNone;
 
     return (
-        <View style={styles.renderHTML}>
+        <View style={[styles.renderHTML, selectableStyle]}>
             {!!message &&
                 (messageContainsCustomEmojiWithText ? (
                     <TextWithEmojiFragment
