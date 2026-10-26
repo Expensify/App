@@ -49,6 +49,10 @@ jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn());
 jest.mock('@components/OnyxListItemProvider', () => ({usePersonalDetails: jest.fn()}));
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: jest.fn(() => false), isBetaEnabledOrUnknown: jest.fn(() => false)}),
+}));
 jest.mock('@hooks/useDismissOnMoneyRequestReportRemoval', () => jest.fn());
 jest.mock('@hooks/useSubmitToDestinationVisible', () => jest.fn());
 jest.mock('@hooks/useReportIsArchived', () => jest.fn());
