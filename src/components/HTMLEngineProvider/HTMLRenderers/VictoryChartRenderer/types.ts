@@ -169,6 +169,7 @@ type ProcessNodeResult = {
     yAxis: CartesianChartProps['yAxis'];
     domain: CartesianChartProps['domain'];
     domainPadding: CartesianChartProps['domainPadding'];
+    designPadding: CartesianChartProps['padding'];
     padding: CartesianChartProps['padding'];
     leftAxisSize: number | undefined;
     rightAxisSize: number | undefined;
