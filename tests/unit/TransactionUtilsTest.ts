@@ -5269,6 +5269,25 @@ describe('TransactionUtils', () => {
                 expect(result.change.merchant?.length).toBeGreaterThan(1);
             });
 
+            it('should exclude duplicates from unloaded or nonexistent reports', () => {
+                const reviewingTransaction = generateTransaction({
+                    merchant: 'Amazon',
+                    category: 'Supplies',
+                    reportID: FAKE_OPEN_REPORT_ID,
+                });
+
+                const duplicates = [
+                    generateTransaction({
+                        merchant: 'Amazon',
+                        category: 'Office',
+                        reportID: 'UNLOADED_NONEXISTENT_REPORT_ID',
+                    }),
+                ];
+
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                expect(result.change.category).toBeUndefined();
+            });
+
             it('should handle multiple duplicate transactions with mixed fields', () => {
                 const reviewingTransaction = generateTransaction({
                     merchant: 'Starbucks',

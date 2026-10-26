@@ -200,16 +200,19 @@ function removeTransactionFromDuplicateTransactionViolation(
  * accept. A report is mergeable when it is open, awaiting first-level approval, or unresolved (unreported expenses
  * stay editable in Auth). Anything approved, closed (Submit & Close), or reimbursed is rejected server-side.
  */
-function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
-    return !report || isOpenReport(report) || isProcessingReport(report);
+function isTransactionReportMergeableForDuplicates(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction) {
+        return false;
+    }
+    if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        return true;
+    }
+    const report = getReportOrDraftReport(transaction.reportID);
+    return !!report && (isOpenReport(report) || isProcessingReport(report));
 }
 
-/**
- * Keeps only transactions that Auth's MergeTransactions command would accept, so filtering here prevents sending a
- * merge request that would fail server-side.
- */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport(transaction.reportID))) as Transaction[];
+    return transactions.filter((transaction) => isTransactionReportMergeableForDuplicates(transaction)) as Transaction[];
 }
 
 /**
