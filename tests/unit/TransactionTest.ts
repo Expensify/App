@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet, ReportNextStep} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -43,6 +44,7 @@ import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, Re
 import type {ReportMergeUpdate} from '../utils/typeGuards';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
+import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
@@ -54,7 +56,15 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
+    | 'transactions'
+    | 'allTransactionViolation'
+    | 'personalPolicyOutputCurrency'
+    | 'selfDMReportActions'
+    | 'delegateAccountID'
+    | 'getCurrencyDecimals'
+    | 'getCurrencySymbol'
+    | 'rules'
+    | 'currentUserPersonalDetails'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -81,7 +91,13 @@ function isChangeTransactionsReportParams(value: unknown): value is ChangeTransa
 }
 
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
-function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
+function changeTransactionsReport({
+    allTransactions,
+    transactionIDs,
+    transactionViolations = {},
+    personalPolicyOutputCurrency,
+    ...rest
+}: LegacyChangeTransactionsReportProps & {currentUserPersonalDetails: CurrentUserPersonalDetails}) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
     changeTransactionsReportAction({
         transactionIDs,
@@ -167,11 +183,19 @@ const getReportFromUseOnyx = async (reportID: string) => {
 };
 
 describe('Transaction', () => {
+    const currentUserPersonalDetails: CurrentUserPersonalDetails = {
+        ...createPersonalDetails(CURRENT_USER_ID),
+        login: 'test@example.com',
+        email: 'test@example.com',
+        displayName: 'Current User',
+        avatar: 'https://example.com/avatar.jpg',
+    };
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[CURRENT_USER_ID]: currentUserPersonalDetails},
                 ...reportCollectionDataSet,
             },
         });
@@ -242,6 +266,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -284,6 +309,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -336,6 +362,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -395,6 +422,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -457,6 +485,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 policy: undefined,
                 allTransactions: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
@@ -536,6 +565,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 policy: undefined,
                 allTransactions: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`]: firstTransaction,
@@ -588,6 +618,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -647,6 +678,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -703,6 +735,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: true,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -750,6 +783,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: customAccountID,
                 email: customEmail,
+                currentUserPersonalDetails: {accountID: customAccountID, email: customEmail},
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -793,6 +827,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 policy: undefined,
                 allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
                 policyTagList: undefined,
@@ -837,6 +872,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: expenseReport,
                 policy: undefined,
                 allTransactions,
@@ -890,6 +926,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: expenseReport,
                 policy: undefined,
                 allTransactions,
@@ -950,6 +987,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy: undefined,
                 allTransactions,
@@ -1010,6 +1048,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy: undefined,
                 allTransactions,
@@ -1065,6 +1104,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: fakeReport,
                 policy: undefined,
                 allTransactions,
@@ -1122,6 +1162,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: fakeReport,
                 policy: undefined,
                 allTransactions,
@@ -1193,6 +1234,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: fakeReport,
                 policy: undefined,
                 allTransactions,
@@ -1291,6 +1333,7 @@ describe('Transaction', () => {
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
                     email: 'test@example.com',
+                    currentUserPersonalDetails,
                     newReport: destinationExpenseReport,
                     policy: undefined,
                     allTransactions,
@@ -1359,6 +1402,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@gmail.com',
+                currentUserPersonalDetails: {accountID: CURRENT_USER_ID, email: 'test@gmail.com'},
                 newReport: newOpenReport,
                 policy,
                 policyCategories,
@@ -1415,6 +1459,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@gmail.com',
+                currentUserPersonalDetails: {accountID: CURRENT_USER_ID, email: 'test@gmail.com'},
                 newReport: destinationReport,
                 policy: undefined,
                 policyCategories: undefined,
@@ -1476,6 +1521,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: expenseReport,
                 policy: undefined,
                 allTransactions,
@@ -1520,6 +1566,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -1559,6 +1606,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: undefined,
                 policy: undefined,
                 allTransactions,
@@ -1604,6 +1652,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: undefined,
                 policy: undefined,
                 allTransactions: {
@@ -1697,6 +1746,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy: undefined,
                 allTransactions,
@@ -1761,6 +1811,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -1811,6 +1862,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -1877,6 +1929,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -1929,6 +1982,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -2008,6 +2062,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -2097,6 +2152,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -2177,6 +2233,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -2258,6 +2315,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -2294,6 +2352,7 @@ describe('Transaction', () => {
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
                     email: 'test@example.com',
+                    currentUserPersonalDetails,
                     newReport: report,
                     policy: undefined,
                     allTransactions,
@@ -2343,6 +2402,7 @@ describe('Transaction', () => {
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
                     email: 'test@example.com',
+                    currentUserPersonalDetails,
                     newReport: undefined,
                     policy: undefined,
                     allTransactions,
@@ -2390,6 +2450,7 @@ describe('Transaction', () => {
                         isASAPSubmitBetaEnabled: false,
                         accountID: CURRENT_USER_ID,
                         email: 'test@example.com',
+                        currentUserPersonalDetails,
                         newReport: destinationReport,
                         policy: undefined,
                         allTransactions: {},
@@ -2432,6 +2493,7 @@ describe('Transaction', () => {
                         isASAPSubmitBetaEnabled: false,
                         accountID: CURRENT_USER_ID,
                         email: 'test@example.com',
+                        currentUserPersonalDetails,
                         newReport: report,
                         policy: undefined,
                         allTransactions,
@@ -2469,6 +2531,7 @@ describe('Transaction', () => {
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
                     email: 'test@example.com',
+                    currentUserPersonalDetails,
                     newReport: report,
                     policy: undefined,
                     allTransactions,
@@ -2527,6 +2590,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -2582,6 +2646,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
