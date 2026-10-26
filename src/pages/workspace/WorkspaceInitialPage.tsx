@@ -196,7 +196,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     // Agents errors can only exist on manageable agents
     const {manageableWorkspaceAgents} = useWorkspaceAgents(policy);
-    const hasAgentsErrors = Object.values(manageableWorkspaceAgents).some(doesAgentHaveErrors);
+    const hasAgentErrors = Object.values(manageableWorkspaceAgents).some(doesAgentHaveErrors);
 
     const workspaceMenuItems = getWorkspaceMenuItems({
         policy,
@@ -206,7 +206,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         icons: expensifyIcons,
         isConnectionInProgress: isConnectionInProgress(connectionSyncProgress, policy),
         policyCategories,
-        hasAgentsErrors,
+        hasAgentErrors,
         hasMerchantRuleErrors,
         previousPendingFields: prevPendingFields,
         shouldShowEnterCredentialsError,
