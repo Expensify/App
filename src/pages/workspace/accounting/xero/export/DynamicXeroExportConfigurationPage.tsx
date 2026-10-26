@@ -90,7 +90,7 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
             ? [
                   {
                       title: translate('workspace.xero.bankTransactions'),
-                      description: translate('workspace.common.travelInvoicing'),
+                      description: translate('workspace.common.travelBilling'),
                       onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_CONFIGURATION.path)),
                       subscribedSettings: [CONST.XERO_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
                   },

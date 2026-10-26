@@ -53,6 +53,7 @@ jest.mock('@libs/actions/connections', () => ({
 jest.mock('@libs/PolicyUtils', () => ({
     __esModule: true,
     isControlPolicy: () => true,
+    isPolicyFeatureEnabled: (policyToCheck: Policy | undefined) => !!policyToCheck?.areConnectionsEnabled,
     tryNavigateToSubmitWorkspaceUpgrade: () => false,
 }));
 
@@ -379,6 +380,44 @@ describe('AccountingContextProvider connect-confirmation prompt', () => {
 
             // Then the feature is turned on without navigating away, so the integration can be used once it connects
             expect(mockEnablePolicyFeatureForConnection).toHaveBeenCalledWith(POLICY_ID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+        });
+
+        it('should open the setup flow a frame after turning the Accounting feature on', async () => {
+            // Given a workspace with the Accounting feature off
+            const ref = renderProvider({...policy, areConnectionsEnabled: false});
+
+            // When a connect flow is started
+            act(() => {
+                ref.current?.startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBO});
+            });
+
+            // Then the setup flow waits, because its pages redirect to More features if they render before the feature is on
+            expect(mockEnablePolicyFeatureForConnection).toHaveBeenCalledWith(POLICY_ID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+            expect(screen.queryByTestId(SETUP_FLOW_TEST_ID)).not.toBeOnTheScreen();
+
+            // When the next frame runs
+            await act(async () => {
+                await new Promise((resolve) => {
+                    requestAnimationFrame(resolve);
+                });
+            });
+
+            // Then the setup flow opens
+            expect(screen.getByTestId(SETUP_FLOW_TEST_ID)).toBeOnTheScreen();
+        });
+
+        it('should open the setup flow right away when the Accounting feature is already on', () => {
+            // Given a workspace with the Accounting feature already on
+            const ref = renderProvider({...policy, areConnectionsEnabled: true});
+
+            // When a connect flow is started
+            act(() => {
+                ref.current?.startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBO});
+            });
+
+            // Then setup opens without waiting a frame, because there is nothing to turn on first
+            expect(mockEnablePolicyFeatureForConnection).not.toHaveBeenCalled();
+            expect(screen.getByTestId(SETUP_FLOW_TEST_ID)).toBeOnTheScreen();
         });
     });
 });

@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import LinkedActionNotFoundGuard from '@src/pages/inbox/LinkedActionNotFoundGuard';
 import type {ReportAction} from '@src/types/onyx';
 
-import React from 'react';
+import React, {useEffect, useLayoutEffect} from 'react';
 import {View} from 'react-native';
 
 const REPORT_ID = '12345';
@@ -68,6 +68,23 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 
 let mockIsReportActionVisible = true;
 
+// The gate only re-renders when its Onyx subscriptions change, so the useOnyx mock notifies subscribers like Onyx does.
+// Each update also replaces DERIVED.VISIBLE_REPORT_ACTIONS, which visibility is derived from.
+const mockOnyxListeners = new Set<() => void>();
+let mockOnyxVersion = 0;
+let mockVisibleReportActions: Record<string, unknown> = {};
+
+function updateOnyx(update: () => void) {
+    act(() => {
+        update();
+        mockOnyxVersion++;
+        mockVisibleReportActions = {};
+        for (const listener of mockOnyxListeners) {
+            listener();
+        }
+    });
+}
+
 jest.mock('@libs/ReportActionsUtils', () => ({
     __esModule: true,
     isReportActionVisible: () => mockIsReportActionVisible,
@@ -84,9 +101,18 @@ type UseOnyxReturn = [unknown, {status: string}];
 let mockLinkedAction: ReportAction | null | undefined;
 let mockIsLoadingInitialReportActions: boolean;
 
-jest.mock('@hooks/useOnyx', () => ({
-    __esModule: true,
-    default: (key: string): UseOnyxReturn => {
+jest.mock('@hooks/useOnyx', () => {
+    const {useSyncExternalStore} = jest.requireActual<{useSyncExternalStore: (subscribe: (listener: () => void) => () => void, getSnapshot: () => number) => number}>('react');
+    const subscribe = (listener: () => void) => {
+        mockOnyxListeners.add(listener);
+        return () => {
+            mockOnyxListeners.delete(listener);
+        };
+    };
+    const getVersion = () => mockOnyxVersion;
+
+    function useOnyxMock(key: string): UseOnyxReturn {
+        useSyncExternalStore(subscribe, getVersion);
         if (key.startsWith('reportActions_')) {
             return [mockLinkedAction, {status: 'loaded'}];
         }
@@ -97,9 +123,14 @@ jest.mock('@hooks/useOnyx', () => ({
             return [{reportID: '12345', type: 'chat'}, {status: 'loaded'}];
         }
         // DERIVED.VISIBLE_REPORT_ACTIONS
-        return [undefined, {status: 'loaded'}];
-    },
-}));
+        return [mockVisibleReportActions, {status: 'loaded'}];
+    }
+
+    return {
+        __esModule: true,
+        default: useOnyxMock,
+    };
+});
 
 function createReportAction(overrides: Partial<ReportAction> = {}): ReportAction {
     return {
@@ -117,9 +148,26 @@ function TestChildren() {
     return <View testID="test-children" />;
 }
 
+const mockChildMount = jest.fn();
+const mockChildUnmount = jest.fn();
+const effectLog: string[] = [];
+
+function MountTrackingChildren() {
+    useLayoutEffect(() => {
+        effectLog.push('child-layout-effect');
+    }, []);
+
+    useEffect(() => {
+        mockChildMount();
+        return () => mockChildUnmount();
+    }, []);
+
+    return <View testID="test-children" />;
+}
+
 describe('LinkedActionNotFoundGuard', () => {
     beforeEach(() => {
-        mockSetParams.mockClear();
+        mockSetParams.mockReset();
         mockCleanStaleBackToParam.mockClear();
         mockIsNavigationReady.mockClear();
         mockRouteParams.reportID = REPORT_ID;
@@ -155,7 +203,7 @@ describe('LinkedActionNotFoundGuard', () => {
     });
 
     it('clears reportActionID when the linked action is deleted while being viewed', () => {
-        const {rerender} = render(
+        render(
             <LinkedActionNotFoundGuard>
                 <TestChildren />
             </LinkedActionNotFoundGuard>,
@@ -163,15 +211,9 @@ describe('LinkedActionNotFoundGuard', () => {
 
         expect(mockSetParams).not.toHaveBeenCalled();
 
-        act(() => {
+        updateOnyx(() => {
             mockIsReportActionVisible = false;
         });
-
-        rerender(
-            <LinkedActionNotFoundGuard>
-                <TestChildren />
-            </LinkedActionNotFoundGuard>,
-        );
 
         expect(screen.getByTestId('test-children')).toBeTruthy();
         expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY, NAVIGATOR_KEY);
@@ -180,7 +222,7 @@ describe('LinkedActionNotFoundGuard', () => {
 
     it('clears reportActionID when linked action is completely removed from Onyx', () => {
         // Start with action present
-        const {rerender} = render(
+        render(
             <LinkedActionNotFoundGuard>
                 <TestChildren />
             </LinkedActionNotFoundGuard>,
@@ -189,15 +231,9 @@ describe('LinkedActionNotFoundGuard', () => {
         expect(mockSetParams).not.toHaveBeenCalled();
 
         // Now remove the action (simulating REPORT_PREVIEW being nulled when moving IOU to workspace)
-        act(() => {
+        updateOnyx(() => {
             mockLinkedAction = null;
         });
-
-        rerender(
-            <LinkedActionNotFoundGuard>
-                <TestChildren />
-            </LinkedActionNotFoundGuard>,
-        );
 
         // The cleanup effect should clear reportActionID with the route key
         expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY, NAVIGATOR_KEY);
@@ -220,22 +256,16 @@ describe('LinkedActionNotFoundGuard', () => {
     });
 
     it('passes route.key to setParams for proper targeting inside split navigators', () => {
-        const {rerender} = render(
+        render(
             <LinkedActionNotFoundGuard>
                 <TestChildren />
             </LinkedActionNotFoundGuard>,
         );
 
         // Remove the action
-        act(() => {
+        updateOnyx(() => {
             mockLinkedAction = null;
         });
-
-        rerender(
-            <LinkedActionNotFoundGuard>
-                <TestChildren />
-            </LinkedActionNotFoundGuard>,
-        );
 
         expect(mockSetParams).toHaveBeenCalledTimes(1);
         // Verify route.key is the second argument (needed for split navigator targeting)
@@ -256,25 +286,116 @@ describe('LinkedActionNotFoundGuard', () => {
 
     it('does not clear params while still loading report actions', () => {
         // Action is present initially
-        const {rerender} = render(
+        render(
             <LinkedActionNotFoundGuard>
                 <TestChildren />
             </LinkedActionNotFoundGuard>,
         );
 
         // Action disappears but loading is still in progress
-        act(() => {
+        updateOnyx(() => {
             mockLinkedAction = null;
             mockIsLoadingInitialReportActions = true;
         });
 
-        rerender(
-            <LinkedActionNotFoundGuard>
-                <TestChildren />
-            </LinkedActionNotFoundGuard>,
-        );
-
         // Should not navigate away while loading — the action might come back
         expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    describe('keeps the report subtree mounted', () => {
+        beforeEach(() => {
+            mockChildMount.mockClear();
+            mockChildUnmount.mockClear();
+            effectLog.length = 0;
+        });
+
+        it('does not remount children when the linked action param is cleared', () => {
+            // Given a report opened at a linked action, e.g. the unapproved expense the inbox scrolls to
+            const {rerender} = render(
+                <LinkedActionNotFoundGuard>
+                    <MountTrackingChildren />
+                </LinkedActionNotFoundGuard>,
+            );
+            expect(mockChildMount).toHaveBeenCalledTimes(1);
+
+            // When the live-tail jump after sending a message clears the param to an empty string
+            mockRouteParams.reportActionID = '';
+            rerender(
+                <LinkedActionNotFoundGuard>
+                    <MountTrackingChildren />
+                </LinkedActionNotFoundGuard>,
+            );
+
+            // Then the header, list and composer under the guard keep their state, so the composer is not reseeded with a stale draft
+            expect(mockChildUnmount).not.toHaveBeenCalled();
+            expect(mockChildMount).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not remount children when a linked action param is added', () => {
+            // Given a report opened without a linked action
+            mockRouteParams.reportActionID = undefined;
+            const {rerender} = render(
+                <LinkedActionNotFoundGuard>
+                    <MountTrackingChildren />
+                </LinkedActionNotFoundGuard>,
+            );
+
+            // When the user follows a link to an action in the same report
+            mockRouteParams.reportActionID = REPORT_ACTION_ID;
+            rerender(
+                <LinkedActionNotFoundGuard>
+                    <MountTrackingChildren />
+                </LinkedActionNotFoundGuard>,
+            );
+
+            // Then the existing subtree stays mounted
+            expect(mockChildUnmount).not.toHaveBeenCalled();
+            expect(mockChildMount).toHaveBeenCalledTimes(1);
+        });
+
+        it('resets the gate but not the children when the linked action changes', () => {
+            // Given a report showing a linked action that was visible, so the gate has marked it as seen
+            const {rerender} = render(
+                <LinkedActionNotFoundGuard>
+                    <MountTrackingChildren />
+                </LinkedActionNotFoundGuard>,
+            );
+            expect(mockSetParams).not.toHaveBeenCalled();
+
+            // When the route moves to a different linked action that is already deleted
+            mockRouteParams.reportActionID = 'another-action-id';
+            mockIsReportActionVisible = false;
+            rerender(
+                <LinkedActionNotFoundGuard>
+                    <MountTrackingChildren />
+                </LinkedActionNotFoundGuard>,
+            );
+
+            // Then the gate starts fresh for the new action and takes the never-visible recovery path (which skips the backTo
+            // cleanup), while children stay mounted
+            expect(mockSetParams).toHaveBeenCalledTimes(1);
+            expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY, NAVIGATOR_KEY);
+            expect(mockCleanStaleBackToParam).not.toHaveBeenCalled();
+            expect(mockChildUnmount).not.toHaveBeenCalled();
+            expect(mockChildMount).toHaveBeenCalledTimes(1);
+        });
+
+        it('runs the recovery for a deleted linked action after the children layout effects', () => {
+            // Given the linked action is already deleted when the report mounts
+            mockIsReportActionVisible = false;
+            mockSetParams.mockImplementation(() => {
+                effectLog.push('recovery-set-params');
+            });
+
+            // When the guard and its children mount
+            render(
+                <LinkedActionNotFoundGuard>
+                    <MountTrackingChildren />
+                </LinkedActionNotFoundGuard>,
+            );
+
+            // Then the children's layout effects still run before the gate's recovery, as they did when the gate wrapped them
+            expect(effectLog).toEqual(['child-layout-effect', 'recovery-set-params']);
+        });
     });
 });

@@ -28,7 +28,7 @@ import getButtonState from '@libs/getButtonState';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {isGroupPolicyByType} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
 import {
     canCreateTaskInReport,
     getPayeeName,
@@ -336,21 +336,18 @@ function AttachmentPickerWithMenuItems({
         rules,
     ]);
 
-    const createReportOption: PopoverMenuItem[] = useMemo(() => {
-        if (!isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report)) {
-            return [];
-        }
-
-        return [
-            {
-                icon: icons.Document,
-                text: translate('report.newReport.createReport'),
-                shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_REPORT,
-                onSelected: () => selectOption(() => handleCreateReport(), true),
-            },
-        ];
-    }, [icons.Document, handleCreateReport, policy?.type, report, selectOption, shouldUseNarrowLayout, translate]);
+    const createReportOption: PopoverMenuItem[] =
+        !isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report) || !canCreateExpensesOnPolicy(policy)
+            ? []
+            : [
+                  {
+                      icon: icons.Document,
+                      text: translate('report.newReport.createReport'),
+                      shouldCallAfterModalHide: shouldUseNarrowLayout,
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_REPORT,
+                      onSelected: () => selectOption(() => handleCreateReport(), true),
+                  },
+              ];
 
     /**
      * Determines if we can show the task option

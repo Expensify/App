@@ -96,7 +96,7 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
         ...(isTravelBillingEnabled
             ? [
                   {
-                      description: translate('workspace.common.travelInvoicing'),
+                      description: translate('workspace.common.travelBilling'),
                       onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_CONFIGURATION.path)),
                       title: travelPayableAccount?.name,
                       subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
