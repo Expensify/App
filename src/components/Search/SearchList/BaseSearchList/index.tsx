@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import setSearchRowFocused from '@libs/actions/SearchRowFocus';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
@@ -127,10 +128,17 @@ function BaseSearchList({
     };
     const getOnFocus = useStableIndexedHandler(handleFocusByIndex);
 
-    const renderItemWithKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => {
-        const isItemFocused = focusedIndex === index;
-        return renderItem(item, index, isItemFocused, getOnFocus(index));
-    };
+    // Rows read their own focus by key, so a focus change doesn't invalidate every FlashList cell.
+    const focusedKeyForList = focusedIndex >= 0 ? data.at(focusedIndex)?.keyForList : undefined;
+    useEffect(() => {
+        if (!focusedKeyForList) {
+            return;
+        }
+        setSearchRowFocused(focusedKeyForList, true);
+        return () => setSearchRowFocused(focusedKeyForList, false);
+    }, [focusedKeyForList]);
+
+    const renderItemWithKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => renderItem(item, index, getOnFocus(index));
 
     const selectFocusedOption = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -174,8 +182,8 @@ function BaseSearchList({
     }, [setHasKeyBeenPressed]);
 
     const extraData = useMemo(
-        () => [focusedIndex, columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
-        [focusedIndex, columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
+        () => [columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
+        [columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
     );
 
     return (

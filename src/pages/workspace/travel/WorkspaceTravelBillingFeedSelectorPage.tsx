@@ -106,7 +106,7 @@ function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingF
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.title')}
+                    title={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.title')}
                     onBackButtonPress={goBack}
                 />
                 <SelectionList
@@ -115,12 +115,12 @@ function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingF
                     data={allFeeds.map(toListItem)}
                     customListHeaderContent={
                         <Text style={[styles.ph5, styles.mb3, styles.mt1, styles.textNormal]}>
-                            {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.feedSelectorIntro')}
+                            {translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.feedSelectorIntro')}
                         </Text>
                     }
                     listFooterContent={
                         <MenuItemAction
-                            title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.setUpNewFeed')}
+                            title={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.setUpNewFeed')}
                             icon={expensifyIcons.Plus}
                             onPress={startTravelBillingSetup}
                         />
