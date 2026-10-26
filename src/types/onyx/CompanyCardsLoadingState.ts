@@ -18,6 +18,12 @@ type CompanyCardsLoadingState = {
     /** Whether workspace company card feeds have been fetched at least once in this session */
     hasOnceLoadedPage?: boolean;
 
+    /** Identifies the latest successful bulk transaction start date update */
+    bulkTransactionStartDateUpdateSuccessID?: string;
+
+    /** Identifies the latest queued bulk transaction start date update */
+    bulkTransactionStartDateUpdateID?: string;
+
     /** Per-feed session loading state keyed by feed name */
     feeds?: Partial<Record<CardFeedWithNumber, CompanyCardsFeedLoadingState>>;
 };

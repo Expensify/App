@@ -52,6 +52,9 @@ type UploadFileProps = {
 
     /** Read out by screen readers for the upload button in place of its text, such as to name the document it asks for */
     accessibilityLabel?: string;
+
+    /** Whether each file's remove button reaches the 44x44 minimum touch target past its icon */
+    shouldExtendRemoveTouchArea?: boolean;
 };
 
 function UploadFile({
@@ -68,6 +71,7 @@ function UploadFile({
     fileLimit = 0,
     maxFileSize = 0,
     accessibilityLabel,
+    shouldExtendRemoveTouchArea = false,
 }: UploadFileProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip']);
     const {translate} = useLocalize();
@@ -156,6 +160,7 @@ function UploadFile({
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={`${translate('common.remove')}, ${file.name ?? ''}`}
                         sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
+                        shouldUseAutoHitSlop={shouldExtendRemoveTouchArea}
                     >
                         <Icon
                             src={icons.Close}
