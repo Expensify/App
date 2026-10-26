@@ -5,7 +5,7 @@ import type {AgentRowData, AgentsTableColumnKey} from '@components/Tables/Agents
 
 import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent} from '@libs/actions/Agent';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
-import {getAgentErrors} from '@libs/AgentUtils';
+import {filterDeletedAgents, getAgentErrors} from '@libs/AgentUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -18,11 +18,11 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
 
-import useAgents from './useAgents';
 import useChatWithAgent from './useChatWithAgent';
 import useCleanupSelectedOptions from './useCleanupSelectedOptions';
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useRuleBotGuardModal from './useRuleBotGuardModal';
@@ -44,7 +44,10 @@ function handleErrorClose(pendingAction: PendingAction | null | undefined, accou
  */
 function useAgentsTable() {
     const {translate} = useLocalize();
-    const allAgents = useAgents();
+    const {isOffline} = useNetwork();
+    const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {
+        selector: (agents) => filterDeletedAgents(agents, isOffline),
+    });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetailsList = usePersonalDetails();
     const chatWithAgent = useChatWithAgent();
