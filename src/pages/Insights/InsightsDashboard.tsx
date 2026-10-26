@@ -43,7 +43,7 @@ import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
 import buildInsightsJsonQuery from './insightsQueries';
-import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
+import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import useInsightsFilters from './useInsightsFilters';
@@ -273,8 +273,8 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             <InsightsDashboardContent
                 state={state}
                 aiInsights={dashboard?.aiInsights}
-                // Only a GetInsights response sets inputQuery. Offline no response is coming, so the row hides instead of loading forever
-                isLoadingAIInsights={!dashboard?.inputQuery && !isOffline}
+                // Offline no response is coming, so the row hides instead of loading forever
+                isLoadingAIInsights={!hasDashboardResponse(dashboard) && !isOffline}
                 headlineChart={headlineChart}
                 supportingCharts={supportingCharts}
                 filters={filters}
