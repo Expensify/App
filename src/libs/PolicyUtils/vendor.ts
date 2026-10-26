@@ -92,7 +92,10 @@ function isCertiniaVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
  */
 function isQuickbooksDesktopVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     const config = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBD]?.config;
-    return config?.apiProvider === 'codat' && config?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD;
+    return (
+        config?.apiProvider === CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT &&
+        config?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD
+    );
 }
 
 /**

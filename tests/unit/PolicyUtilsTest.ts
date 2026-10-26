@@ -6807,7 +6807,7 @@ describe('PolicyUtils', () => {
             const buildQBDPolicy = (
                 nonReimbursable: QBDNonReimbursableExportAccountType | undefined,
                 vendors: Array<{id: string; name: string; currency: string; email: string}> | typeof QBD_VENDORS_UNSYNCED = [{id: 'qbd-1', name: 'Acme QBD', currency: 'USD', email: ''}],
-                {apiProvider = 'codat'}: {apiProvider?: string} = {},
+                {apiProvider = CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT}: {apiProvider?: string} = {},
             ): Policy =>
                 createMock<Policy>({
                     ...createRandomPolicy(0),
@@ -6942,7 +6942,10 @@ describe('PolicyUtils', () => {
                             data: {vendors: [{id: 'certinia-1', name: 'Certinia Vendor'}]},
                         },
                         [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                            config: createMock({apiProvider: 'codat', export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}}),
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            }),
                             data: {vendors: [{id: 'qbd-1', name: 'QBD Vendor', currency: 'USD', email: ''}]},
                         },
                     },
@@ -7111,7 +7114,10 @@ describe('PolicyUtils', () => {
                 const policy = createMock<Policy>({
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                            config: createMock({apiProvider: 'codat', export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}}),
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            }),
                         },
                     },
                 });
@@ -7127,7 +7133,10 @@ describe('PolicyUtils', () => {
                 const policy = createMock<Policy>({
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                            config: createMock({apiProvider: 'codat', export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}}),
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK},
+                            }),
                         },
                     },
                 });
@@ -7767,7 +7776,10 @@ describe('PolicyUtils', () => {
                 const policy = createMock<Policy>({
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                            config: createMock({apiProvider: 'codat', export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}}),
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            }),
                         },
                     },
                 });
@@ -7782,7 +7794,10 @@ describe('PolicyUtils', () => {
                 const policy = createMock<Policy>({
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                            config: createMock({apiProvider: 'codat', export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}}),
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK},
+                            }),
                         },
                     },
                 });
@@ -7833,7 +7848,10 @@ describe('PolicyUtils', () => {
                 const policy = createMock<Policy>({
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                            config: createMock({apiProvider: 'codat', export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}}),
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            }),
                             data: {vendors: []},
                         },
                     },
