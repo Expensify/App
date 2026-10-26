@@ -11,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 // Utility page: goes back, then does what the Help page's Talk to a human row does (offline it shows Help instead).
@@ -22,26 +22,24 @@ function TalkToHumanPage() {
     const hasHandledLink = useRef(false);
     const isUnmounted = useRef(false);
 
-    useFocusEffect(
-        useCallback(() => {
-            Navigation.isNavigationReady().then(() => {
-                if (hasHandledLink.current || isUnmounted.current) {
-                    return;
-                }
-                hasHandledLink.current = true;
+    useFocusEffect(() => {
+        Navigation.isNavigationReady().then(() => {
+            if (hasHandledLink.current || isUnmounted.current) {
+                return;
+            }
+            hasHandledLink.current = true;
 
-                // A wide to narrow resize leaves a pending pop to the sidebar, which targets the page underneath
-                // rather than this one. goBack would consume it here and leave this page open.
-                Navigation.setShouldPopToSidebar(false);
-                Navigation.goBack();
-                if (isOffline) {
-                    Navigation.navigate(ROUTES.SETTINGS_HELP);
-                    return;
-                }
-                openSupportTicketOrConcierge();
-            });
-        }, [isOffline, openSupportTicketOrConcierge]),
-    );
+            // A wide to narrow resize leaves a pending pop to the sidebar, which targets the page underneath
+            // rather than this one. goBack would consume it here and leave this page open.
+            Navigation.setShouldPopToSidebar(false);
+            Navigation.goBack();
+            if (isOffline) {
+                Navigation.navigate(ROUTES.SETTINGS_HELP);
+                return;
+            }
+            openSupportTicketOrConcierge();
+        });
+    });
 
     useEffect(() => {
         isUnmounted.current = false;
