@@ -1,9 +1,10 @@
-import type {Init, IsClientTheLeader, IsReady} from '@libs/ActiveClientManager/types';
+import type {Init, IsClientTheLeader, IsReady, OnBecomeLeader} from '@libs/ActiveClientManager/types';
 
 type ActiveClientManagerModule = {
     init: Init;
     isClientTheLeader: IsClientTheLeader;
     isReady: IsReady;
+    onBecomeLeader: OnBecomeLeader;
 };
 
 type LockRequest = {
@@ -246,6 +247,33 @@ describe('ActiveClientManager', () => {
         // Then it takes leadership back and the other tab steps down
         expect(firstTab.isClientTheLeader()).toBe(true);
         expect(secondTab.isClientTheLeader()).toBe(false);
+    });
+
+    it('tells listeners each time the tab becomes the leader, so the queue is flushed after the lock is granted', async () => {
+        // Given two tabs where the second one leads, and the first one listens for becoming the leader like the Network does
+        const firstTab = openTab();
+        const secondTab = openTab();
+        const onBecomeLeader = jest.fn();
+        firstTab.onBecomeLeader(onBecomeLeader);
+        firstTab.init();
+        await waitForLocks();
+        expect(onBecomeLeader).toHaveBeenCalledTimes(1);
+        secondTab.init();
+        await waitForLocks();
+
+        // When the leader tab closes, so the waiting tab is granted the lock
+        lockManager.closeLeaderTab();
+        await waitForLocks();
+
+        // Then the listener runs again, because a flush that ran while the tab was still waiting already gave up
+        expect(onBecomeLeader).toHaveBeenCalledTimes(2);
+
+        // When the tab is focused again while it already leads
+        firstTab.init();
+        await waitForLocks();
+
+        // Then the listener doesn't run again, since leadership didn't change
+        expect(onBecomeLeader).toHaveBeenCalledTimes(2);
     });
 
     it('falls back to the ACTIVE_CLIENTS list when Web Locks are not available', async () => {

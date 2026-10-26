@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
-import type {Init, IsClientTheLeader, IsReady} from './types';
+import type {Init, IsClientTheLeader, IsReady, OnBecomeLeader} from './types';
 
 const LEADER_LOCK_NAME = 'activeClientLeader';
 
@@ -36,71 +36,10 @@ const canUseWebLocks = () => typeof navigator !== 'undefined' && !!navigator.loc
  */
 const isReady: IsReady = () => savedSelfPromise;
 
-// We have opted for `connectWithoutView` here as this code is not connected to UI at all.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ACTIVE_CLIENTS,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        activeClients = val;
-
-        // Remove from the beginning of the list any clients that are past the limit, to avoid having thousands of them
-        let removed = false;
-        while (activeClients.length >= maxClients) {
-            activeClients.shift();
-            removed = true;
-        }
-
-        // Save the clients back to onyx, if they changed
-        if (removed) {
-            setActiveClients(activeClients);
-        }
-    },
-});
-
 let isHoldingLeaderLock = false;
 let isStealingLeaderLock = false;
 let leaderLockRequestID = 0;
 let waitForLeaderLockController: AbortController | undefined;
-
-/**
- * Requests the leader lock. A steal takes it from the current leader right away. Otherwise we wait in line until the leader's tab goes away.
- * If we make a new request before an older one is granted, the older one gives the lock back as soon as it gets it.
- */
-const requestLeaderLock = (shouldSteal: boolean) => {
-    leaderLockRequestID++;
-    const requestID = leaderLockRequestID;
-    isStealingLeaderLock = shouldSteal;
-    waitForLeaderLockController?.abort();
-    waitForLeaderLockController = shouldSteal ? undefined : new AbortController();
-    const options: LockOptions = shouldSteal ? {steal: true} : {signal: waitForLeaderLockController?.signal};
-
-    navigator.locks
-        .request(LEADER_LOCK_NAME, options, () => {
-            if (requestID !== leaderLockRequestID) {
-                return;
-            }
-            isHoldingLeaderLock = true;
-            isStealingLeaderLock = false;
-            resolveSavedSelfPromise();
-
-            // Saving our ID last tells older build tabs that we lead, and re-renders the UI that depends on the leader in every tab (see SignInPage)
-            setActiveClients([clientID]);
-
-            // Hold the lock until this tab goes away or another tab steals it
-            return new Promise<void>(() => {});
-        })
-        .catch(() => {
-            // The request was aborted because we superseded it, or another tab stole the lock from us
-            if (requestID !== leaderLockRequestID) {
-                return;
-            }
-            isHoldingLeaderLock = false;
-            requestLeaderLock(false);
-        });
-};
 
 let isPromotingNewLeader = false;
 
@@ -129,6 +68,95 @@ const isClientTheLeader: IsClientTheLeader = () => {
     const lastActiveClient = activeClients.length && activeClients.at(-1);
 
     return lastActiveClient === clientID;
+};
+
+const becameLeaderCallbacks = new Set<() => void>();
+let wasLeader = false;
+
+/**
+ * Runs the callbacks each time this tab becomes the leader, so work that waits for a leader (like the SequentialQueue) can start right away.
+ * This matters because the Web Lock is granted asynchronously, after the code that tried to flush on focus already gave up.
+ */
+const onBecomeLeader: OnBecomeLeader = (callback) => {
+    becameLeaderCallbacks.add(callback);
+    return () => becameLeaderCallbacks.delete(callback);
+};
+
+const notifyIfBecameLeader = () => {
+    const isLeader = isClientTheLeader();
+    const didBecomeLeader = isLeader && !wasLeader;
+    wasLeader = isLeader;
+    if (!didBecomeLeader) {
+        return;
+    }
+    for (const callback of becameLeaderCallbacks) {
+        callback();
+    }
+};
+
+// We have opted for `connectWithoutView` here as this code is not connected to UI at all.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACTIVE_CLIENTS,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        activeClients = val;
+
+        // Remove from the beginning of the list any clients that are past the limit, to avoid having thousands of them
+        let removed = false;
+        while (activeClients.length >= maxClients) {
+            activeClients.shift();
+            removed = true;
+        }
+
+        // Save the clients back to onyx, if they changed
+        if (removed) {
+            setActiveClients(activeClients);
+        }
+
+        notifyIfBecameLeader();
+    },
+});
+
+/**
+ * Requests the leader lock. A steal takes it from the current leader right away. Otherwise we wait in line until the leader's tab goes away.
+ * If we make a new request before an older one is granted, the older one gives the lock back as soon as it gets it.
+ */
+const requestLeaderLock = (shouldSteal: boolean) => {
+    leaderLockRequestID++;
+    const requestID = leaderLockRequestID;
+    isStealingLeaderLock = shouldSteal;
+    waitForLeaderLockController?.abort();
+    waitForLeaderLockController = shouldSteal ? undefined : new AbortController();
+    const options: LockOptions = shouldSteal ? {steal: true} : {signal: waitForLeaderLockController?.signal};
+
+    navigator.locks
+        .request(LEADER_LOCK_NAME, options, () => {
+            if (requestID !== leaderLockRequestID) {
+                return;
+            }
+            isHoldingLeaderLock = true;
+            isStealingLeaderLock = false;
+            resolveSavedSelfPromise();
+
+            // Saving our ID last tells older build tabs that we lead, and re-renders the UI that depends on the leader in every tab (see SignInPage)
+            setActiveClients([clientID]);
+            notifyIfBecameLeader();
+
+            // Hold the lock until this tab goes away or another tab steals it
+            return new Promise<void>(() => {});
+        })
+        .catch(() => {
+            // The request was aborted because we superseded it, or another tab stole the lock from us
+            if (requestID !== leaderLockRequestID) {
+                return;
+            }
+            isHoldingLeaderLock = false;
+            notifyIfBecameLeader();
+            requestLeaderLock(false);
+        });
 };
 
 const cleanUpClientId = () => {
@@ -168,6 +196,7 @@ const init: Init = () => {
     activeClients = activeClients.filter((id) => id !== clientID);
     activeClients.push(clientID);
     setActiveClients(activeClients).then(resolveSavedSelfPromise);
+    notifyIfBecameLeader();
 
     beforeunloadListenerAdded = true;
     window.addEventListener('beforeunload', () => {
@@ -176,4 +205,4 @@ const init: Init = () => {
     });
 };
 
-export {init, isClientTheLeader, isReady};
+export {init, isClientTheLeader, isReady, onBecomeLeader};

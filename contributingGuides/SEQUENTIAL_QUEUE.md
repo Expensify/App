@@ -291,7 +291,7 @@ The blocks above describe what the queue does; this is the inbound surface: who 
 - `onCrossTabRequestsMerged`: another tab enqueued a genuinely-new request.
 - The `PERSISTED_ONGOING_REQUESTS` connect callback: post-init, when a **new** ongoing request appears (e.g. observed from another tab), it re-fires the registered initialization callback, which is `flush`.
 - `Reconnect`, on **two** edges: the offline→online `NetworkState` transition and the app-became-active listener. Both are deliberately decoupled from `reconnect()`'s data-sync (`openApp`/`reconnectApp`), which never flushes.
-- `Network/index` startup: `ActiveClientManager.isReady().then(flush)`, the primary "drain whatever survived the last session, once we know who the leader is" trigger.
+- `Network/index` startup: `ActiveClientManager.isReady().then(flush)`, the primary "drain whatever survived the last session, once we know who the leader is" trigger. After that, `ActiveClientManager.onBecomeLeader(flush)` drains the queue each time this tab becomes the leader later (for example when the leader tab closes, or after the Web Lock is granted on focus).
 - The **native background-fetch wake-up** (`backgroundTask`), which flushes on a native scheduler tick.
 
 **Two ordering gates (don't conflate them):**
