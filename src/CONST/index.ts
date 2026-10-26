@@ -8142,7 +8142,7 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
-            TRAVEL_BILLING: 'central-travel-invoicing',
+            TRAVEL_BILLING: 'central-travel-billing',
         },
         SETTLEMENT_STATUS: {
             PENDING: 'pending',
