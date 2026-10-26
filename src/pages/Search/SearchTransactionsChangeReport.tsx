@@ -42,7 +42,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -55,7 +55,7 @@ function SearchTransactionsChangeReport() {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON} = useSearchQueryContext();
-    const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
+    const selectedTransactionsKeys = Object.keys(selectedTransactions);
     const {isOffline} = useNetwork();
     const {showOfflineModal} = useAlertModals();
 
@@ -118,24 +118,23 @@ function SearchTransactionsChangeReport() {
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const areAllTransactionsUnreported =
         selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((transactionKey) => selectedTransactions[transactionKey]?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
-    const targetOwnerAccountID = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0) {
-            return undefined;
-        }
-
+    let targetOwnerAccountID;
+    if (selectedTransactionsKeys.length === 0) {
+        targetOwnerAccountID = undefined;
+    } else {
         // Prefer owner metadata attached to each selection (handles unreported expenses)
         const ownerFromSelection = selectedTransactionsKeys.map((transactionKey) => selectedTransactions[transactionKey]?.ownerAccountID).find((ownerID) => typeof ownerID === 'number');
         if (ownerFromSelection !== undefined) {
-            return ownerFromSelection;
+            targetOwnerAccountID = ownerFromSelection;
+        } else {
+            // Then the cardholder of an unreported card expense, or the report owner, so another cardholder's expenses
+            // are not moved onto the current user's reports
+            targetOwnerAccountID = selectedTransactionsKeys
+                .map((transactionKey) => getSelectedTransactionOwnerAccountID(transactionKey, selectedTransactions[transactionKey], {cardList, nonPersonalAndWorkspaceCards, allReports}))
+                .find((ownerID) => typeof ownerID === 'number');
         }
-
-        // Then the cardholder of an unreported card expense, or the report owner, so another cardholder's expenses
-        // are not moved onto the current user's reports
-        return selectedTransactionsKeys
-            .map((transactionKey) => getSelectedTransactionOwnerAccountID(transactionKey, selectedTransactions[transactionKey], {cardList, nonPersonalAndWorkspaceCards, allReports}))
-            .find((ownerID) => typeof ownerID === 'number');
-    }, [selectedTransactions, selectedTransactionsKeys, allReports, cardList, nonPersonalAndWorkspaceCards]);
-    const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
+    }
+    const targetOwnerPersonalDetails = getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails;
     // Kept separate from `targetOwnerAccountID`, which stops at the first owner it finds. Counting needs them all.
     // Only distinct resolved owners count. An owner we cannot resolve must not stand in for a second submitter: for an
     // unreported expense whose card we cannot find, the report lookup can never resolve one (its reportID is `0`), so a
@@ -147,19 +146,14 @@ function SearchTransactionsChangeReport() {
         selectedTransactionsKeys.length > 0 &&
         transactions.length === selectedTransactionsKeys.length &&
         transactions.every((transaction) => canResolveTransactionCard(transaction, nonPersonalAndWorkspaceCards, isSearchCardListComplete));
-    const hasMultipleSubmitters = useMemo(() => {
-        const ownerAccountIDs = new Set<number>();
-
-        for (const transactionKey of selectedTransactionsKeys) {
-            const ownerAccountID = getSelectedTransactionOwnerAccountID(transactionKey, selectedTransactions[transactionKey], {cardList, nonPersonalAndWorkspaceCards, allReports});
-
-            if (typeof ownerAccountID === 'number') {
-                ownerAccountIDs.add(ownerAccountID);
-            }
+    const ownerAccountIDs = new Set<number>();
+    for (const transactionKey of selectedTransactionsKeys) {
+        const ownerAccountID = getSelectedTransactionOwnerAccountID(transactionKey, selectedTransactions[transactionKey], {cardList, nonPersonalAndWorkspaceCards, allReports});
+        if (typeof ownerAccountID === 'number') {
+            ownerAccountIDs.add(ownerAccountID);
         }
-
-        return ownerAccountIDs.size > 1;
-    }, [selectedTransactions, selectedTransactionsKeys, allReports, cardList, nonPersonalAndWorkspaceCards]);
+    }
+    const hasMultipleSubmitters = ownerAccountIDs.size > 1;
 
     useHydrateReportsFromSnapshot(currentSearchResults, allReports);
 

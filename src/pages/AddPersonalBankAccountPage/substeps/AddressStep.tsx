@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type AddressStepProps = SubPageProps & {
@@ -40,26 +40,14 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
     const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [homeAddressFormDraft] = useOnyx(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT);
 
-    const address = useMemo(() => {
-        const normalizedAddress = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address;
-        return {
-            street: bankAccountPersonalDetails?.addressStreet
-                ? `${bankAccountPersonalDetails?.addressStreet}\n${bankAccountPersonalDetails?.addressStreet2}`
-                : (normalizedAddress?.street ?? ''),
-            city: bankAccountPersonalDetails?.addressCity ?? normalizedAddress?.city ?? '',
-            state: bankAccountPersonalDetails?.addressState ?? normalizedAddress?.state ?? '',
-            zip: bankAccountPersonalDetails?.addressZipCode ?? normalizedAddress?.zip ?? '',
-            country: (bankAccountPersonalDetails?.country ?? normalizedAddress?.country ?? '') as Country | '',
-        };
-    }, [
-        bankAccountPersonalDetails?.addressCity,
-        bankAccountPersonalDetails?.addressState,
-        bankAccountPersonalDetails?.addressStreet,
-        bankAccountPersonalDetails?.addressStreet2,
-        bankAccountPersonalDetails?.addressZipCode,
-        bankAccountPersonalDetails?.country,
-        privatePersonalDetails,
-    ]);
+    const normalizedAddress = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address;
+    const address = {
+        street: bankAccountPersonalDetails?.addressStreet ? `${bankAccountPersonalDetails?.addressStreet}\n${bankAccountPersonalDetails?.addressStreet2}` : (normalizedAddress?.street ?? ''),
+        city: bankAccountPersonalDetails?.addressCity ?? normalizedAddress?.city ?? '',
+        state: bankAccountPersonalDetails?.addressState ?? normalizedAddress?.state ?? '',
+        zip: bankAccountPersonalDetails?.addressZipCode ?? normalizedAddress?.zip ?? '',
+        country: (bankAccountPersonalDetails?.country ?? normalizedAddress?.country ?? '') as Country | '',
+    };
 
     const draftCountry = shouldSaveDraft ? homeAddressFormDraft?.country : undefined;
     const draftState = shouldSaveDraft ? homeAddressFormDraft?.state : undefined;

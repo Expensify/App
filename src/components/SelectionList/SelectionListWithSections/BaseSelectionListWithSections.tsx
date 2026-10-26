@@ -27,7 +27,7 @@ import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useImperativeHandle, useRef} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
@@ -147,7 +147,7 @@ function BaseSelectionListWithSectionsImpl({
         focusTextInput();
     }
 
-    const getFocusedItem = useCallback((): ListItem | undefined => {
+    const getFocusedItem = (): ListItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {
             return;
         }
@@ -156,7 +156,7 @@ function BaseSelectionListWithSectionsImpl({
             return;
         }
         return item as ListItem;
-    }, [flattenedData, focusedIndex]);
+    };
 
     const selectRow = (item: ListItem, indexToFocus?: number) => {
         if (!isScreenFocused) {
@@ -189,29 +189,23 @@ function BaseSelectionListWithSectionsImpl({
         selectRow(focusedItem);
     };
 
-    const clearInputAfterSelect = useCallback(() => {
+    const clearInputAfterSelect = () => {
         textInputOptions?.onChangeText?.('');
-    }, [textInputOptions]);
+    };
 
-    const updateAndScrollToFocusedIndex = useCallback(
-        (index: number, shouldScroll = true) => {
-            setFocusedIndex(index);
-            if (shouldScroll) {
-                scrollToIndex(index);
-            }
-        },
-        [scrollToIndex, setFocusedIndex],
-    );
+    const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
+        setFocusedIndex(index);
+        if (shouldScroll) {
+            scrollToIndex(index);
+        }
+    };
 
     /**
      * Handles isTextInputFocusedRef value when using external TextInput, so external TextInput does not lose focus when typing in it.
      */
-    const updateExternalTextInputFocus = useCallback(
-        (isTextInputFocused: boolean) => {
-            isTextInputFocusedRef.current = isTextInputFocused;
-        },
-        [isTextInputFocusedRef],
-    );
+    const updateExternalTextInputFocus = (isTextInputFocused: boolean) => {
+        isTextInputFocusedRef.current = isTextInputFocused;
+    };
 
     useImperativeHandle(
         ref,

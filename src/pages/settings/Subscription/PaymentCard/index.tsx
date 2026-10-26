@@ -36,7 +36,7 @@ import SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 function AddPaymentCard() {
@@ -60,14 +60,13 @@ function AddPaymentCard() {
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
 
-    const billingCard = useMemo(() => {
-        const userBillingCard = userBillingFundID ? fundList?.[`${userBillingFundID}`] : undefined;
-        if (userBillingCard?.accountData) {
-            return userBillingCard;
-        }
-
-        return getCardForSubscriptionBilling(fundList);
-    }, [fundList, userBillingFundID]);
+    let billingCard;
+    const userBillingCard = userBillingFundID ? fundList?.[`${userBillingFundID}`] : undefined;
+    if (userBillingCard?.accountData) {
+        billingCard = userBillingCard;
+    } else {
+        billingCard = getCardForSubscriptionBilling(fundList);
+    }
 
     const isSaveTheWorldAddPaymentCardRoute = route.name === SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD;
     const shouldShowBlockingView = isSaveTheWorldAddPaymentCardRoute && !!billingCard;
@@ -95,22 +94,19 @@ function AddPaymentCard() {
         };
     }, []);
 
-    const addPaymentCard = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
-            const cardData = {
-                cardNumber: getMCardNumberString(values.cardNumber),
-                cardMonth: getMonthFromExpirationDateString(values.expirationDate),
-                cardYear: getYearFromExpirationDateString(values.expirationDate),
-                cardCVV: values.securityCode,
-                addressName: values.nameOnCard,
-                addressZip: values.addressZipCode,
-                currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
-            };
-            setHasSubmittedPaymentCard(true);
-            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData, fundList, route.name);
-        },
-        [accountID, fundList, route.name],
-    );
+    const addPaymentCard = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
+        const cardData = {
+            cardNumber: getMCardNumberString(values.cardNumber),
+            cardMonth: getMonthFromExpirationDateString(values.expirationDate),
+            cardYear: getYearFromExpirationDateString(values.expirationDate),
+            cardCVV: values.securityCode,
+            addressName: values.nameOnCard,
+            addressZip: values.addressZipCode,
+            currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
+        };
+        setHasSubmittedPaymentCard(true);
+        addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData, fundList, route.name);
+    };
 
     const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
