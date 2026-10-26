@@ -10,9 +10,10 @@ import type {InsightsChartSpec} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
+import {getQueryGroupBy} from './insightsGroupByUtils';
 
-/** How many periods before the selected date range the Average mode spans (Typical on the ranking charts) */
-const COMPARE_TYPICAL_PERIOD_COUNT = 1;
+/** How many periods before the selected date range the Average mode spans */
+const COMPARE_AVERAGE_PERIOD_COUNT = 1;
 
 /** Builds the date filter in the shape a search query is built from. */
 function buildDateFormValues(date: InsightsFilters['date']): Partial<SearchAdvancedFiltersForm> {
@@ -42,7 +43,7 @@ function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
 /** Builds a chart's query with the page's filters applied. */
 function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode): SearchQueryString {
     return buildQueryStringFromFilterFormValues(
-        {...buildFilterFormValues(filters), groupBy: chart.groupBy ?? filters.groupBy, view: chart.view, compare},
+        {...buildFilterFormValues(filters), groupBy: chart.groupBy ?? getQueryGroupBy(filters), view: chart.view, compare},
         {sortBy: chart.sortBy, sortOrder: chart.sortOrder, limit: chart.limit},
     );
 }
@@ -50,6 +51,8 @@ function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters
 type InsightsChartQuery = {
     chart: InsightsChartSpec;
     queryJSON: Readonly<SearchQueryJSON> | undefined;
+    previousPeriodQueryJSON?: Readonly<SearchQueryJSON>;
+    averageQueryJSON?: Readonly<SearchQueryJSON>;
 };
 
 type InsightsGraphHashes = {
@@ -60,7 +63,7 @@ type InsightsGraphHashes = {
 type InsightsGraphHashEntry = [InsightsGraphKey, InsightsGraphHashes];
 
 /** Returns the chart's graph slot paired with the hashes its current period, previous period and average are stored under. */
-function buildSnapshotHashEntry({chart, queryJSON}: InsightsChartQuery, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsGraphHashEntry | undefined {
+function buildSnapshotHashEntry({chart, queryJSON, previousPeriodQueryJSON, averageQueryJSON}: InsightsChartQuery, shouldIncludeComparisons: boolean): InsightsGraphHashEntry | undefined {
     const snapshotHash = queryJSON?.hash;
     if (!snapshotHash) {
         return undefined;
@@ -69,8 +72,8 @@ function buildSnapshotHashEntry({chart, queryJSON}: InsightsChartQuery, filters:
         return [chart.graphKey, {snapshotHash}];
     }
 
-    const previousPeriodSnapshotHash = buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD))?.hash;
-    const averageSnapshotHash = buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE))?.hash;
+    const previousPeriodSnapshotHash = previousPeriodQueryJSON?.hash;
+    const averageSnapshotHash = averageQueryJSON?.hash;
     if (!previousPeriodSnapshotHash || !averageSnapshotHash) {
         return undefined;
     }
@@ -92,20 +95,33 @@ type InsightsQuery = {
     supportingCharts: InsightsChartQuery[];
 };
 
-/** Builds one request for the whole dashboard, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
-function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsQuery | undefined {
-    const inputQuery = buildInsightsQueryString({...filters, compare: undefined});
-    const queryJSON = buildSearchQueryJSON(inputQuery);
+/** Builds one request for the dashboard's headline chart and the given supporting charts, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
+function buildInsightsJsonQuery(
+    dashboard: InsightsDashboardID,
+    filters: InsightsFilters,
+    supportingChartSpecs: InsightsChartSpec[],
+    shouldIncludeComparisons: boolean,
+): InsightsQuery | undefined {
+    // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
+    const inputQuery = buildInsightsQueryString(filters);
+    const queryJSON = buildSearchQueryJSON(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}));
     if (!queryJSON) {
         return undefined;
     }
 
     const spec = INSIGHTS_DASHBOARD_SPECS[dashboard];
-    const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({chart, queryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters))});
+    const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({
+        chart,
+        queryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters)),
+        ...(shouldIncludeComparisons && {
+            previousPeriodQueryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD)),
+            averageQueryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE)),
+        }),
+    });
     const headlineChart = buildChartQuery(spec.headlineChart);
-    const supportingCharts = spec.supportingCharts.map(buildChartQuery);
+    const supportingCharts = supportingChartSpecs.map(buildChartQuery);
     const graphEntries = [headlineChart, ...supportingCharts]
-        .map((chartQuery) => buildSnapshotHashEntry(chartQuery, filters, shouldIncludeComparisons))
+        .map((chartQuery) => buildSnapshotHashEntry(chartQuery, shouldIncludeComparisons))
         .filter((entry): entry is InsightsGraphHashEntry => !!entry);
     const insightsHashes: InsightsDashboard['graphs'] = Object.fromEntries(graphEntries);
 
@@ -117,7 +133,7 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
             inputQuery,
             searchKey: spec.searchKey,
             insightsHashes,
-            numberOfPeriods: shouldIncludeComparisons ? COMPARE_TYPICAL_PERIOD_COUNT : undefined,
+            numberOfPeriods: shouldIncludeComparisons ? COMPARE_AVERAGE_PERIOD_COUNT : undefined,
         }),
         hash: queryJSON.hash,
         snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((hash): hash is number => hash !== undefined)),

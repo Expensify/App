@@ -55,13 +55,16 @@ const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = [
 
 describe('system message presentation', () => {
     describe('classification', () => {
-        it.each([CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED, CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION])('retains the dedicated simple-message renderer for %s', (actionName) => {
-            // Given an upstream action whose renderer was moved behind the shared classifier
-            const action = makeAction('1', actionName);
-            // When routing its content
-            // Then preserve its dedicated renderer instead of generic fallback content
-            expect(isSimpleMessageAction(action)).toBe(true);
-        });
+        it.each([CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED, CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION, CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED])(
+            'retains the dedicated simple-message renderer for %s',
+            (actionName) => {
+                // Given an upstream action whose renderer was moved behind the shared classifier
+                const action = makeAction('1', actionName);
+                // When routing its content
+                // Then preserve its dedicated renderer instead of generic fallback content
+                expect(isSimpleMessageAction(action)).toBe(true);
+            },
+        );
 
         it.each([
             CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,

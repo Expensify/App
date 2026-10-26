@@ -76,6 +76,9 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION)) {
         return <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
     }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED)) {
+        return <ReportActionItemBasicMessage message={translate('systemMessage.mergedExpenseDeleted')} />;
+    }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
         return <ReportActionItemBasicMessage message={getDismissedViolationMessageText(translate, getOriginalMessage(action))} />;
     }

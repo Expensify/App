@@ -47,6 +47,8 @@ import {View} from 'react-native';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
+import ExactOnlineWaitlistRow from './ExactOnlineWaitlistRow';
+import {getNetSuiteOAuthMigrationSeverity, shouldShowNetSuiteOAuthMigrationOption} from './netsuite/utils';
 import useConnectedAccountingIntegration from './useConnectedAccountingIntegration';
 
 type RouteParams = {
@@ -223,6 +225,25 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             );
         }
 
+        let netSuiteOAuthMigrationHint;
+        const netSuiteAccountID = policy?.connections?.netsuite?.accountID;
+        if (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && shouldShowNetSuiteOAuthMigrationOption(policy) && canWriteAccounting && netSuiteAccountID) {
+            const severity = getNetSuiteOAuthMigrationSeverity();
+            netSuiteOAuthMigrationHint = (
+                <>
+                    {translate(severity === 'danger' ? 'workspace.accounting.netSuiteOAuthMigrationRequiredUrgent' : 'workspace.accounting.netSuiteOAuthMigrationRequired')}{' '}
+                    <TextLink
+                        style={styles.label}
+                        onPress={() =>
+                            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID, CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL, undefined, true))
+                        }
+                    >
+                        {translate('workspace.accounting.netSuiteOAuthUpgradeNow')}
+                    </TextLink>
+                </>
+            );
+        }
+
         return [
             {
                 ...iconProps,
@@ -234,7 +255,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
                 description: connectionDetails.connectionMessage,
-                hintText: qboTokenExpiryHint,
+                hintText: qboTokenExpiryHint ?? netSuiteOAuthMigrationHint,
                 rightComponent,
             },
             ...connectionDetails.settingsMenuItems,
@@ -398,6 +419,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     />
                                 </CollapsibleSection>
                             )}
+                            <ExactOnlineWaitlistRow
+                                policy={policy}
+                                style={styles.sectionMenuItemTopDescription}
+                                titleWrapperStyle={!shouldUseNarrowLayout && [styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+                            />
                             {!!account?.guideDetails?.email && !hasAccountingConnections(policy) && canWriteAccounting && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                                     <Icon
