@@ -2,7 +2,6 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
@@ -65,7 +64,6 @@ function ReanimatedModal({
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
     const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
-    const {windowWidth, windowHeight} = useWindowDimensions();
 
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
@@ -148,9 +146,9 @@ function ReanimatedModal({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, isContainerOpen, isTransitioning]);
 
-    const backdropStyle: ViewStyle = useMemo(() => {
-        return {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
-    }, [windowWidth, windowHeight, backdropColor]);
+    // Each platform's backdrop sizes itself: the native one to the window, the web one to the modal's fixed root. On mobile
+    // Safari the window is the visual viewport, which stops above the keyboard, while the root spans the whole page.
+    const backdropStyle: ViewStyle = useMemo(() => ({backgroundColor: backdropColor}), [backdropColor]);
 
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);

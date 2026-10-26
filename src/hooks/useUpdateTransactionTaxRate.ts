@@ -102,8 +102,6 @@ function useUpdateTransactionTaxRate({transactionID, transaction, report, policy
             rules,
         };
 
-        // Clearing the tax on a split must update the split draft, not the optimistic transaction, otherwise the
-        // stale tax is retained on save (especially offline). Handle it before the generic editing clear below.
         if (shouldClearTax && isEditingSplit) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: 0, taxCode: '', taxValue: ''}, getCurrencyDecimals, getCurrencySymbol);
             return;

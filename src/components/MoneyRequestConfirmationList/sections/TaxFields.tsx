@@ -71,7 +71,6 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
     const shouldDisplayTaxRateError = formError === 'violations.taxOutOfPolicy';
     const isMovingCurrentTransactionFromTrackExpense = isMovingTransactionFromTrackExpense(action);
-    // A tracked expense being moved to a workspace lists that workspace's rates, which `policy` does not carry yet.
     const taxRatesPolicy = policy ?? (isMovingCurrentTransactionFromTrackExpense ? policyForMovingExpenses : undefined);
     const taxRates = taxRatesPolicy?.taxRates;
     const taxAmount = getTaxAmount(transactionForHelpers, false);
@@ -145,7 +144,6 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     }, [formError, taxAmount, maxTaxAmount, clearFormErrors]);
 
     const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
-    // An empty list has nothing to pick in place, and the full page is where the user learns the workspace has no rates.
     const hasEnabledTaxRates = getEnabledTaxRateCount(taxRates?.taxes ?? {}) > 0;
     const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && !!taxRatesPolicy && canSaveFromThisForm && hasEnabledTaxRates;
 

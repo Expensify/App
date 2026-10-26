@@ -4,6 +4,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import variables from '@styles/variables';
 
@@ -22,6 +23,7 @@ function Backdrop({
 }: BackdropProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {windowWidth, windowHeight} = useWindowDimensions();
 
     const Entering = new Keyframe(getModalInAnimation('fadeIn')).duration(animationInTiming);
     const Exiting = new Keyframe(getModalOutAnimation('fadeOut')).duration(animationOutTiming);
@@ -30,7 +32,8 @@ function Backdrop({
         <Animated.View
             entering={Entering}
             exiting={Exiting}
-            style={[styles.modalBackdrop, {opacity: backdropOpacity}, style]}
+            // Sized to the window outright, since the native modal's root is not guaranteed to fill it while it animates
+            style={[styles.modalBackdrop, {width: windowWidth, height: windowHeight, opacity: backdropOpacity}, style]}
         >
             {!!customBackdrop && customBackdrop}
         </Animated.View>

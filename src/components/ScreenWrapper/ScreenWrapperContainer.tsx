@@ -115,7 +115,6 @@ function ScreenWrapperContainer({
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
-    // Only web caps the content to the window height, see `getScreenWrapperMaxHeight`.
     const maxHeight = shouldEnableMaxHeight ? getScreenWrapperMaxHeight(windowHeight) : undefined;
     const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
     const {isBlurred} = useInputBlurState();

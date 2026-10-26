@@ -148,7 +148,6 @@ function TaxPickerModal({
                     action={action}
                     iouType={iouType}
                     onSubmit={handleTaxRateSelected}
-                    // Tapping the rate the expense already has leaves it alone, as the full-page selector does, and only closes the list.
                     onDismiss={onClose}
                     shouldAutoFocusSearchInput
                 />

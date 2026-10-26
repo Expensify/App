@@ -68,7 +68,6 @@ function TaxPicker({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    // An expense being created, or moved from a tracked expense, lives in its draft until it is saved.
     const transactionCollection = shouldUseTransactionDraft(action) ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION;
     const [transaction] = useOnyx(`${transactionCollection}${transactionID}`);
 

@@ -13,7 +13,7 @@ import type {ViewStyle} from 'react-native';
 import type {CSSStyle} from 'react-native-reanimated';
 
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import Animated, {Keyframe, ReduceMotion} from 'react-native-reanimated';
 
 function Backdrop({
@@ -36,6 +36,10 @@ function Backdrop({
         return FadeOut.duration(animationOutTiming).reduceMotion(ReduceMotion.Never);
     }, [animationOutTiming, backdropOpacity]);
 
+    // The backdrop fills the modal's fixed root rather than taking the window's size. On mobile Safari the window is the visual
+    // viewport, which ends above the keyboard, while the root spans the page down to the keyboard: a window-sized backdrop would
+    // leave the page showing, undimmed, between a bottom sheet and the keyboard. The pressable wrapper has to fill the root as well,
+    // since the dimming view is positioned against it and a wrapper of no size would give the backdrop no area to press.
     // A CSS animation instead of an entering keyframe: on web, Reanimated hides an entering element until its keyframe starts and can
     // delete the keyframe before the next animation frame (for example in a background tab), which leaves the backdrop hidden for good.
     // A CSS animation keeps its keyframes until the view unmounts and never hides the view.
@@ -52,7 +56,7 @@ function Backdrop({
                 accessible
                 accessibilityLabel={translate('modal.backdropLabel')}
                 onPress={onBackdropPress}
-                style={[styles.userSelectNone, styles.cursorAuto]}
+                style={[StyleSheet.absoluteFill, styles.userSelectNone, styles.cursorAuto]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 sentryLabel={CONST.SENTRY_LABEL.REANIMATED_MODAL.BACKDROP}
             >
@@ -68,7 +72,7 @@ function Backdrop({
     return (
         isBackdropVisible && (
             <View
-                style={[styles.userSelectNone]}
+                style={[StyleSheet.absoluteFill, styles.userSelectNone]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <Animated.View

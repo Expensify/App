@@ -315,20 +315,15 @@ describe('CategoryPickerModal', () => {
 
         it('caps a fitted sheet at the height the window leaves', async () => {
             // Given a phone and a workspace with enough categories that the rows plus the bottom safe area are taller than the window allows
-            const windowCap = getBottomSheetHeight({
-                preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
-                windowHeight: mockWindowHeight,
-                keyboardHeight: 0,
-                topSafeAreaInset: 0,
-                minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable: false}),
-            });
+            const windowCap = mockWindowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO - BOTTOM_SHEET_TOP_PADDING;
             expect(getSelectionListPopoverContentHeight({optionCount: CATEGORY_COUNT, isSearchable: false}) + SAFE_AREA_PADDING_BOTTOM).toBeGreaterThan(windowCap);
 
             // When the expense form's category list opens
             renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
 
-            // Then the sheet stops at the window cap instead of growing to fit every row and running off the screen
+            // Then the sheet stops at the window cap, the same height the list opens at once it has a search input, instead of
+            // growing to fit every row and running off the screen or stopping at the wide-layout dropdown cap
             expect(mockPopoverProps?.popoverDimensions?.height).toBe(windowCap);
         });
     });
@@ -405,15 +400,9 @@ describe('CategoryPickerModal', () => {
             renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
 
-            // Then the sheet keeps the dropdown cap rather than taking most of the screen, and rises above the keyboard like other sheets
-            const regularSheetHeight = getBottomSheetHeight({
-                preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
-                windowHeight: mockWindowHeight,
-                keyboardHeight: 0,
-                topSafeAreaInset: 0,
-                minHeight: getSelectionListPopoverContentHeight({optionCount: 1}),
-            });
-            expect(mockPopoverProps?.popoverDimensions?.height).toBe(regularSheetHeight);
+            // Then the sheet grows to the window cap like a regular fitted sheet, and rises above the keyboard like other sheets
+            // rather than making room for it inside
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(mockWindowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO - BOTTOM_SHEET_TOP_PADDING);
             expect(mockPopoverProps?.avoidKeyboard).toBe(true);
         });
 
