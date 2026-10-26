@@ -1,4 +1,3 @@
-import useAgents from '@hooks/useAgents';
 /**
  * Builds the Account and General menu section data shown on the Initial Settings page.
  */
