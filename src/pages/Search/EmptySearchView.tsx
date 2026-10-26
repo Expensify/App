@@ -141,6 +141,8 @@ function EmptySearchViewContent({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    // With the travelApproval beta, Book a trip shows once the workspace is set up in Spotnana, like the other Book travel entry points.
+    // Without the beta, it keeps showing whenever the Travel switch is on.
     const shouldShowBookTrip = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL) ? isWorkspaceProvisionedForTravel(activePolicy?.travelSettings) : !!activePolicy?.isTravelEnabled;
     const {accountID} = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();

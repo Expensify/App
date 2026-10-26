@@ -17,7 +17,7 @@ import Onyx from 'react-native-onyx';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-// The real button needs a navigator; these tests only care whether the empty state offers it
+// The real button needs a navigator. These tests only care whether the empty state offers it.
 jest.mock('@components/BookTravelButton', () => {
     const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
     return {
