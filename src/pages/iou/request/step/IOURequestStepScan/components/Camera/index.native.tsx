@@ -111,9 +111,14 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             return;
         }
         torchRequestedAt.current = Date.now();
-        camera.current?.controller?.setTorchMode('on').catch((error: unknown) => {
-            Log.info('[Camera] could not turn the torch back on after the camera restarted', false, {error: getErrorMessage(error)});
-        });
+        camera.current?.controller
+            ?.setTorchMode('on')
+            .then(() => {
+                torchRequestedAt.current = Date.now();
+            })
+            .catch((error: unknown) => {
+                Log.info('[Camera] could not turn the torch back on after the camera restarted', false, {error: getErrorMessage(error)});
+            });
     };
 
     const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput(cameraPlatformConfig.scanQualityPrioritization, isInLandscapeMode);

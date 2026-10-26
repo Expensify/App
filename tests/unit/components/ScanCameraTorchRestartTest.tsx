@@ -199,4 +199,32 @@ describe('Scan camera torch after the camera session restarts', () => {
         // Then the capture relies on the torch
         expect(wasLastCaptureTorchLit()).toBe(true);
     });
+
+    it('starts the settle time when the relit torch is on, not when it was requested', async () => {
+        // Given the camera restarted and the torch takes most of the settle time to light, as on slow devices
+        let lightTorch: () => void = () => {};
+        mockSetTorchMode.mockImplementationOnce(
+            () =>
+                new Promise<void>((resolve) => {
+                    lightTorch = resolve;
+                }),
+        );
+        renderCamera();
+        act(() => {
+            mockViewportProps.onStarted?.();
+        });
+        now += 450;
+        await act(async () => {
+            lightTorch();
+        });
+
+        // When the user presses the shutter 600ms after the request, but only 150ms after the torch lit
+        now += 150;
+        act(() => {
+            mockCapturePhoto?.();
+        });
+
+        // Then the exposure has not adjusted to the torch yet, so the capture takes the flash photo
+        expect(wasLastCaptureTorchLit()).toBe(false);
+    });
 });
