@@ -73,10 +73,11 @@ index 08724d1..bc5b0ae 100644
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/viewability/ViewabilityManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/viewability/ViewabilityManager.js
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/viewability/ViewabilityManager.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/viewability/ViewabilityManager.js
-@@ -25,6 +25,9 @@ export default class ViewabilityManager {
+@@ -25,6 +25,10 @@ export default class ViewabilityManager {
          };
          this.updateViewableItems = (newViewableIndices) => {
              var _a;
++            // Check listeners and layout BEFORE getWindowSize(), which throws when there is no layoutManager (patch 002 skips 0x0 layouts)
 +            if (!this.shouldListenToVisibleIndices || !this.rvManager.hasLayout()) {
 +                return;
 +            }
