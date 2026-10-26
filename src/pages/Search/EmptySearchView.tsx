@@ -141,7 +141,6 @@ function EmptySearchViewContent({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    // Like the other Book travel entry points, it shows once the workspace is set up for travel; the button handles the terms
     const shouldShowBookTrip = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL) ? isWorkspaceProvisionedForTravel(activePolicy?.travelSettings) : !!activePolicy?.isTravelEnabled;
     const {accountID} = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
