@@ -136,6 +136,18 @@ describe('getPaymentHistoryRows', () => {
         expect(rows.at(0)?.activeUserCount).toBe(2);
     });
 
+    it('counts members only on bills that were on Collect 2025 pricing', () => {
+        // Given a bill on Collect 2025 pricing and an older bill that wasn't
+        const purchaseList = [createPurchase(1, '2026-02-01'), createPurchase(2, '2026-08-01', {isTeam2025Pricing: true})];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then each row follows its own bill's pricing, so a plan change doesn't relabel past bills
+        expect(rows.find((row) => row.purchaseID === 2)?.countsMembers).toBe(true);
+        expect(rows.find((row) => row.purchaseID === 1)?.countsMembers).toBe(false);
+    });
+
     it('uses totalActorCount on a legacy bill even when totalUniqueMembersCount is higher', () => {
         // Given a legacy bill where totalUniqueMembersCount counts every member of every workspace (including archived),
         // while totalActorCount reflects the users actually billed — Classic shows the billed count, so we must too.
