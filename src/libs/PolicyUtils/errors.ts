@@ -93,6 +93,13 @@ function shouldShowReimbursableExportDestinationAccountError(policy: OnyxEntry<P
                 }
                 break;
             }
+            case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
+                const rilletConfig = policy?.connections?.[connection]?.config;
+                if (rilletConfig?.export?.reimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.REIMBURSEMENT && !rilletConfig.export.reimbursementAccountCode) {
+                    return true;
+                }
+                break;
+            }
             default:
                 break;
         }
