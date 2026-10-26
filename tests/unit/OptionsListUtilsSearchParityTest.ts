@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Rule} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -112,7 +113,8 @@ function serializeOptionList(optionList: OptionList, {isOrderMeaningful}: {isOrd
 }
 
 /**
- * Cap for the SearchRouter idle list. The production cap (SEARCH_ROUTER_OPTIONS_CONFIG.maxRecentReports) keeps all fixture reports. Setting this to 10 forces evictions.
+ * Cap for the SearchRouter idle list recorded in optionLists, which only exists to record evictions in createFilteredOptionList. No call site searches this list.
+ * The production cap (SEARCH_ROUTER_OPTIONS_CONFIG.maxRecentReports) keeps all fixture reports, while setting this to 10 forces evictions.
  * The value is arbitrary: any cap below the fixture report count forces evictions, and 10 just keeps the recorded idle list short. No particular sort rule sits at the boundary.
  */
 const SEARCH_ROUTER_IDLE_REPORTS_CAP = 10;
@@ -175,7 +177,7 @@ type SearchCallSite = (options: OptionList, query: string) => OptionsResult | Di
 
 const CALL_SITE_NAMES = ['searchRouterLocal', 'searchRouterDisplayed'] as const;
 
-type SearchCallSiteName = (typeof CALL_SITE_NAMES)[number];
+type SearchCallSiteName = TupleToUnion<typeof CALL_SITE_NAMES>;
 
 /**
  * Keeps getReportByID stable for identical fixture.reports references as useCallback(..., [allReports]) does in useFilteredOptions,
@@ -285,21 +287,9 @@ function createCallSites(sourceFixture: SearchFixture) {
                 hasMore: result.hasMore,
             };
         },
-    } satisfies Record<string, SearchCallSite>;
+    } satisfies Record<SearchCallSiteName, SearchCallSite>;
 
     return {searchCallSites, serverPassConfig};
-}
-
-type OptionListKind = 'searching' | 'searchRouterIdle';
-
-// Maps call sites to the option list used when query is blank (the small idle list, or the searching list for any other query).
-const BLANK_QUERY_OPTION_LIST: Record<SearchCallSiteName, OptionListKind> = {
-    searchRouterLocal: 'searchRouterIdle',
-    searchRouterDisplayed: 'searchRouterIdle',
-};
-
-function getOptionListKind(callSite: SearchCallSiteName, query: string): OptionListKind {
-    return query.trim() ? 'searching' : BLANK_QUERY_OPTION_LIST[callSite];
 }
 
 // Reports returned by the SearchAutocompleteList server pass in Auth ranking order, including a self-DM that the pass drops and reports the canonical filter rejects.
@@ -334,6 +324,9 @@ function getReportIDByName(sourceFixture: SearchFixture, reportName: string): st
 // Dropped from the list unless focused, because the focused report skips the checks that drop empty threads and empty submitted reports
 const FOCUSED_REPORT_NAMES = ['Empty thread', 'Empty submitted report'];
 
+// The thread ranks past the MAX_AMOUNT_OF_SUGGESTIONS rows the blank list shows, so its focused blank result equals the unfocused one and only the query is recorded for it
+const FOCUSED_REPORT_NAME_WITH_BLANK = 'Empty submitted report';
+
 // Matches both focused reports, so the pass shows whether they come back while a query is typed
 const FOCUSED_REPORT_QUERY = 'empty';
 
@@ -366,14 +359,12 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
         searchRouterIdleAtProductionCap: serializeOptionList(searchRouterIdleAtProductionCap, {isOrderMeaningful: true}),
     };
 
-    const optionListsByKind: Record<OptionListKind, OptionList> = {
-        searching,
-        searchRouterIdle,
-    };
+    // The SearchRouter starts at the production cap, and its loadAll effect expands a list that has fewer than 20 rows, so a blank query never searches the small idle list
+    const getCallSiteOptionList = (query: string) => (query.trim() ? searching : searchRouterIdleAtProductionCap);
     const callSites = Object.fromEntries(
         CALL_SITE_NAMES.map((callSite) => [
             callSite,
-            Object.fromEntries(SEARCH_QUERIES.map((query) => [query, serializeResult(searchCallSites[callSite](optionListsByKind[getOptionListKind(callSite, query)], query))])),
+            Object.fromEntries(SEARCH_QUERIES.map((query) => [query, serializeResult(searchCallSites[callSite](getCallSiteOptionList(query), query))])),
         ]),
     );
 
@@ -407,7 +398,6 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
     const serverPass = orderedServerReportIDs.map((reportID) => serverPassOptionsByReportID.get(reportID)).filter((option) => !!option && !option.isSelfDM);
 
     const passes = {
-        searchRouterBlankAtProductionCap: serializeResult(searchCallSites.searchRouterDisplayed(searchRouterIdleAtProductionCap, '')),
         serverPass: serverPass.map((option) => serializeOption(option)),
 
         // Recorded after the passes above, which run with nothing focused
@@ -415,7 +405,7 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
             FOCUSED_REPORT_NAMES.map((reportName) => [
                 reportName,
                 withFocusedReport(getReportIDByName(sourceFixture, reportName), () => ({
-                    blank: serializeResult(searchCallSites.searchRouterDisplayed(searchRouterIdleAtProductionCap, '')),
+                    ...(reportName === FOCUSED_REPORT_NAME_WITH_BLANK ? {blank: serializeResult(searchCallSites.searchRouterDisplayed(searchRouterIdleAtProductionCap, ''))} : {}),
                     [FOCUSED_REPORT_QUERY]: serializeResult(searchCallSites.searchRouterDisplayed(searching, FOCUSED_REPORT_QUERY)),
                 })),
             ]),
@@ -447,15 +437,15 @@ describe('OptionsListUtils search parity (golden master)', () => {
     });
 
     it.each(CALL_SITE_NAMES)('call site %s matches the golden master for every query', (callSite) => {
-        // Given a production getSearchOptions config and the option list it searches (the full list, or its idle list while the query is blank)
+        // Given a production getSearchOptions config and the option list it searches (the full list, or the production-cap idle list while the query is blank)
         // When every query in the matrix runs through it
         // Then the sections and their order match the recorded golden master
         expect(goldenMaster.callSites[callSite]).toMatchSnapshot();
     });
 
     it('SearchRouter blank query and server-ID pass match the golden master', () => {
-        // Given the SearchRouter idle list at the production cap, the SearchAutocompleteList server pass (a fixed set of reports in Auth's order, no query, including rejected and unknown IDs that it drops) and the SearchRouter opened over a focused empty thread or empty submitted report
-        // When they run through their production configs, the focused ones for a blank query and for a query matching the focused report
+        // Given the SearchAutocompleteList server pass (a fixed set of reports in Auth's order, no query, including rejected and unknown IDs that it drops) and the SearchRouter opened over a focused empty thread or empty submitted report
+        // When they run through their production configs, the focused ones for a query matching the focused report, and for a blank query only where the report lands within the displayed rows
         // Then all match the recorded golden master, with the focused report shown only while it is focused
         expect(goldenMaster.passes).toMatchSnapshot();
     });
