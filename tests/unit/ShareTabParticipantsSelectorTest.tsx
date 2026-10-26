@@ -223,6 +223,26 @@ describe('ShareTabParticipantsSelector', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SHARE_SUBMIT_DETAILS.getRoute('report-hydrated-1'), expect.objectContaining({afterTransition: expect.any(Function)}));
     });
 
+    it('falls back to the picker when hydrated reports do not contain the eligible workspace expense chat', async () => {
+        // Given an eligible default workspace whose expense chat is absent from the hydrated report collection
+        const mockPolicy = {
+            ...createRandomPolicy(4, CONST.POLICY.TYPE.CORPORATE),
+            id: 'policy-without-expense-chat',
+        };
+        jest.mocked(useDefaultExpensePolicy).mockReturnValue(mockPolicy);
+        jest.mocked(shouldUseDefaultExpensePolicy).mockReturnValue(true);
+        jest.mocked(getPolicyExpenseChat).mockReturnValue(undefined);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}unrelated-report`, createRandomReport(40));
+
+        // When destination resolution completes
+        render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the participant picker remains usable instead of waiting indefinitely
+        expect(screen.getByTestId('mock-select-participant')).toBeTruthy();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
     it('clears the draft on the initial selection but preserves every field when selecting the same destination again', async () => {
         // Given the participant picker has no previously selected destination
         render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);

@@ -21,11 +21,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
+import type {Report} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useEffect, useRef, useState} from 'react';
 
 const emptySelector = () => null;
+const hasReportsSelector = (reports: OnyxCollection<Report>) => Object.keys(reports ?? {}).length > 0;
 
 type ShareTabParticipantsSelectorProps = {
     detailsPageRouteObject: typeof ROUTES.SHARE_SUBMIT_DETAILS | typeof ROUTES.SHARE_DETAILS;
@@ -65,12 +69,15 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const [autoNavigateReportID, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) => getPolicyExpenseChat(currentUserAccountID, autoNavigatePolicyID, reports)?.reportID,
     });
+    const [hasHydratedReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: hasReportsSelector});
 
     const isPersonalDetailsReady = !!currentUserAccountID && currentUserAccountID !== CONST.DEFAULT_NUMBER_ID;
     const isDestinationReady =
         isPersonalDetailsReady &&
         !isLoadingOnyxValue(activePolicyIDMetadata, policiesMetadata, reportsMetadata, amountOwedMetadata, userBillingGracePeriodEndsMetadata, ownerBillingGracePeriodEndMetadata);
-    const isAwaitingExpenseChat = !!autoNavigatePolicyID && !autoNavigateReportID;
+    // An empty report collection can still be streaming from storage. Once reports have hydrated, a missing candidate is
+    // treated as terminal so the user can use the picker instead of remaining on a blank loading state indefinitely.
+    const isAwaitingExpenseChat = !!autoNavigatePolicyID && !autoNavigateReportID && !hasHydratedReports;
     const shouldWaitForDestination = isSubmitFlow && (isLoadingSecurityGroup || !isDestinationReady || isAwaitingExpenseChat);
 
     // Synchronous one-shot guard for the auto-navigation effect. A ref (rather than the render state below) is used so
