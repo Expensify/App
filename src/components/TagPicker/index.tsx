@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -65,6 +65,9 @@ type TagPickerProps = {
     /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
     shouldAutoFocusSearchInput?: boolean;
 
+    /** Reports how many rows the unfiltered list renders, section headings included, so a container can size itself to them */
+    onRenderedRowCountChange?: (rowCount: number) => void;
+
     /** Number of available tags at which the search input appears. Defaults to `CONST.STANDARD_LIST_ITEM_LIMIT`. */
     searchInputThreshold?: number;
 };
@@ -96,6 +99,7 @@ function TagPicker({
     addBottomSafeAreaPadding = false,
     shouldShowGLCode: shouldShowGLCodeProp,
     shouldAutoFocusSearchInput = false,
+    onRenderedRowCountChange,
     searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
 }: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -171,6 +175,14 @@ function TagPicker({
     }));
 
     const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
+    const renderedRowCount = sections.reduce((total, section) => total + section.data.length + (section.title ? 1 : 0), 0);
+
+    useEffect(() => {
+        if (searchValue) {
+            return;
+        }
+        onRenderedRowCountChange?.(renderedRowCount);
+    }, [renderedRowCount, searchValue, onRenderedRowCountChange]);
 
     // While the on-demand fetch above is in flight, show the list skeleton instead of flashing the selected-only
     // fallback. Orphaned tags passed in by the caller are a complete local list, so they render immediately.
