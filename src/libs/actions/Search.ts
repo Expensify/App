@@ -431,6 +431,7 @@ function handleActionButtonPress({
                 allViolations,
                 rules,
                 getCurrencyDecimals,
+                iouReportTransactions: allReportTransactions,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -759,6 +760,7 @@ type GetApproveActionCallbackParams = {
     allViolations: OnyxCollection<TransactionViolations>;
     rules: OnyxCollection<Rule>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    iouReportTransactions: Transaction[];
 };
 
 function getApproveActionCallback({
@@ -781,6 +783,7 @@ function getApproveActionCallback({
     allViolations,
     rules,
     getCurrencyDecimals,
+    iouReportTransactions,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -791,6 +794,7 @@ function getApproveActionCallback({
 
     approveMoneyRequest({
         expenseReport: snapshotReport,
+        expenseReportTransactions: iouReportTransactions,
         expenseReportPolicy: reportPolicy,
         rules,
         currentUserAccountIDParam: currentUserAccountID,
