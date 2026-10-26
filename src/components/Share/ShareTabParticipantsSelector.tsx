@@ -112,6 +112,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
 
         // clear the existing draft transaction from the previous flow to prevent the old data from being displayed
         clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs);
+        clearUnknownUserDetails();
 
         startSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW, {
             name: CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW,

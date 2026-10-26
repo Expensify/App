@@ -128,6 +128,7 @@ describe('ShareTabParticipantsSelector', () => {
 
         // Then the workspace expense chat opens directly regardless of its auto-reporting setting
         expect(clearMoneyRequest).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, expect.anything());
+        expect(clearUnknownUserDetails).toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SHARE_SUBMIT_DETAILS.getRoute('report-expense-1'), expect.objectContaining({afterTransition: expect.any(Function)}));
     });
 
