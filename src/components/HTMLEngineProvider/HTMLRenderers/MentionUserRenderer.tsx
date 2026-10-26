@@ -57,14 +57,12 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         mentionDisplayText = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
         // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer below
-        asMutable(tnodeClone).data = tnodeClone.data.replace(
-            mentionDisplayText,
-            Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails) ?? ''),
-        );
+        const shortMention = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails) ?? '';
+        asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.isSMSLogin(shortMention) ? formatPhoneNumber(shortMention) : shortMention);
 
         accountID = getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
         navigationRoute = createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID, mentionDisplayText), Navigation.getReportRHPActiveRoute());
-        mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
+        mentionDisplayText = Str.isSMSLogin(mentionDisplayText) ? formatPhoneNumber(mentionDisplayText) : mentionDisplayText;
     } else if (!isEmpty(htmlAttribAccountID)) {
         // accountID not found in personal details and mention data not provided
         accountID = parseInt(htmlAttribAccountID, 10);
