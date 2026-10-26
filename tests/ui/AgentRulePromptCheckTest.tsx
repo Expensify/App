@@ -27,7 +27,6 @@ import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockPrompt = '';
-let mockIsBetaEnabled = true;
 let mockIsOffline = false;
 
 jest.mock('@hooks/useLocalize', () =>
@@ -46,7 +45,6 @@ jest.mock('@hooks/useThemeStyles', () =>
             ),
     ),
 );
-jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => mockIsBetaEnabled})));
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
 jest.mock('@hooks/usePolicy', () => jest.fn());
 jest.mock('@pages/workspace/rules/AgentRules/useAgentPromptInputStyles', () => jest.fn(() => ({})));
@@ -181,7 +179,6 @@ describe('Agent rule prompt check', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockPrompt = '';
-        mockIsBetaEnabled = true;
         mockIsOffline = false;
         writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
     });
@@ -266,20 +263,16 @@ describe('Agent rule prompt check', () => {
         expect(getGenerateRuleRequests(writeSpy)).toHaveLength(0);
     });
 
-    it.each([
-        {description: 'the describe rule beta is off', isBetaEnabled: false, isOffline: false},
-        {description: 'the admin is offline', isBetaEnabled: true, isOffline: true},
-    ])('saves a typed rule without a check when $description', async ({isBetaEnabled, isOffline}: {isBetaEnabled: boolean; isOffline: boolean}) => {
-        // Given an admin who typed an agent rule
-        mockIsBetaEnabled = isBetaEnabled;
-        mockIsOffline = isOffline;
+    it('saves a typed rule without a check when the admin is offline', async () => {
+        // Given an admin who typed an agent rule while offline
+        mockIsOffline = true;
         const onSave = jest.fn();
         await renderWriteTab(onSave);
 
         // When the admin creates the rule
         await submit(TYPED_PROMPT);
 
-        // Then the rule saves at once, because the check cannot run or is not on for this account
+        // Then the rule saves at once, because the check cannot run offline
         expect(onSave).toHaveBeenCalledWith({prompt: TYPED_PROMPT});
         expect(getGenerateRuleRequests(writeSpy)).toHaveLength(0);
     });

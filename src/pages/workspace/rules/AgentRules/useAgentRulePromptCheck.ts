@@ -4,7 +4,6 @@
  */
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 
 import Log from '@libs/Log';
 
@@ -36,7 +35,6 @@ type PendingCheck = {
 
 function useAgentRulePromptCheck({policyID, formID, checkedPrompt, savePrompt}: UseAgentRulePromptCheckParams) {
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
     const pendingCheckRef = useRef<PendingCheck>(undefined);
     const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -103,7 +101,7 @@ function useAgentRulePromptCheck({policyID, formID, checkedPrompt, savePrompt}: 
             return;
         }
         const isUnchanged = !!checkedPrompt && prompt.trim() === checkedPrompt.trim();
-        if (isUnchanged || isOffline || !isBetaEnabled(CONST.BETAS.DESCRIBE_RULE)) {
+        if (isUnchanged || isOffline) {
             savePrompt(prompt);
             return;
         }
