@@ -79,9 +79,25 @@ function shouldShowCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
     return isPolicyAdmin(policy) && Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
 }
 
-function shouldShowReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
-    const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    return isPolicyAdmin(policy) && !!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount;
+function shouldShowReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>, connectionNames?: readonly ConnectionName[]): boolean {
+    if (!isPolicyAdmin(policy)) {
+        return false;
+    }
+    const connectionsToCheck = connectionNames ?? getAccountingConnectionNames();
+    for (const connection of connectionsToCheck) {
+        switch (connection) {
+            case CONST.POLICY.CONNECTIONS.NAME.QBO: {
+                const qboConfig = policy?.connections?.[connection]?.config;
+                if (!!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount) {
+                    return true;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    return false;
 }
 
 /**

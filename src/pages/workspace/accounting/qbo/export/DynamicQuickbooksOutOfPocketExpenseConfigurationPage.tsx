@@ -103,7 +103,7 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             pendingAction: settingsPendingAction(account, qboConfig?.pendingFields),
             brickRoadIndicator: areSettingsInErrorFields(account, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             errors:
-                shouldShowReimbursableExportDestinationAccountError(policy) && qboConfig?.reimbursableExpensesExportDestination
+                shouldShowReimbursableExportDestinationAccountError(policy, [CONST.POLICY.CONNECTIONS.NAME.QBO]) && qboConfig?.reimbursableExpensesExportDestination
                     ? {
                           [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(
                               `workspace.qbo.exportDestinationAccountsMisconfigurationError.${qboConfig.reimbursableExpensesExportDestination}`,

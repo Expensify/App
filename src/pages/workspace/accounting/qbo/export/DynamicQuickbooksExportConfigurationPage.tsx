@@ -140,7 +140,7 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
                         {!!(
                             areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ||
                             (menuItem.subscribedSettings?.some((setting) => setting === CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION) &&
-                                shouldShowReimbursableExportDestinationAccountError(policy))
+                                shouldShowReimbursableExportDestinationAccountError(policy, [CONST.POLICY.CONNECTIONS.NAME.QBO]))
                         ) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                     </MenuItemField>
                 </OfflineWithFeedback>
