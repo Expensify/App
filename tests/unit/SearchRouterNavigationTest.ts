@@ -871,12 +871,19 @@ describe('Workspace Search Router navigation source', () => {
         mockUseSearchTypeMenuSections.mockReturnValue([]);
 
         // When the hook renders with the empty query of a fresh Search Router open
-        const {result} = renderHook(() => useNavigationSuggestions(query));
+        const {result, rerender} = renderHook(({currentQuery}) => useNavigationSuggestions(currentQuery), {initialProps: {currentQuery: query}});
 
         // Then no suggestion is returned and neither the Workspace menus nor the Spend sections are built, since the result would be discarded anyway
         expect(result.current).toEqual([]);
         expect(getWorkspaceMenuItems).not.toHaveBeenCalled();
         expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true, false);
+
+        // When the user types the first character
+        rerender({currentQuery: 'a'});
+
+        // Then both sources are built again, so the skip only lasts while the query is empty
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true, true);
+        expect(getWorkspaceMenuItems).toHaveBeenCalled();
     });
 });
 

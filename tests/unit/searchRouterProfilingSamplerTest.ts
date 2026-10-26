@@ -26,19 +26,16 @@ function createSpan(op: string, isRoot = true): FakeSpan {
 
 function setUpSampler() {
     const options: {profilesSampleRate?: number} = {};
-    let onSpanStart: (span: FakeSpan) => void = () => {};
+    const listeners: Record<string, (span: FakeSpan) => void> = {};
     const client = {
         getOptions: () => options,
         on: (hook: string, callback: (span: FakeSpan) => void) => {
-            if (hook !== 'spanStart') {
-                return;
-            }
-            onSpanStart = callback;
+            listeners[hook] = callback;
         },
     };
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the sampler touches just `on` and `getOptions`
     searchRouterProfilingSampler().setup?.(client as unknown as Client);
-    return {options, startSpan: (span: FakeSpan) => onSpanStart(span)};
+    return {options, startSpan: (span: FakeSpan) => listeners.spanStart?.(span), endSpan: (span: FakeSpan) => listeners.spanEnd?.(span)};
 }
 
 describe('searchRouterProfilingSampler', () => {
@@ -118,6 +115,58 @@ describe('searchRouterProfilingSampler', () => {
         // Then it is not profiled and the open keeps a single attribute value
         expect(options.profilesSampleRate).toBe(0);
         expect(openSpan.setAttribute).toHaveBeenCalledTimes(1);
+    });
+
+    it('marks the next root span as profiled when it starts while the profile still runs', () => {
+        // Given a profiled navigation span for the open that has not ended yet
+        mockGetSpan.mockReturnValue(createSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER));
+        jest.spyOn(Math, 'random').mockReturnValue(0);
+        const {startSpan} = setUpSampler();
+        startSpan(createSpan('navigation'));
+
+        // When the first query span starts, as it does when the user types right after the open
+        const querySpan = createSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY);
+        startSpan(querySpan);
+
+        // Then it is marked as profiled, because the profiler stops synchronously inside it
+        expect(querySpan.setAttribute).toHaveBeenCalledWith(CONST.TELEMETRY.ATTRIBUTE_PROFILED, true);
+
+        // And only that root pays the stop, so the one after it stays unmarked
+        const laterSpan = createSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY);
+        startSpan(laterSpan);
+        expect(laterSpan.setAttribute).not.toHaveBeenCalled();
+    });
+
+    it('does not mark root spans that start after the profiled span ended', () => {
+        // Given a profiled navigation span for the open that has already ended, which stops the profile
+        mockGetSpan.mockReturnValue(createSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER));
+        jest.spyOn(Math, 'random').mockReturnValue(0);
+        const {startSpan, endSpan} = setUpSampler();
+        const navigationSpan = createSpan('navigation');
+        startSpan(navigationSpan);
+        endSpan(navigationSpan);
+
+        // When a query span starts afterwards
+        const querySpan = createSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY);
+        startSpan(querySpan);
+
+        // Then it is not marked, since no profiler work happens inside it
+        expect(querySpan.setAttribute).not.toHaveBeenCalled();
+    });
+
+    it('does not mark the next root span when the open was not profiled', () => {
+        // Given a navigation span for the open with a losing sample roll
+        mockGetSpan.mockReturnValue(createSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER));
+        jest.spyOn(Math, 'random').mockReturnValue(0.999);
+        const {startSpan} = setUpSampler();
+        startSpan(createSpan('navigation'));
+
+        // When a query span starts while that navigation span is still open
+        const querySpan = createSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY);
+        startSpan(querySpan);
+
+        // Then it is not marked, since no profile is running
+        expect(querySpan.setAttribute).not.toHaveBeenCalled();
     });
 
     it('ignores child spans, which the profiler never samples', () => {

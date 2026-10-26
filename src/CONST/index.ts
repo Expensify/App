@@ -2893,7 +2893,7 @@ const CONST = {
         ATTRIBUTE_UPDATE_ID_TO: 'update_id_to',
         ATTRIBUTE_RESPONSE_ADVANCED: 'response_advanced',
         ATTRIBUTE_COLD_START: 'cold_start',
-        // Whether a Hermes profile was requested for this span's window, so profiler overhead can be split out.
+        // Whether a Hermes profile ran or was stopped during this span, so profiler overhead can be split out.
         ATTRIBUTE_PROFILED: 'profiled',
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',

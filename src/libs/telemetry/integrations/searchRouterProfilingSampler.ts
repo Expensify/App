@@ -26,12 +26,15 @@ type ProfilingClientOptions = ClientOptions & Pick<ReactNativeOptions, 'profiles
  *
  * The rate is therefore 1 only for the navigation span dispatched while `ManualOpenSearchRouter` is open: it is the
  * last root the open starts and outlives the list render. `profiled` on the open span splits out profiler overhead.
+ * A root that starts while that profile still runs (e.g. `ManualSearchRouterQuery` on fast typing) pays the stop, so it
+ * gets `profiled: true` too.
  *
  * Must be registered before `hermesProfilingIntegration`, whose `spanStart` listener reads the rate. Setting
  * `profilesSampleRate` in `Sentry.init` would break that: the SDK would add its own profiler ahead of this sampler.
  */
 function searchRouterProfilingSampler(): Integration {
     const sampledOpenSpans = new WeakSet<Span>();
+    let profiledRootSpan: Span | undefined;
 
     return {
         name: 'SearchRouterProfilingSampler',
@@ -39,6 +42,11 @@ function searchRouterProfilingSampler(): Integration {
             client.on('spanStart', (span) => {
                 if (getRootSpan(span) !== span) {
                     return;
+                }
+
+                if (profiledRootSpan) {
+                    span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_PROFILED, true);
+                    profiledRootSpan = undefined;
                 }
 
                 const options = client.getOptions() as ProfilingClientOptions;
@@ -58,7 +66,15 @@ function searchRouterProfilingSampler(): Integration {
                 openSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_PROFILED, isProfiled);
                 if (isProfiled) {
                     options.profilesSampleRate = 1;
+                    profiledRootSpan = span;
                 }
+            });
+
+            client.on('spanEnd', (span) => {
+                if (span !== profiledRootSpan) {
+                    return;
+                }
+                profiledRootSpan = undefined;
             });
         },
     };

@@ -98,6 +98,20 @@ describe('pendingDeleteMemberAccountIDsByReportIDSelector', () => {
         expect(pendingDeleteMemberAccountIDsByReportIDSelector(second)).toBe(shared);
         expect(pendingDeleteMemberAccountIDsByReportIDSelector(undefined)).toBe(shared);
         expect(shared).toEqual({});
+
+        // And the shared object is frozen, so no subscriber can leak a mutation into the others
+        expect(Object.isFrozen(shared)).toBe(true);
+    });
+
+    it('returns the shared empty object when members are pending only for addition', () => {
+        // Given a report whose only pending member is being added, the state right after inviting someone
+        const metadata: OnyxCollection<ReportMetadata> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_METADATA}1`]: {pendingChatMembers: [{accountID: '5', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}]},
+        };
+
+        // When the selector runs
+        // Then it returns the shared object, so pending additions do not cost the option list cache its hits
+        expect(pendingDeleteMemberAccountIDsByReportIDSelector(metadata)).toBe(pendingDeleteMemberAccountIDsByReportIDSelector(undefined));
     });
 
     it('maps reports with members pending deletion to their account IDs', () => {
