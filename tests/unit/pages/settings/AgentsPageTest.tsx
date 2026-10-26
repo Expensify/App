@@ -10,7 +10,6 @@ import {openAgentsPage} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {domainNamesByAccountIDSelector} from '@src/selectors/Domain';
 
 import type ReactNative from 'react-native';
 
@@ -218,14 +217,14 @@ describe('AgentsPage', () => {
             }
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
                 return [
-                    domainNamesByAccountIDSelector({
+                    {
                         [`${ONYXKEYS.COLLECTION.DOMAIN}${ownerAccountID}`]: {
                             accountID: ownerAccountID,
                             email: '+@example.com',
                             validated: true,
                             [domainDefaultSecurityGroupIDKey]: '',
                         },
-                    }),
+                    },
                     {status: 'loaded'},
                 ];
             }

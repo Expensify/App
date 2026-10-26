@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {domainNamesByAccountIDSelector} from '@src/selectors/Domain';
+import {domainNameSelector} from '@src/selectors/Domain';
 import {groupByPolicyAccountIDPoliciesSelector} from '@src/selectors/Policy';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -52,7 +52,7 @@ function useAgents() {
     const {isOffline} = useNetwork();
     const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [domainNamesByAccountID] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {selector: domainNamesByAccountIDSelector});
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const personalDetailsList = usePersonalDetails();
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
@@ -88,8 +88,8 @@ function useAgents() {
             ownerPolicyID = policy?.id;
         } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.DOMAIN) {
             const ownerDetails = agent.ownerAccountID ? personalDetailsList?.[agent.ownerAccountID] : undefined;
-            ownerDisplayName =
-                (agent.ownerAccountID ? domainNamesByAccountID?.[agent.ownerAccountID] : undefined) ?? (ownerDetails?.login ? Str.extractEmailDomain(ownerDetails.login) : undefined);
+            const domain = agent.ownerAccountID ? allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${agent.ownerAccountID}`] : undefined;
+            ownerDisplayName = domainNameSelector(domain) ?? (ownerDetails?.login ? Str.extractEmailDomain(ownerDetails.login) : undefined);
         }
 
         const mergedErrors = {
