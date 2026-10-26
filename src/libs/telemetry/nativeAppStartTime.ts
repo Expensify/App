@@ -1,5 +1,8 @@
-// Elapsed time uses performance.now() because Date.now() jumps when the device clock is corrected.
+// Elapsed time takes the larger of the Date.now() and performance.now() deltas: Date.now() goes backwards when the
+// device clock is corrected, and performance.now() stops during Android deep sleep. JS cannot tell a forward clock
+// correction from sleep, so a forward correction after setup inflates the value.
 let appStartAgeAtSetupMs: number | undefined;
+let dateNowAtSetupMs = 0;
 let performanceNowAtSetupMs = 0;
 
 function setNativeAppStartTime(timestampMs: number | undefined) {
@@ -7,15 +10,17 @@ function setNativeAppStartTime(timestampMs: number | undefined) {
         appStartAgeAtSetupMs = undefined;
         return;
     }
-    appStartAgeAtSetupMs = Date.now() - timestampMs;
+    dateNowAtSetupMs = Date.now();
     performanceNowAtSetupMs = performance.now();
+    appStartAgeAtSetupMs = dateNowAtSetupMs - timestampMs;
 }
 
 function getMsSinceNativeAppStart(): number | undefined {
     if (appStartAgeAtSetupMs === undefined) {
         return undefined;
     }
-    return Math.round(appStartAgeAtSetupMs + performance.now() - performanceNowAtSetupMs);
+    const msSinceSetup = Math.max(Date.now() - dateNowAtSetupMs, performance.now() - performanceNowAtSetupMs);
+    return Math.round(appStartAgeAtSetupMs + msSinceSetup);
 }
 
 export {getMsSinceNativeAppStart, setNativeAppStartTime};

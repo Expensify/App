@@ -135,6 +135,30 @@ describe('telemetry startup markers (native)', () => {
         expect(getMsSinceNativeAppStart()).toBe(1_500);
     });
 
+    it('counts time the device spent in deep sleep after setup', () => {
+        // Given a native start time one second before telemetry setup
+        setupTelemetry();
+
+        // When the device sleeps for an hour, so performance.now() advances only 500ms while the wall clock advances an hour
+        jest.spyOn(Date, 'now').mockReturnValue(2_000 + 60 * 60 * 1000);
+        jest.spyOn(performance, 'now').mockReturnValue(10_500);
+
+        // Then the duration includes the sleep instead of reporting a scan right after a cold launch
+        expect(getMsSinceNativeAppStart()).toBe(1_000 + 60 * 60 * 1000);
+    });
+
+    it('counts a forward clock correction after setup as elapsed time, an accepted limitation', () => {
+        // Given a native start time one second before telemetry setup
+        setupTelemetry();
+
+        // When the device clock jumps forward an hour and a span starts 500ms after setup
+        jest.spyOn(Date, 'now').mockReturnValue(2_500 + 60 * 60 * 1000);
+        jest.spyOn(performance, 'now').mockReturnValue(10_500);
+
+        // Then the hour is included, because JS cannot tell a forward correction apart from deep sleep
+        expect(getMsSinceNativeAppStart()).toBe(1_500 + 60 * 60 * 1000);
+    });
+
     it('drops the native start time of a prewarmed process so later spans report no duration', () => {
         // Given a native start time older than the prewarm threshold, as on a prewarmed process
         jest.spyOn(Date, 'now').mockReturnValue(1_000 + 60 * 1000 + 1);
