@@ -24,6 +24,8 @@ import {
     isActionableTrackExpense,
     isInviteOrRemovedAction,
     isMoneyRequestAction,
+    isSplitBillAction,
+    isTrackExpenseAction,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil, parseMovedTransactionReportIDs, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -200,11 +202,13 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
             ? getLastVisibleAction(reportID, canUserPerformWrite, {}, {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions ?? undefined}, visibleReportActionsData)
             : undefined;
     const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
+    const splitOrTrackTransactionID = isSplitBillAction(lastAction) || isTrackExpenseAction(lastAction) ? getOriginalMessage(lastAction)?.IOUTransactionID : undefined;
     const lastActionReportID = isInviteOrRemovedAction(lastAction) && lastAction?.actionName ? getOriginalMessage(lastAction)?.reportID : undefined;
     const reportNameIDs = [reportID, lastActionReportID ? String(lastActionReportID) : undefined, ...getActionReportIDs(lastAction), ...getActionReportIDs(ownLastAction)];
 
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
+    const [splitOrTrackTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitOrTrackTransactionID)}`);
     const [lastActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lastActionReportID ? String(lastActionReportID) : undefined)}`);
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
@@ -268,6 +272,7 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
         isTrackIntentUser,
         formatPhoneNumber,
         rules,
+        linkedTransaction: splitOrTrackTransaction,
         bankAccountList,
     });
 
