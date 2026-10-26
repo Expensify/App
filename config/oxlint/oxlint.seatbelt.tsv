@@ -475,7 +475,6 @@
 "../../src/components/Table/TableBody.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/Table/TableContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/Tables/WorkspaceCategoryRulesTable/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableRow.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Tables/WorkspaceListTable/TransferOwnershipFlow.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/TabSelector/getBackground.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TagPicker/index.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -862,6 +861,7 @@
 "../../src/libs/ExportOnyxState/masking.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/ExportOnyxState/masking.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
 "../../src/libs/fileDownload/DownloadUtils.ts"	"no-restricted-syntax"	1
+"../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-misused-promises"	1
 "../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/fileDownload/getImageManipulator/index.native.ts"	"@typescript-eslint/no-deprecated/manipulateAsync"	1
 "../../src/libs/fileDownload/getImageManipulator/index.ts"	"@typescript-eslint/no-deprecated/manipulateAsync"	1
@@ -1836,8 +1836,7 @@
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardAddWorkEmailPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardAddWorkEmailPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardEditCardNamePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/companyCards/WorkspaceCompanyCardEditTransactionStartDatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/companyCards/WorkspaceCompanyCardEditTransactionStartDatePage.tsx"	"no-restricted-imports"	1
+"../../src/pages/workspace/companyCards/WorkspaceCompanyCardEditTransactionStartDatePage.tsx"	"react-hooks/purity"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -2214,6 +2213,7 @@
 "../../tests/perf-test/DynamicReportDetailsPage.perf-test.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/perf-test/DynamicReportDetailsPage.perf-test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/perf-test/MoneyRequestReportActionsList.perf-test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../tests/perf-test/MoneyRequestReportTransactionRowWrites.perf-test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/perf-test/ReportActionCompose.perf-test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/ui/AddAgentRulePageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/AgentRulesSectionTest.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
