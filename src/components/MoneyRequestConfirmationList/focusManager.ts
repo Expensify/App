@@ -35,9 +35,10 @@ function notifyConfirmationScreenFocused(transactionID: string | undefined) {
 }
 
 function enableConfirmationFocusTracking(transactionID: string | undefined) {
-    if (transactionID) {
-        trackedTransactionIDs.add(transactionID);
+    if (!transactionID) {
+        return;
     }
+    trackedTransactionIDs.add(transactionID);
 }
 
 // Focus is UI-only state, so keep it in memory and scope it to the draft transaction instead of persisting it in Onyx.
