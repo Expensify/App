@@ -52,11 +52,7 @@ Expensify verifies your credentials and connects to Business Central.
 
 Your Client secret is encrypted and stored on Expensify's servers. It isn't displayed in the app or stored on your device.
 
-<!-- SCREENSHOT:
-Suggestion: The "Enter your Dynamics 365 Business Central details" page showing the empty Tenant ID, Environment name, Client ID, and Client secret fields.
-Location: Immediately after the connection steps.
-Purpose: Helps admins distinguish the four required values and match their Microsoft Entra credentials to the correct fields.
--->
+![Accounting page showing Dynamics 265 Business Central setup fields]({{site.url}}/assets/images/Accounting_Dynamics.png){:width="100%"}
 
 ## How to choose which Business Central subsidiary to sync
 
