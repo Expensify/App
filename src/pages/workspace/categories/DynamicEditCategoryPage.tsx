@@ -6,6 +6,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCategoryNameError, getCategoryNameErrorMessage, getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -44,6 +45,7 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
     const settingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path);
     const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path);
     const decodedCategoryName = getDecodedCategoryName(currentCategoryName);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -63,7 +65,7 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
             const newCategoryName = StringUtils.sanitizeName(values.categoryName);
             // Do not call the API if the edited category name is the same as the current category name
             if (decodedCategoryName !== newCategoryName) {
-                renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: newCategoryName}, isVendorMatchingBetaEnabled);
+                renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: newCategoryName}, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
             }
 
             // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
@@ -71,7 +73,16 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
                 Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : workspaceBackPath, {compareParams: false});
             });
         },
-        [decodedCategoryName, currentCategoryName, policyData, isQuickSettingsFlow, settingsBackPath, workspaceBackPath, isVendorMatchingBetaEnabled],
+        [
+            decodedCategoryName,
+            currentCategoryName,
+            policyData,
+            isQuickSettingsFlow,
+            settingsBackPath,
+            workspaceBackPath,
+            isVendorMatchingBetaEnabled,
+            getReviewWorkspaceSettingsTaskCompletion,
+        ],
     );
 
     return (
