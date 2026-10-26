@@ -306,7 +306,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             nextStep = null;
     }
 
-    if (!nextStep || shouldKeepAutoExportTiming(report, predictedNextStatus, reimbursableSpend)) {
+    if (!nextStep || !report?.nextStep?.autoExport || shouldKeepAutoExportTiming(report, predictedNextStatus, reimbursableSpend)) {
         return nextStep;
     }
 
