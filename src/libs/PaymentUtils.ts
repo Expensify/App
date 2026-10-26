@@ -172,7 +172,7 @@ function matchesCurrency(method: PaymentMethod, currency?: string): boolean {
 /**
  * Returns all valid business bank accounts for the pay menu.
  * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
- * The workspace's default bank account is listed first when it is eligible; all other accounts keep their order.
+ * The workspace's default bank account is listed first when it is eligible. All other accounts keep their order.
  */
 function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string, defaultBankAccountID?: number): BusinessBankAccountOption[] {
     const options = formattedPaymentMethods
