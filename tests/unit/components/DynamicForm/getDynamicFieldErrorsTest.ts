@@ -391,8 +391,8 @@ describe('getDynamicFieldErrors', () => {
         const emptyErrors = getDynamicFieldErrors([directors], {directors: []}, translateLocal);
         const shortErrors = getDynamicFieldErrors([directors], {directors: [{id: 'jane', firstName: ''}]}, translateLocal);
 
-        // Then the empty list is required, and the short list shows both the size and the entry's first problem, its missing name, under the item noun since the entry has no name to show
-        const missingNameError = translateLocal('dynamicForm.error.itemError', {item: 'director', error: translateLocal('common.error.fieldRequired')});
+        // Then the empty list is required, and the short list shows both the size and the entry's first problem, naming the field and the entry by its numbered noun since the entry has no name to show
+        const missingNameError = translateLocal('dynamicForm.error.itemError', {item: 'Director 1', field: 'firstName', error: translateLocal('common.error.fieldRequired')});
         expect(emptyErrors).toEqual({directors: translateLocal('common.error.fieldRequired')});
         expect(shortErrors).toEqual({directors: `${translateLocal('dynamicForm.error.tooFewItems', {min: 2})}\n${missingNameError}`});
     });
@@ -414,8 +414,8 @@ describe('getDynamicFieldErrors', () => {
         const keptErrors = getDynamicFieldErrors([directors], {...draftValues, [getListItemSensitiveKey('directors', 'jane', 'ssn')]: '123456789'}, translateLocal);
         const lostErrors = getDynamicFieldErrors([directors], draftValues, translateLocal);
 
-        // Then the list passes while the SSN is kept, and asks for it once it is lost, naming Jane so the user knows which entry to open, so a director is never submitted without one
+        // Then the list passes while the SSN is kept, and asks for it once it is lost, naming Jane and the SSN so the user knows what to fix, so a director is never submitted without one
         expect(keptErrors).toEqual({});
-        expect(lostErrors).toEqual({directors: translateLocal('dynamicForm.error.itemError', {item: 'Jane', error: translateLocal('common.error.fieldRequired')})});
+        expect(lostErrors).toEqual({directors: translateLocal('dynamicForm.error.itemError', {item: 'Jane', field: 'ssn', error: translateLocal('common.error.fieldRequired')})});
     });
 });

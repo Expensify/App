@@ -32,6 +32,7 @@ import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentat
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
+import getTransactionFromTransactionListItem from '@libs/getTransactionFromTransactionListItem';
 import HttpUtils from '@libs/HttpUtils';
 import isTransactionGroupListItemType from '@libs/isTransactionGroupListItemType';
 import Log from '@libs/Log';
@@ -117,6 +118,7 @@ import Onyx from 'react-native-onyx';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 import type AdditionalPayOnyxData from './IOU/types/AdditionalPayOnyxData';
 
+import {buildBulkActionOnyxData} from './BulkAction';
 import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
@@ -1096,6 +1098,19 @@ function openSearchCardFiltersPage() {
     ];
 
     read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
+}
+
+type ParseExpenseFiltersResult = {success: true; searchURL: string; humanReadableSummary: string} | {success: false; message: string};
+
+function parseExpenseFilters(nlQuery: string, policyID?: string): Promise<ParseExpenseFiltersResult | undefined> {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PARSE_EXPENSE_FILTERS, {nlQuery, policyID, today}).then((response) => {
+        if (response?.success === true && response.searchURL) {
+            return {success: true, searchURL: response.searchURL, humanReadableSummary: response.humanReadableSummary ?? ''} as const;
+        }
+        return {success: false, message: response?.message ?? ''} as const;
+    });
 }
 
 function openSearchCategoryFiltersPage() {
@@ -2267,7 +2282,8 @@ function queueExportSearchWithTemplate(
  * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
  */
 function queueBulkPayReports(jsonQuery: string) {
-    write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery});
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.PAY);
+    write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
 }
 
 /**
@@ -2694,11 +2710,10 @@ function setOptimisticDataForTransactionThreadPreview(
 
     // Set optimistic transaction
     if (!hasTransaction) {
-        const {formattedFrom, formattedMerchant, formattedTo, formattedTotal, date, ...restItem} = item;
         onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: restItem,
+            value: getTransactionFromTransactionListItem(item),
         });
     }
 
@@ -2711,6 +2726,7 @@ function setOptimisticDataForTransactionThreadPreview(
 }
 
 export {
+    parseExpenseFilters,
     saveSearch,
     seedMyExpensesSearch,
     search,

@@ -652,7 +652,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
               [payerAccountID]: {
                   accountID: payerAccountID,
                   // Disabling this line since participant.displayName can be an empty string
-                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                   displayName: formatPhoneNumber(participant.displayName || payerEmail),
                   login: participant.login,
                   isOptimisticPersonalDetail: true,
