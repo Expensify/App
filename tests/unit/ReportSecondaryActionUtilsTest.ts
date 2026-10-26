@@ -118,6 +118,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/approvals'),
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/payments'),
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/expensifyTeam'),
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     isPolicyAdmin: jest.fn().mockReturnValue(true),
@@ -5950,6 +5951,7 @@ describe('getSecondaryTransactionThreadActions', () => {
     });
 
     it('does not include the SPLIT option for a personal policy', async () => {
+        // Given a submitted expense report on a personal policy, where splitting is not allowed even for an admin
         const report = createMock<Report>({
             reportID: REPORT_ID,
             policyID: POLICY_ID,
@@ -5984,6 +5986,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
+        // When the secondary actions for the transaction thread are computed
         let result: ReturnType<typeof getSecondaryTransactionThreadActions>;
         try {
             result = getSecondaryTransactionThreadActions({
@@ -6002,6 +6005,8 @@ describe('getSecondaryTransactionThreadActions', () => {
             // Restore the default even if the call throws, since clearAllMocks in beforeEach keeps implementations
             isGroupPolicyMock.mockReturnValue(true);
         }
+
+        // Then SPLIT is not offered, because only group policies support splitting expenses
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
