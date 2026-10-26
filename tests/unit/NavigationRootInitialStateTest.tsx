@@ -33,8 +33,7 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@libs/Navigation/AppNavigator', () => () => null);
 jest.mock('@libs/NavigationFocusReturn', () => ({setupNavigationFocusReturn: jest.fn(), teardownNavigationFocusReturn: jest.fn()}));
 jest.mock('@src/libs/telemetry/useStartSpansOnRender', () => jest.fn());
-jest.mock('@hooks/useThemePreference', () => () => 'dark');
-jest.mock('@hooks/useTheme', () => () => ({appBG: '#000000'}));
+jest.mock('@hooks/useTheme', () => () => ({appBG: '#000000', colorScheme: 'dark'}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: true}));
 
 const DISTANCE_EDIT_ROUTE = ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, '1', '2');

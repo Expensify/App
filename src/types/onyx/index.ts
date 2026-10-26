@@ -24,6 +24,7 @@ import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
+import type BlockedRoleChange from './BlockedRoleChange';
 import type BulkAction from './BulkAction';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
@@ -281,6 +282,7 @@ export type {
     BetaConfiguration,
     BetaOverrides,
     BlockedFromConcierge,
+    BlockedRoleChange,
     Card,
     CardList,
     CardOnWaitlist,
