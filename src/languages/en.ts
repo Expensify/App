@@ -11965,6 +11965,10 @@ const translations = {
                 one: '1 active user',
                 other: `${count} active users`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 member',
+                other: `${count} members`,
+            }),
             state: {
                 paid: 'Paid',
                 cleared: 'Cleared',
@@ -11986,6 +11990,7 @@ const translations = {
             billedTo: 'Billed to',
             activity: 'Activity',
             findActiveUser: 'Find an active user',
+            findMember: 'Find a member',
             viewReceipt: 'View receipt',
             viewInvoice: 'View invoice',
         },
