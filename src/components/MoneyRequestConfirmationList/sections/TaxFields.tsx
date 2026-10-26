@@ -1,8 +1,10 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+import {recordFocusedConfirmationField, useRestoreConfirmationFieldFocus} from '@components/MoneyRequestConfirmationList/focusManager';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -57,6 +59,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isEditingSplitBill, onTaxAmountEmptyChange} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
+    const taxAmountInputRef = useRef<BaseTextInputRef | null>(null);
+    useRestoreConfirmationFieldFocus(transactionID, 'taxAmount', taxAmountInputRef);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -217,6 +221,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
             {canModifyTaxFields ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
+                        ref={taxAmountInputRef}
                         numberFormRef={numberFormRef}
                         key={taxAmountInputKey}
                         displayAsTextInput
@@ -228,6 +233,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                         label={translate('iou.taxAmount')}
                         errorText={shouldDisplayTaxAmountError ? translate('iou.error.invalidTaxAmount', formattedMaxTaxAmount) : ''}
                         onInputChange={handleTaxAmountChange}
+                        onFocus={() => recordFocusedConfirmationField(transactionID, 'taxAmount')}
                         shouldShowBigNumberPad={false}
                         disabled={didConfirm}
                     />

@@ -1,5 +1,6 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+import {hasPendingConfirmationFocusRestore, recordFocusedConfirmationField, useRestoreConfirmationFieldFocus} from '@components/MoneyRequestConfirmationList/focusManager';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -90,6 +91,7 @@ function AmountField({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    useRestoreConfirmationFieldFocus(transactionID, 'amount', amountInputRef);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
 
@@ -147,7 +149,12 @@ function AmountField({
     // (visible → hidden) so the amount input gains focus once the user selects a participant. The setTimeout defers
     // focus past the RHP entry / picker close animation so the input reliably receives focus.
     useEffect(() => {
-        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || isParticipantPickerVisible) {
+        if (
+            !shouldAutoFocusOnMount ||
+            isAmountFieldDisabled ||
+            isParticipantPickerVisible ||
+            (hasPendingConfirmationFocusRestore(transactionID) && !hasPendingConfirmationFocusRestore(transactionID, 'amount'))
+        ) {
             return;
         }
 
@@ -159,7 +166,7 @@ function AmountField({
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isParticipantPickerVisible]);
+    }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isParticipantPickerVisible, transactionID]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
@@ -363,6 +370,7 @@ function AmountField({
                             shouldShowBigNumberPad={false}
                             onCurrencyButtonPress={showCurrencyPicker}
                             onFocus={() => {
+                                recordFocusedConfirmationField(transactionID, 'amount');
                                 setIsAmountInputFocused(true);
                             }}
                             onBlur={() => {

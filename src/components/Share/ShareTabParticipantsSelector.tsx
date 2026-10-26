@@ -1,3 +1,5 @@
+import {prepareConfirmationFocusRestore} from '@components/MoneyRequestConfirmationList/focusManager';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useOnyx from '@hooks/useOnyx';
@@ -170,6 +172,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
                 }
 
                 if (isSubmitFlow) {
+                    prepareConfirmationFocusRestore(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
                     startSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW, {
                         name: CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW,
                         op: CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW,

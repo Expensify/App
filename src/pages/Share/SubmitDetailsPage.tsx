@@ -2,6 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
+import {enableConfirmationFocusTracking, notifyConfirmationScreenFocused} from '@components/MoneyRequestConfirmationList/focusManager';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -100,6 +101,7 @@ function getDefaultBillableForDestination(isPolicyExpenseChat: boolean, isCreati
 }
 
 function SubmitDetailsPage({
+    navigation,
     route: {
         params: {reportOrAccountID},
     },
@@ -117,6 +119,14 @@ function SubmitDetailsPage({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [transaction, transactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const isLoadingTransaction = isLoadingOnyxValue(transactionMetadata);
+    useEffect(() => enableConfirmationFocusTracking(transaction?.transactionID), [transaction?.transactionID]);
+    useEffect(
+        () =>
+            navigation.addListener('focus', () => {
+                notifyConfirmationScreenFocused(transaction?.transactionID);
+            }),
+        [navigation, transaction?.transactionID],
+    );
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionReport?.reportID)}`);
     const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
