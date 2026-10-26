@@ -32,11 +32,12 @@ function resolveSubmissionPath(snapshot: SubmissionPathSnapshot): SubmissionPath
         return SUBMISSION_PATH.PAY;
     }
 
-    const isTrackExpense = snapshot.iouType === CONST.IOU.TYPE.TRACK;
-
-    if (!isTrackExpense && !snapshot.isSelfDMDestination && snapshot.isDistanceRequest && !snapshot.isMovingTransactionFromTrackExpense && !snapshot.isUnreported) {
+    if (snapshot.isDistanceRequest && !snapshot.isMovingTransactionFromTrackExpense) {
         return SUBMISSION_PATH.DISTANCE;
     }
+
+    const isTrackExpense = snapshot.iouType === CONST.IOU.TYPE.TRACK;
+
     if (snapshot.iouType === CONST.IOU.TYPE.SPLIT) {
         return SUBMISSION_PATH.SPLIT;
     }

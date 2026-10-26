@@ -91,10 +91,11 @@ import type {ConfirmationSubmissionParams, ConfirmationVariantProps} from './var
 import useConfirmationTransactionPager from './useConfirmationTransactionPager';
 import useParticipantPickerState from './useParticipantPickerState';
 import useSubmitDestinationPreMount from './useSubmitDestinationPreMount';
-import ExpenseConfirmation from './variants/ExpenseConfirmation';
+import DistanceConfirmation from './variants/DistanceConfirmation';
 import InvoiceConfirmation from './variants/InvoiceConfirmation';
 import PayConfirmation from './variants/PayConfirmation';
 import PerDiemConfirmation from './variants/PerDiemConfirmation';
+import RequestMoneyConfirmation from './variants/RequestMoneyConfirmation';
 import SplitConfirmation from './variants/SplitConfirmation';
 
 function IOURequestStepConfirmationContent({
@@ -699,9 +700,11 @@ function IOURequestStepConfirmationContent({
                 return <InvoiceConfirmation {...variantProps} />;
             case SUBMISSION_PATH.PER_DIEM:
                 return <PerDiemConfirmation {...variantProps} />;
+            case SUBMISSION_PATH.DISTANCE:
+                return <DistanceConfirmation {...variantProps} />;
             default:
                 return (
-                    <ExpenseConfirmation
+                    <RequestMoneyConfirmation
                         {...variantProps}
                         submissionPath={submissionPath}
                     />

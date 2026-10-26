@@ -12,7 +12,6 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import type {Ref} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /** The page state the submission hooks read. Each variant picks only what its own hook needs. */
@@ -77,16 +76,4 @@ type ConfirmationVariantProps = {
     listProps: Omit<MoneyRequestConfirmationListProps, 'onConfirm' | 'isConfirming' | 'onSendMoney'>;
 };
 
-/** What the expense shell hands to the submitter of its current path. */
-type ExpenseSubmitterProps = {
-    /** Everything the submission hooks read. */
-    submissionParams: ConfirmationSubmissionParams;
-
-    /** Whether the expense goes to the self DM. */
-    isSelfDMDestination: boolean;
-
-    /** Receives the submitter's guarded `createTransaction` so the shell can pass it to the orchestrator. */
-    ref: Ref<SubmitExpenseOrchestratorProps['createTransaction']>;
-};
-
-export type {ConfirmationSubmissionParams, ConfirmationVariantProps, ExpenseSubmitterProps};
+export type {ConfirmationSubmissionParams, ConfirmationVariantProps};

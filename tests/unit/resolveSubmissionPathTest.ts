@@ -73,11 +73,11 @@ describe('resolveSubmissionPath', () => {
     });
 
     describe('branch 1 guards (distance is checked first, before iouType)', () => {
-        it('routes an untracked distance expense to the self DM through track, not distance', () => {
+        it('routes an untracked distance expense to the self DM through distance', () => {
             // Given a distance expense whose only recipient is the current user
             // When the dispatch destination is resolved
-            // Then track runs, because branch 1 requires a destination other than the self DM
-            expect(resolveSubmissionPath(snap({isDistanceRequest: true, isSelfDMDestination: true}))).toBe(SUBMISSION_PATH.TRACK);
+            // Then distance runs, because the distance confirmation submits the self DM case through TrackExpense itself so switching "To" keeps the path
+            expect(resolveSubmissionPath(snap({isDistanceRequest: true, isSelfDMDestination: true}))).toBe(SUBMISSION_PATH.DISTANCE);
         });
 
         it('routes a distance expense moved off a tracked expense through requestMoney, not distance', () => {
@@ -87,18 +87,18 @@ describe('resolveSubmissionPath', () => {
             expect(resolveSubmissionPath(snap({isDistanceRequest: true, isMovingTransactionFromTrackExpense: true}))).toBe(SUBMISSION_PATH.REQUEST_MONEY);
         });
 
-        it('routes an unreported distance expense through requestMoney, not distance', () => {
-            // Given a distance expense that is not attached to a report
+        it('routes an unreported distance expense through distance', () => {
+            // Given a distance expense that is not attached to a report, which the "To" picker sets alongside the self DM
             // When the dispatch destination is resolved
-            // Then branch 1 skips it, so the expense is written as a request
-            expect(resolveSubmissionPath(snap({isDistanceRequest: true, isUnreported: true}))).toBe(SUBMISSION_PATH.REQUEST_MONEY);
+            // Then distance runs, because the unreported flag follows the self DM and the distance confirmation handles that case
+            expect(resolveSubmissionPath(snap({isDistanceRequest: true, isUnreported: true}))).toBe(SUBMISSION_PATH.DISTANCE);
         });
 
-        it('routes a tracked distance expense through track, not distance', () => {
-            // Given a distance expense on the TRACK type
+        it('routes a tracked distance expense through distance', () => {
+            // Given a distance expense on the TRACK type, which the "To" picker sets alongside the self DM
             // When the dispatch destination is resolved
-            // Then track runs, because branch 1 excludes tracked expenses
-            expect(resolveSubmissionPath(snap({iouType: CONST.IOU.TYPE.TRACK, isDistanceRequest: true}))).toBe(SUBMISSION_PATH.TRACK);
+            // Then distance runs, because the TRACK type follows the self DM and the distance confirmation handles that case
+            expect(resolveSubmissionPath(snap({iouType: CONST.IOU.TYPE.TRACK, isDistanceRequest: true}))).toBe(SUBMISSION_PATH.DISTANCE);
         });
 
         it('routes a SPLIT distance expense through distance', () => {
