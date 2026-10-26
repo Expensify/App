@@ -24,6 +24,8 @@ import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
+import type BlockedRoleChange from './BlockedRoleChange';
+import type BulkAction from './BulkAction';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
@@ -59,6 +61,7 @@ import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
+import type DeferredAttachmentEdits from './DeferredAttachmentEdits';
 import type {
     CardFeedErrorsDerivedValue,
     GuideAccountIDsDerivedValue,
@@ -112,6 +115,7 @@ import type ExpensifyCardStatement from './ExpensifyCardStatement';
 import type ExportDownload from './ExportDownload';
 import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
+import type FullPolicySnapshot from './FullPolicySnapshot';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type GeneratedRule from './GeneratedRule';
@@ -256,6 +260,7 @@ import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
 export type {
@@ -277,6 +282,7 @@ export type {
     BetaConfiguration,
     BetaOverrides,
     BlockedFromConcierge,
+    BlockedRoleChange,
     Card,
     CardList,
     CardOnWaitlist,
@@ -293,6 +299,7 @@ export type {
     Domain,
     Download,
     ExportDownload,
+    BulkAction,
     GeneratedRule,
     DuplicateWorkspace,
     CopyPolicySettingsNVP,
@@ -305,6 +312,7 @@ export type {
     ExpensifyCardBankAccountMetadata,
     ExpensifyCardLoadingState,
     FrequentlyUsedEmoji,
+    FullPolicySnapshot,
     Fund,
     FundID,
     FundList,
@@ -390,6 +398,7 @@ export type {
     ReportActions,
     ReportActionsDraft,
     ReportActionsDrafts,
+    DeferredAttachmentEdits,
     ReportLastVisitTimes,
     ReportLoadingState,
     ReportMetadata,
@@ -419,6 +428,7 @@ export type {
     TransactionViolations,
     TravelSettings,
     WorkspaceTravelSettings,
+    WorkspaceMembersSelectedForBulkEdit,
     UserLocation,
     UserMetadata,
     UserWallet,

@@ -1,5 +1,5 @@
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
-import {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
+import {getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import InputWrapper from '@components/Form/InputWrapper';
 
 import CONST from '@src/CONST';
@@ -21,7 +21,7 @@ const renderFile: DynamicFieldRenderer<'file'> = (field, {translate, maxFileSize
                 {...inputProps}
                 valueType="files"
                 buttonText={buttonText}
-                accessibilityLabel={`${buttonText}, ${getFieldLabel(field, translate)}`}
+                accessibilityLabel={`${buttonText}, ${getInputLabel(field, translate)}`}
                 fileLimit={fileLimit}
                 acceptedFileTypes={[...CONST.DYNAMIC_FORM_DOCUMENT.ALLOWED_FILE_TYPES]}
                 maxFileSize={field.maxFileSize ?? maxFileSize}

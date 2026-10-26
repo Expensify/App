@@ -1,18 +1,17 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
 import {
-    getEffectiveTransactionThreadReportID,
+    EMPTY_VIOLATIONS,
     getReportIDForTransaction,
+    getVisibleReportRowViolations,
     isBillableEnabledOnPolicy,
     isEveryReportTransactionSelected,
     isSelectableReportTransaction,
-    shouldDisplayReportTableView,
-    shouldUseMultiExpenseReportLayout,
     shouldWaitForTransactions,
 } from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -279,66 +278,43 @@ describe('MoneyRequestReportUtils', () => {
         });
     });
 
-    describe('shouldDisplayReportTableView', () => {
-        const singleTransaction = createMock<Transaction>({transactionID: '555', reportID: reportBaseMock.reportID});
-        const secondTransaction = createMock<Transaction>({transactionID: '556', reportID: reportBaseMock.reportID});
+    describe('getVisibleReportRowViolations', () => {
+        const CURRENT_USER_ACCOUNT_ID = 1;
+        const CURRENT_USER_EMAIL = 'test@test.com';
+        const ownReport: Report = {reportID: 'report1', type: CONST.REPORT.TYPE.IOU, currency: CONST.CURRENCY.USD, ownerAccountID: CURRENT_USER_ACCOUNT_ID};
+        const missingCategoryViolations: TransactionViolations = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
 
-        test('uses the single-expense view for a single-expense report by default', () => {
-            // Given a report with one expense and no saved preference
-            // Then it renders in the single-expense view
-            expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction])).toBe(false);
+        it('should return the violations the current user can see', () => {
+            // Given a transaction on the current user's report with a missing category violation
+            const transaction = createMock<Transaction>({transactionID: '1', reportID: ownReport.reportID});
+
+            // When the row asks for its visible violations
+            const violations = getVisibleReportRowViolations(transaction, missingCategoryViolations, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, ownReport, CURRENT_USER_EMAIL, undefined);
+
+            // Then the row shows that violation
+            expect(violations).toEqual(missingCategoryViolations);
         });
 
-        test('uses the table view for a single-expense report when the user picked the table view', () => {
-            // Given a report with one expense and a user who picked the table view
-            // Then it renders in the table view
-            expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction], true)).toBe(true);
+        it('should return the shared empty reference when the transaction has no violations', () => {
+            // Given a transaction whose violations key holds an empty list
+            const transaction = createMock<Transaction>({transactionID: '1', reportID: ownReport.reportID});
+
+            // When the row asks for its visible violations
+            const violations = getVisibleReportRowViolations(transaction, [], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, ownReport, CURRENT_USER_EMAIL, undefined);
+
+            // Then it gets the shared empty array, so its props stay referentially stable across renders
+            expect(violations).toBe(EMPTY_VIOLATIONS);
         });
 
-        test('always uses the table view for a report with more than one expense', () => {
-            // Given a report with two expenses, the preference doesn't apply
-            expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction, secondTransaction])).toBe(true);
-            expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction, secondTransaction], true)).toBe(true);
-        });
-    });
+        it('should return the shared empty reference when no violations are loaded', () => {
+            // Given a transaction whose violations key is not in Onyx
+            const transaction = createMock<Transaction>({transactionID: '1', reportID: ownReport.reportID});
 
-    describe('shouldUseMultiExpenseReportLayout', () => {
-        test('uses the multi-expense layout for a report with more than one expense', () => {
-            // Given a report with two expenses, the preference doesn't apply
-            expect(shouldUseMultiExpenseReportLayout(2, false)).toBe(true);
-            expect(shouldUseMultiExpenseReportLayout(2, true)).toBe(true);
-        });
+            // When the row asks for its visible violations
+            const violations = getVisibleReportRowViolations(transaction, undefined, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, ownReport, CURRENT_USER_EMAIL, undefined);
 
-        test('uses the multi-expense layout for a single-expense report only when the user picked the table view', () => {
-            // Given a report with one expense
-            // Then only the table view preference gives it the multi-expense layout
-            expect(shouldUseMultiExpenseReportLayout(1, false)).toBe(false);
-            expect(shouldUseMultiExpenseReportLayout(1, true)).toBe(true);
-        });
-
-        test('keeps the default layout for an empty report', () => {
-            // Given a report with no expenses, the table view preference doesn't apply
-            expect(shouldUseMultiExpenseReportLayout(0, true)).toBe(false);
-        });
-    });
-
-    describe('getEffectiveTransactionThreadReportID', () => {
-        test('sends comments to the transaction thread in the single-expense view', () => {
-            // Given a single-expense report in the single-expense view
-            // Then comments go to the transaction thread
-            expect(getEffectiveTransactionThreadReportID('123', false, false)).toBe('123');
-        });
-
-        test('sends comments to the report itself in the table view', () => {
-            // Given a single-expense report in the table view, where the thread's actions aren't shown
-            // Then comments go to the report itself
-            expect(getEffectiveTransactionThreadReportID('123', false, true)).toBeUndefined();
-        });
-
-        test('sends comments to the report itself for a sent money report', () => {
-            // Given a sent money report
-            // Then comments go to the report itself
-            expect(getEffectiveTransactionThreadReportID('123', true, false)).toBeUndefined();
+            // Then it still gets the shared empty array
+            expect(violations).toBe(EMPTY_VIOLATIONS);
         });
     });
 });
