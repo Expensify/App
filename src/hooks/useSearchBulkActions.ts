@@ -2670,7 +2670,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             onSelected: () => onBulkPaySelected(undefined),
         };
 
-        const hasSubmitPolicyTransactions = areIncludedSubmitPolicyTransactions(selectedTransactions, selectedReports, policies);
         const approveButtonOption: DropdownOption<SearchHeaderOptionValue> = {
             icon: expensifyIcons.ThumbsUp,
             text: translate('search.bulkActions.approve'),
@@ -2941,7 +2940,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         if (areAllMatchingItemsSelected) {
             // Approve and Submit are report actions, and the backend skips the matching reports the user can't act on.
-            const shouldShowApproveOptionForAllMatchingItems = !isOffline && isExpenseReportType && !hasSubmitPolicyTransactions && selectedReports.some((report) => report.canApprove);
+            const shouldShowApproveOptionForAllMatchingItems =
+                !isOffline && isExpenseReportType && !doSelectedItemsBelongToSubmitPolicy && selectedReports.some((report) => report.canApprove);
             // Submit plan workspaces pick an approver per report and Mark as done is a different action, so neither is sent to the backend.
             const shouldShowSubmitOptionForAllMatchingItems =
                 !isOffline && isExpenseReportType && !doSelectedItemsBelongToSubmitPolicy && noReportsShouldMarkAsDone && selectedReports.some((report) => report.canSubmit);
@@ -3033,6 +3033,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const areSelectedTransactionsIncludedInReports = selectedTransactionsKeys.every((id) =>
             selectedTransactions[id].reportID ? selectedReportIDs.includes(selectedTransactions[id].reportID) : true,
         );
+        const hasSubmitPolicyTransactions = areIncludedSubmitPolicyTransactions(selectedTransactions, selectedReports, policies);
         const shouldShowApproveOption =
             !isOffline &&
             !isAnyTransactionOnHold &&
