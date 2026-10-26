@@ -1,3 +1,4 @@
+import cameraPlatformConfig from '@libs/cameraCapture/platformConfig';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
 import {cancelSpan, endSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -6,7 +7,7 @@ import getCameraCapabilityAttributes from '@pages/iou/request/step/IOURequestSte
 
 import CONST from '@src/CONST';
 
-import type {CameraDevice, CameraDeviceFormat} from 'react-native-vision-camera';
+import type {AutoFocusSystem, CameraDevice, CameraSessionConfig} from 'react-native-vision-camera';
 
 import {useEffect, useRef} from 'react';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -18,9 +19,6 @@ type UseCameraInitTelemetryParams = {
 
     /** The active camera device descriptor, undefined while loading */
     device: CameraDevice | undefined;
-
-    /** The format the camera is running at, undefined until one is selected */
-    format: CameraDeviceFormat | undefined;
 };
 
 /**
@@ -28,9 +26,10 @@ type UseCameraInitTelemetryParams = {
  * Handles starting spans when permission is granted, cancelling when denied,
  * and cleaning up on unmount.
  */
-function useCameraInitTelemetry({cameraPermissionStatus, device, format}: UseCameraInitTelemetryParams) {
+function useCameraInitTelemetry({cameraPermissionStatus, device}: UseCameraInitTelemetryParams) {
     const cameraInitSpanStarted = useRef(false);
     const cameraInitialized = useRef(false);
+    const autoFocusSystem = useRef<AutoFocusSystem | undefined>(undefined);
 
     // End navigation span and start ready span on mount
     useEffect(() => {
@@ -88,7 +87,7 @@ function useCameraInitTelemetry({cameraPermissionStatus, device, format}: UseCam
         };
     }, []);
 
-    const handleCameraInitialized = () => {
+    const handleCameraConfigured = () => {
         // Prevent duplicate span endings if callback fires multiple times
         if (cameraInitialized.current) {
             return;
@@ -96,7 +95,7 @@ function useCameraInitTelemetry({cameraPermissionStatus, device, format}: UseCam
         cameraInitialized.current = true;
         // Only end camera init span if it was actually started
         if (cameraInitSpanStarted.current) {
-            endSpanWithAttributes(CONST.TELEMETRY.SPAN_CAMERA_INIT, getCameraCapabilityAttributes(device, format));
+            endSpanWithAttributes(CONST.TELEMETRY.SPAN_CAMERA_INIT, getCameraCapabilityAttributes(device, autoFocusSystem.current));
         }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
         endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
@@ -123,7 +122,15 @@ function useCameraInitTelemetry({cameraPermissionStatus, device, format}: UseCam
             });
     };
 
-    return {handleCameraInitialized};
+    // VisionCamera calls this during configure, before `onConfigured` ends the span.
+    const handleSessionConfigSelected = (config: CameraSessionConfig) => {
+        if (!cameraPlatformConfig.reportsAutoFocusSystem) {
+            return;
+        }
+        autoFocusSystem.current = config.autoFocusSystem;
+    };
+
+    return {handleCameraConfigured, handleSessionConfigSelected};
 }
 
 export default useCameraInitTelemetry;
