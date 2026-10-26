@@ -81,7 +81,7 @@ function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
-        deleteAgent(accountID, personalDetails, allPolicies, true, backPath);
+        deleteAgent(accountID, agentLogin, allPolicies, true, backPath);
     };
     const isPendingAddOrDelete = agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !agentLogin;

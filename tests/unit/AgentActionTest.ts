@@ -578,7 +578,7 @@ describe('deleteAgent', () => {
         });
 
         it('marks agent employeeList entry as pending DELETE optimistically', () => {
-            deleteAgent(TEST_ACCOUNT_ID, {accountID: TEST_ACCOUNT_ID, login: AGENT_EMAIL}, buildPolicies());
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies());
 
             const {optimisticData} = getWriteOptions();
             const policyValue = getUpdateRecord(optimisticData, policyKey);
@@ -587,7 +587,7 @@ describe('deleteAgent', () => {
         });
 
         it('leaves other employees and approver chains untouched so the workflow card still renders', () => {
-            deleteAgent(TEST_ACCOUNT_ID, {accountID: TEST_ACCOUNT_ID, login: AGENT_EMAIL}, buildPolicies());
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies());
 
             const {optimisticData} = getWriteOptions();
             const policyValue = getUpdateRecord(optimisticData, policyKey);
@@ -598,7 +598,7 @@ describe('deleteAgent', () => {
         });
 
         it('nulls the agent employeeList entry on success', () => {
-            deleteAgent(TEST_ACCOUNT_ID, {accountID: TEST_ACCOUNT_ID, login: AGENT_EMAIL}, buildPolicies());
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies());
 
             const {successData} = getWriteOptions();
             const policyValue = getUpdateRecord(successData, policyKey);
@@ -607,7 +607,7 @@ describe('deleteAgent', () => {
         });
 
         it('restores agent pendingAction with errors on failure', () => {
-            deleteAgent(TEST_ACCOUNT_ID, {accountID: TEST_ACCOUNT_ID, login: AGENT_EMAIL}, buildPolicies());
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies());
 
             const {failureData} = getWriteOptions();
             const policyValue = getUpdateRecord(failureData, policyKey);
@@ -627,7 +627,7 @@ describe('deleteAgent', () => {
                     employeeList: {[OWNER_EMAIL]: {email: OWNER_EMAIL}},
                 },
             };
-            deleteAgent(TEST_ACCOUNT_ID, {accountID: TEST_ACCOUNT_ID, login: AGENT_EMAIL}, policies);
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, policies);
 
             const {optimisticData} = getWriteOptions();
             expect(optimisticData.find((u) => u.key === policyKey)).toBeUndefined();
