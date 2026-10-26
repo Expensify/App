@@ -273,4 +273,22 @@ describe('ShareTabParticipantsSelector', () => {
         // Then fields owned by the previous policy are cleared
         expect(clearMoneyRequestPolicyFields).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     });
+
+    it('does not treat different fake-policy destinations as the same policy', async () => {
+        // Given the user initially selected a non-workspace destination with the fake policy sentinel
+        mockSelectedParticipant = {...mockSelectedParticipant, reportID: 'self-dm-report', policyID: CONST.POLICY.ID_FAKE};
+        render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByTestId('mock-select-participant'));
+        await waitForBatchedUpdatesWithAct();
+        jest.clearAllMocks();
+
+        // When they select a different non-workspace destination with the same fake policy sentinel
+        mockSelectedParticipant = {...mockSelectedParticipant, reportID: 'p2p-report'};
+        fireEvent.press(screen.getByTestId('mock-select-participant'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then stale policy-owned fields are cleared because the sentinel does not represent a real shared policy
+        expect(clearMoneyRequestPolicyFields).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+    });
 });

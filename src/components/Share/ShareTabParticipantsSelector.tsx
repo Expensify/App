@@ -162,7 +162,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
 
                 const hasSelectedDestination = hasAutoNavigatedToReport || selectedReportID !== undefined;
                 const isSameDestination = selectedReportID !== undefined && selectedReportID.toString() === reportID.toString();
-                const isSamePolicy = !!selectedPolicyID && selectedPolicyID === participant?.policyID;
+                const isSamePolicy = !!selectedPolicyID && selectedPolicyID !== CONST.POLICY.ID_FAKE && selectedPolicyID === participant?.policyID;
 
                 // Start fresh on the initial pick. When the destination changes, clear workspace-owned fields only if
                 // the underlying policy changed; selecting the same destination must preserve every draft edit.
