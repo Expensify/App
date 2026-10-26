@@ -2276,13 +2276,19 @@ function undeleteTransactions(props: ChangeTransactionsReportProps) {
             continue;
         }
 
-        // Replace any UNREPORTED_TRANSACTION the shared builder added for an owner-driven undelete,
-        // so there is only one action in the thread.
+        // Drop the shared builder's UNREPORTED_TRANSACTION in optimistic and success so its
+        // {pendingAction: null} merge can't resurrect it as a partial action after success.
         if (threadInfo.movedReportActionID) {
+            const supersededReportActionID = threadInfo.movedReportActionID;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: {[threadInfo.movedReportActionID]: null},
+                value: {[supersededReportActionID]: null},
+            });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[supersededReportActionID]: null},
             });
         }
 

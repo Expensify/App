@@ -31,6 +31,7 @@ describe('buildOptimisticUndeletedTransactionAction', () => {
     });
 
     it('targets the transaction thread with a pending add action', () => {
+        // Given a signed-in user restoring a trashed card expense on a transaction thread
         // When we build the optimistic action
         const action = buildOptimisticUndeletedTransactionAction(TRANSACTION_THREAD_REPORT_ID);
 
@@ -40,6 +41,7 @@ describe('buildOptimisticUndeletedTransactionAction', () => {
     });
 
     it('reads "undeleted this expense" in the message text', () => {
+        // Given a signed-in user restoring a trashed card expense
         // When we build the optimistic action
         const action = buildOptimisticUndeletedTransactionAction(TRANSACTION_THREAD_REPORT_ID);
 
