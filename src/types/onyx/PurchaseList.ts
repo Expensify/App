@@ -100,12 +100,13 @@ type Message = {
     potentialCashBackPercentage?: number;
     subscription?: Subscription;
 
-    /** Actor count for Team policy type */
+    /** Actor count for Team policy type. May arrive as a string, so coerce with Number() before use. */
     teamActorCount?: number | string;
 
     /** Amount charged for Team policy type */
     teamRevenue?: number;
 
+    /** Total billed-actor count. May arrive as a string, so coerce with Number() before use. */
     totalActorCount?: number | string;
     totalFreebieCredits?: number;
     totalPlatformSpend?: number;

@@ -188,6 +188,8 @@ function getDisplayAmount(purchase: Purchase): number {
 
 function getActiveUserCount(purchase: Purchase): number | undefined {
     const message = purchase.message;
+    // Legacy bills show the billed-actor count. Team 2025 bills take the larger of the two counts
+    // because a force-upgraded policy can push teamActorCount above the unique member count.
     if (message.isTeam2025Pricing) {
         const teamActors = Number(message.teamActorCount ?? 0);
         const uniqueMembers = Number(message.totalUniqueMembersCount ?? 0);
