@@ -32,7 +32,6 @@ function MarkAsResolvedPrimaryAction({reportID, chatReportID, isDisabled}: Simpl
                 if (!transaction?.transactionID) {
                     return;
                 }
-                // `reportActions` is the list `transactionThreadReport` was resolved from, so the displayed-report check sees the actions that produced the thread
                 markRejectViolationAsResolved(transaction.transactionID, isOffline, transactionViolations, transactionThreadReport?.reportID, reportActions);
             }}
         >
