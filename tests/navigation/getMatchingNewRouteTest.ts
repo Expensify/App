@@ -374,6 +374,28 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/home-page?backTo=r/123')).toBe('/home?backTo=r/123');
     });
 
+    it('redirects the old Wallet global reimbursements intro path to its dynamic route', () => {
+        // Given a link to the intro page saved before it became a dynamic route, keyed by bank account ID
+        const oldRoute = '/settings/wallet/123/global-reimbursements';
+
+        // When the old link is resolved
+        const newRoute = getMatchingNewRoute(oldRoute);
+
+        // Then it lands on the dynamic suffix appended to Wallet, so back navigation still returns to Wallet
+        expect(newRoute).toBe('/settings/wallet/global-reimbursements/123');
+    });
+
+    it('does not redirect the dynamic global reimbursements intro route', () => {
+        // Given the new dynamic intro path, whose segment order differs from the old pattern
+        const newRoute = '/settings/wallet/global-reimbursements/123';
+
+        // When it is resolved against the old routes
+        const matchedRoute = getMatchingNewRoute(newRoute);
+
+        // Then nothing matches, so it is not rewritten in a loop
+        expect(matchedRoute).toBe(undefined);
+    });
+
     describe('redirects old enable-payments substeps to their new routes', () => {
         const enablePaymentsCases = [
             {oldRoute: '/settings/wallet/enable-payments/plaid', expectedRoute: '/settings/wallet/enable-payments/add-bank-account/plaid'},
@@ -711,5 +733,22 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/create/submit/start/123/456/789/scan')).toBe(undefined);
         // A 5-segment waypoint URL (no pageIndex) is not a valid legacy waypoint route either.
         expect(getMatchingNewRoute('/create/submit/waypoint/123/456')).toBe(undefined);
+    });
+
+    it('redirects bookmarked travel-invoicing accounting pages to their travel-billing paths', () => {
+        // Given bookmarks saved while the Consolidated Travel Billing pages used travel-invoicing paths
+        const staticPath = '/workspaces/ABC/accounting/netsuite/export/travel-invoicing/journal-posting-preference';
+        const nestedDynamicPath = '/workspaces/ABC/accounting/xero/export/xero-travel-invoicing/xero-travel-invoicing-payable-account';
+        const advancedPath = '/workspaces/ABC/accounting/campfire/advanced/travel-invoicing-payable-account?backTo=/home';
+
+        // When the old paths are opened
+        const redirects = [staticPath, nestedDynamicPath, advancedPath].map(getMatchingNewRoute);
+
+        // Then each lands on the renamed page, keeping the workspace and any query
+        expect(redirects).toEqual([
+            '/workspaces/ABC/accounting/netsuite/export/travel-billing/journal-posting-preference',
+            '/workspaces/ABC/accounting/xero/export/xero-travel-billing/xero-travel-billing-payable-account',
+            '/workspaces/ABC/accounting/campfire/advanced/travel-billing-payable-account?backTo=/home',
+        ]);
     });
 });

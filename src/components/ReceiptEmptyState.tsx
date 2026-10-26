@@ -91,7 +91,8 @@ function ReceiptEmptyState({
 
     const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptFile);
 
-    const Wrapper = onPress ? PressableWithoutFeedback : View;
+    const isInteractive = !!onPress || isDisplayedInWideRHP;
+    const Wrapper = isInteractive ? PressableWithoutFeedback : View;
     const containerStyle = isCompact
         ? [styles.alignItemsCenter, styles.justifyContentCenter, styles.receiptEmptyStateCompact, styles.moneyRequestAttachReceipt, style]
         : [
@@ -115,72 +116,76 @@ function ReceiptEmptyState({
     return (
         <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
             {({openPicker}) => (
-                <Wrapper
-                    accessibilityRole="imagebutton"
-                    accessibilityLabel={translate('receipt.upload')}
-                    onPress={() => {
-                        if (isDisplayedInWideRHP) {
-                            openPicker({
-                                onPicked: validateFiles,
-                            });
-                            return;
-                        }
-                        onPress?.();
-                    }}
-                    disabled={disabled}
-                    disabledStyle={styles.cursorDefault}
-                    hoverStyle={onPress && isCompact ? styles.hoveredComponentBG : undefined}
-                    onHoverIn={onPress && isCompact ? () => setIsHovered(true) : undefined}
-                    onHoverOut={onPress && isCompact ? () => setIsHovered(false) : undefined}
-                    style={containerStyle}
-                >
-                    {PDFValidationComponent}
-                    {isCompact ? (
-                        <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap2]}>
-                            <Icon
-                                src={icons.ReceiptPlus}
-                                fill={isHovered ? theme.success : theme.icon}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.textStrong, styles.flexShrink1]}
-                            >
-                                {translate('dropzone.addReceipt')}
-                            </Text>
-                        </View>
-                    ) : (
-                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                <View style={styles.pRelative}>
-                                    <Icon
-                                        fill={theme.border}
-                                        src={icons.Receipt}
-                                        width={variables.eReceiptEmptyIconWidth}
-                                        height={variables.eReceiptEmptyIconWidth}
-                                    />
-                                    {!isThumbnail && (
-                                        <View style={[styles.moneyRequestAttachReceiptThumbnailIcon, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL))]}>
-                                            <ReceiptPlaceholderPlusIcon
-                                                circleFill={theme.success}
-                                                plusFill={theme.receiptPlaceholderPlus}
-                                                size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL) - styles.moneyRequestAttachReceiptThumbnailIcon.borderWidth * 2}
-                                            />
-                                        </View>
+                <View style={containerStyle}>
+                    <Wrapper
+                        accessibilityRole={isInteractive ? 'button' : undefined}
+                        accessibilityLabel={translate('receipt.upload')}
+                        onPress={() => {
+                            if (isDisplayedInWideRHP) {
+                                openPicker({
+                                    onPicked: validateFiles,
+                                });
+                                return;
+                            }
+                            onPress?.();
+                        }}
+                        disabled={disabled}
+                        disabledStyle={styles.cursorDefault}
+                        hoverStyle={onPress && isCompact ? styles.hoveredComponentBG : undefined}
+                        onHoverIn={onPress && isCompact ? () => setIsHovered(true) : undefined}
+                        onHoverOut={onPress && isCompact ? () => setIsHovered(false) : undefined}
+                        style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                    >
+                        {PDFValidationComponent}
+                        {isCompact ? (
+                            <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap2]}>
+                                <Icon
+                                    src={icons.ReceiptPlus}
+                                    fill={isHovered ? theme.success : theme.icon}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                />
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.textStrong, styles.flexShrink1]}
+                                >
+                                    {translate('dropzone.addReceipt')}
+                                </Text>
+                            </View>
+                        ) : (
+                            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                    <View style={styles.pRelative}>
+                                        <Icon
+                                            fill={theme.border}
+                                            src={icons.Receipt}
+                                            width={variables.eReceiptEmptyIconWidth}
+                                            height={variables.eReceiptEmptyIconWidth}
+                                        />
+                                        {!isThumbnail && (
+                                            <View
+                                                style={[styles.moneyRequestAttachReceiptThumbnailIcon, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL))]}
+                                            >
+                                                <ReceiptPlaceholderPlusIcon
+                                                    circleFill={theme.success}
+                                                    plusFill={theme.receiptPlaceholderPlus}
+                                                    size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL) - styles.moneyRequestAttachReceiptThumbnailIcon.borderWidth * 2}
+                                                />
+                                            </View>
+                                        )}
+                                    </View>
+                                    {!isThumbnail && isDisplayedInWideRHP && (
+                                        <>
+                                            <Text style={[styles.textHeadline, styles.mt4]}>{translate('receipt.addAReceipt.phrase1')}</Text>
+                                            <Text style={[styles.textSupporting, styles.textNormal]}>{translate('receipt.addAReceipt.phrase2')}</Text>
+                                        </>
                                     )}
                                 </View>
-                                {!isThumbnail && isDisplayedInWideRHP && (
-                                    <>
-                                        <Text style={[styles.textHeadline, styles.mt4]}>{translate('receipt.addAReceipt.phrase1')}</Text>
-                                        <Text style={[styles.textSupporting, styles.textNormal]}>{translate('receipt.addAReceipt.phrase2')}</Text>
-                                    </>
-                                )}
                             </View>
-                        </View>
-                    )}
+                        )}
+                    </Wrapper>
                     {isDisplayedInWideRHP && !disabled && <ReceiptAlternativeMethods />}
-                </Wrapper>
+                </View>
             )}
         </AttachmentPicker>
     );

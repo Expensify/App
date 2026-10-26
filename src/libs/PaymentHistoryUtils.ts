@@ -24,6 +24,8 @@ type PaymentHistoryRow = {
     showsTax: boolean;
     state: PaymentHistoryState;
     activeUserCount?: number;
+    /** Whether the bill was on Collect 2025 pricing, which counts members instead of active users. */
+    countsMembers: boolean;
 };
 
 /** The dynamic badge shown on the payment details page, carrying the extra detail that only renders there. */
@@ -110,6 +112,7 @@ function getPaymentHistoryRows(purchases: Purchases | null | undefined): Payment
             showsTax: !!purchase.message.salesTaxCharged && !purchase.message.salesTaxExempt,
             state: foldedState.get(purchase.purchaseID)?.state ?? getOwnState(purchase),
             activeUserCount: getActiveUserCount(purchase),
+            countsMembers: !!purchase.message.isTeam2025Pricing,
         });
     }
 
@@ -201,6 +204,11 @@ function getActiveUserCount(purchase: Purchase): number | undefined {
         }
     }
     return emails.size > 0 ? emails.size : undefined;
+}
+
+/** Returns the account IDs of the users billed for a purchase, deduped since the same person can be billed under more than one workspace. */
+function getActiveUserAccountIDs(purchase: Purchase | undefined): number[] {
+    return [...new Set(purchase?.activeUsers?.filter((accountID) => !!accountID))];
 }
 
 function compareNewestFirst(left: PaymentHistoryRow, right: PaymentHistoryRow): number {
@@ -362,7 +370,6 @@ function isInvoiceBilling(purchases: Purchases | null | undefined, purchaseID: n
 function getReceiptFileName(source: string, purchaseID: number): string {
     try {
         const pathname = new URL(source).pathname;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return pathname.split('/').pop() || `receipt-${purchaseID}`;
     } catch {
         return `receipt-${purchaseID}`;
@@ -371,6 +378,7 @@ function getReceiptFileName(source: string, purchaseID: number): string {
 
 export {
     formatDate,
+    getActiveUserAccountIDs,
     getBadgeAppearance,
     getBadgeText,
     getPaymentDetailsBadge,

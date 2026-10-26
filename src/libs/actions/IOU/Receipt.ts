@@ -262,6 +262,9 @@ function replaceReceipt({
         receiptTraceId,
         // Clear the old count while the replacement is pending.
         pageCount: null,
+        // A new receipt must not keep the old one's reservation dates, or the per-night limit check would use them.
+        // A crop or rotate keeps the same receipt, so its dates stay.
+        ...(isSameReceipt ? {} : {hotelReservationStartDate: null, hotelReservationEndDate: null}),
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
 
