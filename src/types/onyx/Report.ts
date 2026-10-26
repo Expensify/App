@@ -113,6 +113,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Currency of `creditedAmount` */
         creditedCurrency?: string;
 
+        /** Comma separated IDs of the report's settled withdrawals, in ascending order */
+        withdrawalIDs?: string;
+
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
         /** Whether the report has a child that is an outstanding expense that is awaiting action from the current user */
