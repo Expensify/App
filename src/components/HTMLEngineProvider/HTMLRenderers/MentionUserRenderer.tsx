@@ -10,7 +10,6 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAccountIDsByLogins, temporaryGetDisplayNameOrDefault, getShortMentionIfFound} from '@libs/PersonalDetailsUtils';
@@ -104,6 +103,7 @@ type MentionUserLoginLinkProps = Omit<MentionUserRendererProps, 'TDefaultRendere
 };
 
 function MentionUserLoginLink({tnode, currentUserPersonalDetails, ...props}: MentionUserLoginLinkProps) {
+    const {formatPhoneNumber} = useLocalize();
     const htmlAttributeAccountID = tnode.attributes.accountid;
     // We need to remove the LTR unicode and leading @ from data as it is not part of the login
     const login = tnode.data.replace(CONST.UNICODE.LTR, '').slice(1);
