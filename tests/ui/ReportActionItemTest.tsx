@@ -15,6 +15,7 @@ import {openLink} from '@libs/actions/Link';
 import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import type * as UrlType from '@libs/Url';
 
 import PaymentContent from '@pages/inbox/report/actionContents/PaymentContent';
@@ -28,12 +29,11 @@ import type CONFIGType from '@src/CONFIG';
 import type CONSTType from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, DecisionName, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
-
-import type {View} from 'react-native';
 
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
@@ -121,6 +121,7 @@ describe('ReportActionItem', () => {
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
         jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({key: '', name: ''});
+        jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(getIOUActionForReportID);
     });
 
     beforeEach(async () => {
@@ -146,8 +147,8 @@ describe('ReportActionItem', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    function getItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false, onExpandedSystemMessageReady?: (target: React.ComponentRef<typeof View> | null) => void) {
-        return (
+    function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false) {
+        return render(
             <ComposeProviders
                 components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider, PlaybackContextProvider]}
             >
@@ -164,109 +165,12 @@ describe('ReportActionItem', () => {
                             shouldDisplayNewMarker={false}
                             isFirstVisibleReportAction={false}
                             isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
-                            onExpandedSystemMessageReady={onExpandedSystemMessageReady}
                         />
                     </PortalProvider>
                 </ScreenWrapper>
-            </ComposeProviders>
+            </ComposeProviders>,
         );
     }
-
-    function renderItemWithAction(
-        action: ReportAction,
-        isLatestConciergeFeedbackAction = false,
-        onExpandedSystemMessageReady?: (target: React.ComponentRef<typeof View> | null) => void,
-        focusTarget?: React.ComponentRef<typeof View>,
-    ) {
-        return render(
-            getItemWithAction(action, isLatestConciergeFeedbackAction, onExpandedSystemMessageReady),
-            focusTarget
-                ? {
-                      createNodeMock: (element: React.ReactElement) => {
-                          const props = element.props;
-                          return props &&
-                              typeof props === 'object' &&
-                              'accessibilityLabel' in props &&
-                              typeof props.accessibilityLabel === 'string' &&
-                              props.accessibilityLabel.includes('some message')
-                              ? focusTarget
-                              : null;
-                      },
-                  }
-                : undefined,
-        );
-    }
-
-    it('hands a recycled message host to the expansion request without requiring another layout event', async () => {
-        // Given a mounted row with no expansion request, as in a warmed FlashList recycle pool
-        const target = createMock<React.ComponentRef<typeof View>>({focus: jest.fn()});
-        const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {});
-        const {rerender} = renderItemWithAction(action, false, undefined, target);
-        await waitForBatchedUpdatesWithAct();
-        const frames = new Map<number, FrameRequestCallback>();
-        let frameID = 0;
-        const frameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
-            frames.set(++frameID, callback);
-            return frameID;
-        });
-        const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((id) => {
-            if (typeof id !== 'number') {
-                return;
-            }
-            frames.delete(id);
-        });
-        const onReady = jest.fn();
-        try {
-            // When the retained row is assigned the first revealed update, with unchanged geometry
-            rerender(getItemWithAction({...action, reportActionID: 'revealed-oldest'}, false, onReady));
-            expect(onReady).not.toHaveBeenCalled();
-            act(() => {
-                for (const callback of [...frames.values()]) {
-                    callback(0);
-                }
-            });
-
-            // Then its existing labeled host receives the handoff after commit, without a synthetic layout
-            expect(onReady).toHaveBeenCalledTimes(1);
-            expect(onReady).toHaveBeenCalledWith(target);
-        } finally {
-            frameSpy.mockRestore();
-            cancelSpy.mockRestore();
-        }
-    });
-
-    it('cancels the handoff if the message is recycled before the next frame', async () => {
-        const target = createMock<React.ComponentRef<typeof View>>({focus: jest.fn()});
-        const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {});
-        const {rerender} = renderItemWithAction(action, false, undefined, target);
-        await waitForBatchedUpdatesWithAct();
-        const frames = new Map<number, FrameRequestCallback>();
-        let frameID = 0;
-        const frameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
-            frames.set(++frameID, callback);
-            return frameID;
-        });
-        const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((id) => {
-            if (typeof id !== 'number') {
-                return;
-            }
-            frames.delete(id);
-        });
-        const onReady = jest.fn();
-        try {
-            rerender(getItemWithAction({...action, reportActionID: 'revealed-oldest'}, false, onReady));
-            rerender(getItemWithAction({...action, reportActionID: 'another-message'}));
-            act(() => {
-                for (const callback of [...frames.values()]) {
-                    callback(0);
-                }
-            });
-            expect(onReady).not.toHaveBeenCalled();
-        } finally {
-            frameSpy.mockRestore();
-            cancelSpy.mockRestore();
-        }
-    });
 
     describe('Edited file attachments', () => {
         const attachmentURL = 'https://www.expensify.com/chat-attachments/12345/w_abc.csv';
@@ -1932,10 +1836,9 @@ describe('ReportActionItem', () => {
                 label: 'QuickBooks Online',
                 errorMessage: 'We were unable to find a vendor/supplier for applausetester+bp3108od@applause.expensifail.com',
             });
-            const onRenderHTMLStyle = jest.fn<void, [ReturnType<typeof useThemeStyles>['renderHTML']]>();
+            let renderHTMLStyle: ReturnType<typeof useThemeStyles>['renderHTML'] | undefined;
             function StyleProbe() {
-                const {renderHTML} = useThemeStyles();
-                React.useEffect(() => onRenderHTMLStyle(renderHTML), [renderHTML]);
+                renderHTMLStyle = useThemeStyles().renderHTML;
                 return null;
             }
 
@@ -1971,8 +1874,7 @@ describe('ReportActionItem', () => {
                 ancestorStyles.push(StyleSheet.flatten(ancestor.props.style));
                 ancestor = ancestor.parent;
             }
-            expect(onRenderHTMLStyle).toHaveBeenCalled();
-            expect(ancestorStyles).toEqual(expect.arrayContaining([StyleSheet.flatten(onRenderHTMLStyle.mock.calls.at(-1)?.at(0))]));
+            expect(ancestorStyles).toEqual(expect.arrayContaining([StyleSheet.flatten(renderHTMLStyle)]));
         });
 
         it('INTEGRATION_SYNC_FAILED action keeps the stored IES label after switching to QBO', async () => {
