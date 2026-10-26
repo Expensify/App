@@ -95,8 +95,8 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     };
 
     const getConnectedStatus = (name: ConnectionName, title: string | undefined): ConnectionStatus => {
-        const hasQBOExportError = name === CONST.POLICY.CONNECTIONS.NAME.QBO && shouldShowReimbursableExportDestinationAccountError(policy);
-        if (hasQBOExportError || getSynchronizationErrorMessage(policy, name, isSyncInProgress, translate, styles)) {
+        const hasReimbursableExportDestinationAccountError = shouldShowReimbursableExportDestinationAccountError(policy);
+        if (hasReimbursableExportDestinationAccountError || getSynchronizationErrorMessage(policy, name, isSyncInProgress, translate, styles)) {
             return {isBroken: true, message: translate('workspace.connections.brokenConnection')};
         }
         // A new connection hasn't synced yet while its first sync runs, so the sync is checked first
