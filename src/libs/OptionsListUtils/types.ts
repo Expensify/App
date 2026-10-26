@@ -217,6 +217,7 @@ type GetValidReportsConfig = {
     forcePolicyNamePreview?: boolean;
     includeSelfDM?: boolean;
     includeOwnedWorkspaceChats?: boolean;
+    excludeWorkspacesWithoutCreateExpensePermission?: boolean;
     includeThreads?: boolean;
     includeTasks?: boolean;
     includeMoneyRequests?: boolean;
@@ -250,6 +251,7 @@ type IsValidReportsConfig = Pick<
     | 'isDefaultRoomsBetaEnabled'
     | 'includeMultipleParticipantReports'
     | 'includeOwnedWorkspaceChats'
+    | 'excludeWorkspacesWithoutCreateExpensePermission'
     | 'includeThreads'
     | 'includeTasks'
     | 'includeMoneyRequests'
@@ -299,6 +301,8 @@ type GetOptionsConfig = {
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     isTrackIntentUser?: boolean;
+    /** The user's default workspace. Its expense chat is ranked first in the separated workspace chats so the result limit can't drop it */
+    activePolicyID?: OnyxEntry<string>;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
 } & GetValidReportsConfig;

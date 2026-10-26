@@ -4314,7 +4314,7 @@ function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number, fun
 function updateMemberCustomField(policyID: string, login: string, customFieldType: CustomFieldType, value: string, currentValue: string | undefined) {
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
 
-    if (value === (currentValue ?? '')) {
+    if (!login || value === (currentValue ?? '')) {
         return;
     }
 
@@ -4399,7 +4399,7 @@ function createWorkspaceFromIOUPayment({
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName(currentUserEmail, currentUserDisplayName, lastWorkspaceNumber, localeTranslate);
     const employeeAccountID = iouReport?.ownerAccountID;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as iouReport?.currency could be an empty string
+    // `iouReport?.currency` can be an empty string
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency || currentUserLocalCurrency);
     const oldPersonalPolicyID = iouReport?.policyID;
     const iouReportID = iouReport?.reportID;
@@ -5159,6 +5159,12 @@ const ENABLE_CONNECTION_FEATURE = {
 function enablePolicyFeatureForConnection(policy: OnyxEntry<Policy>, featureName: ConnectionFeatureName) {
     if (!policy?.id || PolicyUtils.isPolicyFeatureEnabled(policy, featureName)) {
         return;
+    }
+    // A workspace that is still being created has no connections to fetch. Without this, the open Connections page
+    // would be replaced by a loader while the fetch waits behind the create request. It's set first so the page never
+    // sees the feature on without it.
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`, true);
     }
     ENABLE_CONNECTION_FEATURE[featureName](policy.id, true, false);
 }
@@ -6878,15 +6884,22 @@ function getCashExpenseReimbursableMode(policy: OnyxEntry<Policy>): PolicyCashEx
         return undefined;
     }
 
-    if (policy.defaultReimbursable && !policy.disabledFields?.reimbursable) {
+    // `defaultReimbursable` is optional on the policy blob. An absent value means "reimbursable",
+    // which is what the backend and the expense creation path both assume, so read it the same way
+    // here. Treating an absent value as `false` made this page claim "always non-reimbursable" on
+    // workspaces that actually create reimbursable expenses.
+    const defaultReimbursable = policy.defaultReimbursable ?? true;
+    const isReimbursableDisabled = !!policy.disabledFields?.reimbursable;
+
+    if (defaultReimbursable && !isReimbursableDisabled) {
         return CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT;
     }
 
-    if (!policy.disabledFields?.reimbursable && !policy.defaultReimbursable) {
+    if (!defaultReimbursable && !isReimbursableDisabled) {
         return CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.NON_REIMBURSABLE_DEFAULT;
     }
 
-    if (policy.defaultReimbursable && policy.disabledFields?.reimbursable) {
+    if (defaultReimbursable && isReimbursableDisabled) {
         return CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_REIMBURSABLE;
     }
 

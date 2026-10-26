@@ -293,6 +293,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
+        backToReport?: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE]: {
         action: IOUAction;
@@ -1570,6 +1571,7 @@ type SearchAdvancedFiltersParamList = {
         filterKey: string;
         applyDirectly?: string;
     };
+    [SCREENS.SEARCH.NL_FILTER_RHP]: Record<string, never>;
 };
 
 type SearchSavedSearchParamList = {
