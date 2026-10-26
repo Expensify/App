@@ -23,6 +23,8 @@ import RadioButtons from '@components/RadioButtons';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {DynamicFormContentItem, DynamicFormField, DynamicFormFieldType, DynamicFormHeading, DynamicFormSchemaField} from '@src/types/onyx';
 
@@ -37,6 +39,7 @@ type CapturedInputProps = {
     forwardedFSClass?: string;
     hint?: string;
     inputMode?: string;
+    maxAutoGrowHeight?: number;
     items?: Array<{value: string; label: string}>;
     optionsList?: Record<string, string>;
     renamedInputKeys?: Record<string, string>;
@@ -525,6 +528,19 @@ describe('DynamicFormFields', () => {
 
         // Then the phone keyboard opens, since the schema names the rule rather than the keyboard
         expect(rendered.get('phone')?.inputMode).toBe(CONST.INPUT_MODE.TEL);
+    });
+
+    it('caps the height a multiline text field grows to, and leaves a single-line one uncapped', () => {
+        // Given a multiline business description next to a single-line name
+        const businessDescription: DynamicFormField = {key: 'businessDescription', type: 'text', required: true, multiline: true};
+        const name: DynamicFormField = {key: 'name', type: 'text', required: true};
+
+        // When they render
+        const rendered = renderFields([businessDescription, name]);
+
+        // Then only the multiline field stops growing at the shared limit, so a long answer scrolls inside its input instead of pushing the page down
+        expect(rendered.get('businessDescription')?.maxAutoGrowHeight).toBe(variables.textInputAutoGrowMaxHeight);
+        expect(rendered.get('name')?.maxAutoGrowHeight).toBeUndefined();
     });
 
     it('asks the screen to refetch the schema only when a refreshing field changes', () => {
