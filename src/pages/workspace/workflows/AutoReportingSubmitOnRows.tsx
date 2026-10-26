@@ -32,7 +32,14 @@ type SectionHeaderProps = {
 
 function SectionHeader({title}: SectionHeaderProps) {
     const styles = useThemeStyles();
-    return <Text style={[styles.textStrong, styles.ph5, styles.pv1Half, styles.mt6]}>{title}</Text>;
+    return (
+        <Text
+            variant="labelStrong"
+            style={[styles.ph5, styles.pv1Half, styles.mt6]}
+        >
+            {title}
+        </Text>
+    );
 }
 
 type AutoReportingOffsetRowProps = {

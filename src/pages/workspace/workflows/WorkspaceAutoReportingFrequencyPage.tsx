@@ -162,7 +162,12 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                             onClose={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
                             errorRowStyles={[styles.ph5]}
                         >
-                            <Text style={[styles.textStrong, styles.ph5, styles.pv1Half]}>{translate('workflowsPage.submitFrequency')}</Text>
+                            <Text
+                                variant="labelStrong"
+                                style={[styles.ph5, styles.pv1Half]}
+                            >
+                                {translate('workflowsPage.submitFrequency')}
+                            </Text>
                             <PillSelector
                                 options={frequencyOptions}
                                 selectedKey={selectedFrequency}
