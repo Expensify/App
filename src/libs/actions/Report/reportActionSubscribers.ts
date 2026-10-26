@@ -41,4 +41,3 @@ function notifyNewAction(reportID: string | string[] | undefined, reportAction: 
 }
 
 export {subscribeToNewActionEvent, notifyNewAction};
-export type {ActionEventSource};

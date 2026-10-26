@@ -5,7 +5,6 @@ import type useReportScrollManager from '@hooks/useReportScrollManager';
 import type {OpenReportActionParams} from '@libs/actions/Report';
 import {openReport, pruneReportActionPagesToNewestWindow} from '@libs/actions/Report';
 import {subscribeToNewActionEvent} from '@libs/actions/Report/reportActionSubscribers';
-import type {ActionEventSource} from '@libs/actions/Report/reportActionSubscribers';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -123,7 +122,7 @@ function useReportActionsNewActionLiveTail({
         return () => clearTimeout(timeout);
     }, [pendingScrollActionID]);
 
-    const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action: OnyxTypes.ReportAction | undefined, source: ActionEventSource = 'local') => {
+    const scrollToBottomForCurrentUserAction = useEffectEvent<Parameters<typeof subscribeToNewActionEvent>[1]>((isFromCurrentUser, action, source = 'local') => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
