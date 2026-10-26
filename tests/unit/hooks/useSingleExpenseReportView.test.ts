@@ -1,5 +1,7 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 
 import CONST from '@src/CONST';
@@ -34,6 +36,7 @@ describe('useSingleExpenseReportView', () => {
     beforeEach(async () => {
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW]);
         await waitForBatchedUpdates();
     });
 
@@ -43,10 +46,24 @@ describe('useSingleExpenseReportView', () => {
         await waitForBatchedUpdates();
 
         // When the view is read for that report
-        const {result} = renderHook(() => useSingleExpenseReportView(REPORT_ID));
+        const {result} = renderHook(() => useSingleExpenseReportView(REPORT_ID), {wrapper: OnyxListItemProvider});
 
         // Then the report uses the table view
         await waitFor(() => expect(result.current.shouldUseTableViewForSingleExpense).toBe(true));
+    });
+
+    it('uses the expense view when the user is not on the singleExpenseTableView beta', async () => {
+        // Given the user picked the table view earlier but isn't on the beta that gates it
+        await Onyx.set(ONYXKEYS.BETAS, []);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: buildIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE)});
+        await waitForBatchedUpdates();
+
+        // When the view is read for that report
+        const {result} = renderHook(() => useSingleExpenseReportView(REPORT_ID), {wrapper: OnyxListItemProvider});
+
+        // Then the report keeps the expense view, so the feature stays hidden until the beta is turned on
+        await waitFor(() => expect(result.current.singleExpenseReportView).toBe(CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE));
+        expect(result.current.shouldUseTableViewForSingleExpense).toBe(false);
     });
 
     it('uses the expense view for a "Pay someone" report even when the user picked the table view', async () => {
@@ -55,7 +72,7 @@ describe('useSingleExpenseReportView', () => {
         await waitForBatchedUpdates();
 
         // When the view is read for that report
-        const {result} = renderHook(() => useSingleExpenseReportView(REPORT_ID));
+        const {result} = renderHook(() => useSingleExpenseReportView(REPORT_ID), {wrapper: OnyxListItemProvider});
 
         // Then the report keeps the expense view, because it has no expense thread for a table row to open,
         // while the saved preference itself is unchanged

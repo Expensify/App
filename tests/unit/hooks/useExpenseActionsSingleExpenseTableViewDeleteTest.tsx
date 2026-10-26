@@ -100,6 +100,7 @@ async function setUpSingleExpenseReport(
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, {[iouActionID]: iouAction});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
         await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, singleExpenseReportView);
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW]);
     });
     await waitForBatchedUpdatesWithAct();
 }

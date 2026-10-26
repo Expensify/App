@@ -92,6 +92,10 @@ jest.mock('@hooks/useMobileSelectionMode', () => jest.fn());
 jest.mock('@hooks/useMoneyReportHeaderMoreContentVisibility', () => jest.fn());
 jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@hooks/useOnyx', () => jest.fn());
+// The table view is behind a beta, so turn it on for the table view cases.
+jest.mock('@hooks/usePermissions', () =>
+    jest.fn(() => ({isBetaEnabled: (beta: string) => beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.SINGLE_EXPENSE_TABLE_VIEW})),
+);
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => jest.fn());
 jest.mock('@hooks/useTransactionsAndViolationsForReport', () => jest.fn());

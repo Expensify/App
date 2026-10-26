@@ -9,6 +9,7 @@ import type {ValueOf} from 'type-fest';
 import {isSentMoneyReportSelector} from '@selectors/ReportAction';
 
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 type UseSingleExpenseReportViewResult = {
     /** The view the user picked for single-expense reports, defaulting to the expense view */
@@ -26,14 +27,18 @@ type UseSingleExpenseReportViewResult = {
  *
  * Pass the report's ID to apply the view to that report. A "Pay someone" report always uses the expense view: its
  * expense is the report itself, so it has no expense thread for a table row to open.
+ *
+ * The table view is behind the singleExpenseTableView beta. Without it, every single-expense report uses the expense view.
  */
 function useSingleExpenseReportView(reportID?: string): UseSingleExpenseReportViewResult {
+    const {isBetaEnabled} = usePermissions();
     const [singleExpenseReportView = CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE, singleExpenseReportViewMetadata] = useOnyx(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW);
     const [isSentMoneyReport = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: isSentMoneyReportSelector});
 
     return {
         singleExpenseReportView,
-        shouldUseTableViewForSingleExpense: singleExpenseReportView === CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE && !isSentMoneyReport,
+        shouldUseTableViewForSingleExpense:
+            isBetaEnabled(CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW) && singleExpenseReportView === CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE && !isSentMoneyReport,
         isLoading: isLoadingOnyxValue(singleExpenseReportViewMetadata),
     };
 }

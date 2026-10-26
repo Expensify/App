@@ -156,6 +156,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isSingleExpenseTableViewBetaEnabled = isBetaEnabled(CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     // While offline, keep pending-delete transactions so a queued-for-delete expense still counts as a real transaction until the delete syncs.
@@ -431,6 +432,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             text: shouldUseTableViewForSingleExpense ? translate('reportLayout.switchToExpenseView') : translate('reportLayout.switchToTableView'),
             icon: shouldUseTableViewForSingleExpense ? expensifyIcons.Receipt : expensifyIcons.Table,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.TOGGLE_SINGLE_EXPENSE_VIEW,
+            shouldShow: isSingleExpenseTableViewBetaEnabled,
             onSelected: () => {
                 setSingleExpenseReportView(
                     shouldUseTableViewForSingleExpense ? CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE : CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE,

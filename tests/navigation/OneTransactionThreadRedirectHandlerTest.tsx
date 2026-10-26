@@ -21,6 +21,7 @@ const SIBLING_TRANSACTION_ID = '22222';
 // Inlined because a `jest.mock` factory may only close over locals initialized with a literal.
 const TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS_KEY = 'transactionThreadNavigationTransactionIDs';
 const SINGLE_EXPENSE_REPORT_VIEW_KEY = 'nvp_expensify_singleExpenseReportView';
+const SINGLE_EXPENSE_TABLE_VIEW_BETA = 'singleExpenseTableView';
 
 const mockNavigate = jest.fn();
 
@@ -71,6 +72,12 @@ jest.mock('@hooks/useOnyx', () => ({
             : {reportID: THREAD_REPORT_ID, parentReportID: mockParentReportID, parentReportActionID: '1'};
         return [options?.selector ? options.selector(value) : value, {status: 'loaded'}];
     },
+}));
+
+// The table view is behind a beta, so turn it on for the table view cases.
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: (beta: string) => beta === SINGLE_EXPENSE_TABLE_VIEW_BETA}),
 }));
 
 let mockOneTransactionThreadReportID: string | undefined = THREAD_REPORT_ID;
@@ -300,6 +307,7 @@ describe('OneTransactionThreadRedirectHandler', () => {
 
     it('mocks the single-expense report view under the key the handler subscribes to', () => {
         expect(SINGLE_EXPENSE_REPORT_VIEW_KEY).toBe(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW);
+        expect(SINGLE_EXPENSE_TABLE_VIEW_BETA).toBe(CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW);
     });
 
     it('keeps the thread route when the user views single-expense reports in the table view', async () => {

@@ -1459,6 +1459,7 @@ const CONST = {
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         DESCRIBE_RULE: 'describeRule',
         TRAVEL_APPROVAL: 'travelApproval',
+        SINGLE_EXPENSE_TABLE_VIEW: 'singleExpenseTableView',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

@@ -1,6 +1,7 @@
 import {render} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useOneTransactionThreadReportID from '@hooks/useOneTransactionThreadReportID';
 
@@ -146,11 +147,13 @@ const mockedIsQAServerActive = jest.mocked(isQAServerActive);
 const mockedUseOneTransactionThreadReportID = jest.mocked(useOneTransactionThreadReportID);
 function renderAuthScreensInitHandler() {
     return render(
-        <LocaleContextProvider>
-            <View>
-                <AuthScreensInitHandler />
-            </View>
-        </LocaleContextProvider>,
+        <OnyxListItemProvider>
+            <LocaleContextProvider>
+                <View>
+                    <AuthScreensInitHandler />
+                </View>
+            </LocaleContextProvider>
+        </OnyxListItemProvider>,
     );
 }
 
@@ -253,6 +256,7 @@ describe('AuthScreensInitHandler', () => {
         mockedUseOneTransactionThreadReportID.mockReturnValue(TRANSACTION_THREAD_REPORT_ID);
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
         await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, singleExpenseReportView);
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW]);
         await waitForBatchedUpdates();
 
         // When the handler subscribes to user events

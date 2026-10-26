@@ -23,6 +23,12 @@ jest.mock('@hooks/useOnyx', () => ({
     default: jest.fn(),
 }));
 
+// The table view is behind a beta, so turn it on for the table view cases.
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: (beta: string) => beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.SINGLE_EXPENSE_TABLE_VIEW}),
+}));
+
 jest.mock('@hooks/usePaginatedReportActions', () => ({
     __esModule: true,
     default: jest.fn(),
