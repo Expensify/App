@@ -4,11 +4,13 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
+import {createOnyxSelector} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 import {useAllPersonalDetails} from './usePersonalDetails';
 
-const accountIDByLoginSelector = (lowerEmail: string | undefined) => (personalDetails: OnyxEntry<PersonalDetailsList>) => {
+// Shared across every instance of this hook; the email is an argument, not a closure, so it is part of the cache key.
+const accountIDByLogin = createOnyxSelector((personalDetails: OnyxEntry<PersonalDetailsList>, lowerEmail: string | undefined) => {
     if (!lowerEmail || !personalDetails) {
         return undefined;
     }
@@ -18,11 +20,12 @@ const accountIDByLoginSelector = (lowerEmail: string | undefined) => (personalDe
         }
     }
     return undefined;
-};
+});
 
 function useDelegateAccountID(): number | undefined {
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-    const [accountID] = useAllPersonalDetails(accountIDByLoginSelector(delegateEmail?.toLowerCase()));
+    const lowerEmail = delegateEmail?.toLowerCase();
+    const [accountID] = useAllPersonalDetails((personalDetails) => accountIDByLogin(personalDetails, lowerEmail));
 
     return accountID;
 }
