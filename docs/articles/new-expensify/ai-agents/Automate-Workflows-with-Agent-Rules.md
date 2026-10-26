@@ -32,8 +32,8 @@ To create an agent rule:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Rules**.
-3. Select **Add rule**.
-4. Select **Describe agent rule**.
+3. Select **Agents**.
+4. Select **Add AI rule**, or **Add agent rule** if the workspace already has agent rules.
 5. Choose a pre-written rule from the **Suggested** list and select **Next**, or select **Edit** to write your own rule.
 6. Review or edit the natural-language description of the behavior you want.
 7. Select **Create rule**.

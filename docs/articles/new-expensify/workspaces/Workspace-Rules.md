@@ -142,9 +142,10 @@ The **Agents** tab holds agent rules, which are written in plain language and ru
 
 - **Restrict card spend** – Block or limit spend at the point of sale.
 - **Flag for review** – Notify approvers when expenses exceed category limits.
-- **Set field requirements** – Require specific expense fields or waive requiring them.
+- **Require fields** – Require specific expense fields or waive requiring them.
 - **Apply expense defaults** – Update fields without the submitter doing anything.
-- **Describe agent rule** – Create flexible rules that run when you need.
+
+You can also describe the rule in plain English under **Or just describe it below**, then select **Next**. Concierge builds the rule for you, or drafts an agent rule if it isn't a standard rule.
 
 ---
 
