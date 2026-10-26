@@ -3,7 +3,6 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
@@ -104,8 +103,8 @@ type RightModalDialogFrameProps = {
     /** Animated style applied to the RHP container. */
     style: React.ComponentProps<typeof Animated.View>['style'];
 
-    /** Style of a box around the stack navigator, which is rendered without one when this is undefined. */
-    contentStyle?: StyleProp<ViewStyle>;
+    /** Style of the box around the stack navigator. */
+    contentStyle: StyleProp<ViewStyle>;
 
     /** Callback ref for the container node so the provider can observe node identity changes. */
     onContainerRef: (node: ComponentRef<typeof View> | null) => void;
@@ -136,7 +135,7 @@ function RightModalDialogFrame({hasDialogSemantics, style, contentStyle, onConta
             tabIndex={hasDialogSemantics ? -1 : undefined}
             style={style}
         >
-            {contentStyle ? <View style={contentStyle}>{children}</View> : children}
+            <View style={contentStyle}>{children}</View>
         </Animated.View>
     );
 }
@@ -164,7 +163,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
     const {sidePanelOffset} = useSidePanelState();
-    const {isBetaEnabled} = usePermissions();
 
     // When a fullscreen route is pre-inserted under the RHP, disable the slide-out animation
     // so the dismiss reveals the destination instantly. If the pre-insert is later cleaned up
@@ -228,16 +226,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {width: resizableSingleRHPWidth} = useSingleRHPWidth();
     const singleRHPWidthScopeRef = useRef<HTMLElement | null>(null);
     const frameStyle = getRHPFrameStyle({styles, animatedWidth, singleRHPWidth: resizableSingleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
-    const isResizableRHPEnabled = isBetaEnabled(CONST.BETAS.RESIZABLE_RHP);
     const isResizableSingleRHP = useIsResizableSingleRHP();
-
-    // The box stays mounted for any layout once the beta is on, because adding or removing it would remount the whole stack.
-    let stackContentStyle: StyleProp<ViewStyle>;
-    if (isResizableSingleRHP) {
-        stackContentStyle = styles.singleRHPStackMeasureBox;
-    } else if (isResizableRHPEnabled) {
-        stackContentStyle = styles.flex1;
-    }
+    const stackContentStyle = styles.singleRHPStackBox(isResizableSingleRHP);
 
     const screenListeners = useMemo(
         () => ({

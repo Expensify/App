@@ -7,5 +7,5 @@ function setSingleRHPWidth(width: number) {
     Onyx.set(ONYXKEYS.SINGLE_RHP_WIDTH, width);
 }
 
-// eslint-disable-next-line import/prefer-default-export
+// eslint-disable-next-line import/prefer-default-export -- additional actions may be added here
 export {setSingleRHPWidth};

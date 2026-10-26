@@ -6791,23 +6791,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         // The floating card is the containing block (translateZ0), so a resizable single RHP's card fills it at whatever width
-        // it is dragged to, independent of the box react-navigation measures (singleRHPStackMeasureBox).
+        // it is dragged to, independent of the box react-navigation measures (singleRHPStackBox).
         singleRHPCardInterpolatorStyles: {
             ...positioning.pFixed,
             top: 0,
             right: 0,
             width: '100%',
             height: '100%',
-        },
-
-        // react-navigation's stack keeps the size of the box it renders in as React state, so this box keeps the default width
-        // while the single RHP is dragged and the stack never re-renders mid-drag.
-        singleRHPStackMeasureBox: {
-            ...positioning.pAbsolute,
-            top: 0,
-            right: 0,
-            bottom: 0,
-            width: variables.rhpWidth,
         },
 
         flexibleHeight: {
@@ -7179,6 +7169,18 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
+        // Fixed width so the stack never re-measures mid-drag, and always rendered because adding or removing it remounts the stack.
+        singleRHPStackBox: (isResizable: boolean) =>
+            (isResizable
+                ? {
+                      ...positioning.pAbsolute,
+                      top: 0,
+                      right: 0,
+                      bottom: 0,
+                      width: variables.rhpWidth,
+                  }
+                : flex.flex1) satisfies ViewStyle,
+
         // Straddles the left edge of the single RHP card (RHPFloatingCard), which shares its containing block.
         rhpResizeHandle: (singleRHPWidth: number) =>
             ({

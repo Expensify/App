@@ -32,7 +32,6 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import type {StyleProp, ViewStyle} from 'react-native';
 
 import {BaseNavigationContainer, NavigationIndependentTree, StackActions} from '@react-navigation/core';
 import React, {useEffect, useRef, useState} from 'react';
@@ -151,17 +150,10 @@ function MultifactorAuthenticationModalNavigator() {
     const frameStyle = getRHPFrameStyle({styles, animatedWidth: variables.rhpWidth, singleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame: false});
     const slideFromWidthInterpolator = (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}});
     const {isBetaEnabled} = usePermissions();
-    const isResizableRHPEnabled = isBetaEnabled(CONST.BETAS.RESIZABLE_RHP);
-    const isResizable = isResizableRHPEnabled && !shouldUseNarrowLayout;
+    const isResizable = isBetaEnabled(CONST.BETAS.RESIZABLE_RHP) && !shouldUseNarrowLayout;
     const singleRHPWidthScopeRef = useRef<HTMLElement | null>(null);
 
-    // The box stays mounted for any layout once the beta is on, because adding or removing it would remount the whole stack.
-    let stackContentStyle: StyleProp<ViewStyle>;
-    if (isResizable) {
-        stackContentStyle = styles.singleRHPStackMeasureBox;
-    } else if (isResizableRHPEnabled) {
-        stackContentStyle = styles.flex1;
-    }
+    const stackContentStyle = styles.singleRHPStackBox(isResizable);
 
     if (phase === 'closed') {
         return null;
@@ -249,7 +241,9 @@ function MultifactorAuthenticationModalNavigator() {
                     />
                 </Animated.View>
             )}
-            <View style={frameStyle}>{stackContentStyle ? <View style={stackContentStyle}>{stack}</View> : stack}</View>
+            <View style={frameStyle}>
+                <View style={stackContentStyle}>{stack}</View>
+            </View>
             {isResizable && <RHPResizeHandle scopeRef={singleRHPWidthScopeRef} />}
             <CancelConfirmModal
                 isVisible={isCancelConfirmVisible}
