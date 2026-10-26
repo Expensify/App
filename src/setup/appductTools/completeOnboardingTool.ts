@@ -152,10 +152,11 @@ function registerCompleteOnboardingTool(registerTool: (tool: AppductTool) => voi
 
 /** Run the UI's post-onboarding exit: dismiss the modal, land on the right screen. */
 function exitOnboardingNavigation() {
-    // The sixth argument (canUseDefaultRooms) is the UI's isBetaEnabled(DEFAULT_ROOMS).
+    // The second argument (canUseDefaultRooms) is the UI's isBetaEnabled(DEFAULT_ROOMS).
     // A fresh CI account carries no betas, so false matches what the page would compute;
     // it only selects domain rooms in findLastAccessedReport, which a fresh account has none of.
-    navigateAfterOnboardingWithMicrotaskQueue(getIsSmallScreenWidth(), false, state.conciergeReportID, undefined, state.onboardingPolicyID, undefined, false);
+    // The fifth (isAnonymousUser) is false: the tool only runs once signed in as a real user.
+    navigateAfterOnboardingWithMicrotaskQueue(getIsSmallScreenWidth(), false, state.conciergeReportID, undefined, false, state.onboardingPolicyID, undefined, false);
 }
 
 /** True once the onboarding modal navigator is no longer in the root stack. */

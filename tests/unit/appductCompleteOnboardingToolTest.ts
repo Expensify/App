@@ -1,4 +1,3 @@
-import type * as APIModule from '@libs/API';
 import {waitForWrites} from '@libs/API';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 
@@ -45,7 +44,6 @@ jest.mock('@userActions/Report', () => ({
 }));
 
 jest.mock('@libs/API', () => ({
-    ...jest.requireActual<typeof APIModule>('@libs/API'),
     waitForWrites: jest.fn(),
 }));
 
