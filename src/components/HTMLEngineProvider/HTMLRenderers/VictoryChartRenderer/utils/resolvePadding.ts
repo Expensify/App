@@ -18,14 +18,16 @@ function resolvePadding(
         return;
     }
 
-    let resolvedPadding = padding;
-    if (typeof resolvedPadding === 'number') {
+    let resolvedPadding: ProcessNodeResult['padding'];
+    if (typeof padding === 'number') {
         resolvedPadding = {
-            left: resolvedPadding,
-            right: resolvedPadding,
-            top: resolvedPadding,
-            bottom: resolvedPadding,
+            left: padding,
+            right: padding,
+            top: padding,
+            bottom: padding,
         };
+    } else {
+        resolvedPadding = {...padding};
     }
 
     // Shrink `padding.left` down to the left axis's measured label width (plus a small edge buffer)
