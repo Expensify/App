@@ -300,6 +300,8 @@ function useMoneyRequestReportScroll({
 
         if (!hasNewestReportAction) {
             openReport({
+                // Existing reports do not create participant personal details.
+                personalDetails: undefined,
                 reportID,
                 introSelected,
                 conciergeChat,

@@ -81,6 +81,8 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
             return;
         }
         openReport({
+            // Existing reports do not create participant personal details.
+            personalDetails: undefined,
             reportID: props.route.params.reportID,
             introSelected,
             conciergeChat,

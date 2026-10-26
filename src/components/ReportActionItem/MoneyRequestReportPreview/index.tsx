@@ -383,7 +383,15 @@ function MoneyRequestReportPreview({
                         openReportFromPreview();
                         return;
                     }
-                    openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
+                    openReport({
+                        personalDetails: undefined,
+                        reportID: iouReportID,
+                        introSelected,
+                        conciergeChat,
+                        currentUserAccountID,
+                        hasReportActions: !!hasIOUReportActions,
+                        fullPolicySnapshot,
+                    });
                 }
                 navigateToExpense(childReportID, routeAtPress);
                 return;
@@ -391,7 +399,15 @@ function MoneyRequestReportPreview({
 
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
-                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
+                openReport({
+                    personalDetails: undefined,
+                    reportID: iouReportID,
+                    introSelected,
+                    conciergeChat,
+                    currentUserAccountID,
+                    hasReportActions: !!hasIOUReportActions,
+                    fullPolicySnapshot,
+                });
                 return;
             }
 

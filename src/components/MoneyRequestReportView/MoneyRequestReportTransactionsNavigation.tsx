@@ -228,6 +228,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const parentFullPolicySnapshotLastModified = parentPolicyID ? fullPolicySnapshotLastModifiedByPolicyID?.[parentPolicyID] : undefined;
         // Always true here: we are fetching this report's actions, so it must not overwrite its cached name.
         openReport({
+            // Existing reports do not create participant personal details.
+            personalDetails: undefined,
             reportID: parentReportID,
             introSelected,
             conciergeChat,

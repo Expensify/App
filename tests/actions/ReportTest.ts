@@ -6737,6 +6737,8 @@ describe('actions/Report', () => {
             await givenAManualUnreadMark(REPORT_ID);
 
             Report.openReport({
+                // Existing reports do not create participant personal details.
+                personalDetails: undefined,
                 conciergeChat: undefined,
                 reportID: REPORT_ID,
                 introSelected: undefined,
@@ -6755,6 +6757,8 @@ describe('actions/Report', () => {
             await givenAManualUnreadMark(REPORT_ID);
 
             Report.openReport({
+                // Existing reports do not create participant personal details.
+                personalDetails: undefined,
                 conciergeChat: undefined,
                 reportID: REPORT_ID,
                 introSelected: undefined,
@@ -6773,6 +6777,8 @@ describe('actions/Report', () => {
             await givenAManualUnreadMark(REPORT_ID);
 
             Report.openReport({
+                // Existing reports do not create participant personal details.
+                personalDetails: undefined,
                 conciergeChat: undefined,
                 reportID: REPORT_ID,
                 introSelected: undefined,
@@ -6798,6 +6804,8 @@ describe('actions/Report', () => {
 
         function openReportFor(reportID: string, shouldKeepManualUnreadMarker: boolean) {
             Report.openReport({
+                // Existing reports do not create participant personal details.
+                personalDetails: undefined,
                 conciergeChat: undefined,
                 reportID,
                 introSelected: undefined,
@@ -6849,6 +6857,115 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('openReport personal details', () => {
+        it.each([undefined, {}])('does not fall back to cached owner details when the supplied list is %p', async (personalDetails) => {
+            // Given Onyx knows an owner that is absent from the caller's explicitly supplied data.
+            const reportID = 'missing-owner-details';
+            const owner = {accountID: 111, login: 'cached-owner@example.com'};
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[owner.accountID]: owner});
+            await waitForBatchedUpdates();
+            setHasRadio(false);
+
+            // When creating a report without supplied owner details, the action must not consult a hidden fallback.
+            Report.openReport({
+                reportID,
+                introSelected: undefined,
+                conciergeChat: undefined,
+                hasReportActions: false,
+                currentUserAccountID: 1,
+                personalDetails,
+                newReportObject: {reportID, ownerAccountID: owner.accountID},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the created action has no owner login, even though the global store contains one.
+            const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const createdAction = Object.values(actions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED));
+            expect(getReportActionMessage(createdAction)?.text).toBe('');
+        });
+
+        it.each([undefined, {}])('creates optimistic participants from the supplied list %p without falling back to Onyx', async (personalDetails) => {
+            // Given a participant exists in Onyx but is absent from the data supplied by the caller.
+            const reportID = 'missing-participant-details';
+            const participant = {accountID: 222, login: 'known@example.com'};
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[participant.accountID]: participant});
+            await waitForBatchedUpdates();
+            setHasRadio(false);
+
+            // When creating a report with no supplied profile for that participant.
+            Report.openReport({
+                reportID,
+                introSelected: undefined,
+                conciergeChat: undefined,
+                hasReportActions: false,
+                currentUserAccountID: 1,
+                personalDetails,
+                participants: [{login: participant.login, accountID: participant.accountID}],
+                newReportObject: {reportID},
+            });
+            await waitForBatchedUpdates();
+
+            // Then participant creation uses the supplied list consistently, including when it is undefined.
+            const details = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            expect(details?.[participant.accountID]?.isOptimisticPersonalDetail).toBe(true);
+        });
+
+        it.each([true, false])('preserves supplied profiles and settles new thread participants when the API succeeds: %p', async (shouldSucceed) => {
+            // Given the caller knows the owner and one participant, whose profile must not be replaced.
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            global.fetch = mockFetch;
+            const reportID = 'personal-details-report';
+            const owner = {accountID: 111, login: 'owner@example.com', displayName: 'Report owner'};
+            const known = {accountID: 222, login: 'known@example.com', displayName: 'Known participant'};
+            const newLogin = 'new@example.com';
+            const newAccountID = generateAccountID(newLogin);
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[owner.accountID]: owner, [known.accountID]: known});
+            await waitForBatchedUpdates();
+            setHasRadio(false);
+
+            // When a new report is opened offline, all optimistic state must be available immediately.
+            Report.openReport({
+                reportID,
+                introSelected: undefined,
+                conciergeChat: undefined,
+                hasReportActions: false,
+                currentUserAccountID: owner.accountID,
+                personalDetails: {[owner.accountID]: owner, [known.accountID]: known},
+                participants: [{login: known.login, accountID: known.accountID}, {login: newLogin}],
+                newReportObject: {reportID, ownerAccountID: owner.accountID},
+                isNewThread: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the created action identifies the supplied owner and only the unknown participant gets an optimistic profile.
+            const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const createdAction = Object.values(actions ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            expect(createdAction?.message).toEqual(expect.arrayContaining([expect.objectContaining({text: owner.login})]));
+            const details = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            expect(details?.[known.accountID]).toEqual(known);
+            expect(details?.[newAccountID]).toEqual({accountID: newAccountID, login: newLogin, displayName: newLogin, isOptimisticPersonalDetail: true});
+
+            // When connectivity returns, the queued request either succeeds or rolls back the new thread's participants.
+            if (!shouldSucceed) {
+                mockFetch.fail();
+            }
+            setHasRadio(true);
+            await waitForBatchedUpdates();
+            await waitForNetworkPromises();
+
+            // Then existing profiles survive both outcomes, and a failed thread removes only its newly created profile.
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            const settledDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            expect(settledDetails?.[owner.accountID]).toEqual(owner);
+            expect(settledDetails?.[known.accountID]).toEqual(known);
+            if (shouldSucceed) {
+                expect(settledDetails?.[newAccountID]).toEqual(details?.[newAccountID]);
+            } else {
+                expect(settledDetails?.[newAccountID]).toBeUndefined();
+            }
+        });
+    });
+
     describe('openReport with participants', () => {
         it('should send passed participants as emailList/accountIDList so the server can resolve a stale optimistic reportID', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();
@@ -6887,6 +7004,8 @@ describe('actions/Report', () => {
             };
 
             Report.openReport({
+                // Existing reports do not create participant personal details.
+                personalDetails: undefined,
                 conciergeChat: undefined,
                 reportID: REPORT_ID,
                 introSelected: undefined,

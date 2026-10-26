@@ -88,6 +88,8 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         }
 
         openReport({
+            // Existing reports do not create participant personal details.
+            personalDetails: undefined,
             reportID: reportActionReportID,
             introSelected,
             conciergeChat,
