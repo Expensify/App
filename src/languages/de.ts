@@ -12020,6 +12020,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         exportInProgress: 'Export wird ausgeführt',
         conciergeWillSend: 'Concierge wird dir die Datei in Kürze senden.',
         currentView: 'Aktuelle Ansicht',
+        currentViewGroupsOnly: 'Aktuelle Ansicht (nur Gruppen)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
