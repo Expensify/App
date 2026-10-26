@@ -1,4 +1,4 @@
-import {chatIncludesConcierge} from '@libs/ReportUtils';
+import {chatIncludesConcierge, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,8 +30,6 @@ const allowedReportChatTypes = new Set<ValueOf<typeof CONST.REPORT.CHAT_TYPE>>([
     CONST.REPORT.CHAT_TYPE.INVOICE,
 ]);
 
-const allowedReportTypes = new Set<ValueOf<typeof CONST.REPORT.TYPE>>([CONST.REPORT.TYPE.IOU, CONST.REPORT.TYPE.EXPENSE, CONST.REPORT.TYPE.INVOICE]);
-
 type FullstoryPropertyValue = string | number | boolean | Date | null | undefined;
 
 type NormalizeFullstoryPropertiesForNativeOptions = {
@@ -54,13 +52,13 @@ const getChatFSClass: GetChatFSClass = (report) => {
     }
 
     // IOUs, expenses and invoices should be unmasked.
-    if (report.type && allowedReportTypes.has(report.type as ValueOf<typeof CONST.REPORT.TYPE>)) {
+    if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
         return CONST.FULLSTORY.CLASS.UNMASK;
     }
 
     // If the report doesn't meet the condition above we check if the parent report is an IOU, expense or invoice.
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
-    if (parentReport?.type && allowedReportTypes.has(parentReport.type as ValueOf<typeof CONST.REPORT.TYPE>)) {
+    if (isMoneyRequestReport(parentReport) || isInvoiceReport(parentReport)) {
         return CONST.FULLSTORY.CLASS.UNMASK;
     }
 

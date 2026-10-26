@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {
     formatDate,
+    getActiveUserAccountIDs,
     getBadgeText,
     getPaymentDetailsBadge,
     getPaymentHistoryRow,
@@ -428,5 +429,25 @@ describe('getReceiptFileName', () => {
         // When extracting the filename
         // Then it falls back to receipt-{purchaseID}
         expect(getReceiptFileName('https://expensify.com/', 7)).toBe('receipt-7');
+    });
+});
+
+describe('getActiveUserAccountIDs', () => {
+    it('dedupes users billed under more than one workspace', () => {
+        // Given a purchase whose active users repeat, because one person was billed under two workspaces
+        const purchase = {...createPurchase(1, '2026-02-01'), activeUsers: [10, 20, 10, 30]};
+
+        // When the active users for the Activity list are read
+        // Then each person is listed once, so the count under the Activity header matches the list
+        expect(getActiveUserAccountIDs(purchase)).toEqual([10, 20, 30]);
+    });
+
+    it('returns no users when the details have not loaded or nobody was billed', () => {
+        // Given a missing purchase, a purchase without active users, and a purchase with an empty list
+        // When the active users are read
+        // Then the list is empty, so the page hides the Activity section
+        expect(getActiveUserAccountIDs(undefined)).toEqual([]);
+        expect(getActiveUserAccountIDs(createPurchase(1, '2026-02-01'))).toEqual([]);
+        expect(getActiveUserAccountIDs({...createPurchase(1, '2026-02-01'), activeUsers: []})).toEqual([]);
     });
 });
