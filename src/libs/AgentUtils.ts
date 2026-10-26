@@ -1,3 +1,4 @@
+import CONST from '@src/CONST';
 import type {Agent} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -27,4 +28,20 @@ function hasErrorsSelector(agents: OnyxCollection<Agent>): boolean {
     return Object.values(agents ?? {}).some(doesAgentHaveErrors);
 }
 
-export {getAgentErrors, doesAgentHaveErrors, hasErrorsSelector};
+function filterDeletedAgents(agents: OnyxCollection<Agent>, isOffline: boolean) {
+    return Object.fromEntries(
+        Object.entries(agents ?? {}).filter(([, agent]) => {
+            if (!agent) {
+                return false;
+            }
+            const pendingAction = agent.pendingAction;
+            const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            if (isPendingDeletion && !isOffline) {
+                return false;
+            }
+            return true;
+        }),
+    );
+}
+
+export {getAgentErrors, doesAgentHaveErrors, hasErrorsSelector, filterDeletedAgents};
