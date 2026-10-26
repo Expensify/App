@@ -16,7 +16,7 @@ import {clearRilletErrorField, updateRilletExportToMultipleAccounts} from '@libs
 import {areCardsCustomExportInErrorFields, findMatchingCards, getCardsCustomExportPendingAction, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
 
 import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -102,7 +102,8 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                         onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_REIMBURSEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                         value={reimbursementAccount ? `${reimbursementAccount?.code} ${reimbursementAccount?.name}` : undefined}
                     >
-                        {areSettingsInErrorFields([CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE], rilletConfig?.errorFields) && (
+                        {(areSettingsInErrorFields([CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE], rilletConfig?.errorFields) ||
+                            shouldShowReimbursableExportDestinationAccountError(policy, [CONST.POLICY.CONNECTIONS.NAME.RILLET])) && (
                             <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
                         )}
                     </MenuItemField>

@@ -6303,6 +6303,7 @@ const translations = {
             reimbursementAccount: {
                 label: 'Reimbursement account',
                 description: 'Choose where to export reimbursable expenses.',
+                accountRequiredError: 'Please select a Rillet reimbursement account.',
             },
             exportDate: {
                 label: 'GL impact date',

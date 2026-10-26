@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearRilletErrorField, updateRilletReimbursementAccount} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {settingsPendingAction, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -74,6 +74,12 @@ function RilletReimbursementAccountPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 
+    const errors = shouldShowReimbursableExportDestinationAccountError(policy, [CONST.POLICY.CONNECTIONS.NAME.RILLET])
+        ? {
+              [CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE]: translate('workspace.rillet.reimbursementAccount.accountRequiredError'),
+          }
+        : getLatestErrorField(rilletConfig, CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE);
+
     const selectReimbursementAccount = (item: AccountListItem) => {
         if (item.value !== reimbursementAccountCode && policyID) {
             updateRilletReimbursementAccount(policyID, item.value, reimbursementAccountCode);
@@ -98,7 +104,7 @@ function RilletReimbursementAccountPage({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
             pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE], rilletConfig?.pendingFields)}
-            errors={getLatestErrorField(rilletConfig, CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE)}
+            errors={errors}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE)}
         />
