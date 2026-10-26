@@ -168,7 +168,7 @@ function WorkspaceRoomsTable({
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('workspace.common.emptyRoomsTitle')}
-                subtitleText={translate(isPolicyArchived ? 'workspace.common.emptyRoomsArchivedSubtitle' : 'workspace.common.emptyRoomsSubtitle')}
+                subtitle={translate(isPolicyArchived ? 'workspace.common.emptyRoomsArchivedSubtitle' : 'workspace.common.emptyRoomsSubtitle')}
             />
             <Table.NoResultsState />
             <Table.Header />
