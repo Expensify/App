@@ -367,9 +367,11 @@ describe('SearchPageNarrow', () => {
         });
 
         // Then the query is requested again, because without that attempt the page renders its error view on every
-        // mount with nothing in flight. The page and Search may both ask for it, which search() collapses into one
-        // request, so every call must be that same first page.
+        // mount with nothing in flight. The page and Search are the only two callers expected to ask for it, and
+        // search() collapses their asks into one request, so every call must be that same first page and the count
+        // must stay within those two. That upper bound is what fails here if the guard ever regresses into a loop.
         expect(mockSearch).toHaveBeenCalled();
+        expect(mockSearch.mock.calls.length).toBeLessThanOrEqual(2);
         expect(mockSearch.mock.calls.every(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash && params?.offset === 0)).toBe(true);
     });
 
