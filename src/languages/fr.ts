@@ -584,7 +584,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Erreur de pièce jointe',
         errorWhileSelectingAttachment: 'Une erreur s’est produite lors de la sélection d’une pièce jointe. Veuillez réessayer.',
         errorWhileSelectingCorruptedAttachment: 'Une erreur s’est produite lors de la sélection d’une pièce jointe corrompue. Veuillez essayer un autre fichier.',
-        errorWhileConvertingHeic: 'Nous n’avons pas pu traiter cette image. Veuillez réessayer ou téléverser la photo dans un format différent.',
+        errorWhileConvertingImage: 'Nous n’avons pas pu traiter cette image. Veuillez réessayer ou téléverser la photo dans un format différent.',
         takePhoto: 'Prendre une photo',
         retake: 'Reprendre',
         usePhoto: 'Utiliser la photo',
@@ -10209,6 +10209,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié l’organisation du travail de ${displayName} en ${newArrangement} (auparavant ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `a modifié le mode de travail par défaut en ${newArrangement} (auparavant ${oldArrangement})`,
+        updateRulesDocument: (isReplacement: boolean, overviewURL?: string) => {
+            const message = isReplacement ? 'a remplacé le document de politique de dépenses' : 'a ajouté un document de politique de dépenses';
+            return overviewURL ? `${message} dans <a href="${overviewURL}">Espace de travail &gt; Aperçu</a>` : message;
+        },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `mis à jour « Empêcher de marquer les notes de frais non remboursables comme payées » en « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
     },
