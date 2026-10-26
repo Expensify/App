@@ -49,7 +49,6 @@ import {
     canMemberManageMemberWithRole,
     canMemberUseTravel,
     canMemberWrite,
-    getTravelMemberRole,
     hasActiveExpensifyCard,
     isControlPolicy,
     isPolicyAdmin,
@@ -60,7 +59,7 @@ import {
 } from '@libs/PolicyUtils';
 import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
-import {getTravelMemberRoleName} from '@libs/TravelMemberOptionUtils';
+import {getTravelMemberAccessName} from '@libs/TravelMemberOptionUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -149,7 +148,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const canChangeOfficeLocation = shouldShowOfficeLocation && canWriteMembers;
     const shouldShowTravelSettings = isWorkspaceProvisionedForTravel(policy?.travelSettings);
 
-    // Travel access and roles are changed through commands that only full workspace admins can call
+    // Travel access is changed through a command that only full workspace admins can call
     const canChangeTravelSettings = shouldShowTravelSettings && isPolicyAdmin(policy);
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
@@ -454,26 +453,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 />
                             )}
                             {shouldShowTravelSettings && (
-                                <>
-                                    <OfflineWithFeedback pendingAction={member?.pendingFields?.canUseTravel}>
-                                        <MenuItemField
-                                            name={translate('workspace.moreFeatures.travel.members.travelAccess')}
-                                            onPress={canChangeTravelSettings ? () => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_TRAVEL_ACCESS.getRoute(policyID, accountID)) : undefined}
-                                            testID="member-travel-access-menu-item"
-                                            value={translate(
-                                                canMemberUseTravel(policy, memberLogin) ? 'workspace.moreFeatures.travel.members.on' : 'workspace.moreFeatures.travel.members.off',
-                                            )}
-                                        />
-                                    </OfflineWithFeedback>
-                                    <OfflineWithFeedback pendingAction={member?.pendingFields?.travelRole}>
-                                        <MenuItemField
-                                            name={translate('workspace.moreFeatures.travel.members.travelRole')}
-                                            onPress={canChangeTravelSettings ? () => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_TRAVEL_ROLE.getRoute(policyID, accountID)) : undefined}
-                                            testID="member-travel-role-menu-item"
-                                            value={getTravelMemberRoleName(translate, getTravelMemberRole(policy, memberLogin))}
-                                        />
-                                    </OfflineWithFeedback>
-                                </>
+                                <OfflineWithFeedback pendingAction={member?.pendingFields?.canUseTravel}>
+                                    <MenuItemField
+                                        name={translate('workspace.moreFeatures.travel.members.travelAccess')}
+                                        onPress={canChangeTravelSettings ? () => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_TRAVEL_ACCESS.getRoute(policyID, accountID)) : undefined}
+                                        testID="member-travel-access-menu-item"
+                                        value={getTravelMemberAccessName(translate, canMemberUseTravel(policy, memberLogin))}
+                                    />
+                                </OfflineWithFeedback>
                             )}
                             {isControlPolicy(policy) && (
                                 <>

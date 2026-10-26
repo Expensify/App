@@ -1,12 +1,10 @@
 import * as API from '@libs/API';
-import type {EnablePolicyTravelParams, SetPolicyTravelMemberAccessParams, SetPolicyTravelMemberRoleParams, SetPolicyTravelSettingsParams} from '@libs/API/parameters';
+import type {EnablePolicyTravelParams, SetPolicyTravelMemberAccessParams, SetPolicyTravelSettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getObjectKeys} from '@libs/ObjectUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
-import {isTravelMemberRole} from '@libs/TravelMemberOptionUtils';
-import type {TravelMemberAccessValue} from '@libs/TravelMemberOptionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,7 +13,6 @@ import type {ErrorFields, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -169,8 +166,6 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
             canUseTravel: enabled,
             pendingFields: {canUseTravel: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
         };
-        // A success leaves the member's error alone, since turning travel on and setting a role are separate requests
-        // for the same member and one succeeding must not hide the other failing
         employeeListSuccessUpdate[target.email] = {pendingFields: {canUseTravel: null}};
 
         // The update pending action makes dismissing the error clear it, like a failed role change, instead of
@@ -217,63 +212,5 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
     API.write(WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS, parameters, onyxData);
 }
 
-/**
- * Change members' roles in Expensify Travel. The role is stored on each member even when it matches the role their
- * workspace role gives them, so a later workspace role change does not change their travel role.
- */
-function setPolicyTravelMemberRole(policy: OnyxEntry<OnyxTypes.Policy>, members: TravelMemberAccessTarget[], travelRole: ValueOf<typeof CONST.TRAVEL.MEMBER_ROLE>) {
-    const policyID = policy?.id;
-    const employeeList = policy?.employeeList ?? {};
-    const targets = members.filter((member) => !!employeeList[member.email] && employeeList[member.email]?.travelRole !== travelRole);
-    if (!policyID || targets.length === 0) {
-        return;
-    }
-
-    const employeeListOptimisticUpdate: Record<string, NullishDeep<OnyxTypes.PolicyEmployee>> = {};
-    const employeeListSuccessUpdate: Record<string, NullishDeep<OnyxTypes.PolicyEmployee>> = {};
-    const employeeListFailureUpdate: Record<string, NullishDeep<OnyxTypes.PolicyEmployee>> = {};
-    for (const target of targets) {
-        employeeListOptimisticUpdate[target.email] = {
-            travelRole,
-            pendingFields: {travelRole: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-        };
-        employeeListSuccessUpdate[target.email] = {pendingFields: {travelRole: null}};
-        employeeListFailureUpdate[target.email] = {
-            travelRole: employeeList[target.email]?.travelRole ?? null,
-            pendingFields: {travelRole: null},
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
-        };
-    }
-
-    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: employeeListOptimisticUpdate}}],
-        successData: [{onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: employeeListSuccessUpdate}}],
-        failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: employeeListFailureUpdate}}],
-    };
-
-    const parameters: SetPolicyTravelMemberRoleParams = {
-        policyID,
-        employeeAccountIDList: targets.map((target) => target.accountID).join(','),
-        travelRole,
-    };
-
-    API.write(WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ROLE, parameters, onyxData);
-}
-
-/**
- * Apply a member's travel setting as one value. Off only turns travel off, so the member's travel role is kept for
- * when travel is turned back on. A role turns travel on and stores that role.
- */
-function setPolicyTravelMemberAccessValue(policy: OnyxEntry<OnyxTypes.Policy>, members: TravelMemberAccessTarget[], value: TravelMemberAccessValue) {
-    if (!isTravelMemberRole(value)) {
-        setPolicyTravelMemberAccess(policy, members, false);
-        return;
-    }
-    setPolicyTravelMemberAccess(policy, members, true);
-    setPolicyTravelMemberRole(policy, members, value);
-}
-
-export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelMemberAccess, setPolicyTravelMemberRole, setPolicyTravelMemberAccessValue};
+export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelMemberAccess};
 export type {TravelMemberAccessTarget};

@@ -621,7 +621,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkArrangementPage').default,
     [SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberOfficeLocationPage').default,
     [SCREENS.WORKSPACE.MEMBER_TRAVEL_ACCESS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberTravelSettingPage').default,
-    [SCREENS.WORKSPACE.MEMBER_TRAVEL_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberTravelSettingPage').default,
     [SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkArrangementPage').default,
     [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberCustomFieldPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK]: () => require<ReactComponentModule>('@pages/workspace/members/DynamicWorkspaceOwnerChangeWrapperPage').default,

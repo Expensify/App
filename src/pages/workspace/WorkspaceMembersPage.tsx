@@ -47,7 +47,7 @@ import {
     setMembersSelectedForRoleChange,
     setWorkspaceMembersSelectedForBulkEdit,
 } from '@libs/actions/Policy/Member';
-import {setPolicyTravelMemberAccessValue} from '@libs/actions/Policy/Travel';
+import {setPolicyTravelMemberAccess} from '@libs/actions/Policy/Travel';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
@@ -71,8 +71,8 @@ import {
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
+    canMemberUseTravel,
     getSelectableRoles,
-    getTravelMemberAccessValue,
     hasActiveExpensifyCard,
     isControlPolicy,
     isGroupPolicy,
@@ -390,7 +390,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const isProvisionedForTravel = isWorkspaceProvisionedForTravel(policy?.travelSettings);
     const shouldShowTravelColumn = !shouldUseNarrowLayout && isProvisionedForTravel;
 
-    // Travel access and roles are changed through commands that only full workspace admins can call
+    // Travel access is changed through a command that only full workspace admins can call
     const canChangeTravelAccess = isPolicyAdmin(policy);
 
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
@@ -450,7 +450,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 disabled: isPendingDeleteOrError,
                 canEditRole,
                 onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
-                travelAccessValue: shouldShowTravelColumn ? getTravelMemberAccessValue(policy, login) : undefined,
+                canUseTravel: shouldShowTravelColumn ? canMemberUseTravel(policy, login) : undefined,
                 isTravelAccessStored: typeof policyEmployee.canUseTravel === 'boolean',
                 // A member still being added or without a loaded accountID would be sent to the server under an accountID it
                 // doesn't know
@@ -460,7 +460,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     !isPendingDeleteOrError &&
                     policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
                     !isAccountIDGenerated,
-                onChangeTravelAccess: (value) => setPolicyTravelMemberAccessValue(policy, [{email: login, accountID}], value),
+                onChangeTravelAccess: (canUseTravel) => setPolicyTravelMemberAccess(policy, [{email: login, accountID}], canUseTravel),
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
                 action: () => openMemberDetails(accountID, login),

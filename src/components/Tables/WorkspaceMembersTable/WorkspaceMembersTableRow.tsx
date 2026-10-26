@@ -72,8 +72,8 @@ export default function WorkspaceMembersTableRow({
     const bankAccountLabel =
         !shouldUseNarrowTableLayout && shouldShowBankAccountColumn && item.bankAccountLastFour ? `${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}` : '';
     const travelLabel =
-        shouldShowTravelColumn && item.travelAccessValue
-            ? `${translate('workspace.moreFeatures.travel.members.travel')}: ${getTravelMemberAccessName(translate, item.travelAccessValue)}`
+        shouldShowTravelColumn && item.canUseTravel !== undefined
+            ? `${translate('workspace.moreFeatures.travel.members.travelAccess')}: ${getTravelMemberAccessName(translate, item.canUseTravel)}`
             : '';
     const accessibilityLabel = [item.name, item.email, bankAccountLabel, roleLabel, travelLabel].filter(Boolean).join(', ');
     const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;
@@ -214,11 +214,11 @@ export default function WorkspaceMembersTableRow({
                             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.editableCellColumn]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            {!!item.travelAccessValue && (
+                            {item.canUseTravel !== undefined && (
                                 <TravelMemberPickerCell
-                                    value={item.travelAccessValue}
-                                    label={getTravelMemberAccessName(translate, item.travelAccessValue)}
-                                    options={getTravelMemberAccessOptions(translate, item.travelAccessValue)}
+                                    value={item.canUseTravel}
+                                    label={getTravelMemberAccessName(translate, item.canUseTravel)}
+                                    options={getTravelMemberAccessOptions(translate, item.canUseTravel)}
                                     canEdit={!!item.canEditTravelAccess}
                                     isValueStored={item.isTravelAccessStored ?? true}
                                     onSave={(value) => item.onChangeTravelAccess?.(value)}

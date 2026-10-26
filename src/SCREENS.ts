@@ -977,7 +977,6 @@ const SCREENS = {
         MEMBER_WORK_ARRANGEMENT: 'Workspace_Member_Work_Arrangement',
         MEMBER_OFFICE_LOCATION: 'Workspace_Member_Office_Location',
         MEMBER_TRAVEL_ACCESS: 'Workspace_Member_Travel_Access',
-        MEMBER_TRAVEL_ROLE: 'Workspace_Member_Travel_Role',
         INVITE_WORK_ARRANGEMENT: 'Workspace_Invite_Work_Arrangement',
         MEMBER_CUSTOM_FIELD: 'Workspace_Member_Custom_Field',
         MEMBER_NEW_CARD: 'Workspace_Member_NewCard',

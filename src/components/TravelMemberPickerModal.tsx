@@ -2,17 +2,13 @@
  * Popover picker for inline editing a member's travel setting, used by the travel members list and the workspace
  * members table.
  */
-import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
-import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import type {TravelMemberAccessValue, TravelMemberOption} from '@libs/TravelMemberOptionUtils';
+import type {TravelMemberOption} from '@libs/TravelMemberOptionUtils';
 
 import variables from '@styles/variables';
 
@@ -20,6 +16,12 @@ import CONST from '@src/CONST';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+
+import type PopoverWithMeasuredContentProps from './PopoverWithMeasuredContent/types';
+
+import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
+import SelectionList from './SelectionList';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -31,7 +33,7 @@ type TravelMemberPickerModalProps = {
 
     options: TravelMemberOption[];
 
-    onSelected: (value: TravelMemberAccessValue) => void;
+    onSelected: (value: boolean) => void;
 
     /** Height of the picker. Defaults to the height its options need. */
     popoverHeight?: number;

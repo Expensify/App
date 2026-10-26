@@ -1,7 +1,5 @@
 import type CONST from '@src/CONST';
 
-import type {ValueOf} from 'type-fest';
-
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Workspace member custom field key types */
@@ -40,9 +38,6 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the member can book travel when the workspace limits travel to members an admin turned on. Ignored when it doesn't. */
     canUseTravel?: boolean;
-
-    /** The member's role in Expensify Travel. When absent, workspace admins are travel admins and everyone else is a traveler. */
-    travelRole?: ValueOf<typeof CONST.TRAVEL.MEMBER_ROLE>;
 
     /**
      * The office the member is assigned to, keyed in the workspace's officeLocations, or CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID

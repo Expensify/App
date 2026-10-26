@@ -1,5 +1,5 @@
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
-import type {TravelMemberAccessValue, TravelMemberOption} from '@libs/TravelMemberOptionUtils';
+import type {TravelMemberOption} from '@libs/TravelMemberOptionUtils';
 
 import React from 'react';
 
@@ -8,7 +8,8 @@ import Text from './Text';
 import TravelMemberPickerModal, {useTravelMemberPickerPopoverHeight} from './TravelMemberPickerModal';
 
 type TravelMemberPickerCellProps = {
-    value: TravelMemberAccessValue;
+    /** Whether the member can book travel */
+    value: boolean;
 
     /** The label shown for the current value */
     label: string;
@@ -24,7 +25,7 @@ type TravelMemberPickerCellProps = {
      */
     isValueStored?: boolean;
 
-    onSave: (value: TravelMemberAccessValue) => void;
+    onSave: (value: boolean) => void;
 };
 
 function TravelMemberPickerCell({value, label, options, canEdit, isValueStored = true, onSave}: TravelMemberPickerCellProps) {

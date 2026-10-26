@@ -1200,9 +1200,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_TRAVEL_ACCESS]: {
                             path: ROUTES.WORKSPACE_MEMBER_TRAVEL_ACCESS.route,
                         },
-                        [SCREENS.WORKSPACE.MEMBER_TRAVEL_ROLE]: {
-                            path: ROUTES.WORKSPACE_MEMBER_TRAVEL_ROLE.route,
-                        },
                         [SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION]: {
                             path: ROUTES.WORKSPACE_MEMBER_OFFICE_LOCATION.route,
                         },

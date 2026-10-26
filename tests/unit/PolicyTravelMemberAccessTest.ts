@@ -1,7 +1,7 @@
-import {setPolicyTravelMemberAccess, setPolicyTravelMemberAccessValue, setPolicyTravelMemberRole} from '@libs/actions/Policy/Travel';
+import {setPolicyTravelMemberAccess} from '@libs/actions/Policy/Travel';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {canMemberUseTravel, getTravelMemberRole, isMemberTravelAccessTurnedOff} from '@libs/PolicyUtils';
+import {canMemberUseTravel, isMemberTravelAccessTurnedOff} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import type {Policy, PolicyEmployee} from '@src/types/onyx';
@@ -80,57 +80,6 @@ describe('Policy travel member access', () => {
         });
     });
 
-    describe('setPolicyTravelMemberRole', () => {
-        it('stores the role even when it matches the role the member gets from their workspace role', () => {
-            // Given a member without a stored travel role, who is a traveler because of their workspace role
-            // When an admin makes them a traveler
-            setPolicyTravelMemberRole(buildPolicy({}), [MEMBER], CONST.TRAVEL.MEMBER_ROLE.TRAVELER);
-
-            // Then the role is still sent, so a later workspace role change doesn't change their travel role
-            expect(mockWrite).toHaveBeenCalledWith(
-                WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ROLE,
-                {policyID: 'policy-1', employeeAccountIDList: String(MEMBER.accountID), travelRole: CONST.TRAVEL.MEMBER_ROLE.TRAVELER},
-                withEmployeeUpdate('failureData', expect.objectContaining({travelRole: null, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE})),
-            );
-        });
-
-        it('does nothing when the stored role already matches', () => {
-            // Given a member whose travel role is stored as travel admin
-            // When an admin makes them a travel admin
-            setPolicyTravelMemberRole(buildPolicy({travelRole: CONST.TRAVEL.MEMBER_ROLE.ADMIN}), [MEMBER], CONST.TRAVEL.MEMBER_ROLE.ADMIN);
-
-            // Then no request is sent
-            expect(mockWrite).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('setPolicyTravelMemberAccessValue', () => {
-        it('turns travel on and sets the role when a role is chosen', () => {
-            // Given a member with travel off
-            // When an admin picks travel admin for them
-            setPolicyTravelMemberAccessValue(buildPolicy({canUseTravel: false}), [MEMBER], CONST.TRAVEL.MEMBER_ROLE.ADMIN);
-
-            // Then travel is turned on and the role is set
-            expect(mockWrite).toHaveBeenNthCalledWith(1, WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS, expect.objectContaining({enabled: true}), expect.anything());
-            expect(mockWrite).toHaveBeenNthCalledWith(
-                2,
-                WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ROLE,
-                expect.objectContaining({travelRole: CONST.TRAVEL.MEMBER_ROLE.ADMIN}),
-                expect.anything(),
-            );
-        });
-
-        it('only turns travel off when off is chosen', () => {
-            // Given a travel admin with travel on
-            // When an admin picks off for them
-            setPolicyTravelMemberAccessValue(buildPolicy({canUseTravel: true, travelRole: CONST.TRAVEL.MEMBER_ROLE.ADMIN}), [MEMBER], CONST.TRAVEL.MEMBER_ACCESS_OFF);
-
-            // Then only travel access changes, so their role comes back when travel is turned on again
-            expect(mockWrite).toHaveBeenCalledTimes(1);
-            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS, expect.objectContaining({enabled: false}), expect.anything());
-        });
-    });
-
     describe('travel member helpers', () => {
         it.each([
             [undefined, false, false],
@@ -144,15 +93,6 @@ describe('Policy travel member access', () => {
             // Then only an explicit true shows them as able to book, and only an explicit false blocks booking
             expect(canMemberUseTravel(policy, MEMBER.email)).toBe(expectedCanUseTravel);
             expect(isMemberTravelAccessTurnedOff(policy, MEMBER.email)).toBe(expectedTurnedOff);
-        });
-
-        it('follows the workspace role until a travel role is stored', () => {
-            // Given members with and without a stored travel role
-            // When the app reads their travel role
-            // Then a stored role wins, and otherwise workspace admins are travel admins and everyone else is a traveler
-            expect(getTravelMemberRole(buildPolicy({}), MEMBER.email)).toBe(CONST.TRAVEL.MEMBER_ROLE.TRAVELER);
-            expect(getTravelMemberRole(buildPolicy({role: CONST.POLICY.ROLE.ADMIN}), MEMBER.email)).toBe(CONST.TRAVEL.MEMBER_ROLE.ADMIN);
-            expect(getTravelMemberRole(buildPolicy({role: CONST.POLICY.ROLE.ADMIN, travelRole: CONST.TRAVEL.MEMBER_ROLE.TRAVELER}), MEMBER.email)).toBe(CONST.TRAVEL.MEMBER_ROLE.TRAVELER);
         });
     });
 });

@@ -1,4 +1,4 @@
-import {setPolicyTravelMemberAccessValue, setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
+import {setPolicyTravelMemberAccess, setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
@@ -134,8 +134,8 @@ describe('actions/Policy/Travel', () => {
         });
     });
 
-    describe('setPolicyTravelMemberAccessValue', () => {
-        it('keeps the error from turning travel on when setting the travel role succeeds', async () => {
+    describe('setPolicyTravelMemberAccess', () => {
+        it('restores travel access and shows the error when turning travel on fails', async () => {
             // Given a member with travel off
             const memberEmail = 'member@example.com';
             const fakePolicy: Policy = {
@@ -144,17 +144,14 @@ describe('actions/Policy/Travel', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            // When an admin makes them a travel admin, which turns travel on and then sets the role, and only turning
-            // travel on fails
+            // When travel is turned on for them and the request fails
             mockFetch.mockAPICommand(WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS, () => ({jsonCode: 400}));
-            setPolicyTravelMemberAccessValue(fakePolicy, [{email: memberEmail, accountID: 2}], CONST.TRAVEL.MEMBER_ROLE.ADMIN);
+            setPolicyTravelMemberAccess(fakePolicy, [{email: memberEmail, accountID: 2}], true);
             await waitForBatchedUpdates();
 
-            // Then the member keeps travel off with the error, marked as a failed update so dismissing it keeps them
-            // in the list, even though the role request succeeded
+            // Then the member keeps travel off with the error, marked as a failed update so dismissing it keeps them in the list
             const employee = (await getPolicy(fakePolicy.id))?.employeeList?.[memberEmail];
             expect(employee?.canUseTravel).toBe(false);
-            expect(employee?.travelRole).toBe(CONST.TRAVEL.MEMBER_ROLE.ADMIN);
             expect(employee?.errors).toBeTruthy();
             expect(employee?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
         });

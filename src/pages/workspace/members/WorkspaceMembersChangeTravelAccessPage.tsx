@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearWorkspaceMembersSelectedForBulkEdit} from '@libs/actions/Policy/Member';
-import {setPolicyTravelMemberAccess, setPolicyTravelMemberAccessValue} from '@libs/actions/Policy/Travel';
+import {setPolicyTravelMemberAccess} from '@libs/actions/Policy/Travel';
 import type {TravelMemberAccessTarget} from '@libs/actions/Policy/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -29,22 +29,13 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
 
-const TRAVEL_BULK_ACTIONS = {
-    TURN_ON: 'turnOn',
-    TURN_OFF: 'turnOff',
-    MAKE_ADMINS: 'makeAdmins',
-    MAKE_TRAVELERS: 'makeTravelers',
-} as const;
-
-type TravelBulkAction = ValueOf<typeof TRAVEL_BULK_ACTIONS>;
-
 type TravelBulkActionOption = ListItem & {
-    value: TravelBulkAction;
+    /** Whether choosing this option lets the selected members book travel. */
+    value: boolean;
     text: string;
     alternateText: string;
 };
@@ -55,8 +46,7 @@ type WorkspaceMembersChangeTravelAccessPageProps = Omit<WithPolicyAndFullscreenL
     };
 
 /**
- * Changes travel access or the travel role of every member selected on the workspace members page. Access and role are
- * changed separately, so turning travel on keeps each member's travel role.
+ * Turns travel on or off for every member selected on the workspace members page.
  */
 function WorkspaceMembersChangeTravelAccessPage({policy, personalDetails, route}: WorkspaceMembersChangeTravelAccessPageProps) {
     const policyID = route.params.policyID;
@@ -90,38 +80,22 @@ function WorkspaceMembersChangeTravelAccessPage({policy, personalDetails, route}
             return;
         }
 
-        if (value === TRAVEL_BULK_ACTIONS.TURN_ON || value === TRAVEL_BULK_ACTIONS.TURN_OFF) {
-            setPolicyTravelMemberAccess(policy, selectedMembers, value === TRAVEL_BULK_ACTIONS.TURN_ON);
-        } else {
-            setPolicyTravelMemberAccessValue(policy, selectedMembers, value === TRAVEL_BULK_ACTIONS.MAKE_ADMINS ? CONST.TRAVEL.MEMBER_ROLE.ADMIN : CONST.TRAVEL.MEMBER_ROLE.TRAVELER);
-        }
+        setPolicyTravelMemberAccess(policy, selectedMembers, value);
         Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
     };
 
     const options: TravelBulkActionOption[] = [
         {
-            value: TRAVEL_BULK_ACTIONS.TURN_ON,
+            value: true,
             text: translate('workspace.moreFeatures.travel.members.turnOnTravel'),
-            alternateText: translate('workspace.moreFeatures.travel.members.turnOnTravelDescription'),
-            keyForList: TRAVEL_BULK_ACTIONS.TURN_ON,
+            alternateText: translate('workspace.moreFeatures.travel.members.onDescription'),
+            keyForList: 'turnOn',
         },
         {
-            value: TRAVEL_BULK_ACTIONS.TURN_OFF,
+            value: false,
             text: translate('workspace.moreFeatures.travel.members.turnOffTravel'),
-            alternateText: translate('workspace.moreFeatures.travel.members.turnOffTravelDescription'),
-            keyForList: TRAVEL_BULK_ACTIONS.TURN_OFF,
-        },
-        {
-            value: TRAVEL_BULK_ACTIONS.MAKE_ADMINS,
-            text: translate('workspace.moreFeatures.travel.members.makeTravelAdmins'),
-            alternateText: translate('workspace.moreFeatures.travel.members.makeTravelAdminsDescription'),
-            keyForList: TRAVEL_BULK_ACTIONS.MAKE_ADMINS,
-        },
-        {
-            value: TRAVEL_BULK_ACTIONS.MAKE_TRAVELERS,
-            text: translate('workspace.moreFeatures.travel.members.makeTravelers'),
-            alternateText: translate('workspace.moreFeatures.travel.members.makeTravelersDescription'),
-            keyForList: TRAVEL_BULK_ACTIONS.MAKE_TRAVELERS,
+            alternateText: translate('workspace.moreFeatures.travel.members.offDescription'),
+            keyForList: 'turnOff',
         },
     ];
 

@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {getTravelMemberAccessName} from '@libs/TravelMemberOptionUtils';
-import type {TravelMemberAccessValue} from '@libs/TravelMemberOptionUtils';
 
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
@@ -51,13 +50,13 @@ type WorkspaceMemberRowData = TableData & {
     canEditRole?: boolean;
     onChangeRole?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
 
-    /** Whether the member can book travel and their travel role, set on workspaces provisioned for travel */
-    travelAccessValue?: TravelMemberAccessValue;
+    /** Whether the member can book travel, set on workspaces provisioned for travel */
+    canUseTravel?: boolean;
 
     /** Whether the member's travel access is stored, rather than shown as off because it isn't set yet */
     isTravelAccessStored?: boolean;
     canEditTravelAccess?: boolean;
-    onChangeTravelAccess?: (value: TravelMemberAccessValue) => void;
+    onChangeTravelAccess?: (canUseTravel: boolean) => void;
 };
 
 type WorkspaceMembersTableProps = {
@@ -198,14 +197,14 @@ export default function WorkspaceMembersTable({
             ? [
                   {
                       key: 'travel' as const,
-                      label: translate('workspace.moreFeatures.travel.members.travel'),
+                      label: translate('workspace.moreFeatures.travel.members.travelAccess'),
                       sortable: true,
                       styling: {
                           containerStyles: [styles.editableCellHeader],
                       },
                       dynamicSizing: {
                           getContentToMeasure: (item: WorkspaceMemberRowData) =>
-                              item.travelAccessValue ? [{text: getTravelMemberAccessName(translate, item.travelAccessValue), fontSize: fontScale.text}] : [],
+                              item.canUseTravel !== undefined ? [{text: getTravelMemberAccessName(translate, item.canUseTravel), fontSize: fontScale.text}] : [],
                           shouldFitContent: true,
                           extraWidth: variables.editableCellChromeWidth,
                       },
@@ -234,7 +233,7 @@ export default function WorkspaceMembersTable({
         }
 
         if (activeSorting.columnKey === 'travel') {
-            const getTravelName = (item: WorkspaceMemberRowData) => (item.travelAccessValue ? getTravelMemberAccessName(translate, item.travelAccessValue) : undefined);
+            const getTravelName = (item: WorkspaceMemberRowData) => (item.canUseTravel !== undefined ? getTravelMemberAccessName(translate, item.canUseTravel) : undefined);
             return compareOptionalValues(getTravelName(item1), getTravelName(item2), localeCompare, orderMultiplier, memberNameComparison);
         }
 
