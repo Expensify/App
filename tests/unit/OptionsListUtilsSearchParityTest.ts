@@ -26,7 +26,7 @@ import Onyx from 'react-native-onyx';
 
 import type {SearchFixture} from '../utils/searchParity/generateSearchFixture';
 
-import {CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, generateSearchFixture, OWN_POLICY_ID, SEARCH_QUERIES, writeSearchFixtureToOnyx} from '../utils/searchParity/generateSearchFixture';
+import {ACCOUNT_IDS, CURRENT_USER_EMAIL, generateSearchFixture, POLICY_IDS, SEARCH_QUERIES, writeSearchFixtureToOnyx} from '../utils/searchParity/generateSearchFixture';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -104,6 +104,7 @@ function serializeOptionList(optionList: OptionList, {isOrderMeaningful}: {isOrd
     const sortIfUnordered = (references: Array<string | null>) => (isOrderMeaningful ? references : [...references].sort());
     return {
         reports: sortIfUnordered(optionList.reports.map((option) => serializeOption(option))),
+
         // Shells are compared both as built and after hydration, so the shell/hydrator split stays invisible
         personalDetails: optionList.personalDetails.map((shell) => `${shell.reportID} | ${shell.accountID} | ${shell.login ?? ''}`).sort(),
         hydratedPersonalDetails: optionList.personalDetails.map((shell) => serializeOption(hydrateContactOption(shell))).sort(),
@@ -116,6 +117,8 @@ function serializeOptionList(optionList: OptionList, {isOrderMeaningful}: {isOrd
  */
 const SEARCH_ROUTER_IDLE_REPORTS_CAP = 10;
 
+// The fixture account has no intro selection (not a track-intent user), no Onyx rules and no policy tags, which is what SearchAutocompleteList reads for it.
+// allPolicyTags is omitted because it only reaches modified-expense previews and the fixture has none, so changes to tag names, rules or the track-intent welcome text are not pinned here.
 const RULES: OnyxCollection<Rule> = {};
 
 type BuildOptionListConfig = {
@@ -135,7 +138,7 @@ function buildOptionList(sourceFixture: SearchFixture, {isSearching, maxRecentRe
         sourceFixture.privateIsArchivedMap,
         sourceFixture.policies,
         {
-            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            currentUserAccountID: ACCOUNT_IDS.CURRENT_USER,
             currentUserLogin: CURRENT_USER_EMAIL,
             transactionThreadIDs,
             lastActions,
@@ -166,7 +169,7 @@ function buildSearchRouterIdleOptionList(sourceFixture: SearchFixture, maxRecent
 }
 
 // Passed to combineOrderingOfReportsAndPersonalDetails. Only affects workspace chat ordering, which displayed passes do not show.
-const ACTIVE_POLICY_ID = OWN_POLICY_ID;
+const ACTIVE_POLICY_ID = POLICY_IDS.OWN;
 
 type SearchCallSite = (options: OptionList, query: string) => OptionsResult | DisplayedResult;
 
@@ -205,7 +208,7 @@ function createCallSites(sourceFixture: SearchFixture) {
         draftComments: sourceFixture.draftComments,
         countryCode: CONST.DEFAULT_COUNTRY_CODE,
         loginList: sourceFixture.loginList,
-        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+        currentUserAccountID: ACCOUNT_IDS.CURRENT_USER,
         currentUserEmail: CURRENT_USER_EMAIL,
         policyCollection: sourceFixture.policies,
         personalDetails: sourceFixture.personalDetails,
@@ -215,12 +218,15 @@ function createCallSites(sourceFixture: SearchFixture) {
         formatPhoneNumber,
         getReportByID,
         rules: RULES,
+        isTrackIntentUser: false,
     };
+
     // SearchAutocompleteList server pass
     const serverPassConfig = {
         ...baseSearchConfig,
         visibleReportActionsData,
     };
+
     // SearchAutocompleteList local pass
     const commonSearchConfig = {
         ...baseSearchConfig,
@@ -252,6 +258,7 @@ function createCallSites(sourceFixture: SearchFixture) {
 
     const searchCallSites = {
         searchRouterLocal: (options, query) => runSearchRouterSearch(options, query),
+
         // Replicates the displayed ranking and capping pass from SearchAutocompleteList
         searchRouterDisplayed: (options, query) => {
             const result = runSearchRouterSearch(options, query);
@@ -375,6 +382,7 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
         CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
     );
     const serverReportIDs = new Set(orderedServerReportIDs);
+
     // SearchAutocompleteList server pass reads derived attributes from Onyx because reportAttributesDerived is omitted
     const serverPassOptions = getSearchOptions({
         ...serverPassConfig,
@@ -393,6 +401,7 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
         shouldShowGBR: false,
         shouldUnreadBeBold: true,
     }).options;
+
     // The pass then puts the rows back in Auth's order and drops the self-DM
     const serverPassOptionsByReportID = new Map(serverPassOptions.recentReports.map((option) => [option.reportID, option]));
     const serverPass = orderedServerReportIDs.map((reportID) => serverPassOptionsByReportID.get(reportID)).filter((option) => !!option && !option.isSelfDM);
@@ -400,6 +409,7 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
     const passes = {
         searchRouterBlankAtProductionCap: serializeResult(searchCallSites.searchRouterDisplayed(searchRouterIdleAtProductionCap, '')),
         serverPass: serverPass.map((option) => serializeOption(option)),
+
         // Recorded after the passes above, which run with nothing focused
         focusedReport: Object.fromEntries(
             FOCUSED_REPORT_NAMES.map((reportName) => [
@@ -423,6 +433,7 @@ describe('OptionsListUtils search parity (golden master)', () => {
         await IntlStore.load(CONST.LOCALES.EN);
         initOnyxDerivedValues();
         await waitForBatchedUpdates();
+
         // The fixture starts without derived values. Writing to Onyx derives them for subsequent reads.
         fixture.derived = await writeSearchFixtureToOnyx(fixture);
         goldenMaster = computeGoldenMaster(fixture);

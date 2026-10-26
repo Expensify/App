@@ -14,22 +14,46 @@ import Onyx from 'react-native-onyx';
 import getOnyxValue from '../getOnyxValue';
 import waitForBatchedUpdates from '../waitForBatchedUpdates';
 
-const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'current.user@example.com';
-const OWN_POLICY_ID = 'A1B2C3D4E5F60001';
-const OTHER_POLICY_ID = 'A1B2C3D4E5F60002';
-const MISSING_POLICY_ID = 'A1B2C3D4E5F60003';
-/** A DM participant with no personal details, as after a partial personal details load. */
-const UNKNOWN_ACCOUNT_ID = 999;
+
+const POLICY_IDS = {
+    OWN: 'A1B2C3D4E5F60001',
+    OTHER: 'A1B2C3D4E5F60002',
+    MISSING: 'A1B2C3D4E5F60003',
+} as const;
+
+const ACCOUNT_IDS = {
+    CURRENT_USER: 1,
+    UNKNOWN: 999,
+    CONCIERGE: CONST.ACCOUNT_ID.CONCIERGE,
+    NOTIFICATIONS: CONST.ACCOUNT_ID.NOTIFICATIONS,
+    JOSE_NUNEZ: 2,
+    VIT_NOVAK: 3,
+    ISMAIL_YILMAZ: 4,
+    GROSS_STRASSE: 5,
+    BOB_BUILDER: 10,
+    MARY_JANE_OBRIEN: 11,
+    ALEX_SMITH: 14,
+} as const;
+
 const SESSION = {
-    accountID: CURRENT_USER_ACCOUNT_ID,
+    accountID: ACCOUNT_IDS.CURRENT_USER,
     email: CURRENT_USER_EMAIL,
 };
-const CONCIERGE_ACCOUNT_ID = 21;
+
 /** Contacts and reports carry fixed IDs, so adding one never renumbers the others and churns the golden master. */
 const FIRST_FILLER_ACCOUNT_ID = 100;
+
 /** A contact's generated 1:1 DM is DM_REPORT_ID_OFFSET + its accountID. */
 const DM_REPORT_ID_OFFSET = 1000;
+
+/** The system accounts' real IDs would break the accountID-derived reportID, day and DM assignment, so their DMs are pinned instead. */
+const SYSTEM_DM_SLOTS: Record<number, {reportID: number; day: number}> = {
+    // Empty (no report actions). Search drops it through the hard-excluded notifications login before the empty-notifications-DM rule in reasonForReportToBeInOptionList runs, so that rule is not pinned here
+    [ACCOUNT_IDS.NOTIFICATIONS]: {reportID: DM_REPORT_ID_OFFSET + 16, day: 16},
+    [ACCOUNT_IDS.CONCIERGE]: {reportID: DM_REPORT_ID_OFFSET + 21, day: 0},
+};
+
 /** Every reportID is above this, and a report's timestamp is derived from its distance to it. */
 const REPORT_ID_TIMESTAMP_ORIGIN = 1000;
 
@@ -46,6 +70,7 @@ type SearchFixture = {
     reportActions: NonNullable<OnyxCollection<ReportActions>>;
     policies: NonNullable<OnyxCollection<Policy>>;
     privateIsArchivedMap: PrivateIsArchivedMap;
+
     /** Empty until writeSearchFixtureToOnyx returns what Onyx derived. */
     derived: SearchFixtureDerivedData;
     draftComments: NonNullable<OnyxCollection<string>>;
@@ -55,29 +80,29 @@ type SearchFixture = {
 
 const NAMED_CONTACTS: Array<Pick<PersonalDetails, 'accountID' | 'login' | 'displayName' | 'firstName' | 'lastName'>> = [
     {
-        accountID: CURRENT_USER_ACCOUNT_ID,
+        accountID: ACCOUNT_IDS.CURRENT_USER,
         login: CURRENT_USER_EMAIL,
         displayName: 'Current User',
         firstName: 'Current',
         lastName: 'User',
     },
     {
-        accountID: 2,
+        accountID: ACCOUNT_IDS.JOSE_NUNEZ,
         login: 'jose.nunez@example.com',
         displayName: 'Jos\u00e9 \u00d1\u00fa\u00f1ez',
     },
     {
-        accountID: 3,
+        accountID: ACCOUNT_IDS.VIT_NOVAK,
         login: 'vit.novak@example.com',
         displayName: 'V\u00edt Nov\u00e1k',
     },
     {
-        accountID: 4,
+        accountID: ACCOUNT_IDS.ISMAIL_YILMAZ,
         login: 'ismail@example.com',
         displayName: '\u0130smail Y\u0131lmaz',
     },
     {
-        accountID: 5,
+        accountID: ACCOUNT_IDS.GROSS_STRASSE,
         login: 'strasse@example.com',
         displayName: 'Gro\u00df Stra\u00dfe',
     },
@@ -102,18 +127,19 @@ const NAMED_CONTACTS: Array<Pick<PersonalDetails, 'accountID' | 'login' | 'displ
         displayName: 'Ana\u200bMaria',
     },
     {
-        accountID: 10,
+        accountID: ACCOUNT_IDS.BOB_BUILDER,
         login: 'bob.builder@example.com',
         displayName: 'Bob\u00a0Builder',
     },
     {
-        accountID: 11,
+        accountID: ACCOUNT_IDS.MARY_JANE_OBRIEN,
         login: 'obrien@example.com',
         displayName: "Mary-Jane O'Brien",
     },
     {accountID: 12, login: 'first.last+tag@x.com', displayName: ''},
     {accountID: 13, login: '+15005550006@expensify.sms', displayName: ''},
-    {accountID: 14, login: 'alex.smith@example.com', displayName: 'Alex Smith'},
+    {accountID: ACCOUNT_IDS.ALEX_SMITH, login: 'alex.smith@example.com', displayName: 'Alex Smith'},
+
     // Shares the "alex smith" prefix but not the full name, so the two contacts never tie when sorted by name
     {
         accountID: 15,
@@ -121,7 +147,7 @@ const NAMED_CONTACTS: Array<Pick<PersonalDetails, 'accountID' | 'login' | 'displ
         displayName: 'Alex Smith Jr.',
     },
     {
-        accountID: 16,
+        accountID: ACCOUNT_IDS.NOTIFICATIONS,
         login: CONST.EMAIL.NOTIFICATIONS,
         displayName: 'Expensify Notifications',
     },
@@ -132,6 +158,7 @@ const NAMED_CONTACTS: Array<Pick<PersonalDetails, 'accountID' | 'login' | 'displ
     },
     {accountID: 18, login: 'admin@example.com', displayName: 'Domain Admin'},
     {accountID: 19, login: undefined, displayName: 'No Login'},
+
     // Stored decomposed (NFD: "e" + combining acute), unlike every other name
     {
         accountID: 20,
@@ -139,7 +166,7 @@ const NAMED_CONTACTS: Array<Pick<PersonalDetails, 'accountID' | 'login' | 'displ
         displayName: 'Rene\u0301 Dupont',
     },
     {
-        accountID: CONCIERGE_ACCOUNT_ID,
+        accountID: ACCOUNT_IDS.CONCIERGE,
         login: CONST.EMAIL.CONCIERGE,
         displayName: 'Concierge',
     },
@@ -166,6 +193,7 @@ const SEARCH_QUERIES = [
     '\ud83d\udc69\u200d\ud83d\udcbb',
     'anamaria',
     'bob builder',
+
     // Punctuation and phone digits, which a tokenizing search splits differently from a substring match
     'obrien',
     'mary-jane',
@@ -188,10 +216,12 @@ const SEARCH_QUERIES = [
     '+1 650 555 0100',
     '5550006',
     '(500) 555',
+
     // A padded login: the displayed passes rank by the raw query, which then matches no login exactly
     ' alex.smith@example.com ',
     'to:al',
     'zzzqqq',
+
     // Infixes, which a substring search finds and a word-prefix index does not: in a name, a room name, a workspace subtitle and a group participant's name
     'mith',
     'ikin',
@@ -199,13 +229,16 @@ const SEARCH_QUERIES = [
     'orkspace',
     'oldings',
     'ovak',
+
     // Matches a thread only through its "Thread" alternate text
     'packing thread',
+
     // Regular expression metacharacters, which a matcher must treat literally
     '*',
     '[',
     '\\',
     '.*',
+
     // Query-side normalization: case, diacritics (an NFC query against the NFD-stored "René"), ß, a dotted capital I, and an existing contact's phone and the own login, which must not invite
     'V\u00edt',
     'JOS\u00c9',
@@ -218,6 +251,7 @@ const SEARCH_QUERIES = [
 
 const FIRST_NAMES = ['Ada', 'Bea', 'Cyd', 'Dan', 'Eve', 'Fay', 'Gus', 'Hal', 'Ivy', 'Jon', 'Kim', 'Lou'];
 const LAST_NAMES = ['Ames', 'Byrd', 'Cole', 'Dunn', 'Eads', 'Ford', 'Gray', 'Hale'];
+
 // Every filler gets a distinct "First Last" pair (up to FIRST_NAMES.length * LAST_NAMES.length), so no two contacts tie when sorted by name
 const FILLER_CONTACT_COUNT = 40;
 
@@ -229,14 +263,15 @@ const FORMATTED_PHONE_LOGINS: Record<string, string> = {
 /** Per-contact overrides of the generated 1:1 DM, keyed by accountID. */
 const DM_OVERRIDES: Record<number, Partial<Report>> = {
     // Unread: the contact wrote last and the current user has not read it since
-    10: {
-        lastActorAccountID: 10,
+    [ACCOUNT_IDS.BOB_BUILDER]: {
+        lastActorAccountID: ACCOUNT_IDS.BOB_BUILDER,
         lastReadTime: '2024-01-01 00:00:00.000',
         lastMessageText: 'See you at the trailhead',
     },
+
     // Read: the current user wrote last and read everything
-    4: {
-        lastActorAccountID: CURRENT_USER_ACCOUNT_ID,
+    [ACCOUNT_IDS.ISMAIL_YILMAZ]: {
+        lastActorAccountID: ACCOUNT_IDS.CURRENT_USER,
         lastReadTime: '2024-12-31 00:00:00.000',
         lastMessageText: 'Thanks!',
     },
@@ -256,7 +291,7 @@ function buildPolicy(id: string, name: string, role: Policy['role']): Policy {
         type: CONST.POLICY.TYPE.TEAM,
         role,
         owner: CURRENT_USER_EMAIL,
-        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        ownerAccountID: ACCOUNT_IDS.CURRENT_USER,
         outputCurrency: CONST.CURRENCY.USD,
     };
 }
@@ -298,8 +333,8 @@ function generateSearchFixture(): SearchFixture {
     }
 
     const policies: SearchFixture['policies'] = {
-        [`${ONYXKEYS.COLLECTION.POLICY}${OWN_POLICY_ID}`]: buildPolicy(OWN_POLICY_ID, 'V\u00edt Workspace', CONST.POLICY.ROLE.ADMIN),
-        [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`]: buildPolicy(OTHER_POLICY_ID, 'Acme Holdings', CONST.POLICY.ROLE.USER),
+        [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_IDS.OWN}`]: buildPolicy(POLICY_IDS.OWN, 'V\u00edt Workspace', CONST.POLICY.ROLE.ADMIN),
+        [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_IDS.OTHER}`]: buildPolicy(POLICY_IDS.OTHER, 'Acme Holdings', CONST.POLICY.ROLE.USER),
     };
 
     const reports: SearchFixture['reports'] = {};
@@ -327,20 +362,21 @@ function generateSearchFixture(): SearchFixture {
     // Assigns a 1:1 DM to roughly two-thirds of contacts, picked by accountID so adding a contact never moves another contact's DM.
     // No contact receives multiple DMs to avoid collection order dependence.
     for (const accountID of contactAccountIDs) {
-        if (accountID === CURRENT_USER_ACCOUNT_ID || accountID % 3 === 2) {
+        const systemDMSlot = SYSTEM_DM_SLOTS[accountID];
+        if (accountID === ACCOUNT_IDS.CURRENT_USER || (!systemDMSlot && accountID % 3 === 2)) {
             continue;
         }
         const contact = personalDetails[accountID];
         const name = contact?.displayName || FORMATTED_PHONE_LOGINS[contact?.login ?? ''] || (contact?.login ?? '');
         dmReportIDByAccountID[accountID] = addReport(
-            DM_REPORT_ID_OFFSET + accountID,
+            systemDMSlot?.reportID ?? DM_REPORT_ID_OFFSET + accountID,
             {
                 type: CONST.REPORT.TYPE.CHAT,
-                participants: participantsOf([CURRENT_USER_ACCOUNT_ID, accountID]),
+                participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, accountID]),
                 ...DM_OVERRIDES[accountID],
             },
             name,
-            accountID % 21,
+            systemDMSlot?.day ?? accountID % 21,
         );
     }
 
@@ -349,7 +385,7 @@ function generateSearchFixture(): SearchFixture {
         2000,
         {
             type: CONST.REPORT.TYPE.CHAT,
-            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 11]),
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, ACCOUNT_IDS.MARY_JANE_OBRIEN]),
         },
         "Mary-Jane O'Brien (archived) ",
         25,
@@ -360,7 +396,7 @@ function generateSearchFixture(): SearchFixture {
         2001,
         {
             type: CONST.REPORT.TYPE.CHAT,
-            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 14], [CURRENT_USER_ACCOUNT_ID]),
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, ACCOUNT_IDS.ALEX_SMITH], [ACCOUNT_IDS.CURRENT_USER]),
         },
         'Alex Smith',
         26,
@@ -370,7 +406,7 @@ function generateSearchFixture(): SearchFixture {
         2002,
         {
             type: CONST.REPORT.TYPE.CHAT,
-            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, UNKNOWN_ACCOUNT_ID]),
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, ACCOUNT_IDS.UNKNOWN]),
         },
         '',
         6,
@@ -382,7 +418,7 @@ function generateSearchFixture(): SearchFixture {
             type: CONST.REPORT.TYPE.CHAT,
             chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             reportName: 'Weekend Hiking',
-            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2, 3, 11]),
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, ACCOUNT_IDS.JOSE_NUNEZ, ACCOUNT_IDS.VIT_NOVAK, ACCOUNT_IDS.MARY_JANE_OBRIEN]),
         },
         'Weekend Hiking',
         5,
@@ -393,8 +429,8 @@ function generateSearchFixture(): SearchFixture {
         {
             type: CONST.REPORT.TYPE.CHAT,
             chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            participants: participantsOf([CURRENT_USER_ACCOUNT_ID]),
+            ownerAccountID: ACCOUNT_IDS.CURRENT_USER,
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER]),
         },
         'Current User (you)',
         1,
@@ -406,11 +442,11 @@ function generateSearchFixture(): SearchFixture {
         {
             type: CONST.REPORT.TYPE.CHAT,
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            policyID: OWN_POLICY_ID,
+            policyID: POLICY_IDS.OWN,
             policyName: 'V\u00edt Workspace',
             isOwnPolicyExpenseChat: true,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            participants: participantsOf([CURRENT_USER_ACCOUNT_ID]),
+            ownerAccountID: ACCOUNT_IDS.CURRENT_USER,
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER]),
             hasOutstandingChildRequest: true,
         },
         "Current User's expenses",
@@ -422,11 +458,11 @@ function generateSearchFixture(): SearchFixture {
         {
             type: CONST.REPORT.TYPE.CHAT,
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            policyID: OWN_POLICY_ID,
+            policyID: POLICY_IDS.OWN,
             policyName: 'V\u00edt Workspace',
             isOwnPolicyExpenseChat: false,
-            ownerAccountID: 5,
-            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 5]),
+            ownerAccountID: ACCOUNT_IDS.GROSS_STRASSE,
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, ACCOUNT_IDS.GROSS_STRASSE]),
         },
         "Gro\u00df Stra\u00dfe's expenses",
         7,
@@ -437,24 +473,25 @@ function generateSearchFixture(): SearchFixture {
         {
             type: CONST.REPORT.TYPE.CHAT,
             chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
-            policyID: OWN_POLICY_ID,
+            policyID: POLICY_IDS.OWN,
             policyName: 'V\u00edt Workspace',
             invoiceReceiver: {
                 type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
-                accountID: 5,
+                accountID: ACCOUNT_IDS.GROSS_STRASSE,
             },
-            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 5]),
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, ACCOUNT_IDS.GROSS_STRASSE]),
         },
         'Gro\u00df Stra\u00dfe',
         12,
     );
 
     const rooms = [
-        [2010, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, '#admins', OWN_POLICY_ID, 3, {}],
-        [2011, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, '#announce', OWN_POLICY_ID, 8, {}],
+        [2010, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, '#admins', POLICY_IDS.OWN, 3, {}],
+        [2011, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, '#announce', POLICY_IDS.OWN, 8, {}],
+
         // RBR: the room has an error
-        [2012, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, '#v\u00edt-room', OTHER_POLICY_ID, 14, {errorFields: {joinRoom: {joinRoom: 'Could not join the room'}}}],
-        [2013, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, '#orphan-room', MISSING_POLICY_ID, 19, {}],
+        [2012, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, '#v\u00edt-room', POLICY_IDS.OTHER, 14, {errorFields: {joinRoom: {joinRoom: 'Could not join the room'}}}],
+        [2013, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, '#orphan-room', POLICY_IDS.MISSING, 19, {}],
     ] as const satisfies ReadonlyArray<readonly [number, Report['chatType'], string, string, number, Partial<Report>]>;
     for (const [reportID, chatType, reportName, policyID, day, reportFields] of rooms) {
         addReport(
@@ -464,8 +501,8 @@ function generateSearchFixture(): SearchFixture {
                 chatType,
                 reportName,
                 policyID,
-                policyName: policyID === MISSING_POLICY_ID ? 'Gone Workspace' : undefined,
-                participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2, 4]),
+                policyName: policyID === POLICY_IDS.MISSING ? 'Gone Workspace' : undefined,
+                participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, ACCOUNT_IDS.JOSE_NUNEZ, ACCOUNT_IDS.ISMAIL_YILMAZ]),
                 ...reportFields,
             },
             reportName,
@@ -478,7 +515,7 @@ function generateSearchFixture(): SearchFixture {
         2020,
         {
             type: CONST.REPORT.TYPE.CHAT,
-            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2]),
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, ACCOUNT_IDS.JOSE_NUNEZ]),
         },
         'Jos\u00e9 \u00d1\u00fa\u00f1ez',
         3,
@@ -495,7 +532,7 @@ function generateSearchFixture(): SearchFixture {
                 type: CONST.REPORT.TYPE.CHAT,
                 parentReportID: threadParentReportID,
                 parentReportActionID,
-                participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2]),
+                participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, ACCOUNT_IDS.JOSE_NUNEZ]),
                 ...report,
             },
             reportName,
@@ -505,7 +542,7 @@ function generateSearchFixture(): SearchFixture {
             reportActionID: parentReportActionID,
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             created: timestamp(3, reportIDNumber - REPORT_ID_TIMESTAMP_ORIGIN),
-            actorAccountID: 2,
+            actorAccountID: ACCOUNT_IDS.JOSE_NUNEZ,
             childReportID: reportID,
             message: [
                 {
@@ -524,7 +561,7 @@ function generateSearchFixture(): SearchFixture {
                 reportActionID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 created: reports[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`]?.lastVisibleActionCreated ?? '',
-                actorAccountID: 2,
+                actorAccountID: ACCOUNT_IDS.JOSE_NUNEZ,
                 message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: text, text}],
             },
         };
@@ -532,15 +569,21 @@ function generateSearchFixture(): SearchFixture {
 
     // Thread with replies to verify that non-empty threads are kept in options
     addReply(addThread(2021, 'Thread about the offsite'), 'Count me in');
-    // Hidden for the current user: every call site drops it except the task share destination, which includes threads and never sets excludeHidden
-    addThread(2022, 'Hidden thread', {
-        participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2], [CURRENT_USER_ACCOUNT_ID]),
-    });
+
+    // Hidden for the current user. It has a reply, so the empty-thread rule cannot drop it and only the excludeHidden check that every SearchRouter call site sets keeps it out
+    addReply(
+        addThread(2022, 'Hidden thread', {
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, ACCOUNT_IDS.JOSE_NUNEZ], [ACCOUNT_IDS.CURRENT_USER]),
+        }),
+        'Muted for now',
+    );
+
     // Empty threads are dropped by shouldReportBeInOptionList unless a draft or a pin keeps them
     addThread(2023, 'Empty thread');
     const draftedThreadReportID = addThread(2024, 'Empty thread with a draft');
     draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${draftedThreadReportID}`] = 'unsent draft';
     addThread(2025, 'Empty pinned thread', {isPinned: true});
+
     // The only thread whose name lacks "thread", so a query reaches it through its "Thread" alternate text alone
     addReply(addThread(2026, 'Packing list'), 'Tent and stove');
 
@@ -550,8 +593,8 @@ function generateSearchFixture(): SearchFixture {
             type: CONST.REPORT.TYPE.TASK,
             reportName: 'Book flights',
             parentReportID: threadParentReportID,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2]),
+            ownerAccountID: ACCOUNT_IDS.CURRENT_USER,
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, ACCOUNT_IDS.JOSE_NUNEZ]),
         },
         'Book flights',
         9,
@@ -562,9 +605,9 @@ function generateSearchFixture(): SearchFixture {
         {
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Offsite expenses',
-            policyID: OWN_POLICY_ID,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            participants: participantsOf([CURRENT_USER_ACCOUNT_ID]),
+            policyID: POLICY_IDS.OWN,
+            ownerAccountID: ACCOUNT_IDS.CURRENT_USER,
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER]),
         },
         'Offsite expenses',
         11,
@@ -576,9 +619,9 @@ function generateSearchFixture(): SearchFixture {
         {
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Empty submitted report',
-            policyID: OWN_POLICY_ID,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            participants: participantsOf([CURRENT_USER_ACCOUNT_ID]),
+            policyID: POLICY_IDS.OWN,
+            ownerAccountID: ACCOUNT_IDS.CURRENT_USER,
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER]),
             total: 0,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -604,14 +647,14 @@ function generateSearchFixture(): SearchFixture {
             type: CONST.REPORT.TYPE.CHAT,
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             reportName: undefined,
-            policyID: OWN_POLICY_ID,
-            participants: participantsOf([CURRENT_USER_ACCOUNT_ID, 2]),
+            policyID: POLICY_IDS.OWN,
+            participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, ACCOUNT_IDS.JOSE_NUNEZ]),
         },
         '#loading-room',
         27,
     );
 
-    const conciergeReportID = dmReportIDByAccountID[CONCIERGE_ACCOUNT_ID];
+    const conciergeReportID = dmReportIDByAccountID[ACCOUNT_IDS.CONCIERGE];
     if (!conciergeReportID) {
         throw new Error('The fixture must give the Concierge contact a DM');
     }
@@ -636,7 +679,7 @@ function generateSearchFixture(): SearchFixture {
         loginList: {
             [CURRENT_USER_EMAIL]: {
                 created: '2024-01-01 00:00:00.000',
-                accountID: CURRENT_USER_ACCOUNT_ID,
+                accountID: ACCOUNT_IDS.CURRENT_USER,
                 partnerID: 1,
                 partnerUserID: CURRENT_USER_EMAIL,
                 lastLogin: '2024-01-01 00:00:00.000',
@@ -661,6 +704,7 @@ function getOnyxEntries(fixture: SearchFixture): OnyxMultiSetInput {
         ...fixture.reportActions,
         ...fixture.policies,
         ...fixture.draftComments,
+
         // Mirrors privateIsArchivedMap so module-level archived reads agree with the map passed to createFilteredOptionList
         ...Object.fromEntries(Object.keys(fixture.privateIsArchivedMap).map((key) => [key, ARCHIVED_REPORT_NAME_VALUE_PAIRS])),
     };
@@ -674,6 +718,7 @@ async function writeOnyxEntries(entries: OnyxMultiSetInput): Promise<SearchFixtu
         getOnyxValue(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS),
         getOnyxValue(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS),
     ]);
+
     // Without derived values every report would silently fall back to defaults the app never computed
     if (!reportAttributes?.reports || !visibleReportActions || !sortedReportActions) {
         throw new Error('Onyx did not derive the report values; call initOnyxDerivedValues before writing the fixture');
@@ -690,5 +735,5 @@ function writeSearchFixtureToOnyx(fixture: SearchFixture): Promise<SearchFixture
     return writeOnyxEntries(getOnyxEntries(fixture));
 }
 
-export {generateSearchFixture, writeSearchFixtureToOnyx, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, OWN_POLICY_ID, SEARCH_QUERIES};
+export {generateSearchFixture, writeSearchFixtureToOnyx, ACCOUNT_IDS, CURRENT_USER_EMAIL, POLICY_IDS, SEARCH_QUERIES};
 export type {SearchFixture};
