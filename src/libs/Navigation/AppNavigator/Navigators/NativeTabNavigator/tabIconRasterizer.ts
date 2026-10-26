@@ -148,7 +148,7 @@ function drawStatusDot(canvas: SkCanvas, right: number, top: number, scale: numb
     paint.dispose();
 }
 
-/** Drawn inside the content box, opposite the status dot, because anything past the canvas is cut off. */
+/** Drawn inside the badge box, opposite the status dot, because anything past the canvas is cut off. */
 function drawEmojiStatus(canvas: SkCanvas, layout: TabIconLayout, right: number, bottom: number, scale: number, {emoji, backgroundColor, fontManager}: TabIconEmojiStatus) {
     const radius = layout.emojiStatusRadius * scale;
     const centerX = right - radius;
@@ -218,10 +218,12 @@ function getTabIconFrame(layout: TabIconLayout, contentSize: number, labelGap: n
 function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, emojiStatus, label}: TabIconParams): NativeBottomTabIcon | undefined {
     const scale = PixelRatio.get();
     const contentSize = (avatar ? layout.avatarSize : layout.glyphSize) * scale;
+    // With an emoji, the dot and badge sit on an avatar-sized box even over the glyph, because the badge is sized to clear the dot on the avatar.
+    const badgeBoxSize = avatar || emojiStatus ? layout.avatarSize * scale : contentSize;
     const paragraph = label ? makeLabelParagraph(label, scale) : undefined;
-    const {canvasWidth, canvasHeight, contentLeft, contentTop, labelLeft, labelTop} = getTabIconFrame(
+    const {canvasWidth, canvasHeight, contentLeft: badgeBoxLeft, contentTop: badgeBoxTop, labelLeft, labelTop} = getTabIconFrame(
         layout,
-        contentSize,
+        badgeBoxSize,
         (label?.gap ?? 0) * scale,
         paragraph?.getLongestLine() ?? 0,
         paragraph?.getHeight() ?? 0,
@@ -236,16 +238,18 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, emoj
     }
 
     const canvas = surface.getCanvas();
+    const contentLeft = badgeBoxLeft + (badgeBoxSize - contentSize) / 2;
+    const contentTop = badgeBoxTop + (badgeBoxSize - contentSize) / 2;
     if (avatar) {
         drawCircularImage(canvas, avatar.image, contentLeft, contentTop, contentSize);
     } else {
         drawGlyph(canvas, name, contentLeft, contentTop, contentSize, color);
     }
     if (dotColor) {
-        drawStatusDot(canvas, contentLeft + contentSize, contentTop, scale, dotColor);
+        drawStatusDot(canvas, badgeBoxLeft + badgeBoxSize, badgeBoxTop, scale, dotColor);
     }
     if (emojiStatus) {
-        drawEmojiStatus(canvas, layout, contentLeft + contentSize, contentTop + contentSize, scale, emojiStatus);
+        drawEmojiStatus(canvas, layout, badgeBoxLeft + badgeBoxSize, badgeBoxTop + badgeBoxSize, scale, emojiStatus);
     }
     if (paragraph) {
         paragraph.paint(canvas, labelLeft, labelTop);
