@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getTagLists} from '@libs/PolicyUtils';
+import {getTagLists, hasDependentTags} from '@libs/PolicyUtils';
 
 import variables from '@styles/variables';
 
@@ -79,6 +79,7 @@ function ConfirmationFieldList({
     const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat, isDistanceRequest, isPerDiemRequest, isTimeRequest, isTypeInvoice} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const policyTagLists = getTagLists(policyTags);
+    const hasDependentTagLists = hasDependentTags(policy, policyTags);
 
     const flags = useFooterDerivedFlags({
         action,
@@ -155,6 +156,7 @@ function ConfirmationFieldList({
                     policy={policy}
                     policyForMovingExpenses={flags.policyForMovingExpenses}
                     policyTagLists={policyTagLists}
+                    hasDependentTags={hasDependentTagLists}
                     previousTagsVisibility={previousTagsVisibility}
                     isCategoryRequired={requiredFlags.isCategoryRequired}
                     canModifyTaxFields={flags.canModifyTaxFields}

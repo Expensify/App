@@ -22,7 +22,7 @@ import type {CompanyAddress} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {deepEqual} from 'fast-equals';
-import React from 'react';
+import React, {useState} from 'react';
 
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import WorkspaceOfficeLocationForm from './WorkspaceOfficeLocationForm';
@@ -38,16 +38,19 @@ function WorkspaceOfficeLocationEditPage({route}: WorkspaceOfficeLocationEditPag
     const policy = usePolicy(policyID);
     const officeLocations = policy?.officeLocations;
     const officeLocation = officeLocations?.[officeID];
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    // The company address counts as an office, so only a workspace without one keeps at least one office and can't delete
-    // its last office. Offices being deleted and additions that failed aren't on the server, so they don't count.
+    // Excluding commutes by home and office needs an office, and the company address counts as one, so only a workspace
+    // excluding commutes that way without a company address keeps its last office. Offices being deleted and additions
+    // that failed aren't on the server, so they don't count.
     const savedOfficeLocations = Object.entries(officeLocations ?? {}).filter(
         ([, otherOfficeLocation]) =>
             otherOfficeLocation.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
             !(otherOfficeLocation.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(otherOfficeLocation.errors)),
     );
     const isCompanyAddressShown = hasCompanyAddress(policy);
-    const canDelete = savedOfficeLocations.length > 1 || isCompanyAddressShown;
+    const isHomeAndOfficeMethod = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+    const canDelete = savedOfficeLocations.length > 1 || isCompanyAddressShown || !isHomeAndOfficeMethod;
 
     // The company address row is listed with the offices, so its label is taken too
     const takenNames = [
@@ -81,6 +84,8 @@ function WorkspaceOfficeLocationEditPage({route}: WorkspaceOfficeLocationEditPag
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
+            // Keep this page from blocking itself while it closes, so it doesn't flash "Not here" once the office is marked for deletion
+            setIsDeleting(true);
             deleteOfficeLocation(policyID, officeID, officeLocation);
             Navigation.goBack();
         });
@@ -90,7 +95,10 @@ function WorkspaceOfficeLocationEditPage({route}: WorkspaceOfficeLocationEditPag
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) || !officeLocation || officeLocation.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+            shouldBeBlocked={
+                !isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) ||
+                (!isDeleting && (!officeLocation || officeLocation.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
+            }
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
