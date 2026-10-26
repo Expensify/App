@@ -2,16 +2,13 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {createContext, useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {SafeAreaListener} from 'react-native-safe-area-context';
 
-const TabBarShapeContext = createContext<(isTabBarVertical: boolean) => void>(() => {});
+import type TabBarShapeProbeProps from './types';
 
-type TabBarShapeProbeProps = {
-    /** Whether the native tab bar is shown, so its shape is only read while it adds to the safe area */
-    isTabBarShown: boolean;
-};
+import TabBarShapeContext from './TabBarShapeContext';
 
 /**
  * UIKit adds the area of the tab bar to the safe area of each tab screen, and a SafeAreaListener reports the insets of
@@ -45,4 +42,3 @@ function TabBarShapeProbe({isTabBarShown}: TabBarShapeProbeProps) {
 }
 
 export default TabBarShapeProbe;
-export {TabBarShapeContext};
