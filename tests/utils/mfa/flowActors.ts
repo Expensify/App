@@ -33,6 +33,9 @@ function createFlowContext(overrides: Partial<MfaContext> = {}): MfaContext {
         validateCodePresentationPhase: undefined,
         registrationStateAtStart: initEvent.registrationStateAtStart,
         isRegistrationComplete: false,
+        isCancelConfirmed: false,
+        cancelError: undefined,
+        scenarioActionResult: undefined,
         ...overrides,
     };
 }

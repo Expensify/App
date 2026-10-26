@@ -252,5 +252,24 @@ describe('MFA scenario callbacks through the finalize-outcome actor', () => {
             expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
             expect(fireAndForgetDenyTransaction).toHaveBeenCalledWith({transactionID: TRANSACTION_ID});
         });
+
+        it.each([
+            REASON.FLOW_OUTCOMES.TRANSACTION_DENIED,
+            REASON.CLIENT_ERRORS.ALREADY_APPROVED_APPROVE_ATTEMPTED,
+            REASON.CLIENT_ERRORS.ALREADY_APPROVED_DENY_ATTEMPTED,
+            REASON.CLIENT_ERRORS.ALREADY_DENIED_APPROVE_ATTEMPTED,
+            REASON.CLIENT_ERRORS.ALREADY_DENIED_DENY_ATTEMPTED,
+            REASON.CLIENT_ERRORS.ALREADY_REVIEWED,
+        ])('sends no deny and shows the outcome screen when the server already settled the transaction (%s)', async (reason) => {
+            // Given a failure whose reason says the server has already approved or denied the transaction
+            const error = createLocalMFAError(reason, undefined);
+
+            // When the callback runs
+            const output = await runScenario(SCENARIO.AUTHORIZE_TRANSACTION, {error, payload});
+
+            // Then no deny is sent, since the server could only reject it, and the outcome screen still shows
+            expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
+            expect(fireAndForgetDenyTransaction).not.toHaveBeenCalled();
+        });
     });
 });

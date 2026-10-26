@@ -7,7 +7,7 @@ import trackMFAFlowOutcome from '@components/MultifactorAuthentication/observabi
 import {getErrorMessage} from '@libs/ErrorUtils';
 import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import {createCanceledMFAResult, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import {createCanceledMFAResult, createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {MultifactorAuthenticationCallbackInput, MultifactorAuthenticationCallbackResponse} from '@libs/MultifactorAuthentication/shared/types';
 
 import {requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
@@ -20,6 +20,8 @@ import {fromPromise} from 'xstate';
 import type {
     AuthorizeInput,
     AuthorizeOutput,
+    CancelScenarioInput,
+    CancelScenarioOutput,
     CreateCredentialInput,
     CreateCredentialOutput,
     ExecuteScenarioActionInput,
@@ -119,7 +121,8 @@ const authorizeActor = fromPromise<AuthorizeOutput, AuthorizeInput>(async ({inpu
 /**
  * Calls the scenario's backend API command (e.g. approving the transaction) with the signed challenge and
  * returns its result. The request can't be taken back once sent, so stopping this actor never aborts it. No
- * rollback happens after the action fails, matching `registerCredentialActor`'s contract.
+ * rollback happens after the action fails, matching `registerCredentialActor`'s contract. See `denying` in
+ * `mfaMachine.ts` for how the result is used when the user confirms a cancel while the request is in flight.
  */
 const executeScenarioActionActor = fromPromise<ExecuteScenarioActionOutput, ExecuteScenarioActionInput>(async ({input}) => {
     const scenarioResult = await input.runScenarioAction({
@@ -155,6 +158,7 @@ const finalizeOutcomeActor = fromPromise<FinalizeOutcomeOutput, FinalizeOutcomeI
     const callbackInput: MultifactorAuthenticationCallbackInput = {
         httpStatusCode: input.scenarioResponse?.httpStatusCode,
         message: input.scenarioResponse?.reason ?? input.error?.reason,
+        reason: input.scenarioResponse?.reason ?? input.error?.reason,
         body: input.scenarioResponse?.body,
     };
 
@@ -200,6 +204,21 @@ const finalizeOutcomeActor = fromPromise<FinalizeOutcomeOutput, FinalizeOutcomeI
 });
 
 /**
+ * Runs the scenario's cancel logic and returns the error the cancelled flow fails with, so the outcome
+ * path (callback, telemetry, failure screen) runs as for any other failure. The signal is ignored: a
+ * cancel request already sent (e.g. `AuthorizeTransaction`'s deny) can't be taken back.
+ */
+const cancelScenarioActor = fromPromise<CancelScenarioOutput, CancelScenarioInput>(async ({input}) => {
+    if (input.onCancel) {
+        const error = await input.onCancel(input.payload);
+        addMFABreadcrumb('Flow cancelled with onCancel', error, 'warning');
+        return error;
+    }
+    addMFABreadcrumb('Flow cancelled', {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED}, 'warning');
+    return createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED, 'User cancelled the MFA flow');
+});
+
+/**
  * Builds the side-effect actors that the machine states invoke. The machine is always created with
  * these working implementations, so no caller needs to provide stubs or overrides.
  */
@@ -213,6 +232,7 @@ function createActors() {
         authorize: authorizeActor,
         executeScenarioAction: executeScenarioActionActor,
         finalizeOutcome: finalizeOutcomeActor,
+        cancelScenario: cancelScenarioActor,
     };
 }
 

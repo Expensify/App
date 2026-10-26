@@ -836,7 +836,10 @@ const ONYXKEYS = {
     /** Partial transaction data used for MFA authorize transaction preview */
     TRANSACTIONS_PENDING_3DS_REVIEW: 'transactionsPending3DSReview',
 
-    /** List of transaction authorization challenges we have attempted to respond to */
+    /**
+     * List of transaction authorization challenges we have attempted to respond to. The value is what this app sent,
+     * not how the transaction ended: a cancel sends a deny even when the approve already went through.
+     */
     LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS: 'locallyProcessed3DSTransactionReviews',
 
     /** Whether the user has denied the contact import permission prompt */

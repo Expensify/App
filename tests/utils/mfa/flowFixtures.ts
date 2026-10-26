@@ -57,6 +57,7 @@ const MFA_TEST_CREDENTIAL_REGISTRATION_ERROR = createMFAErrorFromApiResponse(
 const MFA_TEST_AUTHORIZATION_ORDINARY_ERROR = createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.CANCELED, 'Graph-traversal authorization cancellation');
 // A backend rejection of the scenario action, which lands on the generic failure copy.
 const MFA_TEST_SCENARIO_ACTION_ERROR = createMFAErrorFromApiResponse(400, CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.UNRECOGNIZED, 'Graph-traversal scenario action rejection');
+const MFA_TEST_CANCEL_ERROR = createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED, 'Graph-traversal cancellation');
 const MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN: FinalizeOutcomeOutput = {callbackResponse: CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN};
 // The Provider's pre-INIT snapshot, carried only for the outcome telemetry's start/end comparison - no
 // transition depends on its values.
@@ -76,12 +77,30 @@ function createInitEvent(): MultifactorAuthenticationInitEvent<typeof MFA_TEST_S
     };
 }
 
+/** Builds an INIT event for a scenario with `onCancel`, which the default BIOMETRICS_TEST fixture lacks. */
+function createInitEventWithOnCancel(): MultifactorAuthenticationInitEvent<typeof CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION> {
+    const scenarioName = CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION;
+    const scenario = getScenarioConfig(scenarioName);
+    const payload = {transactionID: 'mfa-test-transaction'};
+    return {
+        type: 'INIT',
+        accountID: MFA_TEST_ACCOUNT_ID,
+        scenarioName,
+        scenario,
+        payload,
+        runScenarioAction: createScenarioActionRunner(scenarioName, scenario.action, payload),
+        registrationStateAtStart: MFA_TEST_REGISTRATION_STATE_AT_START,
+    };
+}
+
 export default createInitEvent;
 export {
+    createInitEventWithOnCancel,
     MFA_TEST_ACCOUNT_ID,
     MFA_TEST_AUTH_METHOD,
     MFA_TEST_AUTHENTICATION_CHALLENGE,
     MFA_TEST_AUTHORIZATION_ORDINARY_ERROR,
+    MFA_TEST_CANCEL_ERROR,
     MFA_TEST_CREDENTIAL_CREATION_ERROR,
     MFA_TEST_CREDENTIAL_REGISTRATION_ERROR,
     MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR,

@@ -71,6 +71,9 @@ type MultifactorAuthenticationCallbackInput = {
     /** The HTTP status message or a pre-defined reason if the error occurred on the front-end */
     message?: string;
 
+    /** The reason the flow ended with, from the scenario response or the error */
+    reason?: MultifactorAuthenticationReason;
+
     /** Object containing the data that is relevant to the Scenario (e.g., {pin: number} for PIN scenarios) */
     body?: Record<string, unknown>;
 };

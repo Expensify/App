@@ -18,6 +18,7 @@ import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {
     authorizeControl,
+    cancelScenarioControl,
     createCredentialControl,
     registerCredentialControl,
     executeScenarioActionControl,
@@ -207,6 +208,8 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
         [actorErrorEventType('executeScenarioAction')]: () => settleActor(executeScenarioActionControl.reject),
         [actorDoneEventType('finalizeOutcome')]: (step) => settleActor(() => finalizeOutcomeControl.resolve(getActorDoneOutput(step))),
         [actorErrorEventType('finalizeOutcome')]: () => settleActor(finalizeOutcomeControl.reject),
+        [actorDoneEventType('cancelScenario')]: (step) => settleActor(() => cancelScenarioControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('cancelScenario')]: () => settleActor(cancelScenarioControl.reject),
     } satisfies MfaEventExecutors;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
@@ -295,6 +298,20 @@ const testConfig = {
                 expect(screen.getByText(translateLocal('multifactorAuthentication.nowLetsAuthenticateYou'))).toBeOnTheScreen();
             } else {
                 expect(screen.getByText(translateLocal('multifactorAuthentication.verifyYourself.biometrics'))).toBeOnTheScreen();
+            }
+        },
+        // The screen the user cancelled from stays mounted while the scenario's cancel logic runs, busy so it can't be used meanwhile.
+        [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.CANCELLING}`]: () => {
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+            const routeName = mfaNavigationRef.getCurrentRoute()?.name;
+            if (routeName === SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT) {
+                expect(screen.queryByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).not.toBeOnTheScreen();
+            }
+            if (routeName === SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE) {
+                // A loading button is disabled, so this is how the busy submit shows up here.
+                expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_SUBMIT_BUTTON)).toBeDisabled();
+                expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON)).toBeDisabled();
             }
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.OUTCOME}.${MFA_STATE.FINALIZING_OUTCOME}`]: () => {

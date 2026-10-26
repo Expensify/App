@@ -1,6 +1,6 @@
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 
-import {getDrivingJourneyPaths, getMfaShortestPaths} from 'tests/utils/mfa/flowPaths';
+import {getDrivingJourneyPaths, getMfaShortestPaths, getMfaShortestPathsWithOnCancel} from 'tests/utils/mfa/flowPaths';
 import {getStableLeafStates} from 'tests/utils/mfa/leafStates';
 import {matchesState} from 'xstate';
 
@@ -12,7 +12,7 @@ import {matchesState} from 'xstate';
 // `viewMatchesMachine.test.tsx` cannot drive (a delayed transition, for example). A failure here means
 // the machine itself lost the state, not that the UI harness broke.
 describe('every stable MFA state is reachable in the machine chart', () => {
-    const reachableSnapshots = getMfaShortestPaths().map((path) => path.state);
+    const reachableSnapshots = [...getMfaShortestPaths(), ...getMfaShortestPathsWithOnCancel()].map((path) => path.state);
 
     it.each(getStableLeafStates(mfaMachine.root))('$description can be reached from the initial state', ({description}) => {
         expect(reachableSnapshots.some((snapshot) => matchesState(description, snapshot.value))).toBe(true);

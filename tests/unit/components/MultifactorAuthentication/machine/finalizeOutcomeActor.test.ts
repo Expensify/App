@@ -76,7 +76,11 @@ describe('finalizeOutcome actor', () => {
         const snapshot = await runFinalizeOutcomeActor(input);
 
         // `message` carries the reason, not the message - deliberate parity with the legacy callback input.
-        expect(callback).toHaveBeenCalledWith(true, {httpStatusCode: 200, message: REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, body: {pin: '1234'}}, {transactionID: 'txn-1'});
+        expect(callback).toHaveBeenCalledWith(
+            true,
+            {httpStatusCode: 200, message: REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, reason: REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, body: {pin: '1234'}},
+            {transactionID: 'txn-1'},
+        );
         expect(snapshot.output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
     });
 
@@ -89,7 +93,7 @@ describe('finalizeOutcome actor', () => {
 
         // `httpStatusCode` is undefined here (not `failureError.httpStatusCode`) - odd but deliberate
         // parity with legacy, which never fell back to the error's HTTP status for this field.
-        expect(callback).toHaveBeenCalledWith(false, {httpStatusCode: undefined, message: failureError.reason, body: undefined}, undefined);
+        expect(callback).toHaveBeenCalledWith(false, {httpStatusCode: undefined, message: failureError.reason, reason: failureError.reason, body: undefined}, undefined);
     });
 
     it('returns SKIP_OUTCOME_SCREEN when the callback returns it', async () => {

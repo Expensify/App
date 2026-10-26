@@ -4,6 +4,8 @@ import type createActors from '@components/MultifactorAuthentication/machine/mfa
 import type {
     AuthorizeInput,
     AuthorizeOutput,
+    CancelScenarioInput,
+    CancelScenarioOutput,
     CreateCredentialInput,
     CreateCredentialOutput,
     ExecuteScenarioActionInput,
@@ -130,6 +132,7 @@ const registerCredentialControl = createControlledActor<RegisterCredentialOutput
 const authorizeControl = createControlledActor<AuthorizeOutput, AuthorizeInput>('authorize');
 const executeScenarioActionControl = createControlledActor<ExecuteScenarioActionOutput, ExecuteScenarioActionInput>('executeScenarioAction');
 const finalizeOutcomeControl = createControlledActor<FinalizeOutcomeOutput, FinalizeOutcomeInput>('finalizeOutcome');
+const cancelScenarioControl = createControlledActor<CancelScenarioOutput, CancelScenarioInput>('cancelScenario');
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
@@ -142,6 +145,7 @@ function resetMfaUiMocks() {
     authorizeControl.reset();
     executeScenarioActionControl.reset();
     finalizeOutcomeControl.reset();
+    cancelScenarioControl.reset();
 }
 
 /** Replaces the machine's side-effect actors with controlled test implementations. */
@@ -155,6 +159,7 @@ function mfaActorsMock() {
         authorize: authorizeControl.actor,
         executeScenarioAction: executeScenarioActionControl.actor,
         finalizeOutcome: finalizeOutcomeControl.actor,
+        cancelScenario: cancelScenarioControl.actor,
     } satisfies ReturnType<typeof createActors>;
 
     return {
@@ -267,6 +272,7 @@ export {
     authorizeControl,
     executeScenarioActionControl,
     finalizeOutcomeControl,
+    cancelScenarioControl,
     resetMfaUiMocks,
     mfaActorsMock,
     captureRegistrationStateMock,

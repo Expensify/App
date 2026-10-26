@@ -1,3 +1,5 @@
+import CONST from '@src/CONST';
+
 import type {AnyStateNode} from 'xstate';
 
 type LeafState = {description: string};
@@ -31,6 +33,10 @@ function getStableLeafStates(node: AnyStateNode): LeafState[] {
         .map(toLeafState);
 }
 
+// `denying` needs a scenario with `onCancel`, and the only one (AuthorizeTransaction) has copy the UI walk
+// doesn't assert. `cancelTransition.test.ts` covers it by hand.
+const UNWALKED_LEAF_STATES = new Set<string>([CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.DENYING]);
+
 /**
  * Returns the stable leaf states that the UI walk can also stop on and assert. This is separate from
  * `getStableLeafStates` so the UI contract can diverge when the machine adds a leaf type the real UI
@@ -38,7 +44,7 @@ function getStableLeafStates(node: AnyStateNode): LeafState[] {
  */
 function getSettleableLeafStates(node: AnyStateNode): LeafState[] {
     return getLeafNodes(node)
-        .filter((leaf) => !hasUnguardedAlways(leaf))
+        .filter((leaf) => !hasUnguardedAlways(leaf) && !UNWALKED_LEAF_STATES.has(leaf.key))
         .map(toLeafState);
 }
 

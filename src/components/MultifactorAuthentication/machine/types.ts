@@ -5,6 +5,7 @@ import type {MultifactorAuthenticationScenarioConfigFor} from '@components/Multi
 import type {
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioAdditionalParams,
+    MultifactorAuthenticationScenarioConfig,
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationScenarioResponse,
 } from '@components/MultifactorAuthentication/config/types';
@@ -77,6 +78,19 @@ type MfaContext = {
 
     /** Whether this flow completed a fresh credential registration (`creatingCredential` succeeded) before authorizing. */
     isRegistrationComplete: boolean;
+
+    /**
+     * Whether the user confirmed a cancel in this flow. The screen behind the dialog reads it to stay busy
+     * until the cancel returns. Like the presentation phases, it is kept until the modal fully closes, so
+     * the screen doesn't turn interactive again while it is still mounted and animating out.
+     */
+    isCancelConfirmed: boolean;
+
+    /** The `onCancel` result while `denying`, held until `denying` decides the outcome. */
+    cancelError: MFAError | undefined;
+
+    /** The scenario action's result while `denying`, held until `denying` decides the outcome. */
+    scenarioActionResult: ExecuteScenarioActionOutput | undefined;
 };
 
 /** See `MfaContext.promptPresentationPhase`. */
@@ -203,9 +217,23 @@ type FinalizeOutcomeOutput = {
     callbackResponse: MultifactorAuthenticationCallbackResponse;
 };
 
+/**
+ * Input the machine passes to the cancel actor: the scenario's optional cancel logic and its payload.
+ * Named `payload` for the inspector masking, same as `FinalizeOutcomeInput`.
+ */
+type CancelScenarioInput = {
+    onCancel: MultifactorAuthenticationScenarioConfig['onCancel'];
+    payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
+};
+
+/** The cancel actor's result: the error the cancelled flow fails with, which picks the outcome screen. */
+type CancelScenarioOutput = MFAError;
+
 export type {
     AuthorizeInput,
     AuthorizeOutput,
+    CancelScenarioInput,
+    CancelScenarioOutput,
     CreateCredentialInput,
     CreateCredentialOutput,
     ExecuteScenarioActionInput,
