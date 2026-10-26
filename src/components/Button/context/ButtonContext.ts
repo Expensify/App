@@ -17,7 +17,6 @@ const defaultButtonActionsContextValue: ButtonActionsContextValue = {
     onPress: () => {},
 };
 
-// State (data) and actions (functions) live in separate contexts so neither provider mixes the two (rulesdir/context-provider-split-values).
 const ButtonStateContext = createContext<ButtonStateContextValue>(defaultButtonStateContextValue);
 const ButtonActionsContext = createContext<ButtonActionsContextValue>(defaultButtonActionsContextValue);
 

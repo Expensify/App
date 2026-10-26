@@ -5,7 +5,7 @@ import type CONST from '@src/CONST';
 import type {GestureResponderEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-/** State (data) published by the parent `Button` for its child primitives (Text/Icon/KeyboardShortcut/...) to consume via `useButtonState`. */
+/** State published by the parent `Button` for its child primitives (Text/Icon/KeyboardShortcut/...) to consume via `useButtonState`. */
 type ButtonStateContextValue = {
     /** Button size — primitives use it to pick matching paddings/icon dimensions/font sizes. */
     size: ValueOf<typeof CONST.BUTTON_SIZE>;
@@ -23,7 +23,7 @@ type ButtonStateContextValue = {
     isLoading: boolean;
 };
 
-/** Actions (functions) published by the parent `Button`, consumed via `useButtonActions` */
+/** Actions published by the parent `Button`, consumed via `useButtonActions` */
 type ButtonActionsContextValue = {
     /** The Button's press handler. `ButtonKeyboardShortcut` fires it when Enter is pressed. */
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;

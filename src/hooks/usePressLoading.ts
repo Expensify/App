@@ -4,7 +4,7 @@ import {NavigationContext} from '@react-navigation/core';
 import {useContext, useEffect, useRef, useState} from 'react';
 
 type UsePressLoadingOptions = {
-    /** External loading flag (e.g. driven by Onyx). Leave it undefined when there is none. */
+    /** External loading flag (e.g. driven by Onyx). Defaults to false. */
     isLoading?: boolean;
     /** Reset the pressed state when the screen regains navigation focus. Defaults to true. */
     resetOnFocus?: boolean;
@@ -24,7 +24,7 @@ type UsePressLoadingReturn = {
 };
 
 /** Shows a spinner the moment a button is pressed, before the real work runs. */
-function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOptions = {}): UsePressLoadingReturn {
+function usePressLoading({isLoading = false, resetOnFocus = true}: UsePressLoadingOptions = {}): UsePressLoadingReturn {
     const [isPressed, setIsPressed] = useState(false);
     // The press in flight, set synchronously so a second press before React commits isPressed is ignored
     const activePressRef = useRef<symbol | null>(null);
@@ -76,7 +76,7 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
         });
     }, [resetOnFocus, isPressed, navigationContext]);
 
-    return {isLoading: isPressed || !!isLoading, startWithLoading};
+    return {isLoading: isPressed || isLoading, startWithLoading};
 }
 
 export default usePressLoading;

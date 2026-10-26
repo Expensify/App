@@ -145,7 +145,7 @@ function FormProvider({
     shouldTrimValues = true,
     allowHTML = false,
     shouldPreserveCustomValidationErrors = false,
-    isLoading: isOnyxLoading,
+    isLoading: isOnyxLoading = false,
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
@@ -301,10 +301,9 @@ function FormProvider({
         [touchedInputs],
     );
 
-    const hasExternalLoadingFlag = formState?.isLoading !== undefined || isOnyxLoading !== undefined;
-    const isExternalLoading = hasExternalLoadingFlag ? !!formState?.isLoading || !!isOnyxLoading : undefined;
+    const isExternalLoading = !!formState?.isLoading || isOnyxLoading;
     const {isLoading: isPressLoading, startWithLoading} = usePressLoading({isLoading: isExternalLoading});
-    const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : !!isExternalLoading;
+    const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : isExternalLoading;
 
     const submit = useDebounceNonReactive(
         useCallback(() => {

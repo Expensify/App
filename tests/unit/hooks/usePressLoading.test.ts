@@ -140,7 +140,7 @@ describe('usePressLoading', () => {
         expect(result.current.isLoading).toBe(false);
     });
 
-    it('holds the loading state until an external isLoading takes over, without a gap', async () => {
+    it('keeps the loading state through the frame after settle so an external isLoading can take over without a gap', async () => {
         // Given a consumer whose loading flag is driven externally (e.g. by Onyx)
         const {result, rerender} = renderHook((props: {isLoading?: boolean} = {}) => usePressLoading(props), {initialProps: {isLoading: false}});
 
@@ -150,8 +150,8 @@ describe('usePressLoading', () => {
         });
         await flush();
 
-        // Then the flag stays set while the external one is still on its way. Clearing here would blink
-        // the spinner off during exactly the wait it exists to cover, and reopen the press guard with it.
+        // Then the flag stays set until the next frame, which gives the external flag time to arrive.
+        // Clearing right on settle would blink the spinner off and reopen the press guard with it.
         expect(result.current.isLoading).toBe(true);
 
         // And once the external flag arrives, it owns the state
@@ -163,24 +163,19 @@ describe('usePressLoading', () => {
         expect(result.current.isLoading).toBe(false);
     });
 
-    it('clears on settle when isLoading is undefined at press time, even if it turns true later', async () => {
-        // Given a consumer that passes an isLoading which has not resolved to a boolean yet, as `someOnyxValue?.isLoading`
-        // does before Onyx writes anything
-        const {result, rerender} = renderHook((props: {isLoading?: boolean} = {}) => usePressLoading(props));
+    it('clears the loading state after settle when an external isLoading never turns true', async () => {
+        // Given a consumer with an external flag whose handler bails out before driving it, as a validation failure does
+        const {result} = renderHook(() => usePressLoading({isLoading: false}));
 
-        // When a synchronous handler runs to completion
+        // When the handler runs to completion and the next frame passes
         act(() => {
             result.current.startWithLoading(() => {});
         });
         await flush();
         await flushFrame();
 
-        // Then undefined counted as "nobody will take this over", so the pressed state cleared instead of waiting
+        // Then the spinner clears instead of hanging while it waits for a hand-over that is never coming
         expect(result.current.isLoading).toBe(false);
-
-        // And a flag arriving afterwards drives the state on its own, rather than resuming a hand-over that never started
-        rerender({isLoading: true});
-        expect(result.current.isLoading).toBe(true);
     });
 
     it('clears the loading state and logs instead of rejecting when the work fails', async () => {

@@ -80,7 +80,7 @@ function WorkspaceConfirmationForm({
     policyOwnerEmail = '',
     onBackButtonPress = () => Navigation.goBack(),
     addBottomSafeAreaPadding = true,
-    isLoading,
+    isLoading = false,
 }: WorkspaceConfirmationFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
