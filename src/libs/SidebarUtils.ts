@@ -997,6 +997,7 @@ function getOptionData({
         isReportArchived,
         getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
         conciergeReportID,
+        parentReportAction,
     );
 
     // IOU icon trimming (single vs diagonal) is handled at the component level

@@ -11,6 +11,7 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
 import {
@@ -30,6 +31,7 @@ import {clearAvatarErrors, updateGroupChatAvatar} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {getParentReportActionSelector} from '@src/selectors/ReportAction';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import type {Report} from '@src/types/onyx';
 
@@ -52,6 +54,8 @@ function ReportDetailsAvatarContent({report}: ReportDetailsAvatarContentProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report.parentReportID)}`);
+    const parentReportAction = getParentReportActionSelector(parentReportActions, report.parentReportActionID);
     const [personalDetails] = useAllPersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
@@ -67,7 +71,21 @@ function ReportDetailsAvatarContent({report}: ReportDetailsAvatarContentProps) {
     const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin);
     const participants = getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
 
-    const icons = getIcons(report, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isReportArchived, pendingDeleteMemberAccountIDs, conciergeReportID);
+    const icons = getIcons(
+        report,
+        formatPhoneNumber,
+        translate,
+        personalDetails,
+        null,
+        '',
+        -1,
+        policy,
+        undefined,
+        isReportArchived,
+        pendingDeleteMemberAccountIDs,
+        conciergeReportID,
+        parentReportAction,
+    );
 
     if (isChatRoom && !isThread) {
         return (
