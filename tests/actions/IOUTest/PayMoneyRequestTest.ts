@@ -3017,7 +3017,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
                 chatReportID: chatReport.reportID,
                 total: -100,
-                currency: CONST.CURRENCY.EUR,
+                currency: CONST.CURRENCY.USD,
             };
 
             payMoneyRequest({
