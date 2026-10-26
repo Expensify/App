@@ -3,6 +3,8 @@ import type {Country} from '@src/CONST';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
+
 type AddressType = PersonalDetailsForm | Address | undefined;
 
 /**
@@ -36,4 +38,13 @@ function getCountryCode(countryValue: string | undefined): Country | undefined {
     return countryValue as Country | undefined;
 }
 
-export {normalizeCountryCode, getCountryCode};
+// StateSelector keys on 2-letter codes, but stored addresses may use full state names (e.g. "California").
+function resolveStateCode(stateValue: string): string {
+    if (!stateValue || stateValue in COMMON_CONST.STATES) {
+        return stateValue;
+    }
+    const match = Object.entries(COMMON_CONST.STATES).find(([, v]) => v.stateName.toLowerCase() === stateValue.toLowerCase());
+    return match ? match[0] : stateValue;
+}
+
+export {normalizeCountryCode, getCountryCode, resolveStateCode};
