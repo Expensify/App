@@ -94,12 +94,12 @@ jobs:
             const change = addsFilter && addsColumn ? 'a Search filter and column' : addsFilter ? 'a Search filter' : 'a Search column';
             const body = [
               MARKER,
-              `This PR adds ${change}. Please verify:`,
+              `This PR adds ${change}. Please double check the following:`
               '',
-              '- [ ] The filter is available in Search and returns the expected results.',
-              '- [ ] The data can be shown through **Display > Edit columns**.',
-              '- [ ] The column can be sorted in both directions.',
-              '- [ ] **Export > Current view** includes the column when it is shown.',
+              '- [ ] The filter is available in the Search filters dropdown and returns the expected results.',
+              '- [ ] The filter has a matching column that can be shown through **Display > Edit columns**.',
+              '- [ ] The column can be sorted by clicking its header.',
+              '- [ ] **Export > Current view** includes the column in the exported CSV.',
             ].join('\n');
 
             if (existing) {
