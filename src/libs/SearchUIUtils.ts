@@ -7314,22 +7314,6 @@ function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) 
     }
 }
 
-/**
- * The search snapshot can hold only part of a report's actions, for example just the selected row's IOU action, so the delete check merges it
- * with the live collection to see the report's whole submit and forward history. Live actions win on conflict.
- */
-function getReportActionsForDeleteCheck(
-    reportID: string | undefined,
-    currentSearchResults: SearchResults['data'] | undefined,
-    allReportActions: OnyxCollection<OnyxTypes.ReportActions>,
-): OnyxTypes.ReportAction[] {
-    if (!reportID) {
-        return [];
-    }
-    const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
-    return Object.values({...currentSearchResults?.[key], ...allReportActions?.[key]});
-}
-
 function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
@@ -7338,7 +7322,6 @@ function shouldShowDeleteOption(
     // The full list is needed because each pass below resolves a different report owner.
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     cardList: OnyxEntry<OnyxTypes.CardList>,
-    allReportActions: OnyxCollection<OnyxTypes.ReportActions>,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
@@ -7350,7 +7333,8 @@ function shouldShowDeleteOption(
               if (!fullReport) {
                   return false;
               }
-              const reportActionsArray = getReportActionsForDeleteCheck(selectedReport.reportID, currentSearchResults, allReportActions);
+              const reportActionsData = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selectedReport.reportID}`];
+              const reportActionsArray = Object.values(reportActionsData ?? {});
               const reportTransactions: OnyxTypes.Transaction[] = [];
               const searchData = currentSearchResults ?? {};
               for (const key of Object.keys(searchData)) {
@@ -7382,11 +7366,12 @@ function shouldShowDeleteOption(
               }
               const parentReportID = transaction.reportID;
               const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
-              const reportActions = getReportActionsForDeleteCheck(parentReportID, currentSearchResults, allReportActions);
+              const snapshotReportActions = Object.values(currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {});
               const parentReportAction =
-                  reportActions.find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ?? selectedTransactions[id].reportAction;
-              // Keep the row's own action when neither source holds it, so ownership can still be decided from it
-              const parentReportActions = parentReportAction && !reportActions.includes(parentReportAction) ? [...reportActions, parentReportAction] : reportActions;
+                  snapshotReportActions.find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
+                  selectedTransactions[id].reportAction;
+              // The delete check needs the report's whole history to see submits and forwards, and keeps the row's own action in case the snapshot lacks it
+              const parentReportActions = parentReportAction && !snapshotReportActions.includes(parentReportAction) ? [...snapshotReportActions, parentReportAction] : snapshotReportActions;
 
               const parentReportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`];
               return canDeleteMoneyRequestReport(
