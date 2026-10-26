@@ -30,8 +30,11 @@ type ChartComparison = {
     /** The compared rows, paired with the chart's own rows by key, or time buckets by where they sit in their period when `periods` is set */
     data: GroupedItem[];
 
-    /** Names the series in the tooltip, like "Average". Left out, each row names the dates it covers. */
+    /** Names the series in the tooltip, like "Monthly average". Left out, each row names the dates it covers. */
     label?: string;
+
+    /** Whether the rows hold an average, drawn as one horizontal line. Groups other than time buckets all take the first row's average. */
+    isAverage?: boolean;
 
     /** Color of the compared line. Compared bars take a shade of their own bar's color instead. */
     color: string;
@@ -138,6 +141,11 @@ function buildChartSeries({
             };
         }
 
+        if (comparison?.isAverage) {
+            const averageItem = getDateRange ? comparedByKey.get(item.keyForList) : comparison.data.at(0);
+            return {value: averageItem && getAmount(averageItem), percentOfTotal: averageItem?.percentOfTotal};
+        }
+
         const comparedItem = comparedByKey.get(item.keyForList);
         // No compared match for a time bucket means its counterpart doesn't exist, but for any other group it means the group had no spend.
         const missingValue = getDateRange ? undefined : 0;
@@ -219,6 +227,7 @@ function buildChartSeries({
                           key: CHART_SERIES_KEY.COMPARISON,
                           color: comparison.color,
                           label: comparison.label ?? (comparison.periods && formatDates(comparison.periods.comparison, dateFnsLocale)),
+                          isAverage: comparison.isAverage,
                       },
                   ]
                 : []),
@@ -232,7 +241,10 @@ function buildChartSeries({
             }
 
             const color = VictoryTheme.colors.getColor(index);
-            const seriesColors = {[CHART_SERIES_KEY.PRIMARY]: color, ...(!!comparison && {[CHART_SERIES_KEY.COMPARISON]: VictoryTheme.colors.getComparisonColor(color, colorScheme)})};
+            const seriesColors = {
+                [CHART_SERIES_KEY.PRIMARY]: color,
+                [CHART_SERIES_KEY.COMPARISON]: comparison && !comparison.isAverage ? VictoryTheme.colors.getComparisonColor(color, colorScheme) : undefined,
+            };
             return {...row, point: {...row.point, color, seriesColors}};
         }),
     };

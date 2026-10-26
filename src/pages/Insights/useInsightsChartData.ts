@@ -2,7 +2,7 @@ import VictoryTheme from '@components/Charts/VictoryTheme';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ChartComparison} from '@components/Search/buildChartSeries';
 import useGroupedItems from '@components/Search/hooks/useGroupedItems';
-import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
+import type {GroupedItem, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsightsChartData';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {SearchResults} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -21,6 +22,7 @@ import type {InsightsFilters} from './insightsFilters';
 import type {InsightsDashboardChart} from './resolveDashboardState';
 
 import resolveComparisonPeriods from './insightsCompare';
+import {getQueryGroupBy} from './insightsGroupByUtils';
 
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
 
@@ -36,9 +38,21 @@ type InsightsChartData = {
 };
 
 /** What a chart is compared against: the query and snapshot of the compared rows, and what names the compared series */
-type ComparedChart = Pick<ChartComparison, 'label' | 'periods'> & {
+type ComparedChart = Pick<ChartComparison, 'label' | 'periods' | 'isAverage'> & {
     queryJSON: Readonly<SearchQueryJSON> | undefined;
     snapshot: OnyxEntry<SearchResults>;
+};
+
+/** Names what each grouping's average is taken over, the bucket of a time grouping or every group of any other */
+const AVERAGE_LABEL_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
+    [CONST.SEARCH.GROUP_BY.DAY]: 'insightsPage.compare.dailyAverage',
+    [CONST.SEARCH.GROUP_BY.WEEK]: 'insightsPage.compare.weeklyAverage',
+    [CONST.SEARCH.GROUP_BY.MONTH]: 'insightsPage.compare.monthlyAverage',
+    [CONST.SEARCH.GROUP_BY.QUARTER]: 'insightsPage.compare.quarterlyAverage',
+    [CONST.SEARCH.GROUP_BY.YEAR]: 'insightsPage.compare.yearlyAverage',
+    [CONST.SEARCH.GROUP_BY.FROM]: 'insightsPage.compare.allSpenderAverage',
+    [CONST.SEARCH.GROUP_BY.MERCHANT]: 'insightsPage.compare.allMerchantAverage',
+    [CONST.SEARCH.GROUP_BY.CATEGORY]: 'insightsPage.compare.allCategoryAverage',
 };
 
 const BLOCKING_STATES = new Set<InsightsChartState>([INSIGHTS_CHART_STATE.LOADING, INSIGHTS_CHART_STATE.ERROR, INSIGHTS_CHART_STATE.OFFLINE]);
@@ -50,8 +64,10 @@ function getComparedChart(chart: InsightsDashboardChart, filters: InsightsFilter
             const periods = resolveComparisonPeriods(filters.date);
             return periods && {queryJSON: chart.previousPeriodQueryJSON, snapshot: chart.previousPeriodSnapshot, periods};
         }
-        case CONST.SEARCH.COMPARE.AVERAGE:
-            return {queryJSON: chart.averageQueryJSON, snapshot: chart.averageSnapshot, label: translate('insightsPage.compare.average')};
+        case CONST.SEARCH.COMPARE.AVERAGE: {
+            const labelKey = AVERAGE_LABEL_KEYS[chart.chart.groupBy ?? getQueryGroupBy(filters)] ?? 'insightsPage.compare.average';
+            return {queryJSON: chart.averageQueryJSON, snapshot: chart.averageSnapshot, label: translate(labelKey), isAverage: true};
+        }
         default:
             return undefined;
     }
@@ -85,7 +101,7 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     const color = VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.default, theme.colorScheme);
     return {
         ...current,
-        comparison: {data: compared.data, color, label: comparedChart.label, periods: comparedChart.periods},
+        comparison: {data: compared.data, color, label: comparedChart.label, periods: comparedChart.periods, isAverage: comparedChart.isAverage},
     };
 }
 

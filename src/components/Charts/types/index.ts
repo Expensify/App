@@ -11,8 +11,11 @@ type ChartSeries = {
     /** Color of the series' line. Left out, the chart's default color. */
     color?: string;
 
-    /** Names the series in the tooltip, like "Average" */
+    /** Names the series in the tooltip, like "Monthly average" */
     label?: string;
+
+    /** Whether the series holds an average, drawn as one horizontal dashed line across the plot */
+    isAverage?: boolean;
 };
 
 type ChartDataPoint = {

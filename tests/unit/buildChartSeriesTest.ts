@@ -364,13 +364,13 @@ describe('buildChartSeries', () => {
     });
 
     it("shades each compared bar with its own bar's color", () => {
-        // Given this month's top two merchants compared against the average amounts
+        // Given this month's top two merchants compared against last month
         const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
 
         // When the series is built for a bar chart
         const {rows} = buildChartSeries({
             data,
-            comparison: {data: [merchantGroup('Person', 240000), merchantGroup('Target', 90000)], label: 'Average', color: themeColors.green200},
+            comparison: {data: [merchantGroup('Person', 240000), merchantGroup('Target', 90000)], color: themeColors.green200},
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
@@ -385,6 +385,30 @@ describe('buildChartSeries', () => {
             {[CHART_SERIES_KEY.PRIMARY]: themeColors.yellow400, [CHART_SERIES_KEY.COMPARISON]: themeColors.yellow200},
             {[CHART_SERIES_KEY.PRIMARY]: themeColors.tangerine400, [CHART_SERIES_KEY.COMPARISON]: themeColors.tangerine200},
         ]);
+    });
+
+    it('draws the average of a ranked chart as one line instead of a shaded bar per group', () => {
+        // Given this period's top merchants and the all-merchant average, which the average rows repeat for every merchant
+        const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
+        const averages = [merchantGroup('Person', 43000), merchantGroup('Target', 43000)];
+
+        // When the series is built for a bar chart compared against the average
+        const {series, rows} = buildChartSeries({
+            data,
+            comparison: {data: averages, label: 'All-merchant average', color: themeColors.green200, isAverage: true},
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then every group carries the average, and the average series is marked to be drawn as a line, so no group gets a shaded bar for it
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([430, 430]);
+        expect(series.at(1)).toEqual({key: CHART_SERIES_KEY.COMPARISON, color: themeColors.green200, label: 'All-merchant average', isAverage: true});
+        expect(rows.map((row) => row.point.seriesColors)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: themeColors.yellow400}, {[CHART_SERIES_KEY.PRIMARY]: themeColors.tangerine400}]);
     });
 
     it('names each series by the period it covers when comparing periods', () => {
