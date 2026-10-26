@@ -1,7 +1,7 @@
 import type {Agent} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {getLatestError} from './ErrorUtils';
 
@@ -23,4 +23,8 @@ function doesAgentHaveErrors(agent: OnyxEntry<Agent>): boolean {
     return Object.keys(agentErrors ?? {}).length > 0;
 }
 
-export {getAgentErrors, doesAgentHaveErrors};
+function hasErrorsSelector(agents: OnyxCollection<Agent>): boolean {
+    return Object.values(agents ?? {}).some(doesAgentHaveErrors);
+}
+
+export {getAgentErrors, doesAgentHaveErrors, hasErrorsSelector};
