@@ -47,6 +47,7 @@ function useProactiveAppReview(): UseProactiveAppReviewReturn {
     let shouldShowModal = true;
     if (shouldSuppressPromotionalUI || shouldShowRequire2FAPage) {
         // Supportal agents and copilots should not leave reviews on behalf of another account.
+        // We shouldn't also show the modal if the user is required to set up 2FA, since that is a higher priority action than leaving a review.
         shouldShowModal = false;
     } else if (!proactiveAppReview?.trigger) {
         // Don't show if the trigger is not set

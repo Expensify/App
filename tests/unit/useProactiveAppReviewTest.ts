@@ -92,6 +92,8 @@ describe('useProactiveAppReview', () => {
     });
 
     it('returns shouldShowModal false when 2FA is required, even if a trigger is set', async () => {
+        // Given a user who has 2FA required, but not yet set up, and a proactive app review trigger is set
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
         await Onyx.merge(ONYXKEYS.NVP_APP_REVIEW, {trigger: 'submit', response: 'negative', lastPrompt: '2026-01-29 17:16:19.172'});
         await Onyx.merge(ONYXKEYS.ACCOUNT, {
             needsTwoFactorAuthSetup: true,
@@ -99,8 +101,10 @@ describe('useProactiveAppReview', () => {
         });
         await waitForBatchedUpdates();
 
+        // When the hook is rendered
         const {result} = renderHook(() => useProactiveAppReview());
 
+        // Then the modal should not be shown
         await waitFor(() => {
             expect(result.current.shouldShowModal).toBe(false);
         });
