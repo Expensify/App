@@ -32,12 +32,19 @@ type TabIconLabel = {
     maxWidth: number;
 };
 
+type TabIconEmojiStatus = {
+    emoji: string;
+    backgroundColor: string;
+};
+
 type TabIconParams = {
     /** The glyph drawn unless an avatar is given. */
     name: NativeTabName;
     color: string;
     avatar?: TabAvatarImage;
     dotColor?: string;
+    /** The user's status emoji, badged on the account icon as the JS tab bar does. */
+    emojiStatus?: TabIconEmojiStatus;
     label?: TabIconLabel;
 };
 
@@ -135,6 +142,30 @@ function drawStatusDot(canvas: SkCanvas, right: number, top: number, scale: numb
     paint.dispose();
 }
 
+/** Drawn inside the content box, opposite the status dot, because anything past the canvas is cut off. */
+function drawEmojiStatus(canvas: SkCanvas, right: number, bottom: number, scale: number, {emoji, backgroundColor}: TabIconEmojiStatus) {
+    const radius = variables.nativeTabIconEmojiStatusRadius * scale;
+    const centerX = right - radius;
+    const centerY = bottom - radius;
+    const paint = Skia.Paint();
+    paint.setAntiAlias(true);
+    paint.setBlendMode(BlendMode.Clear);
+    canvas.drawCircle(centerX, centerY, radius + variables.nativeTabIconDotCutout * scale, paint);
+    paint.setBlendMode(BlendMode.SrcOver);
+    paint.setColor(Skia.Color(backgroundColor));
+    canvas.drawCircle(centerX, centerY, radius, paint);
+    paint.dispose();
+
+    // A paragraph, so the emoji falls back to the system's color emoji font.
+    const paragraph = Skia.ParagraphBuilder.Make({maxLines: 1, textAlign: TextAlign.Center})
+        .pushStyle({fontSize: variables.nativeTabIconEmojiStatusFontSize * scale})
+        .addText(emoji)
+        .build();
+    paragraph.layout(radius * 2);
+    paragraph.paint(canvas, centerX - radius, centerY - paragraph.getHeight() / 2);
+    paragraph.dispose();
+}
+
 type TabIconFrame = {
     canvasWidth: number;
     canvasHeight: number;
@@ -175,7 +206,7 @@ function getTabIconFrame(layout: TabIconLayout, contentSize: number, labelGap: n
     };
 }
 
-function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, label}: TabIconParams): NativeBottomTabIcon | undefined {
+function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, emojiStatus, label}: TabIconParams): NativeBottomTabIcon | undefined {
     const scale = PixelRatio.get();
     const contentSize = (avatar ? layout.avatarSize : layout.glyphSize) * scale;
     const paragraph = label ? makeLabelParagraph(label, scale) : undefined;
@@ -204,6 +235,9 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
     if (dotColor) {
         drawStatusDot(canvas, contentLeft + contentSize, contentTop, scale, dotColor);
     }
+    if (emojiStatus) {
+        drawEmojiStatus(canvas, contentLeft + contentSize, contentTop + contentSize, scale, emojiStatus);
+    }
     if (paragraph) {
         paragraph.paint(canvas, labelLeft, labelTop);
         paragraph.dispose();
@@ -227,9 +261,11 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
  * stays the same. A status, theme or language change redraws only the icons it reaches.
  */
 function getTabIcon(layout: TabIconLayout, params: TabIconParams): NativeBottomTabIcon | undefined {
-    const {name, color, avatar, dotColor, label} = params;
+    const {name, color, avatar, dotColor, emojiStatus, label} = params;
     // The label's font is fixed per platform, so it is left out of the key.
-    const key = [layout.direction, name, avatar?.uri ?? color, dotColor, label?.text, label?.color, label?.isBold, label?.maxWidth].join('|');
+    const key = [layout.direction, name, avatar?.uri ?? color, dotColor, emojiStatus?.emoji, emojiStatus?.backgroundColor, label?.text, label?.color, label?.isBold, label?.maxWidth].join(
+        '|',
+    );
     if (iconCache.has(key)) {
         return iconCache.get(key);
     }

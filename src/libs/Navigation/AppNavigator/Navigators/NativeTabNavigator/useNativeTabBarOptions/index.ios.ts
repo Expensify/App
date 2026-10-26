@@ -1,3 +1,4 @@
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -41,6 +42,8 @@ const LANDSCAPE_TAB_ICON_LAYOUT: TabIconLayout = {
 function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
     const avatar = useTabAvatarImage(isAccountAvatarShown);
+    const emojiCode = useCurrentUserPersonalDetails().status?.emojiCode;
+    const emojiStatus = emojiCode ? {emoji: emojiCode, backgroundColor: theme.border} : undefined;
     const {windowWidth} = useWindowDimensions();
     const {isInLandscapeMode} = useResponsiveLayout();
     const tabIconLayout = isInLandscapeMode ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT;
@@ -69,6 +72,7 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
             color: isSelected ? theme.iconMenu : theme.icon,
             avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
             dotColor: dotColors[name],
+            emojiStatus: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? emojiStatus : undefined,
             label: {
                 text: tabLabels[name],
                 color: isSelected ? theme.text : theme.textSupporting,

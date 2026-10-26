@@ -1,3 +1,4 @@
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -31,6 +32,8 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
     const theme = useTheme();
     const styles = useThemeStyles();
     const avatar = useTabAvatarImage(isAccountAvatarShown);
+    const emojiCode = useCurrentUserPersonalDetails().status?.emojiCode;
+    const emojiStatus = emojiCode ? {emoji: emojiCode, backgroundColor: theme.border} : undefined;
 
     // The tint only reaches the labels, since the icons arrive already recolored (react-native-screens patch 004).
     const screenOptions: NativeBottomTabNavigationOptions = {
@@ -51,6 +54,7 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
             color: isSelected ? theme.iconMenu : theme.icon,
             avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
             dotColor: dotColors[name],
+            emojiStatus: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? emojiStatus : undefined,
         })),
     });
 

@@ -126,6 +126,10 @@ export default {
     nativeTabIconDotRadius: 4,
     /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
     nativeTabIconDotCutout: 2,
+    /** Radius of the emoji status badge drawn into the account icon of a native tab bar. */
+    nativeTabIconEmojiStatusRadius: 6,
+    /** Size of the emoji drawn in that badge. */
+    nativeTabIconEmojiStatusFontSize: 8,
     /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
     /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
