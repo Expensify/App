@@ -49,7 +49,6 @@ import type CardOnWaitlist from './CardOnWaitlist';
 import type ChronosTimeTracking from './ChronosTimeTracking';
 import type CloudflareSession from './CloudflareSession';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
-import type CompanyCardsBulkStartDateUpdates from './CompanyCardsBulkStartDateUpdates';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
@@ -471,7 +470,6 @@ export type {
     CardFeeds,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
-    CompanyCardsBulkStartDateUpdates,
     CompanyCardsLoadingState,
     WorkspaceCardFeedsStatus,
     DomainSettings,

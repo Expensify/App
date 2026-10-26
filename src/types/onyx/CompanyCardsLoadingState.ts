@@ -1,4 +1,4 @@
-import type {CardFeedWithNumber, CompanyCardFeedWithDomainID} from './CardFeeds';
+import type {CardFeedWithNumber} from './CardFeeds';
 
 /**
  * Session-scoped loading state for an individual company card feed.
@@ -20,9 +20,6 @@ type CompanyCardsLoadingState = {
 
     /** Identifies the latest successful bulk transaction start date update */
     bulkTransactionStartDateUpdateSuccessID?: string;
-
-    /** Feed associated with the latest successful bulk transaction start date update */
-    bulkTransactionStartDateUpdateFeed?: CompanyCardFeedWithDomainID;
 
     /** Identifies the latest queued bulk transaction start date update */
     bulkTransactionStartDateUpdateID?: string;
