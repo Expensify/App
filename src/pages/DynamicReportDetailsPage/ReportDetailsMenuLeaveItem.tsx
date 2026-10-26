@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
-import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
+import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, isPolicyGuest as isPolicyGuestUtil} from '@libs/PolicyUtils';
 import {
     canLeaveChat,
     findLastAccessedReport,
@@ -61,6 +61,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
 
     const isPolicyAdmin = isPolicyAdminUtil(policy);
     const isPolicyEmployee = isPolicyEmployeeUtil(report.policyID, policy);
+    const isPolicyGuest = isPolicyGuestUtil(policy);
     const isRootGroupChat = isRootGroupChatUtil(report, isReportArchived);
 
     const leaveChat = () => {
@@ -81,7 +82,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
             return;
         }
 
-        const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
+        const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin, isPolicyGuest);
         leaveRoom(
             report,
             currentUserAccountID,

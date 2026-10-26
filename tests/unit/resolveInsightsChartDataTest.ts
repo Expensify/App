@@ -29,15 +29,15 @@ function makeSnapshot(overrides: Partial<SearchResults> = {}): SearchResults {
     };
 }
 
-function makeRows(count: number): GroupedItem[] {
-    return Array.from({length: count}, (_, index) => ({
+function makeRows(rowCount: number, expenseCount = 1): GroupedItem[] {
+    return Array.from({length: rowCount}, (_, index) => ({
         keyForList: String(index),
         transactions: [],
         groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
         year: 2026,
         month: index + 1,
-        count: 1,
-        total: 100,
+        count: expenseCount,
+        total: expenseCount ? 100 : 0,
         currency: CONST.CURRENCY.USD,
         formattedMonth: `Month ${index + 1}`,
         shortFormattedMonth: `M${index + 1}`,
@@ -88,6 +88,16 @@ describe('resolveInsightsChartData', () => {
 
         // Then the chart is empty, because the request is done and found nothing to plot
         expect(state).toBe(INSIGHTS_CHART_STATE.EMPTY);
+    });
+
+    it('is empty when every bucket has no expenses', () => {
+        // Given a settled snapshot holding only the empty buckets GetInsights sends for the range
+        // When the chart is resolved
+        const {data, state} = resolveInsightsChartData({snapshot: makeSnapshot(), queryJSON: QUERY_JSON, sortedData: makeRows(3, 0)});
+
+        // Then the chart is empty instead of drawing a flat line
+        expect(state).toBe(INSIGHTS_CHART_STATE.EMPTY);
+        expect(data).toEqual([]);
     });
 
     it('is empty when the snapshot arrived with no rows in it', () => {
