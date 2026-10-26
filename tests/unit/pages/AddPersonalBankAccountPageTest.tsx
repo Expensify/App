@@ -27,7 +27,7 @@ import type {NavigatorScreenParams} from '@react-navigation/native';
 
 import {PortalProvider} from '@gorhom/portal';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, StackActions} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -92,7 +92,12 @@ type TestRootParamList = {
 
 const RootStack = createRootStackNavigator<TestRootParamList>();
 const TabNav = createBottomTabNavigator<TabNavigatorParamList>();
-const AddPersonalBankAccountStack = createPlatformStackNavigator<AddPersonalBankAccountNavigatorParamList>();
+// The flow's stack can also hold screens outside the flow, like keyboard shortcuts in the Settings stack
+type TestAddPersonalBankAccountParamList = AddPersonalBankAccountNavigatorParamList & {
+    [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: undefined;
+};
+
+const AddPersonalBankAccountStack = createPlatformStackNavigator<TestAddPersonalBankAccountParamList>();
 
 const getEmptyComponent = () => jest.fn();
 
@@ -126,6 +131,10 @@ function TestRightModalNavigator({subPage}: {subPage: string}) {
                 name={SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT}
                 component={AddPersonalBankAccountPage}
                 initialParams={{subPage}}
+            />
+            <AddPersonalBankAccountStack.Screen
+                name={SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS}
+                component={getEmptyComponent()}
             />
         </AddPersonalBankAccountStack.Navigator>
     );
@@ -403,6 +412,28 @@ describe('AddPersonalBankAccountPage', () => {
 
             // Then the flow moves on to the success step under the screen on top, so the user sees it when they close that screen, instead of a confirmation step that would submit
             // the same bank account again
+            expect(navigateSpy).toHaveBeenCalledTimes(1);
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.SUCCESS, undefined));
+        });
+
+        it("moves on to the success step when the bank account is added while another screen in the flow's stack covers it", async () => {
+            // Given a user who confirmed the bank account and opened a screen that shares the flow's stack, such as keyboard shortcuts in the Settings stack, while it was loading
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, MANUAL_BANK_ACCOUNT_DRAFT);
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
+            act(() => {
+                navigationRef.dispatch(StackActions.push(SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS));
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the bank account is added
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {shouldShowSuccess: true});
+            });
+
+            // Then the flow's own topmost substep still moves on to the success step
             expect(navigateSpy).toHaveBeenCalledTimes(1);
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.SUCCESS, undefined));
         });

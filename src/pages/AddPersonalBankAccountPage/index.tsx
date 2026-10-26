@@ -261,12 +261,15 @@ function AddPersonalBankAccountPage() {
             leaveFlow();
             return;
         }
-        if (hasMovedToSuccess.current || navigation.getState()?.routes.at(-1)?.key !== route.key) {
+
+        // Other screens can share this flow's stack, like keyboard shortcuts in the Settings stack, so compare against the flow's own topmost substep
+        const isTopmostSubstep = navigation.getState()?.routes.findLast((stackRoute) => stackRoute.name === route.name)?.key === route.key;
+        if (hasMovedToSuccess.current || !isTopmostSubstep) {
             return;
         }
         hasMovedToSuccess.current = true;
         moveToSuccess();
-    }, [shouldShowSuccess, currentPageName, isFocused, navigation, route.key]);
+    }, [shouldShowSuccess, currentPageName, isFocused, navigation, route.name, route.key]);
 
     // Refresh the report the flow was opened from once the account is added, since that changes its server-owned fields.
     // Doing it here instead of on exit covers every way of closing the flow. The report may not be on screen, so don't mark it as read.
