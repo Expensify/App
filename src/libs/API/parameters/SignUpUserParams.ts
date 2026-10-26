@@ -6,6 +6,7 @@ type SignUpUserParams = {
     preferredLocale: Locale | null;
     hasSMSMarketingConsent?: boolean;
     deviceInfo: string;
+    isAdvertisingConsentGranted?: boolean;
 } & MarketingAttribution;
 
 export default SignUpUserParams;
