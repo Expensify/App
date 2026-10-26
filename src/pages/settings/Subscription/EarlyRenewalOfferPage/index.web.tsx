@@ -5,6 +5,7 @@ import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
+import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -78,7 +79,8 @@ function EarlyRenewalOfferPage() {
             >
                 {/* The pattern starts just above the header's bottom edge, so it shows behind the title as in Figma. */}
                 <View style={styles.earlyRenewalOfferBackground}>
-                    <IceCreamBackground
+                    <ImageSVG
+                        src={IceCreamBackground}
                         width={variables.earlyRenewalOfferBackgroundWidth}
                         height={variables.earlyRenewalOfferBackgroundHeight}
                     />
