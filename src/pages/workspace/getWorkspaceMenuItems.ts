@@ -169,6 +169,7 @@ function getWorkspaceMenuItems({
         CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS,
         CONST.POLICY.POLICY_FEATURE.PER_DIEM,
         CONST.POLICY.POLICY_FEATURE.MORE_FEATURES,
+        CONST.POLICY.POLICY_FEATURE.TRAVEL,
     ].some(canReadPolicyFeature);
 
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
@@ -438,7 +439,7 @@ function getWorkspaceMenuItems({
             });
         }
 
-        if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED] && canReadMoreFeatures) {
+        if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.TRAVEL)) {
             items.push({
                 translationKey: 'workspace.common.travel',
                 icon: icons.LuggageWithLines,

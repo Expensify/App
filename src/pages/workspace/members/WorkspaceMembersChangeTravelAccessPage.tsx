@@ -4,6 +4,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +15,7 @@ import type {TravelMemberAccessTarget} from '@libs/actions/Policy/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isPolicyAdmin, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {canMemberChangeTravelAccess, canMemberWrite, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -52,6 +53,7 @@ function WorkspaceMembersChangeTravelAccessPage({policy, personalDetails, route}
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [selection, selectionMetadata] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT);
 
     // Members picked on another workspace's member list are left out, even when they also belong to this one
@@ -59,13 +61,13 @@ function WorkspaceMembersChangeTravelAccessPage({policy, personalDetails, route}
 
     // The selection only lives in memory, so it is gone when the page is opened from a link or after a refresh
     const hasSelectedMembers = isLoadingOnyxValue(selectionMetadata) || !!selectedAccountIDs?.length;
-    const canChangeTravelAccess = isPolicyAdmin(policy) && isWorkspaceProvisionedForTravel(policy?.travelSettings);
+    const canChangeTravelAccess = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.TRAVEL) && isWorkspaceProvisionedForTravel(policy?.travelSettings);
 
-    // Members still being added have an optimistic accountID the server doesn't know yet, so they are left out. Members
-    // without a loaded accountID never reach the selection.
+    // Members still being added have an optimistic accountID the server doesn't know yet, so they are left out, along
+    // with anyone whose travel access this member can't change. Members without a loaded accountID never reach the selection.
     const selectedMembers: TravelMemberAccessTarget[] = (selectedAccountIDs ?? []).flatMap((accountID) => {
         const email = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
-        if (!email || policy?.employeeList?.[email]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        if (!email || policy?.employeeList?.[email]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || !canMemberChangeTravelAccess(policy, currentUserLogin, email)) {
             return [];
         }
         return [{email, accountID}];
@@ -102,7 +104,7 @@ function WorkspaceMembersChangeTravelAccessPage({policy, personalDetails, route}
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.TRAVEL}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             shouldBeBlocked={!canChangeTravelAccess || !hasSelectedMembers}
         >
