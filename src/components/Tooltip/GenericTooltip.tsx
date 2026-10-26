@@ -26,6 +26,9 @@ import TooltipSense from './TooltipSense';
  */
 const defaultTooltipMaxWidth = variables.sideBarWidth - 2 * variables.uploadViewMargin;
 
+/** Time to cross the gap between an anchor and its interactive tooltip before it hides */
+const INTERACTIVE_TOOLTIP_HIDE_DELAY_MS = 200;
+
 function GenericTooltip({
     children,
     numberOfLines = CONST.TOOLTIP_MAX_LINES,
@@ -49,6 +52,7 @@ function GenericTooltip({
     isEducationTooltip = false,
     onTooltipPress,
     computeHorizontalShiftForNative = false,
+    shouldKeepOpenWhileHovered = false,
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -77,6 +81,27 @@ function GenericTooltip({
     const isTooltipSenseInitiator = useSharedValue<boolean>(true);
     const isAnimationCanceled = useSharedValue<boolean>(false);
     const prevText = usePrevious(text);
+    const hideTimeoutID = useSharedValue<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+    const cancelScheduledHide = () => {
+        const timeoutID = hideTimeoutID.get();
+        if (timeoutID === undefined) {
+            return;
+        }
+        clearTimeout(timeoutID);
+        hideTimeoutID.set(undefined);
+    };
+
+    useEffect(
+        () => () => {
+            const timeoutID = hideTimeoutID.get();
+            if (timeoutID === undefined) {
+                return;
+            }
+            clearTimeout(timeoutID);
+        },
+        [hideTimeoutID],
+    );
 
     useEffect(() => {
         if (!renderTooltipContent || !text) {
@@ -89,6 +114,7 @@ function GenericTooltip({
      * Display the tooltip in an animation.
      */
     const showTooltip = () => {
+        cancelScheduledHide();
         setIsRendered(true);
         setIsVisible(true);
 
@@ -157,6 +183,16 @@ function GenericTooltip({
         setIsVisible(false);
     };
 
+    const scheduleHideTooltip = () => {
+        cancelScheduledHide();
+        hideTimeoutID.set(
+            setTimeout(() => {
+                hideTimeoutID.set(undefined);
+                hideTooltip();
+            }, INTERACTIVE_TOOLTIP_HIDE_DELAY_MS),
+        );
+    };
+
     const onPressOverlay = () => {
         if (!shouldUseOverlay) {
             return;
@@ -198,10 +234,12 @@ function GenericTooltip({
                     shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                     onHideTooltip={onPressOverlay}
                     onTooltipPress={onTooltipPress}
+                    onTooltipMouseEnter={shouldKeepOpenWhileHovered ? cancelScheduledHide : undefined}
+                    onTooltipMouseLeave={shouldKeepOpenWhileHovered ? scheduleHideTooltip : undefined}
                     computeHorizontalShiftForNative={computeHorizontalShiftForNative}
                 />
             )}
-            {children({isVisible, showTooltip, hideTooltip, updateTargetBounds})}
+            {children({isVisible, showTooltip, hideTooltip: shouldKeepOpenWhileHovered ? scheduleHideTooltip : hideTooltip, updateTargetBounds})}
         </>
     );
 }

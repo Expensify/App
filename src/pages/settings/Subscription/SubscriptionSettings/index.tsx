@@ -312,7 +312,7 @@ function SubscriptionSettings() {
                                             onToggle={handleAutoRenewToggle}
                                             isActive={privateSubscription?.autoRenew}
                                         />
-                                        {!!autoRenewalDate && (
+                                        {(privateSubscription?.autoRenew ?? true) && !!autoRenewalDate && (
                                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', autoRenewalDate)}</Text>
                                         )}
                                     </View>
