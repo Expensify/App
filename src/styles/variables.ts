@@ -32,6 +32,8 @@ const avatarSizes = {
 export default {
     bottomTabHeight: 72,
     floatingTabBarHeight: 60,
+    // How much liquid glass shows around the solid center of a floating button.
+    floatingButtonGlassRingWidth: 6,
     floatingTabBarHorizontalInset: 16,
     // How far the selected pill reaches past its tab on each side, whatever the label's length.
     floatingTabBarSelectedOverhang: 4,
