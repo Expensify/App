@@ -7585,7 +7585,6 @@ const CONST = {
     DOT_INDICATOR_TEST_ID: 'DotIndicator',
     ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID: 'animated-collapsible-content',
     SWITCH_LOCK_ICON_TEST_ID: 'SwitchLockIcon',
-    ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID: 'AccountSwitcherButtonPlaceholder',
 
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
