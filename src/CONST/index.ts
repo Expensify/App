@@ -9996,14 +9996,26 @@ const CONST = {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
+            /** Pointer travel, in px, under which pressing a column's edge counts as a click rather than a drag. */
+            DRAG_SLOP: 3,
+
+            /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
+            DOUBLE_CLICK_INTERVAL: 150,
+
             /** Width of the line shown while a column's edge is dragged, and of the grip shown while its heading is hovered. */
             INDICATOR_WIDTH: 2,
 
             /** Share of the heading's height the grip spans, centred vertically. */
             GRIP_HEIGHT_RATIO: 0.8,
 
-            /** How long, in ms, the grip takes to stretch into the line once its edge is pressed. */
+            /** How long, in ms, the grip takes to stretch into the line once its edge is dragged. */
             INDICATOR_MORPH_DURATION: 150,
+
+            /** What a click (`FIT`) or a double-click (`RESET`) on a column's edge sizes it to. */
+            WIDTH_TARGET: {
+                FIT: 'fit',
+                RESET: 'reset',
+            },
         },
     },
 

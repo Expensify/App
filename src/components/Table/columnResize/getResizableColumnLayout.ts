@@ -1,11 +1,18 @@
 /** Lays a resizable table's columns out as custom property expressions, so a drag repaints the header, rows and scroller without a render. */
+
+import calculateDynamicColumnWidths, {distributeEqualWidths} from '@components/Table/calculateDynamicColumnWidths';
+
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 import type {ResizableColumn} from './resolveDraggedColumnWidths';
 
 import {SCROLL_EXTENT_FLOOR_VARIABLE, getColumnWidthValue, getColumnsWidthExpression, getGrowableColumnTrack} from './columnWidthExpressions';
 import getColumnsWidthSum from './getColumnsWidthSum';
 import resolveDraggedColumnWidths, {isColumnResizable} from './resolveDraggedColumnWidths';
+
+type ColumnWidthTarget = ValueOf<typeof CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET>;
 
 /** Row space that isn't column width, so it can be added back around the column sum. */
 type RowChromeWidths = {
@@ -59,11 +66,28 @@ type ResizableColumnLayout = {
 
     /** The narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
     dragMinWidths: Record<string, number>;
+
+    /**
+     * `fit`: the column's content within the drag bounds, `undefined` when its edge doesn't drag.
+     * `reset`: the width a fresh load gives it, within the drag bounds, `undefined` when the user never resized it.
+     */
+    getTargetColumnWidth: (columnKey: string, target: ColumnWidthTarget) => number | undefined;
 };
 
 /** Table width minus selection column, gaps, margin and padding. Floored because tracks are whole px. */
 function getAvailableColumnsWidth(tableWidth: number, {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth}: RowChromeWidths): number {
     return Math.floor(tableWidth - rowMarginWidth - selectionColumnWidth - totalGapWidth - rowPaddingWidth);
+}
+
+/** Widths content sizing gives the columns before any resize, which is what a reset hands a column back to. */
+function getDefaultColumnWidths(columns: ResizableColumn[], availableColumnsWidth: number): Record<string, number> {
+    const contentSizedColumns = columns.filter((column) => column.declaredWidth === undefined);
+    const fixedColumnsWidth = columns.reduce((total, column) => total + (column.declaredWidth ?? 0), 0);
+    const availableWidth = availableColumnsWidth - fixedColumnsWidth;
+    const {widths} = calculateDynamicColumnWidths(contentSizedColumns, availableWidth);
+    const defaultWidths = widths.length > 0 ? widths : distributeEqualWidths(contentSizedColumns.length, availableWidth);
+
+    return Object.fromEntries(contentSizedColumns.map((column, index) => [column.key, defaultWidths.at(index) ?? 0]));
 }
 
 function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnKeys, tableWidth, rowChromeWidths}: GetResizableColumnLayoutParams): ResizableColumnLayout {
@@ -104,6 +128,27 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
         dragMinWidths[growableColumnKey] = Math.min(minWidth, paintedWidth);
     }
 
+    // Held to the same bounds as a drag, so a fit never leaves the room a drag couldn't, which the growable column would take back on the next render.
+    const getDragBoundedWidth = (columnKey: string, width: number) => Math.max(Math.round(width), dragMinWidths[columnKey] ?? CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH);
+
+    const getTargetColumnWidth = (columnKey: string, target: ColumnWidthTarget) => {
+        const column = columns.find((candidate) => candidate.key === columnKey);
+
+        if (!column) {
+            return undefined;
+        }
+
+        if (target === CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT) {
+            return isColumnResizable(column) ? getDragBoundedWidth(columnKey, column.contentWidth) : undefined;
+        }
+
+        if (!resizedColumnKeys.includes(columnKey)) {
+            return undefined;
+        }
+
+        return getDragBoundedWidth(columnKey, getDefaultColumnWidths(columns, availableColumnsWidth)[columnKey] ?? 0);
+    };
+
     const getResizedColumnWidths = (columnKey: string, width: number) =>
         resolveDraggedColumnWidths({columns, startWidths: columnWidths, resizedColumnKeys, availableColumnsWidth, columnKey, width});
 
@@ -117,8 +162,10 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
         getResizedColumnWidths,
         resolvedColumnWidths: columnWidths,
         dragMinWidths,
+        getTargetColumnWidth,
     };
 }
 
 export default getResizableColumnLayout;
 export {getAvailableColumnsWidth};
+export type {ColumnWidthTarget};
