@@ -7,13 +7,12 @@ import type {ValueOf} from 'type-fest';
 import {
     arePaymentsEnabled,
     canAdminPayReport,
-    canCreateExpensesOnPolicy,
+    canSubmitterCreateExpenses,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
     isArchivedOrPendingDeletePolicy,
-    isGroupPolicy,
     isPreferredExporter,
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
@@ -56,7 +55,7 @@ function canSubmit(
     }
 
     // A role that cannot create expenses cannot submit its own report.
-    if (isGroupPolicy(policy) && !canCreateExpensesOnPolicy(policy, currentUserEmail)) {
+    if (!canSubmitterCreateExpenses(policy, currentUserEmail)) {
         return false;
     }
 

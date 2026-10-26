@@ -221,6 +221,17 @@ describe('canSubmitReport approve-only role', () => {
         expect(canSubmit).toBe(true);
     });
 
+    it('returns true for a report on the personal policy', () => {
+        // Given the same report on the personal policy, where roles do not restrict submits
+        const personalPolicy: Policy = {...basePolicy, type: CONST.POLICY.TYPE.PERSONAL, role: CONST.POLICY.ROLE.ADMIN};
+
+        // When the owner submits it
+        const canSubmit = canSubmitReport(openExpenseReport, 'user@test.com', personalPolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+
+        // Then the submit is allowed
+        expect(canSubmit).toBe(true);
+    });
+
     it('returns true when an admin submits the report of an approve-only member', () => {
         // Given an open expense report owned by an approve-only member, managed by the current admin
         const reportOwnedByMember: Report = {...openExpenseReport, ownerAccountID: OTHER_USER_ACCOUNT_ID, managerID: CURRENT_USER_ACCOUNT_ID};

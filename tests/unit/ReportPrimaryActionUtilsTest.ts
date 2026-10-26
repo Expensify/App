@@ -437,6 +437,7 @@ describe('getPrimaryAction', () => {
 
         const policy = createMock<Policy>({
             role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            type: CONST.POLICY.TYPE.CORPORATE,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({

@@ -23,6 +23,7 @@ import {
     canSendInvoiceFromWorkspace,
     canShowReimbursableToggleForPolicy,
     canSubmitPerDiemExpenseFromWorkspace,
+    canSubmitterCreateExpenses,
     canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
     findVendorByID,
@@ -1556,6 +1557,12 @@ describe('PolicyUtils', () => {
                 });
 
                 expect(canCreateExpensesOnPolicy(policyWithDifferentViewerRole, memberLogin)).toBe(false);
+            });
+
+            it('lets a submitter submit their own report only when their role can create expenses', () => {
+                expect(canSubmitterCreateExpenses(buildPolicy(CONST.POLICY.ROLE.USER), memberLogin)).toBe(true);
+                expect(canSubmitterCreateExpenses(buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY), memberLogin)).toBe(false);
+                expect(canSubmitterCreateExpenses({...buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY), type: CONST.POLICY.TYPE.PERSONAL}, memberLogin)).toBe(true);
             });
 
             it('allows Guest assignment only on Control workspaces', () => {
