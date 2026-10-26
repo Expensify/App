@@ -11,9 +11,7 @@ import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenCont
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 
@@ -21,11 +19,11 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {ListRenderItemInfo} from 'react-native';
+import type {CellRendererProps, ListRenderItemInfo} from 'react-native';
 import type {LegacyComposedGesture, GestureType} from 'react-native-gesture-handler';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, PixelRatio, View} from 'react-native';
+import React, {useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 
@@ -38,6 +36,10 @@ const viewabilityConfig = {
 };
 
 const MIN_FLING_VELOCITY = 500;
+// Animated.FlatList replaces custom cell renderers and drops their focus callback.
+// We do not use item layout animations here, so animate the standard list directly.
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Animated.FlatList drops the cell focus callback required to retain the password form.
+const AnimatedAttachmentList = Animated.createAnimatedComponent(FlatList<Attachment>);
 
 type DeviceAwareGestureDetectorProps = {
     canUseTouchScreen: boolean;
@@ -50,6 +52,25 @@ function DeviceAwareGestureDetector({canUseTouchScreen, gesture, children}: Devi
     // This issue is left out on touchable devices since finger touch works fine.
     // See: https://github.com/Expensify/App/issues/51246
     return canUseTouchScreen ? <GestureDetector gesture={gesture}>{children}</GestureDetector> : children;
+}
+
+// react-native-web's View forwards onFocus, but drops onFocusCapture. Bridge the
+// cell callback so VirtualizedList keeps the focused PDF mounted while resizing.
+function AttachmentCarouselCell({children, style, onLayout, onFocusCapture}: CellRendererProps<Attachment>) {
+    return (
+        <View
+            style={style}
+            onLayout={onLayout}
+            onFocus={(event) => {
+                if (!(event.nativeEvent instanceof FocusEvent)) {
+                    return;
+                }
+                onFocusCapture?.(event.nativeEvent);
+            }}
+        >
+            {children}
+        </View>
+    );
 }
 
 function AttachmentCarouselView({
@@ -80,16 +101,11 @@ function AttachmentCarouselView({
     const activeAttachmentIDRef = useRef(activeAttachmentID);
 
     const pagerRef = useRef<GestureType | undefined>(undefined);
-    const scrollRef = useAnimatedRef<Animated.FlatList<Attachment>>();
+    const scrollRef = useAnimatedRef<FlatList<Attachment>>();
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
-    const {windowWidth} = useWindowDimensions();
-
-    const cellWidth = useMemo(
-        () => PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2),
-        [modalStyles.borderWidth, modalStyles.marginHorizontal, windowWidth],
-    );
+    // The modal's safe-area padding can make the carousel narrower than the window.
+    // Wait for its actual width before mounting the list so visibility and paging use the same geometry.
+    const [cellWidth, setCellWidth] = useState(0);
 
     /** Updates the page state when the user navigates between attachments */
     const updatePage = useCallback(
@@ -98,8 +114,11 @@ function AttachmentCarouselView({
                 return;
             }
 
-            // Since we can have only one item in view at a time, we can use the first item in the array
-            // to get the index of the current page
+            // During a resize Safari can expose several old-width cells at once.
+            // A still-visible selected attachment is not a navigation request.
+            if (viewableItems.some((entry) => (entry.item.attachmentID ?? entry.item.source) === activeAttachmentIDRef.current)) {
+                return;
+            }
             const entry = viewableItems.at(0);
             // Resizing or scrolling between pages can temporarily leave no item above the visibility threshold.
             // Keep the current attachment mounted until another attachment becomes viewable.
@@ -241,8 +260,8 @@ function AttachmentCarouselView({
     );
 
     // Scroll position is affected when window width is resized, so we readjust it on width changes
-    useEffect(() => {
-        if (attachments.length === 0 || scrollRef.current == null) {
+    useLayoutEffect(() => {
+        if (!cellWidth || attachments.length === 0 || scrollRef.current == null) {
             return;
         }
 
@@ -253,7 +272,15 @@ function AttachmentCarouselView({
 
     return (
         <View
+            testID="attachment-carousel"
             style={[styles.flex1, styles.attachmentCarouselContainer]}
+            onLayout={({nativeEvent: {layout}}) => {
+                const width = PixelRatio.roundToNearestPixel(layout.width);
+                if (width <= 0) {
+                    return;
+                }
+                setCellWidth(width);
+            }}
             onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
             onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
         >
@@ -265,45 +292,49 @@ function AttachmentCarouselView({
                     title={translate('notFound.notHere')}
                 />
             ) : (
-                <>
-                    <CarouselButtons
-                        page={page}
-                        attachments={attachments}
-                        shouldShowArrows={shouldShowArrows}
-                        onBack={() => cycleThroughAttachments(-1)}
-                        onForward={() => cycleThroughAttachments(1)}
-                        autoHideArrow={autoHideArrows}
-                        cancelAutoHideArrow={cancelAutoHideArrow}
-                    />
-                    <AttachmentCarouselPagerStateContext.Provider value={stateValue}>
-                        <AttachmentCarouselPagerActionsContext.Provider value={actionsValue}>
-                            <DeviceAwareGestureDetector
-                                canUseTouchScreen={canUseTouchScreen}
-                                gesture={pan}
-                            >
-                                <Animated.FlatList
-                                    keyboardShouldPersistTaps="handled"
-                                    horizontal
-                                    showsHorizontalScrollIndicator={false}
-                                    // scrolling is controlled by the pan gesture
-                                    scrollEnabled={false}
-                                    ref={scrollRef}
-                                    initialScrollIndex={page}
-                                    initialNumToRender={3}
-                                    windowSize={5}
-                                    maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
-                                    data={attachments}
-                                    renderItem={renderItem}
-                                    getItemLayout={getItemLayout}
-                                    keyExtractor={extractItemKey}
-                                    viewabilityConfig={viewabilityConfig}
-                                    onViewableItemsChanged={updatePage}
-                                />
-                            </DeviceAwareGestureDetector>
-                        </AttachmentCarouselPagerActionsContext.Provider>
-                    </AttachmentCarouselPagerStateContext.Provider>
-                    <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
-                </>
+                cellWidth > 0 && (
+                    <>
+                        <CarouselButtons
+                            page={page}
+                            attachments={attachments}
+                            shouldShowArrows={shouldShowArrows}
+                            onBack={() => cycleThroughAttachments(-1)}
+                            onForward={() => cycleThroughAttachments(1)}
+                            autoHideArrow={autoHideArrows}
+                            cancelAutoHideArrow={cancelAutoHideArrow}
+                        />
+                        <AttachmentCarouselPagerStateContext.Provider value={stateValue}>
+                            <AttachmentCarouselPagerActionsContext.Provider value={actionsValue}>
+                                <DeviceAwareGestureDetector
+                                    canUseTouchScreen={canUseTouchScreen}
+                                    gesture={pan}
+                                >
+                                    <AnimatedAttachmentList
+                                        keyboardShouldPersistTaps="handled"
+                                        horizontal
+                                        showsHorizontalScrollIndicator={false}
+                                        scrollEventThrottle={1}
+                                        // scrolling is controlled by the pan gesture
+                                        scrollEnabled={false}
+                                        ref={scrollRef}
+                                        initialScrollIndex={page}
+                                        initialNumToRender={3}
+                                        windowSize={5}
+                                        maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
+                                        CellRendererComponent={AttachmentCarouselCell}
+                                        data={attachments}
+                                        renderItem={renderItem}
+                                        getItemLayout={getItemLayout}
+                                        keyExtractor={extractItemKey}
+                                        viewabilityConfig={viewabilityConfig}
+                                        onViewableItemsChanged={updatePage}
+                                    />
+                                </DeviceAwareGestureDetector>
+                            </AttachmentCarouselPagerActionsContext.Provider>
+                        </AttachmentCarouselPagerStateContext.Provider>
+                        <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
+                    </>
+                )
             )}
         </View>
     );
