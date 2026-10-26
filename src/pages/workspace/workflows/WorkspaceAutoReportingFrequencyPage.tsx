@@ -21,7 +21,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 
-import {clearPolicyErrorField, setWorkspaceAutoReportingFrequency} from '@userActions/Policy/Policy';
+import {clearPolicyErrorField, setWorkspaceAutoReportingFrequency, setWorkspaceAutoReportingMonthlyOffset} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -66,6 +66,7 @@ const getAutoReportingFrequencyDisplayNames = (translate: LocaleContextProps['tr
 
 function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoReportingFrequencyPageProps) {
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
+    const autoReportingOffset = policy?.autoReportingOffset;
 
     const {translate, toLocaleOrdinal} = useLocalize();
     const styles = useThemeStyles();
@@ -84,8 +85,17 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
             return;
         }
         setWorkspaceAutoReportingFrequency(policyID, selectedFrequency, policy?.autoReportingFrequency, policy?.harvesting, getReviewWorkspaceSettingsTaskCompletion());
+
+        // Switching to Monthly resets the date of month on the server, so re-save the date after the frequency
+        if (
+            selectedFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY &&
+            autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY &&
+            autoReportingOffset !== undefined
+        ) {
+            setWorkspaceAutoReportingMonthlyOffset(policyID, autoReportingOffset, autoReportingOffset);
+        }
         Navigation.goBack();
-    }, [policyID, policy?.autoReportingFrequency, policy?.harvesting, selectedFrequency, getReviewWorkspaceSettingsTaskCompletion]);
+    }, [policyID, policy?.autoReportingFrequency, policy?.harvesting, selectedFrequency, autoReportingFrequency, autoReportingOffset, getReviewWorkspaceSettingsTaskCompletion]);
 
     const confirmButtonOptions = useMemo(
         () => ({
