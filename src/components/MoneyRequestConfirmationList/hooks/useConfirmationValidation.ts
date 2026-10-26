@@ -281,7 +281,7 @@ function useConfirmationValidation({
                 policyCategories,
                 iouCategory,
                 iouAttendees,
-                currentUserPersonalDetails.login,
+                currentUserPersonalDetails.email ?? currentUserPersonalDetails.login,
                 isAttendeeTrackingEnabled(policy),
                 policy?.type === CONST.POLICY.TYPE.CORPORATE,
             );

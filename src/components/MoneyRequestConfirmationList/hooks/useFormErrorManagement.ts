@@ -200,7 +200,7 @@ function useFormErrorManagement({
         policyTagLists: policyTags,
         policyTaxRates: policy?.taxRates?.taxes,
         iouAttendees,
-        ownerLogin: currentUserPersonalDetails.login,
+        ownerLogin: currentUserPersonalDetails.email ?? currentUserPersonalDetails.login,
         isAttendeeTrackingEnabled: isAttendeeTrackingEnabled(policy),
         isControlPolicy: policy?.type === CONST.POLICY.TYPE.CORPORATE,
     });

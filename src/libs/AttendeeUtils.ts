@@ -55,7 +55,8 @@ function getAttendeesMinusOwnerCount(attendees: Attendee[], ownerLogin: string |
     if (!ownerLogin) {
         return Math.max(0, attendees.length - 1);
     }
-    return attendees.filter((attendee) => attendee?.email !== ownerLogin).length;
+    const normalizedOwnerLogin = ownerLogin.toLowerCase();
+    return attendees.filter((attendee) => attendee?.email?.toLowerCase() !== normalizedOwnerLogin).length;
 }
 
 /** Returns whether there are missing attendees for the given category */

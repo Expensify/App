@@ -825,7 +825,7 @@ function MoneyRequestView({
         policyCategories,
         updatedTransaction?.category ?? categoryForDisplay,
         actualAttendees,
-        iouReportOwnerLogin ?? currentUserPersonalDetails.login,
+        iouReportOwnerLogin,
         isAttendeeTrackingEnabled(policy),
         policy?.type === CONST.POLICY.TYPE.CORPORATE,
     );
