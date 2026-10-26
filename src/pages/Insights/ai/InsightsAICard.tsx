@@ -28,6 +28,7 @@ function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
             <InsightsExplainButton
                 explainPrompt={insight.explainPrompt}
                 insightsScope={insightsScope}
+                isAccented
             />
         </View>
     );

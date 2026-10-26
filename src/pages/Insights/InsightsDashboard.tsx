@@ -176,6 +176,7 @@ function InsightsDashboardContent({
                         averageQueryJSON={headlineChart.averageQueryJSON}
                         averageSnapshot={headlineChart.averageSnapshot}
                         filters={filters}
+                        insightsScope={insightsScope}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
                     />
@@ -197,6 +198,7 @@ function InsightsDashboardContent({
                                         averageQueryJSON={averageQueryJSON}
                                         averageSnapshot={averageSnapshot}
                                         filters={filters}
+                                        insightsScope={insightsScope}
                                         onRetry={onRetry}
                                     />
                                 ))}

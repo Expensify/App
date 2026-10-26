@@ -16,10 +16,13 @@ type InsightsExplainButtonProps = {
     explainPrompt: string;
 
     insightsScope: InsightsScope;
+
+    /** Tints the glyph and label with the link colour instead of the muted one */
+    isAccented?: boolean;
 };
 
 /** Asks Concierge to explain an AI insight, sending along the dashboard filters it was written for. */
-function InsightsExplainButton({explainPrompt, insightsScope}: InsightsExplainButtonProps) {
+function InsightsExplainButton({explainPrompt, insightsScope, isAccented = false}: InsightsExplainButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -29,6 +32,8 @@ function InsightsExplainButton({explainPrompt, insightsScope}: InsightsExplainBu
     if (!shouldShowAskConcierge) {
         return null;
     }
+
+    const glyphColor = isAccented ? theme.link : theme.icon;
 
     return (
         <Button
@@ -41,10 +46,10 @@ function InsightsExplainButton({explainPrompt, insightsScope}: InsightsExplainBu
         >
             <Button.Icon
                 src={icons.Sparkles}
-                fill={theme.link}
-                hoverFill={theme.link}
+                fill={glyphColor}
+                hoverFill={glyphColor}
             />
-            <Button.Text style={[styles.textMicroBold, styles.link]}>{translate('reportActionContextMenu.explain')}</Button.Text>
+            <Button.Text style={[styles.textMicroBold, isAccented ? styles.link : styles.textSupporting]}>{translate('reportActionContextMenu.explain')}</Button.Text>
         </Button>
     );
 }
