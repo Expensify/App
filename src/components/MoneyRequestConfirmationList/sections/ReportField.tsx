@@ -1,4 +1,5 @@
 import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -32,8 +33,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import React from 'react';
 
-import ExpenseFieldRow from './ExpenseFieldRow';
+import ExpenseFieldDropdown from './ExpenseFieldDropdown';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
+import ReportFieldDropdown from './ReportFieldDropdown';
 import {reportFieldTransactionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -138,6 +140,9 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
     const shouldReportBeEditable = (isUnreported || isNewReport ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID);
+    // Editing a saved expense's report and moving a per diem expense both navigate on from the list (to the report, or to
+    // the destination step when the workspace changes), so those keep the full page.
+    const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;
 
     const openReportPage = () => {
         if (!transactionID || !selectedReportID) {
@@ -148,12 +153,22 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
 
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldRow
+            <ExpenseFieldDropdown
                 name={translate('common.report')}
                 // The field row renders plain text, so an HTML report name (e.g. a room with a markup name) is
                 // flattened first. Plain names pass through unchanged, with their entities decoded.
                 value={Parser.htmlToText(reportName)}
                 onPress={openReportPage}
+                shouldOpenInDropdown={shouldOpenInDropdown}
+                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                renderDropdown={(dropdownProps) =>
+                    !!transactionID && (
+                        <ReportFieldDropdown
+                            {...dropdownProps}
+                            transactionID={transactionID}
+                        />
+                    )
+                }
                 // A report the user cannot change reads as a disabled field, the same as every other locked field
                 // on this form: the row itself owns that rule.
                 isInteractive={shouldReportBeEditable}

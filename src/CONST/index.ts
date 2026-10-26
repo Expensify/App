@@ -10446,6 +10446,9 @@ const CONST = {
         TAG_PICKER_MODAL: {
             BACK_BUTTON: 'TagPickerModal-BackButton',
         },
+        REPORT_PICKER_MODAL: {
+            BACK_BUTTON: 'ReportPickerModal-BackButton',
+        },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
             MONTH_PICKER: 'CalendarPicker-MonthPicker',

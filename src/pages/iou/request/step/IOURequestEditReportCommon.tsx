@@ -19,6 +19,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Navigation from '@libs/Navigation/Navigation';
 import {canCreateExpensesOnPolicy, canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
@@ -34,7 +35,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 
 import StepScreenWrapper from './StepScreenWrapper';
 
@@ -43,8 +44,9 @@ type TransactionGroupListItem = ListItem & {
     value: string;
 };
 
-type Props = {
-    backTo: Route | undefined;
+type IOURequestEditReportCommonProps = {
+    /** Where the page goes back to. Unused without the page wrapper, where `onDismiss` closes the list instead */
+    backTo?: Route;
     transactionIDs?: string[];
     isManualDistanceRequest: boolean;
     isOdometerDistanceRequest: boolean;
@@ -68,6 +70,18 @@ type Props = {
     areAllManagedCardsResolvable?: boolean;
     /** Lets the backend pick a destination report per expense. Required to offer the action to multiple submitters */
     autoReport?: () => void;
+
+    /** Whether to render the step page around the list. Off when the list sits in a container anchored to a field. Defaults to true */
+    shouldShowWrapper?: boolean;
+
+    /** Closes the list when the report it already shows is picked again. Defaults to going back to `backTo` */
+    onDismiss?: () => void;
+
+    /** Whether the search input should auto-focus when the list mounts. Only opted into by the anchored pop-over. */
+    shouldAutoFocusSearchInput?: boolean;
+
+    /** Reports how many rows the unfiltered list renders, the create-report row included, and whether it shows its search input, so a container can size itself */
+    onListSizeChange?: (size: {rowCount: number; isSearchable: boolean}) => void;
 };
 
 function IOURequestEditReportCommon({
@@ -92,7 +106,11 @@ function IOURequestEditReportCommon({
     hasMultipleSubmitters = false,
     areAllManagedCardsResolvable = false,
     autoReport,
-}: Props) {
+    shouldShowWrapper = true,
+    onDismiss,
+    shouldAutoFocusSearchInput = false,
+    onListSizeChange,
+}: IOURequestEditReportCommonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document', 'DocumentMagicWand']);
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -229,6 +247,8 @@ function IOURequestEditReportCommon({
         Navigation.goBack(backTo);
     };
 
+    const dismiss = onDismiss ?? navigateBack;
+
     const checkIfPerDiemTransactionsCanBeMoved = useCallback(
         (selectedReportPolicyID: string | undefined) => {
             const transactionDetails = transactionIDs?.map((transactionID) => {
@@ -284,7 +304,7 @@ function IOURequestEditReportCommon({
 
     const handleSelectReport = (item: TransactionGroupListItem) => {
         if (item.value === selectedReportID) {
-            navigateBack();
+            dismiss();
             return;
         }
         if (blockDistanceRequestIfNeeded(item.policyID)) {
@@ -414,6 +434,15 @@ function IOURequestEditReportCommon({
     ]);
 
     const listHeaderContent = createReportOption ?? autoReportOption;
+    const isSearchable = !hasMultipleSubmitters && outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const renderedRowCount = reportOptions.length + (listHeaderContent ? 1 : 0);
+
+    useEffect(() => {
+        if (searchValue) {
+            return;
+        }
+        onListSizeChange?.({rowCount: renderedRowCount, isSearchable});
+    }, [renderedRowCount, isSearchable, searchValue, onListSizeChange]);
 
     const shouldShowNotFoundPage = useMemo(() => {
         if (listHeaderContent) {
@@ -434,6 +463,49 @@ function IOURequestEditReportCommon({
         return isOpen && !isAdmin && !isSubmitter;
     }, [listHeaderContent, outstandingReports.length, shouldShowNotFoundPageFromProps, selectedReport, isAdmin]);
 
+    const list = (
+        <SelectionList
+            data={reportOptions}
+            onSelectRow={handleSelectReport}
+            titleNumberOfLines={2}
+            shouldShowTextInput={isSearchable}
+            textInputOptions={{
+                value: searchValue,
+                label: translate('common.search'),
+                headerMessage,
+                onChangeText: setSearchValue,
+                // Auto-focus is opt-in (anchored pop-over only) and skipped on touch surfaces to avoid popping the keyboard.
+                disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
+                ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
+            }}
+            shouldSingleExecuteRowSelect
+            initiallyFocusedItemKey={selectedReportID}
+            shouldScrollToFocusedIndexOnMount={!listHeaderContent}
+            ListItem={InviteMemberListItem}
+            customListHeaderContent={listHeaderContent}
+            listFooterContent={
+                shouldShowRemoveFromReport ? (
+                    <MenuItem.Root onPress={removeFromReport}>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Close} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('iou.removeFromReport')}</MenuItem.Title>
+                                <MenuItem.Description>{translate('iou.moveToPersonalSpace')}</MenuItem.Description>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                ) : undefined
+            }
+            listEmptyContent={listHeaderContent}
+        />
+    );
+
+    if (!shouldShowWrapper) {
+        return list;
+    }
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.report')}
@@ -443,43 +515,10 @@ function IOURequestEditReportCommon({
             includeSafeAreaPaddingBottom
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
-            <SelectionList
-                data={reportOptions}
-                onSelectRow={handleSelectReport}
-                titleNumberOfLines={2}
-                shouldShowTextInput={!hasMultipleSubmitters && outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
-                textInputOptions={{
-                    value: searchValue,
-                    label: translate('common.search'),
-                    headerMessage,
-                    onChangeText: setSearchValue,
-                    disableAutoFocus: true,
-                    ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
-                }}
-                shouldSingleExecuteRowSelect
-                initiallyFocusedItemKey={selectedReportID}
-                shouldScrollToFocusedIndexOnMount={!listHeaderContent}
-                ListItem={InviteMemberListItem}
-                customListHeaderContent={listHeaderContent}
-                listFooterContent={
-                    shouldShowRemoveFromReport ? (
-                        <MenuItem.Root onPress={removeFromReport}>
-                            <MenuItem.Row>
-                                <MenuItem.Leading>
-                                    <MenuItem.Icon src={icons.Close} />
-                                </MenuItem.Leading>
-                                <MenuItem.Content>
-                                    <MenuItem.Title>{translate('iou.removeFromReport')}</MenuItem.Title>
-                                    <MenuItem.Description>{translate('iou.moveToPersonalSpace')}</MenuItem.Description>
-                                </MenuItem.Content>
-                            </MenuItem.Row>
-                        </MenuItem.Root>
-                    ) : undefined
-                }
-                listEmptyContent={listHeaderContent}
-            />
+            {list}
         </StepScreenWrapper>
     );
 }
 
 export default IOURequestEditReportCommon;
+export type {IOURequestEditReportCommonProps};
