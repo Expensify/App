@@ -8848,6 +8848,31 @@ describe('SearchUIUtils', () => {
             ]);
         });
 
+        it('should sort expense reports by their lowest withdrawal ID, leaving the reports without a withdrawal at the empty end', () => {
+            // Given reports whose comma separated withdrawal IDs start with numbers of different lengths, and one report without a withdrawal
+            const withWithdrawals = (keyForList: string, withdrawalIDs?: string) =>
+                createMock<TransactionReportGroupListItemType>({
+                    groupedBy: 'expense-report',
+                    keyForList,
+                    reportID: keyForList,
+                    created: '2025-08-12 17:11:22',
+                    currency: 'USD',
+                    transactions: [],
+                    ...(withdrawalIDs ? {withdrawalIDs} : {}),
+                });
+            const reports = [withWithdrawals('report_high', '100,250'), withWithdrawals('report_none'), withWithdrawals('report_low', '99')];
+
+            // When the reports are sorted by Withdrawal ID
+            const sortReports = (sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [...reports], localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID, sortOrder).map(
+                    (report) => report.keyForList,
+                );
+
+            // Then they are ranked numerically by their first ID, as the backend ranks them, rather than as text
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['report_none', 'report_low', 'report_high']);
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['report_high', 'report_low', 'report_none']);
+        });
+
         it('should sort category group data when type is EXPENSE and groupBy is category', () => {
             expect(
                 SearchUIUtils.getSortedSections(
@@ -10144,6 +10169,90 @@ describe('SearchUIUtils', () => {
 
             expect(reconciliationItem).toBeDefined();
             expect(reconciliationItem?.searchQuery).toContain('withdrawalType:reimbursement');
+        });
+
+        it('should show Cash accruals and Bank reconciliation, but no Card searches, to a Payments Admin', () => {
+            // Given a Payments Admin on a workspace with approvals, ACH reimbursement, Expensify Cards, and a card feed
+            const paymentsAdminEmail = 'paymentsadmin@policy.com';
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Payments Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            // When the suggested searches are computed for that Payments Admin
+            const {visibility, shouldShowExpensifyCard} = SearchUIUtils.getSuggestedSearchesVisibility(paymentsAdminEmail, mockCardFeedsByPolicy, mockPolicies, undefined);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: paymentsAdminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+            const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+
+            // Then the role gets the reimbursement searches, while Card accruals and Card reconciliation stay limited to Admins and Auditors
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]).toBe(false);
+            expect(shouldShowExpensifyCard).toBe(false);
+            expect(reconciliationItem?.searchQuery).toContain('withdrawalType:reimbursement');
+        });
+
+        it('should hide Bank reconciliation from a Payments Admin when the workspace has no active business bank account', () => {
+            // Given a Payments Admin on a workspace that pays without a verified business bank account
+            const paymentsAdminEmail = 'paymentsadmin@policy.com';
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Payments Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                },
+            };
+
+            // When the suggested searches are computed for that Payments Admin
+            const {visibility} = SearchUIUtils.getSuggestedSearchesVisibility(paymentsAdminEmail, {}, mockPolicies, undefined);
+
+            // Then Cash accruals still shows, but Bank reconciliation needs a bank account to reconcile against
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(false);
         });
 
         it('should place todo items (submit, approve, pay) inside the Expense reports section', () => {
@@ -12092,6 +12201,20 @@ describe('SearchUIUtils', () => {
             expect(sortedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
         });
 
+        test('Should show the selected Withdrawal ID column on report searches even when no report on the page has a withdrawal', () => {
+            // Given a page of reports where no report has withdrawals, and the user selected the Withdrawal ID column
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID];
+            const unpaidReportID = '1';
+            const unpaidReport = {reportID: unpaidReportID, type: CONST.REPORT.TYPE.EXPENSE, total: -10000, currency: 'USD'};
+            const unpaidData: OnyxTypes.SearchResults['data'] = {[`report_${unpaidReportID}`]: unpaidReport};
+
+            // When the columns to show are computed
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: unpaidData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+
+            // Then the column stays visible, because the user selected it
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
+        });
+
         test('Should only show the conversion amount columns for withdrawal groups that converted currencies', () => {
             const domesticGroup = {
                 entryID: 1,
@@ -13499,6 +13622,18 @@ describe('SearchUIUtils', () => {
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
             });
+        });
+
+        test("Should pass the expense report policy's full policy snapshot marker when creating the transaction thread", () => {
+            // Given markers cached for the expense report's policy and for another policy
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            const fullPolicySnapshotLastModifiedByPolicyID = {[policyID]: 123, otherPolicyID: 456};
+
+            // When the expense is opened from Search
+            SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, shouldNavigate: false, fullPolicySnapshotLastModifiedByPolicyID});
+
+            // Then the thread is created with the marker of the expense report's own policy
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({iouReport: report1, fullPolicySnapshotLastModified: 123}));
         });
 
         test("Should not create a transaction thread in the current user's self DM for another user's unreported expense", () => {

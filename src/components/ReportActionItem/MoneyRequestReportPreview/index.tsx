@@ -37,6 +37,7 @@ import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContex
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {fullPolicySnapshotLastModifiedSelector} from '@src/selectors/Policy';
 import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
@@ -121,6 +122,9 @@ function MoneyRequestReportPreview({
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
     const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
     const policy = usePolicy(policyID);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
@@ -261,12 +265,13 @@ function MoneyRequestReportPreview({
                         iouReport,
                         iouReportAction: transactionIOUAction,
                         personalDetails: personalDetailsList,
+                        fullPolicySnapshotLastModified,
                     })?.reportID;
                 }
             }
             return childReportID;
         },
-        [conciergeChat, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
+        [conciergeChat, currentUserAccountID, currentUserEmail, fullPolicySnapshotLastModified, introSelected, iouReport, personalDetailsList, policyID],
     );
 
     // `routeAtPress` is captured when the user pressed, not read live: a second press inside the cascade window
@@ -371,13 +376,14 @@ function MoneyRequestReportPreview({
 
             const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
             const childReportID = resolveChildReportID(transaction);
+            const fullPolicySnapshot = policyID && fullPolicySnapshotLastModified ? {policyID, lastModified: fullPolicySnapshotLastModified} : undefined;
             if (childReportID) {
                 if (!isIOUActionLoaded && iouReportID) {
                     if (isOffline) {
                         openReportFromPreview();
                         return;
                     }
-                    openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                    openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
                 }
                 navigateToExpense(childReportID, routeAtPress);
                 return;
@@ -385,7 +391,7 @@ function MoneyRequestReportPreview({
 
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
-                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
                 return;
             }
 
@@ -394,12 +400,14 @@ function MoneyRequestReportPreview({
         [
             conciergeChat,
             currentUserAccountID,
+            fullPolicySnapshotLastModified,
             hasIOUReportActions,
             introSelected,
             iouReportID,
             isOffline,
             navigateToExpense,
             openReportFromPreview,
+            policyID,
             resolveChildReportID,
             transactions.length,
         ],
