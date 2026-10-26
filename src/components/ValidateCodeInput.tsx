@@ -26,6 +26,8 @@ import TextInput from './TextInput';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
+const isInputFocused = (inputRef: React.RefObject<BaseTextInputRef | null>) => (inputRef.current as ComponentRef<typeof RNTextInput>)?.isFocused?.() ?? false;
+
 /**
  * Trims whitespace from pasted validateCodes
  */
@@ -40,8 +42,7 @@ const useValidateCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>
                 return;
             }
 
-            const isFocused = (inputRef.current as ComponentRef<typeof RNTextInput>)?.isFocused?.() ?? false;
-            if (!isFocused) {
+            if (!isInputFocused(inputRef)) {
                 return;
             }
 
@@ -168,12 +169,17 @@ function ValidateCodeInput({
     const shouldFocusLast = useRef(false);
     const inputWidth = useRef(0);
     const lastFocusedIndex = useRef(0);
+    const focusedIndexRef = useRef(focusedIndex);
     const lastValue = useRef<string | number>(TEXT_INPUT_EMPTY_STATE);
     const valueRef = useRef(value);
 
     useEffect(() => {
         lastValue.current = input.length;
     }, [input.length]);
+
+    useEffect(() => {
+        focusedIndexRef.current = focusedIndex;
+    }, [focusedIndex]);
 
     useEffect(() => {
         // Note: there are circumstances where the value state isn't updated yet
@@ -336,6 +342,47 @@ function ValidateCodeInput({
     };
 
     useValidateCodePaste(inputRef, onChangeText);
+
+    // focus-trap listens for keydown on document in the capture phase and wraps Shift+Tab when this single input is the first
+    // tabbable node. onKeyPress only runs after that focus move, when onBlur has already cleared focusedIndex, so on web we
+    // move between slots from a window capture listener, which runs first, and stop the event before focus-trap sees it.
+    useEffect(() => {
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        const handleTabKeyDown = (event: globalThis.KeyboardEvent) => {
+            if (event.key !== 'Tab' || event.altKey || event.ctrlKey || event.metaKey || !inputRef.current) {
+                return;
+            }
+
+            // focus-trap compares document.activeElement with its first tabbable node, so on web that must be this input.
+            if (!isInputFocused(inputRef) || (inputRef.current instanceof HTMLElement && document.activeElement !== inputRef.current)) {
+                return;
+            }
+
+            const currentIndex = focusedIndexRef.current;
+            if (currentIndex === undefined) {
+                return;
+            }
+
+            const newFocusedIndex = event.shiftKey ? currentIndex - 1 : currentIndex + 1;
+            if (newFocusedIndex < 0 || newFocusedIndex >= maxLength) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            focusedIndexRef.current = newFocusedIndex;
+            setInputAndIndex(newFocusedIndex);
+        };
+
+        window.addEventListener('keydown', handleTabKeyDown, true);
+
+        return () => {
+            window.removeEventListener('keydown', handleTabKeyDown, true);
+        };
+    }, [maxLength, setInputAndIndex]);
 
     /**
      * Handles logic related to certain key presses.
