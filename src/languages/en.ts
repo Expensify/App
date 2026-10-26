@@ -6381,7 +6381,7 @@ const translations = {
                 },
             },
             syncReimbursedReports: 'Sync reimbursed reports',
-            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a payment will be generated in this account.',
             achPaymentAccount: {
                 label: 'ACH payment account',
                 description: "Choose where to pay reports from and we'll create the payment in Rillet.",
@@ -6505,7 +6505,7 @@ const translations = {
                 },
             },
             syncReimbursedReports: 'Sync reimbursed reports',
-            syncReimbursedReportsDescription: 'When a report is paid via ACH, a payment will be generated in this account.',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
             billPaymentAccount: {
                 label: 'Bill payment account',
                 description: "Choose where to pay bills from and we'll create the payment in DualEntry.",
