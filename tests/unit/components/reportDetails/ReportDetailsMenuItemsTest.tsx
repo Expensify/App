@@ -257,7 +257,7 @@ describe('ReportDetailsMenuItems', () => {
         // When the menu renders for the money case
         await renderMenu(requestData);
 
-        // Then both submit destinations render right after Settings, as the inline track pushes did
-        expect(getRenderedRows()).toEqual(['Members', 'Settings', 'Submit to a friend', 'Submit to my employer', 'Leave']);
+        // Then both submit destinations render right after Settings, as the inline track pushes did, and Leave is hidden because a track expense thread can't be left
+        expect(getRenderedRows()).toEqual(['Members', 'Settings', 'Submit to a friend', 'Submit to my employer']);
     });
 });
