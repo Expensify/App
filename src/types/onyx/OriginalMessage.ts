@@ -547,6 +547,12 @@ type OriginalMessagePolicyChangeLog = {
     newDescription?: string;
     oldDescription?: string;
 
+    /** Whether an existing expense policy document was replaced (true) or a first one added (false) */
+    isReplacement?: boolean;
+
+    /** Workspace whose expense policy document changed, used to link to its Overview page */
+    policyID?: string;
+
     /** Report field type */
     fieldType?: string;
 
@@ -558,8 +564,8 @@ type OriginalMessagePolicyChangeLog = {
     /** Array of field changes for consolidated employee updates */
     fields?: Array<{
         field: string;
-        oldValue: string;
-        newValue: string;
+        oldValue: string | number;
+        newValue: string | number;
     }>;
 
     /** Report field name */
@@ -1451,6 +1457,9 @@ type OriginalMessageDemotedFromWorkspace = {
 
     /** The old role of the employee that is being demoted */
     oldRole: string;
+
+    /** The new role of the employee that is being demoted. Missing on actions created before the role was included */
+    newRole?: string;
 
     /** The accountID of the member who was demoted from workspace */
     whisperedTo: number[];

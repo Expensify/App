@@ -56,8 +56,8 @@ function resetQAAuthConfig() {
 beforeEach(() => {
     jest.clearAllMocks();
     resetQAAuthConfig();
-    getWebCrypto.getRandomValues.mockImplementation((array: Uint8Array) => webcrypto.getRandomValues(array));
-    getWebCrypto.sha256.mockImplementation((data: BufferSource) => webcrypto.subtle.digest('SHA-256', data));
+    getWebCrypto.getRandomValues.mockImplementation((array: Uint8Array<ArrayBuffer>) => webcrypto.getRandomValues(array));
+    getWebCrypto.sha256.mockImplementation((data: NodeJS.BufferSource) => webcrypto.subtle.digest('SHA-256', data));
     jest.mocked(getAuthServerEndpoints).mockResolvedValue({
         authorizationEndpoint: 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization',
         tokenEndpoint: 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/token',

@@ -473,6 +473,37 @@ describe('ReportAlternateTextUtils', () => {
         });
     });
 
+    it.each([
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ARCHIVE_POLICY, 'archived this workspace'],
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNARCHIVE_POLICY, 'unarchived this workspace'],
+    ] as const)('localizes workspace history previews for %s', (actionName, expectedMessage) => {
+        // Given a changelog whose backend fallback text differs from the localized message.
+        const report = makeReport();
+        const lastAction = makeAction(actionName, {originalMessage: {}});
+
+        // When report and sidebar previews resolve the action.
+        const lastMessage = getLastMessageTextForReport({
+            dateFnsLocale: undefined,
+            conciergeReportID: undefined,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            personalDetails: undefined,
+            translate: translateLocal,
+            convertToDisplayString,
+            report,
+            lastActorDetails: null,
+            isReportArchived: false,
+            lastAction,
+            currentUserLogin: CURRENT_USER_LOGIN,
+            formatPhoneNumber,
+            rules: undefined,
+        });
+        const alternateText = getAlternateText({report, lastAction});
+
+        // Then both previews use the localized changelog instead of the fallback.
+        expect(lastMessage).toBe(expectedMessage);
+        expect(alternateText).toContain(expectedMessage);
+    });
+
     describe('getLastMessageTextForReport', () => {
         it('formats an agent prompt update from its original message', () => {
             const report: Report = createRandomReport(0, undefined);
@@ -562,14 +593,19 @@ describe('ReportAlternateTextUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const reportPreviewMessage = getReportPreviewMessage(translateLocal, convertToDisplayString, {
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: reportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewMessage(
+                    translateLocal,
+                    convertToDisplayString,
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: reportPreviewAction,
+                    },
+                    formatPhoneNumber,
+                );
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');
             });

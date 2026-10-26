@@ -7,6 +7,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
@@ -57,6 +58,7 @@ function DynamicCreateCategoryPage({route}: DynamicCreateCategoryPageProps) {
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
 
     const policyHasTags = hasTags(policyTags);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -75,6 +77,7 @@ function DynamicCreateCategoryPage({route}: DynamicCreateCategoryPageProps) {
                 setupCategoriesAndTagsHasOutstandingChildTask,
                 setupCategoriesAndTagsParentReportAction,
                 policyHasTags,
+                reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
             });
             Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
         },
@@ -94,6 +97,7 @@ function DynamicCreateCategoryPage({route}: DynamicCreateCategoryPageProps) {
             setupCategoriesAndTagsHasOutstandingChildTask,
             setupCategoriesAndTagsParentReportAction,
             policyHasTags,
+            getReviewWorkspaceSettingsTaskCompletion,
         ],
     );
 

@@ -318,6 +318,8 @@ type GetTransactionSectionsParams = {
     queryJSON?: SearchQueryJSON;
     isAttendeesEnabledForMovingPolicy?: boolean;
     optimisticTransactionID?: string;
+    cardList?: OnyxEntry<OnyxTypes.CardList>;
+    onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
 };
 
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
@@ -374,6 +376,8 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     // Sorted as stored, so amounts in different currencies are ranked without conversion.
     [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED]: 'debitedAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'creditedAmount' as const,
+    // The IDs are in ascending order, so this ranks reports by their lowest withdrawal ID, matching the backend.
+    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawalIDs' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
 };
 
@@ -752,6 +756,7 @@ function getSuggestedSearchesVisibility(
         const isPayer = isPolicyPayer(policy, currentUserEmail);
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
+        const isPaymentsAdmin = policy.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
         const isExporter = policy.exporter === currentUserEmail;
 
         const isSubmittedTo =
@@ -772,10 +777,10 @@ function getSuggestedSearchesVisibility(
         const isPolicyEligibleForApproveSuggestion = isGroupPolicyEligible && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
-        const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && isPaymentEnabled;
+        const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
-        const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isPaymentEnabled && hasVBBA && hasReimburser;
+        const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
         const isEligibleForTopSpendersSuggestion = isPolicyEligibleForTopSpenders(policy, currentUserEmail);
         const isEligibleForTopCategoriesSuggestion = isPolicyEligibleForTopCategories(policy);
@@ -1850,6 +1855,8 @@ function getTransactionsSections({
     queryJSON,
     isAttendeesEnabledForMovingPolicy,
     optimisticTransactionID,
+    cardList,
+    onyxPersonalDetailsList,
 }: GetTransactionSectionsParams): [TransactionListItemType[], number, boolean] {
     const {
         transactionKeys,
@@ -1911,8 +1918,11 @@ function getTransactionsSections({
                 policy,
             );
             // Use Map.get() for faster lookups with default values
-            const fromAccountID = reportAction?.actorAccountID ?? report?.ownerAccountID;
-            const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
+            // The holder of the card an expense was charged to is its canonical owner, so check it first.
+            // Fall back to the IOU action and report owner for expenses without a loaded card.
+            const cardHolderAccountID = transactionItem.cardID ? cardList?.[transactionItem.cardID]?.accountID : undefined;
+            const fromAccountID = cardHolderAccountID ?? reportAction?.actorAccountID ?? report?.ownerAccountID;
+            const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? onyxPersonalDetailsList?.[fromAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
 
@@ -2492,6 +2502,9 @@ type CreateAndOpenSearchTransactionThreadParams = {
 
     /** Resolves decimal precision for a currency when formatting stored optimistic amounts */
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+
+    /** The lastModified of each policy's cached full policy snapshot, keyed by policyID */
+    fullPolicySnapshotLastModifiedByPolicyID?: Record<string, number>;
 };
 
 /** Creates transaction thread report and navigates to it from the search page */
@@ -2510,6 +2523,7 @@ function createAndOpenSearchTransactionThread({
     shouldNavigate = true,
     getCurrencyDecimals,
     conciergeChat,
+    fullPolicySnapshotLastModifiedByPolicyID,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isUnreportedTransaction = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
@@ -2543,18 +2557,20 @@ function createAndOpenSearchTransactionThread({
         const transaction = shouldPassTransactionData ? getTransactionFromTransactionListItem(item) : undefined;
         const transactionViolations = shouldPassTransactionData ? item.violations : undefined;
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
+        const iouReport = getReportOrDraftReport(item.reportID) ?? item.report;
         transactionThreadReport = createTransactionThreadReport({
             introSelected,
             conciergeChat,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
-            iouReport: getReportOrDraftReport(item.reportID) ?? item.report,
+            iouReport,
             iouReportAction: reportActionToPass,
             transaction,
             transactionViolations,
             personalDetails,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
+            fullPolicySnapshotLastModified: iouReport?.policyID ? fullPolicySnapshotLastModifiedByPolicyID?.[iouReport.policyID] : undefined,
         });
     }
 
@@ -3826,6 +3842,8 @@ function getSections({
         queryJSON,
         isAttendeesEnabledForMovingPolicy,
         optimisticTransactionID,
+        cardList,
+        onyxPersonalDetailsList,
     });
 }
 
