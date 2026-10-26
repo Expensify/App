@@ -16,7 +16,7 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
     interface Window {
         Onyx: typeof Onyx & {
-            log: (key: CollectionKeyBase) => void;
+            log?: (key: CollectionKeyBase) => void;
         };
     }
 }
