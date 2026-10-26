@@ -2147,7 +2147,6 @@ function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>, report
     return reportActionsArray.some((action) => isForwardedAction(action) && action.created > lastSubmittedAt);
 }
 
-// reportActions is temporarily optional while callers are migrated in smaller PRs. Once every caller passes it, the module-level fallback in hasReportBeenForwardedSinceLastSubmit is removed as part of https://github.com/Expensify/App/issues/66419.
 function isAwaitingFirstLevelApproval(
     report: OnyxEntry<Report>,
     rules: OnyxCollection<Rule>,
