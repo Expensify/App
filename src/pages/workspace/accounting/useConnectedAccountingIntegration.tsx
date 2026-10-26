@@ -461,7 +461,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting && zohoBooksOrganizationList.length > 1,
                           shouldShowDescriptionOnTop: true,
-                          interactive: canWriteAccounting,
+                          interactive: canWriteAccounting && zohoBooksOrganizationList.length > 1,
                           // Multi-location organizations are not supported yet, so explain why the connection doesn't work.
                           errorText: currentZohoBooksOrganization?.isMultiLocation ? translate('workspace.zohoBooks.multiLocationNotSupported') : undefined,
                           pendingAction: policy?.connections?.zohoBooks?.config?.pendingFields?.subsidiaryID,
