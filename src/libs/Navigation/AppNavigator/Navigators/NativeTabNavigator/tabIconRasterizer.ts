@@ -23,6 +23,8 @@ type TabIconLayout = {
     emojiStatusRadius: number;
     /** Size of the emoji drawn in that badge. */
     emojiStatusFontSize: number;
+    /** How far that badge sits past the bottom-right corner of the avatar's box. The canvas grows to fit it. */
+    emojiStatusOffset: number;
 };
 
 type TabIconLabel = {
@@ -148,11 +150,12 @@ function drawStatusDot(canvas: SkCanvas, right: number, top: number, scale: numb
     paint.dispose();
 }
 
-/** Drawn inside the badge box, opposite the status dot, because anything past the canvas is cut off. */
+/** Drawn at the bottom-right of the badge box, opposite the status dot, and as far past it as the layout's offset. */
 function drawEmojiStatus(canvas: SkCanvas, layout: TabIconLayout, right: number, bottom: number, scale: number, {emoji, backgroundColor, fontManager}: TabIconEmojiStatus) {
     const radius = layout.emojiStatusRadius * scale;
-    const centerX = right - radius;
-    const centerY = bottom - radius;
+    const offset = layout.emojiStatusOffset * scale;
+    const centerX = right + offset - radius;
+    const centerY = bottom + offset - radius;
     const paint = Skia.Paint();
     paint.setAntiAlias(true);
     paint.setBlendMode(BlendMode.Clear);
@@ -186,15 +189,25 @@ type TabIconFrame = {
 
 /**
  * With a label, every tab gives its glyph or avatar a box as big as the avatar, so glyphs and the avatar share a centre
- * and every label starts at the same place: under that box, or beside it in landscape.
+ * and every label starts at the same place: under that box, or beside it in landscape. The canvas also grows by the
+ * overhang of anything drawn past the content's bottom-right corner, on both sides where the bar centres the content.
  */
-function getTabIconFrame(layout: TabIconLayout, contentSize: number, labelGap: number, labelWidth: number, labelHeight: number, hasLabel: boolean, scale: number): TabIconFrame {
+function getTabIconFrame(
+    layout: TabIconLayout,
+    contentSize: number,
+    overhang: number,
+    labelGap: number,
+    labelWidth: number,
+    labelHeight: number,
+    hasLabel: boolean,
+    scale: number,
+): TabIconFrame {
     const boxSize = hasLabel ? Math.max(layout.glyphSize, layout.avatarSize) * scale : contentSize;
 
     if (layout.direction === 'inline') {
-        const canvasHeight = Math.ceil(Math.max(boxSize, labelHeight));
+        const canvasHeight = Math.ceil(Math.max(boxSize + 2 * overhang, labelHeight));
         return {
-            canvasWidth: Math.ceil(boxSize + (hasLabel ? labelGap + labelWidth : 0)),
+            canvasWidth: Math.ceil(boxSize + (hasLabel ? labelGap + labelWidth : overhang)),
             canvasHeight,
             contentLeft: (boxSize - contentSize) / 2,
             contentTop: (canvasHeight - contentSize) / 2,
@@ -203,13 +216,15 @@ function getTabIconFrame(layout: TabIconLayout, contentSize: number, labelGap: n
         };
     }
 
-    const canvasWidth = Math.ceil(Math.max(contentSize, labelWidth));
+    const canvasWidth = Math.ceil(Math.max(contentSize + 2 * overhang, labelWidth));
     const labelTop = (boxSize + layout.glyphSize * scale) / 2 + labelGap;
+    // Under a label, the overhang reaches into the gap above it, so only an unlabelled icon grows in height.
+    const contentTop = (boxSize - contentSize) / 2 + (hasLabel ? 0 : overhang);
     return {
         canvasWidth,
-        canvasHeight: Math.ceil(hasLabel ? labelTop + labelHeight : boxSize),
+        canvasHeight: Math.ceil(hasLabel ? Math.max(labelTop + labelHeight, contentTop + contentSize + overhang) : boxSize + 2 * overhang),
         contentLeft: (canvasWidth - contentSize) / 2,
-        contentTop: (boxSize - contentSize) / 2,
+        contentTop,
         labelLeft: (canvasWidth - labelWidth) / 2,
         labelTop,
     };
@@ -220,6 +235,7 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, emoj
     const contentSize = (avatar ? layout.avatarSize : layout.glyphSize) * scale;
     // With an emoji, the dot and badge sit on an avatar-sized box even over the glyph, because the badge is sized to clear the dot on the avatar.
     const badgeBoxSize = avatar || emojiStatus ? layout.avatarSize * scale : contentSize;
+    const overhang = emojiStatus ? layout.emojiStatusOffset * scale : 0;
     const paragraph = label ? makeLabelParagraph(label, scale) : undefined;
     const {
         canvasWidth,
@@ -228,7 +244,7 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, emoj
         contentTop: badgeBoxTop,
         labelLeft,
         labelTop,
-    } = getTabIconFrame(layout, badgeBoxSize, (label?.gap ?? 0) * scale, paragraph?.getLongestLine() ?? 0, paragraph?.getHeight() ?? 0, !!label, scale);
+    } = getTabIconFrame(layout, badgeBoxSize, overhang, (label?.gap ?? 0) * scale, paragraph?.getLongestLine() ?? 0, paragraph?.getHeight() ?? 0, !!label, scale);
 
     const surface = Skia.Surface.Make(canvasWidth, canvasHeight);
     if (!surface) {

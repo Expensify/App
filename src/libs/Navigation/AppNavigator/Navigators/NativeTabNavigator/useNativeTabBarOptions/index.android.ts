@@ -28,6 +28,8 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
     direction: 'stacked',
     emojiStatusRadius: variables.nativeTabIconEmojiStatusRadius,
     emojiStatusFontSize: variables.nativeTabIconEmojiStatusFontSize,
+    // Material scales an icon down to fit its slot, so a badge past the avatar would shrink the whole icon.
+    emojiStatusOffset: 0,
 };
 
 function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {

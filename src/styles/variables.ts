@@ -134,6 +134,8 @@ export default {
     nativeTabIconEmojiStatusRadiusLandscape: 5,
     /** Size of the emoji drawn in that landscape badge. */
     nativeTabIconEmojiStatusFontSizeLandscape: 7,
+    /** How far the emoji status badge of an iOS native tab bar icon sits past the bottom-right corner of the avatar, as the JS badge hangs off its avatar. */
+    nativeTabIconEmojiStatusOffset: 2,
     /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
     /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */

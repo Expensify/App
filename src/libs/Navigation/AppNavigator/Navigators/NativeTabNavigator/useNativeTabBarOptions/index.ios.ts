@@ -27,6 +27,7 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
     direction: 'stacked',
     emojiStatusRadius: variables.nativeTabIconEmojiStatusRadius,
     emojiStatusFontSize: variables.nativeTabIconEmojiStatusFontSize,
+    emojiStatusOffset: variables.nativeTabIconEmojiStatusOffset,
 };
 
 /** A phone in landscape gives the bar too little height for a stacked tab, so UIKit lays its own tabs out this way. */
@@ -36,6 +37,7 @@ const LANDSCAPE_TAB_ICON_LAYOUT: TabIconLayout = {
     direction: 'inline',
     emojiStatusRadius: variables.nativeTabIconEmojiStatusRadiusLandscape,
     emojiStatusFontSize: variables.nativeTabIconEmojiStatusFontSizeLandscape,
+    emojiStatusOffset: variables.nativeTabIconEmojiStatusOffset,
 };
 
 /**

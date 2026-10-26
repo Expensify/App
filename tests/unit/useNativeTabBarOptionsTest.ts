@@ -5,6 +5,8 @@ import useAndroidNativeTabBarOptions from '@libs/Navigation/AppNavigator/Navigat
 import useIOSNativeTabBarOptions from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useNativeTabBarOptions/index.ios';
 import type NativeTabBarOptionsParams from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useNativeTabBarOptions/types';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,9 +60,9 @@ function getDrawnEmojis(): Array<string | undefined> {
 }
 
 describe.each([
-    ['Android', useAndroidNativeTabBarOptions],
-    ['iOS', useIOSNativeTabBarOptions],
-])('%s useNativeTabBarOptions', (_platform, useNativeTabBarOptions) => {
+    ['Android', useAndroidNativeTabBarOptions, 0],
+    ['iOS', useIOSNativeTabBarOptions, variables.nativeTabIconEmojiStatusOffset],
+])('%s useNativeTabBarOptions', (_platform, useNativeTabBarOptions, expectedEmojiStatusOffset) => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -149,5 +151,17 @@ describe.each([
 
         // Then no custom font is given, so the system's color emoji font draws it
         expect(getDrawnEmojiStatuses().map((emojiStatus) => emojiStatus?.fontManager)).toEqual([undefined, undefined]);
+    });
+
+    it('hangs the badge past the avatar only where the icon can grow', () => {
+        // Given a user with a status emoji
+        mockEmojiCode = '🌴';
+        const {result} = renderHook(() => useNativeTabBarOptions(PARAMS));
+
+        // When the account tab's icon is drawn
+        result.current.getTabOptions(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+
+        // Then iOS offsets the badge past the avatar's corner as the JS badge does, while Android keeps it inside, since Material would shrink a larger icon to fit its slot
+        expect(mockGetTabBarIcon.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({emojiStatusOffset: expectedEmojiStatusOffset}));
     });
 });
