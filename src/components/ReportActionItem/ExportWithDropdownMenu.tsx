@@ -105,9 +105,11 @@ function ExportWithDropdownMenu({
         },
     ];
     const exportMethod = report?.policyID ? exportMethods?.[report.policyID] : null;
-    if (exportMethod) {
-        dropdownOptions.sort((method) => (method.value === exportMethod ? -1 : 0));
-    }
+    // The split button tracks selection by index, so saving a preference must not reorder its options.
+    const defaultSelectedIndex = Math.max(
+        0,
+        dropdownOptions.findIndex(({value}) => value === exportMethod),
+    );
 
     const handleExport = (exportType: ReportExportType) => {
         if (!reportID) {
@@ -156,6 +158,7 @@ function ExportWithDropdownMenu({
             }}
             onOptionSelected={({value}) => savePreferredExportMethod(value)}
             options={dropdownOptions}
+            defaultSelectedIndex={defaultSelectedIndex}
             style={[shouldUseNarrowLayout && styles.flexGrow1]}
             wrapperStyle={flattenedWrapperStyle}
             size={CONST.BUTTON_SIZE.MEDIUM}
