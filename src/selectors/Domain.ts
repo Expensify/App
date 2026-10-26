@@ -31,6 +31,17 @@ const domainSamlSettingsStateSelector = (domain: OnyxEntry<Domain>) =>
 
 const domainNameSelector = (domain: OnyxEntry<Domain>) => (domain?.email ? Str.extractEmailDomain(domain.email) : undefined);
 
+function domainNamesByAccountIDSelector(domains: OnyxCollection<Domain>): Record<number, string> {
+    const domainNames: Record<number, string> = {};
+    for (const domain of Object.values(domains ?? {})) {
+        const domainName = domainNameSelector(domain);
+        if (domain && domainName) {
+            domainNames[domain.accountID] = domainName;
+        }
+    }
+    return domainNames;
+}
+
 const domainSettingsPrimaryContactSelector = (domainSettings: OnyxEntry<DomainSettings>) => domainSettings?.settings?.technicalContactEmail;
 
 const metaIdentitySelector = (samlMetadata: OnyxEntry<SamlMetadata>) => samlMetadata?.metaIdentity;
@@ -328,6 +339,7 @@ export {
     domainSettingsPrimaryContactSelector,
     domainSamlSettingsStateSelector,
     domainNameSelector,
+    domainNamesByAccountIDSelector,
     metaIdentitySelector,
     adminAccountIDsSelector,
     memberAccountIDsSelector,
