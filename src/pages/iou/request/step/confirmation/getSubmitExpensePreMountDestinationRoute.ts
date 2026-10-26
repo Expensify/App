@@ -1,3 +1,4 @@
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -78,7 +79,9 @@ function getSubmitExpensePreMountDestinationRoute({
     // RHP has its own dismiss handler; pre-inserting under it would break the stack.
     const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
     // Don't pre-insert if the report is already the topmost fullscreen - it would push a duplicate route (extra back press).
-    const hasValidDestination = !!destinationReportID && (hasPreInsertedFullscreen || Navigation.getTopmostReportId() !== destinationReportID);
+    // On wide layout the topmost report can sit in a background Reports tab, which is not on screen, so only the focused one counts.
+    const isDestinationOnScreen = Navigation.getTopmostReportId() === destinationReportID && (getIsNarrowLayout() || isReportTopmostSplitNavigator());
+    const hasValidDestination = !!destinationReportID && (hasPreInsertedFullscreen || !isDestinationOnScreen);
     // A report destination while a *different* report is topmost has no tab to switch to, so the pre-insert overwrites the
     // visible report and cancelling must rebuild it from a state snapshot - a restore the root router's guards can silently
     // swallow (#97437). Relocating a tracked expense is where that bites: it is rebound to its destination chat before this

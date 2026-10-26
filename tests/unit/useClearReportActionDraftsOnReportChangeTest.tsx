@@ -179,6 +179,19 @@ describe('useClearReportActionDraftsOnReportChange', () => {
         expect(mockClearAllReportActionDrafts).not.toHaveBeenCalled();
     });
 
+    it('keeps the drafts when a seen screen comes back from a preloaded tab after a cancelled pre-mount', () => {
+        // Given a report screen the user saw and left with an unsaved edit, which already cleared the drafts on mount
+        const {rerenderWith} = renderDraftsHook({reportID: '1', isInPreloadedTab: false});
+        mockClearAllReportActionDrafts.mockClear();
+
+        // When a wide submit pre-mount marks its background tab preloaded, and cancelling it removes that mark again
+        rerenderWith({reportID: '1', isInPreloadedTab: true});
+        rerenderWith({reportID: '1', isInPreloadedTab: false});
+
+        // Then nothing is cleared, because the user never went back to that report and the edit must survive
+        expect(mockClearAllReportActionDrafts).not.toHaveBeenCalled();
+    });
+
     it('clears the drafts when a visible screen switches to another report', () => {
         // Given a report screen the user is looking at
         const {rerenderWith} = renderDraftsHook({reportID: '1', isInPreloadedTab: false});

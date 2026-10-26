@@ -127,6 +127,55 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
     });
 
+    it('returns undefined on wide layout when the destination is the report on screen in the focused Reports tab', () => {
+        // Given a wide layout showing report 123 in the focused Reports tab
+        mockGetIsNarrowLayout.mockReturnValue(false);
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue('123');
+
+        // When submission selects a destination to pre-mount for that same report
+        const route = getSubmitExpensePreMountDestinationRoute({
+            isTransactionReady: true,
+            destinationReportID: '123',
+            destinationReport: {reportID: '123'},
+            isFromGlobalCreate: false,
+            canPreInsertSearch: false,
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            isCreatingTrackExpense: false,
+            isSelfDMDestination: false,
+            isOptimisticNewChatDestination: false,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: false,
+        });
+
+        // Then nothing is pre-mounted, because the user already sees the destination
+        expect(route).toBeUndefined();
+    });
+
+    it('returns report route on wide layout when the destination is only kept in a background Reports tab', () => {
+        // Given a wide layout on another tab, with report 123 still kept in the background Reports tab
+        mockGetIsNarrowLayout.mockReturnValue(false);
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue('123');
+
+        // When submission selects a destination to pre-mount for that report
+        const route = getSubmitExpensePreMountDestinationRoute({
+            isTransactionReady: true,
+            destinationReportID: '123',
+            destinationReport: {reportID: '123'},
+            isFromGlobalCreate: false,
+            canPreInsertSearch: false,
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            isCreatingTrackExpense: false,
+            isSelfDMDestination: false,
+            isOptimisticNewChatDestination: false,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: false,
+        });
+
+        // Then it is pre-mounted, because the report is not on screen and submit reveals it
+        expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
+    });
+
     it('returns undefined when relocating a tracked expense over a different visible report', () => {
         // Given relocation would replace another report in the same tab
         // The single-workspace "Submit to my employer" shape: the user is reading their self-DM while the expense is

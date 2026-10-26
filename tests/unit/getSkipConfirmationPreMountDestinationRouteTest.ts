@@ -1,3 +1,4 @@
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 
 import getSkipConfirmationPreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSkipConfirmationPreMountDestinationRoute';
@@ -8,6 +9,7 @@ const mockGetIsNarrowLayout = jest.fn<boolean, []>();
 const mockGetTopmostReportId = jest.fn<string | undefined, []>();
 const mockGetIsFullscreenPreInsertedUnderRHP = jest.fn<boolean, []>();
 
+jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator');
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute');
 jest.mock('@libs/getIsNarrowLayout', () => () => mockGetIsNarrowLayout());
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -15,11 +17,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getIsFullscreenPreInsertedUnderRHP: () => mockGetIsFullscreenPreInsertedUnderRHP(),
 }));
 
+const mockIsReportTopmostSplitNavigator = jest.mocked(isReportTopmostSplitNavigator);
 const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
 
 describe('getSkipConfirmationPreMountDestinationRoute', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockIsReportTopmostSplitNavigator.mockReturnValue(false);
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
         mockGetIsNarrowLayout.mockReturnValue(false);
         mockGetTopmostReportId.mockReturnValue(undefined);
@@ -27,7 +31,8 @@ describe('getSkipConfirmationPreMountDestinationRoute', () => {
     });
 
     it('returns undefined on wide layout when the destination is already the report on screen', () => {
-        // Given a wide layout showing report 123, where a pre-mount would copy the whole tab navigator for nothing
+        // Given a wide layout showing report 123 in the focused Reports tab, where submit only closes the RHP
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
         mockGetTopmostReportId.mockReturnValue('123');
 
         // When the skip-confirmation destination is that same report
@@ -35,6 +40,17 @@ describe('getSkipConfirmationPreMountDestinationRoute', () => {
 
         // Then nothing is pre-mounted
         expect(route).toBeUndefined();
+    });
+
+    it('returns the report route on wide layout when the destination is only kept in a background Reports tab', () => {
+        // Given a wide layout on another tab, with report 123 still kept in the background Reports tab
+        mockGetTopmostReportId.mockReturnValue('123');
+
+        // When the skip-confirmation destination is that report
+        const route = getSkipConfirmationPreMountDestinationRoute(true, '123');
+
+        // Then it is pre-mounted, because the report is not on screen and submit reveals it
+        expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
     });
 
     it('keeps the report route on wide layout once it is pre-mounted, so the hook does not tear its own pre-mount down', () => {

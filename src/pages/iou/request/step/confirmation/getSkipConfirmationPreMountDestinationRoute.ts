@@ -1,4 +1,5 @@
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -11,8 +12,8 @@ import ROUTES from '@src/ROUTES';
  * Applies to both layouts. Skip-confirmation callers never invoke reveal(); submitWithDismissFirst shows the pre-mount instead.
  * On narrow the pre-mount already sits under the RHP, so closing the RHP shows it. On wide it is hidden in the tab navigator,
  * so it is brought to the front first and the RHP closes after.
- * Wide skips the pre-mount when the destination is already the report on screen, because submitWithDismissFirst then only
- * closes the RHP. Once this flow has pre-mounted the destination, getTopmostReportId returns it, so that check is ignored to
+ * Wide skips the pre-mount when the destination is already the report on screen in the focused Reports tab, because
+ * submitWithDismissFirst then only closes the RHP. Once this flow has pre-mounted the destination, getTopmostReportId returns it, so that check is ignored to
  * keep returning the same route.
  *
  * Callers pass the result straight to usePreMountDestination without manual memoization (the React Compiler compiles those
@@ -33,7 +34,7 @@ function getSkipConfirmationPreMountDestinationRoute(
         return undefined;
     }
 
-    if (!getIsNarrowLayout() && !Navigation.getIsFullscreenPreInsertedUnderRHP() && Navigation.getTopmostReportId() === reportID) {
+    if (!getIsNarrowLayout() && !Navigation.getIsFullscreenPreInsertedUnderRHP() && isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === reportID) {
         return undefined;
     }
 

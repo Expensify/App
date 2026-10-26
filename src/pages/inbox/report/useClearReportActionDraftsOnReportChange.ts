@@ -5,7 +5,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {clearAllReportActionDrafts, clearReportActionDrafts} from '@libs/actions/Report';
 
-import {useEffect, useEffectEvent} from 'react';
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 function clearDrafts(reportID: string | undefined, isDockedSidePanel: boolean) {
     if (isDockedSidePanel) {
@@ -27,10 +27,15 @@ function useClearReportActionDraftsOnReportChange(reportID: string | undefined) 
     const isHiddenPreMount = useIsHiddenWideTabPreMount();
     const isOutOfSight = isInPreloadedTab || isHiddenPreMount;
 
+    // A report already cleared in sight keeps its drafts when it comes back from out of sight, e.g. after a cancelled pre-mount.
+    const lastClearedInSightKeyRef = useRef<string | undefined>(undefined);
+
     useEffect(() => {
-        if (isOutOfSight) {
+        const inSightKey = `${reportID}:${isDockedSidePanel}`;
+        if (isOutOfSight || lastClearedInSightKeyRef.current === inSightKey) {
             return;
         }
+        lastClearedInSightKeyRef.current = inSightKey;
         clearDrafts(reportID, isDockedSidePanel);
     }, [reportID, isDockedSidePanel, isOutOfSight]);
 
