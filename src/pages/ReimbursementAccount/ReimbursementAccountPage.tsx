@@ -1,6 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -638,7 +638,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }
 
     if (isLoadingPolicy) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(backTo)} />;
     }
 
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
@@ -702,10 +702,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                         title={translate('bankAccount.addBankAccount')}
                         onBackButtonPress={() => Navigation.dismissModal()}
                     />
-                    <ConfirmationPage
+                    <ConfirmationPageDefault
                         heading={translate('bankAccount.bbaAdded')}
                         description={translate('bankAccount.bbaAddedDescription')}
-                        shouldShowButton
                         headingStyle={styles.mh5}
                         buttonText={translate('common.confirm')}
                         onButtonPress={() => Navigation.dismissModal()}

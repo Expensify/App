@@ -1,3 +1,4 @@
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 // Namespace import on purpose. `rulesdir/no-api-side-effects-method` only matches member calls, so importing
 // `makeRequestWithSideEffects` by name would quietly switch that guardrail off.
@@ -6,6 +7,7 @@ import type {
     AddPolicyAgentRuleParams,
     DeletePolicyAgentRuleParams,
     DeleteRuleParams,
+    GenerateRuleParams,
     GetAgentRuleSuggestionsParams,
     ImportMerchantRulesSpreadsheetParams,
     SetRuleParams,
@@ -19,7 +21,9 @@ import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {GeneratedRuleState, GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
 import type {AgentRule, CodingRule, CodingRuleFilter} from '@src/types/onyx/Policy';
@@ -321,6 +325,88 @@ function deleteRule(ruleID: string, rule: Rule | undefined) {
     API.write(WRITE_COMMANDS.DELETE_RULE, parameters, onyxData);
 }
 
+const PROMPT_ERROR_BY_STATE: Partial<Record<GeneratedRuleState, TranslationPaths>> = {
+    [CONST.GENERATED_RULE.STATE.UNSUPPORTED]: 'workspace.rules.newRule.promptErrors.unsupported',
+    [CONST.GENERATED_RULE.STATE.MULTIPLE_RULES]: 'workspace.rules.newRule.promptErrors.multipleRules',
+    [CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE]: 'workspace.rules.newRule.promptErrors.unintelligible',
+    [CONST.GENERATED_RULE.STATE.AGENT_RULE]: 'workspace.rules.newRule.promptErrors.unsupported',
+};
+
+/**
+ * Asks Concierge to turn a description into rule form values. The answer carries its own rule type, which can differ
+ * from `ruleType`. The response only confirms that the server queued the job. The answer arrives later under
+ * `ONYXKEYS.GENERATED_RULE`. Therefore the form stays in the loading state until the answer arrives.
+ * @returns the generationID the answer carries
+ */
+function generateRule(policyID: string, prompt: string, ruleType?: GeneratedRuleType): string {
+    const generationID = rand64();
+    type GenerateRuleKey = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM | typeof ONYXKEYS.GENERATED_RULE;
+
+    const optimisticData: Array<OnyxUpdate<GenerateRuleKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM,
+            value: {isLoading: true, errors: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.GENERATED_RULE,
+            value: null,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<GenerateRuleKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM,
+            value: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+        },
+    ];
+
+    const parameters: GenerateRuleParams = {policyID, generationID, ruleType, prompt};
+
+    API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {optimisticData, failureData});
+
+    return generationID;
+}
+
+/** Shows on the prompt form why a description did not become a rule */
+function setNewRulePromptError(state: GeneratedRuleState) {
+    setNewRulePromptErrorMessage(PROMPT_ERROR_BY_STATE[state] ?? 'common.genericErrorMessage');
+}
+
+/** Shows an error on the prompt form */
+function setNewRulePromptErrorMessage(translationKey: TranslationPaths) {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
+        isLoading: false,
+        errors: getMicroSecondOnyxErrorWithTranslationKey(translationKey),
+    });
+}
+
+/** Stops the loading state of the prompt form when the answer is shown in the form and not as an error */
+function stopNewRulePromptLoading() {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {isLoading: false});
+}
+
+/** Shows the empty description error above the submit button of the new rule prompt form */
+function setNewRulePromptEmptyError() {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
+        errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.rules.newRule.selectTemplateOrDescribe'),
+    });
+}
+
+function clearGeneratedRule() {
+    Onyx.set(ONYXKEYS.GENERATED_RULE, null);
+}
+
+/**
+ * Clears the prompt form and its draft. The answer stays, because a page that opens after the form closes reads it by
+ * its generationID. The next `generateRule` call clears it.
+ */
+function clearNewRulePrompt() {
+    Onyx.set(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, null);
+    clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
+}
+
 function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
     if (!policyID || !agentRuleID || !prompt) {
         Log.warn('Invalid params for addPolicyAgentRule', {policyID, agentRuleID, prompt});
@@ -584,6 +670,13 @@ export {
     deleteRule,
     getTransactionsMatchingCodingRule,
     addPolicyAgentRule,
+    generateRule,
+    setNewRulePromptEmptyError,
+    setNewRulePromptError,
+    setNewRulePromptErrorMessage,
+    clearGeneratedRule,
+    clearNewRulePrompt,
+    stopNewRulePromptLoading,
     updatePolicyAgentRule,
     deletePolicyAgentRule,
     clearMerchantRuleErrors,

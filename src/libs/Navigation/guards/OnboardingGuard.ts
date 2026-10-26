@@ -161,7 +161,9 @@ function isCurrentlyOnTwoFactorSetupRoute(state: NavigationState): boolean {
 }
 
 function shouldPreventReset(state: NavigationState, action: NavigationAction) {
-    if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
+    // Browser back that pops the last history entry dispatches GO_BACK instead of RESET, and it reaches the root only when it would leave onboarding
+    const isGoBack = action.type === CONST.NAVIGATION.ACTION_TYPE.GO_BACK;
+    if (!isGoBack && (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload)) {
         return false;
     }
 
@@ -239,14 +241,13 @@ const OnboardingGuard: NavigationGuard = {
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
         const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
         const isNavigatingToJoinWorkspaceTaskRoute = isNavigatingToJoinWorkspaceTask(action);
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link), since onboarding
         // is not something they should be able to re-enter once it is done.
-        if (isOnboardingCompleted && isNavigatingToOnboardingFlow(action) && !isNavigatingToJoinWorkspaceTaskRoute) {
+        if (onboarding && isOnboardingCompleted && isNavigatingToOnboardingFlow(action) && !isNavigatingToJoinWorkspaceTaskRoute) {
             Log.info('[OnboardingGuard] Redirecting user away from onboarding route to home');
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }

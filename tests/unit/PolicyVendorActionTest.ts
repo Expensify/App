@@ -1,6 +1,7 @@
-import {clearVendorErrors, setPolicyVendorsEnabled} from '@libs/actions/Policy/Vendor';
-import {write} from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {clearVendorErrors, openPolicyVendorsPage, setPolicyVendorsEnabled} from '@libs/actions/Policy/Vendor';
+import {read, write} from '@libs/API';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,6 +15,7 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
     default: {isHybridApp: () => false},
 }));
 
+const mockRead = jest.mocked(read);
 const mockWrite = jest.mocked(write);
 const policyID = 'test_policy_1';
 const policyVendorsKey = `${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}` as const;
@@ -157,6 +159,26 @@ describe('PolicyVendorAction', () => {
             });
 
             onyxMergeSpy.mockRestore();
+        });
+    });
+
+    describe('openPolicyVendorsPage', () => {
+        it('dispatches OpenPolicyVendorsPage read command with policyID', () => {
+            openPolicyVendorsPage(policyID);
+
+            expect(mockRead).toHaveBeenCalledTimes(1);
+            expect(mockRead).toHaveBeenCalledWith(READ_COMMANDS.OPEN_POLICY_VENDORS_PAGE, {policyID});
+        });
+
+        it('logs a warning and does not call read when policyID is empty', () => {
+            const logWarnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => {});
+
+            openPolicyVendorsPage('');
+
+            expect(logWarnSpy).toHaveBeenCalledWith('openPolicyVendorsPage invalid params', {policyID: ''});
+            expect(mockRead).not.toHaveBeenCalled();
+
+            logWarnSpy.mockRestore();
         });
     });
 });

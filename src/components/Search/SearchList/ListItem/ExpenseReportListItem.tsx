@@ -7,12 +7,14 @@ import {
     useOpenReportSubmitToPopover,
     useSearchSubmitPopoverGuard,
 } from '@components/ReportSubmitToPopoverAnchor';
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
@@ -21,6 +23,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -35,7 +38,7 @@ import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasVisibleViolations} from '@libs/SearchUIUtils';
 import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
-import {isOnHold, isViolationDismissed, shouldShowViolation, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {getAttendees, isOnHold, isViolationDismissed, shouldShowViolation, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -82,7 +85,6 @@ function ExpenseReportListItem<TItem extends ListItem>(props: ExpenseReportListI
 function ExpenseReportListItemInner<TItem extends ListItem>({
     item,
     isLoading,
-    isFocused,
     showTooltip,
     columns,
     canSelectMultiple,
@@ -98,6 +100,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
 }: ExpenseReportListItemProps<TItem>) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();
@@ -119,6 +122,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     // Fetch live policy categories from Onyx to sync violations at render time
     const [parentPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
@@ -203,7 +207,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                 relevantViolations,
                 policyCategories,
                 transaction.category ?? '',
-                transaction.attendees,
+                getAttendees(transaction),
                 currentUserDetails,
                 isAttendeeTrackingEnabled(policyForViolations),
                 policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
@@ -221,6 +225,14 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: reportItem.reportID,
+        report: reportForViolations,
+        policy: policyForViolations,
+        shouldShowMarkAsDoneCopy,
+        transactions: liveReportTransactions,
+        violationsCollection: reportViolations,
+    });
 
     // Recompute the violations badge from live data at the row, replacing the screen-level
     // violations merge that getSections previously did. Policy comes from the live `policyForViolations`
@@ -254,6 +266,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         conciergeChat,
+        bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -275,6 +288,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            confirmSubmitReportViolations,
             onHoldMenuOpen: (holdItem, requestType, paymentType) => {
                 // Search rows render from a snapshot; the report may not exist in the main
                 // collection yet. Fall back to the snapshot so the modal can submit.
@@ -324,7 +338,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             // every row on unrelated violation changes.
             allViolations: liveViolationsForSnapshotTransactions,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             conciergeChat,
+            bankAccountList,
         });
     }, [
         currentSearchHash,
@@ -368,8 +384,11 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         isTrackIntentUser,
         liveViolationsForSnapshotTransactions,
         rules,
+        getPersonalDetailsByLogin,
         conciergeChat,
+        bankAccountList,
         shouldShowMarkAsDoneCopy,
+        confirmSubmitReportViolations,
     ]);
 
     const handleSelectionButtonPress = (shiftKey?: boolean) => {
@@ -424,7 +443,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const getDescription = useMemo(() => {
         if (reportItem?.isRejectedReport) {
             return (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                <View
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
+                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                >
                     <Icon
                         src={expensifyIcons.DotIndicator}
                         fill={theme.danger}
@@ -447,7 +469,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             descriptionMessages.push(translate('reportViolations.reportHasErrors'));
         }
         return (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+            <View
+                style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
                 <Icon
                     src={expensifyIcons.DotIndicator}
                     fill={theme.danger}
@@ -468,6 +493,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         styles.mr1,
         styles.textMicro,
         styles.mutedNormalTextLabel,
+        styles.userSelectNone,
         isLargeScreenWidth,
         expensifyIcons.DotIndicator,
         theme.danger,
@@ -490,6 +516,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             accessibilityRole={canSelectMultiple ? CONST.ROLE.GROUP : undefined}
             accessibilityLabel={rowAccessibilityLabel}
             shouldUseOptionRole={false}
+            shouldAllowTextSelection
             pressableStyle={listItemPressableStyle}
             isFocused={isFocused}
             shouldShowTooltip={showTooltip}
@@ -520,6 +547,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         stateNum={reportItem.stateNum}
                         statusNum={reportItem.statusNum}
                         isSelected={isSelected}
+                        shouldAllowStatusTextSelection
                     />
                 )}
                 <AvatarTooltipsProvider isEnabled={showTooltip}>

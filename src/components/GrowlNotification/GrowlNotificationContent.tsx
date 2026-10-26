@@ -8,7 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {GrowlAction, GrowlType} from '@libs/Growl';
+import type {GrowlAction, GrowlPosition, GrowlType} from '@libs/Growl';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -17,12 +17,13 @@ import type {SvgProps} from 'react-native-svg';
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {Directions, GestureDetector, useFlingGesture} from 'react-native-gesture-handler';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 import GrowlNotificationPortal from './GrowlNotificationPortal';
+import shouldUseExplicitBottomPosition from './shouldUseExplicitBottomPosition';
 
 const INACTIVE_OFFSET = CONST.GROWL.OFFSCREEN_OFFSET;
 const INACTIVE_POSITION_Y = -INACTIVE_OFFSET;
@@ -34,6 +35,9 @@ type GrowlNotificationContentProps = {
     type: GrowlType;
     duration: number;
     action?: GrowlAction;
+
+    /** Position where the growl is anchored */
+    position?: GrowlPosition;
 
     /** Identifies this growl instance; passed back through onDismissed so the parent can ignore stale dismissals. */
     nonce: number;
@@ -49,7 +53,7 @@ type GrowlIconTypes = Record<
     }
 >;
 
-function GrowlNotificationContent({bodyText, type, duration, action, nonce, onDismissed}: GrowlNotificationContentProps) {
+function GrowlNotificationContent({bodyText, type, duration, action, position, nonce, onDismissed}: GrowlNotificationContentProps) {
     // Normalized: 0 = fully offscreen for the current anchor, 1 = fully visible. The container
     // multiplies this against the live `inactiveY`, so the offscreen position stays correct
     // even when the responsive layout flips after the growl is dismissed.
@@ -64,7 +68,7 @@ function GrowlNotificationContent({bodyText, type, duration, action, nonce, onDi
     const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark']);
 
     // Derived live so that resizing the window flips position + slide direction during display.
-    const useBottomPosition = !!action && !shouldUseNarrowLayout;
+    const useBottomPosition = shouldUseExplicitBottomPosition(position) || (!!action && !shouldUseNarrowLayout);
     const inactiveY = useBottomPosition ? INACTIVE_OFFSET : INACTIVE_POSITION_Y;
 
     const types: GrowlIconTypes = {
@@ -125,10 +129,11 @@ function GrowlNotificationContent({bodyText, type, duration, action, nonce, onDi
 
     // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
     // case we want to trigger an RN's Animated animation, which needs to be done on JS thread.
-    const flingGesture = Gesture.Fling()
-        .direction(useBottomPosition ? Directions.DOWN : Directions.UP)
-        .runOnJS(true)
-        .onStart(triggerDismiss);
+    const flingGesture = useFlingGesture({
+        direction: useBottomPosition ? Directions.DOWN : Directions.UP,
+        runOnJS: true,
+        onActivate: triggerDismiss,
+    });
 
     return (
         <GrowlNotificationPortal>

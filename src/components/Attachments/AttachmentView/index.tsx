@@ -411,6 +411,7 @@ function AttachmentView({
         return (
             <AttachmentViewVideo
                 source={source}
+                fileName={file?.name}
                 shouldUseSharedVideoElement={!CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix))}
                 isHovered={isHovered}
                 duration={duration}
@@ -424,7 +425,6 @@ function AttachmentView({
         <DefaultAttachmentView
             fileName={file?.name}
             shouldShowDownloadIcon={shouldShowDownloadIcon}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon || isUploading}
             containerStyles={containerStyles}
             isDeleted={isDeleted}
