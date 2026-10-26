@@ -1780,6 +1780,8 @@ describe('getReportPreviewAction', () => {
     });
 
     it('canExport returns true on a cash-basis policy when every expense is non-reimbursable', async () => {
+        // Given an approved report whose expenses are all non-reimbursable, on a cash-basis NetSuite policy. Cash-basis
+        // reports normally wait until they are paid, but a card-only report has nothing to reimburse so it is never paid
         const report = {
             ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1803,6 +1805,9 @@ describe('getReportPreviewAction', () => {
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
+
+        // When the exporter views the report preview
+        // Then Export is offered right away, so the report is not stuck waiting for a payment that never comes
         expect(
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
