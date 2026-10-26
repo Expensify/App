@@ -585,7 +585,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Bijlagefout',
         errorWhileSelectingAttachment: 'Er is een fout opgetreden bij het selecteren van een bijlage. Probeer het opnieuw.',
         errorWhileSelectingCorruptedAttachment: 'Er is een fout opgetreden bij het selecteren van een beschadigde bijlage. Probeer een ander bestand.',
-        errorWhileConvertingHeic: 'We konden deze afbeelding niet verwerken. Probeer het opnieuw of upload de foto in een ander formaat.',
+        errorWhileConvertingImage: 'We konden deze afbeelding niet verwerken. Probeer het opnieuw of upload de foto in een ander formaat.',
         takePhoto: 'Maak foto',
         retake: 'Opnieuw',
         usePhoto: 'Foto gebruiken',
@@ -2504,8 +2504,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Weet je zeker dat je accounts wilt samenvoegen?',
-            lossOfUnsubmittedData: (login: string) =>
-                `Het samenvoegen van je accounts is onomkeerbaar en zal leiden tot het verlies van alle niet-ingediende uitgaven voor <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Het samenvoegen van je accounts is onomkeerbaar. Alle uitgaven en rapporten van <strong>${login}</strong>, inclusief concepten en niet-gerapporteerde uitgaven, worden verplaatst naar het account dat je behoudt.`,
             enterSecurityCode: (login: string) => `Om door te gaan, voer de beveiligingscode in die is verzonden naar <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Onjuiste of ongeldige beveiligingscode. Probeer het opnieuw of vraag een nieuwe code aan.',
@@ -6730,6 +6730,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             provisioningError:
                                 'We konden voor sommige leden van je werkruimte geen toegang instellen tot Geconsolideerde Reisfacturering. Probeer het later opnieuw of neem contact op met Concierge voor ondersteuning.',
                             sendInvoiceNowCta: 'Verzend factuur nu',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `De maandelijkse bestedingslimiet per lid mag de huidige reiskostenlimiet van ${travelLimit} niet overschrijden.`,
                         },
                         setUpNewFeed: 'Nieuwe reiskoppeling instellen',
                         feedSelectorIntro:
@@ -7456,6 +7458,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7701,6 +7705,18 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Kaartafrekeningen synchroniseren';
                         case 'campfireSyncTravelSettlements':
                             return 'Reisverrekeningen synchroniseren';
+                        case 'digitsSyncTitle':
+                            return 'Digits-gegevens synchroniseren';
+                        case 'digitsSyncConnection':
+                            return 'Verbinding met Digits initialiseren';
+                        case 'digitsSyncImportData':
+                            return 'Gegevens laden';
+                        case 'digitsSyncPayments':
+                            return 'Leveranciersbetalingen synchroniseren';
+                        case 'digitsSyncCardSettlements':
+                            return 'Kaartafrekeningen synchroniseren';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Reisverrekeningen synchroniseren';
                         case 'businessCentralSyncTitle':
                             return 'Dynamics 365 Business Central-gegevens synchroniseren';
                         case 'businessCentralSyncConnection':
@@ -7750,6 +7766,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             syncTravelBillingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Doorlopende afstemming wordt per kaartfeed geconfigureerd. Selecteer een feed om te wijzigen welke je configureert.</muted-text-label>',
@@ -8842,11 +8859,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 applyExpenseDefaultsDescription: 'Velden automatisch bijwerken',
                 flagForReview: 'Markeren voor controle',
                 flagForReviewDescription: 'Melding wanneer aan je voorwaarden is voldaan',
-                requireFields: 'Veldvereisten instellen',
-                requireFieldsShort: 'Velden verplichten',
+                requireFields: 'Velden verplichten',
                 requireFieldsDescription: 'Bonnen, categorieën, enz.',
-                createAgentRule: 'Agentregel beschrijven',
-                createAgentRuleDescription: 'Maak flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
                 describeItBelow: 'Of beschrijf hem hieronder',
                 describeRulePlaceholder: 'Blokkeer alle uitgaven boven $2.000',
                 selectTemplateOrDescribe: 'Selecteer een sjabloon of beschrijf een regel om door te gaan',
@@ -10101,6 +10115,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `heeft de werkregeling van ${displayName} gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `heeft de standaardwerkregeling gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
+        updateRulesDocument: (isReplacement: boolean, overviewURL?: string) => {
+            const message = isReplacement ? 'heeft het onkostendeclaratiebeleid-document vervangen' : 'heeft een onkostendeclaratiebeleid-document toegevoegd';
+            return overviewURL ? `${message} in <a href="${overviewURL}">Werkruimte &gt; Overzicht</a>` : message;
+        },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `heeft "Voorkom dat niet-vergoedbare rapporten als betaald worden gemarkeerd" bijgewerkt naar "${newValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}" (voorheen "${oldValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}")`,
     },
@@ -11602,6 +11620,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 one: '1 actieve gebruiker',
                 other: `${count} actieve gebruikers`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 lid',
+                other: `${count} leden`,
+            }),
             state: {paid: 'Betaald', cleared: 'Afgeboekt', failed: 'Mislukt', refunded: 'Terugbetaald', disputed: 'Betwist', balanceTransfer: 'Saldo-overboeking'},
             details: 'Betalingsgegevens',
             badge: {
@@ -11616,6 +11638,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             billedTo: 'Gefactureerd aan',
             activity: 'Activiteit',
             findActiveUser: 'Zoek een actieve gebruiker',
+            findMember: 'Zoek een lid',
             viewReceipt: 'Bon bekijken',
             viewInvoice: 'Factuur bekijken',
         },
