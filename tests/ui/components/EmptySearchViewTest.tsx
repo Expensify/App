@@ -9,7 +9,7 @@ import EmptySearchView from '@pages/Search/EmptySearchView';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Beta, Policy} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -354,7 +354,7 @@ describe('EmptySearchView', () => {
         const dataType = CONST.SEARCH.DATA_TYPES.TRIP;
         const TRAVEL_POLICY_ID = 'travelPolicy';
 
-        const renderTripEmptyState = async (policy: Partial<Policy>, betas: string[]) => {
+        const renderTripEmptyState = async (policy: Partial<Policy>, betas: Beta[]) => {
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.SESSION, SESSION);
                 await Onyx.set(ONYXKEYS.BETAS, betas);
