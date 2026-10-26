@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-web/dist/exports/TextInput/index.js b/node_modules/react-native-web/dist/exports/TextInput/index.js
-index 0f476a7..51555b5 100644
+index de6b636..21d8cb5 100644
 --- a/node_modules/react-native-web/dist/exports/TextInput/index.js
 +++ b/node_modules/react-native-web/dist/exports/TextInput/index.js
-@@ -84,6 +89,7 @@ var TextInput = /*#__PURE__*/React.forwardRef((props, forwardedRef) => {
+@@ -88,6 +88,7 @@ var TextInput = /*#__PURE__*/React.forwardRef((props, forwardedRef) => {
      _props$autoCorrect = props.autoCorrect,
      autoCorrect = _props$autoCorrect === void 0 ? true : _props$autoCorrect,
      blurOnSubmit = props.blurOnSubmit,
@@ -10,7 +10,7 @@ index 0f476a7..51555b5 100644
      caretHidden = props.caretHidden,
      clearTextOnFocus = props.clearTextOnFocus,
      dir = props.dir,
-@@ -271,8 +277,19 @@ var TextInput = /*#__PURE__*/React.forwardRef((props, forwardedRef) => {
+@@ -274,8 +275,19 @@ var TextInput = /*#__PURE__*/React.forwardRef((props, forwardedRef) => {
      var hostNode = e.target;
      // Prevent key events bubbling (see #612)
      e.stopPropagation();
@@ -32,7 +32,7 @@ index 0f476a7..51555b5 100644
      var nativeEvent = e.nativeEvent;
      var isComposing = isEventComposing(nativeEvent);
      if (onKeyPress) {
-@@ -281,7 +298,8 @@ var TextInput = /*#__PURE__*/React.forwardRef((props, forwardedRef) => {
+@@ -284,7 +296,8 @@ var TextInput = /*#__PURE__*/React.forwardRef((props, forwardedRef) => {
      if (e.key === 'Enter' && !e.shiftKey &&
      // Do not call submit if composition is occuring.
      !isComposing && !e.isDefaultPrevented()) {
