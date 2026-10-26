@@ -25,12 +25,13 @@ jobs:
             const MARKER = '<!-- search-filter-column-checklist -->';
             const {owner, repo} = context.repo;
             const pr = context.payload.pull_request;
-            const comments = await github.paginate(github.rest.issues.listComments, {owner, repo, issue_number: pr.number});
-            const existing = comments.find((comment) => comment.user?.login === 'github-actions[bot]' && comment.body?.includes(MARKER));
-
             const files = await github.paginate(github.rest.pulls.listFiles, {owner, repo, pull_number: pr.number});
             if (!files.some((file) => ['src/CONST/index.ts', 'src/hooks/useAdvancedSearchFilters.ts'].includes(file.filename))) {
-              if (existing) await github.rest.issues.deleteComment({owner, repo, comment_id: existing.id});
+              return;
+            }
+
+            const comments = await github.paginate(github.rest.issues.listComments, {owner, repo, issue_number: pr.number});
+            if (comments.some((comment) => comment.user?.login === 'github-actions[bot]' && comment.body?.includes(MARKER))) {
               return;
             }
 
@@ -83,22 +84,16 @@ jobs:
               return referenceCounts(pickerBodies.join('\n'), /this\.TABLE_COLUMNS\.([A-Z0-9_]+)/g);
             };
 
-            const addsFilter = hasNewKey(filterKeys(baseConst), filterKeys(headConst)) ||
-              hasNewReference(filterPickerKeys(baseFilters), filterPickerKeys(headFilters));
-              
-            const addsColumn = hasNewKey(columnKeys(baseConst), columnKeys(headConst)) ||
-              hasNewKey(searchColumnKeys(baseConst), searchColumnKeys(headConst)) ||
+            const addsFilter = hasNewKey(filterKeys(baseConst), filterKeys(headConst)) || hasNewReference(filterPickerKeys(baseFilters), filterPickerKeys(headFilters));
+            const addsColumn = hasNewKey(columnKeys(baseConst), columnKeys(headConst)) || hasNewKey(searchColumnKeys(baseConst), searchColumnKeys(headConst)) ||
               hasNewReference(pickerColumnCounts(baseConst), pickerColumnCounts(headConst));
-
             if (!addsFilter && !addsColumn) {
-              if (existing) await github.rest.issues.deleteComment({owner, repo, comment_id: existing.id});
               return;
             }
 
-            const change = addsFilter && addsColumn ? 'a Search filter and column' : addsFilter ? 'a Search filter' : 'a Search column';
             const body = [
               MARKER,
-              `This PR adds ${change}. Please double check the following:`
+              'It looks like this PR adds a search filter or column. Please double check the following:',
               '',
               '- [ ] The filter is available in the Search filters dropdown and returns the expected results.',
               '- [ ] The filter has a matching column that can be shown through **Display > Edit columns**.',
@@ -106,8 +101,4 @@ jobs:
               '- [ ] **Export > Current view** includes the column in the exported CSV.',
             ].join('\n');
 
-            if (existing) {
-              if (existing.body !== body) await github.rest.issues.updateComment({owner, repo, comment_id: existing.id, body});
-            } else {
-              await github.rest.issues.createComment({owner, repo, issue_number: pr.number, body});
-            }
+            await github.rest.issues.createComment({owner, repo, issue_number: pr.number, body});
