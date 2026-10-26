@@ -24,6 +24,8 @@ type PaymentHistoryRow = {
     showsTax: boolean;
     state: PaymentHistoryState;
     activeUserCount?: number;
+    /** Whether the bill was on Collect 2025 pricing, which counts members instead of active users. */
+    countsMembers: boolean;
 };
 
 /** The dynamic badge shown on the payment details page, carrying the extra detail that only renders there. */
@@ -110,6 +112,7 @@ function getPaymentHistoryRows(purchases: Purchases | null | undefined): Payment
             showsTax: !!purchase.message.salesTaxCharged && !purchase.message.salesTaxExempt,
             state: foldedState.get(purchase.purchaseID)?.state ?? getOwnState(purchase),
             activeUserCount: getActiveUserCount(purchase),
+            countsMembers: !!purchase.message.isTeam2025Pricing,
         });
     }
 
