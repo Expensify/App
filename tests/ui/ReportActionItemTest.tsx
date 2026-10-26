@@ -181,7 +181,23 @@ describe('ReportActionItem', () => {
         onExpandedSystemMessageReady?: (target: React.ComponentRef<typeof View> | null) => void,
         focusTarget?: React.ComponentRef<typeof View>,
     ) {
-        return render(getItemWithAction(action, isLatestConciergeFeedbackAction, onExpandedSystemMessageReady), focusTarget ? {createNodeMock: () => focusTarget} : undefined);
+        return render(
+            getItemWithAction(action, isLatestConciergeFeedbackAction, onExpandedSystemMessageReady),
+            focusTarget
+                ? {
+                      createNodeMock: (element: React.ReactElement) => {
+                          const props = element.props;
+                          return props &&
+                              typeof props === 'object' &&
+                              'accessibilityLabel' in props &&
+                              typeof props.accessibilityLabel === 'string' &&
+                              props.accessibilityLabel.includes('some message')
+                              ? focusTarget
+                              : null;
+                      },
+                  }
+                : undefined,
+        );
     }
 
     it('hands a recycled message host to the expansion request without requiring another layout event', async () => {
@@ -196,7 +212,11 @@ describe('ReportActionItem', () => {
             frames.set(++frameID, callback);
             return frameID;
         });
-        const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((id) => frames.delete(id));
+        const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((id) => {
+            if (typeof id === 'number') {
+                frames.delete(id);
+            }
+        });
         const onReady = jest.fn();
         try {
             // When the retained row is assigned the first revealed update, with unchanged geometry
@@ -228,7 +248,11 @@ describe('ReportActionItem', () => {
             frames.set(++frameID, callback);
             return frameID;
         });
-        const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((id) => frames.delete(id));
+        const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((id) => {
+            if (typeof id === 'number') {
+                frames.delete(id);
+            }
+        });
         const onReady = jest.fn();
         try {
             rerender(getItemWithAction({...action, reportActionID: 'revealed-oldest'}, false, onReady));
@@ -1909,9 +1933,10 @@ describe('ReportActionItem', () => {
                 label: 'QuickBooks Online',
                 errorMessage: 'We were unable to find a vendor/supplier for applausetester+bp3108od@applause.expensifail.com',
             });
-            let renderHTMLStyle: ReturnType<typeof useThemeStyles>['renderHTML'] | undefined;
+            const onRenderHTMLStyle = jest.fn<void, [ReturnType<typeof useThemeStyles>['renderHTML']]>();
             function StyleProbe() {
-                renderHTMLStyle = useThemeStyles().renderHTML;
+                const {renderHTML} = useThemeStyles();
+                React.useEffect(() => onRenderHTMLStyle(renderHTML), [renderHTML]);
                 return null;
             }
 
@@ -1947,7 +1972,8 @@ describe('ReportActionItem', () => {
                 ancestorStyles.push(StyleSheet.flatten(ancestor.props.style));
                 ancestor = ancestor.parent;
             }
-            expect(ancestorStyles).toEqual(expect.arrayContaining([StyleSheet.flatten(renderHTMLStyle)]));
+            expect(onRenderHTMLStyle).toHaveBeenCalled();
+            expect(ancestorStyles).toEqual(expect.arrayContaining([StyleSheet.flatten(onRenderHTMLStyle.mock.calls.at(-1)?.at(0))]));
         });
 
         it('INTEGRATION_SYNC_FAILED action keeps the stored IES label after switching to QBO', async () => {

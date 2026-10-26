@@ -561,7 +561,11 @@ describe('ReportActionsList (body)', () => {
                 expect(
                     findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(newest, ReportActionsListItemRenderer)?.props.onExpandedSystemMessageReady,
                 ).toBeUndefined();
-                act(() => frames.forEach((callback) => callback(0)));
+                act(() => {
+                    for (const callback of frames) {
+                        callback(0);
+                    }
+                });
                 expect(scrollToIndex).toHaveBeenCalledWith({index: 1, animated: false, viewPosition: 0.5});
             } finally {
                 frameSpy.mockRestore();

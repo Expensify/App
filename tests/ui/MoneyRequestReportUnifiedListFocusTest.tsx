@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import type {FlatList} from 'react-native';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import createMock from '../utils/createMock';
 import {buildSystemAction} from '../utils/ReportTestUtils';
@@ -39,7 +40,11 @@ describe('MoneyRequestReportUnifiedList expansion focus', () => {
             frames.set(++frameID, callback);
             return frameID;
         });
-        const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((id) => frames.delete(id));
+        const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((id) => {
+            if (typeof id === 'number') {
+                frames.delete(id);
+            }
+        });
         const actions = [
             buildSystemAction('earlier', {actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, created: '2026-01-01 10:00:00.000'}),
             buildSystemAction('revealed-oldest', {actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, created: '2026-01-01 11:00:00.000'}),
@@ -55,7 +60,7 @@ describe('MoneyRequestReportUnifiedList expansion focus', () => {
             },
             report: {reportID: 'expense-report'},
             visibleReportActions: actions,
-            renderReportAction: () => <></>,
+            renderReportAction: () => <View />,
             listRef,
             onScroll: jest.fn(),
             onLayout: jest.fn(),
