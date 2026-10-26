@@ -8558,6 +8558,88 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, CONST.ACCOUNT_ID.CONCIERGE)).toBe('100');
         });
     });
+    describe('getReportActionMessageText', () => {
+        it('reads an edited file attachment as the attachment token', () => {
+            // Given an edited text-and-file comment as the server returns it, which drops data-expensify-source but keeps the attachment ID
+            const html =
+                'test 2<br /><br /><a href="https://www.expensify.com/chat-attachments/123/w_abc.csv" data-attachment-id="456" target="_blank" rel="noreferrer noopener">renamed.csv</a>';
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html, text: 'test 2 renamed.csv'}],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            const text = ReportActionsUtils.getReportActionMessageText(reportAction);
+
+            // Then the file reads as an attachment, as it does before the edit, instead of its file name
+            expect(text).toContain(CONST.ATTACHMENT_MESSAGE_TEXT);
+            expect(text).not.toContain('renamed.csv');
+        });
+
+        it('keeps a plain link as its label', () => {
+            // Given a comment with an ordinary link
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html: '<a href="https://example.com/a.csv">a.csv</a>', text: 'a.csv'}],
+            } as ReportAction;
+
+            // When the text is read
+            // Then the label is kept
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe('a.csv');
+        });
+
+        it('keeps a link to another host as its label even when it carries an attachment ID', () => {
+            // Given a file anchor edited to point at another host, which the server returns with only the attachment ID
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'see <a href="https://example.com/file.csv" data-attachment-id="456">the file</a>', text: 'see the file'}],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            // Then the label is kept, because the chat draws it as a link and not a file card
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe('see the file');
+        });
+
+        it("reads a link to the action's own uploaded file as the attachment token", () => {
+            // Given an edited file anchor with no attachment attributes left, whose URL names the action it was uploaded to
+            const reportAction = {
+                reportActionID: '123',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html: '<a href="https://www.expensify.com/chat-attachments/123/w_abc.csv">renamed.csv</a><br />notes', text: 'renamed.csv\nnotes'}],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            // Then the file reads as an attachment and the text after it stays on its own line
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe(`${CONST.ATTACHMENT_MESSAGE_TEXT}\nnotes`);
+        });
+
+        it('keeps a pasted attachment link as its label', () => {
+            // Given a typed link to an uploaded file, which the server stores without an attachment ID
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'see <a href="https://www.expensify.com/chat-attachments/123/w_abc.csv" target="_blank" rel="noreferrer noopener">old sheet</a>',
+                        text: 'see old sheet',
+                    },
+                ],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            // Then the link keeps its label, because only an uploaded file is an attachment
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe('see old sheet');
+        });
+    });
 
     describe('getWorkspaceRulesDocumentUpdatedMessage', () => {
         const buildRulesDocumentAction = (isReplacement?: boolean) =>
