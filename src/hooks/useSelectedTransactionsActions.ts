@@ -180,20 +180,17 @@ function useSelectedTransactionsActions({
     // The `reportActions` prop is the paginated chain, so it can miss IOU actions that are already in Onyx. Also search the full collection.
     // Build each report's combined list once per render, because this is called inside several loops over the selected transactions.
     const combinedReportActionsByReportID = new Map<string | undefined, ReportAction[]>();
-    const getCombinedReportActions = (reportID: string | undefined) => {
-        let combinedReportActions = combinedReportActionsByReportID.get(reportID);
-        if (!combinedReportActions) {
-            const onyxReportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
-            // Search both sources together, so a live action in either one wins over a deleted action in the collection
-            combinedReportActions = [...onyxReportActions, ...reportActions];
-            combinedReportActionsByReportID.set(reportID, combinedReportActions);
-        }
-        return combinedReportActions;
-    };
     const getTransactionIOUAction = (transaction: Transaction | undefined, transactionID: string) => {
         // Unreported expenses keep their IOU action under the self-DM report rather than under `transaction.reportID`
         const transactionReportID = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : transaction.reportID;
-        return getIOUActionForTransactionID(getCombinedReportActions(transactionReportID), transactionID, true);
+        let combinedReportActions = combinedReportActionsByReportID.get(transactionReportID);
+        if (!combinedReportActions) {
+            const transactionReportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`] ?? {});
+            // Search both sources together, so a live action in either one wins over a deleted action in the collection
+            combinedReportActions = [...transactionReportActions, ...reportActions];
+            combinedReportActionsByReportID.set(transactionReportID, combinedReportActions);
+        }
+        return getIOUActionForTransactionID(combinedReportActions, transactionID, true);
     };
 
     const {translate, localeCompare} = useLocalize();
@@ -622,9 +619,8 @@ function useSelectedTransactionsActions({
             const action = getTransactionIOUAction(transaction, transaction.transactionID);
 
             // Some reported expenses have no IOU action, and the API still deletes them by transactionID, so the report-level delete rules decide.
-            // The paginated `reportActions` prop can miss the latest workflow actions, so the check gets the report's combined history instead:
-            // ownership still fails closed on unreported and IOU reports while expense reports check the submitter, and a forward since the
-            // last submit is not missed.
+            // The report's own actions carry no IOU action for this expense, so ownership still fails closed on unreported and IOU reports while expense reports
+            // check the submitter, and they let the check see whether the report was forwarded since its last submit.
             if (!action) {
                 return (
                     !!report &&
@@ -632,7 +628,7 @@ function useSelectedTransactionsActions({
                     canDeleteMoneyRequestReport(
                         report,
                         [transaction],
-                        getCombinedReportActions(report.reportID),
+                        reportActions,
                         session.accountID,
                         rules,
                         getLoginByAccountID(report?.ownerAccountID, personalDetails),

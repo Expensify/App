@@ -7366,12 +7366,10 @@ function shouldShowDeleteOption(
               }
               const parentReportID = transaction.reportID;
               const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
-              const snapshotReportActions = Object.values(currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {});
-              const parentReportAction =
-                  snapshotReportActions.find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
-                  selectedTransactions[id].reportAction;
-              // The delete check needs the report's whole history to see submits and forwards, and keeps the row's own action in case the snapshot lacks it
-              const parentReportActions = parentReportAction && !snapshotReportActions.includes(parentReportAction) ? [...snapshotReportActions, parentReportAction] : snapshotReportActions;
+              const snapshotReportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
+              const rowReportAction = selectedTransactions[id].reportAction;
+              // Grouped searches carry no report actions in the snapshot, so the row's own IOU action is kept for the ownership check
+              const parentReportActions = Object.values({...snapshotReportActions, ...(rowReportAction ? {[rowReportAction.reportActionID]: rowReportAction} : {})});
 
               const parentReportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`];
               return canDeleteMoneyRequestReport(
