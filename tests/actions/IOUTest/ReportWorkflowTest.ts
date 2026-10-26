@@ -3163,7 +3163,15 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             // When the user submits it from search again
-            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined, getCurrencyDecimalsLocal, undefined);
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [createRandomPolicy(1)],
+                submitterLogin: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins: {},
+            });
 
             // Then the old errors are cleared optimistically, so the Search row no longer says the report has errors
             const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
@@ -3195,7 +3203,9 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
+                personalDetailsByLogins: {},
                 expenseReport,
+                expenseReportTransactions: [],
                 policy: {
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
