@@ -46,7 +46,6 @@ import {hasValidModifiedAmount, isAmountMissing, isFailedScanAmountPlaceholder} 
 // They import helper functions from this file, and this file re-exports them. Neither side calls the other at initialization time.
 // eslint-disable-next-line import/no-cycle
 import buildOptimisticTransaction from './buildOptimisticTransaction';
-import {getCurrency, getCreated, getFormattedCreated, isCustomUnitRateIDForP2P, getRateID, isExpenseUnreported} from './core';
 // eslint-disable-next-line import/no-cycle
 import {
     buildMergeDuplicatesParams,
@@ -56,6 +55,7 @@ import {
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
 } from './duplicates';
+import {getCurrency, getCreated, getFormattedCreated, isCustomUnitRateIDForP2P, getRateID, isExpenseUnreported} from './fields';
 import getDistanceInMeters from './getDistanceInMeters';
 import getSelectedRouteKey from './getSelectedRouteKey';
 // eslint-disable-next-line import/no-cycle

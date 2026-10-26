@@ -21,7 +21,7 @@ import {convertDistanceUnit, convertToDistanceInMeters} from './DistanceUnitConv
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils/customUnits';
 import replaceAllDigits from './replaceAllDigits';
-import {getCurrency, getFormattedCreated, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils/core';
+import {getCurrency, getFormattedCreated, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils/fields';
 
 type MileageRate = {
     customUnitRateID?: string;
