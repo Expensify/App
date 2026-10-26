@@ -360,7 +360,7 @@ describe('AddAgentRulePage', () => {
         expect(addPolicyAgentRule).toHaveBeenCalledWith(POLICY_ID, expect.any(String), mockSuggestionPrompt, mockSuggestionTitle);
     });
 
-    it('does not save the title of a suggestion whose prompt the admin edited', async () => {
+    it('saves the title of a suggestion whose prompt the admin edited', async () => {
         // Given the admin picked a suggestion and then edited its prompt
         renderAddAgentRulePage();
         await waitForBatchedUpdatesWithAct();
@@ -370,7 +370,7 @@ describe('AddAgentRulePage', () => {
         // When the admin saves the edited rule
         fireEvent.press(screen.getByLabelText('WriteTab'));
 
-        // Then the rule has no title, because the suggestion's title may not describe the edited prompt
-        expect(addPolicyAgentRule).toHaveBeenCalledWith(POLICY_ID, expect.any(String), PROMPT, undefined);
+        // Then the rule keeps the suggestion's title as a temporary default until the server generates a new title
+        expect(addPolicyAgentRule).toHaveBeenCalledWith(POLICY_ID, expect.any(String), PROMPT, mockSuggestionTitle);
     });
 });

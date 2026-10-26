@@ -161,9 +161,7 @@ function AddAgentRulePage({
         const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
         const agentRuleID = rand64();
         const prompt = values[INPUT_IDS.PROMPT];
-        // Use the suggestion's title only when the admin saved its prompt unchanged, because an edited prompt needs a
-        // new title from the server.
-        const title = selectedSuggestion && selectedSuggestion.prompt.trim() === prompt.trim() ? selectedSuggestion.title : undefined;
+        const title = selectedSuggestion?.title;
         suppressDiscardPrompt();
         addPolicyAgentRule(policyID, agentRuleID, prompt, title);
         if (isDraftFromFallback) {
