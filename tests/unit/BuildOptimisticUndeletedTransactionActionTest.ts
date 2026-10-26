@@ -44,7 +44,7 @@ describe('buildOptimisticUndeletedTransactionAction', () => {
         const action = buildOptimisticUndeletedTransactionAction(TRANSACTION_THREAD_REPORT_ID);
 
         // Then the inline text matches the server-rendered copy
-        const message = Array.isArray(action.message) ? action.message[0] : undefined;
+        const message = Array.isArray(action.message) ? action.message.at(0) : undefined;
         expect(message?.text).toBe('undeleted this expense');
     });
 });

@@ -7,4 +7,4 @@ type UndeleteTransactionsParams = {
     transactionIDToReportActionAndThreadData: string;
 };
 
-export type {UndeleteTransactionsParams};
+export default UndeleteTransactionsParams;
