@@ -113,7 +113,7 @@ describe('appduct sign_in tool', () => {
         expect(beginSignIn).not.toHaveBeenCalled();
     });
 
-    it('reports the magic-code wall instead of pretending success', async () => {
+    it('reports the validate-code wall instead of pretending success', async () => {
         // Given: beginSignIn says the account exists.
         await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'anon', authTokenType: ANONYMOUS});
         jest.mocked(beginSignIn).mockImplementation(() => {

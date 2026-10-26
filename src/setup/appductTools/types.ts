@@ -35,4 +35,4 @@ type AppductTool = {
 /** What a platform entry hands the shared module: Appduct's `registerTool`. */
 type RegisterTool = (tool: AppductTool) => void;
 
-export type {ToolResult, ToolSchema, ToolHandler, AppductTool, RegisterTool};
+export type {AppductTool, RegisterTool};
