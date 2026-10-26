@@ -7473,6 +7473,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7718,6 +7720,18 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                             return 'Sincronizzazione delle chiusure carta';
                         case 'campfireSyncTravelSettlements':
                             return 'Sincronizzazione dei conguagli di viaggio';
+                        case 'digitsSyncTitle':
+                            return 'Sincronizzazione dei dati Digits';
+                        case 'digitsSyncConnection':
+                            return 'Inizializzazione della connessione a Digits';
+                        case 'digitsSyncImportData':
+                            return 'Caricamento dei dati';
+                        case 'digitsSyncPayments':
+                            return 'Sincronizzazione dei pagamenti ai fornitori';
+                        case 'digitsSyncCardSettlements':
+                            return 'Sincronizzazione delle chiusure carta';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Sincronizzazione dei conguagli di viaggio';
                         case 'businessCentralSyncTitle':
                             return 'Sincronizzazione dei dati Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
@@ -7767,6 +7781,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             syncTravelBillingSettlementsNoAccountTooltip: 'Per sbloccare, imposta un conto per le tue esportazioni.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Per sbloccare, abilita la sincronizzazione automatica.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>La Riconciliazione continua è configurata per ogni flusso di carte. Seleziona un flusso per cambiare quello che stai configurando.</muted-text-label>',
