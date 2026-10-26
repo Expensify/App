@@ -21,15 +21,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
-import type {Report} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef, useState} from 'react';
 
 const emptySelector = () => null;
 const hasReportsSelector = (reports: OnyxCollection<Report>) => Object.keys(reports ?? {}).length > 0;
+const transactionAmountSelector = (transaction: OnyxEntry<Transaction>) => transaction?.amount;
 
 type ShareTabParticipantsSelectorProps = {
     detailsPageRouteObject: typeof ROUTES.SHARE_SUBMIT_DETAILS | typeof ROUTES.SHARE_DETAILS;
@@ -38,6 +39,7 @@ type ShareTabParticipantsSelectorProps = {
 function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTabParticipantsSelectorProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionAmount] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {selector: transactionAmountSelector});
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
     const [selectedPolicyID, setSelectedPolicyID] = useState<string | undefined>();
 
@@ -152,6 +154,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
         <MoneyRequestParticipantsSelector
             iouType={CONST.IOU.TYPE.SUBMIT}
             initiallySelectedReportID={typeof selectedReportID === 'string' ? selectedReportID : undefined}
+            shouldExcludeP2P={(draftTransactionAmount ?? 0) < 0}
             onParticipantsAdded={(value) => {
                 const participant = value.at(0);
                 if (!participant) {

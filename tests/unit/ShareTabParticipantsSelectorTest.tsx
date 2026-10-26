@@ -62,12 +62,21 @@ jest.mock('@pages/iou/request/MoneyRequestParticipantsSelector', () => {
     const {Pressable: MockPressable, Text: MockText} = jest.requireActual('react-native');
     return {
         __esModule: true,
-        default: ({onParticipantsAdded, initiallySelectedReportID}: {onParticipantsAdded: (participants: Participant[]) => void; initiallySelectedReportID?: string}) => (
+        default: ({
+            onParticipantsAdded,
+            initiallySelectedReportID,
+            shouldExcludeP2P,
+        }: {
+            onParticipantsAdded: (participants: Participant[]) => void;
+            initiallySelectedReportID?: string;
+            shouldExcludeP2P?: boolean;
+        }) => (
             <MockPressable
                 testID="mock-select-participant"
                 onPress={() => onParticipantsAdded([mockSelectedParticipant])}
             >
                 <MockText>{`Selected: ${initiallySelectedReportID ?? 'none'}`}</MockText>
+                <MockText testID="mock-excludes-p2p">{String(shouldExcludeP2P)}</MockText>
             </MockPressable>
         ),
     };
@@ -142,6 +151,18 @@ describe('ShareTabParticipantsSelector', () => {
         // Then the participant picker remains visible without navigating automatically
         expect(screen.getByTestId('mock-select-participant')).toBeTruthy();
         expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('excludes personal recipients when the preserved Share draft has a negative amount', async () => {
+        // Given the user flipped the amount negative before returning to the destination picker
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {amount: -1000});
+
+        // When the Share Submit destination selector renders
+        render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the existing participant picker is instructed to exclude unsupported P2P destinations
+        expect(screen.getByTestId('mock-excludes-p2p')).toHaveTextContent('true');
     });
 
     it('does not keep the Submit tab blank when the current user login is unavailable', async () => {
