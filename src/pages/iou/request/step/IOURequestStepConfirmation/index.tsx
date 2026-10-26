@@ -58,6 +58,7 @@ import {
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isPartiallyEnteredScanExpense,
+    isScanning,
     isScanRequest,
 } from '@libs/TransactionUtils';
 
@@ -74,7 +75,7 @@ import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpens
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 
-import {getIOURequestPolicyID, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {copyScanResultsToMovedExpenseDraft, getIOURequestPolicyID, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 
 import CONST from '@src/CONST';
@@ -250,6 +251,17 @@ function IOURequestStepConfirmationContent({
         }
         return translate('iou.confirmDetails');
     }, [iouType, translate, isSharingTrackExpense, isCategorizingTrackExpense]);
+
+    // A moved tracked expense is shown from a draft copied when the move started, so a scan that completes while this
+    // page is open only reaches the real transaction. Copy the results over so the fields stop showing "Scanning…".
+    const isDraftScanning = isScanning(transaction);
+    const isExistingTransactionScanning = isScanning(existingTransaction);
+    useEffect(() => {
+        if (!isMovingTransactionFromTrackExpense || !isDraftScanning || !existingTransaction || isExistingTransactionScanning) {
+            return;
+        }
+        copyScanResultsToMovedExpenseDraft(transaction, existingTransaction);
+    }, [isMovingTransactionFromTrackExpense, isDraftScanning, isExistingTransactionScanning, transaction, existingTransaction]);
 
     useEffect(() => {
         if (!transaction?.transactionID || !transactionReport || iouType !== CONST.IOU.TYPE.PAY) {
