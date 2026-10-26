@@ -263,7 +263,7 @@ function AddAgentRulePage({
                                     }
                                     icon={icons.Info}
                                     shouldShowIcon
-                                    containerStyles={[styles.mh5, styles.mb3, styles.p4, styles.br3]}
+                                    containerStyles={[styles.mh5, styles.ph0, styles.pv3, styles.bgTransparent]}
                                     textStyles={[styles.breakWord, styles.textSupporting]}
                                 />
                             )}
