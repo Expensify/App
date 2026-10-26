@@ -79,7 +79,7 @@ function shouldShowCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
     return isPolicyAdmin(policy) && Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
 }
 
-function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
+function shouldShowReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     return isPolicyAdmin(policy) && !!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount;
 }
@@ -93,7 +93,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
         shouldShowCustomUnitsError(policy) ||
         shouldShowPolicyErrorFields(policy) ||
         shouldShowSyncError(policy, isConnectionInProgress, getAccountingConnectionNames()) ||
-        shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
+        shouldShowReimbursableExportDestinationAccountError(policy) ||
         shouldShowHRConnectionError(policy, isConnectionInProgress, isPolicyAdmin(policy))
     ) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -140,7 +140,7 @@ export {
     shouldShowSyncError,
     shouldShowPolicyError,
     shouldShowCustomUnitsError,
-    shouldShowQBOReimbursableExportDestinationAccountError,
+    shouldShowReimbursableExportDestinationAccountError,
     getPolicyBrickRoadIndicatorStatus,
     isMergeHRCompleteSetupNeededSelector,
     isQBORefreshTokenExpiringSoonSelector,

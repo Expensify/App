@@ -63,7 +63,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     hasAccountingConnections: () => true,
     hasSupportedOnlyOnOldDotIntegration: () => false,
     settingsPendingAction: () => undefined,
-    shouldShowQBOReimbursableExportDestinationAccountError: () => false,
+    shouldShowReimbursableExportDestinationAccountError: () => false,
     shouldShowSyncError: () => false,
 }));
 jest.mock('@navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn()}}));
