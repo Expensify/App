@@ -374,7 +374,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 // which can only classify frames when it did.
                 __SENTRY_APPLICATION_KEY_STAMPED__: !!sentryWebpackPlugin,
             },
-            entry: {main: './index.js'},
+            // fonts.css is bundled rather than copied as a static file, so its font paths resolve to the same
+            // content-hashed font files the charts import, and the browser downloads each font only once.
+            entry: {main: ['./assets/css/fonts.css', './index.js']},
         },
         output: {
             target: 'web',
@@ -415,8 +417,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 {from: 'web/robots.txt'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
-                {from: 'assets/css', to: 'css'},
-                {from: 'assets/fonts/web', to: 'fonts'},
+                {from: 'assets/css/pdf.css', to: 'css/pdf.css'},
                 {from: 'assets/sounds', to: 'sounds'},
                 {from: 'assets/pdfs', to: 'pdfs'},
                 {from: 'node_modules/react-pdf/dist/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},

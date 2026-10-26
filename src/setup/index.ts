@@ -66,6 +66,7 @@ export default function () {
             [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: false,
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
+            [ONYXKEYS.BLOCKED_ROLE_CHANGE]: null,
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
             // Without a default this server-owned NVP has no row until it arrives, and its loading status holds the Search router behind a skeleton
             [ONYXKEYS.RECENT_SEARCHES]: {},
