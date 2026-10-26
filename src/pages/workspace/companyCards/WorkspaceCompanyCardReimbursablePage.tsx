@@ -86,7 +86,7 @@ function WorkspaceCompanyCardReimbursablePage({
     };
 
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (

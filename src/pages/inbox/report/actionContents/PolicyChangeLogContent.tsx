@@ -133,6 +133,8 @@ const copySettingsResolver: ResolverFn = (translate, action) => ({
 
 const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     // Simple string translations
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ARCHIVE_POLICY]: (translate) => translate('workspaceActions.archivedWorkspace'),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNARCHIVE_POLICY]: (translate) => translate('workspaceActions.unarchivedWorkspace'),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE]: (translate) => translate('workspaceActions.upgradedWorkspace'),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE]: (translate) => translate('workspaceActions.downgradedWorkspace'),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS]: (translate) => translate('workspaceActions.importTags'),

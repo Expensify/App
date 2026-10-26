@@ -163,6 +163,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_CAMPFIRE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.CAMPFIRE_SYNC_CONNECTION};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.DIGITS: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_DIGITS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.DIGITS_SYNC_CONNECTION};
+        }
         case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_ZOHO_BOOKS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZOHO_BOOKS_SYNC_CONNECTION};
         }
@@ -389,6 +392,9 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
             break;
         case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
             stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.CAMPFIRE_SYNC_CONNECTION;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.DIGITS_SYNC_CONNECTION;
             break;
         default:
             stageInProgress = null;

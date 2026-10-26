@@ -249,7 +249,7 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
         return '';
     }
     if (isTravelCard(card)) {
-        return translate('cardTransactions.travelInvoicing');
+        return translate('cardTransactions.travelBilling');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
@@ -269,7 +269,7 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
  */
 function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTranslate, displayName?: string) {
     if (isTravelCard(card)) {
-        return translate('cardTransactions.travelInvoicing');
+        return translate('cardTransactions.travelBilling');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
@@ -290,7 +290,7 @@ function getCompanyCardDescription(translate: LocalizedTranslate, transactionCar
     // feedCountry travels with the transaction, so a travel card belonging to another member (absent from the viewer's card
     // list) still shows the localized travel name instead of the server string.
     if (isTravelCardTransaction(feedCountry, card)) {
-        return translate('cardTransactions.travelInvoicing');
+        return translate('cardTransactions.travelBilling');
     }
 
     if (!card) {
@@ -1179,7 +1179,7 @@ function getFeedNameForDisplay(
 
     // Travel Billing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
     if (feed === CONST.EXPENSIFY_CARD.BANK && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
-        return translate('search.filters.card.travelInvoicing');
+        return translate('search.filters.card.travelBilling');
     }
 
     const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed as CompanyCardFeed);

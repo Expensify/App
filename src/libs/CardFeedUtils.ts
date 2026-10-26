@@ -177,7 +177,7 @@ function getExpensifyCardFeedsForDisplay(
         // Travel Billing lives on its own feed but shares the `Expensify Card` bank. Use the
         // translated label so the Feed dropdown shows "Travel Billing" for travel cards and
         // "Expensify Card" for everything else.
-        const name = translate && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US ? translate('search.filters.card.travelInvoicing') : CONST.EXPENSIFY_CARD.BANK;
+        const name = translate && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US ? translate('search.filters.card.travelBilling') : CONST.EXPENSIFY_CARD.BANK;
 
         // Reuse the Expensify Card feed selector's origin resolver so the filter shows the same
         // domain/workspace supporting text (empty string means we have nothing to disambiguate with).
@@ -587,7 +587,7 @@ function getCombinedCardFeedsFromAllFeeds(
                 }
             }
 
-            // Use the local reimbursable value during pending or failed saves; the OAuth value may be stale.
+            // Use the local reimbursable value during pending or failed saves. The OAuth value may be stale.
             const hasLocalReimbursableChange = !!feedSettings?.pendingFields?.forceReimbursable || !!feedSettings?.errorFields?.forceReimbursable;
             const reimbursableOverrides: Partial<CombinedCardFeed> =
                 oAuthAccountDetails && hasLocalReimbursableChange
