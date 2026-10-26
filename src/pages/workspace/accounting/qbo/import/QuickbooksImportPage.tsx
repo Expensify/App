@@ -3,6 +3,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -13,6 +14,7 @@ import Navigation from '@navigation/Navigation';
 
 import {shouldSwitchLocationsToReportFields} from '@pages/workspace/accounting/qbo/utils';
 import {getQuickbooksOnlineIntegrationName, isIntuitEnterpriseSuiteConnection} from '@pages/workspace/accounting/utils';
+import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -34,6 +36,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {syncClasses, syncCustomers, syncLocations, syncItems, syncTax, syncCustomDimensions, pendingFields, errorFields} = qboConfig ?? {};
     const isIntuitEnterpriseSuite = isIntuitEnterpriseSuiteConnection(policy);
@@ -106,6 +109,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
+            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
             displayName="QuickbooksImportPage"
             headerTitle="workspace.accounting.import"
             title="workspace.qbo.importDescription"
