@@ -1319,7 +1319,7 @@ const translations = {
     },
     insightsPage: {
         viewOnSpend: 'View on Spend',
-        explainChartPrompt: (chartTitle: string) => `Explain what stands out in my ${chartTitle} data`,
+        explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}`,
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
