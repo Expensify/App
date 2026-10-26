@@ -133,7 +133,7 @@ function useColumnResize({
     };
 
     const fitColumnToContent = (columnKey: string) => {
-        const width = getTargetColumnWidth?.(columnKey, 'fit');
+        const width = getTargetColumnWidth?.(columnKey, CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT);
 
         // Nothing gets stored when the width doesn't change, so no render would follow to clear the live widths.
         if (width === undefined || readColumnWidth(columnKey) === width) {
@@ -144,7 +144,7 @@ function useColumnResize({
     };
 
     const resetColumnWidth = (columnKey: string) => {
-        const width = getTargetColumnWidth?.(columnKey, 'reset');
+        const width = getTargetColumnWidth?.(columnKey, CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET);
 
         if (width === undefined) {
             return;

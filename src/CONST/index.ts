@@ -9880,6 +9880,12 @@ const CONST = {
 
             /** How long, in ms, the grip takes to stretch into the line once its edge is dragged. */
             INDICATOR_MORPH_DURATION: 150,
+
+            /** What a click (`FIT`) or a double-click (`RESET`) on a column's edge sizes it to. */
+            WIDTH_TARGET: {
+                FIT: 'fit',
+                RESET: 'reset',
+            },
         },
     },
 

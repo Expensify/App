@@ -1,7 +1,10 @@
 /** Lays a resizable table's columns out as custom property expressions, so a drag repaints the header, rows and scroller without a render. */
+
 import calculateDynamicColumnWidths, {distributeEqualWidths} from '@components/Table/calculateDynamicColumnWidths';
 
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 import type {ResizableColumn} from './resolveDraggedColumnWidths';
 
@@ -9,8 +12,7 @@ import {SCROLL_EXTENT_FLOOR_VARIABLE, getColumnWidthValue, getColumnsWidthExpres
 import getColumnsWidthSum from './getColumnsWidthSum';
 import resolveDraggedColumnWidths, {isColumnResizable} from './resolveDraggedColumnWidths';
 
-/** What a click (`fit`) or a double-click (`reset`) on a column's edge sizes it to. */
-type ColumnWidthTarget = 'fit' | 'reset';
+type ColumnWidthTarget = ValueOf<typeof CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET>;
 
 /** Row space that isn't column width, so it can be added back around the column sum. */
 type RowChromeWidths = {
@@ -136,7 +138,7 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
             return undefined;
         }
 
-        if (target === 'fit') {
+        if (target === CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT) {
             return isColumnResizable(column) ? getDragBoundedWidth(columnKey, column.contentWidth) : undefined;
         }
 

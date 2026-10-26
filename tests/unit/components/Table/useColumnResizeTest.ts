@@ -658,7 +658,9 @@ describe('useColumnResize', () => {
 
     it('does nothing on click when the column has no fitted width', () => {
         // Given a column the layout can't fit, e.g. because its content couldn't be measured
-        const {click, readWidth} = renderColumnResize({getTargetColumnWidth: (columnKey, target) => (target === 'fit' ? undefined : getTargetColumnWidth(columnKey))});
+        const {click, readWidth} = renderColumnResize({
+            getTargetColumnWidth: (columnKey, target) => (target === CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT ? undefined : getTargetColumnWidth(columnKey)),
+        });
 
         // When its edge is clicked
         click();
@@ -671,7 +673,9 @@ describe('useColumnResize', () => {
 
     it('does nothing on double-click when the column was never resized', () => {
         // Given a column the user never sized, so the layout has nothing to reset for it
-        const {click, readWidth} = renderColumnResize({getTargetColumnWidth: (columnKey, target) => (target === 'reset' ? undefined : getTargetColumnWidth(columnKey))});
+        const {click, readWidth} = renderColumnResize({
+            getTargetColumnWidth: (columnKey, target) => (target === CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET ? undefined : getTargetColumnWidth(columnKey)),
+        });
 
         // When its edge is double-clicked
         click();

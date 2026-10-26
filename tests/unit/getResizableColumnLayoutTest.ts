@@ -246,8 +246,8 @@ describe('getResizableColumnLayout', () => {
         });
 
         // Then a click fits the name column to its content, and the email column only down to the drag bound, so its edge stays reachable
-        expect(getTargetColumnWidth('name', 'fit')).toBe(120);
-        expect(getTargetColumnWidth('email', 'fit')).toBe(MIN_WIDTH);
+        expect(getTargetColumnWidth('name', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBe(120);
+        expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBe(MIN_WIDTH);
     });
 
     it('fits the last column no narrower than a drag could take it', () => {
@@ -264,7 +264,7 @@ describe('getResizableColumnLayout', () => {
         });
 
         // Then it stays at 200px, since a narrower width would leave room the last column takes back on the next render
-        expect(getTargetColumnWidth('role', 'fit')).toBe(200);
+        expect(getTargetColumnWidth('role', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBe(200);
     });
 
     it('fits no column whose edge does not drag', () => {
@@ -281,7 +281,7 @@ describe('getResizableColumnLayout', () => {
         });
 
         // Then it has no fitted width, since it holds fixed-size content
-        expect(getTargetColumnWidth('arrow', 'fit')).toBeUndefined();
+        expect(getTargetColumnWidth('arrow', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBeUndefined();
     });
 
     it('resets a resized column to the width a fresh load gives it while another column stays resized', () => {
@@ -300,8 +300,8 @@ describe('getResizableColumnLayout', () => {
 
         // Then resetting email squeezes it back to its fresh 250px rather than keeping the content width a fit gives,
         // so a reset after a fit visibly changes the column and doesn't leave the row overflowing
-        expect(getTargetColumnWidth('email', 'fit')).toBe(400);
-        expect(getTargetColumnWidth('email', 'reset')).toBe(250);
+        expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBe(400);
+        expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBe(250);
     });
 
     it('resets a column to its fresh width within its cap, and only a column the user resized', () => {
@@ -319,7 +319,7 @@ describe('getResizableColumnLayout', () => {
 
         // Then the name column goes back to its cap, which a fresh load never sizes past, and the email column has
         // nothing to reset, since the user never sized it
-        expect(getTargetColumnWidth('name', 'reset')).toBe(150);
-        expect(getTargetColumnWidth('email', 'reset')).toBeUndefined();
+        expect(getTargetColumnWidth('name', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBe(150);
+        expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBeUndefined();
     });
 });
