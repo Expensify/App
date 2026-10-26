@@ -44,6 +44,7 @@ import {
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDeletedOfficeLocationMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getHumanAgentAccountIDFromReportAction,
     getHumanAgentFirstName,
@@ -1434,6 +1435,55 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getLastVisibleMessage', () => {
+        const REPORT_ID = '90301';
+        const WHISPER_TARGET_ACCOUNT_ID = 111;
+
+        const comment: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
+            created: '2026-12-01 10:00:00.000',
+            reportActionID: 'visibleMessageComment',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            originalMessage: {html: 'Older comment'},
+        };
+
+        /** Newer than `comment`, and only the whispered-to account can see it. */
+        const whisper: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
+            created: '2026-12-01 12:00:00.000',
+            reportActionID: 'visibleMessageWhisper',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+            originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+        });
+
+        it('should take the message from the whisper when the user is the one it targets', () => {
+            // Given a report whose newest action is a whisper aimed at the user
+            // When the last visible message is resolved for that user
+            const result = ReportActionsUtils.getLastVisibleMessage(REPORT_ID, true, {}, undefined, undefined, WHISPER_TARGET_ACCOUNT_ID);
+
+            // Then the whisper supplies the message
+            expect(result.lastMessageText).toBe('changed the amount');
+        });
+
+        it('should skip the whisper and fall back to the older comment when it targets somebody else', () => {
+            // Given the same report, seen by an account the whisper does not target
+            // When the last visible message is resolved for that account
+            const result = ReportActionsUtils.getLastVisibleMessage(REPORT_ID, true, {}, undefined, undefined, WHISPER_TARGET_ACCOUNT_ID + 1);
+
+            // Then the whisper is invisible and the older comment supplies the message
+            expect(result.lastMessageText).toBe('Older comment');
+        });
+    });
+
     describe('getExportIntegrationActionFragments', () => {
         function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[], reimbursableUrls: string[] = []): ExportedToIntegrationAction {
             const action: ExportedToIntegrationAction = {
@@ -1865,6 +1915,22 @@ describe('ReportActionsUtils', () => {
 
             // Then it says the field was removed and shows the old value, instead of `changed Project to ""`
             expect(message).toBe('removed Project (previously "Apollo")');
+        });
+
+        it('should return the cleared field message when a field without a saved value is cleared', () => {
+            // Given a field change where both values are empty, which is what clearing a field that only showed its default can send
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: '', newValue: ''},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was removed, instead of `set Project to ""`
+            expect(message).toBe('removed Project');
         });
 
         it('should return the set field message when a field without a value is filled in', () => {
@@ -5451,6 +5517,41 @@ describe('ReportActionsUtils', () => {
             // Then it reads the same as the message Auth stores for it
             expect(getDeletedOfficeLocationMessage(translateLocal, action)).toBe('removed the office location "New Jersey Office"');
         });
+
+        it.each([
+            [
+                'an office assigned to a member who followed the primary office',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+                `changed Bob Smith's office location to "New Jersey Office" (previously the primary office)`,
+            ],
+            [
+                'a member moved from the company address to an office',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: 'OFFICE1', officeName: 'Headquarters', oldOfficeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, oldOfficeName: ''},
+                `changed Bob Smith's office location to "Headquarters" (previously the company address)`,
+            ],
+            [
+                'a cleared assignment',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: '', officeName: '', oldOfficeID: 'OFFICE1', oldOfficeName: 'Headquarters'},
+                `changed Bob Smith's office location to the primary office (previously "Headquarters")`,
+            ],
+            [
+                'a member without a name moved off an office that was removed since',
+                {email: 'bob@smith.com', officeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, officeName: '', oldOfficeID: 'OFFICE9', oldOfficeName: ''},
+                `changed bob@smith.com's office location to the company address (previously the primary office)`,
+            ],
+        ])('describes %s', (_description, originalMessage, expected) => {
+            // Given a member whose office assignment changed
+            const action: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {accountID: 1, ...originalMessage},
+            };
+
+            // When the change log is rendered
+            // Then it reads the same as the message Auth stores for it
+            expect(getUpdatedEmployeeOfficeLocationMessage(translateLocal, action)).toBe(expected);
+        });
     });
 
     describe('getUpdatedCardFeedLiabilityMessage', () => {
@@ -8431,6 +8532,63 @@ describe('ReportActionsUtils', () => {
             // Then each author gets its own newest comment, so the agent's comments do not hide Concierge's
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, agentAccountID)).toBe('300');
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, CONST.ACCOUNT_ID.CONCIERGE)).toBe('100');
+        });
+    });
+
+    describe('getWorkspaceRulesDocumentUpdatedMessage', () => {
+        const buildRulesDocumentAction = (isReplacement?: boolean) =>
+            ({
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULES_DOCUMENT,
+                originalMessage: {isReplacement},
+            }) as ReportAction;
+
+        it('says a document was added when none existed before', () => {
+            // Given change logs for a first upload, where the backend sends either an explicit false or leaves the flag out
+            const explicitFirstUpload = buildRulesDocumentAction(false);
+            const omittedFlag = buildRulesDocumentAction();
+
+            // When the message is built for each of them
+            const explicitMessage = ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, explicitFirstUpload);
+            const omittedMessage = ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, omittedFlag);
+
+            // Then both read as an addition, because an absent flag must not be mistaken for a replacement
+            expect(explicitMessage).toBe('added an expense policy document');
+            expect(omittedMessage).toBe('added an expense policy document');
+        });
+
+        it('says the document was replaced when one already existed', () => {
+            // Given a change log for an upload that overwrote an existing document
+            const action = buildRulesDocumentAction(true);
+
+            // When the message is built
+            const message = ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, action);
+
+            // Then admins see a replacement, so they know the previous document is gone
+            expect(message).toBe('replaced the expense policy document');
+        });
+
+        it('links to the workspace Overview page in the rendered message only', () => {
+            // Given a change log that carries the workspace it happened in
+            const action = {...buildRulesDocumentAction(false), originalMessage: {isReplacement: false, policyID: 'ABC123'}} as ReportAction;
+
+            // When the room renders its message fragments
+            const [fragment] = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+
+            // Then the HTML points admins to the Overview page where the file can be opened, while the text stays plain for search and previews
+            expect(fragment.text).toBe('added an expense policy document');
+            expect(fragment.html).toMatch(/^<muted-text>added an expense policy document in <a href=".*\/workspaces\/ABC123\/overview">Workspace &gt; Overview<\/a><\/muted-text>$/);
+        });
+
+        it('stays plain text when the change log has no workspace', () => {
+            // Given a change log without a policyID, such as one written before the backend started sending it
+            const action = buildRulesDocumentAction(false);
+
+            // When the room renders its message fragments
+            const [fragment] = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+
+            // Then no link is built, because there is no workspace to point to
+            expect(fragment.html).toBe('<muted-text>added an expense policy document</muted-text>');
         });
     });
 });
