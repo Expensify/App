@@ -48,7 +48,7 @@ function isUsableSplitRate(rate: number | undefined): rate is number {
 }
 
 /**
- * The rate a nonzero distance expense was calculated with, derived from its amount and distance.
+ * The nonzero rate a distance expense was calculated with, derived from its amount and distance.
  */
 function getHistoricalDistanceRate(transaction: OnyxEntry<OnyxTypes.Transaction>): number | undefined {
     const quantity = transaction?.comment?.customUnit?.quantity;

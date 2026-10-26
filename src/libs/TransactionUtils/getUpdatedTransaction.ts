@@ -319,11 +319,12 @@ function getUpdatedTransaction({
             // recalculate the updated amount. Otherwise, recalculate the fields based on the new rate.
             let updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
 
-            // The provided `policy` may not own the new rate, leaving the amount at 0. Fall back to
-            // resolving the rate across every policy the user belongs to.
-            if (!updatedMileageRate.rate && transactionChanges.customUnitRateID) {
+            // The provided `policy` may not own the new rate, leaving the rate unresolved. Fall back to
+            // resolving the rate across every policy the user belongs to. `=== undefined`/`!== undefined`
+            // (not truthiness) because a resolved $0 rate is a valid rate, not a missing one.
+            if (updatedMileageRate.rate === undefined && transactionChanges.customUnitRateID) {
                 const rateFromAnyPolicy = DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(transactionChanges.customUnitRateID, policies);
-                if (rateFromAnyPolicy?.rate) {
+                if (rateFromAnyPolicy?.rate !== undefined) {
                     updatedMileageRate = rateFromAnyPolicy;
 
                     // The fallback rate wasn't known when the distance unit/quantity were set above from the

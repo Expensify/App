@@ -297,7 +297,7 @@ type SplitListItemType = ListItem &
 
         /**
          * Whether the split's amount or percentage can be typed in. The split can still be opened to edit its other fields
-         * when this is false, e.g. a split of a $0 rate distance expense is always $0 but its distance can change.
+         * when this is false, e.g. a split of a $0 rate distance expense is always $0 but its distance can be updated.
          */
         isAmountEditable?: boolean;
 
