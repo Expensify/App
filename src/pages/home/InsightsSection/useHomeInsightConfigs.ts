@@ -2,6 +2,7 @@ import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSuggestedSearches, getSuggestedSearchesVisibility, SPEND_INSIGHT_KEYS} from '@libs/SearchUIUtils';
@@ -19,7 +20,9 @@ import type {InsightsGraphKey} from '@src/types/onyx';
 import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
-const HOME_INSIGHT_ICONS: Record<InsightsGraphKey, SearchTypeMenuItem['icon']> = {
+type HomeInsightChart = InsightsChartSpec & {graphKey: Extract<InsightsGraphKey, SearchKey>};
+
+const HOME_INSIGHT_ICONS: Record<HomeInsightChart['graphKey'], SearchTypeMenuItem['icon']> = {
     [CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME]: 'CalendarSolid',
     [CONST.INSIGHTS.GRAPH.TOP_SPENDERS]: 'User',
     [CONST.INSIGHTS.GRAPH.TOP_MERCHANTS]: 'Basket',
@@ -27,7 +30,7 @@ const HOME_INSIGHT_ICONS: Record<InsightsGraphKey, SearchTypeMenuItem['icon']> =
 };
 
 /** Builds a Home insight that queries the same chart as the Insights page. */
-function buildInsightConfigFromChart(chart: InsightsChartSpec, filters: InsightsFilters): SearchTypeMenuItem {
+function buildInsightConfigFromChart(chart: HomeInsightChart, filters: InsightsFilters): SearchTypeMenuItem {
     const searchQuery = applyInsightsFilters(chart, filters);
     const searchQueryJSON = buildSearchQueryJSON(searchQuery);
 
@@ -46,7 +49,7 @@ function buildInsightConfigFromChart(chart: InsightsChartSpec, filters: Insights
 
 /**
  * Builds the configs for the Home insights the current user should see, in display order.
- * With the Insights page beta, the charts and their visibility match the Insights Spend dashboard, otherwise the Spend menu.
+ * With the Insights page beta, Home's supported charts use the Insights dashboard filters and visibility, otherwise the Spend menu.
  */
 function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: boolean} {
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -64,7 +67,9 @@ function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: bo
     }
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
-    const configs = getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email).map((chart) => buildInsightConfigFromChart(chart, filters));
+    const configs = getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email)
+        .filter((chart): chart is HomeInsightChart => chart.graphKey in HOME_INSIGHT_ICONS)
+        .map((chart) => buildInsightConfigFromChart(chart, filters));
     return {configs, isResolved: areFiltersResolved};
 }
 
