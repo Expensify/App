@@ -8897,7 +8897,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 applyExpenseDefaultsDescription: 'Felder automatisch aktualisieren',
                 flagForReview: 'Zur Überprüfung markieren',
                 flagForReviewDescription: 'Benachrichtigen, wenn Ihre Bedingungen erfüllt sind',
-                requireFieldsShort: 'Felder vorschreiben',
+                requireFields: 'Felder vorschreiben',
                 requireFieldsDescription: 'Belege, Kategorien usw.',
                 describeItBelow: 'Oder beschreiben Sie sie einfach unten',
                 describeRulePlaceholder: 'Alle Ausgaben über 2.000 $ blockieren',

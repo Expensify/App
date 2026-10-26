@@ -237,7 +237,7 @@ describe('New rule describe section', () => {
         const expectedOptionNames = [
             'workspace.rules.newRule.restrictCardSpend',
             'workspace.rules.newRule.flagForReview',
-            'workspace.rules.newRule.requireFieldsShort',
+            'workspace.rules.newRule.requireFields',
             'workspace.rules.newRule.applyExpenseDefaults',
         ];
         expect(options).toHaveLength(expectedOptionNames.length);

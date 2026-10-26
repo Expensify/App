@@ -9261,7 +9261,7 @@ const translations = {
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
                 flagForReview: 'Flag for review',
                 flagForReviewDescription: 'Notify when your conditions are met',
-                requireFieldsShort: 'Require fields',
+                requireFields: 'Require fields',
                 requireFieldsDescription: 'Receipts, categories, etc.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields automatically',

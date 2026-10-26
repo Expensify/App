@@ -8920,7 +8920,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 applyExpenseDefaultsDescription: 'Mettre à jour les champs automatiquement',
                 flagForReview: 'Marquer pour examen',
                 flagForReviewDescription: 'Avertir lorsque vos conditions sont remplies',
-                requireFieldsShort: 'Exiger des champs',
+                requireFields: 'Exiger des champs',
                 requireFieldsDescription: 'Reçus, catégories, etc.',
                 describeItBelow: 'Ou décrivez-la simplement ci-dessous',
                 describeRulePlaceholder: 'Bloquer toutes les dépenses supérieures à 2 000 $',

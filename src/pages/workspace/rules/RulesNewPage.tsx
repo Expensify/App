@@ -98,7 +98,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
         {
             key: 'requireFields',
             icon: illustrations.CheckboxText,
-            title: translate('workspace.rules.newRule.requireFieldsShort'),
+            title: translate('workspace.rules.newRule.requireFields'),
             description: translate('workspace.rules.newRule.requireFieldsDescription'),
             onPress: () =>
                 Navigation.navigate(
