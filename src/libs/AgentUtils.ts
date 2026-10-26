@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Agent} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -44,4 +45,8 @@ function filterDeletedAgents(agents: OnyxCollection<Agent>, isOffline: boolean):
     );
 }
 
-export {getAgentErrors, doesAgentHaveErrors, hasAgentErrorsSelector, filterDeletedAgents};
+function agentAccountIDsSelector(agents: OnyxCollection<Agent>): Set<number> {
+    return new Set(Object.keys(agents ?? {}).map((key) => Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length))));
+}
+
+export {getAgentErrors, doesAgentHaveErrors, hasAgentErrorsSelector, filterDeletedAgents, agentAccountIDsSelector};
