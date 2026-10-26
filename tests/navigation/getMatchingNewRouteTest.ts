@@ -790,4 +790,21 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/settings/wallet/card/123/report-card-lost-or-damaged/123/replace-validate-code/stolen')).toBe(undefined);
         expect(getMatchingNewRoute('/settings/wallet/card/123/change-pin-atm')).toBe(undefined);
     });
+
+    it('redirects bookmarked travel-invoicing accounting pages to their travel-billing paths', () => {
+        // Given bookmarks saved while the Consolidated Travel Billing pages used travel-invoicing paths
+        const staticPath = '/workspaces/ABC/accounting/netsuite/export/travel-invoicing/journal-posting-preference';
+        const nestedDynamicPath = '/workspaces/ABC/accounting/xero/export/xero-travel-invoicing/xero-travel-invoicing-payable-account';
+        const advancedPath = '/workspaces/ABC/accounting/campfire/advanced/travel-invoicing-payable-account?backTo=/home';
+
+        // When the old paths are opened
+        const redirects = [staticPath, nestedDynamicPath, advancedPath].map(getMatchingNewRoute);
+
+        // Then each lands on the renamed page, keeping the workspace and any query
+        expect(redirects).toEqual([
+            '/workspaces/ABC/accounting/netsuite/export/travel-billing/journal-posting-preference',
+            '/workspaces/ABC/accounting/xero/export/xero-travel-billing/xero-travel-billing-payable-account',
+            '/workspaces/ABC/accounting/campfire/advanced/travel-billing-payable-account?backTo=/home',
+        ]);
+    });
 });
