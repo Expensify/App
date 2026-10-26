@@ -52,8 +52,18 @@ function NumericField({value = '', onInputChange, allowNegative = false, decimal
         errorText,
     };
 
+    const toggleSign = () => {
+        if (!allowNegative) {
+            return;
+        }
+
+        const currentValue = controller.getNumber();
+        controller.setNumber(currentValue.startsWith('-') ? currentValue.slice(1) : `-${currentValue}`);
+    };
+
     const actionsContextValue: NumericFieldActionsContextValue = {
         setNumber: controller.setNumber,
+        toggleSign,
         handleSelectionChange: controller.handleSelectionChange,
         handleKeyPress: controller.handleKeyPress,
     };

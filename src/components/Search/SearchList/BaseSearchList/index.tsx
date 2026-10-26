@@ -1,6 +1,7 @@
+import {useEditingCellState} from '@components/EditableCell';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
-import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -8,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import setSearchRowFocused from '@libs/actions/SearchRowFocus';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
@@ -16,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isModalActiveSelector} from '@src/selectors/Modal';
 
+import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -29,7 +32,7 @@ import type BaseSearchListProps from './types';
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
 type CellRendererComponentProps = ViewProps & {
-    ref?: React.Ref<View>;
+    ref?: React.Ref<ComponentRef<typeof View>>;
     style?: StyleProp<ViewStyle>;
 };
 
@@ -73,6 +76,7 @@ function BaseSearchList({
     disabledIndexes,
     overrideItemLayout,
 }: BaseSearchListProps) {
+    const tabRootScrollProps = useTabRootScrollProps(contentContainerStyle);
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
     const {focusedCellId, isEditingCell} = useEditingCellState();
@@ -124,10 +128,17 @@ function BaseSearchList({
     };
     const getOnFocus = useStableIndexedHandler(handleFocusByIndex);
 
-    const renderItemWithKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => {
-        const isItemFocused = focusedIndex === index;
-        return renderItem(item, index, isItemFocused, getOnFocus(index));
-    };
+    // Rows read their own focus by key, so a focus change doesn't invalidate every FlashList cell.
+    const focusedKeyForList = focusedIndex >= 0 ? data.at(focusedIndex)?.keyForList : undefined;
+    useEffect(() => {
+        if (!focusedKeyForList) {
+            return;
+        }
+        setSearchRowFocused(focusedKeyForList, true);
+        return () => setSearchRowFocused(focusedKeyForList, false);
+    }, [focusedKeyForList]);
+
+    const renderItemWithKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => renderItem(item, index, getOnFocus(index));
 
     const selectFocusedOption = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -171,8 +182,8 @@ function BaseSearchList({
     }, [setHasKeyBeenPressed]);
 
     const extraData = useMemo(
-        () => [focusedIndex, columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
-        [focusedIndex, columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
+        () => [columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
+        [columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
     );
 
     return (
@@ -192,7 +203,7 @@ function BaseSearchList({
             CellRendererComponent={CellRendererComponent}
             removeClippedSubviews
             drawDistance={250}
-            contentContainerStyle={contentContainerStyle}
+            {...tabRootScrollProps}
             maintainVisibleContentPosition={{disabled: true}}
             stickyHeaderIndices={stickyHeaderIndices}
             stickyHeaderConfig={stickyHeaderConfig}

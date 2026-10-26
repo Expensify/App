@@ -5,7 +5,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
-import useThemePreference from '@hooks/useThemePreference';
 
 import FS from '@libs/Fullstory';
 import {buildPageViewedEvent, trackFullstoryEvent} from '@libs/Fullstory/utils';
@@ -32,7 +31,7 @@ import type {NavigationState} from '@react-navigation/native';
 import {findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates, clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -42,6 +41,7 @@ import getActiveTabName from './helpers/getActiveTabName';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import getPathFromState from './helpers/getPathFromState';
 import getStateToResetAfterLogout from './helpers/getStateToResetAfterLogout';
+import isJoinWorkspaceTaskPath, {isOnboardingPath} from './helpers/isJoinWorkspaceTaskPath';
 import {isSplitNavigatorName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
@@ -136,32 +136,31 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     ]);
 
     const firstRenderRef = useRef(true);
-    const themePreference = useThemePreference();
     const theme = useTheme();
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
     const {updateCurrentReportID} = useCurrentReportIDActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
 
     const previousAuthenticated = usePrevious(authenticated);
 
-    const initialState = useMemo(() => {
+    const [initialState] = useState(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
+        const shouldRedirectCompletedUser = !!path && isOnboardingPath(path) && !isJoinWorkspaceTaskPath(path);
+        if (isOnboardingCompleted && shouldRedirectCompletedUser) {
+            return getAdaptedStateFromPath(ROUTES.HOME);
+        }
+
         if (path?.includes(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, lastVisitedPath));
             });
 
             return getAdaptedStateFromPath(lastVisitedPath);
-        }
-
-        if (!account || account.isFromPublicDomain) {
-            return;
         }
 
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
@@ -186,14 +185,11 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         // Default behavior - let React Navigation handle the initial state
         return undefined;
-
-        // The initialState value is relevant only on the first render.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    });
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(() => {
-        const defaultNavigationTheme = getNavigationBaseTheme(themePreference);
+        const defaultNavigationTheme = getNavigationBaseTheme(theme.colorScheme);
 
         return {
             ...defaultNavigationTheme,
@@ -209,7 +205,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 background: shouldUseNarrowLayout ? theme.appBG : 'transparent',
             },
         };
-    }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
+    }, [shouldUseNarrowLayout, theme.appBG, theme.colorScheme]);
 
     useEffect(() => {
         if (firstRenderRef.current) {

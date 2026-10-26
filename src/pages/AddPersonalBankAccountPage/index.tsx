@@ -4,10 +4,12 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOpenReport from '@hooks/useOpenReport';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
@@ -25,6 +27,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
+import {getReportPolicyID} from '@selectors/Report';
 import React, {useContext, useEffect, useRef} from 'react';
 
 import Address from './substeps/AddressStep';
@@ -62,6 +66,7 @@ function AddPersonalBankAccountPage() {
     const isManual = personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL || urlSubPage === SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS;
     const error = getLatestErrorMessage(fullPersonalBankAccount ?? DEFAULT_OBJECT);
     const confirmedOwnershipDetails = useRef(false);
+    const hasRefreshedExitReport = useRef(false);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
@@ -69,6 +74,13 @@ function AddPersonalBankAccountPage() {
     const kycWallRef = useContext(KYCWallContext);
 
     const shouldShowSuccess = fullPersonalBankAccount?.shouldShowSuccess ?? false;
+    const exitReportID = fullPersonalBankAccount?.exitReportID;
+    const [hasExitReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(exitReportID)}`, {selector: Boolean});
+    const [exitReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(exitReportID)}`, {selector: getReportPolicyID});
+    const [exitReportFullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(exitReportPolicyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
+    const openReport = useOpenReport();
 
     const exit = () => {
         const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((rootRoute) => isFullScreenName(rootRoute.name));
@@ -79,6 +91,7 @@ function AddPersonalBankAccountPage() {
                 break;
             case SCREENS.HOME:
             case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
+            case NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR:
                 Navigation.closeRHPFlow();
                 break;
             default:
@@ -88,12 +101,9 @@ function AddPersonalBankAccountPage() {
     };
 
     const exitFlow = (shouldContinue = false) => {
-        const exitReportID = fullPersonalBankAccount?.exitReportID;
         const onSuccessFallbackRoute = fullPersonalBankAccount?.onSuccessFallbackRoute ?? '';
 
-        if (exitReportID) {
-            Navigation.dismissModalWithReport({reportID: exitReportID});
-        } else if (shouldContinue && onSuccessFallbackRoute) {
+        if (shouldContinue && onSuccessFallbackRoute) {
             continueSetup(kycWallRef, onSuccessFallbackRoute);
         } else {
             exit();
@@ -199,6 +209,22 @@ function AddPersonalBankAccountPage() {
         }
         moveTo(successIndex, false);
     }, [shouldShowSuccess, currentPageName, moveTo, successIndex]);
+
+    // Refresh the report the flow was opened from once the account is added, since that changes its server-owned fields.
+    // Doing it here instead of on exit covers every way of closing the flow. The report may not be on screen, so don't mark it as read.
+    useEffect(() => {
+        if (!shouldShowSuccess || !exitReportID || currentPageName !== SUB_PAGE_NAMES.SUCCESS || hasRefreshedExitReport.current) {
+            return;
+        }
+        hasRefreshedExitReport.current = true;
+        openReport({
+            reportID: exitReportID,
+            hasReportActions: hasExitReportActions,
+            shouldMarkAsRead: false,
+            fullPolicySnapshot:
+                exitReportPolicyID && exitReportFullPolicySnapshotLastModified ? {policyID: exitReportPolicyID, lastModified: exitReportFullPolicySnapshotLastModified} : undefined,
+        });
+    }, [shouldShowSuccess, exitReportID, currentPageName, openReport, hasExitReportActions, exitReportPolicyID, exitReportFullPolicySnapshotLastModified]);
 
     useEffect(() => {
         if (!error) {

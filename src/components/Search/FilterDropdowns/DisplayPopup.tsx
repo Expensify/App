@@ -1,5 +1,5 @@
 import CompactMenuContext from '@components/CompactMenuContext';
-import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
@@ -12,8 +12,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close} from '@libs/actions/Modal';
+import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import Navigation from '@libs/Navigation/Navigation';
-import {getGroupBySections, getSearchColumnTranslationKey, getViewOptions} from '@libs/SearchUIUtils';
+import {getGroupBySections, getSearchColumnTranslationKey, getValidGroupBy, getViewOptions} from '@libs/SearchUIUtils';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +46,7 @@ type DisplayPopupProps = {
 function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isLargeScreenWidth, isSmallScreenWidth} = useResponsiveLayout(); // eslint-disable-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Columns']);
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
@@ -75,6 +78,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         const sortByValue = queryJSON.sortBy;
         const sortOrderValue = queryJSON.sortOrder;
         const groupByValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY];
+        const validGroupByValue = getValidGroupBy(groupByValue);
         const groupCurrencyValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY];
         const viewValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
 
@@ -84,14 +88,14 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     name={translate('search.display.sortBy')}
                     onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY)}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
-                    value={`${translate(getSearchColumnTranslationKey(sortByValue))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}
+                    value={`${translate(getSearchColumnTranslationKey(sortByValue, queryJSON.type))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}
                 />
                 {(isExpenseType || isTripType) && (
                     <MenuItemField
                         name={translate('search.display.groupBy')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_BY}
-                        value={groupByValue ? translate(`search.filters.groupBy.${groupByValue}`) : undefined}
+                        value={validGroupByValue ? translate(`search.filters.groupBy.${validGroupByValue}`) : undefined}
                     />
                 )}
                 {!!groupBy && (
@@ -102,7 +106,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         value={groupCurrencyValue}
                     />
                 )}
-                {isExpenseType && !!groupByValue && (
+                {isExpenseType && !!validGroupByValue && (
                     <MenuItemField
                         name={translate('search.view.label')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW)}
@@ -120,15 +124,23 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 )}
                 {shouldShowColumnsButton && (
                     <CompactMenuContext.Provider value>
-                        <MenuItemAction
-                            icon={expensifyIcons.Columns}
-                            title={translate('search.editColumns')}
-                            onPress={() => {
+                        <MenuItem.Root
+                            onPress={callFunctionIfActionIsAllowed(() => {
                                 closeOverlay();
                                 openSearchColumns();
-                            }}
+                            })}
+                            accessibilityLabel={translate('search.editColumns')}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
-                        />
+                        >
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    {isSmallScreenWidth ? <MenuItem.Icon src={expensifyIcons.Columns} /> : <MenuItem.IconNarrow src={expensifyIcons.Columns} />}
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('search.editColumns')}</MenuItem.Title>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     </CompactMenuContext.Provider>
                 )}
             </ScrollView>
@@ -178,6 +190,9 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onBackButtonPress={goBack}
                     onChange={(item) => {
                         const newValue = item?.value;
+                        if (newValue !== queryJSON.groupBy) {
+                            clearSelectedText();
+                        }
                         if (!newValue) {
                             updateFilterForm({groupBy: undefined, groupCurrency: undefined});
                         } else {

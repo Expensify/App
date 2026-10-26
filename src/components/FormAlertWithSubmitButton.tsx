@@ -8,7 +8,7 @@ import type {ButtonVariant} from '@styles/utils/types';
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {Ref} from 'react';
+import type {ComponentRef, Ref} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -61,7 +61,7 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     isAlertVisible?: boolean;
 
     /** React ref being forwarded to the submit button */
-    buttonRef?: Ref<View>;
+    buttonRef?: Ref<ComponentRef<typeof View>>;
 
     buttonText: string;
 

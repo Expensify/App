@@ -4,11 +4,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getCategoryNameError, getCategoryNameErrorMessage, getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import StringUtils from '@libs/StringUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -35,36 +38,32 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
     const {categories: policyCategories} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_EDIT;
     const settingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path);
     const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path);
-
-    const sanitizeCategoryName = useCallback((name: string) => name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim(), []);
+    const decodedCategoryName = getDecodedCategoryName(currentCategoryName);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
-            const newCategoryName = sanitizeCategoryName(values.categoryName);
+            const nameError = getCategoryNameError(policyCategories, values.categoryName, decodedCategoryName);
 
-            if (!newCategoryName) {
-                errors.categoryName = translate('workspace.categories.categoryRequiredError');
-            } else if (policyCategories?.[newCategoryName] && currentCategoryName !== newCategoryName) {
-                errors.categoryName = translate('workspace.categories.existingCategoryError');
-            } else if ([...newCategoryName].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                errors.categoryName = translate('common.error.characterLimitExceedCounter', [...newCategoryName].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH);
+            if (nameError) {
+                errors.categoryName = getCategoryNameErrorMessage(translate, nameError, values.categoryName);
             }
             return errors;
         },
-        [policyCategories, currentCategoryName, translate, sanitizeCategoryName],
+        [policyCategories, decodedCategoryName, translate],
     );
 
     const editCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            const newCategoryName = sanitizeCategoryName(values.categoryName);
+            const newCategoryName = StringUtils.sanitizeName(values.categoryName);
             // Do not call the API if the edited category name is the same as the current category name
-            if (currentCategoryName !== newCategoryName) {
-                renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: newCategoryName});
+            if (decodedCategoryName !== newCategoryName) {
+                renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: newCategoryName}, isVendorMatchingBetaEnabled);
             }
 
             // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
@@ -72,7 +71,7 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
                 Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : workspaceBackPath, {compareParams: false});
             });
         },
-        [currentCategoryName, policyData, isQuickSettingsFlow, settingsBackPath, workspaceBackPath, sanitizeCategoryName],
+        [decodedCategoryName, currentCategoryName, policyData, isQuickSettingsFlow, settingsBackPath, workspaceBackPath, isVendorMatchingBetaEnabled],
     );
 
     return (

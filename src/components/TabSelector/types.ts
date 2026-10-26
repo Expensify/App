@@ -2,14 +2,17 @@ import type {EducationalTooltipProps} from '@components/Tooltip/types';
 
 import type {ThemeColors} from '@styles/theme/types';
 
+import type CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
-import type {Ref} from 'react';
+import type {ComponentRef, Ref} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated, StyleProp, View, ViewStyle} from 'react-native';
+
+type TabSelectorItemRole = typeof CONST.ROLE.TAB | typeof CONST.ROLE.RADIO;
 
 type TabSelectorProps = MaterialTopTabBarProps & {
     onTabPress?: (name: string) => void;
@@ -45,6 +48,9 @@ type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
     /** Additional styles for the tab's badge. */
     badgeStyles?: StyleProp<ViewStyle>;
 
+    /** Whether the tab's badge should render in the error (red) style instead of success (green). */
+    isBadgeError?: boolean;
+
     /** Whether this tab is disabled */
     isDisabled?: boolean;
 
@@ -54,7 +60,7 @@ type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
     pendingAction?: PendingAction;
 
     /** Optional ref forwarded to this tab's pressable element, e.g. to anchor a popover to this specific tab. */
-    tabRef?: Ref<View | HTMLDivElement>;
+    tabRef?: Ref<ComponentRef<typeof View> | HTMLDivElement>;
 
     /**
      * Whether this tab should respond to a long-press (touch) / right-click (web) via `onLongTabPress`.
@@ -88,6 +94,18 @@ type TabSelectorBaseProps<K extends string = string> = {
 
     /** Additional styles for the tabs' scroll content container. */
     contentContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Additional styles for each tab button. */
+    tabButtonStyles?: StyleProp<ViewStyle>;
+
+    /** Whether to fade the edges that have more tabs to scroll to. The fades are positioned against the parent view. */
+    shouldShowScrollFade?: boolean;
+
+    /** Role of each tab. `radio` suits tabs that answer a form question instead of switching views. Defaults to `tab`. */
+    itemRole?: TabSelectorItemRole;
+
+    /** The question the tabs answer, added to each tab's label on native, which does not read the name of the group around the tabs */
+    itemGroupAccessibilityLabel?: string;
 };
 
 type TabSelectorItemProps = WithSentryLabel & {
@@ -121,6 +139,15 @@ type TabSelectorItemProps = WithSentryLabel & {
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
 
+    /** Additional styles for the tab button. */
+    tabButtonStyles?: StyleProp<ViewStyle>;
+
+    /** Role of the tab, `tab` unless it answers a form question */
+    role?: TabSelectorItemRole;
+
+    /** The question the tab answers, read after its title on native */
+    groupAccessibilityLabel?: string;
+
     /** Text to display on the badge on the tab. */
     badgeText?: string;
 
@@ -129,6 +156,9 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Additional styles for the tab's badge. */
     badgeStyles?: StyleProp<ViewStyle>;
+
+    /** Whether the tab's badge should render in the error (red) style instead of success (green). */
+    isBadgeError?: boolean;
 
     /** Whether this tab is disabled */
     isDisabled?: boolean;
@@ -139,7 +169,7 @@ type TabSelectorItemProps = WithSentryLabel & {
     pendingAction?: PendingAction;
 
     /** Optional ref forwarded to the tab's pressable element. */
-    tabRef?: Ref<View | HTMLDivElement>;
+    tabRef?: Ref<ComponentRef<typeof View> | HTMLDivElement>;
 
     /** Props for an educational tooltip wrapped around this tab's badge. */
     badgeEducationalTooltipProps?: Omit<EducationalTooltipProps, 'children'>;

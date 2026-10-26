@@ -10,14 +10,15 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {escapeTagName, getTagList, hasCustomCategories} from '@libs/PolicyUtils';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import {getTagList, hasCustomCategories} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
+import {getTagNameError, getTagNameErrorMessage} from '@libs/TagUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -44,6 +45,8 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const {tags: policyTagLists, categories: policyCategories} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {inputCallbackRef} = useAutoFocusInput();
     const isDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path);
@@ -52,18 +55,11 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
-        const tagName = escapeTagName(values.tagName.trim());
         const {tags} = getTagList(policyTagLists, 0);
+        const error = getTagNameError(tags, values.tagName);
 
-        if (!isRequiredFulfilled(tagName)) {
-            errors.tagName = translate('workspace.tags.tagRequiredError');
-        } else if (tagName === '0') {
-            errors.tagName = translate('workspace.tags.invalidTagNameError');
-        } else if (tags?.[tagName]) {
-            errors.tagName = translate('workspace.tags.existingTagError');
-        } else if ([...tagName].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
-            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-            addErrorMessage(errors, 'tagName', translate('common.error.characterLimitExceedCounter', [...tagName].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH));
+        if (error) {
+            errors.tagName = getTagNameErrorMessage(translate, error, values.tagName);
         }
 
         return errors;
@@ -89,8 +85,9 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
 
     const createTag = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
         createPolicyTag({
+            isVendorMatchingBetaEnabled,
             policyData,
-            tagName: values.tagName.trim(),
+            tagName: StringUtils.sanitizeName(values.tagName),
             setupTagsTaskReport,
             setupTagsTaskParentReport,
             isSetupTagsTaskParentReportArchived,

@@ -100,13 +100,13 @@ jest.mock('@libs/PersonalDetailsUtils', () => ({
 }));
 jest.mock('@libs/PolicyUtils', () => ({
     canMemberWrite: jest.fn(() => false),
+    canRoleCreateExpenses: jest.fn((role?: string) => role !== 'approveOnly'),
     filterGuideAndAccountManager: jest.fn((items: unknown[]) => items),
     getGuideAndAccountManagerInfo: jest.fn(() => ({assignedGuideEmail: undefined, accountManagerLogin: undefined, exclusions: {}})),
     getIneligibleInvitees: jest.fn(() => []),
     isDeletedPolicyEmployee: jest.fn(() => false),
 }));
 jest.mock('@libs/OptionsListUtils', () => ({
-    sortAlphabetically: (items: Array<Record<string, string>>, key: string, cmp: (a: string, b: string) => number) => [...items].sort((a, b) => cmp(a[key] ?? '', b[key] ?? '')),
     getSearchValueForPhoneOrEmail: (value: string) => value,
 }));
 jest.mock('@libs/PersonalDetailOptionsListUtils', () => ({

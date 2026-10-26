@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -49,7 +50,7 @@ type MenuItemListProps = {
 };
 
 function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapperStyle = {}, icon = undefined, iconWidth = undefined, iconHeight = undefined}: MenuItemListProps) {
-    const popoverAnchor = useRef<View>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const {isExecuting, singleExecution} = useSingleExecution();
     const isFocused = useIsFocused();
 

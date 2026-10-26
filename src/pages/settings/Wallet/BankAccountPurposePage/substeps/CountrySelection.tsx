@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 
-import {clearReimbursementAccount, clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {navigateToBankAccountRoute, prepareStandaloneBankAccountSetup} from '@userActions/ReimbursementAccount';
 
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -69,9 +69,7 @@ function CountrySelection() {
             return;
         }
         startWithLoading(() => {
-            clearReimbursementAccount();
-            clearReimbursementAccountDraft();
-            updateReimbursementAccountDraft({country: selectedCountry as Country, currency: CONST.BBA_COUNTRY_CURRENCY_MAP[selectedCountry]});
+            prepareStandaloneBankAccountSetup(CONST.BBA_COUNTRY_CURRENCY_MAP[selectedCountry], selectedCountry as Country);
             navigateToBankAccountRoute({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
         });
     };

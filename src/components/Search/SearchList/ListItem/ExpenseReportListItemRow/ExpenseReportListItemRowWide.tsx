@@ -11,12 +11,15 @@ import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
+import {useListItemContext, useListItemHovered} from '@components/SelectionList/ListItemContext';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 
 import variables from '@styles/variables';
 
@@ -36,15 +39,11 @@ function ExpenseReportListItemRowWide({
     onButtonPress = () => {},
     isActionLoading,
     chatReport,
-    containerStyle,
     canSelectMultiple,
     isSelectAllChecked,
     isIndeterminate,
     isDisabledCheckbox,
     columns = [],
-    isHovered = false,
-    isFocused = false,
-    isPendingDelete = false,
     shouldDisableActionPointerEvents = false,
     shouldShowMarkAsDoneCopy,
 }: ExpenseReportListItemRowWideProps) {
@@ -53,6 +52,8 @@ function ExpenseReportListItemRowWide({
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {isSelected} = useRowSelection(item.keyForList);
+    const isHovered = useListItemHovered();
+    const {isDisabled} = useListItemContext();
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
     const {totalDisplaySpend = 0, nonReimbursableSpend = 0, reimbursableSpend = 0, isAllScanning: isScanning = false} = item;
@@ -62,16 +63,9 @@ function ExpenseReportListItemRowWide({
     const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = item;
 
     const columnComponents = {
-        [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
-            <ExpenseReportListItemAvatar
-                item={item}
-                isHovered={isHovered}
-                isFocused={isFocused}
-                isLargeScreenWidth
-            />
-        ),
+        [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: <ExpenseReportListItemAvatar item={item} />,
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear})]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear, isDateColumnCreated: true})]}>
                 <DateCell
                     date={item.created ?? ''}
                     showTooltip
@@ -143,7 +137,11 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.STATUS]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
+            <View
+                style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS), styles.userSelectText]}
+                // Preserve the visible report status when row-aware clipboard cleanup removes decorative content.
+                dataSet={COPYABLE_TEXT_DATA_SET}
+            >
                 <StatusCell
                     stateNum={item.stateNum}
                     statusNum={item.statusNum}
@@ -277,7 +275,10 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+            <View
+                style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
                 <ReportSubmitToPopoverMeasurableAnchor wrapperStyle={styles.w100}>
                     <DeferredActionCell
                         action={item.action}
@@ -290,7 +291,7 @@ function ExpenseReportListItemRowWide({
                         amount={item.total}
                         chatReport={chatReport}
                         shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
-                        shouldDisablePointerEvents={isPendingDelete || shouldDisableActionPointerEvents}
+                        shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
                     />
                 </ReportSubmitToPopoverMeasurableAnchor>
             </View>
@@ -306,11 +307,11 @@ function ExpenseReportListItemRowWide({
     };
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, containerStyle]}>
+        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
-                        onPress={onCheckboxPress}
+                        onPress={(event) => onCheckboxPress(getShiftKeyFromEvent(event))}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
                         containerStyle={styles.m0}

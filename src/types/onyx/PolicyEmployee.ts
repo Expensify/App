@@ -30,6 +30,18 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Email of the user this user forwards all reports to when the report total is over the 'approvalLimit' */
     overLimitForwardsTo?: string;
 
+    /** Whether the member holds an active Expensify Card on this workspace, which blocks removing them from it */
+    hasActiveExpensifyCard?: boolean;
+
+    /** Whether the member is based in an office. When absent, the workspace default applies. */
+    hasOfficeWorkArrangement?: boolean;
+
+    /**
+     * The office the member is assigned to, keyed in the workspace's officeLocations, or CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID
+     * for the company address. When absent, or when its office was deleted, the workspace's primary office applies.
+     */
+    officeID?: string;
+
     /**
      * Errors from api calls on the specific user
      * {<timestamp>: 'error message', <timestamp2>: 'error message 2'}

@@ -66,6 +66,15 @@ type MultifactorAuthenticationContextProviderProps = {
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
     const state = useMultifactorAuthenticationState();
     const {dispatch} = useMultifactorAuthenticationActions();
+    const actionControllerRef = useRef<AbortController | undefined>(undefined);
+
+    useEffect(
+        () => () => {
+            actionControllerRef.current?.abort();
+            actionControllerRef.current = undefined;
+        },
+        [state.scenario],
+    );
 
     const biometrics = useBiometrics();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -358,11 +367,29 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     }
 
                     // Call backend with signed challenge
-                    const scenarioAPIResponse = await processScenarioAction(scenario.action, {
-                        signedChallenge: result.signedChallenge,
-                        authenticationMethod: result.authenticationMethod.marqetaValue,
-                        ...payload,
+                    const controller = new AbortController();
+                    actionControllerRef.current = controller;
+                    const scenarioAPIResponse = await processScenarioAction(
+                        scenario.action,
+                        {
+                            signedChallenge: result.signedChallenge,
+                            authenticationMethod: result.authenticationMethod.marqetaValue,
+                            ...payload,
+                        },
+                        {signal: controller.signal},
+                    ).catch((scenarioActionError: unknown) => {
+                        if (controller.signal.aborted || actionControllerRef.current !== controller) {
+                            return undefined;
+                        }
+                        actionControllerRef.current = undefined;
+                        throw scenarioActionError;
                     });
+
+                    // A canceled action can finish after the next flow has already started.
+                    if (!scenarioAPIResponse || controller.signal.aborted || actionControllerRef.current !== controller) {
+                        return;
+                    }
+                    actionControllerRef.current = undefined;
 
                     addMFABreadcrumb(
                         'Scenario action completed',
@@ -504,6 +531,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      * close the modal directly instead to avoid getting stuck.
      */
     const cancel = useCallback(async () => {
+        actionControllerRef.current?.abort();
         if (!state.scenario || isOffline) {
             addMFABreadcrumb('Flow cancelled - closing directly', {hasScenario: !!state.scenario, isOffline}, 'warning');
             dispatch({type: 'CLOSE_MODAL'});

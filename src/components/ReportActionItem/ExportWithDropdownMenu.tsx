@@ -70,6 +70,8 @@ function ExportWithDropdownMenu({
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
     ]);
 

@@ -94,6 +94,7 @@ jest.mock('@hooks/usePersonalDetailSearchSelector', () =>
 
 jest.mock('@libs/PolicyUtils', () => ({
     canMemberWrite: jest.fn(() => true),
+    canRoleCreateExpenses: jest.fn((role?: string) => role !== 'approveOnly'),
     filterGuideAndAccountManager: (list: unknown) => list,
     getGuideAndAccountManagerInfo: jest.fn(() => ({assignedGuideEmail: undefined, accountManagerLogin: undefined, exclusions: {}})),
     getIneligibleInvitees: jest.fn(() => []),
@@ -101,10 +102,6 @@ jest.mock('@libs/PolicyUtils', () => ({
 }));
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchValueForPhoneOrEmail: (value: string) => value,
-    sortAlphabetically: (items: Array<Record<string, string>>, key: string, cmp: (a: string, b: string) => number) => {
-        items.sort((a, b) => cmp(a[key] ?? '', b[key] ?? ''));
-        return items;
-    },
 }));
 jest.mock('@libs/PersonalDetailOptionsListUtils', () => ({getHeaderMessage: () => ''}));
 jest.mock('@libs/PersonalDetailsUtils', () => ({

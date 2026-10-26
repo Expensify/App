@@ -21,13 +21,12 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {RefObject} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
-import type {ComposedGesture, GestureType} from 'react-native-gesture-handler';
+import type {PanGesture} from 'react-native-gesture-handler';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Keyboard, PixelRatio, View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
 import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 
 import type AttachmentCarouselViewProps from './types';
@@ -42,7 +41,7 @@ const MIN_FLING_VELOCITY = 500;
 
 type DeviceAwareGestureDetectorProps = {
     canUseTouchScreen: boolean;
-    gesture: ComposedGesture | GestureType;
+    gesture: PanGesture;
     children: React.ReactNode;
 };
 
@@ -78,8 +77,7 @@ function AttachmentCarouselView({
 
     const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | null>(attachmentID ?? source);
 
-    const pagerRef = useRef<GestureType>(null);
-    const scrollRef = useAnimatedRef<Animated.FlatList<ListRenderItemInfo<Attachment>>>();
+    const scrollRef = useAnimatedRef<Animated.FlatList<Attachment>>();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
@@ -107,8 +105,8 @@ function AttachmentCarouselView({
                 return;
             }
 
-            const item = entry.item as Attachment;
-            if (entry.index !== null) {
+            const item = entry.item;
+            if (entry.index != null) {
                 setPage(entry.index);
                 setActiveAttachmentID(item.attachmentID ?? item.source);
             }
@@ -120,21 +118,22 @@ function AttachmentCarouselView({
         [isFullScreenRef, onNavigate, setPage, setActiveAttachmentID],
     );
 
-    /** Increments or decrements the index to get another selected item */
+    /** Increments or decrements the index to get another selected item, returning whether the carousel moved */
     const cycleThroughAttachments = useCallback(
         (deltaSlide: number) => {
             if (isFullScreen) {
-                return;
+                return false;
             }
 
             const nextIndex = page + deltaSlide;
             const nextItem = attachments.at(nextIndex);
 
             if (!nextItem || nextIndex < 0 || !scrollRef.current) {
-                return;
+                return false;
             }
 
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
+            return true;
         },
         [attachments, canUseTouchScreen, isFullScreen, page, scrollRef],
     );
@@ -157,15 +156,53 @@ function AttachmentCarouselView({
         [cellWidth],
     );
 
+    /** Pan gesture handling swiping through attachments on touch screen devices */
+    const pan = usePanGesture({
+        enabled: canUseTouchScreen,
+        onUpdate: ({translationX}) => {
+            if (!isScrollEnabled.get()) {
+                return;
+            }
+
+            if (translationX !== 0) {
+                isPagerScrolling.set(true);
+            }
+
+            scrollTo(scrollRef, page * cellWidth - translationX, 0, false);
+        },
+        onDeactivate: ({translationX, velocityX}) => {
+            if (!isScrollEnabled.get()) {
+                return;
+            }
+
+            let newIndex;
+            if (velocityX > MIN_FLING_VELOCITY) {
+                // User flung to the right
+                newIndex = Math.max(0, page - 1);
+            } else if (velocityX < -MIN_FLING_VELOCITY) {
+                // User flung to the left
+                newIndex = Math.min(attachments.length - 1, page + 1);
+            } else {
+                // snap scroll position to the nearest cell (making sure it's within the bounds of the list)
+                const delta = Math.round(-translationX / cellWidth);
+                newIndex = Math.min(attachments.length - 1, Math.max(0, page + delta));
+            }
+
+            isPagerScrolling.set(false);
+            scrollTo(scrollRef, newIndex * cellWidth, 0, true);
+        },
+    });
+
     const stateValue = useMemo<AttachmentCarouselPagerStateContextType>(
         () => ({
             pagerItems: [{source, index: 0, isActive: true}],
             activePage: 0,
-            pagerRef,
+            pagerRef: scrollRef,
+            pagerGesture: pan,
             isPagerScrolling,
             isScrollEnabled,
         }),
-        [source, isPagerScrolling, isScrollEnabled],
+        [source, scrollRef, pan, isPagerScrolling, isScrollEnabled],
     );
 
     const actionsValue = useMemo<AttachmentCarouselPagerActionsContextType>(
@@ -192,46 +229,6 @@ function AttachmentCarouselView({
             </View>
         ),
         [activeAttachmentID, canUseTouchScreen, cellWidth, handleTap, report?.reportID, shouldShowArrows, styles.h100],
-    );
-    /** Pan gesture handing swiping through attachments on touch screen devices */
-    const pan = useMemo(
-        () =>
-            Gesture.Pan()
-                .enabled(canUseTouchScreen)
-                .onUpdate(({translationX}) => {
-                    if (!isScrollEnabled.get()) {
-                        return;
-                    }
-
-                    if (translationX !== 0) {
-                        isPagerScrolling.set(true);
-                    }
-
-                    scrollTo(scrollRef, page * cellWidth - translationX, 0, false);
-                })
-                .onEnd(({translationX, velocityX}) => {
-                    if (!isScrollEnabled.get()) {
-                        return;
-                    }
-
-                    let newIndex;
-                    if (velocityX > MIN_FLING_VELOCITY) {
-                        // User flung to the right
-                        newIndex = Math.max(0, page - 1);
-                    } else if (velocityX < -MIN_FLING_VELOCITY) {
-                        // User flung to the left
-                        newIndex = Math.min(attachments.length - 1, page + 1);
-                    } else {
-                        // snap scroll position to the nearest cell (making sure it's within the bounds of the list)
-                        const delta = Math.round(-translationX / cellWidth);
-                        newIndex = Math.min(attachments.length - 1, Math.max(0, page + delta));
-                    }
-
-                    isPagerScrolling.set(false);
-                    scrollTo(scrollRef, newIndex * cellWidth, 0, true);
-                })
-                .withRef(pagerRef as RefObject<GestureType | undefined>),
-        [attachments.length, canUseTouchScreen, cellWidth, page, isScrollEnabled, scrollRef, isPagerScrolling],
     );
 
     // Scroll position is affected when window width is resized, so we readjust it on width changes
@@ -303,6 +300,4 @@ function AttachmentCarouselView({
     );
 }
 
-// OXC's React Compiler bails on this file (refs accessed during render in gesture handlers), so it
-// is not memoized on web. Memoize it explicitly to keep parent-driven re-renders cheap there.
-export default React.memo(AttachmentCarouselView);
+export default AttachmentCarouselView;

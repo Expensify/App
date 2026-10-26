@@ -1,10 +1,13 @@
+import cameraPlatformConfig from '@libs/cameraCapture/platformConfig';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
-import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
+import getCameraCapabilityAttributes from '@pages/iou/request/step/IOURequestStepScan/utils/getCameraCapabilityAttributes';
 
 import CONST from '@src/CONST';
 
-import type {CameraDevice} from 'react-native-vision-camera';
+import type {AutoFocusSystem, CameraDevice, CameraSessionConfig} from 'react-native-vision-camera';
 
 import {useEffect, useRef} from 'react';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -26,6 +29,7 @@ type UseCameraInitTelemetryParams = {
 function useCameraInitTelemetry({cameraPermissionStatus, device}: UseCameraInitTelemetryParams) {
     const cameraInitSpanStarted = useRef(false);
     const cameraInitialized = useRef(false);
+    const autoFocusSystem = useRef<AutoFocusSystem | undefined>(undefined);
 
     // End navigation span and start ready span on mount
     useEffect(() => {
@@ -83,7 +87,7 @@ function useCameraInitTelemetry({cameraPermissionStatus, device}: UseCameraInitT
         };
     }, []);
 
-    const handleCameraInitialized = () => {
+    const handleCameraConfigured = () => {
         // Prevent duplicate span endings if callback fires multiple times
         if (cameraInitialized.current) {
             return;
@@ -91,7 +95,7 @@ function useCameraInitTelemetry({cameraPermissionStatus, device}: UseCameraInitT
         cameraInitialized.current = true;
         // Only end camera init span if it was actually started
         if (cameraInitSpanStarted.current) {
-            endSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
+            endSpanWithAttributes(CONST.TELEMETRY.SPAN_CAMERA_INIT, getCameraCapabilityAttributes(device, autoFocusSystem.current));
         }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
         endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
@@ -118,7 +122,15 @@ function useCameraInitTelemetry({cameraPermissionStatus, device}: UseCameraInitT
             });
     };
 
-    return {handleCameraInitialized};
+    // VisionCamera calls this during configure, before `onConfigured` ends the span.
+    const handleSessionConfigSelected = (config: CameraSessionConfig) => {
+        if (!cameraPlatformConfig.reportsAutoFocusSystem) {
+            return;
+        }
+        autoFocusSystem.current = config.autoFocusSystem;
+    };
+
+    return {handleCameraConfigured, handleSessionConfigSelected};
 }
 
 export default useCameraInitTelemetry;

@@ -1,5 +1,5 @@
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes, ReportNamesDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -17,5 +17,18 @@ const reportByIDsSelector = (reportIDs: string[]) => (attributes: OnyxEntry<Repo
 
 const reportNameSelector = (attributes: OnyxEntry<ReportAttributesDerivedValue>, reportID: string | undefined) => (reportID ? attributes?.reports?.[reportID]?.reportName : undefined);
 
-export {reportNameSelector};
+const reportIsEmptySelector = (attributes: OnyxEntry<ReportAttributesDerivedValue>, reportID: string | undefined) => (reportID ? attributes?.reports?.[reportID]?.isEmpty : undefined);
+
+const reportNamesByIDsSelector = (attributes: OnyxEntry<ReportAttributesDerivedValue>, reportIDs: Array<string | undefined>): ReportNamesDerivedValue => {
+    const reportNames: ReportNamesDerivedValue = {};
+    for (const reportID of reportIDs) {
+        const reportName = reportNameSelector(attributes, reportID);
+        if (reportID && reportName !== undefined) {
+            reportNames[reportID] = {reportName};
+        }
+    }
+    return reportNames;
+};
+
+export {reportNameSelector, reportIsEmptySelector, reportNamesByIDsSelector};
 export default reportByIDsSelector;

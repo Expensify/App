@@ -2,7 +2,8 @@
  * React Compiler analysis via oxc-transform-react (sync).
  *
  * Shared 3-state API for the ESLint processor and the CI compliance check.
- * Mirrors web build options from config/rsbuild/rsbuild.common.ts.
+ * Options come from config/babel/oxcReactCompilerConfig.js, the same object the build lanes compile
+ * with. Only `panicThreshold` differs here, for the reason below.
  *
  * `panicThreshold: 'critical_errors'` is what splits the two kinds of diagnostic apart:
  * a Rules-of-React violation aborts the whole transform, while a
@@ -23,6 +24,8 @@
  */
 import path from 'node:path';
 import {transformSync} from 'oxc-transform-react';
+
+import oxcReactCompilerConfig from '../babel/oxcReactCompilerConfig.js';
 
 // Any file compiled by React Compiler will have a _c marker in it
 const REACT_COMPILER_MARKER_PATTERN = /_c\(|react\/compiler-runtime/;
@@ -75,13 +78,10 @@ function checkReactCompilerWithOxc(source, filename) {
     const lang = getLang(ext);
     const transformOptions = {
         lang,
-        reactCompiler: {
-            target: '19',
+        reactCompiler: oxcReactCompilerConfig({
+            // 'critical_errors' splits the two kinds of diagnostic apart; the builds use 'none'.
             panicThreshold: 'critical_errors',
-            // Kept in sync with the web build: see the `eslintSuppressionRules` comment in
-            // config/rsbuild/rsbuild.common.ts.
-            eslintSuppressionRules: [],
-        },
+        }),
     };
 
     try {

@@ -29,13 +29,15 @@ jest.mock('@hooks/useIsAnonymousUser', () => ({
     default: () => mockIsAnonymousUser,
 }));
 
-// The hook subscribes to `${ONYXKEYS.COLLECTION.REPORT}${reportID}` with a selector that returns
-// `lastReadTime`. The implementation is set in beforeEach so it can use ONYXKEYS freely (a jest.mock
-// factory cannot reference out-of-scope variables).
-const mockUseOnyx = jest.fn<[string], [string]>();
+// The hook subscribes to `${ONYXKEYS.COLLECTION.REPORT}${reportID}` twice with different selectors, so the mock
+// applies the passed selector to a fake report. The implementation is set in beforeEach so it can use ONYXKEYS
+// freely (a jest.mock factory cannot reference out-of-scope variables).
+type FakeReport = Pick<OnyxTypes.Report, 'lastReadTime' | 'manuallyMarkedUnreadReportActionID'>;
+type UseOnyxOptions = {selector?: (value: FakeReport | undefined) => unknown};
+const mockUseOnyx = jest.fn<[unknown], [string, UseOnyxOptions?]>();
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: (key: string) => mockUseOnyx(key),
+    default: (key: string, options?: UseOnyxOptions) => mockUseOnyx(key, options),
 }));
 
 function makeAction(reportActionID: string, overrides: Partial<OnyxTypes.ReportAction> = {}): OnyxTypes.ReportAction {
@@ -67,9 +69,10 @@ describe('useUnreadMarker', () => {
         mockIsAnonymousUser = false;
         mockLastReadTime = LAST_READ_TIME;
         mockLastReadTimeByReportID = {};
-        mockUseOnyx.mockImplementation((key) => {
+        mockUseOnyx.mockImplementation((key, options) => {
             const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
-            return [mockLastReadTimeByReportID[reportID] ?? mockLastReadTime];
+            const report: FakeReport = {lastReadTime: mockLastReadTimeByReportID[reportID] ?? mockLastReadTime};
+            return [options?.selector ? options.selector(report) : report];
         });
     });
 

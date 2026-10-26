@@ -1,7 +1,7 @@
 import type {ASTNode, QueryFilter, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
-import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {clearPreservedNavigatorStates, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
@@ -24,9 +24,15 @@ import {
     getFilterDisplayValue,
     getFilterFormValues,
     getFilterFromQuery,
+    getMerchantFilterFormValues,
+    getFooterSelectionFromQuery,
+    getQueryWithFooterSelection,
+    getQueryWithoutFooterSelections,
+    hasFooterSelections,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
     getDateFilterRange,
+    getKeywordQueryForSearchInput,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
     getParamsState,
@@ -35,8 +41,10 @@ import {
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     getRoutes,
+    getSearchRootParamsFromRootState,
     getValidLastQuery,
     hasFiltersChangedFromDefault,
+    isSearchQuerySavable,
     isFilterNegated,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
@@ -49,17 +57,19 @@ import {
     shouldResetSort,
     shouldResetSortForViewChange,
     sortOptionsWithEmptyValue,
-    withExactMatchFilterKeys,
 } from '@src/libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import type {MerchantMatchType} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
+import type {NavigationState} from '@react-navigation/native';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import createMock from 'tests/utils/createMock';
@@ -69,6 +79,13 @@ import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/Test
 
 const mockGetRootState = jest.fn();
 
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+    },
+}));
+
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
     default: {
@@ -76,30 +93,11 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     },
 }));
 
-const personalDetailsFakeData = {
-    'johndoe@example.com': {
-        accountID: 12345,
-    },
-    'janedoe@example.com': {
-        accountID: 78901,
-    },
-} as Record<string, {accountID: number}>;
-
 jest.mock('@libs/SearchParser/searchParser', () => {
     const actual = jest.requireActual<{parse: (...args: unknown[]) => unknown}>('@libs/SearchParser/searchParser');
     return {
         ...actual,
         parse: jest.fn(actual.parse),
-    };
-});
-
-jest.mock('@libs/PersonalDetailsUtils', () => {
-    const actual = jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils');
-    return {
-        ...actual,
-        getPersonalDetailByEmail(email: string) {
-            return personalDetailsFakeData[email];
-        },
     };
 });
 
@@ -189,6 +187,157 @@ describe('SearchQueryUtils', () => {
             });
 
             expect(getCurrentSearchQueryJSON()?.type).toBe(CONST.SEARCH.DATA_TYPES.INVOICE);
+        });
+    });
+
+    // getSearchRootParamsFromRootState walks navigation states structurally with runtime type guards,
+    // so these fixtures only need the fields it actually reads.
+    describe('getSearchRootParamsFromRootState', () => {
+        const CHAT_QUERY = 'sortBy:date sortOrder:desc type:chat';
+
+        function searchRootRoute(q: string, rawQuery?: string) {
+            return {key: 'search-root-1', name: SCREENS.SEARCH.ROOT, params: rawQuery ? {q, rawQuery} : {q}};
+        }
+
+        function rhpRoute() {
+            return {
+                key: 'rhp-1',
+                name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+                state: {index: 0, routes: [{key: 'report-1', name: SCREENS.SEARCH.MONEY_REQUEST_REPORT, params: {reportID: '1'}}]},
+            };
+        }
+
+        afterEach(() => {
+            clearPreservedNavigatorStates();
+        });
+
+        it('returns the Search root query when an RHP is stacked above the Search tab', () => {
+            // This is the https://github.com/Expensify/App/issues/100605 case: the focused route is the RHP report,
+            // which carries no `q`, but the Search root route underneath it still does.
+            const rootState = {
+                index: 1,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [{key: 'search-nav-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: {index: 0, routes: [searchRootRoute(CHAT_QUERY)]}}],
+                        },
+                    },
+                    rhpRoute(),
+                ],
+            };
+
+            expect(getSearchRootParamsFromRootState(rootState)?.q).toBe(CHAT_QUERY);
+        });
+
+        it('returns the Search root query from nested route params on a cold boot', () => {
+            // After a refresh the state is rebuilt from the path, so the Search tab exists as
+            // `params: {screen, params}` rather than as a mounted `state`.
+            const rootState = {
+                index: 1,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        params: {screen: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, params: {screen: SCREENS.SEARCH.ROOT, params: {q: CHAT_QUERY}}},
+                    },
+                    rhpRoute(),
+                ],
+            };
+
+            expect(getSearchRootParamsFromRootState(rootState)?.q).toBe(CHAT_QUERY);
+        });
+
+        it('returns rawQuery alongside q when the Search root has one', () => {
+            const rootState = {
+                index: 0,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [{key: 'search-nav-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: {index: 0, routes: [searchRootRoute(CHAT_QUERY, 'type:chat')]}}],
+                        },
+                    },
+                ],
+            };
+
+            expect(getSearchRootParamsFromRootState(rootState)?.rawQuery).toBe('type:chat');
+        });
+
+        it('falls back to the preserved navigator state when the Search tab is not focused', () => {
+            // A non-focused tab navigator has its nested state dropped from the live tree, so the query
+            // has to come from the preserved-state map instead.
+            const preservedSearchNavigatorState: NavigationState = {
+                key: 'search-nav-1',
+                index: 0,
+                routeNames: [SCREENS.SEARCH.ROOT],
+                routes: [searchRootRoute(CHAT_QUERY)],
+                type: 'stack',
+                stale: false,
+            };
+            setPreservedNavigatorState('search-nav-1', preservedSearchNavigatorState);
+
+            const rootState = {
+                index: 0,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 1,
+                            routes: [
+                                {key: 'search-nav-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                {key: 'reports-nav-1', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                            ],
+                        },
+                    },
+                ],
+            };
+
+            expect(getSearchRootParamsFromRootState(rootState)?.q).toBe(CHAT_QUERY);
+        });
+
+        it('falls back to the canned query when the Search tab has never been visited', () => {
+            const rootState = {
+                index: 0,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {index: 0, routes: [{key: 'reports-nav-1', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]},
+                    },
+                ],
+            };
+
+            expect(getSearchRootParamsFromRootState(rootState)?.q).toBe(buildSearchQueryString());
+        });
+
+        it('falls back to the canned query when there is no tab navigator at all', () => {
+            expect(getSearchRootParamsFromRootState(undefined)?.q).toBe(buildSearchQueryString());
+        });
+
+        it('returns undefined when a mounted Search navigator has no usable Search root params', () => {
+            // The provider keeps its own `?? buildSearchQueryString()` fallback for this case; the resolver
+            // must not invent a query, so that `getCurrentSearchQueryJSON` callers still see `undefined`.
+            const rootState = {
+                index: 0,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [{key: 'search-nav-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: {index: 0, routes: [{key: 'search-root-1', name: SCREENS.SEARCH.ROOT}]}}],
+                        },
+                    },
+                ],
+            };
+
+            expect(getSearchRootParamsFromRootState(rootState)).toBeUndefined();
         });
     });
 
@@ -323,25 +472,36 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual(`${defaultQuery} amount:2000000 foo test`);
         });
 
+        test('keeps the Spend footer selections when a typed query is rebuilt', () => {
+            const result = getQueryWithUpdatedValues('type:expense footer-count:reports footer-total:reimbursable footer-currency:eur');
+
+            expect(result).toContain('footerCount:reports');
+            expect(result).toContain('footerTotal:reimbursable');
+            // The currency is read back upper-cased. The query keeps whatever case was typed, which nothing depends on.
+            expect(result).toContain('footerCurrency:eur');
+        });
+
         test('rebuilds a single value containing a comma as one value', () => {
-            expect(getQueryWithUpdatedValues(String.raw`merchant:Globex\,Ltd`)).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
-            expect(getQueryWithUpdatedValues('merchant:"Globex,Ltd"')).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
+            expect(getQueryWithUpdatedValues(String.raw`merchant:Globex\,Ltd`)).toEqual(`${defaultQuery} merchant*:"Globex,Ltd"`);
+            expect(getQueryWithUpdatedValues('merchant:"Globex,Ltd"')).toEqual(`${defaultQuery} merchant*:"Globex,Ltd"`);
         });
 
         test('rebuilds a comma separated list as separate values', () => {
             expect(getQueryWithUpdatedValues('category:Travel,Meals')).toEqual(`${defaultQuery} category:Travel,Meals`);
         });
 
-        test('returns query with user emails substituted', () => {
+        // Logins are resolved to account IDs upstream, in getQueryWithSubstitutions, so that the raw query carries
+        // account IDs too. This function only has to leave whatever it is handed alone.
+        test('leaves user logins untouched', () => {
             const userQuery = 'from:johndoe@example.com hello';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} from:12345 hello`);
+            expect(result).toEqual(`${defaultQuery} from:johndoe@example.com hello`);
         });
 
-        test('returns query with user emails substituted and preserves user ids', () => {
-            const userQuery = 'from:johndoe@example.com to:112233';
+        test('preserves user ids', () => {
+            const userQuery = 'from:12345 to:112233';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -349,7 +509,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with all of the fields correctly substituted', () => {
-            const userQuery = 'from:9876,87654 to:janedoe@example.com hello amount:150 test';
+            const userQuery = 'from:9876,87654 to:78901 hello amount:150 test';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -357,7 +517,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with updated groupBy', () => {
-            const userQuery = 'from:johndoe@example.com groupBy:reports';
+            const userQuery = 'from:12345 groupBy:reports';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -365,7 +525,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with updated view', () => {
-            const userQuery = 'from:johndoe@example.com view:bar';
+            const userQuery = 'from:12345 view:bar';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
@@ -386,7 +546,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual('type:expense sortBy:groupCategory sortOrder:asc view:pie groupBy:category merchant:Amazon');
+            expect(result).toEqual('type:expense sortBy:groupCategory sortOrder:asc view:pie groupBy:category merchant*:Amazon');
         });
 
         test('deduplicates conflicting type filters keeping the last occurrence', () => {
@@ -428,6 +588,98 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense receiptType:ereceipt,hotel');
         });
 
+        test('transaction status filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                transactionStatus: 'pending',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense transactionStatus:pending');
+        });
+
+        test('negated transaction status filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                transactionStatusNot: 'pending',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense -transactionStatus:pending');
+        });
+
+        test('declined filter value', () => {
+            // Given the Rejected filter set to yes on an expense report search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                declined: 'yes',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the filter is written with the declined key used by the backend
+            expect(result).toEqual('type:expense-report declined:yes');
+        });
+
+        test('negated declined filter value', () => {
+            // Given the Rejected filter negated on an expense search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                declinedNot: 'no',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the declined key gets the "-" prefix
+            expect(result).toEqual('type:expense -declined:no');
+        });
+
+        test('held filter value', () => {
+            // Given the Held filter set to yes on an expense search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                held: 'yes',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the filter is written with the held key
+            expect(result).toEqual('type:expense held:yes');
+        });
+
+        test('negated held filter value', () => {
+            // Given the Held filter negated on an expense search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                heldNot: 'no',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the held key gets the "-" prefix
+            expect(result).toEqual('type:expense -held:no');
+        });
+
+        test('held filter is dropped for expense reports', () => {
+            // Given the Held filter set on an expense report search, which only supports it for expenses
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                held: 'yes',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the held filter is not written
+            expect(result).toEqual('type:expense-report');
+        });
+
         test('negated receipt type filter value', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -461,7 +713,44 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('type:expense policyID:67890 merchant:Amazon description:Electronics laptop category:electronics,gadgets');
+            expect(result).toEqual('type:expense policyID:67890 merchant*:Amazon description:Electronics laptop category:electronics,gadgets');
+        });
+
+        test.each([CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, undefined])('builds a contains merchant query when the merchant operator is %s', (merchantOperator) => {
+            // Given a merchant filter stored as contains, or with no operator
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {type: 'expense', merchant: 'Amazon', merchantOperator};
+
+            // When the query string is built
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then it uses contains, because partial matching is the default merchant behavior
+            expect(result).toEqual('type:expense merchant*:Amazon');
+        });
+
+        test('preserves multiple merchant clauses when the form value is unchanged', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant*:Amazon merchant*:Uber');
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                merchant: 'Uber',
+                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues, {flatFilters: queryJSON?.flatFilters});
+
+            expect(result).toEqual('type:expense merchant*:Amazon merchant*:Uber');
+        });
+
+        test('applies a changed merchant operator to every merchant clause', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant*:Amazon merchant*:Uber');
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                merchant: 'Uber',
+                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues, {flatFilters: queryJSON?.flatFilters});
+
+            expect(result).toEqual('type:expense merchant=Amazon merchant=Uber');
         });
 
         test('currencies and categories', () => {
@@ -775,7 +1064,7 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'amount', sortOrder: 'asc'});
 
-                expect(result).toEqual('sortBy:amount sortOrder:asc type:expense merchant:Amazon limit:25');
+                expect(result).toEqual('sortBy:amount sortOrder:asc type:expense merchant*:Amazon limit:25');
             });
 
             test('omits limit when not provided', () => {
@@ -879,6 +1168,143 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'date', sortOrder: 'desc'});
                 expect(result).not.toContain('limit');
+            });
+        });
+
+        describe('Spend footer selections', () => {
+            test('includes every footer selection in the query string', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS,
+                    footerTotal: CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE,
+                    footerCurrency: 'EUR',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('type:expense-report footerCount:reports footerTotal:non-reimbursable footerCurrency:EUR');
+            });
+
+            test('omits footer selections that are not set', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    footerTotal: CONST.SEARCH.FOOTER_TOTAL.BILLABLE,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('type:expense footerTotal:billable');
+            });
+
+            test('drops footer selections for a type that has no Spend footer', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.TRIP,
+                    footerCount: CONST.SEARCH.FOOTER_COUNT.EXPENSES,
+                    footerTotal: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE,
+                    footerCurrency: 'EUR',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('type:trip');
+            });
+        });
+
+        describe('compare option', () => {
+            test('includes valid compare mode in query string when provided in form values', () => {
+                // Given form values carrying a valid compare mode
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
+                };
+
+                // When building the query string
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then the compare key is preserved
+                expect(result).toContain('compare:previousPeriod');
+            });
+
+            test('omits compare when not provided', () => {
+                // Given form values without a compare mode
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                };
+
+                // When building the query string
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then no compare key is emitted
+                expect(result).not.toContain('compare:');
+            });
+
+            test('discards invalid compare value', () => {
+                // Given form values with an unrecognized compare mode
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    compare: 'garbage',
+                };
+
+                // When building the query string
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then the invalid compare key is dropped
+                expect(result).not.toContain('compare');
+            });
+
+            test('compare is preserved across a form round-trip so other filter changes do not drop it', () => {
+                // Given a query that carries a compare mode
+                const queryJSON = buildSearchQueryJSON('type:expense compare:average');
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                // When converting to form values and back to a query string
+                const filtersForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+                const result = buildQueryStringFromFilterFormValues(filtersForm);
+
+                // Then the compare key survives the round-trip
+                expect(filtersForm.compare).toBe(CONST.SEARCH.COMPARE.AVERAGE);
+                expect(result).toContain('compare:average');
+            });
+
+            test('compare survives even when the type is changed during the round-trip', () => {
+                // Given a query that carries a compare mode
+                const queryJSON = buildSearchQueryJSON('type:expense compare:average');
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                // When converting to form values, switching the type, and rebuilding the query string
+                const filtersForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+                const editedForm: Partial<SearchAdvancedFiltersForm> = {...filtersForm, type: CONST.SEARCH.DATA_TYPES.INVOICE};
+                const result = buildQueryStringFromFilterFormValues(editedForm);
+
+                // Then the compare key is not dropped by the type-strip step
+                expect(result).toContain('type:invoice');
+                expect(result).toContain('compare:average');
+            });
+
+            test('invalid compare value does not affect the primary hash', () => {
+                // Given one query with an invalid compare mode and one with no compare key
+                const withInvalid = buildSearchQueryJSON('type:expense compare:garbage');
+                const withNone = buildSearchQueryJSON('type:expense');
+
+                // Then the invalid compare value is normalized away and the hashes match
+                expect(withInvalid?.compare).toBeUndefined();
+                expect(withInvalid?.hash).toBe(withNone?.hash);
+            });
+
+            test('valid compare value does affect the primary hash', () => {
+                // Given one query with a valid compare mode and one with no compare key
+                const withCompare = buildSearchQueryJSON('type:expense compare:previousPeriod');
+                const withNone = buildSearchQueryJSON('type:expense');
+
+                // Then the valid compare value is kept and changes the hash
+                expect(withCompare?.compare).toBe(CONST.SEARCH.COMPARE.PREVIOUS_PERIOD);
+                expect(withCompare?.hash).not.toBe(withNone?.hash);
             });
         });
 
@@ -1055,7 +1481,7 @@ describe('SearchQueryUtils', () => {
                 reportAttributes: undefined,
             });
 
-            expect(result).toBe('type:expense status:all merchant:Uber');
+            expect(result).toBe('type:expense status:all merchant*:Uber');
         });
 
         test('maps workspace names and maintains manual order', () => {
@@ -1092,7 +1518,7 @@ describe('SearchQueryUtils', () => {
                 reportAttributes: undefined,
             });
 
-            expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
+            expect(result).toBe('workspace:"Team Space" type:expense merchant*:Starbucks');
         });
 
         test('rawQuery overrides canonical filter values when provided', () => {
@@ -1108,6 +1534,33 @@ describe('SearchQueryUtils', () => {
             const merchantFilter = queryJSON?.rawFilterList?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
 
             expect(merchantFilter?.value).toBe('Lyft');
+        });
+
+        test('renders the Spend footer selections in their user-friendly spelling, so an edited query keeps them', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:non-reimbursable footerCurrency:EUR');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+                formatPhoneNumber,
+                reportAttributes: undefined,
+            });
+
+            expect(result).toContain('footer-count:reports');
+            expect(result).toContain('footer-total:non-reimbursable');
+            expect(result).toContain('footer-currency:EUR');
         });
 
         test('includes limit in readable query string when present', () => {
@@ -1188,6 +1641,24 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('buildFilterFormValuesFromQuery', () => {
+        test.each([
+            ['merchant=Uber', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO],
+            ['merchant:Uber', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
+            ['merchant*:Uber', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
+        ])('restores the merchant operator from %s', (merchantQuery, merchantOperator) => {
+            // Given a query with an explicit exact, legacy, or contains merchant filter
+            const queryJSON = buildSearchQueryJSON(`sortBy:date sortOrder:desc type:expense ${merchantQuery}`);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then only `=` restores Equal to, because legacy `:` keeps its partial-match behavior
+            expect(result).toEqual({type: 'expense', merchant: 'Uber', merchantOperator});
+        });
+
         test('category filter includes empty values', () => {
             const policyID = generatePolicyID();
             const queryString = 'sortBy:date sortOrder:desc type:expense category:none,Uncategorized,Maintenance';
@@ -1209,7 +1680,6 @@ describe('SearchQueryUtils', () => {
                     },
                 },
             };
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1220,7 +1690,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result).toEqual({
                 type: 'expense',
@@ -1230,7 +1700,6 @@ describe('SearchQueryUtils', () => {
 
         test('action filter should be set to undefined if the input value is invalid', () => {
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1244,7 +1713,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            let result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            let result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result).toEqual({
                 type: 'expense',
@@ -1259,11 +1728,27 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result).toEqual({
                 type: 'expense',
                 action: undefined,
+            });
+        });
+
+        test('reads the Spend footer selections back into the filter form', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense-report footerCount:reports footerTotal:reimbursable footerCurrency:EUR');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            expect(result).toMatchObject({
+                footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS,
+                footerTotal: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE,
+                footerCurrency: 'EUR',
             });
         });
 
@@ -1274,7 +1759,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
 
             expect(result).toMatchObject({
                 type: 'expense-report',
@@ -1285,7 +1770,6 @@ describe('SearchQueryUtils', () => {
 
         test('withdrawal status filter parses valid values and drops invalid ones', () => {
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1299,7 +1783,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            let result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            let result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result).toEqual({
                 type: 'expense',
@@ -1314,7 +1798,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result).toEqual({
                 type: 'expense',
@@ -1324,7 +1808,6 @@ describe('SearchQueryUtils', () => {
 
         test('paid status filter parses valid values and drops invalid ones', () => {
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1338,7 +1821,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            let result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            let result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result).toEqual({
                 type: 'expense-report',
@@ -1353,7 +1836,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result).toEqual({
                 type: 'expense-report',
@@ -1363,7 +1846,6 @@ describe('SearchQueryUtils', () => {
 
         test('parses negative backend amounts into filter form values', () => {
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1377,7 +1859,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result).toEqual({
                 type: 'expense',
@@ -1389,7 +1871,6 @@ describe('SearchQueryUtils', () => {
 
         test('attendee filter preserves name-only attendees without filtering by personalDetails', () => {
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {
                 12345: {accountID: 12345, login: 'user@example.com'},
@@ -1406,7 +1887,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             // Both values should be preserved - name-only attendees should not be filtered out
             expect(result).toEqual({
@@ -1417,7 +1898,6 @@ describe('SearchQueryUtils', () => {
 
         test('hydrates explicit date range flag from inclusive range boundaries', () => {
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1430,7 +1910,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result.dateAfter).toBeUndefined();
             expect(result.dateBefore).toBeUndefined();
@@ -1439,7 +1919,6 @@ describe('SearchQueryUtils', () => {
 
         test('does not set explicit date range flag when only date boundaries are provided', () => {
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1452,7 +1931,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result.dateRange).toBeUndefined();
         });
@@ -1475,7 +1954,7 @@ describe('SearchQueryUtils', () => {
                     throw new Error('Failed to parse query string');
                 }
 
-                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
                 expect(result.dateOn).toBeUndefined();
                 expect(result.dateAfter).toBeUndefined();
                 expect(result.dateBefore).toBeUndefined();
@@ -1490,7 +1969,7 @@ describe('SearchQueryUtils', () => {
                     throw new Error('Failed to parse query string');
                 }
 
-                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
                 expect(result.dateOn).toBeUndefined();
                 expect(result.dateAfter).toBeUndefined();
                 expect(result.dateBefore).toBeUndefined();
@@ -1505,7 +1984,7 @@ describe('SearchQueryUtils', () => {
                     throw new Error('Failed to parse query string');
                 }
 
-                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
                 expect(result.approvedOn).toBeUndefined();
                 expect(result.approvedAfter).toBeUndefined();
                 expect(result.approvedBefore).toBeUndefined();
@@ -1520,7 +1999,7 @@ describe('SearchQueryUtils', () => {
                     throw new Error('Failed to parse query string');
                 }
 
-                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
                 expect(result.dateOn).toBeUndefined();
                 expect(result.dateAfter).toBeUndefined();
                 expect(result.dateBefore).toBeUndefined();
@@ -1535,7 +2014,7 @@ describe('SearchQueryUtils', () => {
                     throw new Error('Failed to parse query string');
                 }
 
-                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
                 expect(result.dateOn).toBe('last-12-months');
                 expect(result.dateRange).toBeUndefined();
             });
@@ -1548,14 +2027,13 @@ describe('SearchQueryUtils', () => {
                     throw new Error('Failed to parse query string');
                 }
 
-                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
                 expect(result.dateRange).toBe('2026-04-01,2026-04-15');
             });
         });
 
         test('hydrates explicit report field range flag from inclusive range boundaries', () => {
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1568,7 +2046,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result['reportFieldAfter-start-date']).toBeUndefined();
             expect(result['reportFieldBefore-start-date']).toBeUndefined();
@@ -1577,7 +2055,6 @@ describe('SearchQueryUtils', () => {
 
         test('does not set explicit report field range flag when only date boundaries are provided', () => {
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1590,7 +2067,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result['reportFieldRange-start-date']).toBeUndefined();
         });
@@ -1598,7 +2075,6 @@ describe('SearchQueryUtils', () => {
         describe('view parameter', () => {
             const emptyParams = {
                 policyCategories: {},
-                policyTags: {},
                 currencyList: {},
                 personalDetails: {},
                 cardList: {},
@@ -1617,7 +2093,6 @@ describe('SearchQueryUtils', () => {
                 const result = buildFilterFormValuesFromQuery(
                     queryJSON,
                     emptyParams.policyCategories,
-                    emptyParams.policyTags,
                     emptyParams.currencyList,
                     emptyParams.personalDetails,
                     emptyParams.cardList,
@@ -1640,7 +2115,6 @@ describe('SearchQueryUtils', () => {
                 const result = buildFilterFormValuesFromQuery(
                     queryJSON,
                     emptyParams.policyCategories,
-                    emptyParams.policyTags,
                     emptyParams.currencyList,
                     emptyParams.personalDetails,
                     emptyParams.cardList,
@@ -1654,24 +2128,12 @@ describe('SearchQueryUtils', () => {
             });
         });
 
-        test('tag filter validates against policy tags', () => {
+        test('tag filter keeps values without validating against local tag data', () => {
             const policyID = generatePolicyID();
             const queryString = `sortBy:date sortOrder:desc type:expense tag:Engineering,Marketing,NonExistent policyID:${policyID}`;
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {};
-            const policyTags = createMock<OnyxCollection<OnyxTypes.PolicyTagLists>>({
-                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]: {
-                    Department: {
-                        name: 'Department',
-                        tags: {
-                            Engineering: {name: 'Engineering', enabled: true},
-                            Marketing: {name: 'Marketing', enabled: true},
-                            Sales: {name: 'Sales', enabled: true},
-                        },
-                    },
-                },
-            });
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1682,10 +2144,10 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
-            // NonExistent should be filtered out since it's not in any policy's tags
-            expect(result.tag).toEqual(['Engineering', 'Marketing']);
+            // Local tag data is never complete with server-side tag pagination, so all values are kept
+            expect(result.tag).toEqual(['Engineering', 'Marketing', 'NonExistent']);
         });
 
         test('currency filter validates against currency list', () => {
@@ -1693,7 +2155,6 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = createMock<OnyxTypes.CurrencyList>({USD: {}, EUR: {}, GBP: {}});
             const personalDetails = {};
             const cardList = {};
@@ -1704,7 +2165,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             // INVALID should be filtered out
             expect(result.currency).toEqual(['USD', 'EUR']);
@@ -1715,7 +2176,6 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1726,7 +2186,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             // nonexistent should be filtered out
             expect(result.taxRate).toEqual(['id_vat', 'id_gst']);
@@ -1737,7 +2197,6 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1748,7 +2207,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             // invalid should be filtered out, cash and card are valid CONST.SEARCH.TRANSACTION_TYPE values
             expect(result.expenseType).toEqual(['cash', 'card']);
@@ -1759,7 +2218,6 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1770,10 +2228,152 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             // invalid should be filtered out, ereceipt and hotel are valid CONST.SEARCH.RECEIPT_TYPE values
             expect(result.receiptType).toEqual(['ereceipt', 'hotel']);
+        });
+
+        test('transaction status filter validates against valid statuses', () => {
+            const queryString = 'sortBy:date sortOrder:desc type:expense transaction-status:pending,invalid';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
+
+            // Pending and posted are mutually exclusive, so the form holds a single value: the first valid one, with the invalid value discarded
+            expect(result.transactionStatus).toEqual('pending');
+        });
+
+        test('transaction status filter keeps only the first value when a query lists several', () => {
+            // A hand-typed query can carry a comma-separated list, but the filter is single-select so only one value survives into the form.
+            const queryString = 'sortBy:date sortOrder:desc type:expense transaction-status:posted,pending';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            expect(result.transactionStatus).toEqual('posted');
+        });
+
+        test('negated transaction status filter populates transactionStatusNot', () => {
+            // Negation in the query syntax uses the "-" prefix, which round-trips to the transactionStatusNot form value.
+            const queryString = 'sortBy:date sortOrder:desc type:expense -transaction-status:pending';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            expect(result.transactionStatusNot).toEqual('pending');
+            expect(result.transactionStatus).toBeUndefined();
+        });
+
+        test('declined filter populates the form with a yes or no value', () => {
+            // Given a query that filters expenses on whether they were rejected
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense declined:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the Rejected filter holds the yes value
+            expect(result.declined).toEqual('yes');
+        });
+
+        test('declined filter ignores values other than yes and no', () => {
+            // Given a hand-typed query with a value the boolean filter does not accept
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense declined:maybe');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the invalid value is dropped instead of being shown as a selection
+            expect(result.declined).toBeUndefined();
+        });
+
+        test('negated declined filter populates declinedNot', () => {
+            // Given a query that excludes rejected expense reports with the "-" prefix
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense-report -declined:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the value lands in the negated form key only
+            expect(result.declinedNot).toEqual('yes');
+            expect(result.declined).toBeUndefined();
+        });
+
+        test('held filter populates the form with a yes or no value', () => {
+            // Given a query that filters expenses on whether they are on hold
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense held:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the Held filter holds the yes value
+            expect(result.held).toEqual('yes');
+        });
+
+        test('held filter ignores values other than yes and no', () => {
+            // Given a hand-typed query with a value the boolean filter does not accept
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense held:maybe');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the invalid value is dropped instead of being shown as a selection
+            expect(result.held).toBeUndefined();
+        });
+
+        test('negated held filter populates heldNot', () => {
+            // Given a query that excludes held expenses with the "-" prefix
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense -held:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the value lands in the negated form key only
+            expect(result.heldNot).toEqual('yes');
+            expect(result.held).toBeUndefined();
         });
 
         test('negated receipt type filter populates receiptTypeNot', () => {
@@ -1782,7 +2382,6 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1793,7 +2392,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result.receiptTypeNot).toEqual(['hotel']);
             expect(result.receiptType).toBeUndefined();
@@ -1805,7 +2404,6 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {
                 '12345': {
@@ -1822,18 +2420,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(
-                queryJSON,
-                policyCategories,
-                policyTags,
-                currencyList,
-                personalDetails,
-                cardList,
-                reports,
-                taxRates,
-                undefined,
-                currentUserAccountID,
-            );
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates, undefined, currentUserAccountID);
 
             expect(result.from).toEqual(['12345']);
         });
@@ -1843,7 +2430,6 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {
                 '12345': {
@@ -1860,7 +2446,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result.from).toEqual([]);
         });
@@ -1871,7 +2457,6 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {};
-            const policyTags = {};
             const currencyList = {};
             const personalDetails = {
                 '99999': {
@@ -1888,18 +2473,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(
-                queryJSON,
-                policyCategories,
-                policyTags,
-                currencyList,
-                personalDetails,
-                cardList,
-                reports,
-                taxRates,
-                undefined,
-                currentUserAccountID,
-            );
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, currencyList, personalDetails, cardList, reports, taxRates, undefined, currentUserAccountID);
 
             expect(result.to).toEqual(['99999']);
         });
@@ -1920,7 +2494,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
             expect(result.has).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
             expect(result.hasNot).toBeUndefined();
         });
@@ -1939,9 +2513,91 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
             expect(result.hasNot).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
             expect(result.has).toBeUndefined();
+        });
+    });
+
+    describe('anyApproval date filter', () => {
+        const anyApprovalFormKeys = [
+            FILTER_KEYS.ANY_APPROVAL_ON,
+            FILTER_KEYS.ANY_APPROVAL_AFTER,
+            FILTER_KEYS.ANY_APPROVAL_BEFORE,
+            FILTER_KEYS.ANY_APPROVAL_RANGE,
+            FILTER_KEYS.ANY_APPROVAL_NOT,
+        ] as const;
+
+        test.each([
+            {
+                modifier: 'ON',
+                formKey: FILTER_KEYS.ANY_APPROVAL_ON,
+                formValue: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
+            },
+            {
+                modifier: 'AFTER',
+                formKey: FILTER_KEYS.ANY_APPROVAL_AFTER,
+                formValue: '2026-04-01',
+                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>2026-04-01`,
+            },
+            {
+                modifier: 'BEFORE',
+                formKey: FILTER_KEYS.ANY_APPROVAL_BEFORE,
+                formValue: '2026-04-30',
+                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<2026-04-30`,
+            },
+            {
+                modifier: 'RANGE',
+                formKey: FILTER_KEYS.ANY_APPROVAL_RANGE,
+                formValue: '2026-04-01,2026-04-30',
+                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>=2026-04-01 ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<=2026-04-30`,
+            },
+            {
+                modifier: 'negated',
+                formKey: FILTER_KEYS.ANY_APPROVAL_NOT,
+                formValue: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                expectedQuery: `type:expense -${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
+            },
+        ])('round-trips the $modifier form', ({formKey, formValue, expectedQuery}) => {
+            // Given an expense search with an anyApproval date filter
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [formKey]: formValue,
+            };
+
+            // When the form is converted to a query and back
+            const queryString = buildQueryStringFromFilterFormValues(filterValues);
+            expect(queryString).toBe(expectedQuery);
+
+            const queryJSON = buildSearchQueryJSON(queryString);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the original form key is preserved and the other anyApproval keys are empty
+            expect(result[formKey]).toBe(formValue);
+            for (const otherKey of anyApprovalFormKeys) {
+                if (otherKey !== formKey) {
+                    expect(result[otherKey]).toBeUndefined();
+                }
+            }
+        });
+
+        test('anyApproval date filters are dropped on an expense-report search', () => {
+            // Given an expense-report search with an anyApproval date filter
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                [FILTER_KEYS.ANY_APPROVAL_ON]: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            };
+
+            // When the form is converted to a query
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then anyApproval is stripped because Auth only supports it for type:expense
+            expect(result).toBe(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}`);
         });
     });
 
@@ -2141,6 +2797,45 @@ describe('SearchQueryUtils', () => {
                 expect(withDecimalLimit?.hash).toEqual(withoutLimit?.hash);
             });
         });
+
+        describe('compare hashing', () => {
+            it('should return different primaryHash for queries with different compare modes', () => {
+                // Given two queries that differ only by compare mode
+                const queryJSONa = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+                const queryJSONb = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+
+                // Then compare affects the primary hash
+                expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
+            });
+
+            it('should return different primaryHash for a query with compare vs without', () => {
+                // Given a query with compare and the same query without it
+                const withoutCompare = buildSearchQueryJSON('type:expense');
+                const withCompare = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+
+                // Then the primary hashes differ
+                expect(withoutCompare?.hash).not.toEqual(withCompare?.hash);
+            });
+
+            it('should return same primaryHash for the same compare mode queried twice', () => {
+                // Given the same compare query built twice
+                const queryJSONa = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+                const queryJSONb = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+
+                // Then the primary hash is stable
+                expect(queryJSONa?.hash).toEqual(queryJSONb?.hash);
+            });
+
+            it('should not include compare in the similar or recent search hashes', () => {
+                // Given two queries that differ only by compare mode
+                const queryJSONa = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+                const queryJSONb = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+
+                // Then only the primary hash differs; similar and recent hashes ignore compare
+                expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+                expect(queryJSONa?.recentSearchHash).toEqual(queryJSONb?.recentSearchHash);
+            });
+        });
     });
 
     describe('buildQueryStringWithResetFilters', () => {
@@ -2186,6 +2881,164 @@ describe('SearchQueryUtils', () => {
             expect(resetQuery).toContain('coffee');
             expect(resetQuery).not.toContain('groupCurrency:EUR');
             expect(resetQuery).not.toContain('tea');
+        });
+    });
+    describe('Spend footer selection hashing', () => {
+        it('gives the footer count selection no effect on any hash, so switching it needs no new search', () => {
+            const expenses = buildSearchQueryJSON('type:expense-report footerCount:expenses');
+            const reports = buildSearchQueryJSON('type:expense-report footerCount:reports');
+            const noSelection = buildSearchQueryJSON('type:expense-report');
+
+            expect(getFooterSelectionFromQuery(expenses).footerCount).toEqual(CONST.SEARCH.FOOTER_COUNT.EXPENSES);
+            expect(getFooterSelectionFromQuery(reports).footerCount).toEqual(CONST.SEARCH.FOOTER_COUNT.REPORTS);
+            expect(expenses?.hash).toEqual(reports?.hash);
+            expect(expenses?.hash).toEqual(noSelection?.hash);
+            expect(expenses?.recentSearchHash).toEqual(noSelection?.recentSearchHash);
+            expect(expenses?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
+        });
+
+        it('leaves the plain total out of the query, so switching back to it returns the query to what it was', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense footerTotal:billable footerCurrency:EUR');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const backToPlainTotal = getQueryWithFooterSelection(queryJSON, {footerTotal: CONST.SEARCH.FOOTER_TOTAL.TOTAL});
+
+            expect(backToPlainTotal).not.toContain('footerTotal');
+            // The currency rides along untouched.
+            expect(backToPlainTotal).toContain('footerCurrency:EUR');
+        });
+
+        it("leaves the type's own count out of the query, so resetting it returns the query to what it was", () => {
+            // Given an Expenses and a Reports search each switched to the other count
+            const expensesQueryJSON = buildSearchQueryJSON('type:expense footerCount:reports');
+            const reportsQueryJSON = buildSearchQueryJSON('type:expense-report footerCount:expenses');
+            if (!expensesQueryJSON || !reportsQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When each is reset to the count its type shows by default
+            const expensesReset = getQueryWithFooterSelection(expensesQueryJSON, {footerCount: CONST.SEARCH.FOOTER_COUNT.EXPENSES});
+            const reportsReset = getQueryWithFooterSelection(reportsQueryJSON, {footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS});
+
+            // Then neither spells the default out
+            expect(expensesReset).not.toContain('footerCount');
+            expect(reportsReset).not.toContain('footerCount');
+        });
+
+        it('still writes the count that is not the type default', () => {
+            // Given an Expenses search with no count selection
+            const queryJSON = buildSearchQueryJSON('type:expense');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the footer switches it to reports
+            const result = getQueryWithFooterSelection(queryJSON, {footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS});
+
+            // Then the choice is kept in the query
+            expect(result).toContain('footerCount:reports');
+        });
+
+        it('leaves every hash alone for the footer total, so one search keeps one snapshot', () => {
+            const noSelection = buildSearchQueryJSON('type:expense');
+            const reimbursable = buildSearchQueryJSON('type:expense footerTotal:reimbursable');
+            const billable = buildSearchQueryJSON('type:expense footerTotal:billable');
+
+            // The breakdown is a different aggregate over the same rows, so it keys nothing: the list keeps its
+            // snapshot, its pages and its selection across a switch, and the footer refreshes the figures itself.
+            expect(reimbursable?.hash).toEqual(noSelection?.hash);
+            expect(billable?.hash).toEqual(noSelection?.hash);
+            expect(reimbursable?.recentSearchHash).toEqual(noSelection?.recentSearchHash);
+            expect(reimbursable?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
+        });
+
+        it('leaves every hash alone for the footer currency, which Search ignores and a separate command converts', () => {
+            const noSelection = buildSearchQueryJSON('type:expense');
+            const usd = buildSearchQueryJSON('type:expense footerCurrency:USD');
+            const eur = buildSearchQueryJSON('type:expense footerCurrency:EUR');
+
+            expect(usd?.hash).toEqual(eur?.hash);
+            expect(usd?.hash).toEqual(noSelection?.hash);
+        });
+
+        it('leaves a query carrying only footer selections the default one, since they filter nothing', () => {
+            const isDefaultExpenses = (query: string) => {
+                const queryJSON = buildSearchQueryJSON(query);
+                return queryJSON ? isDefaultExpensesQuery(queryJSON) : undefined;
+            };
+            const isDefaultExpenseReports = (query: string) => {
+                const queryJSON = buildSearchQueryJSON(query);
+                return queryJSON ? isDefaultExpenseReportsQuery(queryJSON) : undefined;
+            };
+
+            expect(isDefaultExpenses('type:expense footerTotal:billable footerCurrency:EUR')).toBe(true);
+            expect(isDefaultExpenses('type:expense footerTotal:billable category:Travel')).toBe(false);
+            expect(isDefaultExpenseReports('type:expense-report footerCount:expenses')).toBe(true);
+            expect(isDefaultExpenseReports('type:expense-report groupBy:report')).toBe(false);
+        });
+
+        it('keeps every footer selection out of the recent and similar search hashes, since none of them changes a result', () => {
+            const noSelection = buildSearchQueryJSON('type:expense');
+            const withSelections = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:billable footerCurrency:EUR');
+
+            expect(withSelections?.recentSearchHash).toEqual(noSelection?.recentSearchHash);
+            expect(withSelections?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
+        });
+
+        it('drops a footer selection the footer cannot render, so it hashes as no selection at all', () => {
+            const noSelection = buildSearchQueryJSON('type:expense');
+            const junk = buildSearchQueryJSON('type:expense footerCount:pandas footerTotal:whatever');
+
+            expect(getFooterSelectionFromQuery(junk).footerCount).toBeUndefined();
+            expect(getFooterSelectionFromQuery(junk).footerTotal).toBeUndefined();
+            expect(junk?.hash).toEqual(noSelection?.hash);
+        });
+
+        it('strips every footer selection back out, landing on the snapshot the plain query keys', () => {
+            const carried = buildSearchQueryJSON('type:expense status:all footerCount:reports footerTotal:reimbursable footerCurrency:EUR');
+            const stripped = carried ? buildSearchQueryJSON(getQueryWithoutFooterSelections(carried)) : undefined;
+            const plain = buildSearchQueryJSON('type:expense status:all');
+
+            // The same search, so the same snapshot: a reader that ignores the selections asks for nothing of its own
+            expect(stripped?.hash).toEqual(plain?.hash);
+            expect(getFooterSelectionFromQuery(stripped).footerCount).toBeUndefined();
+            expect(getFooterSelectionFromQuery(stripped).footerTotal).toBeUndefined();
+            expect(getFooterSelectionFromQuery(stripped).footerCurrency).toBeUndefined();
+        });
+
+        it('keeps the rest of the query when the footer selections are stripped', () => {
+            const carried = buildSearchQueryJSON('type:expense sortBy:amount sortOrder:asc category:Travel footerTotal:billable');
+            const stripped = carried ? buildSearchQueryJSON(getQueryWithoutFooterSelections(carried)) : undefined;
+
+            expect(stripped?.sortBy).toEqual(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+            expect(stripped?.sortOrder).toEqual(CONST.SEARCH.SORT_ORDER.ASC);
+            expect(stripped?.flatFilters.map((filter) => filter.key)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]);
+        });
+
+        it('tells a query carrying footer selections from one that is not', () => {
+            const carried = buildSearchQueryJSON('type:expense footerTotal:billable');
+            const plain = buildSearchQueryJSON('type:expense category:Travel');
+
+            expect(carried ? hasFooterSelections(carried) : undefined).toBe(true);
+            expect(plain ? hasFooterSelections(plain) : undefined).toBe(false);
+        });
+
+        it('reads the footer currency back in upper case, so the same currency in either case is one selection', () => {
+            const lower = buildSearchQueryJSON('type:expense footerCurrency:eur');
+            const upper = buildSearchQueryJSON('type:expense footerCurrency:EUR');
+
+            expect(getFooterSelectionFromQuery(lower).footerCurrency).toEqual('EUR');
+            expect(getFooterSelectionFromQuery(upper).footerCurrency).toEqual('EUR');
+        });
+
+        it('leaves the hashes of a query carrying no footer selection unchanged, so existing saved searches keep theirs', () => {
+            // Captured before the footer keys existed. These hashes key saved searches and snapshots, so they must not drift.
+            expect(buildSearchQueryJSON('type:expense')?.hash).toEqual(959171759);
+            expect(buildSearchQueryJSON('type:expense-report')?.hash).toEqual(1657503970);
+            // `merchant:` parses as contains and hashes as `merchant*:`, so this hash differs from the one before the match type existed.
+            expect(buildSearchQueryJSON('type:expense merchant:Amazon')?.hash).toEqual(1712664595);
         });
     });
 
@@ -2327,6 +3180,100 @@ describe('SearchQueryUtils', () => {
 
             expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
         });
+
+        it('returns true when the current query only differs by a filter that is no longer ignored', () => {
+            // Given a query that only adds a keyword to the default query
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel hello');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When only the group currency is ignored, as when checking whether there's something to save
+            const onlyGroupCurrencyIgnored = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+            // Then the keyword counts as a change
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, onlyGroupCurrencyIgnored)).toBe(true);
+        });
+
+        it('returns false when the current query only differs by the given ignored filters', () => {
+            // Given a query that only adds a group currency to the default query
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel group-currency:USD');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the group currency is ignored
+            const onlyGroupCurrencyIgnored = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+            // Then the group currency doesn't count as a change
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, onlyGroupCurrencyIgnored)).toBe(false);
+        });
+    });
+
+    describe('isSearchQuerySavable', () => {
+        it('returns true when there is no default query, even without filters or a keyword', () => {
+            // Given a query that isn't bound to any suggested or saved search
+            const currentQueryJSON = buildSearchQueryJSON('type:trip');
+
+            // When checking whether it can be saved without a default query to compare against
+            // Then it's savable because nothing in the LHN already covers it
+            expect(isSearchQuerySavable(currentQueryJSON, undefined)).toBe(true);
+        });
+
+        it('returns false when there is no current query', () => {
+            // Given no current query
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+
+            // When checking whether it can be saved
+            // Then there is nothing to save
+            expect(isSearchQuerySavable(undefined, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns false when only a Spend footer selection differs from the default query', () => {
+            // Given a saved search on the reimbursable total
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel footerTotal:reimbursable');
+
+            // When only the footer selections change, which the footer's own Reset undoes
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel footerTotal:billable footerCount:reports footerCurrency:EUR');
+
+            // Then the header doesn't offer Save
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('still returns true when a row filter changes alongside a footer selection', () => {
+            // Given a search on one category
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+
+            // When the category changes along with the footer total
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:meals footerTotal:billable');
+
+            // Then the header offers Save, since a row filter changed
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns false when the query equals the default query', () => {
+            // Given a query that matches its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+
+            // When checking whether it can be saved
+            // Then there is nothing new to save
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when only a keyword is added to the default query', () => {
+            // Given a query that only adds a keyword to its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel hello');
+
+            // When checking whether it can be saved
+            // Then the keyword makes it a new search worth saving
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
     });
 
     describe('limit filter parsing', () => {
@@ -2406,6 +3353,16 @@ describe('SearchQueryUtils', () => {
             expect(queryJSON?.limit).toBeUndefined();
             const keywordFilter = queryJSON?.flatFilters.find((filter) => filter.key === 'keyword');
             expect(keywordFilter?.filters.some((f) => f.value === '-limit:10')).toBe(true);
+        });
+    });
+
+    describe('contains filter parsing', () => {
+        it('treats negated contains as a keyword', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense -merchant*:Uber');
+            const keywordFilter = queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.some((filter) => filter.value === '-merchant*:Uber')).toBe(true);
+            expect(queryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT)).toBe(false);
         });
     });
 
@@ -2659,6 +3616,27 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('view:table');
         });
 
+        test('round-trips the Spend footer selections, normalizing the user-friendly spellings', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense footer-count:reports footer-total:non-billable footer-currency:EUR');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('footerCount:reports');
+            expect(result).toContain('footerTotal:non-billable');
+            expect(result).toContain('footerCurrency:EUR');
+            expect(buildSearchQueryJSON(result)?.hash).toEqual(queryJSON?.hash);
+        });
+
+        test('omits the Spend footer selections a query does not carry', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).not.toContain('footerCount:');
+            expect(result).not.toContain('footerTotal:');
+            expect(result).not.toContain('footerCurrency:');
+        });
+
         test('preserves view along with other filters', () => {
             const queryJSON = buildSearchQueryJSON('type:expense view:line category:travel');
 
@@ -2674,7 +3652,38 @@ describe('SearchQueryUtils', () => {
             const result = buildSearchQueryString(queryJSON);
 
             expect(result).toContain('view:pie');
-            expect(result).toContain('merchant:Amazon');
+            expect(result).toContain('merchant*:Amazon');
+        });
+
+        test('serializes the compare root key', () => {
+            // Given a query JSON carrying a compare mode
+            const queryJSON = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+
+            const result = buildSearchQueryString(queryJSON);
+
+            // Then compare round-trips into the query string
+            expect(result).toContain(`compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+        });
+
+        test('serializes compare alongside other filters', () => {
+            // Given a query JSON with compare and a regular filter
+            const queryJSON = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE} category:travel`);
+
+            const result = buildSearchQueryString(queryJSON);
+
+            // Then both the compare key and the filter are serialized
+            expect(result).toContain(`compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+            expect(result).toContain('category:travel');
+        });
+
+        test('omits compare when not present in the query', () => {
+            // Given a query JSON with no compare mode
+            const queryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            // Then no compare key is emitted
+            expect(result).not.toContain('compare:');
         });
 
         test('wraps keyword values in quotes so they are not re-interpreted as filter syntax', () => {
@@ -2707,6 +3716,7 @@ describe('SearchQueryUtils', () => {
 
         test.each([
             ['a straight quote', 'A"B'],
+            ['a straight quote after an astral character', '😀"B'],
             ['a curly quote', 'A“B'],
             ['a backslash', 'A\\B'],
         ])('round-trips a bare keyword containing %s', (_label, keyword) => {
@@ -2716,12 +3726,12 @@ describe('SearchQueryUtils', () => {
             expect(keywordFilter?.filters.at(0)?.value).toBe(keyword);
         });
 
-        test('does not add quotes to non-keyword filter values', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense merchant:Amazon');
+        test('uses the explicit exact operator for exact merchant filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant=Amazon');
 
             const result = buildSearchQueryString(queryJSON);
 
-            expect(result).toContain('merchant:Amazon');
+            expect(result).toContain('merchant=Amazon');
             expect(result).not.toContain('"Amazon"');
         });
     });
@@ -2784,6 +3794,217 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('buildFilterQueryWithSortDefaults', () => {
+        describe('Merchant predicates', () => {
+            function updateQuery(input: string, updates: Partial<SearchAdvancedFiltersForm>) {
+                const originalQuery = buildSearchQueryJSON(input);
+                if (!originalQuery) {
+                    throw new Error('Invalid test query');
+                }
+
+                const form = buildFilterFormValuesFromQuery(originalQuery, {}, {}, {}, {}, {}, {});
+                const result = buildFilterQueryWithSortDefaults({...form, ...updates}, originalQuery, originalQuery);
+                const updatedQuery = buildSearchQueryJSON(result ?? '');
+                if (!updatedQuery) {
+                    throw new Error('Invalid updated query');
+                }
+
+                return {originalQuery, updatedQuery};
+            }
+
+            test.each([
+                // Mixed operators, both orders
+                'merchant="Coffee Shop" merchant*:Coffee',
+                'merchant*:Coffee merchant="Coffee Shop"',
+                // Mixed operators with lists and quoted commas
+                'merchant="Coffee Shop",Uber merchant*:Coffee,Tea',
+                'merchant="Coffee, Shop" merchant*:"Coffee, Shop"',
+                // Three clauses, and positive mixed with negated
+                'merchant=I merchant*:I merchant*:g',
+                'merchant=I merchant*:I -merchant:Ig',
+                // Same operator repeated
+                'merchant*:Coffee merchant*:Shop',
+                // Single clause of each kind
+                'merchant=I',
+                'merchant*:I',
+                'merchant=Amazon,Uber',
+                // Negated
+                '-merchant:Amazon -merchant:Prime',
+                '-merchant:"Coffee, Shop",Uber',
+            ])('preserves Merchant predicates when changing Currency: %s', (input) => {
+                // Given a query with Merchant predicates
+                // When only the Currency filter changes
+                const {originalQuery, updatedQuery} = updateQuery(input, {currency: ['USD']});
+
+                // Then every Merchant predicate is kept as it was and the Currency filter is added
+                expect(updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual(originalQuery.flatFilters.filter((filter) => filter.key === 'merchant'));
+                expect(updatedQuery.flatFilters).toContainEqual({key: 'currency', filters: [{operator: 'eq', value: 'USD'}]});
+            });
+
+            test.each<Partial<SearchAdvancedFiltersForm>>([{description: 'Lunch'}, {dateAfter: '2026-01-01'}, {groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.BAR}])(
+                'preserves Merchant predicates when changing other filters: %j',
+                (updates) => {
+                    const {originalQuery, updatedQuery} = updateQuery('merchant=I merchant*:I', updates);
+
+                    expect(updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual(originalQuery.flatFilters);
+                },
+            );
+
+            test('preserves Merchant predicates through consecutive form updates', () => {
+                const firstUpdate = updateQuery('merchant=I merchant*:I', {description: 'Lunch'});
+                const secondUpdate = updateQuery(buildSearchQueryString(firstUpdate.updatedQuery), {currency: ['USD']});
+
+                expect(secondUpdate.updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual(firstUpdate.originalQuery.flatFilters);
+                expect(secondUpdate.updatedQuery.flatFilters).toContainEqual({key: 'description', filters: [{operator: 'eq', value: 'Lunch'}]});
+            });
+
+            test.each<{input: string; operator: MerchantMatchType; expectedValue: string | string[]}>([
+                {input: 'merchant*:I,Ig', operator: 'eq', expectedValue: ['I', 'Ig']},
+                {input: 'merchant=I,Ig', operator: 'contains', expectedValue: ['I', 'Ig']},
+                {input: 'merchant:I,Ig', operator: 'eq', expectedValue: ['I', 'Ig']},
+                {input: 'merchant*:"I,Ig"', operator: 'eq', expectedValue: 'I,Ig'},
+                {input: 'merchant="I,Ig"', operator: 'contains', expectedValue: 'I,Ig'},
+                {input: 'merchant*:"Coffee, Shop",Uber', operator: 'eq', expectedValue: ['Coffee, Shop', 'Uber']},
+                {input: 'merchant="Coffee, Shop",Uber', operator: 'contains', expectedValue: ['Coffee, Shop', 'Uber']},
+            ])('preserves Merchant values when changing only the match type: %j', ({input, operator, expectedValue}) => {
+                const {updatedQuery} = updateQuery(input, {merchantOperator: operator});
+
+                expect(updatedQuery.filters).toEqual({operator, left: 'merchant', right: expectedValue});
+            });
+
+            test.each<{input: string; operator: MerchantMatchType}>([
+                {input: 'merchant=I merchant*:I,Ig', operator: 'eq'},
+                {input: 'merchant*:I merchant=I,Ig', operator: 'contains'},
+            ])('applies a changed match type to every Merchant predicate: %j', ({input, operator}) => {
+                const {updatedQuery} = updateQuery(input, {merchantOperator: operator});
+
+                expect(updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual([
+                    {key: 'merchant', filters: [{operator, value: 'I'}]},
+                    {
+                        key: 'merchant',
+                        filters: [
+                            {operator, value: 'I'},
+                            {operator, value: 'Ig'},
+                        ],
+                    },
+                ]);
+            });
+
+            test.each([
+                'merchant:Amazon merchant:Prime',
+                'merchant=Amazon merchant=Prime',
+                'merchant=Amazon merchant*:Prime',
+                'merchant:Amazon,Prime',
+                'merchant:"Coffee, Shop",Uber merchant:Prime',
+            ])('applies negation to every original Merchant value: %s', (input) => {
+                const originalQuery = buildSearchQueryJSON(input);
+                if (!originalQuery) {
+                    throw new Error('Invalid test query');
+                }
+                const form = buildFilterFormValuesFromQuery(originalQuery, {}, {}, {}, {}, {}, {});
+                const {updatedQuery} = updateQuery(input, {
+                    merchant: undefined,
+                    merchantNot: form.merchantNot ?? form.merchant,
+                    merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                });
+
+                expect(updatedQuery.flatFilters).toEqual(
+                    originalQuery?.flatFilters.map((filter) => ({
+                        ...filter,
+                        filters: filter.filters.map((item) => ({...item, operator: 'neq'})),
+                    })),
+                );
+            });
+
+            test.each(['-merchant:Amazon -merchant:Prime', '-merchant:Amazon,Prime', '-merchant:"Coffee, Shop",Uber -merchant:Prime', 'merchant:Amazon -merchant:Prime'])(
+                'applies positive matching to every original Merchant value: %s',
+                (input) => {
+                    const originalQuery = buildSearchQueryJSON(input);
+                    if (!originalQuery) {
+                        throw new Error('Invalid test query');
+                    }
+                    const form = buildFilterFormValuesFromQuery(originalQuery, {}, {}, {}, {}, {}, {});
+                    const {updatedQuery} = updateQuery(input, {
+                        merchant: form.merchantNot,
+                        merchantNot: undefined,
+                        merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                    });
+
+                    expect(updatedQuery.flatFilters).toEqual(
+                        originalQuery?.flatFilters.map((filter) => ({
+                            ...filter,
+                            filters: filter.filters.map((item) => ({...item, operator: 'eq'})),
+                        })),
+                    );
+                },
+            );
+
+            test.each(['merchant:Amazon merchant:Prime', '-merchant:Amazon -merchant:Prime', 'merchant=Amazon -merchant:Prime'])(
+                'removes every Merchant predicate without changing other filters: %s',
+                (input) => {
+                    const {updatedQuery} = updateQuery(`type:expense description:Lunch ${input}`, {merchant: undefined, merchantNot: undefined});
+
+                    expect(updatedQuery.type).toBe('expense');
+                    expect(updatedQuery.flatFilters).toEqual([{key: 'description', filters: [{operator: 'eq', value: 'Lunch'}]}]);
+                },
+            );
+
+            test('preserves both Merchant values through negation and match type round trips', () => {
+                const negative = updateQuery('merchant:Amazon merchant:Prime', {merchant: undefined, merchantNot: 'Prime', merchantOperator: 'eq'});
+                const positive = updateQuery(buildSearchQueryString(negative.updatedQuery), {merchant: 'Prime', merchantNot: undefined, merchantOperator: 'eq'});
+                const contains = updateQuery(buildSearchQueryString(positive.updatedQuery), {merchantOperator: 'contains'});
+
+                expect(contains.updatedQuery.filters).toEqual(negative.originalQuery.filters);
+            });
+
+            test('keeps a Merchant list through successive match type and Currency changes without mutating the original query', () => {
+                const {originalQuery, updatedQuery} = updateQuery('merchant*:I,Ig', {merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO});
+                const currencyUpdate = updateQuery(buildSearchQueryString(updatedQuery), {currency: ['USD']});
+
+                expect(originalQuery.filters).toEqual({operator: 'contains', left: 'merchant', right: ['I', 'Ig']});
+                expect(currencyUpdate.updatedQuery.flatFilters).toContainEqual({
+                    key: 'merchant',
+                    filters: [
+                        {operator: 'eq', value: 'I'},
+                        {operator: 'eq', value: 'Ig'},
+                    ],
+                });
+                expect(currencyUpdate.updatedQuery.flatFilters).toContainEqual({key: 'currency', filters: [{operator: 'eq', value: 'USD'}]});
+            });
+
+            test.each<{updates: Partial<SearchAdvancedFiltersForm>; expected: string}>([
+                {updates: {merchant: 'Tea'}, expected: 'merchant*:Tea'},
+                {updates: {merchant: 'I,Ig', merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO}, expected: 'merchant="I,Ig"'},
+                {updates: {merchant: undefined}, expected: ''},
+            ])('replaces or removes a Merchant list on an explicit change: %j', ({updates, expected}) => {
+                const {updatedQuery} = updateQuery('merchant*:Amazon,Uber', updates);
+
+                expect(updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual(buildSearchQueryJSON(expected)?.flatFilters);
+            });
+
+            test.each<{updates: Partial<SearchAdvancedFiltersForm>; expected: string}>([
+                {updates: {merchant: 'Tea'}, expected: 'merchant*:Tea'},
+                {updates: {merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO}, expected: 'merchant=I'},
+                {updates: {merchant: undefined}, expected: ''},
+                {updates: {merchant: undefined, merchantNot: 'I'}, expected: '-merchant:I'},
+                {updates: {type: CONST.SEARCH.DATA_TYPES.CHAT}, expected: ''},
+            ])('replaces or removes Merchant predicates on an explicit change: %j', ({updates, expected}) => {
+                const {updatedQuery} = updateQuery('merchant=I merchant*:I', updates);
+
+                expect(updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual(buildSearchQueryJSON(expected)?.flatFilters);
+            });
+
+            test('clears all Merchant predicates when resetting advanced filters', () => {
+                const queryJSON = buildSearchQueryJSON('merchant=I merchant*:I');
+                if (!queryJSON) {
+                    throw new Error('Invalid test query');
+                }
+
+                const updatedQuery = buildSearchQueryJSON(buildQueryStringWithResetFilters(queryJSON, undefined));
+
+                expect(updatedQuery?.flatFilters).toEqual([]);
+            });
+        });
+
         test('groupBy change replaces stale sortBy with new default', () => {
             const result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.BAR},
@@ -2954,6 +4175,7 @@ describe('SearchQueryUtils', () => {
     describe('shouldResetSortForViewChange', () => {
         test('returns true for line view transitions with time-based groupBy', () => {
             // Line charts need chronological order - reset when entering or leaving line view
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.DAY})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MONTH})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
             expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.LINE, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
@@ -3504,7 +4726,7 @@ describe('SearchQueryUtils', () => {
             );
 
             expect(result).toHaveLength(1);
-            expect(result.at(0)?.value).toBe(translateLocal('search.filters.card.travelInvoicing'));
+            expect(result.at(0)?.value).toBe(translateLocal('search.filters.card.travelBilling'));
         });
 
         it('should fall back to the raw feed key when a non-Plaid feed is not in the display table', () => {
@@ -3703,19 +4925,164 @@ describe('SearchQueryUtils', () => {
         return null;
     }
 
-    describe('applyContainsOperatorToTextFields', () => {
-        it('should transform merchant eq to contains', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
-            if (!queryJSON?.filters) {
-                throw new Error('Expected filters to be defined');
+    describe('Spend footer selections and the filters Reset button', () => {
+        it('does not count a footer selection as a filter change, so Reset stays hidden', () => {
+            const defaultFooterQuery = buildSearchQueryJSON('type:expense');
+            const withFooterSelections = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:billable footerCurrency:EUR');
+
+            if (!defaultFooterQuery || !withFooterSelections) {
+                throw new Error('Failed to parse query string');
             }
-            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
-            const merchantNode = findNode(transformed, 'merchant');
+
+            expect(hasFiltersChangedFromDefault(withFooterSelections, defaultFooterQuery)).toBe(false);
+        });
+
+        it('still counts a real filter as a change', () => {
+            const defaultFooterQuery = buildSearchQueryJSON('type:expense');
+            const withFilter = buildSearchQueryJSON('type:expense merchant:Amazon footerTotal:billable');
+
+            if (!defaultFooterQuery || !withFilter) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(withFilter, defaultFooterQuery)).toBe(true);
+        });
+
+        it('keeps the footer selections when the filters are reset', () => {
+            const defaultFooterQuery = buildSearchQueryJSON('type:expense');
+            const current = buildSearchQueryJSON('type:expense merchant:Amazon footerCount:reports footerTotal:billable');
+
+            if (!current || !defaultFooterQuery) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const reset = buildQueryStringWithResetFilters(current, defaultFooterQuery);
+
+            expect(reset).not.toContain('merchant');
+            expect(reset).toContain('footerCount:reports');
+            expect(reset).toContain('footerTotal:billable');
+        });
+    });
+
+    describe('Spend footer selections sent to the backend', () => {
+        it('serializes the footer selections inside the filters, which is where the backend reads them', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:billable footerCurrency:EUR');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const serialized = serializeQueryJSONForBackend(queryJSON);
+
+            expect(serialized).toContain('"left":"footerTotal","right":"billable"');
+            expect(serialized).toContain('"left":"footerCount","right":"reports"');
+            expect(serialized).toContain('"left":"footerCurrency","right":"EUR"');
+        });
+    });
+
+    describe('merchant multi-value query serialization', () => {
+        test.each(['merchant*:Amazon,Uber', 'merchant:Amazon,Uber'])('preserves array AST for %s', (input) => {
+            const queryJSON = buildSearchQueryJSON(input);
+            if (!queryJSON?.filters) {
+                throw new Error('Expected merchant filters to be defined');
+            }
+
+            const merchantNode = findNode(queryJSON.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
             if (!merchantNode) {
                 throw new Error('Expected merchant node to be found in AST');
             }
+
             expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
-            expect(merchantNode.right).toBe('coffee');
+            expect(merchantNode.right).toEqual(['Amazon', 'Uber']);
+
+            const builtQuery = buildSearchQueryString(queryJSON);
+            const updatedQuery = getQueryWithUpdatedValues(input, true);
+            if (!updatedQuery) {
+                throw new Error('Expected updated query to be defined');
+            }
+
+            expect(updatedQuery).toBe(builtQuery);
+            expect(buildSearchQueryJSON(builtQuery)?.filters).toEqual(queryJSON.filters);
+            expect(buildSearchQueryJSON(updatedQuery)?.filters).toEqual(queryJSON.filters);
+
+            const canonicalQueryJSON = buildSearchQueryJSON(updatedQuery);
+            if (!canonicalQueryJSON?.filters) {
+                throw new Error('Expected canonical merchant filters to be defined');
+            }
+
+            expect(serializeQueryJSONForBackend(canonicalQueryJSON)).toBe(JSON.stringify(canonicalQueryJSON));
+            expect(getQueryWithUpdatedValues(updatedQuery, true)).toBe(updatedQuery);
+            expect(buildSearchQueryString(buildSearchQueryJSON(updatedQuery))).toBe(updatedQuery);
+        });
+
+        test.each([
+            ['merchant=Amazon,Uber', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, ['Amazon', 'Uber'], 'merchant=Amazon,Uber'],
+            ['-merchant:Amazon,Uber', CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, ['Amazon', 'Uber'], '-merchant:Amazon,Uber'],
+            ['merchant*:Amazon', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, 'Amazon', 'merchant*:Amazon'],
+            ['merchant*:"Amazon,Uber"', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, 'Amazon,Uber', 'merchant*:"Amazon,Uber"'],
+        ])('keeps merchant operator semantics for %s', (input, operator, value, expectedQuery) => {
+            const queryJSON = buildSearchQueryJSON(input);
+            if (!queryJSON?.filters) {
+                throw new Error('Expected merchant filters to be defined');
+            }
+
+            const merchantNode = findNode(queryJSON.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+
+            expect(merchantNode.operator).toBe(operator);
+            expect(merchantNode.right).toEqual(value);
+            const rebuiltQueryString = buildSearchQueryString(queryJSON);
+            expect(rebuiltQueryString).toContain(expectedQuery);
+            expect(buildSearchQueryJSON(rebuiltQueryString)?.filters).toEqual(queryJSON.filters);
+        });
+
+        test('preserves separate merchant contains filters when rebuilding', () => {
+            const queryJSON = buildSearchQueryJSON('merchant*:Amazon merchant*:Uber');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected merchant query to be defined');
+            }
+
+            expect(queryJSON.filters.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.AND);
+            expect(buildSearchQueryJSON(buildSearchQueryString(queryJSON))?.filters).toEqual(queryJSON.filters);
+        });
+
+        test('keeps category comma lists on the exact operator', () => {
+            const queryJSON = buildSearchQueryJSON('category:Travel,Meals');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected category filters to be defined');
+            }
+
+            const categoryNode = findNode(queryJSON.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
+            if (!categoryNode) {
+                throw new Error('Expected category node to be found in AST');
+            }
+
+            expect(categoryNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+            expect(categoryNode.right).toEqual(['Travel', 'Meals']);
+            expect(buildSearchQueryString(queryJSON)).toContain('category:Travel,Meals');
+        });
+    });
+
+    describe('applyContainsOperatorToTextFields', () => {
+        it.each([
+            ['merchant=coffee', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO],
+            ['merchant:coffee', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
+            ['merchant*:coffee', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
+        ])('should preserve the parsed merchant operator for %s', (merchantQuery, merchantOperator) => {
+            // Given a query with an explicit exact, legacy, or contains merchant filter
+            const queryJSON = buildSearchQueryJSON(`type:expense ${merchantQuery}`);
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+
+            // When text field operators are normalized
+            const merchantNode = findNode(applyContainsOperatorToTextFields(queryJSON.filters), 'merchant');
+
+            // Then the parsed merchant operator is kept, because the parser already maps legacy `:` to contains
+            expect(merchantNode?.operator).toBe(merchantOperator);
+            expect(merchantNode?.right).toBe('coffee');
         });
 
         it('should transform description eq to contains', () => {
@@ -3757,7 +5124,7 @@ describe('SearchQueryUtils', () => {
             expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
         });
 
-        it('should transform merchant but not category in a compound query', () => {
+        it('should preserve legacy merchant contains and category exact in a compound query', () => {
             const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee category:travel');
             if (!queryJSON?.filters) {
                 throw new Error('Expected filters to be defined');
@@ -3779,83 +5146,62 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('serializeQueryJSONForBackend', () => {
-        it('should apply contains to merchant in AST filters', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+        it.each([
+            ['merchant:coffee', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
+            ['merchant*:coffee', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
+            ['merchant=coffee', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO],
+        ])('should preserve the merchant operator in AST filters for %s', (merchantQuery, merchantOperator) => {
+            // Given a query with a legacy, contains, or explicit exact merchant filter
+            const queryJSON = buildSearchQueryJSON(`type:expense ${merchantQuery}`);
             if (!queryJSON) {
                 throw new Error('Expected queryJSON to be defined');
             }
-            const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters);
-            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
-            const merchantNode = findNode(normalizedFilters, 'merchant');
-            if (!merchantNode) {
-                throw new Error('Expected merchant node to be found in AST');
-            }
-            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+
+            // When the query is serialized for the backend
+            const result = serializeQueryJSONForBackend(queryJSON);
+
+            // Then the merchant filter is sent unchanged with its parsed operator
+            expect(result).toBe(JSON.stringify(queryJSON));
+            expect(findNode(queryJSON.filters, 'merchant')?.operator).toBe(merchantOperator);
         });
 
-        it('should apply contains to merchant in rawFilterList', () => {
-            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
+        it.each([CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS])('should preserve the %s merchant operator in rawFilterList', (operator) => {
+            // Given a raw merchant filter with an exact or contains operator
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator, value: 'coffee'}];
+
+            // When the query is serialized for the backend
+            const result = serializeQueryJSONForBackend({filters: undefined, rawFilterList});
+
+            // Then the merchant operator is not rewritten
+            expect(result).toBe(JSON.stringify({filters: undefined, rawFilterList}));
+        });
+
+        it('should apply contains to description in rawFilterList', () => {
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
             const normalizedRawFilterList = rawFilterList.map((filter) => ({...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS}));
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList: normalizedRawFilterList, status: ''}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList: normalizedRawFilterList}));
         });
 
-        it('should preserve exact merchant matches in AST filters', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+        it('should keep merchant eq and turn description eq into contains', () => {
+            // Given a query with an exact merchant list and a description filter, both parsed as `eq`
+            const queryJSON = buildSearchQueryJSON('type:expense merchant=Amazon,"Amazon Marketplace" description:order');
             if (!queryJSON) {
                 throw new Error('Expected queryJSON to be defined');
             }
-            const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, status: ''}));
-            const merchantNode = findNode(queryJSON.filters, 'merchant');
-            if (!merchantNode) {
-                throw new Error('Expected merchant node to be found in AST');
-            }
-            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-        });
 
-        it('should preserve exact merchant matches in rawFilterList', () => {
-            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
-            const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList}, exactMatchFilterKeys)).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
-        });
+            // When the query is serialized for the backend
+            const result = serializeQueryJSONForBackend(queryJSON);
 
-        it('should preserve multiple exact merchant matches while keeping description as contains', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense merchant:Amazon,"Amazon Marketplace" description:order');
-            if (!queryJSON) {
-                throw new Error('Expected queryJSON to be defined');
-            }
-            const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters, exactMatchFilterKeys);
-            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
-            const merchantNode = findNode(normalizedFilters, 'merchant');
-            const descriptionNode = findNode(normalizedFilters, 'description');
-            if (!merchantNode || !descriptionNode) {
-                throw new Error('Expected merchant and description nodes to be found in AST');
-            }
-            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-            expect(merchantNode.right).toEqual(['Amazon', 'Amazon Marketplace']);
-            expect(descriptionNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+            // Then merchant keeps exact matching, because the parser already tells `merchant=` from `merchant:`,
+            // and description still uses partial matching on the backend
+            expect(result).toContain('"operator":"eq","left":"merchant","right":["Amazon","Amazon Marketplace"]');
+            expect(result).toContain('"operator":"contains","left":"description","right":"order"');
+            expect(result).not.toContain('"operator":"contains","left":"merchant"');
         });
 
         it('should not affect non-text fields in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
-        });
-    });
-
-    describe('withExactMatchFilterKeys', () => {
-        it('should give exact queries distinct snapshot hashes', () => {
-            const partialQuery = buildSearchQueryJSON('type:expense merchant:Amazon');
-            if (!partialQuery) {
-                throw new Error('Expected partial query to be defined');
-            }
-
-            const exactQuery = withExactMatchFilterKeys(partialQuery, [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-
-            expect(exactQuery.hash).not.toBe(partialQuery.hash);
-            expect(exactQuery.recentSearchHash).not.toBe(partialQuery.recentSearchHash);
-            expect(exactQuery.similarSearchHash).not.toBe(partialQuery.similarSearchHash);
-            expect(exactQuery.exactMatchFilterKeys).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList}));
         });
     });
 
@@ -3900,6 +5246,305 @@ describe('SearchQueryUtils', () => {
             // The user typed "type:expense" as free text, so it must be quoted instead of overriding the context type
             expect(result).toContain('"type:expense"');
             expect(result).toContain('type:trip');
+        });
+
+        it('should escape input that uses the contains operator so it is treated as a keyword', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('merchant*:Uber', currentQueryJSON) : '';
+            expect(result).toContain('"merchant*:Uber"');
+            expect(result).toContain('type:trip');
+        });
+
+        it('should stop escaping after the unquoted filter value', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('type:expense foo bar', currentQueryJSON) : '';
+
+            expect(result).toContain('"type:expense" foo bar');
+            expect(result).not.toContain('"type:expense foo bar"');
+        });
+
+        it('should escape syntax with whitespace between the operator and value', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense from:me');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('group-by: reports', currentQueryJSON) : '';
+
+            expect(result).toContain('"group-by: reports"');
+        });
+
+        it('should preserve a valid quoted group-by value as syntax', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('group-by: "from"', currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+
+            expect(resultQueryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.FROM);
+            expect(result).not.toContain('"group-by: \\"from\\""');
+        });
+
+        it('should preserve a valid smart-quoted group-by value as syntax', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('group-by: “from”', currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+
+            expect(resultQueryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.FROM);
+            expect(result).not.toContain('"group-by: \\“from\\”"');
+        });
+
+        it('should recognize a valid group-by value with an unclosed quote', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('group-by: "from', currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+
+            expect(resultQueryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.FROM);
+            expect(result).not.toContain('"group-by: \\"from"');
+        });
+
+        it('should preserve a valid group-by value with a trailing comma as syntax', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('group-by: from,', currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+
+            expect(resultQueryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.FROM);
+            expect(result).not.toContain('"group-by: from,"');
+        });
+
+        it('should preserve valid filter syntax with whitespace between the operator and value', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('from: me', currentQueryJSON) : '';
+            const updatedResult = getQueryWithUpdatedValues(result);
+            const resultQueryJSON = buildSearchQueryJSON(updatedResult ?? '');
+
+            expect(getFilterFromQuery(resultQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toEqual([CONST.SEARCH.ME]);
+            expect(updatedResult).not.toContain('"from: me"');
+        });
+
+        it('should preserve terms after consecutive incomplete syntax tokens', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('type: status: foo', currentQueryJSON) : '';
+
+            expect(result).toContain('"type: status:" foo');
+        });
+
+        it('should preserve a trailing keyword after consecutive incomplete filter names', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('merchant: description: coffee', currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(['merchant: description:', 'coffee']);
+            expect(displayedKeyword).toBe('"merchant: description:" coffee');
+        });
+
+        it('should preserve syntax with a quoted multi-word value as separate keyword terms', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('from:"John Doe"', currentQueryJSON) : '';
+            const updatedResult = getQueryWithUpdatedValues(result);
+            const resultQueryJSON = buildSearchQueryJSON(updatedResult ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(['from:"John', 'Doe"']);
+            expect(getFilterFromQuery(resultQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toBeUndefined();
+
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+            expect(displayedKeyword).toBe('from:\\"John Doe\\"');
+
+            const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
+            const resubmittedQueryJSON = buildSearchQueryJSON(resubmittedResult ?? '');
+            const resubmittedKeywordFilter = resubmittedQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
+            expect(getFilterFromQuery(resubmittedQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toBeUndefined();
+        });
+
+        it('should preserve a multi-word keyword phrase with mixed straight and smart quote delimiters', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('"coffee shop”', currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(['coffee shop']);
+            expect(getKeywordQueryForSearchInput(keywordFilter?.filters.map((filter) => filter.value.toString()) ?? [])).toBe('"coffee shop"');
+        });
+
+        it.each([
+            ['foo"bar baz"', ['foo"bar baz"']],
+            ['foo"bar baz"tail', ['foo"bar baz"tail']],
+            ['foo:"bar baz" x', ['foo:"bar baz"', 'x']],
+            ['foo"bar from:me baz"', ['foo"bar from:me baz"']],
+            ['foo:"bar type:expense"', ['foo:"bar type:expense"']],
+            ['foo"bar baz', ['foo"bar', 'baz']],
+        ])('should preserve quoted keyword text with an embedded opening quote in %s', (keyword, expectedKeywords) => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(keyword, currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(expectedKeywords);
+
+            const displayedKeyword = getKeywordQueryForSearchInput(keywordFilter?.filters.map((filter) => filter.value.toString()) ?? []);
+            const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
+            const resubmittedKeywordFilter = buildSearchQueryJSON(resubmittedResult ?? '')?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
+        });
+
+        it('should preserve malformed quote and backslash keyword text', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+
+            const unmatchedQuoteResult = currentQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('foo "bar', currentQueryJSON)) : '';
+            const unmatchedQuoteJSON = buildSearchQueryJSON(unmatchedQuoteResult ?? '');
+            const unmatchedQuoteKeywordFilter = unmatchedQuoteJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(unmatchedQuoteKeywordFilter?.filters.map((filter) => filter.value)).toEqual(['foo', '"bar']);
+
+            const trailingBackslashResult = currentQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('back\\', currentQueryJSON)) : '';
+            const trailingBackslashJSON = buildSearchQueryJSON(trailingBackslashResult ?? '');
+            const trailingBackslashKeywordFilter = trailingBackslashJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(trailingBackslashKeywordFilter?.filters.map((filter) => filter.value)).toEqual(['back\\']);
+        });
+
+        it.each([
+            ['"foo bar', ['"foo', 'bar']],
+            ['foo "bar baz', ['foo', '"bar', 'baz']],
+        ])('should keep incomplete quoted input %s as separate keywords across submissions', (keyword, expectedKeywords) => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(keyword, currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(expectedKeywords);
+
+            const displayedKeyword = getKeywordQueryForSearchInput(keywordFilter?.filters.map((filter) => filter.value.toString()) ?? []);
+            if (keyword === '"foo bar') {
+                expect(displayedKeyword).toBe(keyword);
+            }
+            const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
+            const resubmittedKeywordFilter = buildSearchQueryJSON(resubmittedResult ?? '')?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
+        });
+
+        it('should keep a complete quoted keyword as one phrase', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('"foo bar"', currentQueryJSON));
+            const keywordFilter = buildSearchQueryJSON(result ?? '')?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(['foo bar']);
+            expect(getKeywordQueryForSearchInput(keywordFilter?.filters.map((filter) => filter.value.toString()) ?? [])).toBe('"foo bar"');
+        });
+
+        it('should keep an escaped opening quote when a later quoted keyword could close it', () => {
+            expect(getKeywordQueryForSearchInput(['"foo', 'bar,baz'])).toBe(String.raw`\"foo "bar,baz"`);
+        });
+
+        it('should preserve backslashes in filter-like keyword text across submissions', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const keyword = String.raw`description:C:\Temp`;
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(keyword, currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.at(0)?.value).toBe(keyword);
+
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+            expect(displayedKeyword).toBe(String.raw`description:C:\\Temp`);
+
+            const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
+            const resubmittedQueryJSON = buildSearchQueryJSON(resubmittedResult ?? '');
+            const resubmittedKeywordFilter = resubmittedQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
+        });
+
+        it('should consume a backslash used to escape a comma in keyword text', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(String.raw`foo\,bar`, currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+
+            expect(keywordFilter?.filters.at(0)?.value).toBe('foo,bar');
+            expect(displayedKeyword).toBe('"foo,bar"');
+        });
+
+        it('should keep backslashes around whitespace as separate keywords', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const keyword = String.raw`foo\ \bar`;
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(keyword, currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(['foo\\', String.raw`\bar`]);
+
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+            const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
+            const resubmittedKeywordFilter = buildSearchQueryJSON(resubmittedResult ?? '')?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
+        });
+
+        it('should keep an explicitly quoted backslash-space keyword as one phrase', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(String.raw`"foo\ \bar"`, currentQueryJSON));
+            const keywordFilter = buildSearchQueryJSON(result ?? '')?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual([String.raw`foo\ \bar`]);
         });
 
         it('should escape input that uses a comparison operator with a filter key', () => {
@@ -3987,6 +5632,34 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: undefined,
                 [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`]: 'coffee',
+            });
+        });
+    });
+
+    describe('getMerchantFilterFormValues', () => {
+        it('keeps the match type when not negated', () => {
+            // Given a Merchant filter that is not negated
+            // When the form values are built
+            const result = getMerchantFilterFormValues('coffee', false, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+
+            // Then the match type is kept, because it decides between Contains and Equal to
+            expect(result).toEqual({
+                [FILTER_KEYS.MERCHANT]: 'coffee',
+                [FILTER_KEYS.MERCHANT_NOT]: undefined,
+                [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            });
+        });
+
+        it('clears the match type when negated', () => {
+            // Given a negated Merchant filter
+            // When the form values are built
+            const result = getMerchantFilterFormValues('coffee', true, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+
+            // Then the match type is cleared, because a negated Merchant filter always uses the not-equal operator
+            expect(result).toEqual({
+                [FILTER_KEYS.MERCHANT]: undefined,
+                [FILTER_KEYS.MERCHANT_NOT]: 'coffee',
+                [FILTER_KEYS.MERCHANT_OPERATOR]: undefined,
             });
         });
     });
@@ -4124,6 +5797,34 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual([policy1]);
         });
 
+        test('resolves workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValues({value: ['Workspace 1', 'Workspace 2'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual([policy1, policy2]);
+        });
+
+        test('resolves negated workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValues({value: ['Workspace 1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual([policy2, policy3]);
+        });
+
+        test('resolves workspace names using provided policies collection for other collections', () => {
+            const tagList1: OnyxTypes.PolicyTagLists = {
+                TagList: {name: 'TagList', required: false, orderWeight: 0, tags: {Tag1: {name: 'Tag1', enabled: true}}},
+            };
+            const tagList2: OnyxTypes.PolicyTagLists = {
+                TagList: {name: 'TagList', required: false, orderWeight: 0, tags: {Tag2: {name: 'Tag2', enabled: true}}},
+            };
+            const policyTagsData = {
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`]: tagList1,
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}2`]: tagList2,
+            };
+            const result = getAllPolicyValues({value: ['Workspace 1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTagsData, policyData);
+
+            expect(result).toEqual([tagList1]);
+        });
+
         test('returns every policy value when the filter is undefined', () => {
             expect(getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY, policyData)).toEqual([policy1, policy2, policy3]);
         });
@@ -4158,6 +5859,23 @@ describe('SearchQueryUtils', () => {
 
         test('returns every policy value except the excluded ones for a negated filter', () => {
             const result = getAllPolicyValuesMap({value: ['1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual({
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
+                [`${ONYXKEYS.COLLECTION.POLICY}3`]: policy3,
+            });
+        });
+
+        test('resolves workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValuesMap({value: ['Workspace 1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual({
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1,
+            });
+        });
+
+        test('resolves negated workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValuesMap({value: ['Workspace 1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY, policyData);
 
             expect(result).toEqual({
                 [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
@@ -4383,6 +6101,42 @@ describe('SearchQueryUtils', () => {
             const lastQuery = 'type:invoice status:all';
             expect(getValidLastQuery(lastQuery, defaultSearchQuery)).toBe(defaultSearchQuery);
         });
+
+        describe('with the Spend footer selections', () => {
+            it('keeps a last query switched back to the default total, which leaves the total out', () => {
+                // Given a saved search on the reimbursable total
+                const savedQuery = 'type:expense status:all footerTotal:reimbursable';
+
+                // When it is switched back to the plain total, which leaves the total out of the last query
+                const lastQuery = 'type:expense status:all';
+
+                // Then the last choice comes back, the same as when switching to any other total
+                expect(getValidLastQuery(lastQuery, savedQuery)).toBe(lastQuery);
+                expect(getValidLastQuery('type:expense status:all footerTotal:non-reimbursable', savedQuery)).toBe('type:expense status:all footerTotal:non-reimbursable');
+            });
+
+            it('keeps a last query switched back to the default count, which leaves the count out', () => {
+                // Given a saved search on the report count
+                const savedQuery = 'type:expense status:all footerCount:reports';
+
+                // When it is switched back to the expense count, which leaves the count out of the last query
+                const lastQuery = 'type:expense status:all';
+
+                // Then the last choice comes back
+                expect(getValidLastQuery(lastQuery, savedQuery)).toBe(lastQuery);
+            });
+
+            it('still drops a last query that lost a real filter', () => {
+                // Given a saved search with a footer total
+                const savedQuery = 'type:expense status:all footerTotal:reimbursable';
+
+                // When its last query drops the status filter
+                const lastQuery = 'type:expense footerTotal:reimbursable';
+
+                // Then the saved query comes back, since a row filter still decides
+                expect(getValidLastQuery(lastQuery, savedQuery)).toBe(savedQuery);
+            });
+        });
     });
 
     describe('doesQueryMatchDefaultFilterKeysAndType', () => {
@@ -4466,6 +6220,21 @@ describe('SearchQueryUtils', () => {
                 start: '2025-03-02',
                 end: '2025-03-09',
             });
+        });
+
+        test('zero-pads dates typed without leading zeros so they compare correctly with other dates', () => {
+            // Given a query whose dates are typed without leading zeros, which the search parser accepts
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-1-5 date<=2026-2-9');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the date range is read from the query
+            const range = getDateFilterRange(queryJSON);
+
+            // Then both bounds are zero-padded yyyy-MM-dd dates, like the chart groups and today they are compared with
+            expect(range).toEqual({start: '2026-01-05', end: '2026-02-09'});
         });
     });
 

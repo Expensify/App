@@ -1,9 +1,11 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,13 +20,8 @@ import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {
-    areSettingsInErrorFields,
-    getFilteredApprovalAccountOptions,
-    getFilteredCollectionAccountOptions,
-    getFilteredReimbursableAccountOptions,
-    settingsPendingAction,
-} from '@libs/PolicyUtils';
+import {getFilteredApprovalAccountOptions, getFilteredCollectionAccountOptions, getFilteredReimbursableAccountOptions} from '@libs/NetSuiteUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {ExtendedMenuItemWithSubscribedSettings, MenuItemToRender} from '@pages/workspace/accounting/netsuite/types';
 import {
@@ -34,9 +31,12 @@ import {
     shouldHideReimbursedReportsSection,
     shouldHideReportsExportTo,
 } from '@pages/workspace/accounting/netsuite/utils';
+import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -52,6 +52,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
 
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
@@ -89,14 +90,16 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 key={item.description}
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields) ?? settingsPendingAction(item.subscribedSettings, autoSyncConfig?.pendingFields)}
             >
-                <MenuItemWithTopDescription
-                    title={item.title}
-                    description={item.description}
-                    shouldShowRightIcon
-                    onPress={item?.onPress}
-                    brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    hintText={item.hintText}
-                />
+                <MenuItem.Root onPress={item?.onPress ? callFunctionIfActionIsAllowed(item.onPress) : undefined}>
+                    <MenuItemField.Row
+                        name={item.description ?? ''}
+                        value={item.title}
+                    >
+                        {areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        <MenuItem.Chevron />
+                    </MenuItemField.Row>
+                    {!!item.hintText && <MenuItem.HelpText message={item.hintText} />}
+                </MenuItem.Root>
             </OfflineWithFeedback>
         );
     };
@@ -284,6 +287,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
+            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
             displayName="NetSuiteAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             headerSubtitle={config?.subsidiary ?? ''}

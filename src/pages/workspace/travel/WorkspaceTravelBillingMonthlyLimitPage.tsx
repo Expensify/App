@@ -9,10 +9,10 @@ import Text from '@components/Text';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {updateTravelBillingMonthlyLimit} from '@libs/actions/TravelBilling';
 import {getCardSettings} from '@libs/CardUtils';
@@ -36,8 +36,8 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const defaultFundID = useDefaultFundID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(defaultFundID));
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const currentLimit = travelSettings?.monthlySpendLimitPerUser ?? 0;
     const defaultValue = convertToFrontendAmountAsString(currentLimit, CONST.DEFAULT_CURRENCY_DECIMALS);
@@ -45,7 +45,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
     const {showConfirmModal} = useConfirmModal();
 
     const submitLimit = (newLimitInCents: number) => {
-        updateTravelBillingMonthlyLimit(defaultFundID, newLimitInCents, currentLimit);
+        updateTravelBillingMonthlyLimit(travelBillingFundID, newLimitInCents, currentLimit);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
@@ -68,8 +68,8 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
             return;
         }
         showConfirmModal({
-            title: translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.reduceLimitTitle'),
-            prompt: translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.reduceLimitWarning'),
+            title: translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.reduceLimitTitle'),
+            prompt: translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.reduceLimitWarning'),
             confirmText: translate('common.confirm'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
@@ -88,7 +88,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
             testID="WorkspaceTravelBillingMonthlyLimitPage"
         >
             <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitLabel')}
+                title={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitLabel')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
@@ -114,7 +114,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
                         displayAsTextInput
                     />
                     <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>
-                        {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitDescription')}
+                        {translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitDescription')}
                     </Text>
                 </View>
             </FormProvider>

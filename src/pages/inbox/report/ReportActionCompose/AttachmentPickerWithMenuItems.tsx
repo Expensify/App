@@ -28,7 +28,7 @@ import getButtonState from '@libs/getButtonState';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {isGroupPolicyByType} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
 import {
     canCreateTaskInReport,
     getPayeeName,
@@ -54,6 +54,7 @@ import type {AnchorPosition} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {ComponentRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -91,7 +92,7 @@ type AttachmentPickerWithMenuItemsProps = {
     /** Called when the menu item is selected */
     onItemSelected: () => void;
 
-    actionButtonRef: React.RefObject<HTMLDivElement | View | null>;
+    actionButtonRef: React.RefObject<HTMLDivElement | ComponentRef<typeof View> | null>;
 
     /** A function that toggles isScrollLikelyLayoutTriggered flag for a certain period of time */
     raiseIsScrollLikelyLayoutTriggered: () => void;
@@ -167,13 +168,12 @@ function AttachmentPickerWithMenuItems({
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {accountID} = currentUserPersonalDetails;
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
-    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID);
+    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID, !isMenuVisible);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -203,10 +203,9 @@ function AttachmentPickerWithMenuItems({
                 () =>
                     createNewReport(
                         currentUserPersonalDetails,
-                        isASAPSubmitBetaEnabled,
                         hasViolations,
+                        isASAPSubmitBetaEnabled,
                         policy,
-                        betas,
                         isTrackIntentUser,
                         getCurrencyDecimals,
                         rules,
@@ -221,7 +220,7 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, getCurrencyDecimals, rules, true, false);
+            createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, isTrackIntentUser, getCurrencyDecimals, rules, true, false);
         }
     };
 
@@ -313,7 +312,7 @@ function AttachmentPickerWithMenuItems({
             ],
         };
 
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], betas, rules, isReportArchived, isRestrictedToPreferredPolicy).map(
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], rules, isReportArchived, isRestrictedToPreferredPolicy).map(
             (option) => options[option],
         );
 
@@ -333,26 +332,22 @@ function AttachmentPickerWithMenuItems({
         showDelegateNoAccessModal,
         translate,
         icons,
-        betas,
         draftTransactionIDs,
         rules,
     ]);
 
-    const createReportOption: PopoverMenuItem[] = useMemo(() => {
-        if (!isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report)) {
-            return [];
-        }
-
-        return [
-            {
-                icon: icons.Document,
-                text: translate('report.newReport.createReport'),
-                shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_REPORT,
-                onSelected: () => selectOption(() => handleCreateReport(), true),
-            },
-        ];
-    }, [icons.Document, handleCreateReport, policy?.type, report, selectOption, shouldUseNarrowLayout, translate]);
+    const createReportOption: PopoverMenuItem[] =
+        !isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report) || !canCreateExpensesOnPolicy(policy)
+            ? []
+            : [
+                  {
+                      icon: icons.Document,
+                      text: translate('report.newReport.createReport'),
+                      shouldCallAfterModalHide: shouldUseNarrowLayout,
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_REPORT,
+                      onSelected: () => selectOption(() => handleCreateReport(), true),
+                  },
+              ];
 
     /**
      * Determines if we can show the task option
@@ -402,7 +397,7 @@ function AttachmentPickerWithMenuItems({
             return;
         }
 
-        calculatePopoverPosition(actionButtonRef as React.RefObject<View>, {
+        calculatePopoverPosition(actionButtonRef as React.RefObject<ComponentRef<typeof View>>, {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
         }).then((position) => {

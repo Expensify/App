@@ -1,5 +1,6 @@
-import {createTypeMenuSections} from '@libs/SearchUIUtils';
+import {createTypeMenuSections, omitInsightsPageMenuItems, omitTravelApprovalMenuItems} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import type {Policy, Session} from '@src/types/onyx';
@@ -16,6 +17,7 @@ import useHasReportAwaitingApproval from './useHasReportAwaitingApproval';
 import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -41,6 +43,7 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         areCategoriesEnabled: policy.areCategoriesEnabled,
         areWorkflowsEnabled: policy.areWorkflowsEnabled,
         areRulesEnabled: policy.areRulesEnabled,
+        travelSettings: policy.travelSettings,
     };
 
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
@@ -141,4 +144,21 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
     return typeMenuSections;
 };
 
+const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true) => {
+    const typeMenuSections = useSearchTypeMenuSections(isScreenFocused);
+    const {isBetaEnabled} = usePermissions();
+
+    let sections = typeMenuSections;
+    if (!isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL)) {
+        sections = omitTravelApprovalMenuItems(sections);
+    }
+
+    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
+        return sections;
+    }
+
+    return omitInsightsPageMenuItems(sections);
+};
+
 export default useSearchTypeMenuSections;
+export {useSearchTypeMenuSectionsForNavigation};

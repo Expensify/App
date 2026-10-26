@@ -4,6 +4,7 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getSearchKeyForDataType} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -106,6 +107,7 @@ function getSubmitExpensePreMountDestinationRoute({
     if (shouldPreInsertSearch) {
         return ROUTES.SEARCH_ROOT.getRoute({
             query: buildCannedSearchQuery({type: searchType}),
+            searchKey: getSearchKeyForDataType(searchType),
         });
     }
 

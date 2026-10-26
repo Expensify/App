@@ -4,7 +4,7 @@ import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 
-import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageProps, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useMemo} from 'react';
 
@@ -43,10 +43,13 @@ type ImageWithSizeCalculationProps = {
     /** Callback to be called when the image loads */
     onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
 
-    resizeMode?: ImageResizeMode;
+    resizeMode?: ImageProps['resizeMode'];
 
     /** Low-resolution URI shown as a placeholder while the full image loads */
     previewUri?: string;
+
+    /** Identity of the picture for the native image view, see BaseImageProps */
+    recyclingKey?: string;
 };
 
 /**
@@ -68,6 +71,7 @@ function ImageWithSizeCalculation({
     onLoad,
     resizeMode,
     previewUri,
+    recyclingKey,
 }: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
 
@@ -79,6 +83,7 @@ function ImageWithSizeCalculation({
     };
 
     return (
+        // Thumbnails are sized for the image alone, so the Retry notice would be clipped inside them.
         <ImageWithLoading
             containerStyles={[styles.w100, styles.h100, style]}
             style={[styles.w100, styles.h100]}
@@ -98,6 +103,8 @@ function ImageWithSizeCalculation({
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
             previewUri={previewUri}
+            recyclingKey={recyclingKey}
+            shouldShowTimeoutNotice={false}
         />
     );
 }

@@ -1,9 +1,17 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import {getReportIDForTransaction, isBillableEnabledOnPolicy, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
+import {
+    EMPTY_VIOLATIONS,
+    getReportIDForTransaction,
+    getVisibleReportRowViolations,
+    isBillableEnabledOnPolicy,
+    isEveryReportTransactionSelected,
+    isSelectableReportTransaction,
+    shouldWaitForTransactions,
+} from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportLoadingState} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -119,6 +127,9 @@ const transactionItemBaseMock: TransactionListItemType = {
     violations: [],
 };
 
+/** Errors the backend records are keyed by when they happened. */
+const REJECTED_AT = '1700000000000';
+
 describe('MoneyRequestReportUtils', () => {
     describe('getReportIDForTransaction', () => {
         it('returns transaction thread ID if its not from one transaction report', () => {
@@ -176,6 +187,69 @@ describe('MoneyRequestReportUtils', () => {
         });
     });
 
+    describe('isSelectableReportTransaction', () => {
+        test('accepts an ordinary expense, which is what a click, Select All and a range all reach', () => {
+            // Given an expense with nothing against it
+            const transaction = createMock<Transaction>({transactionID: '1'});
+
+            // When the list asks whether anything may select it
+            // Then it counts as selectable
+            expect(isSelectableReportTransaction(transaction)).toBe(true);
+        });
+
+        test('refuses an expense being deleted, since its checkbox is disabled', () => {
+            // Given an expense the user has deleted, still on screen until the server drops it
+            const transaction = createMock<Transaction>({transactionID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            // When the list asks whether anything may select it
+            // Then nothing may select it
+            expect(isSelectableReportTransaction(transaction)).toBe(false);
+        });
+
+        test('refuses an expense the backend rejected, whose checkbox is disabled for the same reason', () => {
+            // Given an expense carrying a reject the backend recorded against it
+            const transaction = createMock<Transaction>({transactionID: '1', errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}});
+
+            // When the list asks whether anything may select it
+            // Then nothing may select it, so Select All and a range agree with the checkbox
+            expect(isSelectableReportTransaction(transaction)).toBe(false);
+        });
+    });
+
+    describe('isEveryReportTransactionSelected', () => {
+        const ordinary = createMock<Transaction>({transactionID: '1'});
+        const other = createMock<Transaction>({transactionID: '2'});
+        const rejected = createMock<Transaction>({transactionID: '3', errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}});
+
+        test('counts a report covered once every row Select All can write is selected', () => {
+            // Given a report whose third expense the backend refused to reject, so no checkbox can put it in the selection
+            // When the other two are selected, which is everything Select All writes
+            // Then the report reads covered, or the report-level actions would be unreachable on it for good
+            expect(isEveryReportTransactionSelected([ordinary, other, rejected], ['1', '2'])).toBe(true);
+        });
+
+        test('does not count a report while a row the user can still check is out', () => {
+            // Given the same report
+            // When only one of its two selectable rows is selected
+            // Then it does not read covered, since a checkbox is left the user has not pressed
+            expect(isEveryReportTransactionSelected([ordinary, other, rejected], ['1'])).toBe(false);
+        });
+
+        test('does not count an empty selection, whichever rows the report holds', () => {
+            // Given a report of two ordinary expenses
+            // When nothing is selected
+            // Then the report is not covered, so pressing nothing cannot offer an action over everything
+            expect(isEveryReportTransactionSelected([ordinary, other], [])).toBe(false);
+        });
+
+        test('does not count a report holding no row anything can select', () => {
+            // Given a report whose only expense carries a refused reject
+            // When a selection is left holding its ID
+            // Then it does not read covered: `every` over an empty list is vacuously true, which would offer the actions on nothing
+            expect(isEveryReportTransactionSelected([rejected], ['3'])).toBe(false);
+        });
+    });
+
     describe('shouldWaitForTransactions', () => {
         const zeroTotalReport = {...reportBaseMock, total: 0};
 
@@ -201,6 +275,46 @@ describe('MoneyRequestReportUtils', () => {
             const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false};
 
             expect(shouldWaitForTransactions(reportBaseMock, [], reportLoadingState, false, false)).toBe(true);
+        });
+    });
+
+    describe('getVisibleReportRowViolations', () => {
+        const CURRENT_USER_ACCOUNT_ID = 1;
+        const CURRENT_USER_EMAIL = 'test@test.com';
+        const ownReport: Report = {reportID: 'report1', type: CONST.REPORT.TYPE.IOU, currency: CONST.CURRENCY.USD, ownerAccountID: CURRENT_USER_ACCOUNT_ID};
+        const missingCategoryViolations: TransactionViolations = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+
+        it('should return the violations the current user can see', () => {
+            // Given a transaction on the current user's report with a missing category violation
+            const transaction = createMock<Transaction>({transactionID: '1', reportID: ownReport.reportID});
+
+            // When the row asks for its visible violations
+            const violations = getVisibleReportRowViolations(transaction, missingCategoryViolations, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, ownReport, CURRENT_USER_EMAIL, undefined);
+
+            // Then the row shows that violation
+            expect(violations).toEqual(missingCategoryViolations);
+        });
+
+        it('should return the shared empty reference when the transaction has no violations', () => {
+            // Given a transaction whose violations key holds an empty list
+            const transaction = createMock<Transaction>({transactionID: '1', reportID: ownReport.reportID});
+
+            // When the row asks for its visible violations
+            const violations = getVisibleReportRowViolations(transaction, [], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, ownReport, CURRENT_USER_EMAIL, undefined);
+
+            // Then it gets the shared empty array, so its props stay referentially stable across renders
+            expect(violations).toBe(EMPTY_VIOLATIONS);
+        });
+
+        it('should return the shared empty reference when no violations are loaded', () => {
+            // Given a transaction whose violations key is not in Onyx
+            const transaction = createMock<Transaction>({transactionID: '1', reportID: ownReport.reportID});
+
+            // When the row asks for its visible violations
+            const violations = getVisibleReportRowViolations(transaction, undefined, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, ownReport, CURRENT_USER_EMAIL, undefined);
+
+            // Then it still gets the shared empty array
+            expect(violations).toBe(EMPTY_VIOLATIONS);
         });
     });
 });

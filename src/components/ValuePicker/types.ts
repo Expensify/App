@@ -2,7 +2,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ComponentRef, ForwardedRef, ReactNode} from 'react';
 import type {StyleProp, TextStyle, View} from 'react-native';
 
 type ValuePickerListItem = ListItem & {
@@ -63,6 +63,13 @@ type ValueSelectionListProps = Pick<
 type ValuePickerProps = ForwardedFSClassProps & {
     value?: string;
     label?: string;
+
+    /** Title of the picker's modal, when it differs from the label */
+    modalHeaderTitle?: string;
+
+    /** Whether screen readers hear the error with the row's name, since the row hides the error line from them on native */
+    shouldReadErrorWithLabel?: boolean;
+
     items?: ValuePickerItem[];
     placeholder?: string;
 
@@ -84,7 +91,7 @@ type ValuePickerProps = ForwardedFSClassProps & {
     /** Whether to show the selector modal */
     shouldShowModal?: boolean;
 
-    ref: ForwardedRef<View>;
+    ref: ForwardedRef<ComponentRef<typeof View>>;
     addBottomSafeAreaPadding?: boolean;
     disableKeyboardShortcuts?: boolean;
 
