@@ -6797,6 +6797,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             provisioningError:
                                 'Nous n’avons pas pu configurer certains membres de votre espace de travail pour la facturation de voyage consolidée. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
                             sendInvoiceNowCta: 'Envoyer la facture maintenant',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `Le plafond de dépenses mensuel par membre ne peut pas dépasser le plafond de voyage actuel de ${travelLimit}.`,
                         },
                         setUpNewFeed: 'Configurer un nouveau flux de voyage',
                         feedSelectorIntro:
