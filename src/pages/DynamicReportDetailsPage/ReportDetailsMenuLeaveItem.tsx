@@ -3,6 +3,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -10,7 +11,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
-import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
+import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, isPolicyGuest as isPolicyGuestUtil} from '@libs/PolicyUtils';
 import {
     canLeaveChat,
     findLastAccessedReport,
@@ -25,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import React from 'react';
 
 type ReportDetailsMenuLeaveItemProps = {
@@ -40,6 +42,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingChatMembersSelector});
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -47,10 +50,11 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
     const [personalDetails] = useAllPersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
+    const isAnonymousUser = useIsAnonymousUser();
     const isReportArchived = useReportIsArchived(reportID);
     const {showConfirmModal} = useConfirmModal();
 
-    const shouldShowLeaveButton = canLeaveChat(report, parentReport, parentReportAction, policy, currentUserAccountID, !!reportNameValuePairs?.private_isArchived);
+    const shouldShowLeaveButton = canLeaveChat(report, parentReport, parentReportAction, policy, currentUserAccountID, isAnonymousUser, !!reportNameValuePairs?.private_isArchived);
 
     if (!report || !shouldShowLeaveButton) {
         return null;
@@ -58,11 +62,12 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
 
     const isPolicyAdmin = isPolicyAdminUtil(policy);
     const isPolicyEmployee = isPolicyEmployeeUtil(report.policyID, policy);
+    const isPolicyGuest = isPolicyGuestUtil(policy);
     const isRootGroupChat = isRootGroupChatUtil(report, isReportArchived);
 
     const leaveChat = () => {
         // Resolve on tap from the module-scoped copies so this large page does not subscribe to whole collections.
-        const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, false, report.reportID)?.reportID;
+        const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, isAnonymousUser, false, report.reportID)?.reportID;
         if (isRootGroupChat) {
             leaveGroupChat(
                 report,
@@ -77,7 +82,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
             return;
         }
 
-        const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
+        const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin, isPolicyGuest);
         leaveRoom(report, currentUserAccountID, conciergeReportID, introSelected, isSelfTourViewed, personalDetails, isWorkspaceMemberLeavingWorkspaceRoom, lastAccessedReportID);
     };
 
@@ -101,7 +106,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
             title={translate('common.leave')}
             icon={expensifyIcons.Exit}
             onPress={() => {
-                if (getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
+                if (getParticipantsAccountIDsForDisplay(report, reportMetadata, false, true).length === 1 && isRootGroupChat) {
                     showLastMemberLeavingModal();
                     return;
                 }

@@ -1,5 +1,7 @@
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
+import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
+
 import {isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -59,6 +61,8 @@ function ExpenseReportSearchView({
     containerStyle,
 }: ExpenseReportSearchViewProps) {
     const {type} = queryJSON;
+    // Normalize copied report rows so their grid cells paste as one space-separated row.
+    useCopySelectionEvent();
 
     const {
         isOffline,
@@ -93,7 +97,7 @@ function ExpenseReportSearchView({
         emptyReports.reduce((acc, item) => acc + (isRowSelected(item.keyForList, selectedTransactions) ? 1 : 0), 0);
     const totalItems = flattenedTransactions.filter((item) => !isRowDeleted(item)).length + emptyReports.filter((item) => !isRowDeleted(item)).length;
 
-    const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => (
+    const renderItem = (item: SearchListItem, index: number, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => (
         // Report rows never animate their exit (only grouped expenses do), so the wrapper just preserves the overflow clip.
         <AnimatedExitRow
             shouldApplyAnimation={false}
@@ -101,7 +105,6 @@ function ExpenseReportSearchView({
         >
             <ExpenseReportListItem
                 showTooltip
-                isFocused={isItemFocused}
                 onSelectRow={handleSelectRow}
                 onLongPressRow={onLongPressRow}
                 onSelectionButtonPress={toggle}

@@ -5,6 +5,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -71,7 +72,7 @@ const buildPolicy = (overrides: Partial<Policy> = {}): Policy =>
 
 const renderPage = (initialRouteName: keyof TestNavigatorParamList = SCREENS.WORKSPACE.WORKFLOWS) =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider, PersonalDetailsByLoginProvider]}>
             <PortalProvider>
                 <ModalProvider>
                     <NavigationContainer>
@@ -133,6 +134,33 @@ describe('WorkspaceWorkflowsPageRevamp - Payer row visibility', () => {
                         bankName: 'Test Bank',
                         addressName: 'Test Address',
                         state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    },
+                }),
+            );
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
+    });
+
+    it('keeps the Payer row when reimbursementChoice is REIMBURSEMENT_YES after the bank account is disconnected', async () => {
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            // Disconnecting the bank account clears the bank data (no open state, removed from BANK_ACCOUNT_LIST)
+            // but preserves the reimburser and leaves reimbursementChoice as REIMBURSEMENT_YES.
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                buildPolicy({
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        reimburser: 'test@user.com',
+                        bankAccountID: 0,
+                        accountNumber: '',
+                        routingNumber: '',
+                        addressName: '',
+                        bankName: '',
                     },
                 }),
             );
