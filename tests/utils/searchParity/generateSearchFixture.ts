@@ -147,6 +147,7 @@ const NAMED_CONTACTS: Array<Pick<PersonalDetails, 'accountID' | 'login' | 'displ
 
 const SEARCH_QUERIES = [
     '',
+    '   ',
     'a',
     'al',
     'alex smith',

@@ -1,7 +1,7 @@
+// cspell:disable -- names and queries deliberately use diacritics, non-Latin scripts and misspelled forms
 import SEARCH_ROUTER_OPTIONS_CONFIG from '@components/Search/SearchRouter/searchRouterOptionsConfig';
 
-// cspell:disable -- names and queries deliberately use diacritics, non-Latin scripts and misspelled forms
-import type {OptionList, Options, SearchOptionData} from '@libs/OptionsListUtils';
+import type {OptionList, SearchOptionData} from '@libs/OptionsListUtils';
 import {
     clearAlternateTextCache,
     clearFilteredOptionListCache,
@@ -53,64 +53,66 @@ function clearSearchCaches() {
 
 /**
  * Serializes options into "<keyForList> <text> [flags] [alt: ...] [sub: ...] [accID: ...]" lines to pin option ordering and content rather than rendering details.
- * Flags are [selected], [disabled], [bold], [gbr], [rbr] and [archived], where [archived] surfaces private_isArchived, which drives ranking and the archived preview text.
- * Invited users include their login when different from text to distinguish email from phone invites.
- * [sub: ...] is only emitted for rooms and workspace chats, because that is what search matches for them. Fields the SearchRouter never reads (participantsList, icons, policyID, ownerAccountID, item) are deliberately left out.
+ * [sub: ...] is only emitted for rooms and workspace chats, because that is what search matches for them.
+ * Fields the SearchRouter never reads (participantsList, icons, policyID, ownerAccountID, item) are deliberately left out.
  */
-function createOptionSerializer() {
-    function serializeOption(option: SearchOptionData | null | undefined, {isUserToInvite = false}: {isUserToInvite?: boolean} = {}): string | null {
-        if (!option) {
-            return null;
-        }
-        const flags = [
-            option.isSelected ? ' [selected]' : '',
-            option.isDisabled ? ' [disabled]' : '',
-            option.isBold ? ' [bold]' : '',
-            option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? ' [gbr]' : '',
-            option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? ' [rbr]' : '',
-            option.private_isArchived ? ' [archived]' : '',
-        ].join('');
-        const invitedLogin = isUserToInvite && option.login !== option.text ? ` ${option.login ?? ''}` : '';
-        const altText = option.alternateText ? ` [alt: ${option.alternateText}]` : '';
-        const subtitle = (option.isChatRoom || option.isPolicyExpenseChat) && option.subtitle ? ` [sub: ${option.subtitle}]` : '';
-        const accountID = option.accountID ? ` [accID: ${option.accountID}]` : '';
-        return `${option.keyForList ?? ''} ${option.text ?? ''}${flags}${altText}${subtitle}${accountID}${invitedLogin}`;
+function serializeOption(option: SearchOptionData | null | undefined, {isUserToInvite = false}: {isUserToInvite?: boolean} = {}): string | null {
+    if (!option) {
+        return null;
     }
-
-    function serializeResult({options, hasMore}: OptionsResult | {options: Options; hasMore?: boolean}) {
-        return {
-            recentReports: options.recentReports.map((option) => serializeOption(option)),
-            personalDetails: options.personalDetails.map((option) => serializeOption(option)),
-            workspaceChats: options.workspaceChats?.map((option) => serializeOption(option)),
-            selfDMChat: serializeOption(options.selfDMChat),
-            currentUserOption: serializeOption(options.currentUserOption),
-            userToInvite: serializeOption(options.userToInvite, {
-                isUserToInvite: true,
-            }),
-            hasMore: !!hasMore,
-        };
-    }
-
-    /** Preserves pipeline ordering, but sorts unordered collections to ensure deterministic snapshots. */
-    function serializeOptionList(optionList: OptionList, {isOrderMeaningful}: {isOrderMeaningful: boolean}) {
-        const sortIfUnordered = (references: Array<string | null>) => (isOrderMeaningful ? references : [...references].sort());
-        return {
-            reports: sortIfUnordered(optionList.reports.map((option) => serializeOption(option))),
-            // Shells are compared both as built and after hydration, so the shell/hydrator split stays invisible
-            personalDetails: optionList.personalDetails.map((shell) => `${shell.reportID} | ${shell.accountID} | ${shell.login ?? ''}`).sort(),
-            hydratedPersonalDetails: optionList.personalDetails.map((shell) => serializeOption(hydrateContactOption(shell))).sort(),
-        };
-    }
-
-    return {serializeOption, serializeResult, serializeOptionList};
+    const flags = [
+        option.isSelected ? ' [selected]' : '',
+        option.isDisabled ? ' [disabled]' : '',
+        option.isBold ? ' [bold]' : '',
+        option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? ' [gbr]' : '',
+        option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? ' [rbr]' : '',
+        option.private_isArchived ? ' [archived]' : '',
+    ].join('');
+    const invitedLogin = isUserToInvite && option.login !== option.text ? ` ${option.login ?? ''}` : '';
+    const altText = option.alternateText ? ` [alt: ${option.alternateText}]` : '';
+    const subtitle = (option.isChatRoom || option.isPolicyExpenseChat) && option.subtitle ? ` [sub: ${option.subtitle}]` : '';
+    const accountID = option.accountID ? ` [accID: ${option.accountID}]` : '';
+    return `${option.keyForList ?? ''} ${option.text ?? ''}${flags}${altText}${subtitle}${accountID}${invitedLogin}`;
 }
 
-function expectToMatchGoldenMaster(value: unknown) {
-    expect(value).toMatchSnapshot();
+/** What the screen shows: one flat list of rows, in order. */
+type DisplayedResult = {displayedRows: SearchOptionData[]; hasMore?: boolean};
+
+function serializeResult(result: OptionsResult | DisplayedResult) {
+    if ('displayedRows' in result) {
+        return {
+            displayedRows: result.displayedRows.map((option) => serializeOption(option)),
+            hasMore: !!result.hasMore,
+        };
+    }
+    const {options, hasMore} = result;
+    return {
+        recentReports: options.recentReports.map((option) => serializeOption(option)),
+        personalDetails: options.personalDetails.map((option) => serializeOption(option)),
+        workspaceChats: options.workspaceChats?.map((option) => serializeOption(option)),
+        selfDMChat: serializeOption(options.selfDMChat),
+        currentUserOption: serializeOption(options.currentUserOption),
+        userToInvite: serializeOption(options.userToInvite, {
+            isUserToInvite: true,
+        }),
+        hasMore: !!hasMore,
+    };
+}
+
+/** Preserves pipeline ordering, but sorts unordered collections to ensure deterministic snapshots. */
+function serializeOptionList(optionList: OptionList, {isOrderMeaningful}: {isOrderMeaningful: boolean}) {
+    const sortIfUnordered = (references: Array<string | null>) => (isOrderMeaningful ? references : [...references].sort());
+    return {
+        reports: sortIfUnordered(optionList.reports.map((option) => serializeOption(option))),
+        // Shells are compared both as built and after hydration, so the shell/hydrator split stays invisible
+        personalDetails: optionList.personalDetails.map((shell) => `${shell.reportID} | ${shell.accountID} | ${shell.login ?? ''}`).sort(),
+        hydratedPersonalDetails: optionList.personalDetails.map((shell) => serializeOption(hydrateContactOption(shell))).sort(),
+    };
 }
 
 /**
- * Cap for the SearchRouter idle list. Production uses 100, which keeps all fixture reports. Setting this to 10 forces evictions.
+ * Cap for the SearchRouter idle list. The production cap (SEARCH_ROUTER_OPTIONS_CONFIG.maxRecentReports) keeps all fixture reports. Setting this to 10 forces evictions.
+ * The value is arbitrary: any cap below the fixture report count forces evictions, and 10 just keeps the recorded idle list short. No particular sort rule sits at the boundary.
  */
 const SEARCH_ROUTER_IDLE_REPORTS_CAP = 10;
 
@@ -166,7 +168,11 @@ function buildSearchRouterIdleOptionList(sourceFixture: SearchFixture, maxRecent
 // Passed to combineOrderingOfReportsAndPersonalDetails. Only affects workspace chat ordering, which displayed passes do not show.
 const ACTIVE_POLICY_ID = OWN_POLICY_ID;
 
-type SearchCallSite = (options: OptionList, query: string) => OptionsResult;
+type SearchCallSite = (options: OptionList, query: string) => OptionsResult | DisplayedResult;
+
+const CALL_SITE_NAMES = ['searchRouterLocal', 'searchRouterDisplayed'] as const;
+
+type SearchCallSiteName = (typeof CALL_SITE_NAMES)[number];
 
 /**
  * Keeps getReportByID stable for identical fixture.reports references as useCallback(..., [allReports]) does in useFilteredOptions,
@@ -252,10 +258,7 @@ function createCallSites(sourceFixture: SearchFixture) {
 
             if (!query.trim()) {
                 return {
-                    options: {
-                        ...result.options,
-                        recentReports: result.options.recentReports.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS),
-                    },
+                    displayedRows: result.options.recentReports.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS),
                     hasMore: result.hasMore,
                 };
             }
@@ -271,11 +274,7 @@ function createCallSites(sourceFixture: SearchFixture) {
             }
 
             return {
-                options: {
-                    ...result.options,
-                    recentReports: displayedReports.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS),
-                    personalDetails: ordered.personalDetails,
-                },
+                displayedRows: displayedReports.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS),
                 hasMore: result.hasMore,
             };
         },
@@ -284,26 +283,16 @@ function createCallSites(sourceFixture: SearchFixture) {
     return {searchCallSites, serverPassConfig};
 }
 
-// Extracts call site names for test parameterization. Actual instances are created in beforeAll once Onyx derives report values.
-const CALL_SITE_NAMES = Object.keys(createCallSites(fixture).searchCallSites);
-
 type OptionListKind = 'searching' | 'searchRouterIdle';
 
 // Maps call sites to the option list used when query is blank (the small idle list, or the searching list for any other query).
-const BLANK_QUERY_OPTION_LIST: Record<string, OptionListKind> = {
+const BLANK_QUERY_OPTION_LIST: Record<SearchCallSiteName, OptionListKind> = {
     searchRouterLocal: 'searchRouterIdle',
     searchRouterDisplayed: 'searchRouterIdle',
 };
 
-function getOptionListKind(callSite: string, query: string): OptionListKind {
-    if (query.trim()) {
-        return 'searching';
-    }
-    const kind = BLANK_QUERY_OPTION_LIST[callSite];
-    if (!kind) {
-        throw new Error(`Call site ${callSite} does not say which list it searches with a blank query`);
-    }
-    return kind;
+function getOptionListKind(callSite: SearchCallSiteName, query: string): OptionListKind {
+    return query.trim() ? 'searching' : BLANK_QUERY_OPTION_LIST[callSite];
 }
 
 // Reports returned by the SearchAutocompleteList server pass in Auth ranking order, including a self-DM that the pass drops and reports the canonical filter rejects.
@@ -353,7 +342,6 @@ function withFocusedReport<T>(reportID: string, run: () => T): T {
 
 /** Computes every recorded pass over the fixture, starting from cold caches. */
 function computeGoldenMaster(sourceFixture: SearchFixture) {
-    const {serializeOption, serializeResult, serializeOptionList} = createOptionSerializer();
     const {searchCallSites, serverPassConfig} = createCallSites(sourceFixture);
     clearSearchCaches();
 
@@ -376,9 +364,9 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
         searchRouterIdle,
     };
     const callSites = Object.fromEntries(
-        Object.entries(searchCallSites).map(([callSite, run]) => [
+        CALL_SITE_NAMES.map((callSite) => [
             callSite,
-            Object.fromEntries(SEARCH_QUERIES.map((query) => [query, serializeResult(run(optionListsByKind[getOptionListKind(callSite, query)], query))])),
+            Object.fromEntries(SEARCH_QUERIES.map((query) => [query, serializeResult(searchCallSites[callSite](optionListsByKind[getOptionListKind(callSite, query)], query))])),
         ]),
     );
 
@@ -440,28 +428,24 @@ describe('OptionsListUtils search parity (golden master)', () => {
         goldenMaster = computeGoldenMaster(fixture);
     });
 
-    beforeEach(() => {
-        clearSearchCaches();
-    });
-
     it('builds searching and SearchRouter idle option lists that match the golden master', () => {
         // Given the fixture account with every report type and contact quirk
         // When the option list is built for search (every report) and for the SearchRouter idle state (top-N, contacts deferred) at the small cap and the production cap
         // Then every option keeps its identity, flags and, where it matters, its order
-        expectToMatchGoldenMaster(goldenMaster.optionLists);
+        expect(goldenMaster.optionLists).toMatchSnapshot();
     });
 
     it.each(CALL_SITE_NAMES)('call site %s matches the golden master for every query', (callSite) => {
         // Given a production getSearchOptions config and the option list it searches (the full list, or its idle list while the query is blank)
         // When every query in the matrix runs through it
         // Then the sections and their order match the recorded golden master
-        expectToMatchGoldenMaster(goldenMaster.callSites[callSite]);
+        expect(goldenMaster.callSites[callSite]).toMatchSnapshot();
     });
 
     it('SearchRouter blank query and server-ID pass match the golden master', () => {
         // Given the SearchRouter idle list at the production cap, the SearchAutocompleteList server pass (a fixed set of reports in Auth's order, no query, including rejected and unknown IDs that it drops) and the SearchRouter opened over a focused empty thread or empty submitted report
         // When they run through their production configs, the focused ones for a blank query and for a query matching the focused report
         // Then all match the recorded golden master, with the focused report shown only while it is focused
-        expectToMatchGoldenMaster(goldenMaster.passes);
+        expect(goldenMaster.passes).toMatchSnapshot();
     });
 });

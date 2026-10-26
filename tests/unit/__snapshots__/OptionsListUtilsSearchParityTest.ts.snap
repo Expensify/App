@@ -5,10 +5,7 @@ exports[`OptionsListUtils search parity (golden master) SearchRouter blank query
   "focusedReport": {
     "Empty submitted report": {
       "blank": {
-        "currentUserOption": null,
-        "hasMore": true,
-        "personalDetails": [],
-        "recentReports": [
+        "displayedRows": [
           "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
           "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
           "1124 Ada Cole [alt: This chat is with Ada Cole.] [accID: 124]",
@@ -30,30 +27,20 @@ exports[`OptionsListUtils search parity (golden master) SearchRouter blank query
           "1138 Cyd Dunn [alt: This chat is with Cyd Dunn.] [accID: 138]",
           "1117 Fay Byrd [alt: This chat is with Fay Byrd.] [accID: 117]",
         ],
-        "selfDMChat": null,
-        "userToInvite": null,
-        "workspaceChats": [],
+        "hasMore": true,
       },
       "empty": {
-        "currentUserOption": null,
-        "hasMore": false,
-        "personalDetails": [],
-        "recentReports": [
+        "displayedRows": [
           "2032 Empty submitted report [alt: No activity yet] [accID: 1]",
           "2025 Empty pinned thread [alt: No activity yet]",
           "2024 Empty thread with a draft [alt: No activity yet]",
         ],
-        "selfDMChat": null,
-        "userToInvite": null,
-        "workspaceChats": [],
+        "hasMore": false,
       },
     },
     "Empty thread": {
       "blank": {
-        "currentUserOption": null,
-        "hasMore": true,
-        "personalDetails": [],
-        "recentReports": [
+        "displayedRows": [
           "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
           "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
           "1124 Ada Cole [alt: This chat is with Ada Cole.] [accID: 124]",
@@ -75,30 +62,20 @@ exports[`OptionsListUtils search parity (golden master) SearchRouter blank query
           "1117 Fay Byrd [alt: This chat is with Fay Byrd.] [accID: 117]",
           "1012 first.last+tag@x.com [alt: This chat is with first.last+tag@x.com.] [accID: 12]",
         ],
-        "selfDMChat": null,
-        "userToInvite": null,
-        "workspaceChats": [],
+        "hasMore": true,
       },
       "empty": {
-        "currentUserOption": null,
-        "hasMore": false,
-        "personalDetails": [],
-        "recentReports": [
+        "displayedRows": [
           "2025 Empty pinned thread [alt: No activity yet]",
           "2024 Empty thread with a draft [alt: No activity yet]",
           "2023 Empty thread [alt: No activity yet]",
         ],
-        "selfDMChat": null,
-        "userToInvite": null,
-        "workspaceChats": [],
+        "hasMore": false,
       },
     },
   },
   "searchRouterBlankAtProductionCap": {
-    "currentUserOption": null,
-    "hasMore": true,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
       "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
       "1124 Ada Cole [alt: This chat is with Ada Cole.] [accID: 124]",
@@ -120,9 +97,7 @@ exports[`OptionsListUtils search parity (golden master) SearchRouter blank query
       "1117 Fay Byrd [alt: This chat is with Fay Byrd.] [accID: 117]",
       "1012 first.last+tag@x.com [alt: This chat is with first.last+tag@x.com.] [accID: 12]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": true,
   },
   "serverPass": [
     "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
@@ -424,10 +399,7 @@ exports[`OptionsListUtils search parity (golden master) builds searching and Sea
 exports[`OptionsListUtils search parity (golden master) call site searchRouterDisplayed matches the golden master for every query 1`] = `
 {
   "": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
       "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
       "1124 Ada Cole [alt: This chat is with Ada Cole.] [accID: 124]",
@@ -437,88 +409,61 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
       "1102 Cyd Ames [alt: This chat is with Cyd Ames.] [accID: 102]",
       "1018 Domain Admin [alt: This chat is with Domain Admin.] [accID: 18]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
+  },
+  "   ": {
+    "displayedRows": [
+      "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
+      "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
+      "1124 Ada Cole [alt: This chat is with Ada Cole.] [accID: 124]",
+      "1103 Dan Ames [alt: This chat is with Dan Ames.] [accID: 103]",
+      "1019 No Login [alt: This chat is with No Login.] [accID: 19]",
+      "1123 Lou Byrd [alt: This chat is with Lou Byrd.] [accID: 123]",
+      "1102 Cyd Ames [alt: This chat is with Cyd Ames.] [accID: 102]",
+      "1018 Domain Admin [alt: This chat is with Domain Admin.] [accID: 18]",
+    ],
+    "hasMore": false,
   },
   " alex.smith@example.com ": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2001 Alex Smith [alt: alex.smith@example.com] [accID: 14]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "(500) 555": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1013 (500) 555-0006 [alt: This chat is with (500) 555-0006.] [accID: 13]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "*": {
-    "currentUserOption": null,
+    "displayedRows": [],
     "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
   },
   "+1 650 555 0100": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1100537387 +1 650 555 0100 [alt: +1 650 555 0100] [accID: 1100537387]",
     ],
-    "selfDMChat": null,
-    "userToInvite": "1100537387 +1 650 555 0100 [alt: +1 650 555 0100] [accID: 1100537387]",
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "+15005550006": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1013 (500) 555-0006 [alt: This chat is with (500) 555-0006.] [accID: 13]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   ".*": {
-    "currentUserOption": null,
+    "displayedRows": [],
     "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
   },
   "5550006": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1013 (500) 555-0006 [alt: This chat is with (500) 555-0006.] [accID: 13]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "@example": {
-    "currentUserOption": null,
-    "hasMore": true,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
       "2001 Alex Smith [alt: alex.smith@example.com] [accID: 14]",
       "1124 Ada Cole [alt: This chat is with Ada Cole.] [accID: 124]",
@@ -540,64 +485,39 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
       "1010 Bob Builder [bold] [alt: See you at the trailhead] [accID: 10]",
       "1135 Lou Cole [alt: This chat is with Lou Cole.] [accID: 135]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": true,
   },
   "CURRENT.USER@EXAMPLE.COM": {
-    "currentUserOption": "1 Current User [alt: current.user@example.com] [accID: 1]",
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
       "2031 Offsite expenses [alt: No activity yet] [accID: 1]",
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "Groß": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "5 Groß Straße [alt: strasse@example.com] [accID: 5]",
       "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
       "2007 Groß Straße [alt: Vít Workspace • This chat is for invoices between Groß Straße and Vít Workspace. Use the + button to send an invoice.] [sub: Invoices]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "JOSÉ": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2020 José Ñúñez [bold] [alt: Packing list] [accID: 2]",
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "René": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "20 René Dupont [alt: rene@example.com] [accID: 20]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "Vít": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1003 Vít Novák [alt: This chat is with Vít Novák.] [accID: 3]",
       "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
       "2005 Current User's expenses [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User]",
@@ -606,33 +526,18 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
       "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace]",
       "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "[": {
-    "currentUserOption": null,
+    "displayedRows": [],
     "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
   },
   "\\": {
-    "currentUserOption": null,
+    "displayedRows": [],
     "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
   },
   "a": {
-    "currentUserOption": null,
-    "hasMore": true,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
       "2001 Alex Smith [alt: alex.smith@example.com] [accID: 14]",
       "1124 Ada Cole [alt: This chat is with Ada Cole.] [accID: 124]",
@@ -654,133 +559,78 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
       "1112 Ada Byrd [alt: ada.byrd.12@example.com] [accID: 112]",
       "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": true,
   },
   "acme": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "ada byrd": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1112 Ada Byrd [alt: This chat is with Ada Byrd.] [accID: 112]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "admins": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "al": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2001 Alex Smith [alt: alex.smith@example.com] [accID: 14]",
       "1015 Alex Smith Jr. [alt: This chat is with Alex Smith Jr..] [accID: 15]",
       "107 Hal Ames [alt: hal.ames.7@example.com] [accID: 107]",
       "119 Hal Byrd [alt: hal.byrd.19@example.com] [accID: 119]",
       "131 Hal Cole [alt: hal.cole.31@example.com] [accID: 131]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "alex smith": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2001 Alex Smith [alt: alex.smith@example.com] [accID: 14]",
       "1015 Alex Smith Jr. [alt: This chat is with Alex Smith Jr..] [accID: 15]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "anamaria": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1009 Ana​Maria [alt: This chat is with Ana​Maria.] [accID: 9]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "bob builder": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1010 Bob Builder [bold] [alt: See you at the trailhead] [accID: 10]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "cole lou": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1135 Lou Cole [alt: This chat is with Lou Cole.] [accID: 135]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "concierge": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1021 Concierge [alt: Concierge can answer questions, update expenses, and more.] [accID: 21]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "ex sm": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2001 Alex Smith [alt: alex.smith@example.com] [accID: 14]",
       "1015 Alex Smith Jr. [alt: This chat is with Alex Smith Jr..] [accID: 15]",
       "1013 (500) 555-0006 [alt: This chat is with (500) 555-0006.] [accID: 13]",
       "1004 İsmail Yılmaz [alt: Thanks!] [accID: 4]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "example.com": {
-    "currentUserOption": null,
-    "hasMore": true,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
       "2001 Alex Smith [alt: alex.smith@example.com] [accID: 14]",
       "1124 Ada Cole [alt: This chat is with Ada Cole.] [accID: 124]",
@@ -802,104 +652,59 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
       "1010 Bob Builder [bold] [alt: See you at the trailhead] [accID: 10]",
       "1135 Lou Cole [alt: This chat is with Lou Cole.] [accID: 135]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": true,
   },
   "firstlast": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1012 first.last+tag@x.com [alt: This chat is with first.last+tag@x.com.] [accID: 12]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "hiking": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "ikin": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "ismail": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1004 İsmail Yılmaz [alt: Thanks!] [accID: 4]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "jr alex": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1015 Alex Smith Jr. [alt: This chat is with Alex Smith Jr..] [accID: 15]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "last+tag": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1012 first.last+tag@x.com [alt: This chat is with first.last+tag@x.com.] [accID: 12]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "lukasz": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1006 Łukasz Wójcik [alt: This chat is with Łukasz Wójcik.] [accID: 6]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "mary-jane": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
       "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [accID: 11]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "me": {
-    "currentUserOption": "1 Current User [alt: current.user@example.com] [accID: 1]",
-    "hasMore": true,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
       "1103 Dan Ames [alt: This chat is with Dan Ames.] [accID: 103]",
       "1102 Cyd Ames [alt: This chat is with Cyd Ames.] [accID: 102]",
@@ -914,180 +719,105 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
       "107 Hal Ames [alt: hal.ames.7@example.com] [accID: 107]",
       "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": true,
   },
   "mith": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2001 Alex Smith [alt: alex.smith@example.com] [accID: 14]",
       "1015 Alex Smith Jr. [alt: This chat is with Alex Smith Jr..] [accID: 15]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "new.person@example.com": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "301623904 new.person@example.com [alt: new.person@example.com] [accID: 301623904]",
     ],
-    "selfDMChat": null,
-    "userToInvite": "301623904 new.person@example.com [alt: new.person@example.com] [accID: 301623904]",
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "nounce": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "nunez": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2020 José Ñúñez [bold] [alt: Packing list] [accID: 2]",
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "obrien": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
       "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [accID: 11]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "oldings": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "orkspace": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
       "2005 Current User's expenses [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User]",
       "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
       "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace]",
       "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "ovak": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1003 Vít Novák [alt: This chat is with Vít Novák.] [accID: 3]",
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "packing thread": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2026 Packing list [bold] [alt: José Ñúñez: Tent and stove]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "rene": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "20 René Dupont [alt: rene@example.com] [accID: 20]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "smith jr": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1015 Alex Smith Jr. [alt: This chat is with Alex Smith Jr..] [accID: 15]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "strasse": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "5 Groß Straße [alt: strasse@example.com] [accID: 5]",
       "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
       "2007 Groß Straße [alt: Vít Workspace • This chat is for invoices between Groß Straße and Vít Workspace. Use the + button to send an invoice.] [sub: Invoices]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "thread": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2026 Packing list [bold] [alt: José Ñúñez: Tent and stove]",
       "2025 Empty pinned thread [alt: No activity yet]",
       "2024 Empty thread with a draft [alt: No activity yet]",
       "2021 Thread about the offsite [bold] [alt: José Ñúñez: Count me in]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "to:al": {
-    "currentUserOption": null,
+    "displayedRows": [],
     "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
   },
   "vit": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1003 Vít Novák [alt: This chat is with Vít Novák.] [accID: 3]",
       "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
       "2005 Current User's expenses [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User]",
@@ -1096,111 +826,64 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
       "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace]",
       "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "vit workspace": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
       "2005 Current User's expenses [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User]",
       "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace]",
       "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "workspace": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
       "2005 Current User's expenses [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User]",
       "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
       "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace]",
       "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "x.com": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1012 first.last+tag@x.com [alt: This chat is with first.last+tag@x.com.] [accID: 12]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "you": {
-    "currentUserOption": "1 Current User [alt: current.user@example.com] [accID: 1]",
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "zzzqqq": {
-    "currentUserOption": null,
+    "displayedRows": [],
     "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
   },
   "İSMAIL": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1004 İsmail Yılmaz [alt: Thanks!] [accID: 4]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "δυσσευς": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "1007 Οδυσσεύς [alt: This chat is with Οδυσσεύς.] [accID: 7]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
   "δυσσευσ": {
-    "currentUserOption": null,
+    "displayedRows": [],
     "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
   },
   "👩‍💻": {
-    "currentUserOption": null,
-    "hasMore": false,
-    "personalDetails": [],
-    "recentReports": [
+    "displayedRows": [
       "8 Zoë 👩‍💻 [alt: zoe@example.com] [accID: 8]",
     ],
-    "selfDMChat": null,
-    "userToInvite": null,
-    "workspaceChats": [],
+    "hasMore": false,
   },
 }
 `;
@@ -1208,6 +891,24 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
 exports[`OptionsListUtils search parity (golden master) call site searchRouterLocal matches the golden master for every query 1`] = `
 {
   "": {
+    "currentUserOption": null,
+    "hasMore": false,
+    "personalDetails": [],
+    "recentReports": [
+      "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
+      "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
+      "1124 Ada Cole [alt: This chat is with Ada Cole.] [accID: 124]",
+      "1103 Dan Ames [alt: This chat is with Dan Ames.] [accID: 103]",
+      "1019 No Login [alt: This chat is with No Login.] [accID: 19]",
+      "1123 Lou Byrd [alt: This chat is with Lou Byrd.] [accID: 123]",
+      "1102 Cyd Ames [alt: This chat is with Cyd Ames.] [accID: 102]",
+      "1018 Domain Admin [alt: This chat is with Domain Admin.] [accID: 18]",
+    ],
+    "selfDMChat": null,
+    "userToInvite": null,
+    "workspaceChats": [],
+  },
+  "   ": {
     "currentUserOption": null,
     "hasMore": false,
     "personalDetails": [],
