@@ -50,8 +50,11 @@ function VerifyIdentity() {
 
     const onfidoError = getLatestErrorMessage(walletOnfidoData) ?? '';
 
+    // Onfido is initialized only once on mount, so wait for a usable token instead of starting it with an empty one
+    const shouldShowOnfido = walletOnfidoData?.hasAcceptedPrivacyPolicy && !walletOnfidoData?.isLoading && !walletOnfidoData?.errors && !!walletOnfidoData?.sdkToken;
+
     const handleOnfidoError = () => {
-        Growl.error(translate('onfidoStep.genericError'), ONFIDO_ERROR_DISPLAY_DURATION);
+        Growl.error({bodyText: translate('onfidoStep.genericError'), duration: ONFIDO_ERROR_DISPLAY_DURATION});
     };
 
     const goBack = () => {
@@ -73,7 +76,7 @@ function VerifyIdentity() {
             </View>
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={styles.flex1}>
-                    {walletOnfidoData?.hasAcceptedPrivacyPolicy ? (
+                    {shouldShowOnfido ? (
                         <Onfido
                             sdkToken={walletOnfidoData?.sdkToken ?? ''}
                             onUserExit={goBack}
