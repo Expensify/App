@@ -6,9 +6,6 @@ import type {CardFeedWithNumber, CompanyCardFeedWithDomainID} from './CardFeeds'
 type CompanyCardsFeedLoadingState = {
     /** Whether this feed has been fetched at least once in this session */
     hasOnceLoaded?: boolean;
-
-    /** Latest bulk update eligible for a success notification; invalidated when this feed is deleted */
-    bulkTransactionStartDateUpdateID?: string;
 };
 
 /**

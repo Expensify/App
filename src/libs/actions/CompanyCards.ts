@@ -384,13 +384,13 @@ function deleteWorkspaceCompanyCardFeed(
             | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
             | typeof ONYXKEYS.CARD_LIST
             | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED
-            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE
+            | typeof ONYXKEYS.COLLECTION.COMPANY_CARDS_BULK_START_DATE_UPDATES
         >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`,
-            value: {feeds: {[bankName]: {bulkTransactionStartDateUpdateID: null}}},
+            key: `${ONYXKEYS.COLLECTION.COMPANY_CARDS_BULK_START_DATE_UPDATES}${domainOrWorkspaceAccountID}`,
+            value: {[bankName]: null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -955,12 +955,12 @@ function bulkUpdateCardTransactionStartDate(
 
     const key = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}` as const;
     const bulkTransactionStartDateUpdateID = rand64();
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.COLLECTION.COMPANY_CARDS_BULK_START_DATE_UPDATES>> = [
         {onyxMethod: Onyx.METHOD.MERGE, key, value: optimisticCards},
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`,
-            value: {feeds: {[bankName]: {bulkTransactionStartDateUpdateID}}},
+            key: `${ONYXKEYS.COLLECTION.COMPANY_CARDS_BULK_START_DATE_UPDATES}${domainOrWorkspaceAccountID}`,
+            value: {[bankName]: bulkTransactionStartDateUpdateID},
         },
     ];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: finallyCards}];

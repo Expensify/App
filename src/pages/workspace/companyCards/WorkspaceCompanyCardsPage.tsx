@@ -77,9 +77,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const bulkTransactionStartDateUpdateSuccessID = companyCardsLoadingState?.bulkTransactionStartDateUpdateSuccessID;
     const bulkTransactionStartDateUpdateFeed = companyCardsLoadingState?.bulkTransactionStartDateUpdateFeed;
-    const activeBulkTransactionStartDateUpdateID = bulkTransactionStartDateUpdateFeed
-        ? companyCardsLoadingState?.feeds?.[getCompanyCardFeed(bulkTransactionStartDateUpdateFeed)]?.bulkTransactionStartDateUpdateID
-        : undefined;
+    const [bulkStartDateUpdates] = useOnyx(`${ONYXKEYS.COLLECTION.COMPANY_CARDS_BULK_START_DATE_UPDATES}${domainOrWorkspaceAccountID}`);
+    const activeBulkTransactionStartDateUpdateID = bulkTransactionStartDateUpdateFeed ? bulkStartDateUpdates?.[getCompanyCardFeed(bulkTransactionStartDateUpdateFeed)] : undefined;
     const lastHandledBulkTransactionStartDateUpdateSuccessID = useRef<string | undefined>(undefined);
 
     useEffect(() => {
@@ -90,6 +89,9 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         lastHandledBulkTransactionStartDateUpdateSuccessID.current = bulkTransactionStartDateUpdateSuccessID;
         clearBulkUpdateTransactionStartDateSuccess(domainOrWorkspaceAccountID);
         const updatedFeed = bulkTransactionStartDateUpdateFeed ? allCardFeeds?.[bulkTransactionStartDateUpdateFeed] : undefined;
+        // A bulk update queued offline can succeed after the user deleted its feed. Only notify for the feed's latest
+        // queued update when the feed still exists. Deleting a feed clears its latest update on the device, because a
+        // deletion that only unlinks a domain feed from the workspace leaves the feed in the server's response.
         if (activeBulkTransactionStartDateUpdateID !== bulkTransactionStartDateUpdateSuccessID || !updatedFeed || updatedFeed.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }

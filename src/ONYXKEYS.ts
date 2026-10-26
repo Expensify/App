@@ -1136,6 +1136,9 @@ const ONYXKEYS = {
         /** Currently displaying feed */
         LAST_SELECTED_FEED: 'lastSelectedFeed_',
 
+        /** Latest queued bulk transaction start date update for each company card feed, keyed by domainOrWorkspaceAccountID */
+        COMPANY_CARDS_BULK_START_DATE_UPDATES: 'companyCardsBulkStartDateUpdates_',
+
         /** Currently displaying Expensify Card feed */
         LAST_SELECTED_EXPENSIFY_CARD_FEED: 'lastSelectedExpensifyCardFeed_',
 
@@ -1728,6 +1731,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION]: OnyxTypes.CardContinuousReconciliation;
     [ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID]: string;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: OnyxTypes.CompanyCardFeedWithDomainID;
+    [ONYXKEYS.COLLECTION.COMPANY_CARDS_BULK_START_DATE_UPDATES]: OnyxTypes.CompanyCardsBulkStartDateUpdates;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED]: OnyxTypes.FundID;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
     [ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
