@@ -37,16 +37,21 @@ function resolvePadding(
     }
 
     // Shrink the paddings further to take into account the axis labels size
-    if (yAxis?.[0].tickCount && leftAxisSize && resolvedPadding.left) {
+    // The shrink is only needed if we are actually going to draw the axis labels i.e. `tickCount` > 0
+    const shouldShrinkLeftPadding = Object.values(yAxis ?? {}).some((y) => y.tickCount && y.axisSide === 'left');
+    const shouldShrinkRightPadding = Object.values(yAxis ?? {}).some((y) => y.tickCount && y.axisSide === 'right');
+    const shouldShrinkBottomPadding = xAxis?.tickCount && xAxis.axisSide === 'bottom';
+    const shouldShrinkTopPadding = xAxis?.tickCount && xAxis.axisSide === 'top';
+    if (shouldShrinkLeftPadding && leftAxisSize && resolvedPadding.left) {
         resolvedPadding.left -= leftAxisSize;
     }
-    if (yAxis?.[0].tickCount && rightAxisSize && resolvedPadding.right) {
+    if (shouldShrinkRightPadding && rightAxisSize && resolvedPadding.right) {
         resolvedPadding.right -= rightAxisSize;
     }
-    if (xAxis?.tickCount && bottomAxisSize && resolvedPadding.bottom) {
+    if (shouldShrinkBottomPadding && bottomAxisSize && resolvedPadding.bottom) {
         resolvedPadding.bottom -= bottomAxisSize;
     }
-    if (xAxis?.tickCount && topAxisSize && resolvedPadding.top) {
+    if (shouldShrinkTopPadding && topAxisSize && resolvedPadding.top) {
         resolvedPadding.top -= topAxisSize;
     }
 
