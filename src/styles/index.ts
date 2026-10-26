@@ -3748,6 +3748,12 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.pr5,
         },
 
+        growlNotificationNativeContent: {
+            width: '100%',
+            maxWidth: variables.growlNotificationMaxWidth,
+            alignSelf: 'center',
+        },
+
         growlNotificationDesktopContainer: {
             maxWidth: variables.sideBarWidth,
             right: 0,
