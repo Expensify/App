@@ -1,6 +1,6 @@
 import type * as BiometricsOperations from '@components/MultifactorAuthentication/biometrics/operations';
 import createActors from '@components/MultifactorAuthentication/machine/mfaActors';
-import type {AuthorizeInput} from '@components/MultifactorAuthentication/machine/types';
+import type {AuthorizeInput, ExecuteScenarioActionInput} from '@components/MultifactorAuthentication/machine/types';
 import type * as BreadcrumbsModule from '@components/MultifactorAuthentication/observability/breadcrumbs';
 
 import NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
@@ -11,7 +11,7 @@ import type * as MultifactorAuthenticationActions from '@userActions/Multifactor
 
 import CONST from '@src/CONST';
 
-import {MFA_TEST_ACCOUNT_ID, MFA_TEST_AUTH_METHOD, MFA_TEST_AUTHENTICATION_CHALLENGE} from 'tests/utils/mfa/flowFixtures';
+import {MFA_TEST_ACCOUNT_ID, MFA_TEST_AUTH_METHOD, MFA_TEST_AUTHENTICATION_CHALLENGE, MFA_TEST_SIGNED_CHALLENGE} from 'tests/utils/mfa/flowFixtures';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 import {createActor, waitFor} from 'xstate';
 
@@ -63,7 +63,12 @@ const ANY_ABORT_SIGNAL: unknown = expect.any(AbortSignal);
 
 const AUTHORIZE_INPUT: AuthorizeInput = {
     accountID: MFA_TEST_ACCOUNT_ID,
+};
+
+const EXECUTE_SCENARIO_ACTION_INPUT: ExecuteScenarioActionInput = {
     runScenarioAction: mockRunScenarioAction,
+    signedChallenge: MFA_TEST_SIGNED_CHALLENGE,
+    authenticationMethod: MFA_TEST_AUTH_METHOD,
 };
 
 const CHALLENGE_SUCCESS_RESPONSE = {
@@ -85,16 +90,20 @@ async function runAuthorizeActor(input: AuthorizeInput = AUTHORIZE_INPUT) {
     return actorRef.getSnapshot();
 }
 
+/** Runs the machine's real `executeScenarioAction` actor logic to completion and returns its final snapshot. */
+async function runExecuteScenarioActionActor(input: ExecuteScenarioActionInput = EXECUTE_SCENARIO_ACTION_INPUT) {
+    const {executeScenarioAction} = createActors();
+    const actorRef = createActor(executeScenarioAction, {input});
+    actorRef.start();
+    await waitFor(actorRef, (snapshot) => snapshot.status !== 'active');
+    return actorRef.getSnapshot();
+}
+
 describe('authorize actor', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         requestAuthorizationChallengeMock.mockResolvedValue(CHALLENGE_SUCCESS_RESPONSE);
-        mockAuthorize.mockResolvedValue({
-            success: true,
-            signedChallenge: {rawId: 'raw-id', type: 'public-key', response: {authenticatorData: 'a', clientDataJSON: 'c', signature: 's'}},
-            authenticationMethod: MFA_TEST_AUTH_METHOD,
-        });
-        mockRunScenarioAction.mockResolvedValue({success: true, ...SCENARIO_RESPONSE_SUCCESS});
+        mockAuthorize.mockResolvedValue({success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD});
     });
 
     it('requests the authorization challenge exactly once per run', async () => {
@@ -103,19 +112,21 @@ describe('authorize actor', () => {
         expect(requestAuthorizationChallengeMock).toHaveBeenCalledTimes(1);
     });
 
-    it('returns a failed result with the exact reason when the challenge request fails over HTTP, and never calls the platform ceremony or the scenario action', async () => {
+    it('returns a failed result with the exact reason when the challenge request fails over HTTP, and never calls the platform ceremony', async () => {
+        // Given the backend refuses to issue an authorization challenge
         const challengeError = {httpStatusCode: 400, reason: REASON.CLIENT_ERRORS.UNRECOGNIZED, message: 'Challenge request rejected', challenge: undefined, publicKeys: undefined};
         requestAuthorizationChallengeMock.mockResolvedValue(challengeError);
 
+        // When the authorize actor runs
         const snapshot = await runAuthorizeActor();
 
+        // Then it fails with the backend reason and skips the ceremony, since there is nothing to sign
         expect(snapshot.output?.success).toBe(false);
         if (snapshot.output?.success !== false) {
             throw new Error('Expected authorization to fail');
         }
         expect(snapshot.output.error.reason).toBe(REASON.CLIENT_ERRORS.UNRECOGNIZED);
         expect(mockAuthorize).not.toHaveBeenCalled();
-        expect(mockRunScenarioAction).not.toHaveBeenCalled();
     });
 
     it('returns a failed result when the challenge response is otherwise successful but carries no challenge', async () => {
@@ -168,17 +179,18 @@ describe('authorize actor', () => {
         await waitForBatchedUpdates();
 
         expect(mockAuthorize).not.toHaveBeenCalled();
-        expect(mockRunScenarioAction).not.toHaveBeenCalled();
     });
 
-    it('surfaces a platform refusal unchanged and never calls the scenario action or clears local credentials', async () => {
+    it('surfaces a platform refusal unchanged and never clears local credentials', async () => {
+        // Given the user dismisses the biometric prompt
         const platformError = createLocalMFAError(REASON.LOCAL_ERRORS.HSM.CANCELED, 'User canceled the biometric prompt');
         mockAuthorize.mockResolvedValue({success: false, error: platformError});
 
+        // When the authorize actor runs
         const snapshot = await runAuthorizeActor();
 
+        // Then the refusal is passed on as-is and the credential is kept, because a dismissal says nothing about the key being broken
         expect(snapshot.output).toEqual({success: false, error: platformError});
-        expect(mockRunScenarioAction).not.toHaveBeenCalled();
         expect(mockDeleteLocalCredentials).not.toHaveBeenCalled();
     });
 
@@ -230,37 +242,6 @@ describe('authorize actor', () => {
         expect(snapshot.output).toEqual({success: false, error: readError});
     });
 
-    it('does not call the scenario action once the flow was cancelled while the ceremony was still running', async () => {
-        // Stopping the actor (what CLOSE_MODAL does) can't interrupt the already-running ceremony
-        // promise, only its own reaction to it — this pins that the actor still checks `signal.aborted`
-        // before firing the scenario action.
-        let resolveCeremony: (result: {
-            success: true;
-            signedChallenge: {rawId: string; type: string; response: {authenticatorData: string; clientDataJSON: string; signature: string}};
-            authenticationMethod: typeof MFA_TEST_AUTH_METHOD;
-        }) => void = () => {};
-        mockAuthorize.mockImplementation(
-            () =>
-                new Promise((resolve) => {
-                    resolveCeremony = resolve;
-                }),
-        );
-
-        const {authorize} = createActors();
-        const actorRef = createActor(authorize, {input: AUTHORIZE_INPUT});
-        actorRef.start();
-        await waitForBatchedUpdates();
-        actorRef.stop();
-        resolveCeremony({
-            success: true,
-            signedChallenge: {rawId: 'raw-id', type: 'public-key', response: {authenticatorData: 'a', clientDataJSON: 'c', signature: 's'}},
-            authenticationMethod: MFA_TEST_AUTH_METHOD,
-        });
-        await waitForBatchedUpdates();
-
-        expect(mockRunScenarioAction).not.toHaveBeenCalled();
-    });
-
     it('does not delete credentials when a recoverable failure resolves after the flow was cancelled', async () => {
         const recoverableError = createLocalMFAError(REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL, 'No matching local credential');
         let resolveCeremony: (result: {success: false; error: typeof recoverableError}) => void = () => {};
@@ -309,38 +290,21 @@ describe('authorize actor', () => {
         expect(ceremonySignal?.aborted).toBe(true);
     });
 
-    it('forwards the exact signed challenge and marqeta authentication method to the pre-bound scenario runner', async () => {
-        const signedChallenge = {rawId: 'raw-id', type: 'public-key', response: {authenticatorData: 'authenticator-data', clientDataJSON: 'client-data', signature: 'signature'}};
-        mockAuthorize.mockResolvedValue({success: true, signedChallenge, authenticationMethod: MFA_TEST_AUTH_METHOD});
-
-        await runAuthorizeActor();
-
-        expect(mockRunScenarioAction).toHaveBeenCalledWith({
-            signedChallenge,
-            authenticationMethod: MFA_TEST_AUTH_METHOD.marqetaValue,
-        });
-    });
-
-    it('returns the exact scenario response and authentication method on success', async () => {
+    it('returns the exact signed challenge and authentication method on success', async () => {
+        // Given the challenge request and ceremony both succeed
+        // When the authorize actor runs
         const snapshot = await runAuthorizeActor();
 
-        expect(snapshot.output).toEqual({success: true, scenarioResponse: SCENARIO_RESPONSE_SUCCESS, authenticationMethod: MFA_TEST_AUTH_METHOD});
+        // Then it returns the signature and method, which the scenario action step needs to send the backend request
+        expect(snapshot.output).toEqual({success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD});
     });
 
-    it('surfaces a scenario action failure unchanged', async () => {
-        const scenarioError = createLocalMFAError(REASON.CLIENT_ERRORS.UNRECOGNIZED, 'Scenario action rejected');
-        mockRunScenarioAction.mockResolvedValue({success: false, error: scenarioError});
-
-        const snapshot = await runAuthorizeActor();
-
-        expect(snapshot.output).toEqual({success: false, error: scenarioError});
-    });
-
-    it('records a breadcrumb for the challenge request, the ceremony outcome, and the scenario action', async () => {
+    it('records a breadcrumb for the challenge request and the ceremony outcome', async () => {
+        // Given the ceremony succeeds with Face ID
         const nativeAuthenticationMethod = NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.FACE_ID;
         mockAuthorize.mockResolvedValue({
             success: true,
-            signedChallenge: {rawId: 'raw-id', type: 'public-key', response: {authenticatorData: 'a', clientDataJSON: 'c', signature: 's'}},
+            signedChallenge: MFA_TEST_SIGNED_CHALLENGE,
             authenticationMethod: {
                 code: nativeAuthenticationMethod.CODE,
                 name: nativeAuthenticationMethod.NAME,
@@ -348,11 +312,12 @@ describe('authorize actor', () => {
             },
         });
 
+        // When the authorize actor runs
         await runAuthorizeActor();
 
+        // Then both steps leave breadcrumbs with the legacy labels, so existing telemetry keeps tracing the ceremony
         expect(mockAddMFABreadcrumb).toHaveBeenCalledWith('Authorization challenge received');
         expect(mockAddMFABreadcrumb).toHaveBeenCalledWith('Biometric authorization completed', {success: true, authMethod: nativeAuthenticationMethod.CODE}, 'info');
-        expect(mockAddMFABreadcrumb).toHaveBeenCalledWith('Scenario action completed', {success: true}, 'info');
     });
 
     it('records a warning breadcrumb when a recoverable failure resets the local credential', async () => {
@@ -362,5 +327,53 @@ describe('authorize actor', () => {
         await runAuthorizeActor();
 
         expect(mockAddMFABreadcrumb).toHaveBeenCalledWith('Authorization key reset', recoverableError, 'warning');
+    });
+});
+
+describe('executeScenarioAction actor', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        // Given the backend accepts the scenario action
+        mockRunScenarioAction.mockResolvedValue({success: true, ...SCENARIO_RESPONSE_SUCCESS});
+    });
+
+    it('forwards the exact signed challenge and marqeta authentication method to the pre-bound scenario runner', async () => {
+        // When the scenario action actor runs
+        await runExecuteScenarioActionActor();
+
+        // Then the runner gets the signature and the marqeta value, since that is the form the backend expects the method in
+        expect(mockRunScenarioAction).toHaveBeenCalledTimes(1);
+        expect(mockRunScenarioAction).toHaveBeenCalledWith({
+            signedChallenge: MFA_TEST_SIGNED_CHALLENGE,
+            authenticationMethod: MFA_TEST_AUTH_METHOD.marqetaValue,
+        });
+    });
+
+    it('returns the exact scenario response on success', async () => {
+        // When the scenario action actor runs
+        const snapshot = await runExecuteScenarioActionActor();
+
+        // Then the backend response is returned for the outcome screen and callback to use
+        expect(snapshot.output).toEqual({success: true, scenarioResponse: SCENARIO_RESPONSE_SUCCESS});
+    });
+
+    it('surfaces a scenario action failure unchanged', async () => {
+        // Given the backend rejects the scenario action
+        const scenarioError = createLocalMFAError(REASON.CLIENT_ERRORS.UNRECOGNIZED, 'Scenario action rejected');
+        mockRunScenarioAction.mockResolvedValue({success: false, error: scenarioError});
+
+        // When the scenario action actor runs
+        const snapshot = await runExecuteScenarioActionActor();
+
+        // Then the failure is passed on unchanged, so the outcome screen can show the real reason
+        expect(snapshot.output).toEqual({success: false, error: scenarioError});
+    });
+
+    it('records a breadcrumb for the scenario action', async () => {
+        // When the scenario action actor runs
+        await runExecuteScenarioActionActor();
+
+        // Then a breadcrumb records the result, so telemetry can tell a failed ceremony from a failed backend action
+        expect(mockAddMFABreadcrumb).toHaveBeenCalledWith('Scenario action completed', {success: true}, 'info');
     });
 });

@@ -4,9 +4,9 @@ import type {MultifactorAuthenticationScenarioResponse} from '@components/Multif
 import type {FinalizeOutcomeOutput, MultifactorAuthenticationInitEvent} from '@components/MultifactorAuthentication/machine/types';
 
 import {PASSKEY_AUTH_TYPE} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
-import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import type {AuthenticationChallenge, RegistrationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import type {AuthTypeInfo} from '@libs/MultifactorAuthentication/shared/types';
+import type {AuthTypeInfo, RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
 
 import {createScenarioActionRunner} from '@userActions/MultifactorAuthentication/processing';
 
@@ -29,6 +29,16 @@ const MFA_TEST_AUTHENTICATION_CHALLENGE: AuthenticationChallenge = {
     userVerification: 'required',
     timeout: 60000,
 };
+const MFA_TEST_SIGNED_CHALLENGE: SignedChallenge = {
+    rawId: 'mfa-test-raw-id',
+    type: 'public-key',
+    response: {authenticatorData: 'authenticator-data', clientDataJSON: 'client-data', signature: 'signature'},
+};
+const MFA_TEST_KEY_INFO: RegistrationKeyInfo = {
+    rawId: 'mfa-test-credential-id',
+    type: 'public-key',
+    response: {clientDataJSON: 'client-data-json', attestationObject: 'attestation-object'},
+};
 const MFA_TEST_AUTH_METHOD: AuthTypeInfo = {name: PASSKEY_AUTH_TYPE.NAME, marqetaValue: PASSKEY_AUTH_TYPE.MARQETA_VALUE};
 const MFA_TEST_SCENARIO_RESPONSE: MultifactorAuthenticationScenarioResponse = {httpStatusCode: 200, reason: undefined, message: undefined};
 const MFA_TEST_INVALID_CODE_ERROR = createMFAErrorFromApiResponse(400, CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE, 'Graph-traversal invalid code');
@@ -39,7 +49,14 @@ const MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR = createMFAErrorFromApiRespons
 );
 // A reason outside the two device-check reasons, so the walk lands on the generic failure copy.
 const MFA_TEST_CREDENTIAL_CREATION_ERROR = createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_CREATION_FAILED, 'Graph-traversal credential creation failure');
+const MFA_TEST_CREDENTIAL_REGISTRATION_ERROR = createMFAErrorFromApiResponse(
+    400,
+    CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.UNRECOGNIZED,
+    'Graph-traversal credential registration rejection',
+);
 const MFA_TEST_AUTHORIZATION_ORDINARY_ERROR = createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.CANCELED, 'Graph-traversal authorization cancellation');
+// A backend rejection of the scenario action, which lands on the generic failure copy.
+const MFA_TEST_SCENARIO_ACTION_ERROR = createMFAErrorFromApiResponse(400, CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.UNRECOGNIZED, 'Graph-traversal scenario action rejection');
 const MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN: FinalizeOutcomeOutput = {callbackResponse: CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN};
 // The Provider's pre-INIT snapshot, carried only for the outcome telemetry's start/end comparison - no
 // transition depends on its values.
@@ -66,11 +83,15 @@ export {
     MFA_TEST_AUTHENTICATION_CHALLENGE,
     MFA_TEST_AUTHORIZATION_ORDINARY_ERROR,
     MFA_TEST_CREDENTIAL_CREATION_ERROR,
+    MFA_TEST_CREDENTIAL_REGISTRATION_ERROR,
     MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR,
     MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN,
     MFA_TEST_INVALID_CODE_ERROR,
+    MFA_TEST_KEY_INFO,
     MFA_TEST_REGISTRATION_CHALLENGE,
     MFA_TEST_REGISTRATION_STATE_AT_START,
+    MFA_TEST_SCENARIO_ACTION_ERROR,
     MFA_TEST_SCENARIO_RESPONSE,
+    MFA_TEST_SIGNED_CHALLENGE,
     MFA_TEST_VALIDATE_CODE,
 };

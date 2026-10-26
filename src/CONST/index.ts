@@ -239,6 +239,7 @@ const CONST = {
         'otp',
         'secret',
         'keyInfo',
+        'registrationKeyInfo',
         'challenge',
         'signedChallenge',
         'registrationChallenge',

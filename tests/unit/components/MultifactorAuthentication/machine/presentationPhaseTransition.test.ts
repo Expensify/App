@@ -4,8 +4,22 @@ import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFARes
 
 import CONST from '@src/CONST';
 
-import {createActorAtState, sendAuthorizeDone, sendCreateCredentialDone, sendFinalizeOutcomeDone, sendRequestRegistrationChallengeDone} from 'tests/utils/mfa/flowActors';
-import {MFA_TEST_AUTH_METHOD, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN, MFA_TEST_REGISTRATION_CHALLENGE, MFA_TEST_SCENARIO_RESPONSE, MFA_TEST_VALIDATE_CODE} from 'tests/utils/mfa/flowFixtures';
+import {
+    createActorAtState,
+    sendAuthorizeDone,
+    sendCreateCredentialDone,
+    sendExecuteScenarioActionDone,
+    sendFinalizeOutcomeDone,
+    sendRequestRegistrationChallengeDone,
+} from 'tests/utils/mfa/flowActors';
+import {
+    MFA_TEST_AUTH_METHOD,
+    MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN,
+    MFA_TEST_REGISTRATION_CHALLENGE,
+    MFA_TEST_SCENARIO_RESPONSE,
+    MFA_TEST_SIGNED_CHALLENGE,
+    MFA_TEST_VALIDATE_CODE,
+} from 'tests/utils/mfa/flowFixtures';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 const REASON = CONST.MULTIFACTOR_AUTHENTICATION.REASON;
@@ -21,7 +35,8 @@ describe('MFA presentation phase survives outgoing screen transitions', () => {
 
         actor.start();
         actor.send({type: 'SOFT_PROMPT_APPROVED'});
-        sendAuthorizeDone(actor, {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE, authenticationMethod: MFA_TEST_AUTH_METHOD});
+        sendAuthorizeDone(actor, {success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD});
+        sendExecuteScenarioActionDone(actor, {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE});
         sendFinalizeOutcomeDone(actor, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN);
 
         const result = actor.getSnapshot();

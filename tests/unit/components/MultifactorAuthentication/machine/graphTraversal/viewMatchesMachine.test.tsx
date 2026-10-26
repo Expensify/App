@@ -19,6 +19,8 @@ import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {
     authorizeControl,
     createCredentialControl,
+    registerCredentialControl,
+    executeScenarioActionControl,
     finalizeOutcomeControl,
     loadRegistrationStateControl,
     registrationStateCaptureControl,
@@ -172,8 +174,12 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
         [actorErrorEventType('requestRegistrationChallenge')]: () => settleActor(requestRegistrationChallengeControl.reject),
         [actorDoneEventType('createCredential')]: (step) => settleActor(() => createCredentialControl.resolve(getActorDoneOutput(step))),
         [actorErrorEventType('createCredential')]: () => settleActor(createCredentialControl.reject),
+        [actorDoneEventType('registerCredential')]: (step) => settleActor(() => registerCredentialControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('registerCredential')]: () => settleActor(registerCredentialControl.reject),
         [actorDoneEventType('authorize')]: (step) => settleActor(() => authorizeControl.resolve(getActorDoneOutput(step))),
         [actorErrorEventType('authorize')]: () => settleActor(authorizeControl.reject),
+        [actorDoneEventType('executeScenarioAction')]: (step) => settleActor(() => executeScenarioActionControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('executeScenarioAction')]: () => settleActor(executeScenarioActionControl.reject),
         [actorDoneEventType('finalizeOutcome')]: (step) => settleActor(() => finalizeOutcomeControl.resolve(getActorDoneOutput(step))),
         [actorErrorEventType('finalizeOutcome')]: () => settleActor(finalizeOutcomeControl.reject),
     } satisfies MfaEventExecutors;

@@ -5,10 +5,14 @@ import type {
     AuthorizeOutput,
     CreateCredentialInput,
     CreateCredentialOutput,
+    ExecuteScenarioActionInput,
+    ExecuteScenarioActionOutput,
     FinalizeOutcomeInput,
     FinalizeOutcomeOutput,
     LoadRegistrationStateInput,
     LoadRegistrationStateOutput,
+    RegisterCredentialInput,
+    RegisterCredentialOutput,
     RequestRegistrationChallengeInput,
     RequestRegistrationChallengeOutput,
     ValidateDeviceInput,
@@ -121,7 +125,9 @@ const validateDeviceControl = createControlledActor<MFAResult, ValidateDeviceInp
 const loadRegistrationStateControl = createControlledActor<LoadRegistrationStateOutput, LoadRegistrationStateInput>('loadRegistrationState');
 const requestRegistrationChallengeControl = createControlledActor<RequestRegistrationChallengeOutput, RequestRegistrationChallengeInput>('requestRegistrationChallenge');
 const createCredentialControl = createControlledActor<CreateCredentialOutput, CreateCredentialInput>('createCredential');
+const registerCredentialControl = createControlledActor<RegisterCredentialOutput, RegisterCredentialInput>('registerCredential');
 const authorizeControl = createControlledActor<AuthorizeOutput, AuthorizeInput>('authorize');
+const executeScenarioActionControl = createControlledActor<ExecuteScenarioActionOutput, ExecuteScenarioActionInput>('executeScenarioAction');
 const finalizeOutcomeControl = createControlledActor<FinalizeOutcomeOutput, FinalizeOutcomeInput>('finalizeOutcome');
 
 function resetMfaUiMocks() {
@@ -131,7 +137,9 @@ function resetMfaUiMocks() {
     loadRegistrationStateControl.reset();
     requestRegistrationChallengeControl.reset();
     createCredentialControl.reset();
+    registerCredentialControl.reset();
     authorizeControl.reset();
+    executeScenarioActionControl.reset();
     finalizeOutcomeControl.reset();
 }
 
@@ -142,7 +150,9 @@ function mfaActorsMock() {
         loadRegistrationState: loadRegistrationStateControl.actor,
         requestRegistrationChallenge: requestRegistrationChallengeControl.actor,
         createCredential: createCredentialControl.actor,
+        registerCredential: registerCredentialControl.actor,
         authorize: authorizeControl.actor,
+        executeScenarioAction: executeScenarioActionControl.actor,
         finalizeOutcome: finalizeOutcomeControl.actor,
     } satisfies ReturnType<typeof createActors>;
 
@@ -240,7 +250,9 @@ export {
     loadRegistrationStateControl,
     requestRegistrationChallengeControl,
     createCredentialControl,
+    registerCredentialControl,
     authorizeControl,
+    executeScenarioActionControl,
     finalizeOutcomeControl,
     resetMfaUiMocks,
     mfaActorsMock,
