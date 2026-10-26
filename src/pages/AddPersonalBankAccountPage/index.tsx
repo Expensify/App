@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {getReportPolicyID} from '@selectors/Report';
 import React, {useContext, useEffect, useRef} from 'react';
@@ -64,7 +64,6 @@ const VALIDATE_CODE_ERROR_SUBSTRINGS = ['magic code', 'failed attempts'];
 function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
     const route = useRoute();
-    const navigation = useNavigation();
     const isFocused = useIsFocused();
     const urlSubPage = (route.params as {subPage?: string} | undefined)?.subPage;
 
@@ -91,6 +90,12 @@ function AddPersonalBankAccountPage() {
         selector: fullPolicySnapshotLastModifiedSelector,
     });
     const openReport = useOpenReport();
+
+    const phoneNumber = formatE164PhoneNumber(personalBankAccount?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '', countryCode);
+
+    // Saving a changed phone number to the user's private personal details requires a magic code, because it is used to verify Expensify Card transactions. The backend compares
+    // the submitted phone number with the saved one as stored, so a saved phone number that isn't in E.164 format is replaced by the formatted one and needs a code too.
+    const hasPhoneNumberChange = (phoneNumber ?? '') !== (privatePersonalDetails?.phoneNumber ?? '');
 
     const exit = () => {
         const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((rootRoute) => isFullScreenName(rootRoute.name));
@@ -132,8 +137,6 @@ function AddPersonalBankAccountPage() {
                   ...selectedPlaidBankAccount,
                   plaidAccessToken: plaidData?.plaidAccessToken ?? '',
               };
-        const finalPhoneNumber = personalBankAccount?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '';
-
         // When the Address substep is skipped (the profile already has a complete address), the flat
         // addressStreet/addressCity/... keys that addPersonalBankAccount expects are never written to the form draft.
         // Map the saved profile address (stored nested in the addresses array) to those flat keys so the address
@@ -143,7 +146,7 @@ function AddPersonalBankAccountPage() {
         // The unit/suite may be stored either embedded after a newline in `street` (extracted above) or in the
         // separate `street2`/`addressLine2` fields; fall back to those so it isn't dropped, matching UpdatePersonalBankAccountPage.
         const addressStreet2 = street2 ?? currentAddress?.street2 ?? currentAddress?.addressLine2;
-        const accountData = {
+        return {
             ...privatePersonalDetails,
             addressStreet,
             addressStreet2,
@@ -153,12 +156,8 @@ function AddPersonalBankAccountPage() {
             country: currentAddress?.country,
             ...personalBankAccount,
             ...bankAccountWithToken,
-            phoneNumber: formatE164PhoneNumber(finalPhoneNumber, countryCode),
+            phoneNumber,
         };
-        // Compare against the phone number exactly as saved, without the fallback and formatting applied above, so that anything the backend treats as a change also asks for the
-        // magic code here. At worst this asks for a code the backend wouldn't need, such as when a saved phone number isn't in E.164 format.
-        const hasPhoneNumberChange = (accountData.phoneNumber ?? '') !== (privatePersonalDetails?.phoneNumber ?? '');
-        return {accountData, hasPhoneNumberChange};
     };
 
     const pages = isManual ? pagesWithManualSetup : pagesWithPlaid;
@@ -195,22 +194,20 @@ function AddPersonalBankAccountPage() {
         }
         // On the confirmation step we submit the bank account first; the success step is
         // only shown once the request succeeds (see the effect below).
-        // Saving a changed phone number to the user's private personal details requires a magic code, because it is used to verify Expensify Card transactions.
         if (currentPageName === SUB_PAGE_NAMES.CONFIRMATION) {
-            const {accountData, hasPhoneNumberChange} = getAccountData();
             if (hasPhoneNumberChange) {
                 // The error belongs to the previous submission, so the magic code page doesn't show it
                 clearPersonalBankAccountErrors();
                 nextPage();
                 return;
             }
-            addPersonalBankAccount(accountData, personalPolicyID);
+            addPersonalBankAccount(getAccountData(), personalPolicyID);
             return;
         }
         if (currentPageName === SUB_PAGE_NAMES.VALIDATE_CODE) {
             if (typeof data === 'string') {
                 hasSubmittedValidateCode.current = true;
-                addPersonalBankAccount(getAccountData().accountData, personalPolicyID, {validateCode: data});
+                addPersonalBankAccount(getAccountData(), personalPolicyID, {validateCode: data});
             }
             return;
         }
@@ -235,9 +232,10 @@ function AddPersonalBankAccountPage() {
 
     // Advance to the success step once the bank account has been added successfully. This can resolve while the user
     // has navigated back to an earlier substep, so jump straight to success rather than relying on the current page.
-    // Every substep the user passed through stays mounted under the focused one, so only the focused substep moves on.
+    // Every substep the user passed through stays mounted under the focused one, so only the focused substep moves on. When another screen covers the flow, it moves on once the
+    // user returns to it.
     useEffect(() => {
-        if (!shouldShowSuccess || currentPageName === SUB_PAGE_NAMES.SUCCESS || !navigation.isFocused()) {
+        if (!shouldShowSuccess || currentPageName === SUB_PAGE_NAMES.SUCCESS || !isFocused) {
             return;
         }
 
@@ -247,7 +245,7 @@ function AddPersonalBankAccountPage() {
             return;
         }
         moveTo(successIndex, false);
-    }, [shouldShowSuccess, currentPageName, navigation, successRoute, moveTo, successIndex]);
+    }, [shouldShowSuccess, currentPageName, isFocused, successRoute, moveTo, successIndex]);
 
     // Refresh the report the flow was opened from once the account is added, since that changes its server-owned fields.
     // Doing it here instead of on exit covers every way of closing the flow. The report may not be on screen, so don't mark it as read.
@@ -288,16 +286,17 @@ function AddPersonalBankAccountPage() {
     // The submission error is about the details being confirmed, so only the confirmation and magic code steps show it, and a magic code error only the magic code step. The details
     // steps are forms on the same Onyx key, and a form with a server error shows it and won't submit. So the error is cleared once the user is on a step that doesn't show it, however
     // they navigated there. An account ownership error the user saw on the confirmation step is already kept as a confirmation in the form draft by the effect above.
+    // A magic code error can only come from a submission with a code, and there is a magic code step only when the phone number changes.
     useEffect(() => {
         if (!isFocused || !error) {
             return;
         }
-        const isValidateCodeError = VALIDATE_CODE_ERROR_SUBSTRINGS.some((substring) => error.includes(substring));
+        const isValidateCodeError = hasPhoneNumberChange && VALIDATE_CODE_ERROR_SUBSTRINGS.some((substring) => error.includes(substring));
         if (!isDetailsStep && !(currentPageName === SUB_PAGE_NAMES.CONFIRMATION && isValidateCodeError)) {
             return;
         }
         clearPersonalBankAccountErrors();
-    }, [isFocused, isDetailsStep, currentPageName, error]);
+    }, [isFocused, isDetailsStep, currentPageName, error, hasPhoneNumberChange]);
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator />;

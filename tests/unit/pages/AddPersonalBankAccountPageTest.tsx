@@ -87,6 +87,7 @@ const dismissModalWithReportSpy = jest.spyOn(Navigation, 'dismissModalWithReport
 type TestRootParamList = {
     [NAVIGATORS.TAB_NAVIGATOR]: NavigatorScreenParams<TabNavigatorParamList>;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
+    [SCREENS.SEARCH_ROUTER.ROOT]: undefined;
 };
 
 const RootStack = createRootStackNavigator<TestRootParamList>();
@@ -151,6 +152,10 @@ async function renderPageOverTab(focusedTabIndex: number, subPage: string = SUB_
                             component={TestTabNavigator}
                         />
                         <RootStack.Screen name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}>{() => <TestRightModalNavigator subPage={subPage} />}</RootStack.Screen>
+                        <RootStack.Screen
+                            name={SCREENS.SEARCH_ROUTER.ROOT}
+                            component={getEmptyComponent()}
+                        />
                     </RootStack.Navigator>
                 </NavigationContainer>
             </PortalProvider>
@@ -379,6 +384,32 @@ describe('AddPersonalBankAccountPage', () => {
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.SUCCESS, undefined), {forceReplace: true});
         });
 
+        it('moves on to the success step once the user returns to the flow, when the bank account is added while another screen covers it', async () => {
+            // Given a user who confirmed the bank account and opened another screen on top of the flow, such as the search router, while it was loading
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, MANUAL_BANK_ACCOUNT_DRAFT);
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
+            act(() => {
+                navigationRef.current?.navigate(SCREENS.SEARCH_ROUTER.ROOT);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the bank account is added, and the user then closes the screen on top
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {shouldShowSuccess: true});
+            });
+            expect(navigateSpy).not.toHaveBeenCalled();
+            act(() => {
+                navigationRef.current?.goBack();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the flow moves on to the success step, so the confirmation step isn't left there to submit the same bank account again
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.SUCCESS, undefined));
+        });
+
         it('requests the magic code for updating personal details, the reason the backend verifies it against', async () => {
             // Given a user on the magic code step after changing their phone number
             await act(async () => {
@@ -600,6 +631,22 @@ describe('AddPersonalBankAccountPage', () => {
                 expect(clearPersonalBankAccountErrors).toHaveBeenCalledTimes(1);
             },
         );
+
+        it('keeps an error that reads like a magic code error on the confirmation step when there is no magic code step', async () => {
+            // Given a user whose phone number is unchanged, so their submission had no magic code, and whose submission failed with an error that mentions failed attempts
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, MANUAL_BANK_ACCOUNT_DRAFT);
+                await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: 'Too many failed attempts. Please try again later.'}});
+            });
+
+            // When the confirmation step is shown
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
+
+            // Then the error stays, since it can't be about a magic code
+            expect(clearPersonalBankAccountErrors).not.toHaveBeenCalled();
+            expect(screen.getByText('Too many failed attempts. Please try again later.')).toBeTruthy();
+        });
 
         it('keeps any other error on the confirmation step', async () => {
             // Given a user who went back to the confirmation step from the magic code step, where the submission failed for a reason other than the magic code
