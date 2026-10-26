@@ -85,13 +85,12 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     const canSwitchAccounts = canSwitchAccountsSelector(account);
 
     // Switching accounts resets ONYXKEYS.ACCOUNT until OpenApp reloads it, which would otherwise make the button
-    // disappear for the length of the reload. Remember whether the user could switch before the reload started.
+    // disappear briefly for the length of the reload.
     const isAccountSwitchInFlight = !!isLoadingApp && !!hasLoadedApp;
     const [wasAbleToSwitchAccounts, setWasAbleToSwitchAccounts] = useState(canSwitchAccounts);
     if (!isAccountSwitchInFlight && wasAbleToSwitchAccounts !== canSwitchAccounts) {
         setWasAbleToSwitchAccounts(canSwitchAccounts);
     }
-    // The delegator list isn't known until the account data reloads, so keep the button on screen but inert until then.
     const isWaitingForAccountData = !canSwitchAccounts && isAccountSwitchInFlight && wasAbleToSwitchAccounts;
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
