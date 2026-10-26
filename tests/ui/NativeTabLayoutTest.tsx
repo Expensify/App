@@ -1,0 +1,72 @@
+import {render} from '@testing-library/react-native';
+
+import getTabWithoutBarItem from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/getTabWithoutBarItem';
+import NativeTabLayout from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NativeTabLayout';
+import type {NativeTabLayoutProps} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NativeTabLayout';
+
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
+
+import React, {useEffect} from 'react';
+
+import createMock from '../utils/createMock';
+
+jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: true})));
+jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({flex1: {}, flexRow: {}})));
+jest.mock('@libs/Navigation/AppNavigator/Navigators/TabNavigatorBar', () => jest.fn(() => null));
+jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NativeTabBarOverlay', () => jest.fn(() => null));
+jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/TabPressListeners', () => jest.fn(() => null));
+
+const TAB_NAMES = [
+    SCREENS.HOME,
+    NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+    SCREENS.INSIGHTS,
+    NAVIGATORS.WORKSPACE_NAVIGATOR,
+    NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+];
+
+const onTabsMount = jest.fn();
+
+function Tabs() {
+    useEffect(() => {
+        onTabsMount();
+    }, []);
+    return null;
+}
+
+function renderTabs(isInsightsBetaEnabled: boolean, selectedTabIndex: number) {
+    const tabWithoutBarItem = getTabWithoutBarItem(isInsightsBetaEnabled);
+    const routes = TAB_NAMES.map((name) => ({key: `${name}-key`, name}));
+    return (
+        <NativeTabLayout
+            state={createMock<NativeTabLayoutProps['state']>({routes, index: selectedTabIndex})}
+            navigation={createMock<NativeTabLayoutProps['navigation']>({})}
+            descriptors={Object.fromEntries(
+                routes.map((route) => [route.key, createMock<NativeTabLayoutProps['descriptors'][string]>({options: {tabBarItemHidden: route.name === tabWithoutBarItem}})]),
+            )}
+        >
+            <Tabs />
+        </NativeTabLayout>
+    );
+}
+
+describe('NativeTabLayout', () => {
+    it('remounts the native tabs when the Insights beta changes which tab has no bar item, and not when a tab is selected', () => {
+        // Given the tabs shown with the Insights beta off, so Insights has no bar item
+        const {rerender} = render(renderTabs(false, 0));
+
+        // When another tab is selected
+        rerender(renderTabs(false, 1));
+
+        // Then the native tabs stay mounted, so the tabs keep their state
+        expect(onTabsMount).toHaveBeenCalledTimes(1);
+
+        // When the Insights beta is turned on, and then off again
+        rerender(renderTabs(true, 1));
+        rerender(renderTabs(false, 1));
+
+        // Then the native tabs are remounted for each change, since the Android tab host can't swap a tab in place
+        expect(onTabsMount).toHaveBeenCalledTimes(3);
+    });
+});
