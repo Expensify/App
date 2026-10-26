@@ -19,6 +19,10 @@ type TabIconLayout = {
     avatarSize: number;
     /** Whether the label is drawn under the glyph or beside it, as UIKit lays out a tab in landscape. */
     direction: 'stacked' | 'inline';
+    /** Radius of the emoji status badge, sized with the avatar so it stays clear of the status dot. */
+    emojiStatusRadius: number;
+    /** Size of the emoji drawn in that badge. */
+    emojiStatusFontSize: number;
 };
 
 type TabIconLabel = {
@@ -143,8 +147,8 @@ function drawStatusDot(canvas: SkCanvas, right: number, top: number, scale: numb
 }
 
 /** Drawn inside the content box, opposite the status dot, because anything past the canvas is cut off. */
-function drawEmojiStatus(canvas: SkCanvas, right: number, bottom: number, scale: number, {emoji, backgroundColor}: TabIconEmojiStatus) {
-    const radius = variables.nativeTabIconEmojiStatusRadius * scale;
+function drawEmojiStatus(canvas: SkCanvas, layout: TabIconLayout, right: number, bottom: number, scale: number, {emoji, backgroundColor}: TabIconEmojiStatus) {
+    const radius = layout.emojiStatusRadius * scale;
     const centerX = right - radius;
     const centerY = bottom - radius;
     const paint = Skia.Paint();
@@ -158,7 +162,7 @@ function drawEmojiStatus(canvas: SkCanvas, right: number, bottom: number, scale:
 
     // A paragraph, so the emoji falls back to the system's color emoji font.
     const paragraph = Skia.ParagraphBuilder.Make({maxLines: 1, textAlign: TextAlign.Center})
-        .pushStyle({fontSize: variables.nativeTabIconEmojiStatusFontSize * scale})
+        .pushStyle({fontSize: layout.emojiStatusFontSize * scale})
         .addText(emoji)
         .build();
     paragraph.layout(radius * 2);
@@ -236,7 +240,7 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, emoj
         drawStatusDot(canvas, contentLeft + contentSize, contentTop, scale, dotColor);
     }
     if (emojiStatus) {
-        drawEmojiStatus(canvas, contentLeft + contentSize, contentTop + contentSize, scale, emojiStatus);
+        drawEmojiStatus(canvas, layout, contentLeft + contentSize, contentTop + contentSize, scale, emojiStatus);
     }
     if (paragraph) {
         paragraph.paint(canvas, labelLeft, labelTop);

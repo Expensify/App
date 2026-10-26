@@ -26,6 +26,8 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconBottomBar,
     avatarSize: variables.iconBottomBar,
     direction: 'stacked',
+    emojiStatusRadius: variables.nativeTabIconEmojiStatusRadius,
+    emojiStatusFontSize: variables.nativeTabIconEmojiStatusFontSize,
 };
 
 function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {

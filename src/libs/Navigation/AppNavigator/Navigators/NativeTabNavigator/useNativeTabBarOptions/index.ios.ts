@@ -25,6 +25,8 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
     // A circle reads smaller than a glyph of the same box, so the avatar is drawn a little larger than the glyphs.
     avatarSize: variables.avatarNativeTabBarIOS,
     direction: 'stacked',
+    emojiStatusRadius: variables.nativeTabIconEmojiStatusRadius,
+    emojiStatusFontSize: variables.nativeTabIconEmojiStatusFontSize,
 };
 
 /** A phone in landscape gives the bar too little height for a stacked tab, so UIKit lays its own tabs out this way. */
@@ -32,6 +34,8 @@ const LANDSCAPE_TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconNativeTabBarIOSLandscape,
     avatarSize: variables.avatarNativeTabBarIOSLandscape,
     direction: 'inline',
+    emojiStatusRadius: variables.nativeTabIconEmojiStatusRadiusLandscape,
+    emojiStatusFontSize: variables.nativeTabIconEmojiStatusFontSizeLandscape,
 };
 
 /**
