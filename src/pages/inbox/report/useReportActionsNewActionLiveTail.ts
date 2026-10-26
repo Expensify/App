@@ -123,7 +123,7 @@ function useReportActionsNewActionLiveTail({
         return () => clearTimeout(timeout);
     }, [pendingScrollActionID]);
 
-    const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action: OnyxTypes.ReportAction | undefined, source: ActionEventSource) => {
+    const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action: OnyxTypes.ReportAction | undefined, source: ActionEventSource = 'local') => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where

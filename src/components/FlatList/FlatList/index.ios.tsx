@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
-import {useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {FlatList} from 'react-native';
 
 import type {CustomFlatListProps} from './types';
@@ -26,21 +26,30 @@ function CustomFlatList<T>({
 }: CustomFlatListProps<T>) {
     const [isScrolling, setIsScrolling] = useState(false);
     const styles = useThemeStyles();
-    const handleScrollBegin = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        onMomentumScrollBegin?.(event);
-        setIsScrolling(true);
-    };
+    const handleScrollBegin = useCallback(
+        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            onMomentumScrollBegin?.(event);
+            setIsScrolling(true);
+        },
+        [onMomentumScrollBegin],
+    );
 
-    const handleScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        onMomentumScrollEnd?.(event);
-        setIsScrolling(false);
-    };
+    const handleScrollEnd = useCallback(
+        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            onMomentumScrollEnd?.(event);
+            setIsScrolling(false);
+        },
+        [onMomentumScrollEnd],
+    );
 
     const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: !enableAnimatedKeyboardDismissal && !!restProps.inverted});
-    const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        onScrollProp?.(e);
-        emitComposerScrollEvents();
-    };
+    const handleScroll = useCallback(
+        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+            onScrollProp?.(e);
+            emitComposerScrollEvents();
+        },
+        [emitComposerScrollEvents, onScrollProp],
+    );
 
     const listRef = useRef<FlatListInnerRefType<T> | null>(null);
     useFlatListHandle<T>({

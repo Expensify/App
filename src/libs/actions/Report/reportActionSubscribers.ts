@@ -4,7 +4,7 @@
 import type ReportAction from '@src/types/onyx/ReportAction';
 
 type ActionEventSource = 'local' | 'realtime';
-type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined, source: ActionEventSource) => void;
+type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined, source?: ActionEventSource) => void;
 
 type ActionSubscriber = {
     reportID: string;

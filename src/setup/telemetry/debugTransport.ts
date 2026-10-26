@@ -1,5 +1,3 @@
-import {isRecord} from '@libs/ObjectUtils';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {BaseTransportOptions, Envelope, Transport} from '@sentry/core';
@@ -43,6 +41,10 @@ function formatLogPrefix(category: string, op?: string): string {
         return `${SENTRY_LOG_PREFIX}[${category}][${op}]`;
     }
     return `${SENTRY_LOG_PREFIX}[${category}]`;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function isString(value: unknown): value is string {

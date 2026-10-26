@@ -66,7 +66,7 @@ function useEditMessage({
             return;
         }
 
-        // The list owns this request after the editor unmounts and waits for its layout commit.
+        // Let the list-specific callback handle scrolling after the editor closes.
         if (scrollToLastMessage) {
             scrollToLastMessage();
             return;
