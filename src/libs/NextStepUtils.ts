@@ -306,7 +306,28 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             nextStep = null;
     }
 
-    return nextStep;
+    if (!nextStep || shouldKeepAutoExportTiming(report, predictedNextStatus, reimbursableSpend)) {
+        return nextStep;
+    }
+
+    // Clearing the export timing here keeps it changing together with the rest of the next step instead of after the server responds
+    return {...nextStep, autoExport: null};
+}
+
+/**
+ * Whether the export timing the server last sent still applies once the report moves to the predicted status. It only survives
+ * the report moving on to its next approver, or a final approval that leaves reimbursable spend waiting for payment.
+ */
+function shouldKeepAutoExportTiming(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, reimbursableSpend: number): boolean {
+    if (predictedNextStatus === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        return true;
+    }
+
+    if (predictedNextStatus === CONST.REPORT.STATUS_NUM.APPROVED) {
+        return report?.nextStep?.autoExport?.messageKey === CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.OUT_OF_POCKET_EXPORTS_WHEN_PAID && reimbursableSpend !== 0;
+    }
+
+    return false;
 }
 
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled(): ReportNextStep {
