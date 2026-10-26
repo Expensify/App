@@ -61,7 +61,7 @@ function VerifyIdentity({onBackButtonPress, onSubmit}: VerifyIdentityProps) {
 
     const handleOnfidoError = () => {
         // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
-        Growl.error(translate('onfidoStep.genericError'), {duration: ONFIDO_ERROR_DISPLAY_DURATION});
+        Growl.error({bodyText: translate('onfidoStep.genericError'), duration: ONFIDO_ERROR_DISPLAY_DURATION});
         clearOnfidoToken();
         onBackButtonPress();
     };
