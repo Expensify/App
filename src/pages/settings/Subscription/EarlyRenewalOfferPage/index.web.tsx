@@ -24,23 +24,16 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import lazySVG from '@src/utils/lazySVG';
 
-import React, {lazy, Suspense, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import EarlyRenewalOfferTile from './EarlyRenewalOfferTile';
 
 // Each theme's pattern is its own async chunk, so it stays out of the main bundle.
-const IceCreamBackgroundLight = lazy(() =>
-    import('@assets/images/themeDependent/ice-cream_background-fade-light.svg').catch((): {default: React.FC} => ({
-        default: () => null,
-    })),
-);
-const IceCreamBackgroundDark = lazy(() =>
-    import('@assets/images/themeDependent/ice-cream_background-fade-dark.svg').catch((): {default: React.FC} => ({
-        default: () => null,
-    })),
-);
+const IceCreamBackgroundLight = lazySVG(() => import('@assets/images/themeDependent/ice-cream_background-fade-light.svg'));
+const IceCreamBackgroundDark = lazySVG(() => import('@assets/images/themeDependent/ice-cream_background-fade-dark.svg'));
 
 type IncentivizedOfferID = typeof CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_ONE_YEAR | typeof CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_TWO_YEARS;
 
@@ -85,12 +78,10 @@ function EarlyRenewalOfferPage() {
             >
                 {/* The pattern starts just above the header's bottom edge, so it shows behind the title as in Figma. */}
                 <View style={styles.earlyRenewalOfferBackground}>
-                    <Suspense fallback={null}>
-                        <IceCreamBackground
-                            width={variables.earlyRenewalOfferBackgroundWidth}
-                            height={variables.earlyRenewalOfferBackgroundHeight}
-                        />
-                    </Suspense>
+                    <IceCreamBackground
+                        width={variables.earlyRenewalOfferBackgroundWidth}
+                        height={variables.earlyRenewalOfferBackgroundHeight}
+                    />
                 </View>
                 <HeaderWithBackButtonAndTitle
                     title={translate('earlyRenewal.claim')}

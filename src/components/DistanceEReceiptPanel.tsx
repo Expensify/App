@@ -13,7 +13,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
-import React, {Suspense, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
@@ -57,13 +57,11 @@ function DistanceEReceiptPanel({transaction}: DistanceEReceiptPanelProps) {
     );
     return (
         <View style={styles.eReceiptPanel}>
-            <Suspense fallback={null}>
-                <ImageSVG
-                    src={EReceiptBGDistance}
-                    style={styles.eReceiptBackground}
-                    pointerEvents="none"
-                />
-            </Suspense>
+            <ImageSVG
+                src={EReceiptBGDistance}
+                style={styles.eReceiptBackground}
+                pointerEvents="none"
+            />
 
             <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
                 {!canShowStoredRouteMap || !thumbnailSource ? (
