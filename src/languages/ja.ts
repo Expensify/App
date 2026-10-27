@@ -3028,6 +3028,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: '世界中のメンバーに現地通貨で支払えます。',
             getStarted: '使い始める',
             headerTitle: 'グローバル払い戻し',
+            payingReportSubtitle: '会社と従業員の銀行口座は異なる通貨を使用しています。',
         },
         wiseGlobalReimbursementsBanner: {title: '世界中の人に支払いましょう', subtitle: 'USD アカウントでグローバル払い戻しを有効にします。'},
     },

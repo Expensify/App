@@ -3065,6 +3065,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',
             getStarted: 'Commencer',
             headerTitle: 'Remboursements globaux',
+            payingReportSubtitle: 'Les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Payer des personnes dans le monde entier', subtitle: 'Activez les remboursements globaux sur votre compte en USD.'},
     },

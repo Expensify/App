@@ -2948,7 +2948,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 error: '请接受所有条款以继续。',
             },
         },
-        wiseGlobalReimbursementsIntro: {title: '设置全球报销？', subtitle: '按当地货币向全球成员付款。', getStarted: '开始使用', headerTitle: '全球报销'},
+        wiseGlobalReimbursementsIntro: {
+            title: '设置全球报销？',
+            subtitle: '按当地货币向全球成员付款。',
+            getStarted: '开始使用',
+            headerTitle: '全球报销',
+            payingReportSubtitle: '公司账户和员工账户使用的货币不同。',
+        },
         wiseGlobalReimbursementsBanner: {title: '向全球付款', subtitle: '在您的美元账户中启用全球报销。'},
     },
     addCardToDigitalWallet: {

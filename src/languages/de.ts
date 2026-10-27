@@ -3060,6 +3060,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.',
             getStarted: "Los geht's",
             headerTitle: 'Globale Erstattungen',
+            payingReportSubtitle: 'Die Bankkonten des Unternehmens und der Mitarbeitenden verwenden unterschiedliche Währungen.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Weltweit bezahlen', subtitle: 'Aktivieren Sie globale Erstattungen auf Ihrem USD-Konto.'},
     },
