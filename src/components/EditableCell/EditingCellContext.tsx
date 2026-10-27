@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useContext, useState} from 'react';
 
 /**
  * Context for managing inline editable cell state across the component tree.
@@ -40,7 +40,7 @@ function EditingCellProvider({children}: EditingCellProviderProps) {
     const [wasRecentlyEditingCell, setWasRecentlyEditingCell] = useState(false);
     const [focusedCellId, setFocusedCellId] = useState<string | null>(null);
 
-    const setIsEditingCell = useCallback((value: boolean) => {
+    const setIsEditingCell = (value: boolean) => {
         setIsEditingCellState(value);
 
         if (!value) {
@@ -51,7 +51,7 @@ function EditingCellProvider({children}: EditingCellProviderProps) {
                 setWasRecentlyEditingCell(false);
             });
         }
-    }, []);
+    };
 
     const stateValue = {
         isEditingCell,

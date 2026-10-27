@@ -194,6 +194,25 @@ describe('SearchActions', () => {
     });
 
     describe('queueExportSearchItemsToCSV', () => {
+        it('passes the groups-only option to the queued export', () => {
+            // Given a summary-only export of a grouped search.
+            const parameters = {
+                jsonQuery: '{}',
+                reportIDList: [],
+                transactionIDList: [],
+                isBasicExport: false,
+                exportColumnLabels: '{}',
+                exportName: 'Current view (groups only)',
+                isGroupsOnly: true,
+            };
+
+            // When the export is queued.
+            queueExportSearchItemsToCSV(parameters);
+
+            // Then the worker receives the summary-only flag.
+            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, expect.objectContaining({isGroupsOnly: true}), expect.any(Object));
+        });
+
         it('sets optimistic Onyx data with state preparing and returns exportID', () => {
             const exportID = queueExportSearchItemsToCSV({
                 jsonQuery: '{}',
@@ -254,6 +273,31 @@ describe('SearchActions', () => {
 
     describe('exportSearchItemsToCSV', () => {
         beforeEach(() => jest.clearAllMocks());
+
+        it('passes the groups-only option in the direct CSV form payload', () => {
+            // Given a summary-only export of a grouped search.
+            const appendSpy = jest.spyOn(FormData.prototype, 'append');
+
+            // When the export is downloaded directly.
+            exportSearchItemsToCSV(
+                {
+                    jsonQuery: '{}',
+                    reportIDList: [],
+                    transactionIDList: [],
+                    isBasicExport: false,
+                    exportColumnLabels: '{}',
+                    exportName: 'Current view (groups only)',
+                    isGroupsOnly: true,
+                },
+                jest.fn(),
+                translateForTest,
+                undefined,
+            );
+
+            // Then the API receives the summary-only flag.
+            expect(appendSpy).toHaveBeenCalledWith('isGroupsOnly', 'true');
+            appendSpy.mockRestore();
+        });
 
         it('includes excluded transaction IDs in the direct CSV form payload', () => {
             const appendSpy = jest.spyOn(FormData.prototype, 'append');

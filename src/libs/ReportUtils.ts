@@ -39,6 +39,8 @@ import type {
     PolicyReportField,
     PolicyTagLists,
     PolicyTags,
+    PolicyVendor,
+    PolicyVendors,
     Report,
     ReportAction,
     ReportAttributesDerivedValue,
@@ -2173,6 +2175,7 @@ type PolicyOptimisticOnyxData = OnyxData<
     | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
     | typeof ONYXKEYS.COLLECTION.POLICY
     | typeof ONYXKEYS.COLLECTION.POLICY_TAGS
+    | typeof ONYXKEYS.COLLECTION.POLICY_VENDORS
     | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
     | typeof ONYXKEYS.COLLECTION.TRANSACTION
 >;
@@ -2202,10 +2205,12 @@ function getOptimisticPolicyState(
     policyUpdate: Partial<Policy>,
     categoriesUpdate: Record<string, Partial<PolicyCategory>>,
     tagListsUpdate: Record<string, Partial<PolicyTagList>>,
+    vendorsUpdate: Record<string, Partial<PolicyVendor>> = {},
 ) {
     const isPolicyUpdateEmpty = isEmptyObject(policyUpdate);
     const isCategoriesUpdateEmpty = isEmptyObject(categoriesUpdate);
     const isTagListsUpdateEmpty = isEmptyObject(tagListsUpdate);
+    const isVendorsUpdateEmpty = isEmptyObject(vendorsUpdate);
 
     const optimisticPolicy = isPolicyUpdateEmpty ? policyData.policy : {...policyData.policy, ...policyUpdate};
 
@@ -2268,16 +2273,35 @@ function getOptimisticPolicyState(
               }, {}),
           };
 
+    const optimisticVendors: PolicyVendors | undefined = isVendorsUpdateEmpty
+        ? policyData.vendors
+        : {
+              ...(policyData.vendors ?? {}),
+              ...Object.entries(vendorsUpdate).reduce<PolicyVendors>((acc, [vendorID, vendorUpdate]) => {
+                  const existingVendor = policyData.vendors?.[vendorID];
+                  if (!vendorUpdate || !existingVendor) {
+                      return acc;
+                  }
+                  acc[vendorID] = {
+                      ...existingVendor,
+                      ...vendorUpdate,
+                  };
+                  return acc;
+              }, {}),
+          };
+
     const hasDependentTagsValue = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticTagLists);
 
     return {
         optimisticPolicy,
         optimisticCategories,
         optimisticTagLists,
+        optimisticVendors,
         hasDependentTagsValue,
         isPolicyUpdateEmpty,
         isCategoriesUpdateEmpty,
         isTagListsUpdateEmpty,
+        isVendorsUpdateEmpty,
     };
 }
 
@@ -2408,6 +2432,7 @@ function pushTransactionAutoSelectionsOnyxData(
  * @param categoriesUpdate - Changed categories properties, if none pass empty object
  * @param tagListsUpdate - Changed tag properties, if none pass empty object
  * @param transactionAutoSelections - Auto-selected category/tag updates per transactionID (from `pushTransactionAutoSelectionsOnyxData`)
+ * @param vendorsUpdate - Changed vendor properties, if none pass empty object
  */
 function pushTransactionViolationsOnyxData(
     onyxData: PolicyOptimisticOnyxData,
@@ -2417,20 +2442,26 @@ function pushTransactionViolationsOnyxData(
     categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
     tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
     transactionAutoSelections: Map<string, Partial<Transaction>> = new Map<string, Partial<Transaction>>(),
+    vendorsUpdate: Record<string, Partial<PolicyVendor>> = {},
 ) {
     const nonInvoiceReportItems = getNonInvoiceReportItemsForPolicy(policyData);
     if (nonInvoiceReportItems.length === 0) {
         return;
     }
 
-    const {optimisticPolicy, optimisticCategories, optimisticTagLists, hasDependentTagsValue, isPolicyUpdateEmpty, isCategoriesUpdateEmpty, isTagListsUpdateEmpty} = getOptimisticPolicyState(
-        policyData,
-        policyUpdate,
-        categoriesUpdate,
-        tagListsUpdate,
-    );
+    const {
+        optimisticPolicy,
+        optimisticCategories,
+        optimisticTagLists,
+        optimisticVendors,
+        hasDependentTagsValue,
+        isPolicyUpdateEmpty,
+        isCategoriesUpdateEmpty,
+        isTagListsUpdateEmpty,
+        isVendorsUpdateEmpty,
+    } = getOptimisticPolicyState(policyData, policyUpdate, categoriesUpdate, tagListsUpdate, vendorsUpdate);
 
-    if (isPolicyUpdateEmpty && isCategoriesUpdateEmpty && isTagListsUpdateEmpty) {
+    if (isPolicyUpdateEmpty && isCategoriesUpdateEmpty && isTagListsUpdateEmpty && isVendorsUpdateEmpty) {
         return;
     }
 
@@ -2452,7 +2483,7 @@ function pushTransactionViolationsOnyxData(
     //   `missingTag` calculation for *tagless* transactions changes and they'd be skipped incorrectly.
     let affectedTagNames: Set<string> | undefined;
     const tagListNames = Object.keys(optimisticTagLists ?? {});
-    if (isPolicyUpdateEmpty && isCategoriesUpdateEmpty && !isTagListsUpdateEmpty && !hasDependentTagsValue && tagListNames.length === 1) {
+    if (isPolicyUpdateEmpty && isCategoriesUpdateEmpty && !isTagListsUpdateEmpty && isVendorsUpdateEmpty && !hasDependentTagsValue && tagListNames.length === 1) {
         const tagListName = tagListNames.at(0) ?? '';
         const originalTags = policyData.tags?.[tagListName]?.tags ?? {};
         const updatedTags = optimisticTagLists?.[tagListName]?.tags ?? {};
@@ -2463,6 +2494,10 @@ function pushTransactionViolationsOnyxData(
         }
     }
 
+    // Fast path: a vendor-only toggle only affects transactions holding the toggled vendor(s).
+    const isVendorOnlyUpdate = isPolicyUpdateEmpty && isCategoriesUpdateEmpty && isTagListsUpdateEmpty && !isVendorsUpdateEmpty;
+    const affectedVendorIDs = isVendorOnlyUpdate ? new Set(Object.keys(vendorsUpdate)) : undefined;
+
     for (const {
         transactionsAndViolations: {transactions, violations},
     } of nonInvoiceReportItems) {
@@ -2471,6 +2506,14 @@ function pushTransactionViolationsOnyxData(
             // whose tag was just auto-selected. Skip the recompute for every other transaction.
             if (affectedTagNames && !transactionAutoSelections.has(transaction.transactionID) && !(transaction.tag && affectedTagNames.has(transaction.tag))) {
                 continue;
+            }
+
+            // Fast path: a vendor-only toggle only affects transactions holding the toggled vendor(s).
+            if (affectedVendorIDs && !transactionAutoSelections.has(transaction.transactionID)) {
+                const transactionVendorID = transaction.comment?.vendor?.externalID;
+                if (!transactionVendorID || !affectedVendorIDs.has(transactionVendorID)) {
+                    continue;
+                }
             }
 
             const pendingUpdate = transactionAutoSelections.get(transaction.transactionID);
@@ -2487,6 +2530,7 @@ function pushTransactionViolationsOnyxData(
                 isInvoiceTransaction: false,
                 ownerLogin: undefined,
                 isVendorMatchingBetaEnabled,
+                policyVendors: optimisticVendors,
             });
 
             // Keep the pre-toggle taxOutOfPolicy state when the update isn't about tax tracking.
@@ -2494,6 +2538,13 @@ function pushTransactionViolationsOnyxData(
             if (!isTaxTrackingUpdate && Array.isArray(recomputedViolations)) {
                 const preservedTaxViolations = (existingViolations ?? []).filter((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
                 optimisticViolations.value = [...recomputedViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.TAX_OUT_OF_POLICY), ...preservedTaxViolations];
+            }
+
+            // Keep existing non-vendor violations when the update is only about vendors.
+            if (isVendorOnlyUpdate && Array.isArray(optimisticViolations.value)) {
+                const nonVendorViolations = (existingViolations ?? []).filter((violation) => violation.name !== CONST.VIOLATIONS.INACTIVE_VENDOR);
+                const vendorViolations = optimisticViolations.value.filter((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
+                optimisticViolations.value = [...nonVendorViolations, ...vendorViolations];
             }
 
             if (!isEmptyObject(optimisticViolations)) {
@@ -6584,6 +6635,7 @@ function getReportPreviewMessage(
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     params: GetReportPreviewMessageBaseParams,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
     const {
         reportOrID,
@@ -6679,7 +6731,7 @@ function getReportPreviewMessage(
         : getDisplayNameForParticipant({
               accountID: report.managerID,
               shouldUseShortForm: !isPreviewMessageForParentChatReport,
-              formatPhoneNumber: formatPhoneNumberPhoneUtils,
+              formatPhoneNumber,
               hiddenTranslation: translate('common.hidden'),
           });
 
@@ -6742,7 +6794,7 @@ function getReportPreviewMessage(
                 : getDisplayNameForParticipant({
                       accountID: payerAccountID,
                       shouldUseShortForm: true,
-                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      formatPhoneNumber,
                       hiddenTranslation: translate('common.hidden'),
                   });
 
@@ -6779,7 +6831,7 @@ function getReportPreviewMessage(
             getDisplayNameForParticipant({
                 accountID: report.ownerAccountID,
                 shouldUseShortForm: true,
-                formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                formatPhoneNumber,
                 hiddenTranslation: translate('common.hidden'),
             }) ?? '';
         return translate('iou.waitingOnBankAccount', submitterDisplayName);
@@ -6813,7 +6865,7 @@ function getReportPreviewMessage(
                 ? getDisplayNameForParticipant({
                       accountID: lastActorID,
                       shouldUseShortForm: !isPreviewMessageForParentChatReport,
-                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      formatPhoneNumber,
                       hiddenTranslation: translate('common.hidden'),
                   })
                 : '';
@@ -6824,7 +6876,7 @@ function getReportPreviewMessage(
         return translate(
             'iou.payerSpentAmount',
             formattedAmount,
-            getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, hiddenTranslation: translate('common.hidden')}) ?? '',
+            getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '',
         );
     }
     return translate('iou.payerOwesAmount', formattedAmount, payerName ?? '', comment);
@@ -14207,6 +14259,7 @@ function getIntegrationIcon(
                   | 'RilletSquare'
                   | 'DualEntrySquare'
                   | 'CampfireSquare'
+                  | 'DigitsSquare'
                   | 'ZohoBooksSquare'
                   | 'BusinessCentralSquare'
                   | 'GustoSquare'
@@ -14246,6 +14299,9 @@ function getIntegrationIcon(
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE) {
         return expensifyIcons?.CampfireSquare;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
+        return expensifyIcons?.DigitsSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS) {
         return expensifyIcons?.ZohoBooksSquare;
@@ -15830,4 +15886,5 @@ export type {
     OptimisticReportAction,
     ActionErrorsByTransaction,
     LastAccessedReport,
+    PolicyOptimisticOnyxData,
 };

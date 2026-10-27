@@ -6,7 +6,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useCallback, useMemo, useState} from 'react';
+import {useState} from 'react';
 
 type UseConciergeSidePanelReportActionsParams = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -69,123 +69,119 @@ function useConciergeSidePanelReportActions({
     // fit in a single page (hasOlderActions=false). On an existing account with
     // prior interactions the history spans multiple pages (hasOlderActions=true).
     //
-    const hadUserMessageAtSessionStart = useMemo(() => {
-        if (!isConciergeHiddenHistory || !sessionStartTime) {
-            return false;
-        }
+    let hadUserMessageAtSessionStart;
+    if (!isConciergeHiddenHistory || !sessionStartTime) {
+        hadUserMessageAtSessionStart = false;
+    } else {
         const hasUserMessageInLoadedSet = visibleReportActions.some(
             (action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created < sessionStartTime,
         );
-        return hasUserMessageInLoadedSet || hasOlderActions;
-    }, [isConciergeHiddenHistory, visibleReportActions, currentUserAccountID, sessionStartTime, hasOlderActions]);
+        hadUserMessageAtSessionStart = hasUserMessageInLoadedSet || hasOlderActions;
+    }
 
-    const hasPreviousMessages = useMemo(() => {
-        if (!isConciergeHiddenHistory || !hadUserMessageAtSessionStart || !sessionStartTime) {
-            return false;
-        }
+    let hasPreviousMessages;
+    if (!isConciergeHiddenHistory || !hadUserMessageAtSessionStart || !sessionStartTime) {
+        hasPreviousMessages = false;
+    } else {
         const hasPreSessionActionInLoadedSet = visibleReportActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTime);
-        return hasPreSessionActionInLoadedSet || hasOlderActions;
-    }, [isConciergeHiddenHistory, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart, hasOlderActions]);
+        hasPreviousMessages = hasPreSessionActionInLoadedSet || hasOlderActions;
+    }
 
     // A re-stamp flips `hasUserSentMessage` too, so the sticky set is what keeps the welcome state from coming back.
     const hasSentInSession = hasUserSentMessage || sessionSentActionIDs.size > 0;
     const showConciergeSidePanelWelcome = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !hasSentInSession && !showFullHistory;
     const showConciergeGreeting = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !showFullHistory;
 
-    const conciergeGreetingAction = useMemo(() => {
-        if (!showConciergeGreeting) {
-            return undefined;
-        }
+    let conciergeGreetingAction;
+    if (!showConciergeGreeting) {
+        conciergeGreetingAction = undefined;
+    } else {
         const created = report?.lastReadTime ?? DateUtils.getDBTime();
-        return buildConciergeGreetingReportAction({reportID: report?.reportID, greetingText, created});
-    }, [showConciergeGreeting, report?.reportID, report?.lastReadTime, greetingText]);
+        conciergeGreetingAction = buildConciergeGreetingReportAction({
+            reportID: report?.reportID,
+            greetingText,
+            created,
+        });
+    }
 
     // Side panel only: find the first user message in the current session.
     // Used to filter actions so that only messages from the first user message
     // onwards are shown (upstream side panel behavior).
-    const firstUserMessageCreated = useMemo(() => {
-        if (showConciergeSidePanelWelcome || !isConciergeHiddenHistory || !hasUserSentMessage || !sessionStartTime) {
-            return undefined;
+    const firstUserMessageCreated =
+        showConciergeSidePanelWelcome || !isConciergeHiddenHistory || !hasUserSentMessage || !sessionStartTime
+            ? undefined
+            : reportActions.reduce<string | undefined>((earliest, action) => {
+                  const isCurrentSessionUserMessage =
+                      !isCreatedAction(action) &&
+                      action.actorAccountID === currentUserAccountID &&
+                      (isCurrentUserPendingAddAction(action, currentUserAccountID) || action.created >= sessionStartTime);
+                  if (!isCurrentSessionUserMessage) {
+                      return earliest;
+                  }
+                  return !earliest || action.created < earliest ? action.created : earliest;
+              }, undefined);
+
+    const isCurrentSessionAction = (action: OnyxTypes.ReportAction): boolean => {
+        if (!sessionStartTime) {
+            return false;
         }
-        return reportActions.reduce<string | undefined>((earliest, action) => {
-            const isCurrentSessionUserMessage =
-                !isCreatedAction(action) &&
-                action.actorAccountID === currentUserAccountID &&
-                (isCurrentUserPendingAddAction(action, currentUserAccountID) || action.created >= sessionStartTime);
-            if (!isCurrentSessionUserMessage) {
-                return earliest;
-            }
-            return !earliest || action.created < earliest ? action.created : earliest;
-        }, undefined);
-    }, [showConciergeSidePanelWelcome, isConciergeHiddenHistory, hasUserSentMessage, sessionStartTime, reportActions, currentUserAccountID]);
+        // Already shown this session — keep it whatever the server stamped on it.
+        if (sessionSentActionIDs.has(action.reportActionID)) {
+            return true;
+        }
+        if (!firstUserMessageCreated) {
+            return false;
+        }
+        // The firstUserMessageCreated floor only trims the user's OWN pre-question messages, so apply it to
+        // current-user actions alone. Concierge replies are server-stamped and already bounded by the
+        // server-anchored sessionStartTime; gating them on the question's `created` would hide a reply whenever
+        // that `created` was clamped forward onto an ahead client clock to stay monotonic across sends.
+        const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
+        return (
+            isCreatedAction(action) ||
+            isCurrentUserPendingAddAction(action, currentUserAccountID) ||
+            (action.created >= sessionStartTime && (!isFromCurrentUser || action.created >= firstUserMessageCreated))
+        );
+    };
 
-    const isCurrentSessionAction = useCallback(
-        (action: OnyxTypes.ReportAction): boolean => {
-            if (!sessionStartTime) {
-                return false;
-            }
-            // Already shown this session — keep it whatever the server stamped on it.
-            if (sessionSentActionIDs.has(action.reportActionID)) {
-                return true;
-            }
-            if (!firstUserMessageCreated) {
-                return false;
-            }
-            // The firstUserMessageCreated floor only trims the user's OWN pre-question messages, so apply it to
-            // current-user actions alone. Concierge replies are server-stamped and already bounded by the
-            // server-anchored sessionStartTime; gating them on the question's `created` would hide a reply whenever
-            // that `created` was clamped forward onto an ahead client clock to stay monotonic across sends.
-            const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-            return (
-                isCreatedAction(action) ||
-                isCurrentUserPendingAddAction(action, currentUserAccountID) ||
-                (action.created >= sessionStartTime && (!isFromCurrentUser || action.created >= firstUserMessageCreated))
-            );
-        },
-        [sessionStartTime, firstUserMessageCreated, currentUserAccountID, sessionSentActionIDs],
-    );
-
-    const filterActions = useCallback(
-        (actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction[] => {
-            if (showConciergeSidePanelWelcome && conciergeGreetingAction) {
+    const filterActions = (actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction[] => {
+        if (showConciergeSidePanelWelcome && conciergeGreetingAction) {
+            const createdAction = actions.find(isCreatedAction);
+            return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
+        }
+        if (!isConciergeHiddenHistory || showFullHistory) {
+            return actions;
+        }
+        if (!sessionStartTime) {
+            return actions.filter(isCreatedAction);
+        }
+        if (!hadUserMessageAtSessionStart) {
+            return actions;
+        }
+        const filtered = actions.filter(isCurrentSessionAction);
+        if (filtered.length === 0) {
+            // Side panel: nothing matched the current session yet (e.g. just after reopen, before the new
+            // message propagates). Show the greeting instead of `actions` to avoid flashing stale history.
+            if (conciergeGreetingAction) {
                 const createdAction = actions.find(isCreatedAction);
                 return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
             }
-            if (!isConciergeHiddenHistory || showFullHistory) {
-                return actions;
-            }
-            if (!sessionStartTime) {
-                return actions.filter(isCreatedAction);
-            }
-            if (!hadUserMessageAtSessionStart) {
-                return actions;
-            }
-            const filtered = actions.filter(isCurrentSessionAction);
-            if (filtered.length === 0) {
-                // Side panel: nothing matched the current session yet (e.g. just after reopen, before the new
-                // message propagates). Show the greeting instead of `actions` to avoid flashing stale history.
-                if (conciergeGreetingAction) {
-                    const createdAction = actions.find(isCreatedAction);
-                    return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
-                }
-                return actions;
-            }
-            if (conciergeGreetingAction) {
-                const createdIndex = filtered.findIndex(isCreatedAction);
-                filtered.splice(createdIndex === -1 ? filtered.length : createdIndex, 0, conciergeGreetingAction);
-            }
-            return filtered;
-        },
-        [showConciergeSidePanelWelcome, conciergeGreetingAction, isConciergeHiddenHistory, showFullHistory, sessionStartTime, isCurrentSessionAction, hadUserMessageAtSessionStart],
-    );
+            return actions;
+        }
+        if (conciergeGreetingAction) {
+            const createdIndex = filtered.findIndex(isCreatedAction);
+            filtered.splice(createdIndex === -1 ? filtered.length : createdIndex, 0, conciergeGreetingAction);
+        }
+        return filtered;
+    };
 
-    const filteredVisibleActions = useMemo(() => filterActions(visibleReportActions), [filterActions, visibleReportActions]);
-    const filteredReportActions = useMemo(() => filterActions(reportActions), [filterActions, reportActions]);
+    const filteredVisibleActions = filterActions(visibleReportActions);
+    const filteredReportActions = filterActions(reportActions);
 
-    const handleShowPreviousMessages = useCallback(() => {
+    const handleShowPreviousMessages = () => {
         setShowFullHistory(true);
         loadOlderChats(true);
-    }, [setShowFullHistory, loadOlderChats]);
+    };
 
     return {
         filteredVisibleActions,
