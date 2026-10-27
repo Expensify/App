@@ -15,6 +15,7 @@ import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 
 import React from 'react';
+import {DeviceEventEmitter} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -429,7 +430,7 @@ describe('useSidebarOrderedReports', () => {
         expect(fullRecomputeCall).toBeUndefined();
     });
 
-    it('should keep the chat opened from the Unread tab listed after it is read, until the sticky report is cleared', async () => {
+    it('should keep the chat opened from the Unread tab listed after it is read, until Mark all as read reads it', async () => {
         // Given two chats where only chat 2 is still unread, and the user is on the Unread tab
         const reports = createMockReports({
             report1: {reportName: 'Opened chat'},
@@ -460,12 +461,55 @@ describe('useSidebarOrderedReports', () => {
         await waitForBatchedUpdatesWithAct();
         expect(getListedReportIDs()).toEqual(['1', '2']);
 
-        // Then clearing the sticky report (what "Mark all as read" does) removes it from the tab
+        // A mark-all that doesn't cover it keeps it listed
+        const readUpToTime = '2026-01-01 00:00:00.000';
+        const otherReportID = '3';
+        const openedReportID = '1';
         act(() => {
-            result.current.actions.clearStickyReport();
+            DeviceEventEmitter.emit(CONST.EVENTS.MARK_ALL_AS_READ, {[otherReportID]: readUpToTime});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(getListedReportIDs()).toEqual(['1', '2']);
+
+        // Then "Mark all as read" (from the tab or the keyboard shortcut) reads it, so it's removed from the tab
+        act(() => {
+            DeviceEventEmitter.emit(CONST.EVENTS.MARK_ALL_AS_READ, {[openedReportID]: readUpToTime});
         });
         await waitForBatchedUpdatesWithAct();
         expect(getListedReportIDs()).toEqual(['2']);
+    });
+
+    it("should include the chat opened from the To-do tab in that tab's report IDs", async () => {
+        // Given chat 2 is a To-do and chat 1 was a To-do until the user opened it
+        const reports = createMockReports({
+            report1: {reportName: 'Opened To-do'},
+            report2: {reportName: 'To-do'},
+        });
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(reports);
+        mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue(['1', '2']);
+        mockSidebarUtils.filterReportsForInboxTab.mockImplementation((reportIDs, _reports, tab) =>
+            tab === CONST.INBOX_TAB.TODO ? reportIDs.filter((reportID) => reportID === '2') : reportIDs,
+        );
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, reports['1']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, reports['2']);
+            await Onyx.set(ONYXKEYS.NVP_INBOX_TAB, CONST.INBOX_TAB.TODO);
+        });
+
+        const {result} = renderHook(() => useSidebarOrderedReportsActions(), {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.getReportIDsForTab(CONST.INBOX_TAB.TODO)).toEqual(['2']);
+
+        // When the user opens chat 1 from the To-do tab
+        act(() => {
+            result.current.setStickyReportID('1');
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then "Mark all as read" on that tab covers it too (so its "New" line clears), and other tabs are unaffected
+        expect(result.current.getReportIDsForTab(CONST.INBOX_TAB.TODO)).toEqual(['2', '1']);
+        expect(result.current.getReportIDsForTab(CONST.INBOX_TAB.UNREAD)).toEqual(['1', '2']);
     });
 
     it('should recheck a hidden report when only its derived attributes change', async () => {

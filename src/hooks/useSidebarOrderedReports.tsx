@@ -13,6 +13,7 @@ import arraysEqual from '@src/utils/arraysEqual';
 import type {ValueOf} from 'type-fest';
 
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 
 import useCollectionDelta from './useCollectionDelta';
 import {useCurrentReportIDState} from './useCurrentReportID';
@@ -48,8 +49,6 @@ type SidebarOrderedReportsActionsContextValue = {
     clearLHNCache: () => void;
     setActiveTab: (tab: ValueOf<typeof CONST.INBOX_TAB>) => void;
     setStickyReportID: (reportID: string) => void;
-    /** Stops keeping the opened report visible on the To-do/Unread tab, e.g. after "Mark all as read". */
-    clearStickyReport: () => void;
     /** The report IDs listed under the given Inbox tab, read on demand by bulk tab actions (e.g. "Mark all as read"). */
     getReportIDsForTab: (tab: ValueOf<typeof CONST.INBOX_TAB>) => string[];
 };
@@ -83,7 +82,6 @@ const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsA
     clearLHNCache: () => {},
     setActiveTab: () => {},
     setStickyReportID: () => {},
-    clearStickyReport: () => {},
     getReportIDsForTab: () => [],
 });
 
@@ -373,14 +371,28 @@ function SidebarOrderedReportsContextProvider({
 
     // Held in a ref so getReportIDsForTab stays referentially stable (keeping the actions context stable) and only
     // filters when a bulk tab action actually asks for a tab's reports, rather than on every LHN update.
-    const inboxTabSourcesRef = useRef({orderedReportIDs, reportsToDisplayInLHN});
+    const inboxTabSourcesRef = useRef({orderedReportIDs, reportsToDisplayInLHN, stickyReport});
     useEffect(() => {
-        inboxTabSourcesRef.current = {orderedReportIDs, reportsToDisplayInLHN};
-    }, [orderedReportIDs, reportsToDisplayInLHN]);
-    const getReportIDsForTab = useCallback(
-        (tab: ValueOf<typeof CONST.INBOX_TAB>) => SidebarUtils.filterReportsForInboxTab(inboxTabSourcesRef.current.orderedReportIDs, inboxTabSourcesRef.current.reportsToDisplayInLHN, tab),
-        [],
-    );
+        inboxTabSourcesRef.current = {orderedReportIDs, reportsToDisplayInLHN, stickyReport};
+    }, [orderedReportIDs, reportsToDisplayInLHN, stickyReport]);
+    const getReportIDsForTab = useCallback((tab: ValueOf<typeof CONST.INBOX_TAB>) => {
+        const sources = inboxTabSourcesRef.current;
+        const reportIDs = SidebarUtils.filterReportsForInboxTab(sources.orderedReportIDs, sources.reportsToDisplayInLHN, tab);
+        // The sticky report is still listed under the tab it was opened from, even though it no longer matches the filter.
+        const sticky = sources.stickyReport;
+        if (sticky?.tab === tab && !reportIDs.includes(sticky.reportID)) {
+            return [...reportIDs, sticky.reportID];
+        }
+        return reportIDs;
+    }, []);
+
+    // "Mark all as read" (from a tab or the keyboard shortcut) also reads the sticky report, so stop keeping it in the list.
+    useEffect(() => {
+        const subscription = DeviceEventEmitter.addListener(CONST.EVENTS.MARK_ALL_AS_READ, (readUpToTimes: Record<string, string>) => {
+            setStickyReport((current) => (current && readUpToTimes[current.reportID] ? undefined : current));
+        });
+        return () => subscription.remove();
+    }, []);
 
     const clearLHNCache = useCallback(() => {
         Log.info('[useSidebarOrderedReports] Clearing sidebar cache manually via debug modal');
@@ -406,10 +418,6 @@ function SidebarOrderedReportsContextProvider({
         },
         [activeTab],
     );
-
-    const clearStickyReport = useCallback(() => {
-        setStickyReport(undefined);
-    }, []);
 
     const stateValue: SidebarOrderedReportsStateContextValue = useMemo(() => {
         // We need to make sure the current report is in the list of reports, but we do not want
@@ -468,8 +476,8 @@ function SidebarOrderedReportsContextProvider({
     ]);
 
     const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(
-        () => ({clearLHNCache, setActiveTab, setStickyReportID, clearStickyReport, getReportIDsForTab}),
-        [clearLHNCache, setActiveTab, setStickyReportID, clearStickyReport, getReportIDsForTab],
+        () => ({clearLHNCache, setActiveTab, setStickyReportID, getReportIDsForTab}),
+        [clearLHNCache, setActiveTab, setStickyReportID, getReportIDsForTab],
     );
 
     return (

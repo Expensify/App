@@ -48,7 +48,7 @@ function InboxTabSelector() {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const {activeTab, inboxTabCounts, hasStaleUnreadReport} = useSidebarOrderedReportsState();
-    const {setActiveTab, getReportIDsForTab, clearStickyReport} = useSidebarOrderedReportsActions();
+    const {setActiveTab, getReportIDsForTab} = useSidebarOrderedReportsActions();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
     const reportAttributesDerived = useReportAttributes();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Feed', 'ChatBubbleUnread', 'Task']);
@@ -106,8 +106,6 @@ function InboxTabSelector() {
             // From the To-dos tab only the chats listed there are marked read. The All and Unread tabs both cover every
             // unread chat, so they mark all of them.
             markAllMessagesAsRead(reportNameValuePairs, isTodoTab ? getReportIDsForTab(CONST.INBOX_TAB.TODO) : undefined, reportAttributesDerived);
-            // The chat opened from this tab is already read, so markAllMessagesAsRead skips it. Stop keeping it in the list.
-            clearStickyReport();
         });
     };
 
