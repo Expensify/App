@@ -662,6 +662,40 @@ describe('CustomFormula', () => {
             expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-31');
         });
 
+        test.each([
+            {now: '2025-01-05T12:00:00Z', expectedStart: '2024-12-21', expectedEnd: '2025-01-10'},
+            {now: '2025-01-19T12:00:00Z', expectedStart: '2025-01-11', expectedEnd: '2025-01-20'},
+            {now: '2025-01-25T12:00:00Z', expectedStart: '2025-01-21', expectedEnd: '2025-02-10'},
+        ])('should compute semi-monthly dates from custom submission days on $now', ({now, expectedStart, expectedEnd}) => {
+            // Given a twice a month schedule on the 10th and 20th
+            jest.setSystemTime(new Date(now));
+            const policy = createMock<Policy>({
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                autoReportingOffset: 10,
+                autoReportingOffsetSecondSemiMonthly: 20,
+            });
+            const context = createMockContext(policy);
+
+            // When computing the period, then it ends on the next submission day and starts the day after the previous one, as the backend does
+            expect(compute('{report:autoreporting:start}', context)).toBe(expectedStart);
+            expect(compute('{report:autoreporting:end}', context)).toBe(expectedEnd);
+        });
+
+        test('should compute semi-monthly dates with a submission day past the end of a short month', () => {
+            // Given a twice a month schedule on the 10th and 31st during February
+            jest.setSystemTime(new Date('2025-02-15T12:00:00Z'));
+            const policy = createMock<Policy>({
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                autoReportingOffset: 10,
+                autoReportingOffsetSecondSemiMonthly: 31,
+            });
+            const context = createMockContext(policy);
+
+            // When computing the period, then the 31st resolves to the last day of February
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-02-11');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-02-28');
+        });
+
         test('should compute monthly frequency with specific offset', () => {
             const policy = createMock<Policy>({
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
