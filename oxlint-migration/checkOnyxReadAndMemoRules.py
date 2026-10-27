@@ -111,7 +111,7 @@ PROBES = {
     'libRead.ts': ('libs', LIBS_READ, False),
     # Both compilers memoize this one, so the pipeline keeps the three manual memoization reports.
     'Memoized.tsx': ('components', MEMO_TEMPLATE.format(directive='', expect='rulesdir/no-manual-memoization'), False),
-    # 'use no memo' stops both compilers, so the pipeline drops what the raw tools report.
+    # 'use no memo' stops React Compiler, so the pipeline drops what the raw tools report.
     'OptedOut.tsx': ('components', MEMO_TEMPLATE.format(directive="    'use no memo';\n", expect='raw-only rulesdir/no-manual-memoization'), True),
 }
 

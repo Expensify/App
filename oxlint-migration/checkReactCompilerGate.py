@@ -17,7 +17,7 @@ memoization with 'use no memo', because their job is "does the rule run at all" 
 silenced them would look identical to a rule that never loaded. So the gate needs its own test,
 and it needs a matched pair:
 
-    memoized     both compilers memoize it  -> BOTH tools must report nothing
+    memoized     React Compiler memoizes it -> BOTH tools must report nothing
     opted out    same code + 'use no memo'  -> BOTH tools must report both rules
 
 Only the pair is meaningful. Silence alone proves nothing (a broken plugin is also silent) and
@@ -132,7 +132,7 @@ def main():
         for failure in failures:
             print(f'   {failure}')
         sys.exit(1)
-    print('The gate matches the ESLint side: silent where both compilers memoize, live where they do not.')
+    print('The gate matches the ESLint side: silent where React Compiler memoizes, live where it does not.')
 
 
 if __name__ == '__main__':

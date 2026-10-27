@@ -3,7 +3,7 @@ import {registerHooks} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 
-import {didBothCompilersMemoizeFile} from '../../config/reactCompiler/checkBoth.mjs';
+import checkReactCompilerWithOxc from '../../config/reactCompiler/checkWithOxc.mjs';
 import {RULES_SUPPRESSED_BY_REACT_COMPILER} from '../../config/reactCompiler/suppressedRules.mjs';
 import {resolve} from './resolveHook.mjs';
 import {captured} from './ruleTesterStub.mjs';
@@ -112,7 +112,7 @@ function materialize(byRule) {
                     testFile,
                     file: relative.split(path.sep).join('/'),
                     expected: kind === 'invalid' ? expectationOf(testCase) : {count: 0, messages: []},
-                    memoizedByBoth: RULES_SUPPRESSED_BY_REACT_COMPILER.has(`rulesdir/${rule}`) ? didBothCompilersMemoizeFile(testCase.code, absolute) : null,
+                    memoized: RULES_SUPPRESSED_BY_REACT_COMPILER.has(`rulesdir/${rule}`) ? checkReactCompilerWithOxc(testCase.code, absolute).memoized : null,
                 });
             });
         }

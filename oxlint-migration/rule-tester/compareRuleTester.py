@@ -215,9 +215,9 @@ def main():
         counts[rule]['ox'] += len(ox_hits)
 
         if expected['count'] is not None and len(es_hits) != expected['count']:
-            gated = case['memoizedByBoth'] and not es_hits and not ox_hits
+            gated = case['memoized'] and not es_hits and not ox_hits
             if gated:
-                notes.append(f'{label}: suppressed on both tools, both React Compilers memoize this case (upstream expects {expected["count"]}, and did before the processor existed)')
+                notes.append(f'{label}: suppressed on both tools, React Compiler memoizes this case (upstream expects {expected["count"]}, and did before the processor existed)')
             else:
                 failures['MATERIALIZATION'].append(f'{label}: upstream expects {expected["count"]} error(s), ESLint reported {len(es_hits)} ({case["testFile"]})')
             continue

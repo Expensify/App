@@ -1,19 +1,16 @@
 /**
- * ESLint processor that conditionally suppresses lint rules which are unnecessary
- * for files that BOTH React Compilers memoize.
+ * ESLint processor that suppresses lint rules which are unnecessary for files React Compiler
+ * memoizes.
  *
  * React Compiler automatically memoizes components and hooks, making rules like
- * `react/jsx-no-constructed-context-values` redundant for memoized files. But the app
- * runs two different compilers -- Babel (babel-plugin-react-compiler) on native/Jest and
- * OXC (oxc-transform-react) on web -- and they don't always agree. A file that only one compiler
- * memoizes still ships without memoization on the other platform, so the manual memoization
- * (and the lint rules that enforce it) is still needed there.
+ * `react/jsx-no-constructed-context-values` redundant for memoized files. Every build compiles
+ * with the OXC React Compiler (oxc-transform-react), so its verdict is the only one that matters.
  *
  * This processor therefore:
- * 1. Runs BOTH React Compilers on each file during the `preprocess` phase
- * 2. Only if BOTH compilers memoize the file, filters out messages from rules that
+ * 1. Runs the compiler on each file during the `preprocess` phase
+ * 2. Only if the compiler memoizes the file, filters out messages from rules that
  *    React Compiler makes unnecessary in `postprocess`
- * 3. Otherwise (either compiler skips memoization, or a file fails to compile) preserves
+ * 3. Otherwise (the compiler skips memoization, or the file fails to compile) preserves
  *    all lint messages as-is
  *
  * The app's own lint run does this in the pipeline instead, not in a processor
@@ -23,7 +20,7 @@
  */
 import _ from 'lodash';
 
-import {didBothCompilersMemoizeFile} from '../../config/reactCompiler/checkBoth.mjs';
+import checkReactCompilerWithOxc from '../../config/reactCompiler/checkWithOxc.mjs';
 import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN, RULES_SUPPRESSED_BY_REACT_COMPILER} from '../../config/reactCompiler/suppressedRules.mjs';
 
 // Per-file compilation results, populated in preprocess, consumed in postprocess.
@@ -41,7 +38,7 @@ const processor = {
         if (filename.includes('/tests/') || filename.includes('node_modules/')) {
             compilationResults.set(filename, false);
         } else {
-            compilationResults.set(filename, didBothCompilersMemoizeFile(text, filename));
+            compilationResults.set(filename, checkReactCompilerWithOxc(text, filename).memoized);
         }
 
         // Pass the source through unchanged as a single code block
@@ -49,10 +46,10 @@ const processor = {
     },
 
     postprocess(messages, filename) {
-        const bothMemoized = compilationResults.get(filename);
+        const memoized = compilationResults.get(filename);
         compilationResults.delete(filename);
 
-        if (bothMemoized) {
+        if (memoized) {
             return _.filter(messages[0], (msg) => {
                 if (RULES_SUPPRESSED_BY_REACT_COMPILER.has(msg.ruleId)) {
                     return false;
