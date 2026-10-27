@@ -88,14 +88,55 @@ describe('Insights controls', () => {
                 filters={FILTERS}
                 defaultFilters={{...FILTERS, policyIDs: [], groupCurrency: 'PLN'}}
                 onChange={jest.fn()}
+                onExport={jest.fn()}
             />,
         );
+        // When the dashboard controls finish resolving their workspace labels
         await waitForBatchedUpdatesWithAct();
 
         // Then each pill shows the selection it owns, so the user sees what the charts are narrowed by
         expect(screen.getByText(/Date: /)).toBeOnTheScreen();
         expect(screen.getByText(new RegExp(`: ${POLICY_NAME}$`))).toBeOnTheScreen();
         expect(screen.getByText(/: USD$/)).toBeOnTheScreen();
+        expect(screen.getByTestId('InsightsExportButton')).toBeOnTheScreen();
+    });
+
+    it('exports when the dashboard is ready and blocks exports while a chart is loading', async () => {
+        // Given a loaded dashboard with an export action
+        const onExport = jest.fn();
+        const controls = (isExportDisabled: boolean) => (
+            <InsightsPageControls
+                filters={FILTERS}
+                defaultFilters={FILTERS}
+                onChange={jest.fn()}
+                onExport={onExport}
+                isExportDisabled={isExportDisabled}
+            />
+        );
+        const {rerender} = renderWithProviders(controls(false));
+        await waitForBatchedUpdatesWithAct();
+
+        // When Export is pressed on the loaded dashboard
+        fireEvent.press(screen.getByTestId('InsightsExportButton'));
+
+        // Then the dashboard export starts
+        expect(onExport).toHaveBeenCalledTimes(1);
+
+        // When a chart starts loading
+        rerender(
+            <NavigationContainer>
+                <Stack.Navigator>
+                    <Stack.Screen name={SCREENS.INSIGHTS}>
+                        {() => <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>{controls(true)}</ComposeProviders>}
+                    </Stack.Screen>
+                </Stack.Navigator>
+            </NavigationContainer>,
+        );
+
+        // Then Export is disabled and cannot capture a loading chart
+        expect(screen.getByTestId('InsightsExportButton')).toBeDisabled();
+        fireEvent.press(screen.getByTestId('InsightsExportButton'));
+        expect(onExport).toHaveBeenCalledTimes(1);
     });
 
     it('resets Group currency to the default workspace currency rather than the current one', async () => {

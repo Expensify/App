@@ -1,3 +1,4 @@
+import {useIsCapturingChart} from '@components/Charts/context/ChartCaptureContext';
 import {useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
 import formatTooltipComparison from '@components/Charts/utils/formatTooltipComparison';
@@ -48,6 +49,7 @@ type ChartTooltipLayerProps = {
  * (active index, visibility) only re-render this lightweight component, not the chart itself.
  */
 function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatValue, chartWidth, initialTooltipPosition, onChartMoved, onDismiss}: ChartTooltipLayerProps) {
+    const isCapturing = useIsCapturingChart();
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
     // Set from the content's layout, since on native a value set during render can reach the UI thread before the new content is mounted
@@ -65,7 +67,7 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatV
     const tooltipData = useTooltipData(activeDataIndex, data, series, formatValue);
     const activeDataPoint = data.at(activeDataIndex);
 
-    if (!tooltipData || !activeDataPoint) {
+    if (isCapturing || !tooltipData || !activeDataPoint) {
         return null;
     }
 

@@ -1,3 +1,5 @@
+import {useIsCapturingChart} from '@components/Charts/context/ChartCaptureContext';
+
 import type {SharedValue} from 'react-native-reanimated';
 
 import {PointerType, useCompetingGestures, useHoverGesture, useTapGesture} from 'react-native-gesture-handler';
@@ -185,6 +187,7 @@ function useChartInteractions({
     coordinateScale = 1,
     shouldPinTooltipOnTouch = true,
 }: UseChartInteractionsProps) {
+    const isCapturing = useIsCapturingChart();
     /** Interaction state compatible with Victory Native's internal logic */
     const {state: chartInteractionState} = useChartInteractionState();
 
@@ -491,6 +494,7 @@ function useChartInteractions({
     }));
 
     const customGestures = useCompetingGestures(hoverGesture, tapGesture);
+    const isTooltipVisible = useDerivedValue(() => !isCapturing && isTooltipActive.get());
 
     return {
         /** Custom gestures to be passed to CartesianChart */
@@ -503,7 +507,7 @@ function useChartInteractions({
         /** SharedValue for the currently matched data index — read on the UI thread or sync via useAnimatedReaction */
         matchedIndex: chartInteractionState.matchedIndex,
         /** SharedValue that is true when the tooltip should be visible */
-        isTooltipActive,
+        isTooltipActive: isTooltipVisible,
         /** SharedValue that is true when the cursor is over a clickable element (dot/bar, not label) */
         isCursorOverClickable,
         /** Raw tooltip positioning data */
