@@ -2503,8 +2503,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Weet je zeker dat je accounts wilt samenvoegen?',
-            lossOfUnsubmittedData: (login: string) =>
-                `Het samenvoegen van je accounts is onomkeerbaar en zal leiden tot het verlies van alle niet-ingediende uitgaven voor <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Het samenvoegen van je accounts is onomkeerbaar. Alle uitgaven en rapporten van <strong>${login}</strong>, inclusief concepten en niet-gerapporteerde uitgaven, worden verplaatst naar het account dat je behoudt.`,
             enterSecurityCode: (login: string) => `Om door te gaan, voer de beveiligingscode in die is verzonden naar <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Onjuiste of ongeldige beveiligingscode. Probeer het opnieuw of vraag een nieuwe code aan.',
@@ -6729,6 +6729,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             provisioningError:
                                 'We konden voor sommige leden van je werkruimte geen toegang instellen tot Geconsolideerde Reisfacturering. Probeer het later opnieuw of neem contact op met Concierge voor ondersteuning.',
                             sendInvoiceNowCta: 'Verzend factuur nu',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `De maandelijkse bestedingslimiet per lid mag de huidige reiskostenlimiet van ${travelLimit} niet overschrijden.`,
                         },
                         setUpNewFeed: 'Nieuwe reiskoppeling instellen',
                         feedSelectorIntro:
@@ -8856,11 +8858,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 applyExpenseDefaultsDescription: 'Velden automatisch bijwerken',
                 flagForReview: 'Markeren voor controle',
                 flagForReviewDescription: 'Melding wanneer aan je voorwaarden is voldaan',
-                requireFields: 'Veldvereisten instellen',
-                requireFieldsShort: 'Velden verplichten',
+                requireFields: 'Velden verplichten',
                 requireFieldsDescription: 'Bonnen, categorieën, enz.',
-                createAgentRule: 'Agentregel beschrijven',
-                createAgentRuleDescription: 'Maak flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
                 describeItBelow: 'Of beschrijf hem hieronder',
                 describeRulePlaceholder: 'Blokkeer alle uitgaven boven $2.000',
                 selectTemplateOrDescribe: 'Selecteer een sjabloon of beschrijf een regel om door te gaan',
@@ -10440,6 +10439,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         noCategory: 'Geen categorie',
         noMerchant: 'Geen handelaar',
         noTag: 'Geen tag',
+        noVendor: 'Geen leverancier',
         expenseType: 'Onkostentype',
         receiptType: 'Bontype',
         receiptTypeValues: {
@@ -11937,6 +11937,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
         currentView: 'Huidige weergave',
+        currentViewGroupsOnly: 'Huidige weergave (alleen groepen)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

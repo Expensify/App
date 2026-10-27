@@ -15490,6 +15490,22 @@ describe('SearchUIUtils', () => {
             expect(result.at(0)?.isDefault).toBe(true);
             expect(result.at(1)?.isDefault).toBe(false);
         });
+
+        it('gives a filter and its negation the same key but different ids', () => {
+            // Given a query that uses the status filter both normally and negated, e.g. `status:approved -status:drafts,paid`
+            const form = {
+                [FILTER_KEYS.TYPE]: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [FILTER_KEYS.STATUS]: [CONST.SEARCH.STATUS.EXPENSE.APPROVED],
+                [FILTER_KEYS.STATUS_NOT]: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.PAID],
+            };
+
+            // When the form is mapped to filter chips
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, convertToDisplayStringWithoutCurrency);
+            const statusFilters = result.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+
+            // Then both chips share the base key (used to pick the chip's popover), while their ids stay unique so they can be used as React keys
+            expect(statusFilters.map((filter) => filter.id)).toEqual([FILTER_KEYS.STATUS, FILTER_KEYS.STATUS_NOT]);
+        });
     });
 });
 

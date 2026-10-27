@@ -20,7 +20,7 @@ import type {ReceiptSource} from '@src/types/onyx/Transaction';
 
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
@@ -79,25 +79,19 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem, a
         setEReceiptScaleFactor(width / variables.eReceiptBGHWidth);
     };
 
-    const updateImageAspectRatio = useCallback(
-        (width: number, height: number) => {
-            if (!source) {
-                return;
-            }
+    const updateImageAspectRatio = (width: number, height: number) => {
+        if (!source) {
+            return;
+        }
 
-            setImageAspectRatio(height ? width / height : 'auto');
-        },
-        [source],
-    );
+        setImageAspectRatio(height ? width / height : 'auto');
+    };
 
-    const handleLoad = useCallback(
-        (e: ImageOnLoadEvent) => {
-            const {width, height} = e.nativeEvent;
-            updateImageAspectRatio(width, height);
-            setIsLoading(false);
-        },
-        [updateImageAspectRatio],
-    );
+    const handleLoad = (e: ImageOnLoadEvent) => {
+        const {width, height} = e.nativeEvent;
+        updateImageAspectRatio(width, height);
+        setIsLoading(false);
+    };
 
     const handleError = () => {
         setIsLoading(false);

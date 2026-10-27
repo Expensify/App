@@ -1468,7 +1468,6 @@ const CONST = {
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
-        DESCRIBE_RULE: 'describeRule',
         TRAVEL_APPROVAL: 'travelApproval',
     },
     BUTTON_STATES: {
@@ -2549,6 +2548,7 @@ const CONST = {
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
+    OUTSTANDING_REPORTS_PAGE_SIZE: 50,
     COMPOSER: {
         NATIVE_ID: 'composer',
         MAX_LINES: 16,
@@ -6625,6 +6625,11 @@ const CONST = {
         ERROR: 'error',
         INFO: 'info',
     },
+    FILE_DOWNLOAD_STATUS: {
+        GENERATING: 'generating',
+        READY: 'ready',
+        FAILED: 'failed',
+    },
     REPORT_DETAILS_MENU_ITEM: {
         GO_TO_ROOM: 'goToRoom',
         MEMBERS: 'member',
@@ -8810,6 +8815,7 @@ const CONST = {
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
+        VENDOR_EMPTY_VALUE: 'none',
         MERCHANT_EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
@@ -8846,6 +8852,7 @@ const CONST = {
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
+            VENDOR: 'vendor',
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
             FEED: 'feed',
@@ -9996,14 +10003,26 @@ const CONST = {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
+            /** Pointer travel, in px, under which pressing a column's edge counts as a click rather than a drag. */
+            DRAG_SLOP: 3,
+
+            /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
+            DOUBLE_CLICK_INTERVAL: 150,
+
             /** Width of the line shown while a column's edge is dragged, and of the grip shown while its heading is hovered. */
             INDICATOR_WIDTH: 2,
 
             /** Share of the heading's height the grip spans, centred vertically. */
             GRIP_HEIGHT_RATIO: 0.8,
 
-            /** How long, in ms, the grip takes to stretch into the line once its edge is pressed. */
+            /** How long, in ms, the grip takes to stretch into the line once its edge is dragged. */
             INDICATOR_MORPH_DURATION: 150,
+
+            /** What a click (`FIT`) or a double-click (`RESET`) on a column's edge sizes it to. */
+            WIDTH_TARGET: {
+                FIT: 'fit',
+                RESET: 'reset',
+            },
         },
     },
 
@@ -10741,7 +10760,6 @@ const CONST = {
                 NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW: 'WorkspaceRules-NewRuleMenuItem-FlagForReview',
                 NEW_RULE_MENU_ITEM_REQUIRE_FIELDS: 'WorkspaceRules-NewRuleMenuItem-RequireFields',
                 NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS: 'WorkspaceRules-NewRuleMenuItem-ApplyExpenseDefaults',
-                NEW_RULE_MENU_ITEM_CREATE_AGENT_RULE: 'WorkspaceRules-NewRuleMenuItem-CreateAgentRule',
                 REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
                 REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
                 FLAG_RECEIPT_LINE_ITEMS_SAVE: 'WorkspaceRules-FlagReceiptLineItemsSave',

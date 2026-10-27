@@ -26,7 +26,7 @@ import type {CardList, PrivatePersonalDetails} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {CustomSubPageProps} from './types';
@@ -70,7 +70,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const {isOffline} = useNetwork();
     const {executeScenario} = useMultifactorAuthentication();
     const {translate} = useLocalize();
-    const targetCardSelector = useCallback((cardList: OnyxEntry<CardList>) => (cardID ? cardList?.[cardID] : undefined), [cardID]);
+    const targetCardSelector = (cardList: OnyxEntry<CardList>) => (cardID ? cardList?.[cardID] : undefined);
     const [targetCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: targetCardSelector});
     const isVirtualCard = !!targetCard?.nameValuePairs?.isVirtual;
     const shouldCollectPIN = !!cardID && isUkEuExpensifyCard(targetCard) && !isVirtualCard;
@@ -79,21 +79,14 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const {setIsConfirmStep} = usePINActions();
 
     // Build form pages dynamically based on whether this is a UK/EU card
-    const formPages = useMemo(() => {
-        if (shouldCollectPIN) {
-            return [...baseFormPages, PINPage, confirmPage];
-        }
-        return [...baseFormPages, confirmPage];
-    }, [shouldCollectPIN]);
+    const formPages = shouldCollectPIN ? [...baseFormPages, PINPage, confirmPage] : [...baseFormPages, confirmPage];
 
     const stepIndexList = shouldCollectPIN ? CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST;
 
-    const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
+    const values = normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm;
 
-    const startFrom = useMemo(() => {
-        const initialPage = getInitialSubPage(values, shouldCollectPIN, PIN);
-        return findPageIndex<CustomSubPageProps>(formPages, initialPage);
-    }, [formPages, values, shouldCollectPIN, PIN]);
+    const initialPage = getInitialSubPage(values, shouldCollectPIN, PIN);
+    const startFrom = findPageIndex<CustomSubPageProps>(formPages, initialPage);
 
     const handleFinishStep = () => {
         if (shouldCollectPIN) {
