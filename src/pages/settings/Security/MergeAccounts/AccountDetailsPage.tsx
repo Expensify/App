@@ -18,13 +18,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage, getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
+import {getMergeErrorPage} from '@libs/MergeAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
 
-import {clearGetValidateCodeForAccountMerge, requestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
+import {clearGetValidateCodeForAccountMerge, clearMergeWithValidateCode, mergeWithValidateCode, requestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,6 +45,10 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 const getValidateCodeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
+    if (err.includes(CONST.MERGE_ACCOUNT_ADMIN_APPROVAL_REQUIRED_ERROR)) {
+        return null;
+    }
+
     if (err.includes('403')) {
         return CONST.MERGE_ACCOUNT_RESULTS.TOO_MANY_ATTEMPTS;
     }
@@ -67,13 +72,18 @@ const getValidateCodeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUN
     return null;
 };
 
-const getValidateCodeForAccountMergeSelector = (account: OnyxEntry<Account>) => account?.getValidateCodeForAccountMerge;
+const accountSelector = (account: OnyxEntry<Account>) => ({
+    getValidateCodeForAccountMerge: account?.getValidateCodeForAccountMerge,
+    mergeWithValidateCode: account?.mergeWithValidateCode,
+});
 
 function AccountDetailsPage() {
     const formRef = useRef<FormRef>(null);
     const navigation = useNavigation();
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getValidateCodeForAccountMergeSelector});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountSelector});
+    const getValidateCodeForAccountMerge = account?.getValidateCodeForAccountMerge;
+    const mergeWithValidateCodeData = account?.mergeWithValidateCode;
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -83,7 +93,11 @@ function AccountDetailsPage() {
     const validateCodeSent = getValidateCodeForAccountMerge?.validateCodeSent;
     const latestError = getLatestErrorMessage(getValidateCodeForAccountMerge);
     const errorKey = getValidateCodeErrorKey(latestError);
-    const genericError = !errorKey ? latestError : undefined;
+    const isAdminApprovalRequired = latestError.includes(CONST.MERGE_ACCOUNT_ADMIN_APPROVAL_REQUIRED_ERROR);
+    const mergeError = getLatestErrorMessage(mergeWithValidateCodeData);
+    const mergeErrorPage = getMergeErrorPage(mergeError);
+    const resultPage = errorKey ?? mergeErrorPage;
+    const genericError = (!errorKey && !isAdminApprovalRequired ? latestError : '') || (!mergeErrorPage ? mergeError : '') || undefined;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -105,15 +119,25 @@ function AccountDetailsPage() {
     useFocusEffect(() => {
         const task = TransitionTracker.runAfterTransitions({
             callback: () => {
-                if (!errorKey || !email) {
+                if (!resultPage || !email) {
                     return;
                 }
-                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email.trim(), errorKey));
+                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email.trim(), resultPage));
             },
         });
 
         return () => task.cancel();
     });
+
+    useEffect(() => {
+        if (!isAdminApprovalRequired || !email) {
+            return;
+        }
+
+        // MergeAccount skips the code check when a shared Domain Admin must approve the merge, and emails that admin instead.
+        clearGetValidateCodeForAccountMerge();
+        mergeWithValidateCode(email.trim(), '');
+    }, [isAdminApprovalRequired, email]);
 
     useFocusEffect(() => {
         const task = TransitionTracker.runAfterTransitions({
@@ -134,6 +158,7 @@ function AccountDetailsPage() {
     useEffect(() => {
         const unsubscribe = navigation.addListener('blur', () => {
             clearGetValidateCodeForAccountMerge();
+            clearMergeWithValidateCode();
         });
 
         return unsubscribe;
@@ -228,7 +253,7 @@ function AccountDetailsPage() {
                         containerStyles={styles.mt3}
                         // This onSubmit triggers the FormProvider submit (via formRef), which already owns the press-loading mechanism
                         shouldShowLoadingImmediatelyOnPress={false}
-                        isLoading={getValidateCodeForAccountMerge?.isLoading}
+                        isLoading={getValidateCodeForAccountMerge?.isLoading || mergeWithValidateCodeData?.isLoading}
                     />
                 </FormProvider>
             </FullPageOfflineBlockingView>

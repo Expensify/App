@@ -2717,6 +2717,16 @@ const translations = {
         mergeFailureSelfMerge: {
             description: 'You cannot merge an account into itself.',
         },
+        mergeAdminApprovalRequested: {
+            heading: 'Waiting for admin approval',
+            description: 'We’ve emailed your Domain Admin to confirm that it’s okay to merge these two accounts. Your accounts will be merged as soon as they give the green light!',
+        },
+        mergeAdminApprovalSuccess: {
+            description: (email: string) => `<muted-text><centered-text>The accounts have been merged into <strong>${email}</strong>.</centered-text></muted-text>`,
+        },
+        mergeAdminApprovalFailed: {
+            description: 'This merge link is invalid or has expired. Make sure you’re signed in as the domain’s technical contact, or ask the user to request the merge again.',
+        },
         mergeFailureGenericHeading: 'Can’t merge accounts',
     },
     lockAccountPage: {

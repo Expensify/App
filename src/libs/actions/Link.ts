@@ -41,16 +41,19 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {findFocusedRoute} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
+import {approveAccountMerge} from './MergeAccounts';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
+let currentUserEmail = '';
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        currentUserEmail = value?.email ?? '';
     },
 });
 
@@ -528,6 +531,19 @@ function openReportFromDeepLink(
                 }
                 const secureKey = new URLSearchParams(route.split('?').at(1) ?? '').get('secureKey') ?? undefined;
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, undefined, secureKey), {waitForTransition: true});
+            });
+            return;
+        }
+
+        const mergeValidateCode = new URLSearchParams(route.split('?').at(1) ?? '').get('mergeValidateCode');
+        if (mergeValidateCode) {
+            Navigation.waitForProtectedRoutes().then(() => {
+                // Only the signed-in Domain Admin can approve the merge, so anonymous sessions must sign in first; the deep link replays after sign-in.
+                if (isAnonymousUser()) {
+                    signOutAndRedirectToSignIn(true);
+                    return;
+                }
+                approveAccountMerge(mergeValidateCode, currentUserEmail);
             });
             return;
         }
