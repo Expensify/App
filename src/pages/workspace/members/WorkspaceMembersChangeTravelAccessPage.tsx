@@ -78,7 +78,13 @@ function WorkspaceMembersChangeTravelAccessPage({policy, personalDetails, route}
     };
 
     const applyAction = ({value}: TravelBulkActionOption) => {
-        if (!canChangeTravelAccess || selectedMembers.length === 0) {
+        if (!canChangeTravelAccess) {
+            return;
+        }
+
+        // Every selected member can drop out of the list, for example by becoming an admin while this page is open
+        if (selectedMembers.length === 0) {
+            navigateBackToMembers();
             return;
         }
 
