@@ -48,7 +48,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {isDraftReportSelector} from '@selectors/Report';
 import {pendingDeleteMemberAccountIDsSelector} from '@selectors/ReportMetaData';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import ShareButton from './ShareButton';
@@ -90,57 +90,38 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const currentUserAccountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    const displayReport = useMemo(
-        () =>
-            getReportDisplayOption({
-                dateFnsLocale,
-                convertToDisplayString,
-                report,
-                unknownUserDetails,
-                personalDetails,
-                privateIsArchived,
-                policy,
-                conciergeReportID,
-                translate,
-                currentUserAccountID,
-                reportAttributesDerived,
-                rules,
-                formatPhoneNumber,
-                pendingDeleteMemberAccountIDs,
-            }),
-        [
-            report,
-            unknownUserDetails,
-            personalDetails,
-            privateIsArchived,
-            policy,
-            conciergeReportID,
-            translate,
-            currentUserAccountID,
-            reportAttributesDerived,
-            dateFnsLocale,
-            convertToDisplayString,
-            rules,
-            formatPhoneNumber,
-            pendingDeleteMemberAccountIDs,
-        ],
-    );
+    const displayReport = getReportDisplayOption({
+        dateFnsLocale,
+        convertToDisplayString,
+        report,
+        unknownUserDetails,
+        personalDetails,
+        privateIsArchived,
+        policy,
+        conciergeReportID,
+        translate,
+        currentUserAccountID,
+        reportAttributesDerived,
+        rules,
+        formatPhoneNumber,
+        pendingDeleteMemberAccountIDs,
+    });
 
     const shouldShowAttachment = !isTextShared;
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
 
     // Only get file name for actual files to avoid URI decoding errors on text content
-    const validateFileName = useMemo(() => {
-        if (!shouldShowAttachment) {
-            return '';
-        }
-        return shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
-    }, [shouldShowAttachment, shouldUsePreValidatedFile, validatedFile?.uri, currentAttachment?.content]);
+    let validateFileName;
+    if (!shouldShowAttachment) {
+        validateFileName = '';
+    } else {
+        validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
+    }
 
     const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
-    const showAttachmentModalScreen = useCallback(() => {
+    const showAttachmentModalScreen = () => {
         reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>({
             source: fileSource,
             headerTitle: validateFileName,
@@ -148,7 +129,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             fallbackSource: icons.FallbackAvatar,
         });
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
-    }, [reportAttachmentsContext, fileSource, validateFileName, icons.FallbackAvatar]);
+    };
 
     useShareFileSizeValidation(currentAttachment?.content, setErrorTitle, setErrorMessage, !errorTitle && shouldShowAttachment);
 

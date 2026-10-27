@@ -4,6 +4,7 @@ import {
     getCreated,
     getCurrency,
     getMerchant,
+    getTag,
     getTagForDisplay,
     hasReceipt,
     isAmountMissing,
@@ -106,6 +107,9 @@ const createTagDisplaySelector = (tagIndex: number) => (t: OnyxEntry<Transaction
     }
     return getTagForDisplay({tag: t.tag}, tagIndex);
 };
+
+// The whole tag string, every list's tag joined, which the tag list needs to filter and write one list's slot
+const transactionTagSelector = (t: OnyxEntry<Transaction>) => (t ? getTag(t) : undefined);
 
 // --- CategoryField ---
 
@@ -353,6 +357,7 @@ type ReportFieldTransactionState = {
     reportID: Transaction['reportID'];
     isFromGlobalCreate: boolean;
     participantReportID: string | undefined;
+    isScanRequest: boolean;
 };
 
 const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState | undefined => {
@@ -363,6 +368,7 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
         reportID: t.reportID,
         isFromGlobalCreate: !!t.isFromGlobalCreate,
         participantReportID: t.participants?.at(0)?.reportID,
+        isScanRequest: isScanRequest(t),
     };
 };
 
@@ -390,6 +396,7 @@ export {
     categoryStateSelector,
     createCanUpdateSenderWorkspaceSelector,
     createTagDisplaySelector,
+    transactionTagSelector,
     dateStateSelector,
     derivedFlagsSliceSelector,
     descriptionStateSelector,

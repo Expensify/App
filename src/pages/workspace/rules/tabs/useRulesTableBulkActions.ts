@@ -13,6 +13,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -33,7 +34,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 const DEFAULT_SPEND_RULE_ID = 'default-rule';
 const RULES_TAB = CONST.TAB.RULES;
@@ -65,6 +66,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const policyData = usePolicyData(policyID);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {convertToDisplayString} = useCurrencyListActions();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
@@ -205,7 +207,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
 
     const selectedRuleKeys = isTableSelectionTab(activeTab) ? getFilteredSelectedKeys(activeTab) : [];
 
-    const deleteSelectedForActiveTab = useCallback(() => {
+    const deleteSelectedForActiveTab = () => {
         if (!isTableSelectionTab(activeTab)) {
             return;
         }
@@ -232,16 +234,22 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         }
 
         if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
+            // Drained to {} after the first write so this bulk delete's optimistic task tick fires exactly once.
+            let remainingTaskData = getReviewWorkspaceSettingsTaskCompletion();
             for (const ruleKey of filteredSelectedRequireFieldsRuleKeys) {
-                deleteRequireFieldsRule(policyData, ruleKey, isVendorMatchingBetaEnabled);
+                deleteRequireFieldsRule(policyData, ruleKey, isVendorMatchingBetaEnabled, remainingTaskData);
+                remainingTaskData = {};
             }
             clearTableSelection();
             return;
         }
 
         if (activeTab === RULES_TAB.FLAG_FOR_REVIEW) {
+            // Drained to {} after the first write so this bulk delete's optimistic task tick fires exactly once.
+            let remainingTaskData = getReviewWorkspaceSettingsTaskCompletion();
             for (const categoryName of filteredSelectedFlagForReviewRuleKeys) {
-                deleteFlagForReviewRule(policyID, categoryName, policyData.categories);
+                deleteFlagForReviewRule(policyID, categoryName, policyData.categories, remainingTaskData);
+                remainingTaskData = {};
             }
             clearTableSelection();
             return;
@@ -260,21 +268,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         }
 
         clearTableSelection();
-    }, [
-        isVendorMatchingBetaEnabled,
-        activeTab,
-        clearTableSelection,
-        defaultFundID,
-        expensifyCardSettings?.cardRules,
-        filteredSelectedExpenseDefaultKeys,
-        filteredSelectedFlagForReviewRuleKeys,
-        filteredSelectedRequireFieldsRuleKeys,
-        rules,
-        filteredSelectedSpendRuleKeys,
-        policy,
-        policyData,
-        policyID,
-    ]);
+    };
 
     return {
         selectedRuleKeys,

@@ -254,7 +254,7 @@ function DynamicIOURequestStepDestination({
                             subtitle={
                                 isPolicyAdmin(policy) ? translate('workspace.perDiem.requestEmptyList.adminSubtitle') : translate('workspace.perDiem.requestEmptyList.subtitle', policy?.name)
                             }
-                            containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                            containerStyle={[styles.flex1, styles.justifyContentCenter, styles.alignSelfCenter]}
                         />
                         {isPolicyAdmin(policy) && (
                             <FixedFooter style={[styles.mtAuto, styles.pt5]}>
