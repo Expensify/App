@@ -1,3 +1,7 @@
+/**
+ * Only the reportAttributes derived value may import this.
+ * It lives outside ReportNameUtils because it uses ModifiedExpenseMessage, which imports ReportNameUtils.
+ */
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
