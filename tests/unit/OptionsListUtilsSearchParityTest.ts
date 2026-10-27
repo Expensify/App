@@ -57,7 +57,7 @@ function clearSearchCaches() {
  * [sub: ...] is only emitted for rooms and workspace chats, because that is what search matches for them.
  * [nav: ...] is the row's navigation target (reportID, else login, else none), emitted only when it differs from keyForList: report rows navigate by reportID, which equals keyForList today, so only a divergence shows.
  * The userToInvite login target is not emitted, because it is already visible as the text or the trailing invited login.
- * Fields the SearchRouter never reads (participantsList, icons, policyID, ownerAccountID, item) are deliberately left out.
+ * participantsList, icons and ownerAccountID are left out because the SearchRouter only renders them or never reads them. policyID and item are read for contextual search and FullStory masking, but only the canonical builders set them, so they are left out too.
  */
 function serializeOption(option: SearchOptionData | null | undefined, {isUserToInvite = false}: {isUserToInvite?: boolean} = {}): string | null {
     if (!option) {
