@@ -3,7 +3,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import {isRecord} from '@libs/ObjectUtils';
 
-import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, deleteAgent, updateAgentAvatar, updateAgentName, updateAgentPrompt} from '@userActions/Agent';
+import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, createCompanyAgent, deleteAgent, updateAgentAvatar, updateAgentName, updateAgentPrompt} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -227,9 +227,16 @@ describe('createAgent', () => {
     });
 
     it('forwards policyID in the write params when provided', () => {
-        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, undefined, undefined, undefined, 'POLICY_42');
-
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: 'Bot', prompt: 'My prompt', policyID: 'POLICY_42'}), expect.any(Object));
+        const policy = {
+            ...createRandomPolicy(0),
+            id: 'POLICY_42',
+        };
+        createCompanyAgent(OWNER_ACCOUNT_ID, OWNER_LOGIN, 'My prompt', policy, CONST.POLICY.ROLE.ADMIN, 'Bot');
+        expect(mockWrite).toHaveBeenCalledWith(
+            WRITE_COMMANDS.CREATE_COMPANY_AGENT,
+            expect.objectContaining({firstName: 'Bot', prompt: 'My prompt', policyID: 'POLICY_42'}),
+            expect.any(Object),
+        );
     });
 
     it('returns the optimistic accountID and avatarURI so callers can chain follow-up navigation', () => {
@@ -326,7 +333,7 @@ describe('createAgent', () => {
     });
 
     it('omits login on the optimistic personal detail entry — the real email is server-assigned', () => {
-        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, undefined, undefined, undefined, 'POLICY_42');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, undefined, undefined, undefined);
 
         const accountID = getOptimisticAccountID();
         const entry = getOptimisticPersonalDetailEntry(accountID);
@@ -360,7 +367,7 @@ describe('createAgent', () => {
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({optimisticAccountID: String(result.optimisticAccountID)}), expect.any(Object));
     });
 
-    it('failure data preserves optimistic personal detail and merges errors onto the prompt entry', () => {
+    it('failure data  merges errors onto the prompt entry', () => {
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
         const {failureData} = getWriteOptions();
@@ -372,11 +379,6 @@ describe('createAgent', () => {
             isOptimisticPersonalDetail: true,
         });
         const promptValue = getUpdateRecord(failureData, `${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
-
-        expect(promptValue).toMatchObject({
-            prompt: 'My prompt',
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        });
         expect(promptValue.errors).toBeTruthy();
     });
 });

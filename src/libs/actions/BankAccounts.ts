@@ -52,7 +52,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {getMakeDefaultPaymentOnyxData} from './PaymentMethods';
+import getMakeDefaultPaymentOnyxData from './getMakeDefaultPaymentOnyxData';
 import {setBankAccountSubStep} from './ReimbursementAccount';
 
 /** Loads the reimbursement countries of the user's policies, which decide whether to collect local or wire details. */
@@ -215,7 +215,7 @@ function openPersonalBankAccountSetupView({
             return;
         }
         if (shouldSetUpUSBankAccount) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute()));
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(Navigation.getActiveRoute()));
@@ -674,7 +674,7 @@ function deletePaymentBankAccount(
         pendingAction: null,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.USER_WALLET> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.FUND_LIST> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -706,9 +706,7 @@ function deletePaymentBankAccount(
 
     if (newBankAccountID) {
         const newDefaultPaymentMethodOnyxData = getMakeDefaultPaymentOnyxData(newBankAccountID);
-        onyxData.optimisticData?.push(
-            ...(newDefaultPaymentMethodOnyxData as Array<OnyxUpdate<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.USER_WALLET>>),
-        );
+        onyxData.optimisticData?.push(...newDefaultPaymentMethodOnyxData);
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
@@ -737,7 +735,7 @@ function deletePaymentBankAccount(
         });
     }
     for (const paymentMethodID of Object.keys(lastUsedPaymentMethods ?? {})) {
-        const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodID] as LastPaymentMethodType;
+        const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodID];
 
         if (typeof lastUsedPaymentMethod === 'string' || !lastUsedPaymentMethod) {
             continue;

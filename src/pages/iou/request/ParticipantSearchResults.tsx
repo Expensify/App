@@ -162,7 +162,7 @@ function ParticipantSearchResults({
         action !== CONST.IOU.ACTION.SUBMIT &&
         action !== CONST.IOU.ACTION.CATEGORIZE;
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
@@ -199,12 +199,14 @@ function ParticipantSearchResults({
 
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const activeAdminWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin);
+    const canUseWorkspaceChats = iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK;
+    const includeOwnedWorkspaceChats = !shouldExcludeWorkspaces && canUseWorkspaceChats;
 
     const getValidOptionsConfig = {
         selectedOptions: participants as Participant[],
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeOwnedWorkspaceChats:
-            !shouldExcludeWorkspaces && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK),
+        includeOwnedWorkspaceChats,
+        excludeWorkspacesWithoutCreateExpensePermission: canUseWorkspaceChats,
         excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
         includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
         includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
@@ -219,6 +221,8 @@ function ParticipantSearchResults({
         preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
+        // Only boost the default workspace chat when workspace chats can be shown, so it doesn't take a slot in the recent-reports limit
+        activePolicyID: includeOwnedWorkspaceChats ? activePolicyID : undefined,
     };
 
     /**
@@ -324,6 +328,7 @@ function ParticipantSearchResults({
             translate,
             convertToDisplayString,
             dateFnsLocale,
+            formatPhoneNumber,
             getReportByID,
             rules,
             personalDetails,
@@ -400,7 +405,7 @@ function ParticipantSearchResults({
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
-                              {translate, dateFnsLocale, convertToDisplayString},
+                              {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                               currentUserAccountID,
                               rules,
                               reportAttributesDerived,

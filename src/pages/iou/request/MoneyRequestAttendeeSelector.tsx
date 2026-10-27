@@ -30,8 +30,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {GestureResponderEvent} from 'react-native';
 
 import {SafeString} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
-import React, {memo, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -70,7 +69,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     // accountID derived from their login (generateAccountID is deterministic), so they can be tracked by accountID like everyone else.
     const initialSelectedOptions = attendees.map((attendee) => {
         // Use || to fall back to displayName for name-only attendees (empty email)
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const login = attendee.email || attendee.displayName;
         const personalDetail = attendeesPersonalDetails[attendee.email ?? ''];
         const accountID = personalDetail?.accountID ?? generateAccountID(login);
@@ -119,7 +117,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 return {
                     email: option.login ?? '',
                     // Use || to fall back for name-only attendees
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     displayName: option.text || option.login || '',
                     avatarUrl: icon,
                 };
@@ -256,5 +253,4 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     );
 }
 
-// eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- attendees array is derived and may have unstable references
-export default memo(MoneyRequestAttendeeSelector, (prevProps, nextProps) => deepEqual(prevProps.attendees, nextProps.attendees) && prevProps.iouType === nextProps.iouType);
+export default MoneyRequestAttendeeSelector;

@@ -475,6 +475,21 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED);
     });
 
+    it('returns yes and no suggestions for held key', () => {
+        // Given the user has typed the held key with no value yet
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD, value: ''},
+            ranges: [],
+        });
+
+        // When suggestions are computed
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'held:'}));
+
+        // Then both boolean values are suggested for the held key
+        expect(result.current.map((suggestion) => suggestion.text)).toEqual([CONST.SEARCH.BOOLEAN.NO, CONST.SEARCH.BOOLEAN.YES]);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD);
+    });
+
     it('returns in: suggestions for chat reports', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: 'gen'},
@@ -508,6 +523,41 @@ describe('useAutocompleteSuggestions', () => {
         const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'unknownKey:test'}));
 
         expect(result.current).toEqual([]);
+    });
+
+    test.each(['createdBy:alice', 'ReportID:123', 'TAXRATE:20', 'report-field-Custom:value'])('consumes real non-canonical parser keys in %s', (query) => {
+        // Given the generated parser rather than the existing scenario stub.
+        parseForAutocomplete.mockImplementation(jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').parseForAutocomplete);
+        // When the production hook consumes a key without a suggestion branch.
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: query}));
+        // Then it returns no suggestions without narrowing the parser to canonical keys.
+        expect(result.current).toEqual([]);
+        expect(parseForAutocomplete).toHaveBeenCalledWith(query);
+    });
+
+    it('uses real parser offsets and repeated substitutions for workspaces with the same name', () => {
+        // Given two selected workspaces whose display names collide but whose IDs differ.
+        parseForAutocomplete.mockImplementation(jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').parseForAutocomplete);
+        const policies: NonNullable<OnyxCollection<Policy>> = {
+            first: createMock<Policy>({id: 'A', name: 'Test Workspace'}),
+            second: createMock<Policy>({id: 'B', name: 'Test Workspace'}),
+            third: createMock<Policy>({id: 'C', name: 'Test Workspace'}),
+        };
+        // When the production branch resolves occurrences by the existing indexed substitution keys.
+        const {result} = renderHook(() =>
+            useAutocompleteSuggestions({
+                ...defaultParams,
+                autocompleteQueryValue: 'workspace:"Test Workspace","Test Workspace",',
+                policies,
+                autocompleteSubstitutions: Object.fromEntries([
+                    ['policyID:Test Workspace', 'A'],
+                    ['policyID:Test Workspace:1', 'B'],
+                ]),
+            }),
+        );
+        // Then only the unselected policy remains despite the repeated display value.
+        expect(result.current).toHaveLength(1);
+        expect(result.current.at(0)).toMatchObject({autocompleteID: 'C', text: 'Test Workspace'});
     });
 
     it('excludes already selected workspaces by policy ID when names are duplicated', () => {

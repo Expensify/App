@@ -241,7 +241,6 @@ const OnboardingGuard: NavigationGuard = {
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
         const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
         const isNavigatingToJoinWorkspaceTaskRoute = isNavigatingToJoinWorkspaceTask(action);

@@ -8,6 +8,7 @@ import AgentsPage from '@pages/settings/Agents/AgentsPage';
 
 import {openAgentsPage} from '@userActions/Agent';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type ReactNative from 'react-native';
@@ -45,7 +46,7 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
 
 jest.mock('@components/Tables/AgentsTable', () => {
     const {Text} = jest.requireActual<typeof ReactNative>('react-native');
-    function MockAgentsTable({agents}: {agents: Array<{displayName: string}>}) {
+    function MockAgentsTable({agents}: {agents: Array<{displayName: string; ownerDisplayName?: string}>}) {
         if (agents.length === 0) {
             return <Text>agentsPage.emptyAgents.title</Text>;
         }
@@ -56,6 +57,7 @@ jest.mock('@components/Tables/AgentsTable', () => {
                 testID={`agent-${agent.displayName}`}
             >
                 {agent.displayName}
+                {agent.ownerDisplayName}
             </Text>
         ));
     }
@@ -183,6 +185,50 @@ describe('AgentsPage', () => {
 
         expect(screen.getByText('Test Agent')).toBeOnTheScreen();
         expect(screen.queryByText('agentsPage.emptyAgents.title')).not.toBeOnTheScreen();
+    });
+
+    it('shows the owning domain without requiring its personal details', () => {
+        // Given a domain-owned agent whose owner has no personal-details entry.
+        const agentAccountID = 12345;
+        const ownerAccountID = 67890;
+        const domainDefaultSecurityGroupIDKey = 'domain_defaultSecurityGroupID';
+        mockUsePersonalDetails.mockReturnValue({
+            [agentAccountID]: {accountID: agentAccountID, displayName: 'RuleBot', login: 'rulebot_12345@expensify.ai'},
+        });
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.COLLECTION.AGENT) {
+                return [
+                    {
+                        [`${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`]: {
+                            prompt: 'Review reports',
+                            ownerAccountID,
+                            ownerType: CONST.AGENTS.OWNER_TYPE.DOMAIN,
+                        },
+                    },
+                    {status: 'loaded'},
+                ];
+            }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
+                return [
+                    {
+                        [`${ONYXKEYS.COLLECTION.DOMAIN}${ownerAccountID}`]: {
+                            accountID: ownerAccountID,
+                            email: '+@example.com',
+                            validated: true,
+                            [domainDefaultSecurityGroupIDKey]: '',
+                        },
+                    },
+                    {status: 'loaded'},
+                ];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+
+        // When the account Agents page renders.
+        render(<AgentsPage />);
+
+        // Then the owner column identifies the domain instead of showing a blank label.
+        expect(screen.getByTestId('agent-RuleBot')).toHaveTextContent(/example\.com/);
     });
 
     it('excludes agents whose personal details are missing from the list', () => {

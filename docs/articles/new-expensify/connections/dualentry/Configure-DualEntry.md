@@ -28,8 +28,6 @@ Each Workspace has its own DualEntry integration. To view or update the configur
 2. Select **Accounting**.
 3. On the DualEntry connection, select **Import**, **Export**, or **Advanced**.
 
-![The Accounting page showing the connected DualEntry integration with the Import, Export, and Advanced settings visible.]({{site.url}}/assets/images/DualEntry_configure.png){:width="100%"}
-
 ---
 
 ## How to configure DualEntry import settings

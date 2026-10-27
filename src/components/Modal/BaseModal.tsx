@@ -30,7 +30,7 @@ import CONST from '@src/CONST';
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
@@ -89,6 +89,7 @@ function BaseModal({
     shouldKeepRightDockedBackdropInNarrowPane = false,
     shouldShowBackdrop = false,
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
+    shouldLimitHeightIfBottomDockedInLandscapeMode = true,
 }: BaseModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -136,27 +137,24 @@ function BaseModal({
      * Hides modal
      * @param callHideCallback - Should we call the onModalHide callback
      */
-    const hideModal = useCallback(
-        (callHideCallback = true) => {
-            shouldCallHideModalOnUnmount.current = false;
-            willAlertModalBecomeVisible(false);
-            if (areAllModalsHidden()) {
-                if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
-                    setModalVisibility(false);
-                }
+    const hideModal = (callHideCallback = true) => {
+        shouldCallHideModalOnUnmount.current = false;
+        willAlertModalBecomeVisible(false);
+        if (areAllModalsHidden()) {
+            if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
+                setModalVisibility(false);
             }
-            if (callHideCallback) {
-                onModalHide();
-            }
-            onModalDidClose();
-            ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
-        },
-        [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
-    );
+        }
+        if (callHideCallback) {
+            onModalHide();
+        }
+        onModalDidClose();
+        ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
+    };
 
-    const handleDismissModal = useCallback(() => {
+    const handleDismissModal = () => {
         ComposerFocusManager.setReadyToFocus(uniqueModalId);
-    }, [uniqueModalId]);
+    };
 
     useEffect(() => {
         let removeOnCloseListener: () => void;
@@ -205,12 +203,12 @@ function BaseModal({
         [],
     );
 
-    const handleShowModal = useCallback(() => {
+    const handleShowModal = () => {
         if (shouldSetModalVisibility) {
             setModalVisibility(true, type);
         }
         onModalShow();
-    }, [onModalShow, shouldSetModalVisibility, type]);
+    };
 
     const handleBackdropPress = (e?: GestureResponderEvent | KeyboardEvent) => {
         if (e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
@@ -408,7 +406,8 @@ function BaseModal({
                                 modalPaddingStyles,
                                 !isVisible && styles.pointerEventsNone,
                                 sidePanelAnimatedStyle,
-                                isBottomDockedModalInLandscapeMode && {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE},
+                                isBottomDockedModalInLandscapeMode &&
+                                    shouldLimitHeightIfBottomDockedInLandscapeMode && {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE},
                             ]}
                             ref={ref}
                             fsClass={forwardedFSClass}

@@ -1,6 +1,7 @@
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
@@ -167,6 +168,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
             submitReport({
                 getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
+                expenseReportTransactions: transactions,
                 policy,
                 rules,
                 currentUserAccountIDParam: accountID,
@@ -183,24 +185,15 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
                     if (shouldExportToPDF) {
                         // If the user cancels while the PDF is still generating, discard the submission (retract it back
                         // to draft) so they can resubmit — matching the pre-submit-via-PDF behavior.
-                        openPDFDownload({
-                            onCancel: () => {
-                                // Stop the "Submitted" animation in lockstep with the retract so the header goes straight
-                                // back to the Submit button instead of finishing the animation on a report that is open again.
-                                stopAnimation();
-                                retractReport(
-                                    moneyRequestReport,
-                                    chatReport,
-                                    policy,
-                                    accountID,
-                                    email ?? '',
-                                    hasViolations,
-                                    isASAPSubmitBetaEnabled,
-                                    delegateEmail,
-                                    isTrackIntentUser,
-                                    rules,
-                                );
-                            },
+                        openPDFDownload().then((result) => {
+                            if (result?.action !== ModalActions.CLOSE) {
+                                return;
+                            }
+
+                            // Stop the "Submitted" animation in lockstep with the retract so the header goes straight
+                            // back to the Submit button instead of finishing the animation on a report that is open again.
+                            stopAnimation();
+                            retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser, rules);
                         });
                     }
                 },
