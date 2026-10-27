@@ -392,7 +392,6 @@
   },
   "overrides": {
     "typescript": "$typescript",
-    "vite-plus": "^0.1.15",
     "awesome-phonenumber": "$awesome-phonenumber",
     "@typescript-eslint/eslint-plugin": "8.58.1",
     "@typescript-eslint/parser": "8.58.1",
