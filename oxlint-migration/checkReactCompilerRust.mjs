@@ -4,7 +4,7 @@ import path from 'node:path';
 import process from 'node:process';
 import {fileURLToPath} from 'node:url';
 
-import {CONFIG_CATEGORY, IGNORED_CATEGORIES, RULE_BY_CATEGORY, reactCompilerDiagnostics} from '../config/oxlint/reactCompilerRust.mjs';
+import {analyze, CONFIG_CATEGORY, ENVIRONMENT, IGNORED_CATEGORIES, RULE_BY_CATEGORY, reactCompilerDiagnostics} from '../config/oxlint/reactCompilerRust.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FIXTURE_DIR = path.join(repoRoot, 'oxlint-migration/port-probe/fixtures');
@@ -156,6 +156,31 @@ check(
     'NonAscii.tsx reports rc/refs on the ref read itself',
     `got ${nonAsciiPoints.join(' and ') || 'nothing'}, expected ${refReadLine}:${refReadColumn}`,
 );
+
+console.log('\n10. ENVIRONMENT holds exactly the plugin validations that change what the bridge reports');
+// eslint-plugin-react-hooks lints with its own environment table (COMPILER_OPTIONS in the bundle). The
+// bridge lists only the entries whose absence changes a report. Proving that in both directions here
+// means a flipped oxc default, or a plugin bump that turns on another validation, fails this run.
+const optionsBlock = bundle.match(/const COMPILER_OPTIONS = \{[\s\S]*?environment: \{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
+const pluginValue = (text) => {
+    const alias = bundle.match(new RegExp(`(?:const|var|let) ${text} = ([^;]+);`));
+    return JSON.parse((alias?.[1] ?? text).replaceAll("'", '"'));
+};
+const pluginEnvironment = Object.fromEntries([...optionsBlock.matchAll(/^\s*(\w+):\s*(.+?),?\s*$/gm)].map(([, key, value]) => [key.replace('JSX', 'Jsx'), pluginValue(value)]));
+check(Object.keys(pluginEnvironment).length > 0, 'the plugin bundle still exposes COMPILER_OPTIONS.environment', `${Object.keys(pluginEnvironment).length} entries`);
+const environmentProbeFiles = [...FIXTURES.map(([fixture]) => path.join(FIXTURE_DIR, fixture)), ...fs.readdirSync(PROBE_DIR).filter((name) => name.endsWith('.tsx') && !name.includes('.probe.')).map((name) => path.join(PROBE_DIR, name))];
+const reportsWith = (environment) => JSON.stringify(environmentProbeFiles.map((file) => analyze(file, fs.readFileSync(file, 'utf8'), environment)));
+const baselineReports = reportsWith(ENVIRONMENT);
+const disagreeing = Object.keys(ENVIRONMENT).filter((key) => JSON.stringify(pluginEnvironment[key]) !== JSON.stringify(ENVIRONMENT[key]));
+check(disagreeing.length === 0, 'every ENVIRONMENT entry has the value the plugin uses', disagreeing.length ? `differs: ${disagreeing.join(', ')}` : `${Object.keys(ENVIRONMENT).length} entries`);
+const inert = Object.keys(ENVIRONMENT).filter((key) => {
+    const without = {...ENVIRONMENT};
+    delete without[key];
+    return reportsWith(without) === baselineReports;
+});
+check(inert.length === 0, 'omitting any ENVIRONMENT entry changes a fixture report', inert.length ? `inert, drop: ${inert.join(', ')}` : `${Object.keys(ENVIRONMENT).length} of ${Object.keys(ENVIRONMENT).length}`);
+const missing = Object.keys(pluginEnvironment).filter((key) => !(key in ENVIRONMENT) && reportsWith({...ENVIRONMENT, [key]: pluginEnvironment[key]}) !== baselineReports);
+check(missing.length === 0, 'no other plugin validation changes a fixture report', missing.length ? `add: ${missing.join(', ')}` : `${Object.keys(pluginEnvironment).length - Object.keys(ENVIRONMENT).length} entries already match oxc or feed ignored categories`);
 
 console.log(failed ? '\nFAILED' : '\nAll assertions hold.');
 process.exit(failed ? 1 : 0);

@@ -20,7 +20,7 @@
  */
 import _ from 'lodash';
 
-import checkReactCompilerWithOxc from '../../config/reactCompiler/checkWithOxc.mjs';
+import {isFileMemoized} from '../../config/reactCompiler/checkWithOxc.mjs';
 import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN, RULES_SUPPRESSED_BY_REACT_COMPILER} from '../../config/reactCompiler/suppressedRules.mjs';
 
 // Per-file compilation results, populated in preprocess, consumed in postprocess.
@@ -34,12 +34,7 @@ const processor = {
     supportsAutofix: true,
 
     preprocess(text, filename) {
-        // Skip files that React Compiler wouldn't compile anyway
-        if (filename.includes('/tests/') || filename.includes('node_modules/')) {
-            compilationResults.set(filename, false);
-        } else {
-            compilationResults.set(filename, checkReactCompilerWithOxc(text, filename).memoized);
-        }
+        compilationResults.set(filename, isFileMemoized(text, filename));
 
         // Pass the source through unchanged as a single code block
         return [text];
