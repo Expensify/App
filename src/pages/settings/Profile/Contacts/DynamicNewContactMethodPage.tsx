@@ -30,7 +30,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 function DynamicNewContactMethodPage() {
@@ -72,49 +72,39 @@ function DynamicNewContactMethodPage() {
         };
     }, [loginList]);
 
-    const handleAddSecondaryLogin = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
-            const phoneLogin = getPhoneLogin(values.phoneOrEmail, countryCode);
-            const validateIfNumber = validateNumber(phoneLogin);
-            const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
-            addNewContactMethod(submitDetail, pendingContactAction?.validateActionCode ?? '');
-        },
-        [countryCode, pendingContactAction?.validateActionCode],
-    );
+    const handleAddSecondaryLogin = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
+        const phoneLogin = getPhoneLogin(values.phoneOrEmail, countryCode);
+        const validateIfNumber = validateNumber(phoneLogin);
+        const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
+        addNewContactMethod(submitDetail, pendingContactAction?.validateActionCode ?? '');
+    };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
-            const phoneLogin = getPhoneLogin(values.phoneOrEmail, countryCode);
-            const validateIfNumber = validateNumber(phoneLogin);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
+        const phoneLogin = getPhoneLogin(values.phoneOrEmail, countryCode);
+        const validateIfNumber = validateNumber(phoneLogin);
 
-            const errors = {};
+        const errors = {};
 
-            if (!values.phoneOrEmail) {
-                addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.contactMethodRequired'));
-            } else if (values.phoneOrEmail.length > CONST.LOGIN_CHARACTER_LIMIT) {
-                addErrorMessage(errors, 'phoneOrEmail', translate('common.error.characterLimitExceedCounter', values.phoneOrEmail.length, CONST.LOGIN_CHARACTER_LIMIT));
-            }
+        if (!values.phoneOrEmail) {
+            addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.contactMethodRequired'));
+        } else if (values.phoneOrEmail.length > CONST.LOGIN_CHARACTER_LIMIT) {
+            addErrorMessage(errors, 'phoneOrEmail', translate('common.error.characterLimitExceedCounter', values.phoneOrEmail.length, CONST.LOGIN_CHARACTER_LIMIT));
+        }
 
-            if (!!values.phoneOrEmail && !(validateIfNumber || Str.isValidEmail(values.phoneOrEmail))) {
-                addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.invalidContactMethod'));
-            }
+        if (!!values.phoneOrEmail && !(validateIfNumber || Str.isValidEmail(values.phoneOrEmail))) {
+            addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.invalidContactMethod'));
+        }
 
-            if (!!values.phoneOrEmail && loginList?.[validateIfNumber || values.phoneOrEmail.toLowerCase()]) {
-                addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmitted'));
-            }
+        if (!!values.phoneOrEmail && loginList?.[validateIfNumber || values.phoneOrEmail.toLowerCase()]) {
+            addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmitted'));
+        }
 
-            return errors;
-        },
-        // We don't need `loginList` because when submitting this form
-        // the loginList gets updated, causing this function to run again.
-        // https://github.com/Expensify/App/issues/20610
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [translate, countryCode],
-    );
+        return errors;
+    };
 
-    const onBackButtonPress = useCallback(() => {
+    const onBackButtonPress = () => {
         Navigation.goBack(listPath);
-    }, [listPath]);
+    };
 
     // Guards against firing twice: once this screen is replaced, useDynamicBackPath (reactive to
     // navigation state) recomputes listPath against the NEW screen, so a second effect run would

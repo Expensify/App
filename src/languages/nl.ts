@@ -2503,8 +2503,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Weet je zeker dat je accounts wilt samenvoegen?',
-            lossOfUnsubmittedData: (login: string) =>
-                `Het samenvoegen van je accounts is onomkeerbaar en zal leiden tot het verlies van alle niet-ingediende uitgaven voor <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Het samenvoegen van je accounts is onomkeerbaar. Alle uitgaven en rapporten van <strong>${login}</strong>, inclusief concepten en niet-gerapporteerde uitgaven, worden verplaatst naar het account dat je behoudt.`,
             enterSecurityCode: (login: string) => `Om door te gaan, voer de beveiligingscode in die is verzonden naar <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Onjuiste of ongeldige beveiligingscode. Probeer het opnieuw of vraag een nieuwe code aan.',
@@ -6729,6 +6729,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             provisioningError:
                                 'We konden voor sommige leden van je werkruimte geen toegang instellen tot Geconsolideerde Reisfacturering. Probeer het later opnieuw of neem contact op met Concierge voor ondersteuning.',
                             sendInvoiceNowCta: 'Verzend factuur nu',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `De maandelijkse bestedingslimiet per lid mag de huidige reiskostenlimiet van ${travelLimit} niet overschrijden.`,
                         },
                         setUpNewFeed: 'Nieuwe reiskoppeling instellen',
                         feedSelectorIntro:
@@ -7455,6 +7457,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7700,6 +7704,18 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Kaartafrekeningen synchroniseren';
                         case 'campfireSyncTravelSettlements':
                             return 'Reisverrekeningen synchroniseren';
+                        case 'digitsSyncTitle':
+                            return 'Digits-gegevens synchroniseren';
+                        case 'digitsSyncConnection':
+                            return 'Verbinding met Digits initialiseren';
+                        case 'digitsSyncImportData':
+                            return 'Gegevens laden';
+                        case 'digitsSyncPayments':
+                            return 'Leveranciersbetalingen synchroniseren';
+                        case 'digitsSyncCardSettlements':
+                            return 'Kaartafrekeningen synchroniseren';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Reisverrekeningen synchroniseren';
                         case 'businessCentralSyncTitle':
                             return 'Dynamics 365 Business Central-gegevens synchroniseren';
                         case 'businessCentralSyncConnection':
@@ -7749,6 +7765,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             syncTravelBillingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Doorlopende afstemming wordt per kaartfeed geconfigureerd. Selecteer een feed om te wijzigen welke je configureert.</muted-text-label>',
@@ -8841,11 +8858,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 applyExpenseDefaultsDescription: 'Velden automatisch bijwerken',
                 flagForReview: 'Markeren voor controle',
                 flagForReviewDescription: 'Melding wanneer aan je voorwaarden is voldaan',
-                requireFields: 'Veldvereisten instellen',
-                requireFieldsShort: 'Velden verplichten',
+                requireFields: 'Velden verplichten',
                 requireFieldsDescription: 'Bonnen, categorieën, enz.',
-                createAgentRule: 'Agentregel beschrijven',
-                createAgentRuleDescription: 'Maak flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
                 describeItBelow: 'Of beschrijf hem hieronder',
                 describeRulePlaceholder: 'Blokkeer alle uitgaven boven $2.000',
                 selectTemplateOrDescribe: 'Selecteer een sjabloon of beschrijf een regel om door te gaan',
@@ -10425,6 +10439,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         noCategory: 'Geen categorie',
         noMerchant: 'Geen handelaar',
         noTag: 'Geen tag',
+        noVendor: 'Geen leverancier',
         expenseType: 'Onkostentype',
         receiptType: 'Bontype',
         receiptTypeValues: {
@@ -11922,6 +11937,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
         currentView: 'Huidige weergave',
+        currentViewGroupsOnly: 'Huidige weergave (alleen groepen)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

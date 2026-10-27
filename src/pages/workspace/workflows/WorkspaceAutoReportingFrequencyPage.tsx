@@ -30,7 +30,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type AutoReportingFrequencyKey = ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
@@ -79,23 +79,20 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         setUserSelectedFrequency(item.keyForList as AutoReportingFrequencyKey);
     };
 
-    const saveAutoReportingFrequency = useCallback(() => {
+    const saveAutoReportingFrequency = () => {
         if (!policyID || !selectedFrequency) {
             return;
         }
         setWorkspaceAutoReportingFrequency(policyID, selectedFrequency, policy?.autoReportingFrequency, policy?.harvesting, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.goBack();
-    }, [policyID, policy?.autoReportingFrequency, policy?.harvesting, selectedFrequency, getReviewWorkspaceSettingsTaskCompletion]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveAutoReportingFrequency,
-            isDisabled: selectedFrequency === autoReportingFrequency,
-        }),
-        [saveAutoReportingFrequency, translate, selectedFrequency, autoReportingFrequency],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAutoReportingFrequency,
+        isDisabled: selectedFrequency === autoReportingFrequency,
+    };
 
     const getDescriptionText = () => {
         if (policy?.autoReportingOffset === undefined) {

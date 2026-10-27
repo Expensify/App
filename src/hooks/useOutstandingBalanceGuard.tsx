@@ -5,8 +5,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import {useCallback} from 'react';
-
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -28,7 +26,7 @@ function useOutstandingBalanceGuard(ownedPaidPoliciesCount: number, onModalDismi
 
     const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCount === 1;
 
-    const shouldBlockDeletion = useCallback(() => {
+    const shouldBlockDeletion = () => {
         if (!wouldBlockDeletion) {
             return false;
         }
@@ -47,7 +45,7 @@ function useOutstandingBalanceGuard(ownedPaidPoliciesCount: number, onModalDismi
         });
 
         return true;
-    }, [onModalDismissed, showConfirmModal, translate, wouldBlockDeletion]);
+    };
 
     return {shouldBlockDeletion, wouldBlockDeletion};
 }
