@@ -5,6 +5,8 @@ import {
     runWhileReplayingDiscardedNavigation,
     suppressFlowDiscardPrompt,
 } from '@libs/Navigation/helpers/discardPromptState';
+import getIsFlowRootGuardActive, {getFlowRootStackKey} from '@libs/Navigation/helpers/getIsFlowRootGuardActive';
+import type {FlowRootGuardNavigation} from '@libs/Navigation/helpers/getIsFlowRootGuardActive';
 import getNavigationActionForReplay from '@libs/Navigation/helpers/getNavigationActionForReplay';
 import isInFlowNavigationForRoot from '@libs/Navigation/helpers/isInFlowNavigationForRoot';
 
@@ -18,6 +20,14 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
         getRootState: () => ({key: 'root', routes: [{key: 'tab-navigator'}, {key: 'rhp-route'}]}),
     },
 }));
+
+type MockNavigatorState = ReturnType<FlowRootGuardNavigation['getState']>;
+
+const createNavigation = ({state, parent, isFocused = true}: {state?: MockNavigatorState; parent?: FlowRootGuardNavigation; isFocused?: boolean}): FlowRootGuardNavigation => ({
+    getState: () => state,
+    getParent: () => parent,
+    isFocused: () => isFocused,
+});
 
 describe('discardPromptState', () => {
     beforeEach(() => {
@@ -160,5 +170,40 @@ describe('isInFlowNavigationForRoot', () => {
         // Then they do
         expect(isInFlowNavigationForRoot({type: 'DISMISS_MODAL'}, flowRoot, 'flow-stack')).toBe(false);
         expect(isInFlowNavigationForRoot({type: 'GO_BACK', source: 'rhp-route'}, flowRoot, 'flow-stack')).toBe(false);
+    });
+});
+
+describe('getIsFlowRootGuardActive', () => {
+    const visibleFlow = createNavigation({isFocused: true});
+
+    it('reacts while later steps cover the root, as long as the flow is visible', () => {
+        // Given a flow root at the bottom of its stack, with a later step on top
+        const navigation = createNavigation({state: {type: 'stack', key: 'flow-stack', index: 1, routes: [{key: 'root'}, {key: 'step'}]}, parent: visibleFlow, isFocused: false});
+
+        // When checking whether its guard is active
+        // Then it is, and the flow stack hosts it
+        expect(getIsFlowRootGuardActive(navigation, 'root')).toBe(true);
+        expect(getFlowRootStackKey(navigation)).toBe('flow-stack');
+    });
+
+    it('stays inactive while the flow itself is covered', () => {
+        // Given a flow root whose flow is covered by another RHP or a fullscreen
+        const navigation = createNavigation({state: {type: 'stack', key: 'flow-stack', index: 0, routes: [{key: 'root'}]}, parent: createNavigation({isFocused: false})});
+
+        // When checking whether its guard is active
+        // Then it isn't
+        expect(getIsFlowRootGuardActive(navigation, 'root')).toBe(false);
+    });
+
+    it('only reacts in the active tab of a tabbed flow root', () => {
+        // Given two tabs of a flow root hosted by the flow stack
+        const host = createNavigation({state: {type: 'stack', key: 'flow-stack', index: 0, routes: [{key: 'create'}]}, parent: visibleFlow});
+        const navigation = createNavigation({state: {type: 'tab', key: 'tabs', index: 1, routes: [{key: 'manual'}, {key: 'scan'}]}, parent: host});
+
+        // When checking whether each tab's guard is active
+        // Then only the active tab reacts, and the flow stack above the tabs hosts them
+        expect(getIsFlowRootGuardActive(navigation, 'scan')).toBe(true);
+        expect(getIsFlowRootGuardActive(navigation, 'manual')).toBe(false);
+        expect(getFlowRootStackKey(navigation)).toBe('flow-stack');
     });
 });
