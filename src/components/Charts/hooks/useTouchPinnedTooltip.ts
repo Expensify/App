@@ -19,10 +19,10 @@ function useTouchPinnedTooltip(hideTooltip: () => void) {
 
     const onTooltipDismiss = isTouchPinned ? dismissTouchTooltip : undefined;
 
-    const onTapFinalize = (e: {pointerType: PointerType}, success: boolean) => {
+    const onTapFinalize = (e: {pointerType: PointerType; canceled: boolean}) => {
         'worklet';
 
-        if (success || e.pointerType !== PointerType.TOUCH || !isTouchPinned) {
+        if (!e.canceled || e.pointerType !== PointerType.TOUCH || !isTouchPinned) {
             return;
         }
         scheduleOnRN(dismissTouchTooltip);

@@ -72,7 +72,8 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
         const integrationConnectionNamesSet = new Set<string>(integrationConnectionNames);
 
         const connectedIntegrationPickerItems = integrationConnectionNames
-            .filter((connectionName) => connectedIntegrationNames.has(connectionName))
+            // Zoho Books is hidden from the export filter until the exported-status cell supports it
+            .filter((connectionName) => connectionName !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS && connectedIntegrationNames.has(connectionName))
             .flatMap((connectionName) => {
                 const searchValues = getExportLabelsForConnection(connectionName, policiesToLoadTemplatesFrom);
                 return searchValues.map((searchValue) => {

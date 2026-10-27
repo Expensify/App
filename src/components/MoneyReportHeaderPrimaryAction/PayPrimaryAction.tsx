@@ -141,11 +141,13 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                bankAccountList,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: moneyRequestReport,
+                invoiceReportTransactions: transactions,
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
@@ -166,11 +168,13 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
         } else {
             startAnimation();
             payMoneyRequest({
+                bankAccountList,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,
+                iouReportTransactions: transactions,
                 introSelected,
                 currentUserAccountID: accountID,
                 currentUserLogin: currentUserLogin ?? '',

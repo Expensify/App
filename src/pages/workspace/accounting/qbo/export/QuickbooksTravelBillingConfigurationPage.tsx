@@ -35,9 +35,9 @@ function QuickbooksTravelBillingConfigurationPage({policy}: WithPolicyConnection
     return (
         <ConnectionLayout
             displayName="QuickbooksTravelBillingConfigurationPage"
-            headerTitle="workspace.common.travelInvoicing"
-            title="workspace.qbo.travelInvoicingDescription"
-            titleAlreadyTranslated={translate('workspace.qbo.travelInvoicingDescription', integrationName)}
+            headerTitle="workspace.common.travelBilling"
+            title="workspace.qbo.travelBillingDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.travelBillingDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

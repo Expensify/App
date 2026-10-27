@@ -70,6 +70,7 @@ function setupDefaultMocks() {
         isRestrictedToPreferredPolicy: false,
         preferredPolicyID: undefined,
         isRestrictedPolicyCreation: false,
+        isLoadingPreferredPolicy: false,
     });
 
     jest.mocked(useHasActiveAdminPolicies).mockReturnValue(false);
@@ -242,6 +243,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
             isRestrictedToPreferredPolicy: false,
             preferredPolicyID: undefined,
             isRestrictedPolicyCreation: true,
+            isLoadingPreferredPolicy: false,
         });
 
         // When the onboarding flow runs
@@ -260,6 +262,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
             isRestrictedToPreferredPolicy: false,
             preferredPolicyID: undefined,
             isRestrictedPolicyCreation: true,
+            isLoadingPreferredPolicy: false,
         });
 
         // When the onboarding flow runs

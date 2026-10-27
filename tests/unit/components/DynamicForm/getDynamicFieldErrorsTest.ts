@@ -1,5 +1,6 @@
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
+import {getListItemSensitiveKey} from '@components/DynamicForm/utils/listItems';
 
 import Log from '@libs/Log';
 import {getCountryZipRegexDetails} from '@libs/ValidationUtils';
@@ -48,7 +49,7 @@ describe('getDynamicFieldErrors', () => {
 
     it('treats an unchecked checkbox as unanswered', () => {
         // Given a required consent checkbox left unchecked, next to another question
-        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true};
+        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true, presentation: 'checkbox'};
         const companyName: DynamicFormField = {key: 'companyName', type: 'text', required: false};
 
         // When the form is validated
@@ -353,20 +354,68 @@ describe('getDynamicFieldErrors', () => {
         expect(incompleteErrors).toEqual({phone: translateLocal('common.error.phoneNumber')});
     });
 
-    it('accepts No as the answer to a lone boolean, but not to a checkbox among other fields', () => {
-        // Given a required boolean alone on its page, asked as Yes/No, and a required checkbox next to another question
-        const hasOtherOwners: DynamicFormField = {key: 'hasOtherOwners', type: 'boolean', required: true};
-        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true};
+    it('accepts No as the answer to a Yes/No question wherever it sits, but not to a consent checkbox', () => {
+        // Given a required Yes/No question and a required consent checkbox, sharing a page with another question
+        const ownsQuarter: DynamicFormField = {key: 'ownsQuarter', type: 'boolean', required: true};
+        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true, presentation: 'checkbox'};
         const fullName: DynamicFormField = {key: 'fullName', type: 'text', required: false};
 
-        // When the question is answered No or not at all, and the checkbox is left empty
-        const noErrors = getDynamicFieldErrors([hasOtherOwners], {hasOtherOwners: false}, translateLocal);
-        const unansweredErrors = getDynamicFieldErrors([hasOtherOwners], {hasOtherOwners: ''}, translateLocal);
+        // When the question is answered No, alone and among other fields, or not at all, and the checkbox is left empty
+        const loneNoErrors = getDynamicFieldErrors([ownsQuarter], {ownsQuarter: false}, translateLocal);
+        const sharedNoErrors = getDynamicFieldErrors([ownsQuarter, fullName], {ownsQuarter: false}, translateLocal);
+        const unansweredErrors = getDynamicFieldErrors([ownsQuarter, fullName], {ownsQuarter: ''}, translateLocal);
         const consentErrors = getDynamicFieldErrors([acceptTerms, fullName], {acceptTerms: false}, translateLocal);
 
-        // Then No answers the question, while an unanswered question and an empty checkbox are flagged
-        expect(noErrors).toEqual({});
-        expect(unansweredErrors).toEqual({hasOtherOwners: translateLocal('common.error.fieldRequired')});
+        // Then No answers the question however the page is grouped, while an unanswered question and an empty checkbox are flagged
+        expect(loneNoErrors).toEqual({});
+        expect(sharedNoErrors).toEqual({});
+        expect(unansweredErrors).toEqual({ownsQuarter: translateLocal('common.error.fieldRequired')});
         expect(consentErrors).toEqual({acceptTerms: translateLocal('common.error.fieldRequired')});
+    });
+
+    it('checks a list for its size and for the first entry with a problem', () => {
+        // Given a list of at least two directors, whose entries need a first name and may hold a sensitive SSN
+        const directors: DynamicFormField = {
+            key: 'directors',
+            type: 'list',
+            required: true,
+            itemLabel: 'director',
+            minItems: 2,
+            itemFields: [
+                {key: 'firstName', type: 'text', required: true},
+                {key: 'ssn', type: 'text', required: true, sensitive: true},
+            ],
+        };
+
+        // When it holds no entry, and when it holds one entry without a first name
+        const emptyErrors = getDynamicFieldErrors([directors], {directors: []}, translateLocal);
+        const shortErrors = getDynamicFieldErrors([directors], {directors: [{id: 'jane', firstName: ''}]}, translateLocal);
+
+        // Then the empty list is required, and the short list shows both the size and the entry's first problem, naming the field and the entry by its numbered noun since the entry has no name to show
+        const missingNameError = translateLocal('dynamicForm.error.itemError', {item: 'Director 1', field: 'firstName', error: translateLocal('common.error.fieldRequired')});
+        expect(emptyErrors).toEqual({directors: translateLocal('common.error.fieldRequired')});
+        expect(shortErrors).toEqual({directors: `${translateLocal('dynamicForm.error.tooFewItems', {min: 2})}\n${missingNameError}`});
+    });
+
+    it('asks again for a sensitive entry answer the memory no longer holds', () => {
+        // Given a director whose required SSN is kept in memory apart from the drafted entry
+        const directors: DynamicFormField = {
+            key: 'directors',
+            type: 'list',
+            required: true,
+            itemFields: [
+                {key: 'firstName', type: 'text', required: true},
+                {key: 'ssn', type: 'text', required: true, sensitive: true},
+            ],
+        };
+        const draftValues = {directors: [{id: 'jane', firstName: 'Jane'}]};
+
+        // When the SSN is in memory, and when the memory was lost, as after the app restarts
+        const keptErrors = getDynamicFieldErrors([directors], {...draftValues, [getListItemSensitiveKey('directors', 'jane', 'ssn')]: '123456789'}, translateLocal);
+        const lostErrors = getDynamicFieldErrors([directors], draftValues, translateLocal);
+
+        // Then the list passes while the SSN is kept, and asks for it once it is lost, naming Jane and the SSN so the user knows what to fix, so a director is never submitted without one
+        expect(keptErrors).toEqual({});
+        expect(lostErrors).toEqual({directors: translateLocal('dynamicForm.error.itemError', {item: 'Jane', field: 'ssn', error: translateLocal('common.error.fieldRequired')})});
     });
 });

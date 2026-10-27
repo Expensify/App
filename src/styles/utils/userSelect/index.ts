@@ -1,6 +1,10 @@
 import type UserSelectStyles from './types';
 
 const userSelect: UserSelectStyles = {
+    userSelectAuto: {
+        userSelect: 'auto',
+        WebkitUserSelect: 'auto',
+    },
     userSelectText: {
         userSelect: 'text',
         WebkitUserSelect: 'text',

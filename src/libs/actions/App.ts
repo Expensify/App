@@ -9,6 +9,7 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import flushTelemetry from '@libs/telemetry/flushTelemetry';
 import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
@@ -153,6 +154,11 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.STASHED_CREDENTIALS,
     ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+    // Signing out must not erase the record of when we prompted for an app review. nvp_appReview is
+    // server-owned and its lastPrompt is not refreshed on every response, so if this record went away
+    // the next sign-in would re-show the prompt the user already answered - every time, forever.
+    // The record carries the accountID it belongs to, so a different user signing in here ignores it.
+    ONYXKEYS.APP_REVIEW_LAST_PROMPT,
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
     ONYXKEYS.IS_USING_IMPORTED_STATE,
@@ -278,6 +284,11 @@ AppState.addEventListener('change', (nextAppState) => {
         Log.info('Cancelling telemetry spans as app is coming to foreground', false, {previousState: appState, nextState: nextAppState});
         logReceiptQueueSnapshot('foreground');
         cancelAllSpans();
+    }
+
+    // Runs last so the spans canceled and the logs written above are part of the flush.
+    if (nextAppState.match(/inactive|background/)) {
+        flushTelemetry();
     }
     appState = nextAppState;
 });

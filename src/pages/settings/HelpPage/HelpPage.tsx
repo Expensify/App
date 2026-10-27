@@ -13,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
-import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -65,7 +64,6 @@ function HelpPage() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
-    const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
 
     const openSupportTicketOrConcierge = () => {
@@ -75,7 +73,7 @@ function HelpPage() {
                     return;
                 }
 
-                Growl.error(translate('supportTicket.noSupportRepAvailable'));
+                Growl.error({bodyText: translate('supportTicket.noSupportRepAvailable')});
                 Navigation.goBack(undefined, {afterTransition: () => openConciergeAnywhere({forceConcierge: true})});
             })
             .catch(() => undefined);
@@ -212,22 +210,20 @@ function HelpPage() {
         sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
     };
 
-    const talkToAHumanItem = isBetaEnabled(CONST.BETAS.SUPPORT_TICKET)
-        ? {
-              key: 'initialSettingsPage.talkToAHuman',
-              title: translate('initialSettingsPage.talkToAHuman'),
-              description: translate('initialSettingsPage.helpPage.talkToAHumanDescription'),
-              icon: icons.ChatBubbles,
-              iconType: CONST.ICON_TYPE_ICON,
-              onPress: openSupportTicketOrConcierge,
-              isDisabled: isOffline,
-              shouldShowRightIcon: true,
-              wrapperStyle: [styles.sectionMenuItemTopDescription],
-              sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.SUPPORT_TICKET,
-          }
-        : null;
+    const talkToAHumanItem = {
+        key: 'initialSettingsPage.talkToAHuman',
+        title: translate('initialSettingsPage.talkToAHuman'),
+        description: translate('initialSettingsPage.helpPage.talkToAHumanDescription'),
+        icon: icons.ChatBubbles,
+        iconType: CONST.ICON_TYPE_ICON,
+        onPress: openSupportTicketOrConcierge,
+        isDisabled: isOffline,
+        shouldShowRightIcon: true,
+        wrapperStyle: [styles.sectionMenuItemTopDescription],
+        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.SUPPORT_TICKET,
+    };
 
-    const moreResourcesItems = [...(hasActiveItem ? [] : [conciergeItem]), ...(talkToAHumanItem ? [talkToAHumanItem] : []), helpSiteItem];
+    const moreResourcesItems = [...(hasActiveItem ? [] : [conciergeItem]), talkToAHumanItem, helpSiteItem];
 
     useEffect(() => {
         openHelpPage();

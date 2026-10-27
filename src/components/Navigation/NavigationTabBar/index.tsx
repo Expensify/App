@@ -161,7 +161,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     onPress={navigateToNewDotHome}
                     role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.home')}
-                    wrapperStyle={styles.flex1}
+                    wrapperStyle={styles.navigationTabBarSlot}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                 >
@@ -169,6 +169,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                         icon={expensifyIcons.Home}
                         label={translate('common.home')}
                         isSelected={selectedTab === NAVIGATION_TABS.HOME}
+                        numberOfLines={1}
                     />
                 </PressableWithFeedback>
                 <InboxTabButton
