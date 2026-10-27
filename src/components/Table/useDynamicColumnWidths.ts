@@ -13,6 +13,7 @@ import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import type {DynamicColumnConstraints} from './calculateDynamicColumnWidths';
+import type {ColumnWidthTarget} from './columnResize/getResizableColumnLayout';
 import type {ResizableColumn} from './columnResize/resolveDraggedColumnWidths';
 import type {TableColumn, TableData} from './types';
 
@@ -70,8 +71,14 @@ type UseDynamicColumnWidthsResult = {
     /** Narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
     dragMinWidths: Record<string, number>;
 
-    /** Layout to save when dragging `columnKey` ends, from the painted widths. `undefined` when no column is resizable. */
-    getStoredTableColumnWidths?: (columnWidths: Record<string, number>, columnKey: string) => StoredTableColumnWidths;
+    /**
+     * Layout to save from the painted widths, with `columnKey` marked resized or handed back to content sizing.
+     * `null` when no resized column is left, `undefined` when no column is resizable.
+     */
+    getStoredTableColumnWidths?: (columnWidths: Record<string, number>, columnKey: string, isResized: boolean) => StoredTableColumnWidths | null;
+
+    /** Width `target` sizes the column to, `undefined` when no column is resizable. */
+    getTargetColumnWidth?: (columnKey: string, target: ColumnWidthTarget) => number | undefined;
 };
 
 /**
@@ -265,11 +272,11 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
 
     const buildResizableResult = (baseColumnWidths: Record<string, number>, resizedColumnKeys: string[]): UseDynamicColumnWidthsResult => ({
         ...getResizableColumnLayout({columns: resizableColumns, resolvedColumnWidths: baseColumnWidths, resizedColumnKeys, tableWidth, rowChromeWidths}),
-        getStoredTableColumnWidths: (columnWidths, columnKey) => ({
-            availableColumnsWidth,
-            columnWidths,
-            resizedColumnKeys: resizedColumnKeys.includes(columnKey) ? resizedColumnKeys : [...resizedColumnKeys, columnKey],
-        }),
+        getStoredTableColumnWidths: (columnWidths, columnKey, isResized) => {
+            const nextResizedColumnKeys = isResized ? [...new Set([...resizedColumnKeys, columnKey])] : resizedColumnKeys.filter((resizedColumnKey) => resizedColumnKey !== columnKey);
+
+            return nextResizedColumnKeys.length > 0 ? {availableColumnsWidth, columnWidths, resizedColumnKeys: nextResizedColumnKeys} : null;
+        },
     });
 
     // After the first drag, only room changes move the columns, so new content never shifts them.
