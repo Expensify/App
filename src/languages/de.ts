@@ -1193,6 +1193,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Um ${percentage} gestiegen`,
             decrease: (percentage: string) => `Um ${percentage} gesunken`,
         },
+        compliance: 'Compliance',
+        runningTotal: 'Laufende Summe',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2512,7 +2514,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Sind Sie sicher, dass Sie Konten zusammenführen möchten?',
-            lossOfUnsubmittedData: (login: string) => `Das Zusammenführen Ihrer Konten ist endgültig und führt zum Verlust aller nicht eingereichten Ausgaben für <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Das Zusammenführen Ihrer Konten ist unumkehrbar. Alle Ausgaben und Berichte von <strong>${login}</strong>, einschließlich Entwürfen und nicht eingereichten Ausgaben, werden auf das Konto verschoben, das Sie behalten.`,
             enterSecurityCode: (login: string) => `Um fortzufahren, geben Sie bitte den Sicherheitscode ein, der an <strong>${login}</strong> gesendet wurde.`,
             errors: {
                 incorrectSecurityCode: 'Falscher oder ungültiger Sicherheitscode. Bitte versuchen Sie es erneut oder fordern Sie einen neuen Code an.',
@@ -2860,6 +2863,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.',
             getStarted: "Los geht's",
             headerTitle: 'Globale Erstattungen',
+            payingReportSubtitle: 'Die Bankkonten des Unternehmens und der Mitarbeitenden verwenden unterschiedliche Währungen.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Weltweit bezahlen', subtitle: 'Aktivieren Sie globale Erstattungen auf Ihrem USD-Konto.'},
     },
@@ -3019,6 +3023,8 @@ ${amount} für ${merchant} – ${date}`,
         makeOrTrackPaymentsTitle: 'Zahlungen',
         makeOrTrackPaymentsDescription:
             'Fügen Sie eine bevollmächtigte zahlende Person für in Expensify getätigte Zahlungen hinzu oder verfolgen Sie Zahlungen, die andernorts getätigt wurden.',
+        collectEmployeeBankDetails: 'Bankdaten der Mitarbeitenden erfassen',
+        collectEmployeeBankDetailsDescription: 'Erfassen Sie die Bankdaten Ihrer Mitarbeitenden, damit Sie ihnen Auslagen außerhalb von Expensify erstatten können.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Für diesen Workspace ist ein benutzerdefinierter Genehmigungsworkflow aktiviert. Um diesen Workflow zu überprüfen oder zu ändern, wende dich bitte an deine:n <account-manager-link>Account Manager</account-manager-link> oder an <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6779,6 +6785,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                             provisioningError:
                                 'Wir konnten einige Mitglieder Ihres Arbeitsbereichs nicht für die Konsolidierte Reiseabrechnung einrichten. Bitte versuchen Sie es später erneut oder wenden Sie sich für Unterstützung an Concierge.',
                             sendInvoiceNowCta: 'Rechnung jetzt senden',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `Das monatliche Ausgabelimit pro Mitglied darf das aktuelle Reisekreditlimit von ${travelLimit} nicht überschreiten.`,
                         },
                         setUpNewFeed: 'Neuen Reise-Feed einrichten',
                         feedSelectorIntro:
@@ -8929,11 +8937,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 applyExpenseDefaultsDescription: 'Felder automatisch aktualisieren',
                 flagForReview: 'Zur Überprüfung markieren',
                 flagForReviewDescription: 'Benachrichtigen, wenn Ihre Bedingungen erfüllt sind',
-                requireFields: 'Feldanforderungen festlegen',
-                requireFieldsShort: 'Felder vorschreiben',
+                requireFields: 'Felder vorschreiben',
                 requireFieldsDescription: 'Belege, Kategorien usw.',
-                createAgentRule: 'Agentenregel beschreiben',
-                createAgentRuleDescription: 'Erstellen Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen.',
                 describeItBelow: 'Oder beschreiben Sie sie einfach unten',
                 describeRulePlaceholder: 'Alle Ausgaben über 2.000 $ blockieren',
                 selectTemplateOrDescribe: 'Wählen Sie eine Vorlage aus oder beschreiben Sie eine Regel, um fortzufahren',
@@ -10393,6 +10398,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Diesen Monat',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Laufendes Jahr',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Letzte 12 Monate',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Diese Woche',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Letzte Woche',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER]: 'Dieses Quartal',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER]: 'Letztes Quartal',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR]: 'Dieses Jahr',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_YEAR]: 'Letztes Jahr',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS]: 'Letzte 30 Tage',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS]: 'Letzte 90 Tage',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS]: 'Letzte 6 Monate',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Letzter Auszug',
                 },
                 customDay: 'Benutzerdefinierter Tag',
@@ -10529,6 +10543,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         noCategory: 'Keine Kategorie',
         noMerchant: 'Kein Händler',
         noTag: 'Kein Tag',
+        noVendor: 'Kein Lieferant',
         expenseType: 'Ausgabenart',
         receiptType: 'Belegart',
         receiptTypeValues: {
@@ -12020,6 +12035,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         exportInProgress: 'Export wird ausgeführt',
         conciergeWillSend: 'Concierge wird dir die Datei in Kürze senden.',
         currentView: 'Aktuelle Ansicht',
+        currentViewGroupsOnly: 'Aktuelle Ansicht (nur Gruppen)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
