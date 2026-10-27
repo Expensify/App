@@ -158,15 +158,14 @@ function getMerchantRulesTableData({
                     ({field, value}) => field !== FIELD.TAG || !policyTags || typeof value !== 'string' || isTagInPolicy(value, policyTags),
                 );
                 const {merchants, categories, tags} = getExpenseDefaultConditionSummary(rule.filters);
+                const contained: string[] = [];
+                const exact: string[] = [];
+                for (const {value, isExactMatch} of merchants) {
+                    (isExactMatch ? exact : contained).push(value);
+                }
                 const merchantNames = merchants.map(({value}) => value).join(', ');
-                const containedMerchantNames = merchants
-                    .filter(({isExactMatch}) => !isExactMatch)
-                    .map(({value}) => value)
-                    .join(', ');
-                const exactMerchantNames = merchants
-                    .filter(({isExactMatch}) => isExactMatch)
-                    .map(({value}) => value)
-                    .join(', ');
+                const containedMerchantNames = contained.join(', ');
+                const exactMerchantNames = exact.join(', ');
                 const categoryNames = categories.map(getDecodedCategoryName).join(', ');
                 const tagNames = tags.map(getCommaSeparatedTagNameWithSanitizedColons).join(', ');
 

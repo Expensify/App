@@ -157,8 +157,13 @@ function isPolicyScopedRule(rule: Rule | undefined, policyID: string | undefined
     return !!rule && !!policyID && rule.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID;
 }
 
-/** Returns the policy's expense default rules, with each rule's ID parsed out of its Onyx key. */
-function getPolicyExpenseDefaultRules(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): RuleWithID[] {
+/**
+ * Returns the policy's expense default rules, with each rule's ID parsed out of its Onyx key.
+ *
+ * A rule deleted offline sticks around until the request goes through. `shouldExcludeRulesPendingDelete` leaves
+ * those out, for callers that would otherwise keep offering a deleted rule.
+ */
+function getPolicyExpenseDefaultRules(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, shouldExcludeRulesPendingDelete = false): RuleWithID[] {
     if (!policyID) {
         return [];
     }
@@ -167,6 +172,9 @@ function getPolicyExpenseDefaultRules(rulesCollection: OnyxCollection<Rule> | un
 
     for (const [onyxKey, rule] of Object.entries(rulesCollection ?? {})) {
         if (!rule || !isPolicyScopedRule(rule, policyID) || !isExpenseDefaultRule(rule)) {
+            continue;
+        }
+        if (shouldExcludeRulesPendingDelete && rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
         rules.push({ruleID: onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length), rule});
@@ -314,7 +322,7 @@ function buildExpenseDefaultActions(formValues: Partial<ExpenseDefaultFormValues
  * as the `value` param of `SetRule`.
  * Returns undefined when the form has nothing to match on or nothing to set, which the API rejects.
  */
-function buildExpenseDefaultRule(formValues: Partial<ExpenseDefaultFormValues>, policy: Policy | undefined, existingTriggers?: Record<string, string>): BuiltExpenseDefaultRule | undefined {
+function buildExpenseDefaultRule(formValues: Partial<ExpenseDefaultFormValues>, policy: Policy | undefined, existingTriggers?: Rule['triggers']): BuiltExpenseDefaultRule | undefined {
     const filters = buildExpenseDefaultFilters(formValues);
     const actions = buildExpenseDefaultActions(formValues, policy);
 
@@ -322,8 +330,8 @@ function buildExpenseDefaultRule(formValues: Partial<ExpenseDefaultFormValues>, 
         return undefined;
     }
 
-    // A rule the backend wrote can fire on more than one event, and the form has no input for that, so an edit
-    // hands back the triggers the rule already carries instead of rebuilding them.
+    // The form has no input for which events a rule fires on, so an edit hands back the triggers the rule already
+    // carries rather than rebuilding them and dropping any the editor does not offer.
     const triggers: ExpenseDefaultTriggers = getEditableTriggers(existingTriggers) ?? toIndexMap([TRIGGER.CREATE_TRANSACTION, TRIGGER.UPDATE_TRANSACTION]);
 
     return {triggers, filters, actions};
@@ -348,18 +356,13 @@ function isExpenseDefaultTrigger(trigger: string): trigger is ExpenseDefaultTrig
  *
  * The form has no trigger input, so it can only save a rule whose triggers it is able to hand back untouched.
  */
-function getEditableTriggers(triggers: Record<string, string> | undefined): ExpenseDefaultTriggers | undefined {
+function getEditableTriggers(triggers: Rule['triggers'] | undefined): ExpenseDefaultTriggers | undefined {
     const triggerValues = fromIndexMap(triggers);
     const editableTriggers = triggerValues.filter(isExpenseDefaultTrigger);
     if (editableTriggers.length === 0 || editableTriggers.length !== triggerValues.length) {
         return undefined;
     }
     return toIndexMap(editableTriggers);
-}
-
-/** Every trigger has to be one the editor knows about, otherwise saving the form would drop the rest. */
-function areTriggersEditable(triggers: Record<string, string> | undefined): boolean {
-    return !!getEditableTriggers(triggers);
 }
 
 /** The conditions the editor renders, read back off a rule's filter tree. */
@@ -447,7 +450,8 @@ function getEditableConditions(filters: RuleFilterNode | undefined): EditableCon
  * would silently drop everything the form couldn't represent.
  */
 function getExpenseDefaultFormValues(rule: Rule | ExpenseDefaultRule | undefined): ExpenseDefaultFormValues | undefined {
-    if (!rule || !areTriggersEditable(rule.triggers)) {
+    // Every trigger has to be one the editor knows about, otherwise saving the form would drop the rest.
+    if (!rule || !getEditableTriggers(rule.triggers)) {
         return undefined;
     }
 
@@ -560,43 +564,65 @@ function getExpenseDefaultConditionSummary(filters: RuleFilterNode | undefined):
     return summary;
 }
 
-/**
- * The rule that holds a category's tax default: any rule the policy has that matches on that category.
- *
- * Category settings addresses this rule by category name rather than by ID, because a category holds one tax
- * default, so the ID is resolved here instead of being carried on every route.
- *
- * A rule reached from category settings can also match on a merchant or a tag and can leave the tax unset, so
- * narrowing to a category-only rule that sets a tax would hide it and offer to add a second one.
- */
-function getCategoryTaxDefaultRule(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): RuleWithID | undefined {
-    if (!categoryName) {
-        return undefined;
-    }
+/** A rule that matches on a category, paired with the conditions the match was read from. */
+type CategoryRuleMatch = {
+    /** The matching rule and its ID */
+    match: RuleWithID;
 
-    const matchingRules = getPolicyExpenseDefaultRules(rulesCollection, policyID).filter(({rule}) => {
-        // A rule deleted offline sticks around until the request goes through, and category settings would keep
-        // offering it to edit.
-        if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return false;
-        }
+    /** The rule's conditions, carried so a caller narrowing the matches does not rebuild the summary */
+    conditions: ExpenseDefaultConditionSummary;
+};
 
-        return getExpenseDefaultConditionSummary(rule.filters).categories.includes(categoryName);
-    });
-
-    // More than one rule can match a category, so the one that matches on nothing else is the category's own
-    // default. Without this the category would show whichever rule the collection happened to yield first.
-    const categoryOnlyRule = matchingRules.find(({rule}) => {
-        const {merchants, categories, tags} = getExpenseDefaultConditionSummary(rule.filters);
-        return merchants.length === 0 && tags.length === 0 && categories.length === 1;
-    });
-
-    return categoryOnlyRule ?? matchingRules.at(0);
+/** Whether a match is one the category decides on its own, rather than together with a merchant or a tag. */
+function isCategoryOnlyMatch({conditions}: CategoryRuleMatch): boolean {
+    return conditions.merchants.length === 0 && conditions.tags.length === 0 && conditions.categories.length === 1;
 }
 
-/** The tax rate a category's tax default applies. See `getCategoryTaxDefaultRule`. */
-function getCategoryTaxDefaultID(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): string | undefined {
-    const rule = getCategoryTaxDefaultRule(rulesCollection, policyID, categoryName)?.rule;
+/** Every expense default the policy has that matches on the given category. */
+function getCategoryExpenseDefaultMatches(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): CategoryRuleMatch[] {
+    if (!categoryName) {
+        return [];
+    }
+
+    const matches: CategoryRuleMatch[] = [];
+    for (const match of getPolicyExpenseDefaultRules(rulesCollection, policyID, true)) {
+        const conditions = getExpenseDefaultConditionSummary(match.rule.filters);
+        if (conditions.categories.includes(categoryName)) {
+            matches.push({match, conditions});
+        }
+    }
+
+    return matches;
+}
+
+/**
+ * The rule category settings shows for a category: any rule that matches on it.
+ *
+ * Category settings addresses the rule by category name rather than by ID, so the ID is resolved here instead of
+ * being carried on every route. The rule can also match on a merchant or a tag and can leave the tax unset, which
+ * is why this is not narrowed to a category-only rule.
+ *
+ * Where several rules match, the one the category decides on its own comes first, so the category does not show
+ * whichever rule the collection happened to yield first.
+ */
+function getCategoryExpenseDefaultRule(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): RuleWithID | undefined {
+    const matches = getCategoryExpenseDefaultMatches(rulesCollection, policyID, categoryName);
+    return (matches.find(isCategoryOnlyMatch) ?? matches.at(0))?.match;
+}
+
+/**
+ * The rule a category decides on its own, which is the one a second rule for that category would duplicate.
+ *
+ * Distinct from `getCategoryExpenseDefaultRule`: a rule that also matches on a merchant or a tag belongs to that
+ * merchant or tag as much as to the category, so it does not stop the category getting a rule of its own.
+ */
+function getCategoryOwnExpenseDefaultRule(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): RuleWithID | undefined {
+    return getCategoryExpenseDefaultMatches(rulesCollection, policyID, categoryName).find(isCategoryOnlyMatch)?.match;
+}
+
+/** The tax rate the rule from `getCategoryExpenseDefaultRule` applies, if it sets one. */
+function getCategoryExpenseDefaultTaxID(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): string | undefined {
+    const rule = getCategoryExpenseDefaultRule(rulesCollection, policyID, categoryName)?.rule;
 
     for (const action of getRuleActions(rule)) {
         if (action?.name === ACTION.SET && 'field' in action && action.field === FIELD.TAX && isExpenseDefaultTaxValue(action.value)) {
@@ -706,8 +732,9 @@ export {
     buildExpenseDefaultFilters,
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
-    getCategoryTaxDefaultID,
-    getCategoryTaxDefaultRule,
+    getCategoryExpenseDefaultRule,
+    getCategoryExpenseDefaultTaxID,
+    getCategoryOwnExpenseDefaultRule,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,

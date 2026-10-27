@@ -15,7 +15,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {getRuleDeletionPendingAction, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
-import {getCategoryTaxDefaultID} from './ExpenseDefaultRuleUtils';
+import {getCategoryExpenseDefaultTaxID} from './ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
 import {getTaxByID} from './PolicyUtils';
 import {
@@ -123,7 +123,7 @@ function getCategoryContextualRules({
 
     // A tax default is an ordinary rule matching on this category alone, so it is looked up rather than read off
     // the category. It borrows the delete of the category or rate it depends on, the way the table does.
-    const taxID = getCategoryTaxDefaultID(policyRules, policy.id, categoryName);
+    const taxID = getCategoryExpenseDefaultTaxID(policyRules, policy.id, categoryName);
     if (taxID) {
         const taxPendingAction = getRuleDeletionPendingAction(policy, policyCategories, categoryName, taxID);
         const isTaxPendingDelete = taxPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;

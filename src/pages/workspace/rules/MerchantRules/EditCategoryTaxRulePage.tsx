@@ -1,7 +1,7 @@
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 
-import {getCategoryTaxDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
+import {getCategoryExpenseDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -22,8 +22,8 @@ function EditCategoryTaxRulePage({route}: EditCategoryTaxRulePageProps) {
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isOpenedFromCategorySettings = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_EDIT;
     const categorySettingsPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.path, isOpenedFromCategorySettings);
-    // Category settings links by category, since a category holds one tax default, so the rule is resolved here.
-    const ruleID = getCategoryTaxDefaultRule(rules, policyID, categoryName)?.ruleID;
+    // Category settings links by category rather than by rule, so the rule it is pointing at is resolved here.
+    const ruleID = getCategoryExpenseDefaultRule(rules, policyID, categoryName)?.ruleID;
 
     return (
         <ExpenseDefaultRulePageBase

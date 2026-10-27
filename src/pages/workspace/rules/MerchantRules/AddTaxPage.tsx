@@ -10,7 +10,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -20,15 +20,8 @@ import useMerchantRuleRoute from './useMerchantRuleRoute';
 type AddTaxPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TAX | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAX>;
 
 function AddTaxPage({route}: AddTaxPageProps) {
-    const {policyID, ruleID, categoryName} = route.params;
-    // A category tax default carries no ruleID, so it routes back by category instead. Everything else follows the
-    // flow this page was opened from, which the callout enters through dynamic routes.
-    const {backToRoute} = useMerchantRuleRoute(
-        DYNAMIC_ROUTES.RULES_MERCHANT_TAX_FROM_EXPENSE.path,
-        policyID,
-        ruleID,
-        categoryName ? ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, categoryName) : undefined,
-    );
+    const {policyID, ruleID} = route.params;
+    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TAX_FROM_EXPENSE.path, policyID, ruleID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);

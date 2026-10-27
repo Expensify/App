@@ -8,7 +8,6 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
@@ -36,10 +35,11 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
+import useRuleConditionSelection from './useRuleConditionSelection';
 
 type AddTagToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_TAG_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_TAG_TO_MATCH>;
 
@@ -60,9 +60,7 @@ function AddTagToMatchPage({route}: AddTagToMatchPageProps) {
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyTagLists = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {selector: getTagLists});
 
-    const draftTags = form?.tagsToMatch ?? [];
-    const [selectedTags, setSelectedTags] = useState<string[]>(draftTags);
-    const initialSelectedTags = useInitialSelection(draftTags, {resetOnFocus: true});
+    const {selectedValues: selectedTags, initialSelectedValues: initialSelectedTags, toggleValue: toggleTagValue, toggleAll} = useRuleConditionSelection(form?.tagsToMatch ?? []);
 
     // The rule matches any one of the tags it carries, so the levels are offered as one flat list rather than a row
     // per level. A name shared by two levels is one option, since the rule stores the name and not the level.
@@ -109,22 +107,8 @@ function AddTagToMatchPage({route}: AddTagToMatchPageProps) {
 
     const [inputValue, setInputValue, filteredTagItems] = useSearchResults(sortedTagItems, filterTag);
 
-    const toggleTag = (item: TagListItem) => {
-        setSelectedTags((previous) => (previous.includes(item.value) ? previous.filter((tagName) => tagName !== item.value) : [...previous, item.value]));
-    };
-
-    const toggleSelectAll = () => {
-        const visibleValues = filteredTagItems.map((item) => item.value);
-        const allVisibleSelected = visibleValues.length > 0 && visibleValues.every((value) => selectedTags.includes(value));
-
-        if (allVisibleSelected) {
-            const visibleSet = new Set(visibleValues);
-            setSelectedTags((previous) => previous.filter((value) => !visibleSet.has(value)));
-            return;
-        }
-
-        setSelectedTags((previous) => Array.from(new Set([...previous, ...visibleValues])));
-    };
+    const toggleTag = (item: TagListItem) => toggleTagValue(item.value);
+    const toggleSelectAll = () => toggleAll(filteredTagItems.map((item) => item.value));
 
     const goBackToRule = () => Navigation.goBack(backToRoute);
 

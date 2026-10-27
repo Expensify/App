@@ -159,13 +159,12 @@ function ExpenseDefaultRulePageBase({
     const {convertToDisplayString} = useCurrencyListActions();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    // The page is on its way out, so the rule it was editing no longer being there is expected. A category rule is
-    // keyed by its category, so moving it to another category makes the one this page opened with disappear.
+    // The page is on its way out, so the rule it was editing no longer being there is expected rather than an
+    // error worth showing.
     const [isClosing, setIsClosing] = useState(false);
     const {isLoading, startWithLoading} = usePressLoading();
     const isEditing = !!ruleID;
     const {isCreatedFromExpense, backToRoute, getRuleRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_NEW_FROM_EXPENSE.path, policyID, ruleID);
-    const isEditingSavedRule = isEditing;
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Cash', 'Folder', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
@@ -302,7 +301,7 @@ function ExpenseDefaultRulePageBase({
         setShouldUpdateMatchingTransactions(false);
     };
 
-    // One rule per category is saved, so the condition row lists every category the admin picked.
+    // A rule can match on several categories, so the condition row lists every one the admin picked.
     const categoriesToMatchDisplayName = hasCategoryCondition ? categoriesToMatch.map(getDecodedCategoryName).join(', ') : undefined;
     const tagsToMatch = form?.tagsToMatch ?? [];
     const hasTagCondition = tagsToMatch.length > 0;
@@ -321,14 +320,10 @@ function ExpenseDefaultRulePageBase({
             return false;
         }
 
-        return getPolicyExpenseDefaultRules(rules, policyID).some(({ruleID: existingRuleID, rule}) => {
+        // A rule deleted offline no longer applies to anything, so recreating it is not a duplicate.
+        return getPolicyExpenseDefaultRules(rules, policyID, true).some(({ruleID: existingRuleID, rule}) => {
             // Skip the rule being edited
             if (isEditing && existingRuleID === ruleID) {
-                return false;
-            }
-
-            // A rule deleted offline no longer applies to anything, so recreating it is not a duplicate.
-            if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return false;
             }
 
@@ -601,11 +596,11 @@ function ExpenseDefaultRulePageBase({
     }
 
     // A saved rule stays readable without write access, so only creating one is gated.
-    if (!isEditingSavedRule && !!policy && !canWriteRules) {
+    if (!isEditing && !!policy && !canWriteRules) {
         return <NotFoundPage />;
     }
 
-    const shouldShowDescribeRule = !isEditingSavedRule && !isCategoryLocked;
+    const shouldShowDescribeRule = !isEditing && !isCategoryLocked;
     const applyGeneratedRule = (values: GeneratedRuleValues) => {
         setDraftMerchantRule(values);
     };
@@ -702,10 +697,9 @@ function ExpenseDefaultRulePageBase({
             >
                 <HeaderWithBackButtonAndTitle title={translate('workspace.rules.merchantRules.expenseDefaultsTitle')}>
                     <Header.Actions>
-                        {/* Only while a condition is set, and only on an unsaved rule: resetting a saved one would let it
-                        switch condition type, which the two storage shapes can't express as one edit. A locked category
-                        isn't the admin's to clear. */}
-                        {canWriteRules && !isEditingSavedRule && !isCategoryLocked && (hasMerchantCondition || hasCategoryCondition || hasTagCondition) && (
+                        {/* Only while a condition is set, and only on an unsaved rule, since clearing the conditions of
+                        a saved rule would leave it matching everything. A locked category isn't the admin's to clear. */}
+                        {canWriteRules && !isEditing && !isCategoryLocked && (hasMerchantCondition || hasCategoryCondition || hasTagCondition) && (
                             <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>
                         )}
                     </Header.Actions>

@@ -4522,10 +4522,7 @@ const ROUTES = {
     },
     RULES_MERCHANT_TAX: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax',
-        // `categoryName` is set when editing a category tax default, which is identified by its category rather than a
-        // ruleID. It tells the picker to return to that editor instead of the create page.
-        getRoute: (policyID: string, ruleID?: string, categoryName?: string) =>
-            `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax${getOptionalCategoryNameQuery(categoryName)}` as const,
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax` as const,
     },
     RULES_MERCHANT_VENDOR: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/vendor',
@@ -4557,9 +4554,7 @@ const ROUTES = {
     },
     RULES_CATEGORY_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/category-to-match',
-        // A category tax default has no ruleID, so editing one passes its category for the way back.
-        getRoute: (policyID: string, ruleID?: string, categoryName?: string) =>
-            `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category-to-match${getOptionalCategoryNameQuery(categoryName)}` as const,
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category-to-match` as const,
     },
     RULES_TAG_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag-to-match',

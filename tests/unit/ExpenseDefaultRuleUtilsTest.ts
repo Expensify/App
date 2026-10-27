@@ -1,7 +1,8 @@
 import {
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
-    getCategoryTaxDefaultRule,
+    getCategoryExpenseDefaultRule,
+    getCategoryOwnExpenseDefaultRule,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
@@ -531,7 +532,7 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
     });
 
-    describe('getCategoryTaxDefaultRule', () => {
+    describe('getCategoryExpenseDefaultRule', () => {
         const categoryTaxRuleBody: ExpenseDefaultRule = {
             triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION]),
             filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
@@ -545,7 +546,7 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // When the category's tax default is looked up
             // Then that rule is returned, so category settings can open it
-            expect(getCategoryTaxDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
+            expect(getCategoryExpenseDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
         });
 
         it('ignores a rule being deleted', () => {
@@ -556,7 +557,7 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // When the category's tax default is looked up
             // Then nothing is returned, because a deleted rule no longer applies and must not be offered for editing
-            expect(getCategoryTaxDefaultRule(collection, POLICY_ID, 'Coffee')).toBeUndefined();
+            expect(getCategoryExpenseDefaultRule(collection, POLICY_ID, 'Coffee')).toBeUndefined();
         });
 
         it('finds a rule that also matches on a merchant, which category settings can create', () => {
@@ -573,7 +574,7 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // When the category's tax default is looked up
             // Then it is found, because hiding it would offer to add a second rule for the same category
-            expect(getCategoryTaxDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
+            expect(getCategoryExpenseDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
         });
 
         it('finds a rule that sets no tax, which is the rule a duplicate used to be created against', () => {
@@ -586,7 +587,7 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // When the category's tax default is looked up
             // Then it is found, so category settings edits it instead of adding another rule
-            expect(getCategoryTaxDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
+            expect(getCategoryExpenseDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
         });
 
         it('prefers the rule that matches on the category alone', () => {
@@ -606,7 +607,70 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // When the category's tax default is looked up
             // Then the category-only rule wins, rather than whichever the collection happens to yield first
-            expect(getCategoryTaxDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('2');
+            expect(getCategoryExpenseDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('2');
+        });
+    });
+
+    describe('getCategoryOwnExpenseDefaultRule', () => {
+        const categoryOnlyRuleBody: ExpenseDefaultRule = {
+            triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION]),
+            filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
+            actions: toIndexMap([{name: ACTION.SET, field: FIELD.MERCHANT, value: 'Starbucks Coffee'} as ExpenseDefaultAction]),
+        };
+
+        it('finds the rule the category decides on its own', () => {
+            // Given a rule matching that category and nothing else
+            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(categoryOnlyRuleBody)};
+
+            // When the category's own rule is looked up
+            // Then it is found, so creating another one for that category opens it as an edit instead
+            expect(getCategoryOwnExpenseDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
+        });
+
+        it('ignores a rule that also matches on a merchant', () => {
+            // Given only a rule matching the category together with a merchant
+            const ruleWithMerchant: ExpenseDefaultRule = {
+                ...categoryOnlyRuleBody,
+                filters: {
+                    operator: AND,
+                    left: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
+                    right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Starbucks'},
+                },
+            };
+            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(ruleWithMerchant)};
+
+            // When the category's own rule is looked up
+            // Then nothing is returned, because that rule belongs to the merchant as much as to the category, so
+            // the category is still free to get a rule of its own
+            expect(getCategoryOwnExpenseDefaultRule(collection, POLICY_ID, 'Coffee')).toBeUndefined();
+        });
+
+        it('ignores a rule that also matches on a tag', () => {
+            // Given only a rule matching the category together with a tag
+            const ruleWithTag: ExpenseDefaultRule = {
+                ...categoryOnlyRuleBody,
+                filters: {
+                    operator: AND,
+                    left: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
+                    right: {left: FIELD.TAG, operator: EQUAL_TO, right: 'Engineering'},
+                },
+            };
+            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(ruleWithTag)};
+
+            // When the category's own rule is looked up
+            // Then nothing is returned, for the same reason a merchant match is skipped
+            expect(getCategoryOwnExpenseDefaultRule(collection, POLICY_ID, 'Coffee')).toBeUndefined();
+        });
+
+        it('ignores a rule being deleted', () => {
+            // Given the category's own rule, deleted while offline so it is still in the collection
+            const collection = {
+                [`${ONYXKEYS.COLLECTION.RULE}1`]: {...asStoredRule(categoryOnlyRuleBody), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+
+            // When the category's own rule is looked up
+            // Then nothing is returned, so the category can be given a rule again
+            expect(getCategoryOwnExpenseDefaultRule(collection, POLICY_ID, 'Coffee')).toBeUndefined();
         });
     });
 

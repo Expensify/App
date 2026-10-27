@@ -1,5 +1,3 @@
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-
 import {setMoneyRequestCategory, setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import {getTag} from '@libs/TransactionUtils';
@@ -59,7 +57,6 @@ function FieldAutoSelector({
     iouCategory,
     isMovingTransactionFromTrackExpense,
 }: FieldAutoSelectorProps) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
         const enabledCategories = Object.values(policyCategories ?? {}).filter((category) => category.enabled);
@@ -69,7 +66,7 @@ function FieldAutoSelector({
         setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy, isMovingTransactionFromTrackExpense);
         // Keep 'transaction' out to ensure that we auto select the option only once
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id, getCurrencyDecimals]);
+    }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {

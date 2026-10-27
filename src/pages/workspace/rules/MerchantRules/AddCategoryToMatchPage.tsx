@@ -7,10 +7,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -31,13 +29,14 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
+import useRuleConditionSelection from './useRuleConditionSelection';
 
 type AddCategoryToMatchPageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
@@ -49,25 +48,20 @@ type CategoryListItem = ListItem & {
 };
 
 function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
-    const {policyID, ruleID, categoryName: editingCategoryName} = route.params;
-    // Editing a category tax default edits one rule, so its category is swapped, not added to.
-    const isEditingCategoryTaxRule = !!editingCategoryName;
-    // A category tax default is addressed by category rather than ruleID, so it returns to its own editor.
-    const {backToRoute} = useMerchantRuleRoute(
-        DYNAMIC_ROUTES.RULES_CATEGORY_TO_MATCH_FROM_EXPENSE.path,
-        policyID,
-        ruleID,
-        editingCategoryName ? ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, editingCategoryName) : undefined,
-    );
+    const {policyID, ruleID} = route.params;
+    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_CATEGORY_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
 
-    const draftCategories = form?.categoriesToMatch ?? [];
-    const [selectedCategories, setSelectedCategories] = useState<string[]>(draftCategories);
-    const initialSelectedCategories = useInitialSelection(draftCategories, {resetOnFocus: true});
+    const {
+        selectedValues: selectedCategories,
+        initialSelectedValues: initialSelectedCategories,
+        toggleValue: toggleCategoryValue,
+        toggleAll,
+    } = useRuleConditionSelection(form?.categoriesToMatch ?? []);
 
     const {
         categories,
@@ -109,27 +103,8 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
 
     const [inputValue, setInputValue, filteredCategoryItems] = useSearchResults(sortedCategoryItems, filterCategory);
 
-    const toggleCategory = (item: CategoryListItem) => {
-        // One rule holds one category. Saving several would write a rule each and orphan the edited one.
-        if (isEditingCategoryTaxRule) {
-            setSelectedCategories([item.value]);
-            return;
-        }
-        setSelectedCategories((prev) => (prev.includes(item.value) ? prev.filter((categoryName) => categoryName !== item.value) : [...prev, item.value]));
-    };
-
-    const toggleSelectAll = () => {
-        const visibleValues = filteredCategoryItems.map((item) => item.value);
-        const allVisibleSelected = visibleValues.length > 0 && visibleValues.every((value) => selectedCategories.includes(value));
-
-        if (allVisibleSelected) {
-            const visibleSet = new Set(visibleValues);
-            setSelectedCategories((prev) => prev.filter((value) => !visibleSet.has(value)));
-            return;
-        }
-
-        setSelectedCategories((prev) => Array.from(new Set([...prev, ...visibleValues])));
-    };
+    const toggleCategory = (item: CategoryListItem) => toggleCategoryValue(item.value);
+    const toggleSelectAll = () => toggleAll(filteredCategoryItems.map((item) => item.value));
 
     const goBackToRule = () => Navigation.goBack(backToRoute);
     const goBackAfterSave = () => Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
@@ -173,17 +148,15 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
                 </View>
             ) : (
                 <SelectionList
-                    canSelectMultiple={!isEditingCategoryTaxRule}
+                    canSelectMultiple
                     shouldUpdateFocusedIndex
-                    // One rule holds one category, so editing swaps the selection. Radios say that; checkboxes imply
-                    // several can be ticked.
-                    ListItem={isEditingCategoryTaxRule ? SingleSelectListItem : MultiSelectListItem}
+                    ListItem={MultiSelectListItem}
                     data={filteredCategoryItems}
                     selectedItems={selectedCategories}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onSelectRow={toggleCategory}
                     onSelectionButtonPress={toggleCategory}
-                    onSelectAll={!isEditingCategoryTaxRule && filteredCategoryItems.length > 0 ? toggleSelectAll : undefined}
+                    onSelectAll={filteredCategoryItems.length > 0 ? toggleSelectAll : undefined}
                     textInputOptions={{
                         value: inputValue,
                         label: translate('common.search'),

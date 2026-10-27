@@ -1,7 +1,7 @@
 import useCategoryRuleCreateBackPath from '@hooks/useCategoryRuleCreateBackPath';
 import useOnyx from '@hooks/useOnyx';
 
-import {getCategoryTaxDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
+import {getCategoryOwnExpenseDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -20,9 +20,9 @@ function AddCategoryTaxRulePage({route}: AddCategoryTaxRulePageProps) {
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_NEW.path) ?? getWorkspaceCategorySettingsRoute(policyID, categoryName);
 
-    // A category holds one tax default, so creating one for a category that already has it is really an edit. Opening
-    // it as one shows the rate already applied and lets the admin delete it.
-    const existingRuleID = getCategoryTaxDefaultRule(rules, policyID, categoryName)?.ruleID;
+    // Creating a second rule for a category that already decides one on its own is really an edit, so it opens as
+    // one. A rule that also matches on a merchant or a tag is not the category's own, so it does not count here.
+    const existingRuleID = getCategoryOwnExpenseDefaultRule(rules, policyID, categoryName)?.ruleID;
 
     return (
         <ExpenseDefaultRulePageBase

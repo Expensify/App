@@ -18,7 +18,7 @@ import {setDraftValues} from '@libs/actions/FormActions';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {setDraftFlagForReviewRule, setDraftMerchantRule, setDraftRequireFieldsRule, setDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards} from '@libs/CardUtils';
-import {getCategoryTaxDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
+import {getCategoryOwnExpenseDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -124,7 +124,7 @@ function DescribeNewRuleForm({policyID, children}: DescribeNewRuleFormProps) {
             case CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW:
                 return !hasExplicitFlagAmount(category.maxExpenseAmount);
             case CONST.GENERATED_RULE.RULE_TYPE.CATEGORY_TAX_RATE:
-                return !getCategoryTaxDefaultRule(rules, policyID, category.name);
+                return !getCategoryOwnExpenseDefaultRule(rules, policyID, category.name);
             default:
                 return true;
         }
