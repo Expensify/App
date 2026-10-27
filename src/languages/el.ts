@@ -2920,7 +2920,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 legalLastName: 'Νόμιμο επώνυμο',
                 ssn: 'Αριθμός κοινωνικής ασφάλισης ή ITIN',
                 hasNoSSN: 'Δεν διαθέτω αριθμό κοινωνικής ασφάλισης ή ITIN',
-                hasSSN: 'Έχω αριθμό κοινωνικής ασφάλισης ή ITIN.',
+                hasSSN: 'Έχω αριθμό κοινωνικής ασφάλισης ή ITIN',
                 idDocument: 'Επαλήθευση ταυτότητας',
                 idDocumentDescription: 'Παρακαλώ ανεβάστε μια ταυτότητα που έχει εκδοθεί από κρατική αρχή. Μπορείτε να προσθέσετε έως 5 αρχεία.',
             },

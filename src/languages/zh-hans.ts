@@ -2758,7 +2758,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 legalLastName: '法定姓氏',
                 ssn: '社会安全号码或 ITIN',
                 hasNoSSN: '我没有社会安全号或 ITIN',
-                hasSSN: '我有社会安全号码或 ITIN。',
+                hasSSN: '我有社会安全号码或 ITIN',
                 idDocument: '身份验证',
                 idDocumentDescription: '请上传一份政府签发的身份证件。您最多可添加 5 个文件。',
             },

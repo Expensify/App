@@ -2943,7 +2943,7 @@ const translations = {
                 // @context US Social Security Number, not a national ID of the reader's country.
                 ssn: 'Social Security Number or ITIN',
                 hasNoSSN: "I don't have a social security number or ITIN",
-                hasSSN: 'I have a social security number or ITIN.',
+                hasSSN: 'I have a social security number or ITIN',
                 idDocument: 'ID verification',
                 idDocumentDescription: 'Please upload a government-issued ID. You can add up to 5 files.',
             },

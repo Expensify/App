@@ -2865,7 +2865,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 legalLastName: 'Rechtlicher Nachname',
                 ssn: 'Sozialversicherungsnummer oder ITIN',
                 hasNoSSN: 'Ich habe keine Sozialversicherungsnummer oder ITIN',
-                hasSSN: 'Ich habe eine Sozialversicherungsnummer oder ITIN.',
+                hasSSN: 'Ich habe eine Sozialversicherungsnummer oder ITIN',
                 idDocument: 'Identitätsprüfung',
                 idDocumentDescription: 'Bitte laden Sie einen amtlichen Ausweis hoch. Sie können bis zu 5 Dateien hinzufügen.',
             },

@@ -2849,7 +2849,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 legalLastName: 'Sobrenome legal',
                 ssn: 'Número do seguro social ou ITIN',
                 hasNoSSN: 'Não tenho número de seguridade social nem ITIN',
-                hasSSN: 'Tenho um número de seguridade social ou ITIN.',
+                hasSSN: 'Tenho um número de seguridade social ou ITIN',
                 idDocument: 'Verificação de identidade',
                 idDocumentDescription: 'Envie um documento de identidade emitido pelo governo. Você pode adicionar até 5 arquivos.',
             },

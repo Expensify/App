@@ -2857,7 +2857,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 legalLastName: 'Wettelijke achternaam',
                 ssn: 'Amerikaans Social Security Number (SSN) of ITIN',
                 hasNoSSN: 'Ik heb geen sociaalzekerheidsnummer of ITIN',
-                hasSSN: 'Ik heb een sociaalzekerheidsnummer of ITIN.',
+                hasSSN: 'Ik heb een sociaalzekerheidsnummer of ITIN',
                 idDocument: 'Identiteitsverificatie',
                 idDocumentDescription: 'Upload een door de overheid uitgegeven ID. Je kunt tot 5 bestanden toevoegen.',
             },
