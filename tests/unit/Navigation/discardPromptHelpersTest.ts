@@ -6,6 +6,7 @@ import {
     suppressFlowDiscardPrompt,
 } from '@libs/Navigation/helpers/discardPromptState';
 import getNavigationActionForReplay from '@libs/Navigation/helpers/getNavigationActionForReplay';
+import isInFlowNavigationForRoot from '@libs/Navigation/helpers/isInFlowNavigationForRoot';
 
 import CONST from '@src/CONST';
 
@@ -116,5 +117,48 @@ describe('getNavigationActionForReplay', () => {
         // When preparing an overlay back for replay
         // Then it's left as is
         expect(getNavigationActionForReplay(action)).toBe(action);
+    });
+});
+
+describe('isInFlowNavigationForRoot', () => {
+    const flowRoot = {name: 'Money_Request_Create', params: {transactionID: '1'}};
+
+    it('keeps a browser back in the flow when the restored state still holds the flow root', () => {
+        // Given a RESET restoring a state that nests the same flow root under the RHP
+        const action = {
+            type: 'RESET',
+            payload: {routes: [{name: 'RightModalNavigator', state: {routes: [{name: 'MoneyRequest', params: {params: {transactionID: '1'}}, state: {routes: [flowRoot]}}]}}]},
+        };
+
+        // When checking whether it leaves the flow
+        // Then it stays in the flow
+        expect(isInFlowNavigationForRoot(action, flowRoot, 'flow-stack')).toBe(true);
+    });
+
+    it('treats a browser back that drops the flow root, or holds another draft, as leaving the flow', () => {
+        // Given RESETs restoring a state without the flow root, and one with the root of another draft
+        const closingReset = {type: 'RESET', payload: {routes: [{name: 'Home'}]}};
+        const resetToOtherDraft = {type: 'RESET', payload: {routes: [{name: 'Money_Request_Create', params: {transactionID: '2'}}]}};
+
+        // When checking whether they leave the flow
+        // Then both leave it
+        expect(isInFlowNavigationForRoot(closingReset, flowRoot, 'flow-stack')).toBe(false);
+        expect(isInFlowNavigationForRoot(resetToOtherDraft, flowRoot, 'flow-stack')).toBe(false);
+    });
+
+    it('keeps a replace inside the flow stack in the flow', () => {
+        // Given replaces aimed at the flow's own stack and at another navigator
+        // When checking whether they leave the flow
+        // Then only the one inside the flow stack stays in the flow
+        expect(isInFlowNavigationForRoot({type: 'REPLACE', target: 'flow-stack'}, flowRoot, 'flow-stack')).toBe(true);
+        expect(isInFlowNavigationForRoot({type: 'REPLACE', target: 'root'}, flowRoot, 'flow-stack')).toBe(false);
+    });
+
+    it('treats closing actions as leaving the flow', () => {
+        // Given the actions that close the RHP
+        // When checking whether they leave the flow
+        // Then they do
+        expect(isInFlowNavigationForRoot({type: 'DISMISS_MODAL'}, flowRoot, 'flow-stack')).toBe(false);
+        expect(isInFlowNavigationForRoot({type: 'GO_BACK', source: 'rhp-route'}, flowRoot, 'flow-stack')).toBe(false);
     });
 });
