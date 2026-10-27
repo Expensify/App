@@ -10,6 +10,7 @@ import {
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
@@ -1349,8 +1350,10 @@ describe('libs/NextStepUtils', () => {
                 },
                 expectedETA: 'on the last Friday of the month',
             },
-        ])('renders the automatic-submit eta for $name from the schedule the backend sends', ({eta, expectedETA}) => {
-            // Given a next step whose eta carries the workspace schedule next to the legacy etaKey or dateTime
+        ])('renders the automatic-submit eta for $name from the schedule the backend sends', async ({eta, expectedETA}) => {
+            // Given English translations and a next step whose eta carries the workspace schedule next to the legacy etaKey or dateTime
+            IntlStore.load(CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
             const nextStep: ReportNextStep = {
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
