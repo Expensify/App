@@ -19,6 +19,88 @@ index f7fc390..b5e82e2 100644
              largeLabel.letterSpacing = 0f
          }
      }
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
+index b98825c..5c2dbb5 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
+@@ -3,6 +3,8 @@ package com.swmansion.rnscreens.gamma.tabs.container
+ import android.annotation.SuppressLint
+ import android.content.Context
+ import android.content.res.Configuration
++import android.graphics.Color
++import android.graphics.drawable.ColorDrawable
+ import android.view.Gravity
+ import android.view.MenuItem
+ import android.view.View
+@@ -19,6 +21,7 @@ import androidx.core.widget.NestedScrollView
+ import androidx.fragment.app.FragmentManager
+ import com.google.android.material.R
+ import com.google.android.material.bottomnavigation.BottomNavigationView
++import com.google.android.material.navigation.NavigationBarItemView
+ import com.swmansion.rnscreens.gamma.common.colorscheme.ColorScheme
+ import com.swmansion.rnscreens.gamma.common.colorscheme.ColorSchemeCoordinator
+ import com.swmansion.rnscreens.gamma.common.colorscheme.ColorSchemeListener
+@@ -117,6 +120,9 @@ class TabsContainer internal constructor(
+      */
+     private var isInExternalOperationContext: Boolean = false
+ 
++    /** The tab the selection was hidden on, until its active indicator stops fading out after a switch. */
++    private var hiddenSelectionMenuItemId: Int? = null
++
+     private var fragmentManager: FragmentManager? = null
+     private val requireFragmentManager: FragmentManager
+         get() = checkNotNull(fragmentManager) { "[RNScreens] Attempt to use nullish FragmentManager" }
+@@ -550,12 +556,29 @@ class TabsContainer internal constructor(
+         RNSLog.d(TAG, "updateBottomNavigationViewAppearance")
+ 
+         appearanceCoordinator.updateTabAppearance(themedContext, this)
++        hideActiveIndicatorOfHiddenSelectionTab()
+ 
+         post {
+             requestLayout()
+         }
+     }
+ 
++    /**
++     * The shared active indicator color comes from the selected tab, so the tab the selection was hidden on would fade
++     * its indicator out in the color of the tab the user switched to. It keeps a transparent indicator until then.
++     */
++    private fun hideActiveIndicatorOfHiddenSelectionTab() {
++        val menuItemId = hiddenSelectionMenuItemId ?: return
++        hiddenSelectionMenuItemId = null
++        if (menuItemId == bottomNavigationView.selectedItemId) {
++            return
++        }
++        val itemView = bottomNavigationView.findViewById<NavigationBarItemView>(menuItemId) ?: return
++        itemView.setActiveIndicatorDrawable(ColorDrawable(Color.TRANSPARENT))
++        // Setting the shared color again gives every tab its regular indicator back.
++        postDelayed({ bottomNavigationView.itemActiveIndicatorColor = bottomNavigationView.itemActiveIndicatorColor }, HIDDEN_SELECTION_FADE_OUT_MS)
++    }
++
+     private fun updateNavigationStateAndSelectedFragment(
+         nextSelectedFragment: TabsScreenFragment,
+         actionOrigin: TabsActionOrigin,
+@@ -650,6 +673,10 @@ class TabsContainer internal constructor(
+         val hasTriggeredSpecialEffect =
+             if (isRepeated) specialEffectsHandler.handleRepeatedTabSelection() else false
+ 
++        if (!isRepeated && bottomNavigationView.itemActiveIndicatorColor?.defaultColor == Color.TRANSPARENT) {
++            hiddenSelectionMenuItemId = bottomNavigationView.selectedItemId
++        }
++
+         if (stateChanged && !isRepeated) {
+             // If we've effectively changed the tab, we need to raise appropriate flags.
+             // This line assumes that any required e.g. appearance actions will be performed
+@@ -783,6 +810,9 @@ class TabsContainer internal constructor(
+ 
+     companion object {
+         const val TAG = "TabsContainer"
++
++        // Longer than Material's active indicator animation (motionDurationLong2).
++        private const val HIDDEN_SELECTION_FADE_OUT_MS = 1000L
+     }
+ }
+ 
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h
 index d76842a..bc62e29 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h
@@ -33,10 +115,20 @@ index d76842a..bc62e29 100644
   * Tell the controller that react provided tabs have changed (count / instances) & the child
   * view controllers need to be updated.
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-index 06c1957..bb2dcb0 100644
+index 06c1957..3c2acf0 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-@@ -177,6 +177,34 @@ - (void)detachFromParentContainerItem
+@@ -86,6 +86,9 @@ @implementation RNSTabBarController {
+   /// delegate handling). Setter overrides skip reconciliation while this flag is set.
+   BOOL _isHandlingExplicitSelectionUpdate;
+ 
++  // Set when the selection is shown again together with a tab switch from JS, so it appears on the new tab.
++  BOOL _isSelectionRevealDeferred;
++
+   RNSTabsNavigationStateObserverRegistry *_observerRegistry;
+ 
+   RNSParentContainerItemRegistry *_Nonnull _parentContainerRegistry;
+@@ -177,6 +180,40 @@ - (void)detachFromParentContainerItem
  
  #pragma mark - UIKit callbacks
  
@@ -50,6 +142,12 @@ index 06c1957..bb2dcb0 100644
 +
 +- (void)setTabBarItemSelectionHidden:(BOOL)tabBarItemSelectionHidden
 +{
++  // The selected tab is still the one the selection was hidden on until the pending switch runs.
++  if (!tabBarItemSelectionHidden && _tabBarItemSelectionHidden && _pendingStateUpdate != nil) {
++    _isSelectionRevealDeferred = YES;
++    return;
++  }
++  _isSelectionRevealDeferred = NO;
 +  _tabBarItemSelectionHidden = tabBarItemSelectionHidden;
 +  [self updateTabBarItemSelectionIn:self.tabBar];
 +}
@@ -71,7 +169,25 @@ index 06c1957..bb2dcb0 100644
  - (void)didMoveToParentViewController:(UIViewController *)parent
  {
    [super didMoveToParentViewController:parent];
-@@ -353,6 +381,11 @@ - (void)userDidRepeatViewControllerSelection:(nonnull UIViewController *)viewCon
+@@ -276,7 +313,16 @@ - (void)performContainerUpdate
+ {
+   _isHandlingExplicitSelectionUpdate = YES;
+   [self updateChildViewControllersIfNeeded];
+-  [self updateSelectedViewControllerIfNeeded];
++  if (_isSelectionRevealDeferred) {
++    // Without the animation the selection appears on the new tab instead of sliding over from the hidden one.
++    [UIView performWithoutAnimation:^{
++      [self updateSelectedViewControllerIfNeeded];
++      self.tabBarItemSelectionHidden = NO;
++      [self.tabBar layoutIfNeeded];
++    }];
++  } else {
++    [self updateSelectedViewControllerIfNeeded];
++  }
+   _isHandlingExplicitSelectionUpdate = NO;
+ 
+   [self updateTabBarAppearanceIfNeeded];
+@@ -353,6 +399,11 @@ - (void)userDidRepeatViewControllerSelection:(nonnull UIViewController *)viewCon
  
  - (void)userDidSelectViewController:(nonnull UIViewController *)viewController
  {
