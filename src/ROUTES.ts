@@ -1151,8 +1151,11 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW],
     },
     WORKSPACE_CATEGORY_RULES_TAX_EDIT: {
-        path: 'rules/tax',
+        // A category can hold more than one rule, so the row carries the rule it opens rather than letting the
+        // category name stand in for it.
+        path: 'rules/tax/:ruleID',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+        getRoute: (ruleID: string) => `rules/tax/${ruleID}` as const,
     },
     RULES_MERCHANT_NEW_FROM_EXPENSE: {
         path: 'merchant-rule/new',
@@ -4559,10 +4562,6 @@ const ROUTES = {
     RULES_TAG_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag-to-match',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag-to-match` as const,
-    },
-    RULES_CATEGORY_TAX_EDIT: {
-        route: 'workspaces/:policyID/rules/category-tax-rules/edit/:categoryName',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/category-tax-rules/edit/${encodeURIComponent(categoryName)}` as const,
     },
     RULES_AGENT_NEW: {
         route: 'workspaces/:policyID/rules/agent-rules/new',

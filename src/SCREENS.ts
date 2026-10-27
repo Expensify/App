@@ -1070,7 +1070,6 @@ const SCREENS = {
         RULES_MERCHANT_PREVIEW_MATCHES: 'Rules_Merchant_Preview_Matches',
         RULES_CATEGORY_TO_MATCH: 'Rules_Category_To_Match',
         RULES_TAG_TO_MATCH: 'Rules_Tag_To_Match',
-        RULES_CATEGORY_TAX_EDIT: 'Rules_Category_Tax_Edit',
         RULES_MERCHANT_EDIT: 'Rules_Merchant_Edit',
         DYNAMIC_RULES_MERCHANT_NEW: 'Dynamic_Rules_Merchant_New',
         DYNAMIC_RULES_MERCHANT_MERCHANT_TO_MATCH: 'Dynamic_Rules_Merchant_Merchant_To_Match',

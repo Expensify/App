@@ -1515,9 +1515,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_TAG_TO_MATCH]: {
                             path: ROUTES.RULES_TAG_TO_MATCH.route,
                         },
-                        [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: {
-                            path: ROUTES.RULES_CATEGORY_TAX_EDIT.route,
-                        },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: {
                             path: ROUTES.RULES_MERCHANT_EDIT.route,
                         },

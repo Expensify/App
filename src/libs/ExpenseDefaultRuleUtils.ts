@@ -596,28 +596,20 @@ function getCategoryExpenseDefaultMatches(rulesCollection: OnyxCollection<Rule> 
 }
 
 /**
- * The rule category settings shows for a category: any rule that matches on it.
+ * The rules a category decides on its own, which are the ones category settings lists.
  *
- * Category settings addresses the rule by category name rather than by ID, so the ID is resolved here instead of
- * being carried on every route. The rule can also match on a merchant or a tag and can leave the tax unset, which
- * is why this is not narrowed to a category-only rule.
- *
- * Where several rules match, the one the category decides on its own comes first, so the category does not show
- * whichever rule the collection happened to yield first.
+ * A rule that also matches on a merchant or a tag belongs to that merchant or tag as much as to the category, so
+ * it is left to the Rules page, which files it with them.
  */
-function getCategoryExpenseDefaultRule(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): RuleWithID | undefined {
-    const matches = getCategoryExpenseDefaultMatches(rulesCollection, policyID, categoryName);
-    return (matches.find(isCategoryOnlyMatch) ?? matches.at(0))?.match;
+function getCategoryOwnExpenseDefaultRules(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): RuleWithID[] {
+    return getCategoryExpenseDefaultMatches(rulesCollection, policyID, categoryName)
+        .filter(isCategoryOnlyMatch)
+        .map(({match}) => match);
 }
 
-/**
- * The rule a category decides on its own, which is the one a second rule for that category would duplicate.
- *
- * Distinct from `getCategoryExpenseDefaultRule`: a rule that also matches on a merchant or a tag belongs to that
- * merchant or tag as much as to the category, so it does not stop the category getting a rule of its own.
- */
+/** The first rule a category decides on its own, which is the one a further rule for that category would duplicate. */
 function getCategoryOwnExpenseDefaultRule(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): RuleWithID | undefined {
-    return getCategoryExpenseDefaultMatches(rulesCollection, policyID, categoryName).find(isCategoryOnlyMatch)?.match;
+    return getCategoryOwnExpenseDefaultRules(rulesCollection, policyID, categoryName).at(0);
 }
 
 /** The tax rate a rule applies, if it sets one. */
@@ -730,9 +722,9 @@ export {
     buildExpenseDefaultFilters,
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
-    getCategoryExpenseDefaultRule,
     getExpenseDefaultTaxID,
     getCategoryOwnExpenseDefaultRule,
+    getCategoryOwnExpenseDefaultRules,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,

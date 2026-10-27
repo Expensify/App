@@ -15,7 +15,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {getRuleDeletionPendingAction} from './CategoryTaxRulesUtils';
-import {getCategoryOwnExpenseDefaultRule, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID} from './ExpenseDefaultRuleUtils';
+import {getCategoryOwnExpenseDefaultRules, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID} from './ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
 import {getExpenseDefaultRuleDescription} from './MerchantTypeRulesUtils';
 import {
@@ -29,7 +29,7 @@ type CategoryContextualRule = {
     key: string;
     summary: string;
     /** Dynamic route suffix under category settings (keeps Categories underlay on refresh). */
-    dynamicRoutePath: DynamicRouteSuffix;
+    dynamicRoutePath: DynamicRouteSuffix | ReturnType<typeof DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute>;
     pendingAction?: PendingAction;
     /** Optimistically deleted rules stay listed (struck through) but must not be openable. */
     isDisabled?: boolean;
@@ -122,25 +122,28 @@ function getCategoryContextualRules({
     }
 
     // An expense default is an ordinary rule rather than something stored on the category, so it is looked up by
-    // what it matches on. Only a rule the category decides alone belongs here. One that also matches on a merchant
-    // or a tag is listed with them on the Rules page, and the row's route addresses a rule by category, so listing
-    // it here would open the wrong rule. The summary is the table's, so a rule reads the same in both places.
-    const ownRule = getCategoryOwnExpenseDefaultRule(policyRules, policy.id, categoryName);
-    const ownRuleSummary = ownRule ? getExpenseDefaultRuleDescription(getExpenseDefaultRuleSummaryFields(ownRule.rule), policy, translate) : '';
-    if (ownRule && ownRuleSummary) {
+    // what it matches on. The summary is the table's, so a rule reads the same in both places.
+    for (const {ruleID, rule} of getCategoryOwnExpenseDefaultRules(policyRules, policy.id, categoryName)) {
+        const summary = getExpenseDefaultRuleDescription(getExpenseDefaultRuleSummaryFields(rule), policy, translate);
+        if (!summary) {
+            continue;
+        }
+
         // The rule is also reached through the category and the tax rate it depends on, so deleting either of
         // those retires the rule with them.
-        const rulePendingAction = ownRule.rule.pendingAction ?? getRuleDeletionPendingAction(policy, policyCategories, categoryName, getExpenseDefaultTaxID(ownRule.rule));
+        const rulePendingAction = rule.pendingAction ?? getRuleDeletionPendingAction(policy, policyCategories, categoryName, getExpenseDefaultTaxID(rule));
         const isRulePendingDelete = rulePendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-        if (isOffline || !isRulePendingDelete) {
-            rules.push({
-                key: `expense-default-${ownRule.ruleID}`,
-                summary: ownRuleSummary,
-                dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.path,
-                pendingAction: rulePendingAction,
-                isDisabled: isRulePendingDelete,
-            });
+        if (!isOffline && isRulePendingDelete) {
+            continue;
         }
+
+        rules.push({
+            key: `expense-default-${ruleID}`,
+            summary,
+            dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute(ruleID),
+            pendingAction: rulePendingAction,
+            isDisabled: isRulePendingDelete,
+        });
     }
 
     return rules;

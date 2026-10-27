@@ -170,7 +170,7 @@ describe('getCategoryContextualRules', () => {
             // Then the tax default is listed and opens the category-scoped editor, so the RHP matches the Rules page
             expect(rules).toHaveLength(1);
             expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)"');
-            expect(rules.at(0)?.dynamicRoutePath).toBe(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.path);
+            expect(rules.at(0)?.dynamicRoutePath).toBe(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute('rule1'));
         });
 
         it('does not list a tax default belonging to another category', () => {
@@ -321,6 +321,36 @@ describe('getCategoryContextualRules', () => {
             // Rules page, and the row's route opens a rule by category, so a second row would open this same one
             expect(rules).toHaveLength(1);
             expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)"');
+        });
+
+        it('lists a row per rule the category decides on its own, each opening its own rule', () => {
+            // Given two rules that each match the category alone, which saving past the duplicate prompt allows
+            const twoOwnRules: OnyxCollection<Rule> = {
+                ...taxDefaultRules,
+                [`${ONYXKEYS.COLLECTION.RULE}rule2`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.COMMENT, value: 'Test'}]),
+                },
+            };
+
+            // When the category details RHP builds its rules
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyCategories: undefined,
+                policyRules: twoOwnRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: false,
+            });
+
+            // Then both are listed rather than the second being hidden, and each row carries the rule it opens
+            expect(rules).toHaveLength(2);
+            expect(rules.map((rule) => rule.dynamicRoutePath)).toEqual(['rules/tax/rule1', 'rules/tax/rule2']);
         });
     });
 });

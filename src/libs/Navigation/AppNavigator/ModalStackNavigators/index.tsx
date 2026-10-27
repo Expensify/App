@@ -1313,7 +1313,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/PreviewMatchesPage').default,
     [SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddCategoryToMatchPage').default,
     [SCREENS.WORKSPACE.RULES_TAG_TO_MATCH]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddTagToMatchPage').default,
-    [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/EditCategoryTaxRulePage').default,
     [SCREENS.WORKSPACE.RULES_AGENT_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/AgentRules/AddAgentRulePage').default,
     [SCREENS.WORKSPACE.RULES_AGENT_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/AgentRules/EditAgentRulePage').default,
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/perDiem/ImportPerDiemPage').default,

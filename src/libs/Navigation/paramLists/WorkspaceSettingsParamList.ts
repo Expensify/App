@@ -183,6 +183,7 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_EDIT]: {
         policyID: string;
         categoryName: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.UPGRADE]: {
         policyID?: string;
@@ -1788,10 +1789,6 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.RULES_TAG_TO_MATCH]: {
         policyID: string;
         ruleID: string;
-    };
-    [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: {
-        policyID: string;
-        categoryName: string;
     };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
         policyID: string;

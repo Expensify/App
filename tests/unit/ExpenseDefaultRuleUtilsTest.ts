@@ -1,8 +1,8 @@
 import {
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
-    getCategoryExpenseDefaultRule,
     getCategoryOwnExpenseDefaultRule,
+    getCategoryOwnExpenseDefaultRules,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
@@ -532,85 +532,6 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
     });
 
-    describe('getCategoryExpenseDefaultRule', () => {
-        const categoryTaxRuleBody: ExpenseDefaultRule = {
-            triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION]),
-            filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
-            // eslint-disable-next-line @typescript-eslint/naming-convention -- the rule stores the tax under the field name that the backend uses
-            actions: toIndexMap([{name: ACTION.SET, field: FIELD.TAX, value: {field_id_TAX: {externalID: TAX_KEY, name: 'GST', value: '10%'}}} as ExpenseDefaultAction]),
-        };
-
-        it('finds the rule that sets a tax for the category', () => {
-            // Given a rule matching that category alone and setting a tax
-            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(categoryTaxRuleBody)};
-
-            // When the category's tax default is looked up
-            // Then that rule is returned, so category settings can open it
-            expect(getCategoryExpenseDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
-        });
-
-        it('ignores a rule being deleted', () => {
-            // Given the same rule, deleted while offline so it is still in the collection
-            const collection = {
-                [`${ONYXKEYS.COLLECTION.RULE}1`]: {...asStoredRule(categoryTaxRuleBody), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-            };
-
-            // When the category's tax default is looked up
-            // Then nothing is returned, because a deleted rule no longer applies and must not be offered for editing
-            expect(getCategoryExpenseDefaultRule(collection, POLICY_ID, 'Coffee')).toBeUndefined();
-        });
-
-        it('finds a rule that also matches on a merchant, which category settings can create', () => {
-            // Given a rule the category settings flow made that matches the category and a merchant
-            const ruleWithMerchant: ExpenseDefaultRule = {
-                ...categoryTaxRuleBody,
-                filters: {
-                    operator: AND,
-                    left: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
-                    right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Starbucks'},
-                },
-            };
-            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(ruleWithMerchant)};
-
-            // When the category's tax default is looked up
-            // Then it is found, because hiding it would offer to add a second rule for the same category
-            expect(getCategoryExpenseDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
-        });
-
-        it('finds a rule that sets no tax, which is the rule a duplicate used to be created against', () => {
-            // Given a rule matching the category that sets a merchant rather than a tax
-            const ruleWithoutTax: ExpenseDefaultRule = {
-                ...categoryTaxRuleBody,
-                actions: toIndexMap([{name: ACTION.SET, field: FIELD.MERCHANT, value: 'Starbucks Coffee'} as ExpenseDefaultAction]),
-            };
-            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(ruleWithoutTax)};
-
-            // When the category's tax default is looked up
-            // Then it is found, so category settings edits it instead of adding another rule
-            expect(getCategoryExpenseDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
-        });
-
-        it('prefers the rule that matches on the category alone', () => {
-            // Given a rule matching the category and a merchant, stored ahead of one matching the category alone
-            const ruleWithMerchant: ExpenseDefaultRule = {
-                ...categoryTaxRuleBody,
-                filters: {
-                    operator: AND,
-                    left: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
-                    right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Starbucks'},
-                },
-            };
-            const collection = {
-                [`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(ruleWithMerchant),
-                [`${ONYXKEYS.COLLECTION.RULE}2`]: asStoredRule(categoryTaxRuleBody),
-            };
-
-            // When the category's tax default is looked up
-            // Then the category-only rule wins, rather than whichever the collection happens to yield first
-            expect(getCategoryExpenseDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('2');
-        });
-    });
-
     describe('getCategoryOwnExpenseDefaultRule', () => {
         const categoryOnlyRuleBody: ExpenseDefaultRule = {
             triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION]),
@@ -671,6 +592,35 @@ describe('ExpenseDefaultRuleUtils', () => {
             // When the category's own rule is looked up
             // Then nothing is returned, so the category can be given a rule again
             expect(getCategoryOwnExpenseDefaultRule(collection, POLICY_ID, 'Coffee')).toBeUndefined();
+        });
+
+        it('returns a rule that sets no tax', () => {
+            // Given a rule matching the category alone that sets an amount rather than a tax
+            const amountOnly: ExpenseDefaultRule = {
+                ...categoryOnlyRuleBody,
+                actions: toIndexMap([{name: ACTION.SET, field: FIELD.AMOUNT, value: -1000} as ExpenseDefaultAction]),
+            };
+            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(amountOnly)};
+
+            // When the category's own rule is looked up
+            // Then it is found, because a category's rule need not set a tax
+            expect(getCategoryOwnExpenseDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
+        });
+
+        it('returns every rule the category decides on its own', () => {
+            // Given two rules that each match the category alone, which saving past the duplicate prompt allows
+            const second: ExpenseDefaultRule = {
+                ...categoryOnlyRuleBody,
+                actions: toIndexMap([{name: ACTION.SET, field: FIELD.AMOUNT, value: -1000} as ExpenseDefaultAction]),
+            };
+            const collection = {
+                [`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(categoryOnlyRuleBody),
+                [`${ONYXKEYS.COLLECTION.RULE}2`]: asStoredRule(second),
+            };
+
+            // When every rule the category decides on its own is looked up
+            // Then both come back, so category settings can list one row for each instead of hiding the second
+            expect(getCategoryOwnExpenseDefaultRules(collection, POLICY_ID, 'Coffee').map(({ruleID}) => ruleID)).toEqual(['1', '2']);
         });
     });
 
