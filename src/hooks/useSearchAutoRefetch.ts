@@ -16,6 +16,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
+import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useNetwork from './useNetwork';
 
 type UseSearchAutoRefetch = {
@@ -64,6 +65,7 @@ function useSearchAutoRefetch({
 }: UseSearchAutoRefetch) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
+    const isInPreloadedTab = useIsInPreloadedTab();
     const searchTriggeredRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
@@ -83,6 +85,11 @@ function useSearchAutoRefetch({
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
+        // A preloaded tab refreshes its whole snapshot on first open, so a refetch deferred while hidden would only repeat it.
+        if (isInPreloadedTab) {
+            return;
+        }
+
         // Snapshot and focus updates re-run this effect with unchanged collections, which would diff a collection against itself.
         if (transactions === previousTransactions && reportActions === previousReportActions && !hasPendingSearchRef.current) {
             return;
@@ -184,6 +191,7 @@ function useSearchAutoRefetch({
         searchResultsData,
         isOffline,
         searchResults?.search?.isLoading,
+        isInPreloadedTab,
     ]);
 
     useEffect(() => {

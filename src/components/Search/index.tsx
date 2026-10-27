@@ -453,19 +453,11 @@ function Search({
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
     const autoSearchedHashRef = useRef<number | undefined>(undefined);
     const isInPreloadedTab = useIsInPreloadedTab();
-    const wasInPreloadedTab = usePrevious(isInPreloadedTab);
 
     useEffect(() => {
-        // A preloaded tab holds its request until opened. The migrated-modal and reconnect branches below skip the focus
-        // check, so they would otherwise fire it from the hidden tab.
+        // A preloaded tab holds its request until opened, and useSearchPageSetup sends it then. The migrated-modal and
+        // reconnect branches below skip the focus check, so they would otherwise fire it from the hidden tab.
         if (isInPreloadedTab) {
-            return;
-        }
-
-        // On first open useSearchPageSetup refreshes snapshot searches, but steps aside for live (to-do) ones, which are sent
-        // here. The tab may not count as focused yet in this render, hence the focus-check bypass below.
-        const isFirstOpenOfPreloadedTab = !!wasInPreloadedTab;
-        if (isFirstOpenOfPreloadedTab && !shouldUseLiveData) {
             return;
         }
 
@@ -476,7 +468,7 @@ function Search({
         const comingBackOnlineWithNoResultsOrError = prevIsOffline && !isOffline && (isEmptyObject(searchResults?.data) || hasErrors);
         const comingBackOnlineWithMissingAllMatchingTotals = prevIsOffline && !isOffline && isExpenseAllMatchingSelection && isAllMatchingItemsCountMissing;
         const shouldRefreshOnReconnect = comingBackOnlineWithNoResultsOrError || comingBackOnlineWithMissingAllMatchingTotals;
-        if (!shouldRefreshOnReconnect && ((!isFocused && !isMigratedModalDisplayed && !isFirstOpenOfPreloadedTab) || isOffline)) {
+        if (!shouldRefreshOnReconnect && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
             return;
         }
 
@@ -540,10 +532,9 @@ function Search({
             shouldSaveRecentSearch: searchRequestOffset === 0 && !shouldUseLiveData,
         });
 
-        // We don't need to run the effect on change of isFocused. It re-runs when a preloaded tab is opened, but not one render
-        // later when wasInPreloadedTab catches up, which would repeat the request.
+        // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, queryJSON, shouldCalculateTotals, validGroupBy, searchRequestOffset, isInPreloadedTab]);
+    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, queryJSON, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {

@@ -38,10 +38,11 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const prevIsOffline = usePrevious(isOffline);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData, currentSearchResults} = useSearchResultsContext();
-    const {currentSearchKey} = useSearchQueryContext();
+    const {currentSearchKey, currentSearchHash} = useSearchQueryContext();
     const {areAllMatchingItemsSelected} = useSearchSelectionContext();
     const isInPreloadedTab = useIsInPreloadedTab();
-    const wasInPreloadedTab = usePrevious(isInPreloadedTab);
+    // Set while the tab is preloaded and kept until its first-open request goes out, which can take more than one render.
+    const isFirstOpenOfPreloadedTabRef = useRef(false);
 
     const hash = queryJSON?.hash;
     // Without this, a plain page-level fetch during active select-all clears totals on arrival
@@ -81,11 +82,33 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // and cases where route params change without a navigation event (e.g. sorting).
     useEffect(clearOnHashChange, [hash, clearSelectedTransactions]);
 
+    useEffect(() => {
+        if (!isInPreloadedTab) {
+            return;
+        }
+        isFirstOpenOfPreloadedTabRef.current = true;
+    }, [isInPreloadedTab]);
+
     // Fire search() when the query changes (hash). This runs at the page level so the
     // API request starts in parallel with the skeleton, before Search mounts its 14+ useOnyx hooks.
     useEffect(() => {
         // A preloaded tab builds from cached results only. The request, saved params and recent search wait until it is opened.
-        if (!queryJSON || hash === undefined || shouldUseLiveData || isOffline || isInPreloadedTab) {
+        if (!queryJSON || hash === undefined || isOffline || isInPreloadedTab) {
+            return;
+        }
+
+        // On first open the search context can still describe the previous query for a render, so wait for it to catch up.
+        const isFirstOpenOfPreloadedTab = isFirstOpenOfPreloadedTabRef.current;
+        if (isFirstOpenOfPreloadedTab && currentSearchHash !== hash) {
+            return;
+        }
+
+        if (shouldUseLiveData) {
+            // Search requests live (to-do) results itself when it mounts, but a preloaded one mounted while hidden and held it.
+            if (isFirstOpenOfPreloadedTab) {
+                isFirstOpenOfPreloadedTabRef.current = false;
+                search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false});
+            }
             return;
         }
 
@@ -99,9 +122,11 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         // A pending initial request may be stale after reload and can be restarted through request deduplication.
         // Pagination must not restart page one.
         // First open of a preloaded tab refreshes its cached results and saves the recent search, with no loading state over them.
-        if (isSnapshotDataLoaded && !isInitialSearchPending && !wasInPreloadedTab) {
+        if (isSnapshotDataLoaded && !isInitialSearchPending && !isFirstOpenOfPreloadedTab) {
             return;
         }
+
+        isFirstOpenOfPreloadedTabRef.current = false;
 
         const shouldSkipWaitForWrites = hasPendingSearchWrite();
         requestedHashesRef.current.add(hash);
@@ -118,7 +143,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             isLoading: false,
             skipWaitForWrites: shouldSkipWaitForWrites,
             shouldSaveRecentSearch: true,
-            shouldShowLoading: !(wasInPreloadedTab && isSnapshotDataLoaded),
+            shouldShowLoading: !(isFirstOpenOfPreloadedTab && isSnapshotDataLoaded),
         });
     }, [
         hash,
@@ -131,7 +156,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         currentSearchKey,
         shouldCalculateTotals,
         isInPreloadedTab,
-        wasInPreloadedTab,
+        currentSearchHash,
     ]);
 
     useFocusEffect(dropPageRequestOnBlur);
