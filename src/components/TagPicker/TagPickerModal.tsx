@@ -92,4 +92,3 @@ function TagPickerModal({
 }
 
 export default TagPickerModal;
-export type {TagPickerModalProps};
