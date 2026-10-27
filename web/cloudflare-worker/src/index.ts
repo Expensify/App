@@ -192,6 +192,14 @@ export default {
             return createNotFoundResponse(env.ENVIRONMENT, nonce);
         }
 
+        // The app's forms keep `method="post" action="/"` for password managers, so a submit the app doesn't cancel
+        // reaches here. Static Assets only serves GET and HEAD, so load the same page instead of returning a 405.
+        if (!isDevelopment && request.method === 'POST') {
+            const redirect = new Response(null, {status: 303, headers: {Location: `${url.pathname}${url.search}`, 'Cache-Control': 'no-store'}});
+            setSecurityHeaders(redirect.headers, env.ENVIRONMENT, nonce);
+            return redirect;
+        }
+
         const isNavigation = request.headers.get('Sec-Fetch-Mode') === 'navigate';
         const isAASAPath = url.pathname === AASA_PATH || url.pathname === LEGACY_AASA_PATH;
         const isPrecompressed = !isDevelopment && PRECOMPRESSED_PATH.test(url.pathname);
