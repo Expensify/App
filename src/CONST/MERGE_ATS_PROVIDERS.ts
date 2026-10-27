@@ -18,7 +18,7 @@ type MergeATSProviderEntry = {
 const MERGE_ATS_PROVIDERS = {
     ashby: {
         displayName: 'Ashby',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Ashby_Square_Logo.png',
+        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Ashby_Square_Logo_3uQWavw.png',
         approverFields: [CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER, CONST.MERGE.ATS_APPROVER_FIELD.HIRING_MANAGER, CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR],
     },
     greenhouse: {

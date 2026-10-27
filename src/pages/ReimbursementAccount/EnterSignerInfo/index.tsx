@@ -22,7 +22,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 import Address from './subSteps/Address';
 import Confirmation from './subSteps/Confirmation';
@@ -57,7 +57,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
     const [enterSignerInfoForm] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
     const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
 
-    const submit = useCallback(() => {
+    const submit = () => {
         const {signerDetails, signerFiles} = getSignerDetailsAndSignerFiles(enterSignerInfoFormDraft, signerEmail);
 
         saveCorpayOnboardingDirectorInformation({
@@ -65,7 +65,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
             ...signerFiles,
             bankAccountID,
         });
-    }, [bankAccountID, enterSignerInfoFormDraft, signerEmail]);
+    };
 
     const basePath = useDynamicBackPath(DYNAMIC_ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.path);
     const buildRoute = (pageName: string, action?: 'edit') =>
@@ -100,7 +100,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         return clearErrors(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
     }, []);
 
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
         if (isEditing) {
             moveTo(confirmationIndex, false);
@@ -112,7 +112,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         } else {
             Navigation.goBack(basePath);
         }
-    }, [isEditing, moveTo, pageIndex, prevPage, basePath]);
+    };
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator />;

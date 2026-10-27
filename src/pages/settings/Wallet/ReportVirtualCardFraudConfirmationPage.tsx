@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type ReportVirtualCardFraudConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION>;
@@ -40,7 +40,7 @@ function ReportVirtualCardFraudConfirmationPage({
     const description = isCardTerminatedWithoutReplacement ? 'reportFraudConfirmationPage.descriptionCardNotReplaced' : 'reportFraudConfirmationPage.description';
     const cardDetailsPath = useDynamicBackPath(DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD_CONFIRMATION.path);
 
-    const close = useCallback(() => {
+    const close = () => {
         if (isCardTerminatedWithoutReplacement) {
             Navigation.dismissModal();
             return;
@@ -48,7 +48,7 @@ function ReportVirtualCardFraudConfirmationPage({
 
         // Collapses the flow onto the reported card's page and points it at the replacement card.
         Navigation.goBack(getCardDetailsPathForCard(cardDetailsPath, cardID), {compareParams: false});
-    }, [cardDetailsPath, cardID, isCardTerminatedWithoutReplacement]);
+    };
 
     return (
         <ScreenWrapper

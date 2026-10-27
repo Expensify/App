@@ -30,7 +30,7 @@ import type {ValueOf} from 'type-fest';
 
 import {cardByIdSelector} from '@selectors/Card';
 import {format, parseISO, subDays} from 'date-fns';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type DateOption = ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS>;
@@ -43,7 +43,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const cardSelector = useCallback((cardList: OnyxEntry<CardList>) => cardByIdSelector(cardID)(cardList), [cardID]);
+    const cardSelector = (cardList: OnyxEntry<CardList>) => cardByIdSelector(cardID)(cardList);
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
     const currentStartDate = card?.scrapeMinDate;
 

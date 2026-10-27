@@ -14,7 +14,7 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 const ILLUSTRATION_SIZE = 68;
@@ -26,9 +26,9 @@ function CardSectionDataEmpty() {
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    const openAddPaymentCardScreen = useCallback(() => {
+    const openAddPaymentCardScreen = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
-    }, []);
+    };
     const handleAddPaymentCardPress = () => {
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();

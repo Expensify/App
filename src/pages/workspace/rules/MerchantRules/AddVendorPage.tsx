@@ -3,11 +3,13 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 
+import {openPolicyVendorsPage} from '@libs/actions/Policy/Vendor';
 import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -20,9 +22,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, PolicyVendors} from '@src/types/onyx';
 
-import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect} from 'react';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
@@ -31,9 +35,17 @@ type AddVendorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, t
 type VendorSelectionItem = {name: string; value: string};
 
 /** Maps the policy's matching vendors to picker items (label = vendor name, value = the integration's external vendor ID). */
-function getVendorSelectionItems(policy: Policy | undefined, localeCompare: LocaleContextProps['localeCompare']): VendorSelectionItem[] {
+function getVendorSelectionItems(
+    policy: Policy | undefined,
+    localeCompare: LocaleContextProps['localeCompare'],
+    policyVendors?: OnyxEntry<PolicyVendors>,
+    selectedVendorID?: string,
+): VendorSelectionItem[] {
     const vendors = getMatchingVendors(policy);
-    return sortVendors(vendors, localeCompare).map((vendor) => ({name: vendor.name, value: vendor.id}));
+    return sortVendors(
+        vendors.filter((vendor) => vendor.id === selectedVendorID || policyVendors?.[vendor.id]?.enabled !== false),
+        localeCompare,
+    ).map((vendor) => ({name: vendor.name, value: vendor.id}));
 }
 
 /**
@@ -52,6 +64,7 @@ function AddVendorPage({route}: AddVendorPageProps) {
     const policy = usePolicy(policyID);
     const {isBetaEnabled} = usePermissions();
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
+    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`);
 
     // This picker can be deep-linked directly, and its gate below reads policy.connections (via
     // hasVendorFeature and getMatchingVendorByID), which is empty on a non-active workspace until a page
@@ -63,10 +76,28 @@ function AddVendorPage({route}: AddVendorPageProps) {
     const {isFetchNeeded, isLoadingFetchedFlag} = usePolicyConnectionsPrefetch(policy, true);
 
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
+
+    // Stale sessions may never have received the policyVendors_ collection, so fetch it if missing.
+    const fetchVendorsIfMissing = () => {
+        if (!isFeatureAvailable || !policyID || policyVendors !== undefined) {
+            return;
+        }
+        openPolicyVendorsPage(policyID);
+    };
+
+    const {isOffline} = useNetwork({onReconnect: fetchVendorsIfMissing});
+
+    useEffect(() => {
+        fetchVendorsIfMissing();
+        // Run only on mount because reconnect re-fetches are handled by useNetwork above.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const unavailableLabel = translate('workspace.rules.merchantRules.vendorUnavailable');
     const selectedVendorItem = getSelectedVendorItem(policy, form?.vendorID, unavailableLabel);
 
-    const vendorItems = getVendorSelectionItems(policy, localeCompare);
+    const vendorItems = getVendorSelectionItems(policy, localeCompare, policyVendors, form?.vendorID);
 
     const saveVendor = (value?: string) => {
         updateDraftMerchantRule({vendorID: value});
@@ -81,8 +112,12 @@ function AddVendorPage({route}: AddVendorPageProps) {
 
     // Gate direct/deeplink access behind the same predicate that hides the "Set vendor to" row, so the beta can't be
     // bypassed by opening this picker's URL directly (which would otherwise write vendorID into the draft and save it).
-    if (!hasVendorFeature(policy, isVendorMatchingBetaEnabled)) {
+    if (!isFeatureAvailable) {
         return <NotFoundPage />;
+    }
+
+    if (!isOffline && policyVendors === undefined) {
+        return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(backToRoute)} />;
     }
 
     return (

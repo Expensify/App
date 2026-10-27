@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {SafeString} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type OwnershipPercentageProps = SubPageProps & {
     isUserEnteringHisOwnData: boolean;
@@ -30,18 +30,15 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
     const defaultOwnershipPercentage = SafeString(reimbursementAccountDraft?.[ownershipPercentageInputID]);
     const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYoursPercentage' : 'ownershipInfoStep.whatPercentage');
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [ownershipPercentageInputID], translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = getFieldRequiredErrors(values, [ownershipPercentageInputID], translate);
 
-            if (values[ownershipPercentageInputID] && !isValidOwnershipPercentage(SafeString(values[ownershipPercentageInputID]), totalOwnedPercentage, ownerBeingModifiedID)) {
-                errors[ownershipPercentageInputID] = translate('bankAccount.error.ownershipPercentage');
-            }
+        if (values[ownershipPercentageInputID] && !isValidOwnershipPercentage(SafeString(values[ownershipPercentageInputID]), totalOwnedPercentage, ownerBeingModifiedID)) {
+            errors[ownershipPercentageInputID] = translate('bankAccount.error.ownershipPercentage');
+        }
 
-            return errors;
-        },
-        [ownerBeingModifiedID, ownershipPercentageInputID, totalOwnedPercentage, translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: [ownershipPercentageInputID],

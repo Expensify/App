@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type ChangePINPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN>;
@@ -42,19 +42,16 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
     const [confirmPIN, setConfirmPIN] = useState('');
     const [error, setError] = useState('');
 
-    const handlePINChange = useCallback(
-        (value: string) => {
-            setError('');
-            if (isConfirmStep) {
-                setConfirmPIN(value);
-            } else {
-                setEnteredPIN(value);
-            }
-        },
-        [isConfirmStep],
-    );
+    const handlePINChange = (value: string) => {
+        setError('');
+        if (isConfirmStep) {
+            setConfirmPIN(value);
+        } else {
+            setEnteredPIN(value);
+        }
+    };
 
-    const validatePIN = useCallback((): string => {
+    const validatePIN = (): string => {
         const PINToValidate = isConfirmStep ? confirmPIN : enteredPIN;
 
         if (PINToValidate.length !== CONST.EXPENSIFY_CARD.PIN.LENGTH) {
@@ -69,9 +66,9 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
             return translate('cardPage.invalidPin');
         }
         return '';
-    }, [isConfirmStep, confirmPIN, enteredPIN, translate]);
+    };
 
-    const handleSubmit = useCallback(() => {
+    const handleSubmit = () => {
         const validationError = validatePIN();
         if (validationError) {
             setError(validationError);
@@ -89,7 +86,7 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
             cardID,
             wasPINBlocked,
         });
-    }, [validatePIN, isConfirmStep, setIsConfirmStep, executeScenario, confirmPIN, cardID, wasPINBlocked]);
+    };
 
     const currentPIN = isConfirmStep ? confirmPIN : enteredPIN;
     const title = isConfirmStep ? translate('cardPage.confirmYourChangedPin') : translate('cardPage.changeYourPin');
