@@ -1,7 +1,7 @@
-import FloatingButtonGlass, {isFloatingButtonGlassAvailable} from '@components/FloatingButtonGlass';
 import Icon from '@components/Icon';
 import {loadExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
 import {loadIllustrationsChunk} from '@components/Icon/IllustrationLoader';
+import LiquidGlassBackground, {isLiquidGlassSupported} from '@components/LiquidGlassBackground';
 import {PressableWithoutFeedback} from '@components/Pressable';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -113,12 +113,13 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_CAMERA_BUTTON}
         >
             <View
-                style={[styles.floatingActionButton, isFloatingButtonGlassAvailable && styles.floatingActionButtonGlass]}
+                style={[styles.floatingActionButton, isLiquidGlassSupported && styles.floatingActionButtonGlass]}
                 testID="floating-camera-button-container"
             >
-                <FloatingButtonGlass
+                <LiquidGlassBackground
                     tintColor={success}
                     tintOpacity={variables.floatingCameraButtonGlassTintOpacity}
+                    style={styles.liquidGlassCircle}
                 />
                 <Icon
                     fill={textLight}

@@ -1,4 +1,5 @@
 import Icon from '@components/Icon';
+import LiquidGlassBackground, {isLiquidGlassSupported} from '@components/LiquidGlassBackground';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -82,11 +83,12 @@ function TopBar({
                     {!!onBackButtonPress && (
                         <PressableWithoutFeedback
                             onPress={onBackButtonPress}
-                            style={styles.touchableButtonImage}
+                            style={[styles.touchableButtonImage, isLiquidGlassSupported && styles.mr2]}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
                             sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
                         >
+                            <LiquidGlassBackground style={styles.liquidGlassCircle} />
                             <Icon
                                 src={icons.BackArrow}
                                 fill={theme.icon}

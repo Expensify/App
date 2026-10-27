@@ -17,7 +17,7 @@ import React, {useEffect, useRef} from 'react';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 
-import FloatingButtonGlass, {isFloatingButtonGlassAvailable} from './FloatingButtonGlass';
+import LiquidGlassBackground, {isLiquidGlassSupported} from './LiquidGlassBackground';
 import {PressableWithoutFeedback} from './Pressable';
 import Tooltip from './Tooltip';
 
@@ -67,7 +67,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
         return {
             transform: [{rotate: `${sharedValue.get() * 135}deg`}],
-            backgroundColor: isFloatingButtonGlassAvailable ? 'transparent' : backgroundColor,
+            backgroundColor: isLiquidGlassSupported ? 'transparent' : backgroundColor,
         };
     });
 
@@ -120,12 +120,16 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                                 styles.floatingActionButton,
                                 {borderRadius},
                                 isLHBVisible && styles.floatingActionButtonSmall,
-                                isFloatingButtonGlassAvailable && styles.floatingActionButtonGlass,
+                                isLiquidGlassSupported && styles.floatingActionButtonGlass,
                                 animatedStyle,
                             ]}
                             testID="fab-animated-container"
                         >
-                            <FloatingButtonGlass tintColor={buttonDefaultBG} />
+                            <LiquidGlassBackground
+                                tintColor={buttonDefaultBG}
+                                tintOpacity={variables.floatingButtonGlassTintOpacity}
+                                style={styles.liquidGlassCircle}
+                            />
                             <Svg
                                 width={fabSize}
                                 height={fabSize}

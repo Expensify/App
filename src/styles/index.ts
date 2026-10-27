@@ -2047,8 +2047,16 @@ const staticStyles = (theme: ThemeColors) =>
             boxShadow: 'none',
         },
 
-        floatingButtonGlass: {
+        liquidGlassCircle: {
             borderRadius: variables.componentBorderRadiusCircle,
+        },
+
+        // The chat header's back icon has no button-sized box of its own, so this one reaches past the icon to put the
+        // circle 8 from the screen edge (the pressable's pl5 is 20) and 8 from the avatar (LHNToggle's paddingRight
+        // is 10), the same as every other back button.
+        reportHeaderBackButtonGlass: {
+            marginLeft: -12,
+            marginRight: -2,
         },
 
         floatingCameraButton: {
