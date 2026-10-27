@@ -68,21 +68,17 @@ function ReportDetailsAvatarContent({report}: ReportDetailsAvatarContentProps) {
     const participants = getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
 
     // The parent report action only shapes thread icons, and threads render ReportHeaderAvatars below without using `icons`, so it is not subscribed to here
-    const icons = getIcons(
+    const icons = getIcons({
         report,
         formatPhoneNumber,
         translate,
         personalDetails,
-        null,
-        '',
-        -1,
         policy,
-        undefined,
         isReportArchived,
         pendingDeleteMemberAccountIDs,
         conciergeReportID,
-        undefined,
-    );
+        parentReportAction: undefined,
+    });
 
     if (isChatRoom && !isThread) {
         return (

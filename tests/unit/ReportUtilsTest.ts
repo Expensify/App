@@ -9276,7 +9276,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails, null, '', -1, undefined, undefined, false, ['4']);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails, pendingDeleteMemberAccountIDs: ['4']});
 
             expect(icons.at(0)?.name).toEqual('One, Three, Two');
         });
@@ -9290,7 +9290,7 @@ describe('ReportUtils', () => {
             });
 
             // When the caller builds the icons without passing the pending delete members
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails});
 
             // Then the pending member is still listed: getGroupChatName no longer falls back to reading Onyx itself
             expect(icons.at(0)?.name).toEqual('Four, One, Three, Two');
@@ -9300,7 +9300,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails, null, '', -1, undefined, undefined, false, []);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails, pendingDeleteMemberAccountIDs: []});
 
             expect(icons.at(0)?.source).toEqual(getDefaultGroupAvatar(groupChatReport.reportID));
             expect(icons.at(0)?.name).toEqual('Four, One, Three, Two');
@@ -9360,21 +9360,13 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
             // When the icons are built with the caller's parent report action
-            const icons = getIcons(
-                expenseRequest,
+            const icons = getIcons({
+                report: expenseRequest,
                 formatPhoneNumber,
-                translateLocal,
-                fakePersonalDetails,
-                null,
-                '',
-                -1,
-                undefined,
-                undefined,
-                false,
-                undefined,
-                undefined,
-                buildIOUAction(passedActorAccountID),
-            );
+                translate: translateLocal,
+                personalDetails: fakePersonalDetails,
+                parentReportAction: buildIOUAction(passedActorAccountID),
+            });
 
             // Then the member avatar belongs to the actor of the passed action, so the module-level cache was not read for it
             expect(icons.at(0)?.id).toBe(passedActorAccountID);
@@ -9387,21 +9379,13 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
             // When the icons are built with the caller's parent report action
-            const icons = getIcons(
-                chatThread,
+            const icons = getIcons({
+                report: chatThread,
                 formatPhoneNumber,
-                translateLocal,
-                fakePersonalDetails,
-                null,
-                '',
-                -1,
-                undefined,
-                undefined,
-                false,
-                undefined,
-                undefined,
-                buildCommentAction(passedActorAccountID),
-            );
+                translate: translateLocal,
+                personalDetails: fakePersonalDetails,
+                parentReportAction: buildCommentAction(passedActorAccountID),
+            });
 
             // Then the avatar belongs to the actor of the passed action
             expect(icons).toHaveLength(1);
@@ -9416,7 +9400,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
             // When the icons are built without a parent report action
-            const icons = getIcons(chatThread, formatPhoneNumber, translateLocal, fakePersonalDetails);
+            const icons = getIcons({report: chatThread, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails});
 
             // Then the avatar still resolves from Onyx until every caller passes the action
             expect(icons.at(0)?.id).toBe(onyxActorAccountID);

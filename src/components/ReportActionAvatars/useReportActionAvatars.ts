@@ -242,21 +242,20 @@ function useReportActionAvatars({
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
     const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
-        getIcons(
-            onyxReport,
+        getIcons({
+            report: onyxReport,
             formatPhoneNumber,
             translate,
             personalDetails,
-            avatar ?? fallbackIcon ?? defaultAvatars.FallbackAvatar,
-            defaultDisplayName,
-            accountID,
+            defaultIcon: avatar ?? fallbackIcon ?? defaultAvatars.FallbackAvatar,
+            defaultName: defaultDisplayName,
+            defaultAccountID: accountID,
             policy,
             invoiceReceiverPolicy,
-            false,
             // Only a chat report can be a group chat, the other reports passed here (IOU/invoice) never need it.
-            onyxReport?.reportID === chatReport?.reportID ? chatReportPendingDeleteMemberAccountIDs : undefined,
+            pendingDeleteMemberAccountIDs: onyxReport?.reportID === chatReport?.reportID ? chatReportPendingDeleteMemberAccountIDs : undefined,
             conciergeReportID,
-        );
+        });
 
     const reportIcons = getIconsWithDefaults(chatReport?.reportID ? chatReport : iouReport);
 
