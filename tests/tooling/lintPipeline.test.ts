@@ -169,11 +169,11 @@ describe('normalizeESLintResults', () => {
 });
 
 describe('filterReactCompilerMessages', () => {
-    it('enforces manual memoization only when both compilers memoize the file', async () => {
-        // Given a diagnostic that depends on automatic memoization being available on both platforms.
+    it('enforces manual memoization only when the compiler memoizes the file', async () => {
+        // Given a diagnostic that depends on automatic memoization being available.
         const messages = [makeMessage({ruleID: 'rulesdir/no-manual-memoization'})];
 
-        // When both compilers memoize the file, or one of them does not.
+        // When the compiler memoizes the file, or does not.
         const compiled = await filterReactCompilerMessages(messages, '/tmp', () => true);
         const skipped = await filterReactCompilerMessages(messages, '/tmp', () => false);
 
@@ -219,7 +219,7 @@ describe('filterReactCompilerMessages', () => {
         expect(result).toEqual(messages);
     });
 
-    it('drops suppressible messages when both compilers memoize the file', async () => {
+    it('drops suppressible messages when the compiler memoizes the file', async () => {
         const messages = [
             makeMessage({ruleID: 'react/jsx-no-constructed-context-values'}),
             makeMessage({
@@ -269,27 +269,9 @@ describe('filterReactCompilerMessages', () => {
     });
 
     it('does not persist fallback compiler failures to cache', () => {
-        expect(
-            shouldPersistCompilerCache({
-                filename: 'a.tsx',
-                bothMemoized: false,
-                cacheable: false,
-            }),
-        ).toBe(false);
-        expect(
-            shouldPersistCompilerCache({
-                filename: 'a.tsx',
-                bothMemoized: false,
-                cacheable: true,
-            }),
-        ).toBe(true);
-        expect(
-            shouldPersistCompilerCache({
-                filename: 'a.tsx',
-                bothMemoized: true,
-                cacheable: true,
-            }),
-        ).toBe(true);
+        expect(shouldPersistCompilerCache({filename: 'a.tsx', memoized: false, cacheable: false})).toBe(false);
+        expect(shouldPersistCompilerCache({filename: 'a.tsx', memoized: false, cacheable: true})).toBe(true);
+        expect(shouldPersistCompilerCache({filename: 'a.tsx', memoized: true, cacheable: true})).toBe(true);
         expect(shouldPersistCompilerCache(undefined)).toBe(false);
     });
 });

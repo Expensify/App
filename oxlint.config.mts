@@ -363,7 +363,7 @@ export default defineConfig({
         'rulesdir/prefer-at': 'off',
         // ESLint's copy needs the type checker; a type-free rewrite runs for src/**/*.ts(x) below.
         'rulesdir/prefer-locale-compare-from-context': 'off',
-        // config/oxlint/reactCompilerGate.mjs drops its reports in files both React Compilers memoize.
+        // config/oxlint/reactCompilerGate.mjs drops its reports in files React Compiler memoizes.
         'rulesdir/no-inline-useOnyx-selector': 'error',
         'no-array-constructor': 'error',
         'no-bitwise': 'error',
@@ -1070,7 +1070,7 @@ export default defineConfig({
         {
             files: ['src/**/*.{ts,tsx}'],
             rules: {
-                // The lint pipeline keeps this diagnostic only when both compilers memoize the file.
+                // The lint pipeline keeps this diagnostic only when React Compiler memoizes the file.
                 'rulesdir/no-manual-memoization': 'error',
                 'rulesdir/no-object-keys-includes': 'error',
                 'rulesdir/prefer-locale-compare-from-context': 'error',

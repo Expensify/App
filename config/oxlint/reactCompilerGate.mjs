@@ -5,22 +5,22 @@
  */
 import path from 'node:path';
 
-import {didBothCompilersMemoizeFile} from '../reactCompiler/checkBoth.mjs';
+import checkReactCompilerWithOxc from '../reactCompiler/checkWithOxc.mjs';
 
 const memoizationCache = new Map();
 
 /**
- * Tells whether React Compiler memoizes the whole file on both web and native. Compiling is slow, so
+ * Tells whether React Compiler memoizes the whole file. Compiling is slow, so
  * each file is checked once. Tests and node_modules count as not memoized, as in ReactCompilerFilter.
  * @param {string} filename
  * @param {string} sourceText
  * @returns {boolean}
  */
-function isFileMemoizedByBothCompilers(filename, sourceText) {
+function isFileMemoized(filename, sourceText) {
     if (!memoizationCache.has(filename)) {
         const normalized = filename.split(path.sep).join('/');
         const skipped = normalized.includes('/tests/') || normalized.startsWith('tests/') || normalized.includes('node_modules/');
-        memoizationCache.set(filename, skipped ? false : didBothCompilersMemoizeFile(sourceText, filename));
+        memoizationCache.set(filename, skipped ? false : checkReactCompilerWithOxc(sourceText, filename).memoized);
     }
     return memoizationCache.get(filename);
 }
@@ -44,7 +44,7 @@ function resolveMessage(rule, descriptor) {
 }
 
 /**
- * Drops the rule's reports in files both React Compilers memoize, where the fix they suggest
+ * Drops the rule's reports in files React Compiler memoizes, where the fix they suggest
  * (useCallback/useMemo) is banned. Doing it here also runs the compile inside the parallel JS-plugin
  * shards, so under scripts/lint ReactCompilerFilter only sees these reports in files that are not memoized.
  * @param {import('eslint').Rule.RuleModule} rule
@@ -62,7 +62,7 @@ function withGating(rule, shouldGate) {
                         if (shouldGate(rule, args[0])) {
                             const filename = context.filename ?? context.getFilename();
                             const sourceText = (context.sourceCode ?? context.getSourceCode()).text;
-                            if (isFileMemoizedByBothCompilers(filename, sourceText)) {
+                            if (isFileMemoized(filename, sourceText)) {
                                 return;
                             }
                         }
