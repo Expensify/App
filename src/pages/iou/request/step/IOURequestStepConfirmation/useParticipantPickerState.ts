@@ -197,7 +197,6 @@ function useParticipantPickerState({
                 // seeded with) leaves the expense bound to that workspace, so the backend rejects it with
                 // "There is a previously existing chat between these users." Generate a fresh optimistic reportID for
                 // P2P recipients, mirroring the legacy participants-step flow (useParticipantSubmission).
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const participantReportID = firstParticipant.reportID || (isPolicyExpenseChatParticipant ? reportID : generateReportID());
                 setTransactionReport(activeTransactionID, {reportID: participantReportID}, true);
 

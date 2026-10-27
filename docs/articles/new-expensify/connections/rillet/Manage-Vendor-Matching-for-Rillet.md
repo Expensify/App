@@ -3,8 +3,6 @@ title: Manage Vendor Matching for Rillet
 description: Learn how Rillet vendor matching assigns vendors to non-reimbursable company card expenses before they export, including automatic matching, manual selection, and default vendor behavior.
 keywords: [Rillet, vendor matching, vendor, company card expenses, default company card vendor, credit cards, company card export]
 internalScope: Audience is Workspace Admins using the Rillet connection for company card exports. Covers imported Rillet vendors, automatic and manual vendor assignment, default company card vendor behavior, and vendors that are no longer valid. Does not cover Rillet connection setup, other Rillet configuration settings, or vendor matching for other accounting connections.
-noindex: true
-sitemap: false
 ---
 
 # Manage Vendor Matching for Rillet
@@ -55,7 +53,7 @@ Purpose: Admins report not knowing where the Vendor field lives on an expense, a
 2. Select **Vendors**.
 3. Use **Find vendor** to search the list by name.
 
-Vendors are managed in Rillet, so the list is read-only in Expensify and refreshes when the connection syncs.
+Vendors are managed in Rillet, and the list refreshes when the connection syncs. To stop a vendor from appearing in the **Vendor** field on expenses, disable it in the **Enabled** column.
 
 ## How to set a default company card vendor for Rillet
 

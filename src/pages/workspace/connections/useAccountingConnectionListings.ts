@@ -54,6 +54,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         'DualEntrySquare',
         'CampfireSquare',
         'BusinessCentralSquare',
+        'ZohoBooksSquare',
     ]);
 
     if (!policyID) {
@@ -61,9 +62,17 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     }
 
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
+    const canUseZohoBooksIntegration = isBetaEnabled(CONST.BETAS.ZOHO_BOOKS) || !!policy?.connections?.zohoBooks;
+    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS) {
+            return canUseZohoBooksIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
+            return canUseDigitsIntegration;
         }
         return true;
     });
@@ -120,7 +129,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         ...(name === CONST.POLICY.CONNECTIONS.NAME.QBO ? [{name, isIntuitEnterpriseSuite: true}] : []),
     ]);
 
-    return integrationOptions.flatMap(({name, isIntuitEnterpriseSuite}) => {
+    const listings: ConnectionListing[] = integrationOptions.flatMap(({name, isIntuitEnterpriseSuite}) => {
         const integrationData = getAccountingIntegrationData(name, policyID, translate, NO_REUSABLE_CONNECTIONS, {
             expensifyIcons: accountingIcons,
             isIntuitEnterpriseSuiteOverride: isIntuitEnterpriseSuite,
@@ -155,6 +164,14 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
             },
         };
     });
+
+    // The connector flow arrives in a later release, so beta users also see the waitlist for now.
+    listings.push({
+        key: CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE,
+        category: CONST.TAB.CONNECTIONS.ACCOUNTING,
+        title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.exactOnline,
+    });
+    return listings;
 }
 
 export default useAccountingConnectionListings;

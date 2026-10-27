@@ -18,7 +18,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import CenteredModalLayout from './CenteredModalLayout';
@@ -32,26 +32,22 @@ function AutoSubmitModal() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['PaperAirplane', 'Pencil', 'ReceiptsStackedOnPin']);
-    const menuSections = useMemo(
-        () =>
-            [
-                {
-                    icon: illustrations.PaperAirplane,
-                    titleTranslationKey: 'autoSubmitModal.submittedExpensesTitle',
-                    descriptionTranslationKey: 'autoSubmitModal.submittedExpensesDescription',
-                },
-                {
-                    icon: illustrations.Pencil,
-                    titleTranslationKey: 'autoSubmitModal.pendingExpensesTitle',
-                    descriptionTranslationKey: 'autoSubmitModal.pendingExpensesDescription',
-                },
-            ] satisfies Array<{
-                icon: IconAsset;
-                titleTranslationKey: TranslationPaths;
-                descriptionTranslationKey: TranslationPaths;
-            }>,
-        [illustrations.PaperAirplane, illustrations.Pencil],
-    );
+    const menuSections = [
+        {
+            icon: illustrations.PaperAirplane,
+            titleTranslationKey: 'autoSubmitModal.submittedExpensesTitle',
+            descriptionTranslationKey: 'autoSubmitModal.submittedExpensesDescription',
+        },
+        {
+            icon: illustrations.Pencil,
+            titleTranslationKey: 'autoSubmitModal.pendingExpensesTitle',
+            descriptionTranslationKey: 'autoSubmitModal.pendingExpensesDescription',
+        },
+    ] satisfies Array<{
+        icon: IconAsset;
+        titleTranslationKey: TranslationPaths;
+        descriptionTranslationKey: TranslationPaths;
+    }>;
 
     const willShowAgainRef = useRef<boolean | null>(null);
 
