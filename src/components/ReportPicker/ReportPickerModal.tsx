@@ -6,14 +6,15 @@ import useLocalize from '@hooks/useLocalize';
 import useSelectionListPopoverLayout from '@hooks/useSelectionListPopoverLayout';
 
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
+import type {ReportListSize} from '@pages/iou/request/step/IOURequestEditReportCommon';
 import type {ReportPickerListProps} from '@pages/iou/request/step/IOURequestStepReport/hooks/useReportPickerActions';
 
 import CONST from '@src/CONST';
 
-import type {ComponentRef} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 import type {View} from 'react-native';
 
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import Animated from 'react-native-reanimated';
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
@@ -21,7 +22,7 @@ const DEFAULT_ANCHOR_ALIGNMENT = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-type ReportPickerModalProps = ReportPickerListProps & {
+type ReportPickerPopoverProps = {
     onClose: () => void;
 
     /** Width of the pop-over. Defaults to the standard dropdown width, a field row passes its own width instead */
@@ -40,11 +41,10 @@ type ReportPickerModalProps = ReportPickerListProps & {
     shouldSwitchPositionIfOverflow?: boolean;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
-/**
- * The report list in a container anchored to a row: a pop-over on a wide layout, a bottom sheet on a narrow one. The
- * list is the one the full-page selector shows, `New report` row included, without the page around it.
- */
-function ReportPickerModal({
+type ReportPickerModalProps = ReportPickerListProps & ReportPickerPopoverProps;
+
+/** The container around the report list: a pop-over on a wide layout, a bottom sheet on a narrow one, sized to the list */
+function ReportPickerPopover({
     isVisible,
     onClose,
     anchorPosition,
@@ -55,11 +55,11 @@ function ReportPickerModal({
     shouldFitContentHeight = false,
     shouldSwitchPositionIfOverflow = true,
     shouldShowHeader = false,
-    ...listProps
-}: ReportPickerModalProps) {
+    listSize,
+    children,
+}: ReportPickerPopoverProps & {listSize: ReportListSize; children: ReactNode}) {
     const {translate} = useLocalize();
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
-    const [listSize, setListSize] = useState({rowCount: 1, isSearchable: false});
 
     const {popoverDimensions, innerContainerStyle, outerStyle, avoidKeyboard, contentStyle} = useSelectionListPopoverLayout({
         optionCount: listSize.rowCount,
@@ -100,15 +100,55 @@ function ReportPickerModal({
                         backButtonSentryLabel={CONST.SENTRY_LABEL.REPORT_PICKER_MODAL.BACK_BUTTON}
                     />
                 )}
-                <IOURequestEditReportCommon
-                    {...listProps}
-                    shouldShowWrapper={false}
-                    onDismiss={onClose}
-                    onListSizeChange={setListSize}
-                    shouldAutoFocusSearchInput
-                />
+                {children}
             </Animated.View>
         </PopoverWithMeasuredContent>
+    );
+}
+
+/**
+ * The report list in a container anchored to a row: a pop-over on a wide layout, a bottom sheet on a narrow one. The
+ * list is the one the full-page selector shows, `New report` row included, without the page around it. The list renders
+ * the container itself and hands it its size in the same render, so the container never learns the size through an effect.
+ */
+function ReportPickerModal({
+    isVisible,
+    onClose,
+    anchorPosition,
+    anchorAlignment,
+    shouldMeasureAnchorPositionFromTop,
+    popoverWidth,
+    popoverHeight,
+    shouldFitContentHeight,
+    shouldSwitchPositionIfOverflow,
+    shouldShowHeader,
+    ...listProps
+}: ReportPickerModalProps) {
+    return (
+        <IOURequestEditReportCommon
+            {...listProps}
+            onDismiss={onClose}
+            // The list closes the container before it navigates on, e.g. to the restricted-action page, so the sheet never stays over the new screen.
+            onNavigateAway={onClose}
+            shouldAutoFocusSearchInput
+            renderInContainer={(list, listSize) => (
+                <ReportPickerPopover
+                    isVisible={isVisible}
+                    onClose={onClose}
+                    anchorPosition={anchorPosition}
+                    anchorAlignment={anchorAlignment}
+                    shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
+                    popoverWidth={popoverWidth}
+                    popoverHeight={popoverHeight}
+                    shouldFitContentHeight={shouldFitContentHeight}
+                    shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
+                    shouldShowHeader={shouldShowHeader}
+                    listSize={listSize}
+                >
+                    {list}
+                </ReportPickerPopover>
+            )}
+        />
     );
 }
 

@@ -1,4 +1,4 @@
-import {act, fireEvent, render, renderHook, screen} from '@testing-library/react-native';
+import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import ReportPickerModal from '@components/ReportPicker/ReportPickerModal';
@@ -10,7 +10,7 @@ import type * as Browser from '@libs/Browser';
 import {BOTTOM_SHEET_TOP_PADDING} from '@libs/getBottomSheetHeight';
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 
-import type {IOURequestEditReportCommonProps} from '@pages/iou/request/step/IOURequestEditReportCommon';
+import type {IOURequestEditReportCommonProps, ReportListSize} from '@pages/iou/request/step/IOURequestEditReportCommon';
 
 import CONST from '@src/CONST';
 
@@ -38,11 +38,13 @@ jest.mock('@hooks/useSafeAreaPaddings', () => jest.fn(() => ({paddingTop: 0, pad
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 
-// The list is the full-page selector's own, covered by its tests; here only what the modal hands it matters.
+// The list is the full-page selector's own, covered by its tests; here only what the modal hands it, and what it renders
+// around the list for the size the list reports, matter.
 let mockListProps: IOURequestEditReportCommonProps | undefined;
+let mockListSize: ReportListSize = {rowCount: 1, isSearchable: false};
 jest.mock('@pages/iou/request/step/IOURequestEditReportCommon', () => (props: IOURequestEditReportCommonProps) => {
     mockListProps = props;
-    return null;
+    return props.renderInContainer?.(null, mockListSize) ?? null;
 });
 
 let mockPopoverProps: PopoverWithMeasuredContentProps | undefined;
@@ -74,6 +76,7 @@ describe('ReportPickerModal', () => {
     beforeEach(() => {
         mockPopoverProps = undefined;
         mockListProps = undefined;
+        mockListSize = {rowCount: 1, isSearchable: false};
         mockIsSmallScreenWidth = true;
         mockIsInLandscapeMode = false;
         selectReport.mockClear();
@@ -86,23 +89,25 @@ describe('ReportPickerModal', () => {
         // When its list opens
         renderModal({onClose});
 
-        // Then it is the same list the full page shows, minus the page around it, handed the expense it picks for, and
-        // dismissing it closes the container rather than navigating back
-        expect(mockListProps?.shouldShowWrapper).toBe(false);
+        // Then it is the same list the full page shows, rendered in the container instead of the page, handed the expense it
+        // picks for, and both dismissing it and navigating on from it close the container rather than navigating back
+        expect(mockListProps?.renderInContainer).toBeDefined();
         expect(mockListProps?.selectedReportID).toBe('report1');
         expect(mockListProps?.transactionIDs).toEqual(['1']);
         expect(mockListProps?.selectReport).toBe(selectReport);
         expect(mockListProps?.shouldAutoFocusSearchInput).toBe(true);
         mockListProps?.onDismiss?.();
         expect(onClose).toHaveBeenCalledTimes(1);
+        mockListProps?.onNavigateAway?.();
+        expect(onClose).toHaveBeenCalledTimes(2);
     });
 
     it('fits the sheet to the rows the list reports, the New report row included', () => {
-        // Given a phone, where the list opens as a bottom sheet that fits its content
-        renderModal({shouldFitContentHeight: true});
+        // Given a phone, where the list opens as a bottom sheet that fits its content, and a list of the New report row and two reports, without a search input
+        mockListSize = {rowCount: 3, isSearchable: false};
 
-        // When the list reports it renders the New report row and two reports, without a search input
-        act(() => mockListProps?.onListSizeChange?.({rowCount: 3, isSearchable: false}));
+        // When the list opens
+        renderModal({shouldFitContentHeight: true});
 
         // Then the sheet is three rows tall plus the bottom safe area, leaving no empty space below the reports
         expect(mockPopoverProps?.popoverDimensions?.height).toBe(getSelectionListPopoverContentHeight({optionCount: 3, isSearchable: false}) + SAFE_AREA_PADDING_BOTTOM);
