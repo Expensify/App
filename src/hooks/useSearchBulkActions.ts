@@ -274,7 +274,7 @@ function getSelectedGroupKeys(selectedTransactions: SelectedTransactions, search
         const groupCount = getSearchGroupCountByKey(searchData, groupKey);
         if (groupCount !== undefined) {
             // A stamp has already weighed the loaded rows against rows a refresh kept that may since have left the group, so the count decides only for rows never stamped.
-            // An open group can be stamped whole on rows newer than its count, so it is taken whole only once it covers that count, since the count can still hold an expense the rows have not caught up with.
+            // A group whose own search returned every expense is stamped whole on its rows, which can be newer or older than its count, so it is taken whole only once it covers that count.
             if ((isEntireGroupSelected && coveredGroupCount >= groupCount) || (!isStamped && selectedCount === groupCount)) {
                 groupKeys.add(groupKey);
             }

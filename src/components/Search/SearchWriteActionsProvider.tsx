@@ -837,7 +837,7 @@ function SearchWriteActionsProvider({
         }
 
         // Under select-all-matching, unchecking a group that has not loaded every row excludes the group itself, since excluding only its loaded rows would leave the rest selected.
-        // The group-by count decides even for an open group whose rows are all in, since excluding the group also takes out any expense those rows have not caught up with.
+        // The group-by count decides even for a group whose rows are all in, since excluding the group also takes out any expense those rows have not caught up with.
         const groupCount = getGroupByCount(item, searchResultsData, item.keyForList);
         const isUncheckingPartlyLoadedGroup =
             type === CONST.SEARCH.DATA_TYPES.EXPENSE &&

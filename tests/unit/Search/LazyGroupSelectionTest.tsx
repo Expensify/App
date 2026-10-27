@@ -12,6 +12,8 @@ import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsPro
 import {getGroupCheckboxState, isRowChecked, mapEmptyReportToSelectedEntry, mergeRowsIntoPartlyLoadedGroups, resolveGroupCount} from '@components/Search/selectionBuilders';
 import * as selectionBuilders from '@components/Search/selectionBuilders';
 
+import {getSelectedGroupKeys} from '@hooks/useSearchBulkActions';
+
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 
@@ -3648,13 +3650,15 @@ describe('Lazily loaded group selection', () => {
                     await waitForBatchedUpdatesWithAct();
                 });
 
-                // Then its two expenses are the whole group, as when it is open, so the count is two and the actions that need each expense stay offered, as on main
+                // Then its two expenses are the whole group, as when it is open, so the count is two and the actions that need each expense stay offered, as on main.
+                // A closed group's rows can also be older than its count, so a delete still leaves the group's row, since those two rows fall short of the group-by count.
                 expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(true);
                 expect(result.current.selectedTransactions[firstRow.keyForList]?.coveredGroupCount).toBe(2);
                 expect(Object.keys(mergeRowsIntoPartlyLoadedGroups(result.current.selectedTransactions, searchData, false)).sort()).toEqual(
                     [firstRow.keyForList, secondRow.keyForList].sort(),
                 );
                 expect(readHeader(result)).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+                expect(getSelectedGroupKeys(result.current.selectedTransactions, searchData)).toEqual([]);
             });
 
             it('takes the group itself out of Select all when an open group is unchecked from its header', async () => {
