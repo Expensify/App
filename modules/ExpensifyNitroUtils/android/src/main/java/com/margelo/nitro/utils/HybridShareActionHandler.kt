@@ -18,6 +18,9 @@ class HybridShareActionHandler : HybridShareActionHandlerSpec() {
 
     override fun processFiles(): Promise<Array<SharedFile>> = Promise.parallel {
         val context = NitroModules.applicationContext ?: throw IOException("React Native context is unavailable")
+        // Keep these values aligned with IntentHandlerConstants in
+        // android/app/src/main/java/com/expensify/chat/intentHandler/IntentHandler.kt.
+        // This standalone Nitro module cannot import app-level Android code.
         val preferences = context.getSharedPreferences("shareActionHandler", Context.MODE_PRIVATE)
         val serialized = preferences.getString("shareObject", null) ?: return@parallel emptyArray()
         val share = JSONObject(serialized)
