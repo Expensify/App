@@ -120,7 +120,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
 
     const isValidAccountID = isValidAccountRoute(accountID);
-    const loginParams = route.params?.login;
+    const loginParams = route.params?.login?.toLowerCase();
     const personalDetailsByLogin = usePersonalDetailsByLogins([loginParams]);
 
     let details: OnyxEntry<PersonalDetails>;
