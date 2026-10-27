@@ -1312,7 +1312,7 @@ function submitReport({
 
     // Submit via PDF: on a Submit workspace where the submitter submits to themselves, the backend generates the
     // report PDF and writes its filename into nvp_expensify_report_PDFFilename_{reportID}. Prime that NVP the same way
-    // exportReportToPDF does so the ReportPDFDownloadModal shows progress and auto-downloads once the filename arrives.
+    // exportReportToPDF does so the report PDF download modal shows progress and auto-downloads once the filename arrives.
     if (shouldExportToPDF) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,

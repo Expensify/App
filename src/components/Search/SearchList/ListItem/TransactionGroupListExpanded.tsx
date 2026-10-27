@@ -50,7 +50,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
@@ -111,31 +111,26 @@ function TransactionGroupListExpandedImpl({
 
     const visibleTransactions = isExpenseReportType ? transactions.slice(0, transactionsVisibleLimit) : transactions;
 
-    const neededReportIDs = useMemo(() => {
-        const ids = new Set<string>();
-        for (const transaction of visibleTransactions) {
-            if (transaction.reportID) {
-                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`);
-            }
-            if (transaction.reportAction?.childReportID) {
-                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportAction.childReportID}`);
+    const ids = new Set<string>();
+    for (const transaction of visibleTransactions) {
+        if (transaction.reportID) {
+            ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`);
+        }
+        if (transaction.reportAction?.childReportID) {
+            ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportAction.childReportID}`);
+        }
+    }
+    const neededReportIDs = ids;
+
+    const reportsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
+        const result: OnyxCollection<OnyxTypes.Report> = {};
+        for (const key of Object.keys(reports ?? {})) {
+            if (neededReportIDs.has(key)) {
+                result[key] = reports?.[key];
             }
         }
-        return ids;
-    }, [visibleTransactions]);
-
-    const reportsSelector = useCallback(
-        (reports: OnyxCollection<OnyxTypes.Report>) => {
-            const result: OnyxCollection<OnyxTypes.Report> = {};
-            for (const key of Object.keys(reports ?? {})) {
-                if (neededReportIDs.has(key)) {
-                    result[key] = reports?.[key];
-                }
-            }
-            return result;
-        },
-        [neededReportIDs],
-    );
+        return result;
+    };
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
 
     const isLastTransaction = (index: number) => {

@@ -12,7 +12,7 @@ import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useLayoutEffect, useRef} from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 
 // Keep a ref to the horizontal scroll offset so we can restore it if users change the search query
 let savedHorizontalScrollOffset = 0;
@@ -76,9 +76,9 @@ function HorizontalTableScroll({children, columns, type, isActionColumnWide, isH
 
     const horizontalScrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
 
-    const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const handleHorizontalScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
-    }, []);
+    };
 
     // Restore horizontal scroll position synchronously before paint using useLayoutEffect to avoid a visible shift on the table
     useLayoutEffect(() => {
