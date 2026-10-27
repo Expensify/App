@@ -1,3 +1,10 @@
+import ActivityIndicator from '@components/ActivityIndicator';
+import Button from '@components/Button';
+import HeaderTitle from '@components/HeaderTitle';
+import Icon from '@components/Icon';
+import {PressableWithFeedback} from '@components/Pressable';
+import Text from '@components/Text';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -7,34 +14,32 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
+import type {ValueOf} from 'type-fest';
+
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
-import ActivityIndicator from './ActivityIndicator';
-import Button from './Button';
-import HeaderTitle from './HeaderTitle';
-import Icon from './Icon';
-import Modal from './Modal';
-import {PressableWithFeedback} from './Pressable';
-import Text from './Text';
+import Modal from '.';
 
-type PDFDownloadModalProps = {
-    /** Whether the PDF has finished generating and is ready to download */
-    hasFinishedPDFDownload: boolean;
+type FileDownloadStatus = ValueOf<typeof CONST.FILE_DOWNLOAD_STATUS>;
 
-    /** Whether the PDF generation failed, so there is nothing left to wait for or download */
-    hasPDFDownloadFailed?: boolean;
+type FileDownloadModalProps = {
+    /** Header text shown at the top of the modal */
+    title: string;
+
+    /** Whether the file is still generating, ready to download, or failed to generate */
+    status: FileDownloadStatus;
 
     /** Message shown under the header (generating / ready / error copy) */
     message: string;
 
-    /** Downloads the generated PDF; called on auto-download and on the download button press */
-    onDownloadPDF: () => void;
+    /** Downloads the generated file; called on auto-download and on the download button press */
+    onDownload: () => void;
 
     /** Whether pressing the download button also closes the modal */
     shouldCloseOnDownload?: boolean;
 
-    /** Whether the download button uses the success (green) style once the PDF is ready */
+    /** Whether the download button uses the success (green) style once the file is ready */
     shouldUseSuccessButton?: boolean;
 
     isVisible: boolean;
@@ -50,23 +55,23 @@ type PDFDownloadModalProps = {
 };
 
 /**
- * Shared modal for OldDot-generated PDF downloads (report PDFs, Expensify Card statements, etc.). It shows a
- * generating/ready state, auto-downloads once generation finishes while the modal is open, and offers a manual
- * download button. Callers supply the status, copy, and download action for their specific PDF.
+ * Shared modal for server-generated file downloads (report PDFs, Expensify Card statements, etc.). It shows a
+ * generating/ready/failed state, auto-downloads once generation finishes while the modal is open, and offers a manual
+ * download button. Callers supply the status, copy, and download action for their specific file.
  */
-function PDFDownloadModal({
-    hasFinishedPDFDownload,
-    hasPDFDownloadFailed = false,
+function FileDownloadModal({
+    title,
+    status,
     message,
-    onDownloadPDF,
+    onDownload,
     shouldCloseOnDownload = false,
     shouldUseSuccessButton = false,
     isVisible,
     shouldTreatModalAsCovering = false,
     onClose,
     onModalHide,
-}: PDFDownloadModalProps) {
-    const shouldAutoDownloadPDF = useRef(false);
+}: FileDownloadModalProps) {
+    const shouldAutoDownload = useRef(false);
 
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth here because the Modal breaks in RHP with shouldUseNarrowLayout.
@@ -76,17 +81,20 @@ function PDFDownloadModal({
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
 
+    const isReady = status === CONST.FILE_DOWNLOAD_STATUS.READY;
+    const hasFailed = status === CONST.FILE_DOWNLOAD_STATUS.FAILED;
+
     useEffect(() => {
-        shouldAutoDownloadPDF.current = isVisible;
+        shouldAutoDownload.current = isVisible;
     }, [isVisible]);
 
     useEffect(() => {
-        if (!isVisible || !shouldAutoDownloadPDF.current || !hasFinishedPDFDownload) {
+        if (!isVisible || !shouldAutoDownload.current || !isReady) {
             return;
         }
-        onDownloadPDF();
-        shouldAutoDownloadPDF.current = false;
-    }, [hasFinishedPDFDownload, isVisible, onDownloadPDF]);
+        onDownload();
+        shouldAutoDownload.current = false;
+    }, [isReady, isVisible, onDownload]);
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: isSmallScreenWidth,
@@ -110,13 +118,13 @@ function PDFDownloadModal({
                         <View style={[styles.flex1]}>
                             <View style={[styles.flexRow]}>
                                 <HeaderTitle>
-                                    <HeaderTitle.Text>{translate('reportDetailsPage.generatingPDF')}</HeaderTitle.Text>
+                                    <HeaderTitle.Text>{title}</HeaderTitle.Text>
                                 </HeaderTitle>
                             </View>
                             <Text style={[styles.mt5, styles.textAlignLeft]}>{message}</Text>
                         </View>
 
-                        {!hasFinishedPDFDownload && !hasPDFDownloadFailed && (
+                        {status === CONST.FILE_DOWNLOAD_STATUS.GENERATING && (
                             <View style={[styles.dFlex, styles.justifyContentEnd]}>
                                 <ActivityIndicator
                                     size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
@@ -128,20 +136,20 @@ function PDFDownloadModal({
                     </View>
                     <Button
                         style={[styles.mt3, styles.noSelect]}
-                        variant={shouldUseSuccessButton && hasFinishedPDFDownload ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
+                        variant={shouldUseSuccessButton && isReady ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                         onPress={() => {
-                            if (!hasFinishedPDFDownload) {
+                            if (!isReady) {
                                 onClose();
                                 return;
                             }
 
-                            onDownloadPDF();
+                            onDownload();
                             if (shouldCloseOnDownload) {
                                 onClose();
                             }
                         }}
                     >
-                        <Button.Text>{hasFinishedPDFDownload ? translate('common.download') : translate(hasPDFDownloadFailed ? 'common.close' : 'common.cancel')}</Button.Text>
+                        <Button.Text>{isReady ? translate('common.download') : translate(hasFailed ? 'common.close' : 'common.cancel')}</Button.Text>
                     </Button>
                 </View>
                 <PressableWithFeedback
@@ -161,6 +169,7 @@ function PDFDownloadModal({
     );
 }
 
-PDFDownloadModal.displayName = 'PDFDownloadModal';
+FileDownloadModal.displayName = 'FileDownloadModal';
 
-export default PDFDownloadModal;
+export default FileDownloadModal;
+export type {FileDownloadModalProps};
