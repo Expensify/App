@@ -24,6 +24,7 @@ import type {
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
 import type AskForCorpaySignerInformationParams from '@libs/API/parameters/AskForCorpaySignerInformationParams';
+import type GetWiseBankAccountFieldsParams from '@libs/API/parameters/GetWiseBankAccountFieldsParams';
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -1290,6 +1291,39 @@ function clearCorpayBankAccountFields() {
     Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
 }
 
+function getWiseBankAccountFields(country: string, currency?: string, partialAccount?: Record<string, unknown>) {
+    const parameters: GetWiseBankAccountFieldsParams = {country, currency};
+    if (partialAccount) {
+        parameters.partialAccount = JSON.stringify(partialAccount);
+    }
+    const onyxData: OnyxData<typeof ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    };
+    API.read(READ_COMMANDS.GET_WISE_BANK_ACCOUNT_FIELDS, parameters, onyxData);
+}
+
+function clearWiseBankAccountFields() {
+    Onyx.set(ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS, null);
+}
+
 function clearReimbursementAccountBankCreation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null, isLoading: null});
 }
@@ -2037,6 +2071,7 @@ export {
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
     fetchCorpayFields,
+    getWiseBankAccountFields,
     shareBankAccount,
     setShareBankAccountAdmins,
     clearShareBankAccount,
@@ -2054,6 +2089,7 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners,
     clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
+    clearWiseBankAccountFields,
     finishCorpayBankAccountOnboarding,
     shareBankAccountAndSetPayer,
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
