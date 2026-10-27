@@ -107,7 +107,7 @@ const AlreadyReviewedFailureScreen = createScreenWithDefaults(
 export {DeniedTransactionSuccessScreen, DeniedTransactionServerFailureScreen};
 
 export default {
-    // Allowed methods are hardcoded here; useNavigateToForcedTransactionReview also gates the 3DS review on them.
+    // Allowed methods are hardcoded here. useNavigateToForcedTransactionReview also gates the 3DS review on them.
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
     action: authorizeTransaction,
 
