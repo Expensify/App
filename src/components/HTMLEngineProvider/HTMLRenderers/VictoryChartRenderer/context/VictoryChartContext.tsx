@@ -44,7 +44,7 @@ type VictoryChartProviderProps = {
 
 /** Supplies parsed chart config to chart sub-components. Callers must parse and validate the tnode first. */
 function VictoryChartProvider({tnode, processedResult, type, children}: VictoryChartProviderProps) {
-    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems, pointMetadata} = processedResult;
+    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, designPadding, padding, isHorizontal, categories, labelItems, legendItems, pointMetadata} = processedResult;
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
     const parsedDesignHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
     const itemCount = categories?.length ?? Object.keys(data).length;
@@ -52,7 +52,7 @@ function VictoryChartProvider({tnode, processedResult, type, children}: VictoryC
         designHeight: parsedDesignHeight,
         isHorizontal,
         itemCount,
-        padding,
+        designPadding,
     });
     const heightDelta = parsedDesignHeight !== undefined && effectiveChartHeight !== undefined ? parsedDesignHeight - effectiveChartHeight : 0;
     const effectiveChartContentStyles = heightDelta > 0 ? {...chartContentStyles, height: effectiveChartHeight} : chartContentStyles;

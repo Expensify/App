@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -64,6 +64,12 @@ type TagPickerProps = {
 
     /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
     shouldAutoFocusSearchInput?: boolean;
+
+    /** Reports how many rows the unfiltered list renders, section headings included, so a container can size itself to them */
+    onRenderedRowCountChange?: (rowCount: number) => void;
+
+    /** Number of available tags at which the search input appears. Defaults to `CONST.STANDARD_LIST_ITEM_LIMIT`. */
+    searchInputThreshold?: number;
 };
 
 const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
@@ -93,6 +99,8 @@ function TagPicker({
     addBottomSafeAreaPadding = false,
     shouldShowGLCode: shouldShowGLCodeProp,
     shouldAutoFocusSearchInput = false,
+    onRenderedRowCountChange,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
 }: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [shouldShowGLCodeFromPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -108,25 +116,33 @@ function TagPicker({
     // Backfill the policy's tags on demand so lazy-loaded accounts don't get stuck showing only the selected tag.
     const {isLoadingPolicyTags} = useLoadPolicyTags(policyID);
 
-    const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
+    const policyRecentlyUsedTagsList = policyRecentlyUsedTags?.[tagListName] ?? [];
     const policyTagList = getTagList(policyTags, tagListIndex);
     const selectedOptions = getSelectedOptions(selectedTag);
 
     // Merge any orphaned tag names into the policy's tag map so they appear as selectable options.
-    const policyTagsWithAdditions = useMemo<PolicyTags>(() => {
-        const baseTags = policyTagList.tags ?? {};
-        if (!additionalTagsToInclude?.length) {
-            return baseTags;
-        }
+    let policyTagsWithAdditions: PolicyTags;
+    const baseTags = policyTagList.tags ?? {};
+    if (!additionalTagsToInclude?.length) {
+        policyTagsWithAdditions = baseTags;
+    } else {
         const extras: PolicyTags = {};
         for (const name of additionalTagsToInclude) {
             if (!name || baseTags[name]) {
                 continue;
             }
-            extras[name] = {name, enabled: true} as PolicyTag;
+            extras[name] = {
+                name,
+                enabled: true,
+            } as PolicyTag;
         }
-        return Object.keys(extras).length ? {...baseTags, ...extras} : baseTags;
-    }, [policyTagList.tags, additionalTagsToInclude]);
+        policyTagsWithAdditions = Object.keys(extras).length
+            ? {
+                  ...baseTags,
+                  ...extras,
+              }
+            : baseTags;
+    }
 
     const getEnabledTags = (): PolicyTags | Array<PolicyTag | SelectedTagOption> => {
         if (!shouldShowDisabledAndSelectedOption && !hasDependentTags) {
@@ -159,6 +175,7 @@ function TagPicker({
         localeCompare,
         translate,
         shouldShowGLCode,
+        searchInputThreshold,
     });
     const sections = tagSections.map((section) => ({
         ...section,
@@ -166,6 +183,14 @@ function TagPicker({
     }));
 
     const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
+    const renderedRowCount = sections.reduce((total, section) => total + section.data.length + (section.title ? 1 : 0), 0);
+
+    useEffect(() => {
+        if (searchValue) {
+            return;
+        }
+        onRenderedRowCountChange?.(renderedRowCount);
+    }, [renderedRowCount, searchValue, onRenderedRowCountChange]);
 
     // While the on-demand fetch above is in flight, show the list skeleton instead of flashing the selected-only
     // fallback. Orphaned tags passed in by the caller are a complete local list, so they render immediately.
@@ -189,7 +214,7 @@ function TagPicker({
             ListItem={SingleSelectListItem}
             style={{sectionTitleStyles: styles.mt5}}
             textInputOptions={textInputOptions}
-            shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            shouldShowTextInput={availableTagsCount >= searchInputThreshold}
             shouldShowLoadingPlaceholder={isLoadingNewOptions}
             isLoadingNewOptions={isLoadingNewOptions}
             initiallyFocusedItemKey={selectedOptionKey}

@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isMobile} from '@libs/Browser';
+import isHTMLElement from '@libs/isHTMLElement';
 
 import variables from '@styles/variables';
 
@@ -25,7 +26,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import type {CSSProperties, ReactNode} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
 import {useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
@@ -33,6 +34,7 @@ import {scheduleOnRN} from 'react-native-worklets';
 
 import type {PDFViewProps} from './types';
 
+import focusPDFScrollerWhenReady from './focusPDFScrollerWhenReady';
 import PDFPasswordForm from './PDFPasswordForm';
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
@@ -132,7 +134,7 @@ function MobilePDFGestureCanvas({children, onScaleChanged}: MobilePDFGestureCanv
                     canvasSize={canvasSize}
                     contentSize={canvasSize}
                     zoomRange={PDF_ZOOM_RANGE}
-                    pagerRef={state?.pagerRef}
+                    pagerGesture={state?.pagerGesture}
                     isUsedInCarousel={!!state?.pagerRef}
                     shouldDisableTransformationGestures={state?.isPagerScrolling ?? isPagerScrollingFallback}
                     isTransformGestureActive={isTransformGestureActive}
@@ -163,22 +165,20 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
     const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);
     const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH);
     const shouldUsePDFGestureZoom = isMobile() && !!isUsedInAttachmentModal && !isUsedAsChatAttachment;
+    const containerRef = useRef<View>(null);
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
      *
      * @param isKBOpen True if keyboard is open
      */
-    const toggleKeyboardOnSmallScreens = useCallback(
-        (isKBOpen: boolean) => {
-            if (!shouldUseNarrowLayout) {
-                return;
-            }
-            setIsKeyboardOpen(isKBOpen);
-            onToggleKeyboard?.(isKBOpen);
-        },
-        [shouldUseNarrowLayout, onToggleKeyboard],
-    );
+    const toggleKeyboardOnSmallScreens = (isKBOpen: boolean) => {
+        if (!shouldUseNarrowLayout) {
+            return;
+        }
+        setIsKeyboardOpen(isKBOpen);
+        onToggleKeyboard?.(isKBOpen);
+    };
 
     /**
      * Verify that the canvas limits have been calculated already, if not calculate them and put them in Onyx
@@ -216,6 +216,22 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
             toggleKeyboardOnSmallScreens(false);
         }
     }, [isKeyboardOpen, prevWindowHeight, toggleKeyboardOnSmallScreens, windowHeight]);
+
+    // The attachment modal has no initial focus target, so focus falls back to the body and arrow keys scroll the
+    // chat behind the modal. Focus the PDF scroller once it renders so arrow keys scroll the PDF instead.
+    useEffect(() => {
+        if (!isUsedInAttachmentModal || isUsedAsChatAttachment || isFocused === false || shouldUsePDFGestureZoom) {
+            return;
+        }
+
+        const container = containerRef.current;
+        if (!isHTMLElement(container)) {
+            return;
+        }
+
+        // Using || intentionally so an empty fileName falls back to the default label
+        return focusPDFScrollerWhenReady(container, fileName || translate('attachmentView.unknownFilename'));
+    }, [fileName, isFocused, isUsedAsChatAttachment, isUsedInAttachmentModal, shouldUsePDFGestureZoom, translate]);
 
     const renderPDFView = () => {
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
@@ -273,6 +289,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
 
         return (
             <View
+                ref={containerRef}
                 style={outerContainerStyle}
                 tabIndex={0}
             >
@@ -290,7 +307,6 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
             onPress={() => onPress()}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
             accessibilityRole={CONST.ROLE.BUTTON}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
             sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.DOCUMENT}
         >
@@ -301,4 +317,4 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
     );
 }
 
-export default memo(PDFView);
+export default PDFView;

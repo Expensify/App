@@ -52,4 +52,4 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, fitPolicy = 0, o
 
 PDFThumbnail.displayName = 'PDFThumbnail';
 
-export default React.memo(PDFThumbnail);
+export default PDFThumbnail;

@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -18,7 +19,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
 
@@ -108,11 +109,11 @@ function WorkspaceDistanceRatesTable({
             if (diff !== 0) {
                 return diff * orderMultiplier;
             }
-            return localeCompare(a.rate.name ?? '', b.rate.name ?? '') * orderMultiplier;
+            return DistanceRequestUtils.compareRatesByDisplayName(a.rate, b.rate, localeCompare, orderMultiplier);
         }
 
         if (activeSorting.columnKey === 'name') {
-            return localeCompare(a.rate.name ?? '', b.rate.name ?? '') * orderMultiplier;
+            return DistanceRequestUtils.compareRatesByDisplayName(a.rate, b.rate, localeCompare, orderMultiplier);
         }
 
         if (activeSorting.columnKey === 'rate') {
@@ -153,15 +154,12 @@ function WorkspaceDistanceRatesTable({
           ]
         : undefined;
 
-    const statusLabels = useMemo(
-        () => ({
-            [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE]: translate('workspace.distanceRates.statusFuture'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED]: translate('workspace.distanceRates.statusExpired'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: translate('workspace.distanceRates.statusInactive'),
-        }),
-        [translate],
-    );
+    const statusLabels = {
+        [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE]: translate('workspace.distanceRates.statusFuture'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED]: translate('workspace.distanceRates.statusExpired'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: translate('workspace.distanceRates.statusInactive'),
+    };
 
     const renderItem = ({item, index}: ListRenderItemInfo<DistanceRateTableItemData>) => (
         <WorkspaceDistanceRatesTableRow
