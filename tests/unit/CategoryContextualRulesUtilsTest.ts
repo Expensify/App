@@ -226,5 +226,95 @@ describe('getCategoryContextualRules', () => {
             expect(offlineRules.at(0)?.isDisabled).toBe(true);
             expect(onlineRules).toEqual([]);
         });
+
+        it('lists a rule that sets no tax', () => {
+            // Given a rule saved from the category that sets an amount rather than a tax
+            const amountOnlyRules: OnyxCollection<Rule> = {
+                [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.AMOUNT, value: -1000}]),
+                },
+            };
+
+            // When the category details RHP builds its rules
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyCategories: undefined,
+                policyRules: amountOnlyRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: false,
+            });
+
+            // Then it is listed, because the row describes the rule rather than a tax the rule need not set
+            expect(rules).toHaveLength(1);
+            expect(rules.at(0)?.summary).toBe('Update amount to "$10.00"');
+        });
+
+        it('describes every field a rule sets, not just the tax', () => {
+            // Given a rule that sets a tax and an amount
+            const taxAndAmountRules: OnyxCollection<Rule> = {
+                [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    actions: toIndexMap([
+                        // eslint-disable-next-line @typescript-eslint/naming-convention -- matches the rules engine's tax value shape
+                        {name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX, value: {field_id_TAX: {externalID: 'TAX_VAT'}}},
+                        {name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.AMOUNT, value: -1000},
+                    ]),
+                },
+            };
+
+            // When the category details RHP builds its rules
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyCategories: undefined,
+                policyRules: taxAndAmountRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: false,
+            });
+
+            // Then the amount is in the summary too, so the row is not a tax-only view of the rule
+            expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)", update amount to "$10.00"');
+        });
+
+        it('lists a rule per matching rule', () => {
+            // Given two rules that both match the category
+            const twoRules: OnyxCollection<Rule> = {
+                ...taxDefaultRules,
+                [`${ONYXKEYS.COLLECTION.RULE}rule2`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.AMOUNT, value: -1000}]),
+                },
+            };
+
+            // When the category details RHP builds its rules
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyCategories: undefined,
+                policyRules: twoRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: false,
+            });
+
+            // Then both are listed, rather than one standing in for the category
+            expect(rules).toHaveLength(2);
+        });
     });
 });

@@ -10,6 +10,8 @@ import type {Policy, PolicyTagLists, Rule} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import type {ExpenseDefaultRuleSummaryField} from './ExpenseDefaultRuleUtils';
+
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearMerchantRuleErrors} from './actions/Policy/Rules';
@@ -27,6 +29,58 @@ import {getMccGroupDisplayName} from './PolicyRulesUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isTagInPolicy} from './PolicyUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
+
+/**
+ * Reads the fields a rule sets into one sentence, such as "Update tax to GST, amount to $10".
+ *
+ * Shared by the Expense defaults table and the Category rules section of category settings, so a rule reads the
+ * same wherever it is listed.
+ */
+function getExpenseDefaultRuleDescription(summaryFields: ExpenseDefaultRuleSummaryField[], policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
+    const fieldLabels = {
+        category: translate('common.category').toLowerCase(),
+        tag: translate('common.tag').toLowerCase(),
+        description: translate('common.description').toLowerCase(),
+        tax: translate('common.tax').toLowerCase(),
+        amount: translate('iou.amount').toLowerCase(),
+        vendor: translate('common.vendor').toLowerCase(),
+    };
+    const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
+
+    const actions: string[] = [];
+    for (const {field, value} of summaryFields) {
+        if (field === FIELD.MERCHANT && typeof value === 'string') {
+            actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleMerchant', value));
+        } else if (field === FIELD.CATEGORY && typeof value === 'string') {
+            actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.category, getDecodedCategoryName(value)));
+        } else if (field === FIELD.TAG && typeof value === 'string') {
+            actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tag, getCommaSeparatedTagNameWithSanitizedColons(value)));
+        } else if (field === FIELD.COMMENT && typeof value === 'string') {
+            actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.description, value));
+        } else if (field === FIELD.TAX && isExpenseDefaultTaxValue(value) && !!value.field_id_TAX.externalID) {
+            // The rate saved on the rule is a snapshot, so resolve the live one first and keep the snapshot
+            // as a fallback. Without this a renamed rate reads stale, and a rule saved before the rates
+            // loaded has no snapshot at all and its tax default disappears from the summary.
+            actions.push(
+                translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tax, getTaxRateDisplayName(policy, value.field_id_TAX.externalID, value.field_id_TAX)),
+            );
+        } else if (field === FIELD.AMOUNT && typeof value === 'number') {
+            // The rule stores the amount negated, the way an expense carries it.
+            actions.push(
+                translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.amount, convertAmountToDisplayString(Math.abs(value), policy?.outputCurrency)),
+            );
+        } else if (field === FIELD.VENDOR_ID && typeof value === 'string') {
+            const unavailableLabel = translate('workspace.rules.merchantRules.vendorUnavailable');
+            actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.vendor, getVendorRuleDisplayValue(policy, value, unavailableLabel)));
+        } else if (field === FIELD.REIMBURSABLE && typeof value === 'boolean') {
+            actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', value));
+        } else if (field === FIELD.BILLABLE && typeof value === 'boolean') {
+            actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', value));
+        }
+    }
+
+    return actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
+}
 
 function getMerchantTypeRuleKey(groupID: string) {
     return `${MERCHANT_TYPE_RULE_KEY_PREFIX}${groupID}`;
@@ -128,14 +182,6 @@ function getMerchantRulesTableData({
         return [];
     }
 
-    const fieldLabels = {
-        category: translate('common.category').toLowerCase(),
-        tag: translate('common.tag').toLowerCase(),
-        description: translate('common.description').toLowerCase(),
-        tax: translate('common.tax').toLowerCase(),
-        amount: translate('iou.amount').toLowerCase(),
-        vendor: translate('common.vendor').toLowerCase(),
-    };
     const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
 
     return (
@@ -191,48 +237,7 @@ function getMerchantRulesTableData({
                 const hasOnlyMerchantRename = summaryFields.length === 1 && summaryFields.at(0)?.field === FIELD.MERCHANT;
                 const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
 
-                const actions: string[] = [];
-                for (const {field, value} of summaryFields) {
-                    if (field === FIELD.MERCHANT && typeof value === 'string') {
-                        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleMerchant', value));
-                    } else if (field === FIELD.CATEGORY && typeof value === 'string') {
-                        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.category, getDecodedCategoryName(value)));
-                    } else if (field === FIELD.TAG && typeof value === 'string') {
-                        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tag, getCommaSeparatedTagNameWithSanitizedColons(value)));
-                    } else if (field === FIELD.COMMENT && typeof value === 'string') {
-                        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.description, value));
-                    } else if (field === FIELD.TAX && isExpenseDefaultTaxValue(value) && !!value.field_id_TAX.externalID) {
-                        // The rate saved on the rule is a snapshot, so resolve the live one first and keep the snapshot
-                        // as a fallback. Without this a renamed rate reads stale, and a rule saved before the rates
-                        // loaded has no snapshot at all and its tax default disappears from the summary.
-                        actions.push(
-                            translate(
-                                'workspace.rules.merchantRules.ruleSummarySubtitleUpdateField',
-                                fieldLabels.tax,
-                                getTaxRateDisplayName(policy, value.field_id_TAX.externalID, value.field_id_TAX),
-                            ),
-                        );
-                    } else if (field === FIELD.AMOUNT && typeof value === 'number') {
-                        // The rule stores the amount negated, the way an expense carries it.
-                        actions.push(
-                            translate(
-                                'workspace.rules.merchantRules.ruleSummarySubtitleUpdateField',
-                                fieldLabels.amount,
-                                convertAmountToDisplayString(Math.abs(value), policy?.outputCurrency),
-                            ),
-                        );
-                    } else if (field === FIELD.VENDOR_ID && typeof value === 'string') {
-                        const unavailableLabel = translate('workspace.rules.merchantRules.vendorUnavailable');
-                        actions.push(
-                            translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.vendor, getVendorRuleDisplayValue(policy, value, unavailableLabel)),
-                        );
-                    } else if (field === FIELD.REIMBURSABLE && typeof value === 'boolean') {
-                        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', value));
-                    } else if (field === FIELD.BILLABLE && typeof value === 'boolean') {
-                        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', value));
-                    }
-                }
-                const ruleDescription = actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
+                const ruleDescription = getExpenseDefaultRuleDescription(summaryFields, policy, translate);
                 const pendingAction = rule.pendingAction;
 
                 // A rule the editor can't represent would lose whatever the form can't show if it were saved back,
@@ -292,6 +297,7 @@ function getExpenseDefaultsTableData({
 
 export {
     getDefaultMccGroupCategory,
+    getExpenseDefaultRuleDescription,
     getExpenseDefaultsTableData,
     getMerchantRulesTableData,
     getMerchantTypeRuleFormFromMccGroup,

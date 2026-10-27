@@ -14,10 +14,10 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {getRuleDeletionPendingAction, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
-import {getCategoryExpenseDefaultTaxID} from './ExpenseDefaultRuleUtils';
+import {getRuleDeletionPendingAction} from './CategoryTaxRulesUtils';
+import {getCategoryExpenseDefaultMatches, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID} from './ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
-import {getTaxByID} from './PolicyUtils';
+import {getExpenseDefaultRuleDescription} from './MerchantTypeRulesUtils';
 import {
     categoryHasAnyRequireFieldsRule,
     formatRequireFieldsRuleDescriptions,
@@ -121,22 +121,29 @@ function getCategoryContextualRules({
         }
     }
 
-    // A tax default is an ordinary rule matching on this category alone, so it is looked up rather than read off
-    // the category. It borrows the delete of the category or rate it depends on, the way the table does.
-    const taxID = getCategoryExpenseDefaultTaxID(policyRules, policy.id, categoryName);
-    if (taxID) {
-        const taxPendingAction = getRuleDeletionPendingAction(policy, policyCategories, categoryName, taxID);
-        const isTaxPendingDelete = taxPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-        if (isOffline || !isTaxPendingDelete) {
-            const taxDisplayName = getTaxByID(policy, taxID) ? getTaxRateDisplayName(policy, taxID) : '';
-            rules.push({
-                key: `tax-${categoryName}`,
-                summary: translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', translate('common.tax').toLowerCase(), taxDisplayName),
-                dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.path,
-                pendingAction: taxPendingAction,
-                isDisabled: isTaxPendingDelete,
-            });
+    // Expense defaults are ordinary rules rather than something stored on the category, so they are looked up by
+    // what they match on. The summary is the table's, so a rule reads the same in both places.
+    for (const {match} of getCategoryExpenseDefaultMatches(policyRules, policy.id, categoryName)) {
+        const summary = getExpenseDefaultRuleDescription(getExpenseDefaultRuleSummaryFields(match.rule), policy, translate);
+        if (!summary) {
+            continue;
         }
+
+        // A rule is also reached through the category and the tax rate it depends on, so deleting either of those
+        // retires the rule with them.
+        const rulePendingAction = match.rule.pendingAction ?? getRuleDeletionPendingAction(policy, policyCategories, categoryName, getExpenseDefaultTaxID(match.rule));
+        const isRulePendingDelete = rulePendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        if (!isOffline && isRulePendingDelete) {
+            continue;
+        }
+
+        rules.push({
+            key: `expense-default-${match.ruleID}`,
+            summary,
+            dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.path,
+            pendingAction: rulePendingAction,
+            isDisabled: isRulePendingDelete,
+        });
     }
 
     return rules;

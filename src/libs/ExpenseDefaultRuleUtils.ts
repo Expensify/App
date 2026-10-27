@@ -620,10 +620,8 @@ function getCategoryOwnExpenseDefaultRule(rulesCollection: OnyxCollection<Rule> 
     return getCategoryExpenseDefaultMatches(rulesCollection, policyID, categoryName).find(isCategoryOnlyMatch)?.match;
 }
 
-/** The tax rate the rule from `getCategoryExpenseDefaultRule` applies, if it sets one. */
-function getCategoryExpenseDefaultTaxID(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): string | undefined {
-    const rule = getCategoryExpenseDefaultRule(rulesCollection, policyID, categoryName)?.rule;
-
+/** The tax rate a rule applies, if it sets one. */
+function getExpenseDefaultTaxID(rule: Rule | ExpenseDefaultRule | undefined): string | undefined {
     for (const action of getRuleActions(rule)) {
         if (action?.name === ACTION.SET && 'field' in action && action.field === FIELD.TAX && isExpenseDefaultTaxValue(action.value)) {
             return action.value.field_id_TAX.externalID;
@@ -726,14 +724,15 @@ function canEditExpenseDefaultRule(rule: Rule | undefined, policyID: string | un
     return isPolicyScopedRule(rule, policyID) && isEditableExpenseDefaultRule(rule);
 }
 
-export type {ExpenseDefaultFormValues};
+export type {ExpenseDefaultFormValues, ExpenseDefaultRuleSummaryField};
 export {
     buildCopiedExpenseDefaultRules,
     buildExpenseDefaultFilters,
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
+    getCategoryExpenseDefaultMatches,
     getCategoryExpenseDefaultRule,
-    getCategoryExpenseDefaultTaxID,
+    getExpenseDefaultTaxID,
     getCategoryOwnExpenseDefaultRule,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
