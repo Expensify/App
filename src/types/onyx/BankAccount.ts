@@ -1,9 +1,12 @@
 import type CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {ValueOf} from 'type-fest';
+
 import type AccountData from './AccountData';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
+import type {WiseBusinessOnboarding} from './ReimbursementAccount';
 
 /** Model of additional bank account data */
 type BankAccountAdditionalData = {
@@ -27,6 +30,12 @@ type BankAccountAdditionalData = {
         /** Powerform files */
         achAuthorizationForm?: FileObject[];
     };
+
+    /** Global reimbursement provider, derived by the server */
+    globalReimbursementProvider?: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>;
+
+    /** The business's Wise onboarding as every holder of the account sees it: the status only, the answers are the admin's */
+    wise?: Pick<WiseBusinessOnboarding, 'status'>;
 
     /** Verification statuses returned by the backend, mirroring how Classic determines status */
     verifications?: {

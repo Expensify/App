@@ -12,6 +12,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Account, Onboarding} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
@@ -28,6 +29,8 @@ import type {GuardResult, NavigationGuard} from './types';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
+
+const JOIN_WORKSPACE_TASK_SCREENS = new Set<string>([SCREENS.ONBOARDING.WORK_EMAIL, SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, SCREENS.ONBOARDING.WORKSPACES]);
 
 /**
  * Module-level Onyx subscriptions for OnboardingGuard
@@ -145,17 +148,28 @@ function getActionPayloadScreenName(action: NavigationAction): string | undefine
     return getDeepestFocusedScreen(action.payload)?.name;
 }
 
+function getActionPayloadScreenParams(action: NavigationAction): Record<string, unknown> | undefined {
+    if (!isObjectPayload(action.payload)) {
+        return undefined;
+    }
+
+    return getDeepestFocusedScreen(action.payload)?.params;
+}
+
 function isCurrentlyOnTwoFactorSetupRoute(state: NavigationState): boolean {
     return isTwoFactorSetupScreen(getDeepestFocusedScreen(state)?.name);
 }
 
 function shouldPreventReset(state: NavigationState, action: NavigationAction) {
-    if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
+    // Browser back that pops the last history entry dispatches GO_BACK instead of RESET, and it reaches the root only when it would leave onboarding
+    const isGoBack = action.type === CONST.NAVIGATION.ACTION_TYPE.GO_BACK;
+    if (!isGoBack && (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload)) {
         return false;
     }
 
     const currentFocusedRoute = findFocusedRoute(state);
     const targetFocusedRoute = findFocusedRoute(action?.payload as NavigationState);
+    const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
 
     // Allow required 2FA setup navigation even when the user is currently on onboarding.
     if (isRequiredTwoFactorSetupExceptionActive() && isTwoFactorSetupScreen(getActionPayloadScreenName(action))) {
@@ -163,7 +177,7 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
     }
 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
-    if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
+    if (!isOnboardingCompleted && isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
         setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
         return true;
     }
@@ -184,14 +198,26 @@ function isOnboardingTargetName(name: string | undefined): boolean {
 
 /**
  * Check if the navigation action is targeting an onboarding screen.
- * This handles NAVIGATE/PUSH actions that target the OnboardingModalNavigator or one of its screens.
+ * This handles RESET actions, and NAVIGATE/PUSH actions that target the OnboardingModalNavigator or one of its screens.
  */
 function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
+    if (action.type === CONST.NAVIGATION_ACTIONS.RESET && isObjectPayload(action.payload)) {
+        return isOnboardingTargetName(getActionPayloadScreenName(action));
+    }
+
     if ((action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH) && isOnboardingTargetName(getActionTargetName(action))) {
         return true;
     }
 
     return false;
+}
+
+function isNavigatingToJoinWorkspaceTask(action: NavigationAction): boolean {
+    if (!isNavigatingToOnboardingFlow(action)) {
+        return false;
+    }
+
+    return JOIN_WORKSPACE_TASK_SCREENS.has(getActionPayloadScreenName(action) ?? '') && getActionPayloadScreenParams(action)?.isJoinWorkspaceTask === 'true';
 }
 
 const ACTIONS_THAT_CAN_LEAVE_ONBOARDING = new Set<string>([
@@ -205,8 +231,8 @@ const ACTIONS_THAT_CAN_LEAVE_ONBOARDING = new Set<string>([
  * Check if the navigation action takes the user out of the onboarding flow.
  * NAVIGATE/PUSH bury the OnboardingModalNavigator under a new root route (warm deep link, OldDot exitTo).
  * REPLACE/POP_TO remove it, which is what goBack(ROUTES.HOME) becomes in goUp once the target is below it.
- * GO_BACK, POP, SET_PARAMS and DISMISS_MODAL are not checked: DISMISS_MODAL is how the completed flow exits,
- * and the others keep the behaviour they had before this guard branch existed.
+ * GO_BACK, POP, SET_PARAMS and DISMISS_MODAL are not checked here: DISMISS_MODAL is how the completed flow exits,
+ * shouldPreventReset handles a GO_BACK that leaves onboarding, and the others keep their previous behaviour.
  */
 function isNavigatingAwayFromOnboardingFlow(action: NavigationAction): boolean {
     return ACTIONS_THAT_CAN_LEAVE_ONBOARDING.has(action.type) && !isOnboardingTargetName(getActionTargetName(action));
@@ -240,13 +266,20 @@ const OnboardingGuard: NavigationGuard = {
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
         const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
-        // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
-        // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
-        if ((isOnboardingCompleted || CONFIG.SKIP_ONBOARDING) && isNavigatingToOnboardingFlow(action)) {
+        const isNavigatingToJoinWorkspaceTaskRoute = isNavigatingToJoinWorkspaceTask(action);
+
+        // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link), since onboarding
+        // is not something they should be able to re-enter once it is done.
+        if (onboarding && isOnboardingCompleted && isNavigatingToOnboardingFlow(action) && !isNavigatingToJoinWorkspaceTaskRoute) {
             Log.info('[OnboardingGuard] Redirecting user away from onboarding route to home');
+            return {type: 'REDIRECT', route: ROUTES.HOME};
+        }
+
+        // Test builds must never enter onboarding, even for the join-workspace exemption above.
+        if (CONFIG.SKIP_ONBOARDING && isNavigatingToOnboardingFlow(action)) {
+            Log.info('[OnboardingGuard] SKIP_ONBOARDING: redirecting user away from onboarding route to home');
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 

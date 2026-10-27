@@ -44,7 +44,6 @@ import {
     isCardIssuedAction,
     isCreatedTaskReportAction,
     isCreatedSupportTicketReportAction,
-    isDeletedReportPreviewWithError,
     isIOURequestReportAction,
     isMemberChangeAction,
     isMoneyRequestAction,
@@ -137,7 +136,7 @@ type ActionContentRouterProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
-    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    /** Whether this is the newest comment of Concierge or of a custom agent that is eligible for the inline feedback prompt */
     isLatestConciergeFeedbackAction: boolean;
 
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
@@ -213,8 +212,7 @@ function ActionContentRouter({
             />
         );
     }
-    // This preview has no report left to show, so render the placeholder instead of pointing at a report that is gone.
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (isClosedExpenseReportWithNoExpenses || isDeletedReportPreviewWithError(action))) {
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
     }
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
@@ -328,6 +326,7 @@ function ActionContentRouter({
             <ReimbursedContent
                 action={action}
                 reportOwnerAccountID={reportOwnerAccountID}
+                originalReport={originalReport}
             />
         );
     }

@@ -141,9 +141,9 @@ The **Agents** tab holds agent rules, which are written in plain language and ru
 **Add rule** stays in the top-right corner of the **Rules** page on every tab. It opens the **New rule** page, where you choose what the rule should do:
 
 - **Restrict card spend** – Block or limit spend at the point of sale.
-- **Flag for review** – Notify approvers when expenses exceed category limits.
-- **Set field requirements** – Require specific expense fields or waive requiring them.
-- **Apply expense defaults** – Update fields without the submitter doing anything.
+- **Flag for review** – Notify when your conditions are met.
+- **Set field requirements** – Receipts, categories, etc.
+- **Apply expense defaults** – Update fields automatically.
 - **Describe agent rule** – Create flexible rules that run when you need.
 
 ---
@@ -164,7 +164,7 @@ A **Description hint** appears below the **Description** field on an expense onc
 
 ## Where to find report-level rules
 
-Rules that apply to a whole expense report are on the **Advanced** tab of the **Workflows** page, not on the **Rules** page. They are **Prevent self-approvals**, **Auto-approve compliant reports**, and **Auto-pay approved reports**.
+Rules that apply to a whole expense report are on the **Advanced** tab of the **Workflows** page, not on the **Rules** page. They are **Prevent self-approvals**, **Prevent marking non-reimbursable reports as paid**, **Auto-approve compliant reports**, and **Auto-pay approved reports**.
 
 [Learn how to configure Workspace Workflows](/articles/new-expensify/workspaces/Workspace-Workflows).
 

@@ -2,29 +2,29 @@
 title: Accounting Search Shortcuts
 description: Use the Accounting search shortcuts on the Spend page to review expense status, prepare for export, and reconcile transactions with your accounting records.
 keywords: [New Expensify, accounting expensify, reconcile expenses, awaiting export, cash accruals, card accruals, card statements, bank reconciliation, month-end close, search shortcut, accounting shortcut]
-internalScope: Audience is Workspace Admins and Auditors. Covers using the Accounting section to review expense states and support reconciliation workflows. Does not cover exporting or performing reconciliation in detail.
+internalScope: Audience is workspace admins and auditors. Covers using the Accounting section to review expense states and support reconciliation workflows. Does not cover exporting or performing reconciliation in detail.
 ---
 
 # Accounting Search Shortcuts
 
 The **Accounting** search shortcuts on the **Spend** page bring together the expense views you need to reconcile your records and close your books. It helps you identify what’s ready to export, what still needs attention, and what should be matched against statements or bank data.
 
-Workspace Admins and Auditors can use these shortcuts to validate totals, track liabilities, and ensure your expenses align with accounting records before and after export.
+Workspace admins and auditors can use these shortcuts to validate totals, track liabilities, and ensure your expenses align with accounting records before and after export.
 
 ---
 
 ## Who can use Accounting search shortcuts
 
-Workspace Admins and Auditors with:
-- Approvals turned on
+Workspace admins and auditors with:
+- Approvals enabled
 - Either reimbursements enabled, at least one card feed connected, or Expensify Cards enabled
 
 ---
 
 ## How to use the Accounting search shortcuts
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Spend**. 
-2. In the **Accounting** section, choose a search shortcut based on what you need to review.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend**. 
+2. In the **Accounting** section, select a search shortcut based on what you need to review.
 3. Use filters like **Date**, **Feed**, or **Posted** to refine your view.
 4. Review the **Total** in the footer to understand the amount for that view.
 
@@ -54,7 +54,7 @@ Once you’ve reviewed the expenses, you can export them to a CSV if you need to
 # FAQ
 
 ## How can I create an aging report?
-An aging report is a breakdown of expenses by how long they have been in a given status. You can create an aging report by using the **Cash accruals** or **Card accruals** shortcut and changing **Display** to group by month, week, quarter or year. [Learn how to use Insights grouping operators](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify#grouping-options-used-in-insights).
+An aging report is a breakdown of expenses by how long they have been in a given status. You can create an aging report by using the **Cash accruals** or **Card accruals** shortcut and changing **Display** to group by month, week, quarter or year. [Learn how to group results using search operators](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze#how-to-group-and-visualize-results-using-search-operators).
 
 ## Why don’t I see all Accounting search shortcuts?
 

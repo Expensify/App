@@ -36,6 +36,7 @@ import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {rand64} from '@libs/NumberUtils';
 import openExternalLink from '@libs/openExternalLink';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
@@ -72,7 +73,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import ADD_WORK_EMAIL_INPUT_IDS from '@src/types/form/AddWorkEmailForm';
-import type {TryNewDot} from '@src/types/onyx';
+import type {Report, TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
 import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
@@ -254,7 +255,9 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
  */
 function signInWithSupportAuthToken(authToken: string) {
     const {optimisticData, finallyData} = getShortLivedLoginParams(true);
-    API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken}, {optimisticData, finallyData});
+    // An expired support token returns a 407, and there is no session to reauthenticate. Skip the reauthentication,
+    // therefore finallyData still clears account.isLoading and the transition page can show the expired session.
+    API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken, skipReauthentication: true}, {optimisticData, finallyData});
 
     // Record the token so the transition pages skip a duplicate sign-in for it. The Public/Auth navigator
     // swap re-mounts the transition screen mid-login, and without this the re-mounted page fires this call
@@ -909,7 +912,7 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  */
-function signInWithShortLivedAuthToken(authToken: string, currentAuthToken: string | undefined, isSAML: boolean, exitTo: string | undefined, login: string | undefined) {
+function signInWithShortLivedAuthToken(authToken: string, isSAML: boolean, exitTo: string | undefined, login: string | undefined) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
     const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN;
     // Set the in-flight guard synchronously, before awaiting device info. optimisticData below (which also sets this key)
@@ -918,20 +921,12 @@ function signInWithShortLivedAuthToken(authToken: string, currentAuthToken: stri
     // re-fires and loops. This key is RAM-only (resets on reload), so setting it early carries no stuck-state risk; the
     // optimisticData re-sets it and finallyData reverts it exactly as before.
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod, deviceInfo}, {optimisticData, failureData, finallyData});
+    });
     NetworkStore.setLastShortAuthToken(authToken);
-
-    const signInPromise = Device.getDeviceInfoWithID().then((deviceInfo) =>
-        // We use makeRequestWithSideEffects here because the caller needs to inspect the response to detect a SESSION_MISMATCH error
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(
-            SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
-            {authToken, skipReauthentication: true, authMethod, deviceInfo, currentAuthToken},
-            {optimisticData, failureData, finallyData},
-        ),
-    );
-
     if (!exitTo) {
-        return signInPromise;
+        return;
     }
 
     // waitForUserSignIn keeps a single resolver that openReportFromDeepLink may already hold, so wait on the routes instead.
@@ -949,8 +944,6 @@ function signInWithShortLivedAuthToken(authToken: string, currentAuthToken: stri
             Log.warn('Unable to return to the last visited path after SAML sign in', {error});
         }
     });
-
-    return signInPromise;
 }
 
 /**
@@ -1472,7 +1465,7 @@ function updateAuthToken(authToken?: string, encryptedAuthToken?: string) {
 
 function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
     updateAuthToken(authToken, encryptedAuthToken);
-    openApp();
+    return openApp().then(() => API.waitForWrites(WRITE_COMMANDS.OPEN_APP));
 }
 
 function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boolean, options: ValidateTwoFactorAuthOptions = {}) {
@@ -1695,8 +1688,13 @@ type AddWorkEmailFormID = typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typ
  * @param formID the form that submitted the request. Its loading state and errors follow the request, so the submit button stops spinning and the failure
  * renders inline. Defaults to the onboarding form, which is where this action is called from during onboarding.
  */
-function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM) {
-    const isOnboardingFlow = formID === ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
+function AddWorkEmail(workEmail: string, formIDOrTaskReport: AddWorkEmailFormID | OnyxEntry<Report> = ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM) {
+    const isOnboardingFlow = typeof formIDOrTaskReport !== 'string' || formIDOrTaskReport === ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
+    const formID = typeof formIDOrTaskReport === 'string' ? formIDOrTaskReport : ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
+    const addWorkEmailTaskReport = typeof formIDOrTaskReport === 'string' ? undefined : formIDOrTaskReport;
+    // Auth completes direct additions and MergeIntoAccountAndLogin completes existing-account additions. Both commands
+    // need the same client-generated action ID, but AddWorkEmail must not complete the task before a required merge.
+    const completedTaskReportActionID = addWorkEmailTaskReport ? rand64() : undefined;
 
     const optimisticData: Array<OnyxUpdate<AddWorkEmailFormID | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = isOnboardingFlow
         ? [
@@ -1706,6 +1704,7 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
                   value: {
                       onboardingWorkEmail: workEmail,
                       isLoading: true,
+                      completedTaskReportActionID: completedTaskReportActionID ?? null,
                   },
               },
               {
@@ -1717,7 +1716,7 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
         : [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
-                  key: ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM,
+                  key: formID,
                   value: {
                       isLoading: true,
                       errorFields: null,
@@ -1739,7 +1738,7 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
             : [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM,
+                      key: formID,
                       value: {
                           isLoading: false,
                       },
@@ -1750,7 +1749,7 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL,
-        {workEmail},
+        {workEmail, completedTaskReportActionID},
         {
             optimisticData,
             successData: getLoadingFinishedData(),
@@ -1773,7 +1772,7 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
         // Outside of onboarding we show the failure on the form the user is looking at, instead of writing onboarding-only state that the caller doesn't render.
         // The backend also rejects this command with errors we have no specific copy for (e.g. a 403), so fall back to a generic message rather than showing nothing.
         if (!isOnboardingFlow) {
-            setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
+            setErrorFields(formID, {
                 [ADD_WORK_EMAIL_INPUT_IDS.EMAIL]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey(errorTranslationKey ?? 'common.genericErrorMessage'),
             });
             return;
@@ -1788,11 +1787,14 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
         if (response?.message === CONST.WORK_DOMAIN_CONTROLLED_ERROR || response?.title === CONST.WORK_DOMAIN_CONTROLLED_ERROR) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.domainControlledSubtitle');
         }
+        if (addWorkEmailTaskReport && response?.message === CONST.WORK_EMAIL_VALIDATED_PUBLIC_DOMAIN_ERROR) {
+            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle');
+        }
         Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
     });
 }
 
-function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
+function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined, completedTaskReportActionID?: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1844,9 +1846,9 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
     ];
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(
+    return API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN,
-        {workEmail, validateCode, accountID},
+        {workEmail, validateCode, accountID, completedTaskReportActionID},
         {
             optimisticData,
             successData,
@@ -1860,18 +1862,27 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
             } else {
                 Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
             }
-            return;
+            return {didMerge: false, shouldRedirectToClassicAfterMerge: false, conciergeReportID: undefined};
         }
+
+        const responseOnyxData = response?.onyxData as Array<{key: string; value?: unknown}> | undefined;
+        const onboardingUpdate = responseOnyxData?.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING);
+        const shouldRedirectToClassicAfterMerge =
+            !!onboardingUpdate?.value && typeof onboardingUpdate.value === 'object' && 'shouldRedirectToClassicAfterMerge' in onboardingUpdate.value
+                ? onboardingUpdate.value.shouldRedirectToClassicAfterMerge === true
+                : false;
+        const conciergeReportUpdate = responseOnyxData?.find((update) => update.key === ONYXKEYS.CONCIERGE_REPORT_ID);
+        const conciergeReportID = typeof conciergeReportUpdate?.value === 'string' ? conciergeReportUpdate.value : undefined;
 
         // When the action is successful, we need to update the new authToken and encryptedAuthToken
         // This action needs to be synchronous as the user will be logged out due to middleware if old authToken is used
         // For more information see the slack discussion: https://expensify.slack.com/archives/C08CZDJFJ77/p1742838796040369
         return SequentialQueue.waitForIdle().then(() => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
-                return;
+                return {didMerge: false, shouldRedirectToClassicAfterMerge: false, conciergeReportID: undefined};
             }
 
-            updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken);
+            return updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken).then(() => ({didMerge: true, shouldRedirectToClassicAfterMerge, conciergeReportID}));
         });
     });
 }

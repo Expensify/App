@@ -27,6 +27,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 import useReportWasDeleted from './hooks/useReportWasDeleted';
@@ -77,6 +78,7 @@ function ReportNavigateAwayHandler() {
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isSelfTourViewed = onboarding?.selfTourViewed;
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const parentReportAction = useParentReportAction(report);
@@ -144,7 +146,15 @@ function ReportNavigateAwayHandler() {
         }
 
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
+            navigateToConciergeChat({
+                conciergeReportID,
+                introSelected,
+                currentUserAccountID,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+                conciergePersonalDetails,
+                shouldDismissModal: false,
+            });
         });
     });
 
@@ -235,7 +245,7 @@ function ReportNavigateAwayHandler() {
             }
 
             // Fallback to Concierge
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails});
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails});
         });
     }, [
         reportWasDeleted,
@@ -246,6 +256,7 @@ function ReportNavigateAwayHandler() {
         introSelected,
         currentUserAccountID,
         isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
         conciergePersonalDetails,
         reportIDFromRoute,
     ]);

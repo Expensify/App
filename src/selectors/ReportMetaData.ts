@@ -53,6 +53,9 @@ const pendingDeleteMemberAccountIDsByReportIDSelector = (reportMetadata: OnyxCol
     return result;
 };
 
+const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
+    reportMetadata ? {pendingExpenseAction: reportMetadata.pendingExpenseAction} : undefined;
+
 const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingNewTransactionIDs;
 
 const isOptimisticReportSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.isOptimisticReport;
@@ -66,6 +69,7 @@ export {
     isOptimisticReportSelector,
     pendingNewTransactionIDsSelector,
     pendingChatMembersSelector,
+    pendingExpenseActionSelector,
     pendingDeleteMemberAccountIDsSelector,
     pendingDeleteMemberAccountIDsByReportIDSelector,
 };

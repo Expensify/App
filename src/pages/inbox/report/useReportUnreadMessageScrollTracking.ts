@@ -5,7 +5,7 @@ import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 type Args = {
     reportID: string;
@@ -126,7 +126,7 @@ export default function useReportUnreadMessageScrollTracking({
         updatePillVisibility();
     };
 
-    const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         if (!ref.current.isFocused) {
             return;
         }
@@ -168,11 +168,7 @@ export default function useReportUnreadMessageScrollTracking({
         } else {
             setIsActionBadgeAboveViewport(false);
         }
-
-        // FlatList requires a stable onViewableItemsChanged callback for optimal performance.
-        // Therefore, we use a ref to store values instead of adding them as dependencies.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    };
 
     // When unreadMarkerReportActionIndex changes we will manually call onViewableItemsChanged with previousViewableItems to recalculate
     // the state of floating button because onViewableItemsChanged on  FlatList will only be called when viewable items change.
@@ -194,6 +190,7 @@ export default function useReportUnreadMessageScrollTracking({
         isFloatingMessageCounterVisible,
         setIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
+        setIsActionBadgeAboveViewport,
         trackVerticalScrolling,
         onViewableItemsChanged,
         updatePillVisibility,
