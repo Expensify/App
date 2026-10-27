@@ -25,8 +25,8 @@ type ResizeIndicator = {
     hideIndicator: () => void;
 };
 
-/** Measured once per drag. The line lives in the handle, so drags and scrolls carry it. */
-function drawIndicatorAtHandle(scopeElement: HTMLElement | null, handleElement: HTMLElement) {
+/** Measured on every reveal, since rows load and filter while an edge stays focused. The line lives in the handle, so drags and scrolls carry it. */
+function drawIndicatorAtHandle(scopeElement: HTMLElement | null, handleElement: HTMLElement, shouldStretchGrip: boolean) {
     const handleRect = handleElement.getBoundingClientRect();
     const headerRowTop = (handleElement.closest(TABLE_ROW_SELECTOR) ?? handleElement).getBoundingClientRect().top;
     let lowestRowBottom = handleRect.bottom;
@@ -45,6 +45,10 @@ function drawIndicatorAtHandle(scopeElement: HTMLElement | null, handleElement: 
     handleElement.style.setProperty(RESIZE_INDICATOR_TOP_VARIABLE, `${headerRowTop - handleRect.top}px`);
     handleElement.style.setProperty(RESIZE_INDICATOR_HEIGHT_VARIABLE, `${lowestRowBottom - headerRowTop}px`);
     handleElement.style.setProperty(RESIZE_INDICATOR_OPACITY_VARIABLE, INDICATOR_OPACITY.VISIBLE);
+
+    if (!shouldStretchGrip) {
+        return;
+    }
 
     // Starts clipped to the grip, so the grip reads as stretching into the line.
     const gripInset = (handleRect.height * (1 - CONST.TABLES.COLUMN_RESIZE.GRIP_HEIGHT_RATIO)) / 2;
@@ -90,15 +94,16 @@ function useResizeIndicator(scopeElementRef: RefObject<HTMLElement | null>): Res
     };
 
     const revealIndicator = (handleElement: HTMLElement) => {
-        // A keyboard-focused edge keeps its line, so each key press would otherwise replay the grip's stretch, and pressing
-        // another edge would leave two lines.
-        if (activeHandleElementRef.current === handleElement) {
-            return;
+        // A keyboard-focused edge keeps its line, so each key press would otherwise replay the grip's stretch.
+        const isAlreadyShown = activeHandleElementRef.current === handleElement;
+
+        // Pressing another edge would otherwise leave two lines.
+        if (!isAlreadyShown) {
+            hideIndicator();
+            activeHandleElementRef.current = handleElement;
         }
 
-        hideIndicator();
-        activeHandleElementRef.current = handleElement;
-        drawIndicatorAtHandle(scopeElementRef.current, handleElement);
+        drawIndicatorAtHandle(scopeElementRef.current, handleElement, !isAlreadyShown);
     };
 
     return {revealIndicator, hideIndicator};

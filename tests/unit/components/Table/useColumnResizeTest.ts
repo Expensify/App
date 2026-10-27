@@ -1,6 +1,11 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import {RESIZE_GRIP_HOVER_VARIABLE, RESIZE_INDICATOR_OPACITY_VARIABLE, getColumnWidthVariableName} from '@components/Table/columnResize/columnWidthExpressions';
+import {
+    RESIZE_GRIP_HOVER_VARIABLE,
+    RESIZE_INDICATOR_HEIGHT_VARIABLE,
+    RESIZE_INDICATOR_OPACITY_VARIABLE,
+    getColumnWidthVariableName,
+} from '@components/Table/columnResize/columnWidthExpressions';
 import type UseColumnResize from '@components/Table/columnResize/useColumnResize';
 import type {UseColumnResizeParams} from '@components/Table/columnResize/useColumnResize/types';
 
@@ -957,5 +962,33 @@ describe('useColumnResize', () => {
 
         // Then the line stays, since the edge still has keyboard focus and the arrow keys still move it
         expect(readLineOpacity()).toBe('1');
+    });
+
+    it('stretches the edge line over rows that load while the edge has keyboard focus', () => {
+        // Given an edge focused from the keyboard over a table whose rows end 100px down
+        const {handleElement, scopeElement, getHandleProps} = renderColumnResize();
+        const readLineHeight = () => handleElement.style.getPropertyValue(RESIZE_INDICATOR_HEIGHT_VARIABLE);
+        const addRowEndingAt = (bottom: number) => {
+            const rowElement = document.createElement('div');
+            rowElement.dataset.tableRow = 'true';
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- jsdom has no layout, and the hook only reads the bottom
+            jest.spyOn(rowElement, 'getBoundingClientRect').mockReturnValue({bottom} as DOMRect);
+            scopeElement.appendChild(rowElement);
+        };
+
+        addRowEndingAt(100);
+        act(() => {
+            getHandleProps().onFocus?.(createFocusEvent(handleElement, true));
+        });
+        expect(readLineHeight()).toBe('100px');
+
+        // When more rows load, ending 400px down, and the right arrow is pressed
+        addRowEndingAt(400);
+        act(() => {
+            getHandleProps().onKeyDown?.(createKeyboardEvent(handleElement, 'ArrowRight').event);
+        });
+
+        // Then the line reaches the new last row, instead of keeping the length measured when the edge was focused
+        expect(readLineHeight()).toBe('400px');
     });
 });
