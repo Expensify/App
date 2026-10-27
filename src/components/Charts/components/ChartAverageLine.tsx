@@ -1,4 +1,3 @@
-import type {ChartDataPoint} from '@components/Charts/types';
 import {buildChartParagraph, getFontLineMetrics} from '@components/Charts/utils';
 import VictoryTheme, {DASH_INTERVALS, GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
@@ -14,11 +13,7 @@ import {DashPathEffect, Line, Paragraph, RoundedRect, vec} from '@shopify/react-
 import React from 'react';
 
 type ChartAverageLineProps = {
-    /** Points holding the average, the same at every point that has one */
-    data: ChartDataPoint[];
-
-    /** Key of the series holding the average */
-    seriesKey: string;
+    value: number;
 
     /** Maps a value to its y-pixel position */
     yScale: Scale;
@@ -37,15 +32,10 @@ type ChartAverageLineProps = {
 };
 
 /** Draws a horizontal dashed line across the plot at the average, with a pill at its right end labeling the amount */
-function ChartAverageLine({data, seriesKey, yScale, chartBounds, canvasHeight, formatValue, fontSize, fontManager}: ChartAverageLineProps) {
+function ChartAverageLine({value, yScale, chartBounds, canvasHeight, formatValue, fontSize, fontManager}: ChartAverageLineProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {strokeWidth, opacity, pillPaddingHorizontal, pillPaddingVertical, pillLabelGap} = VictoryTheme.averageLine;
-
-    const value = data.find((point) => point.values[seriesKey] !== undefined)?.values[seriesKey];
-    if (value === undefined) {
-        return null;
-    }
 
     const y = yScale(value);
     const paragraph = buildChartParagraph(translate('insightsPage.compare.averageValue', formatValue(value)), fontManager, fontSize, theme.textReversed);

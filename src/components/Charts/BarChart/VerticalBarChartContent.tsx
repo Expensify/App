@@ -57,6 +57,7 @@ function VerticalBarChartCanvas({
     const seriesKeys = series.map((seriesItem) => seriesItem.key);
     const barSeries = series.filter((seriesItem) => !seriesItem.isAverage);
     const averageSeries = series.find((seriesItem) => seriesItem.isAverage);
+    const averageValue = averageSeries && data.at(0)?.values[averageSeries.key];
     const chartData: Array<{x: number} & Record<string, number | undefined>> = data.map((point, index) => ({
         x: index,
         ...Object.fromEntries(seriesKeys.map((key) => [key, point.values[key]])),
@@ -241,10 +242,9 @@ function VerticalBarChartCanvas({
                     labelColor={theme.icon}
                     formatValue={formatCompactValue}
                 />
-                {!!averageSeries && (
+                {averageValue !== undefined && (
                     <ChartAverageLine
-                        data={data}
-                        seriesKey={averageSeries.key}
+                        value={averageValue}
                         yScale={args.yScale}
                         chartBounds={args.chartBounds}
                         canvasHeight={args.canvasSize.height}

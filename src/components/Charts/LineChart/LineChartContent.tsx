@@ -73,6 +73,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
     const [{key: primarySeriesKey, color: primarySeriesColor = VictoryTheme.colors.default}] = series;
     const lineSeries = series.filter((seriesItem) => !seriesItem.isAverage);
     const averageSeries = series.find((seriesItem) => seriesItem.isAverage);
+    const averageValue = averageSeries && data.at(0)?.values[averageSeries.key];
     const openPointFlags = data.map((point) => !!point.isInProgress);
 
     // Periods that haven't ended, the current one and any later ones, are drawn dashed on the primary series, along with the segments leading into them.
@@ -332,10 +333,9 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                     isHollow={isActivePointHollow}
                     hollowColor={theme.cardBG}
                 />
-                {!!averageSeries && (
+                {averageValue !== undefined && (
                     <ChartAverageLine
-                        data={data}
-                        seriesKey={averageSeries.key}
+                        value={averageValue}
                         yScale={args.yScale}
                         chartBounds={args.chartBounds}
                         canvasHeight={args.canvasSize.height}
