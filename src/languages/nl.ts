@@ -114,6 +114,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Betalen',
             fix: 'Oplossen',
             task: 'Taak',
+            add: 'Toevoegen',
         },
         success: 'Gelukt',
         group: 'Groep',

@@ -14050,6 +14050,93 @@ describe('ReportUtils', () => {
             expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
+        describe('empty open expense report in a workspace chat', () => {
+            const policyID = 'emptyReportAddBadgePolicy';
+            const emptyReportID = 'empty-report-add-badge';
+            const previewAction: ReportAction = {
+                reportActionID: 'empty-report-preview',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: emptyReportID,
+                created: '2024-01-01 00:00:00',
+                message: [{html: 'report preview', text: 'report preview', type: 'COMMENT'}],
+            };
+
+            const setUpEmptyReport = async (role: Policy['role']) => {
+                const emptyReportPolicy: Policy = {
+                    ...createRandomPolicy(1),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role,
+                    employeeList: {},
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    autoReporting: false,
+                    harvesting: {enabled: false},
+                };
+                const emptyReport: Report = {
+                    ...createExpenseReport(42101),
+                    reportID: emptyReportID,
+                    policyID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                const workspaceChat: Report = {
+                    ...createPolicyExpenseChat(42102),
+                    policyID,
+                    hasOutstandingChildRequest: true,
+                    iouReportID: emptyReportID,
+                };
+
+                await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, emptyReportPolicy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${emptyReportID}`, emptyReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {[previewAction.reportActionID]: previewAction});
+                await waitForBatchedUpdates();
+
+                return workspaceChat;
+            };
+
+            it('should return the ADD badge when the current user can add expenses', async () => {
+                // Given a workspace chat flagged as needing attention because of an empty open report the current user submits
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER);
+
+                // When the reason is retrieved for the workspace chat
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                });
+
+                // Then the row shows an Add badge that targets the empty report's preview, matching the report's Add expense button
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+                expect(result?.reportAction?.reportActionID).toBe(previewAction.reportActionID);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.ADD);
+            });
+
+            it('should not return the ADD badge when the current user is approve-only', async () => {
+                // Given the same empty report, but the current user is an approve-only member who can't add expenses
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.APPROVE_ONLY);
+
+                // When the reason is retrieved for the workspace chat
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                });
+
+                // Then no Add badge is shown, because the user has no way to act on it
+                expect(result?.actionBadge).not.toBe(CONST.REPORT.ACTION_BADGE.ADD);
+            });
+        });
+
         it('uses the policies param over the deprecated module-level policy cache to decide the Approve badge', async () => {
             const policyID = 'policy-for-policies-param-test';
             const fakePolicy: Policy = {

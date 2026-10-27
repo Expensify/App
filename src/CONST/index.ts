@@ -2057,6 +2057,7 @@ const CONST = {
             PAY: 'pay',
             FIX: 'fix',
             TASK: 'task',
+            ADD: 'add',
         },
         ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE: {
             EXPENSE: 'expense',

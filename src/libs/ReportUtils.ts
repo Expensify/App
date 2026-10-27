@@ -3575,6 +3575,16 @@ function getBadgeFromIOUReport(
     if (isWaitingSubmitFromCurrentUser) {
         return CONST.REPORT.ACTION_BADGE.SUBMIT;
     }
+    // An empty open report can't be submitted yet, so point the user at adding an expense. This matches the report's "Add expense" button.
+    // Only label a chat that is already flagged as needing attention, so this never adds a green dot on its own.
+    if (
+        chatReport?.hasOutstandingChildRequest === true &&
+        isOpenExpenseReport(iouReport) &&
+        reportTransactions.length === 0 &&
+        canAddTransaction(iouReport, undefined, isChatReportArchived)
+    ) {
+        return CONST.REPORT.ACTION_BADGE.ADD;
+    }
     return undefined;
 }
 
@@ -3609,6 +3619,7 @@ function getIOUReportActionWithBadge(
 } {
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
     let earliestAction: ReportAction | undefined;
+    let earliestAddAction: ReportAction | undefined;
 
     for (const action of Object.values(chatReportActions ?? {})) {
         if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
@@ -3645,10 +3656,22 @@ function getIOUReportActionWithBadge(
             continue;
         }
 
+        // Add is a fallback, so an empty report never hides a sibling report that is ready to submit, approve or pay.
+        if (badge === CONST.REPORT.ACTION_BADGE.ADD) {
+            if (!earliestAddAction || isOlderReportAction(action, earliestAddAction)) {
+                earliestAddAction = action;
+            }
+            continue;
+        }
+
         if (!earliestAction || isOlderReportAction(action, earliestAction)) {
             earliestAction = action;
             actionBadge = badge;
         }
+    }
+
+    if (!earliestAction && earliestAddAction) {
+        return {reportAction: earliestAddAction, actionBadge: CONST.REPORT.ACTION_BADGE.ADD};
     }
 
     return {reportAction: earliestAction, actionBadge};
