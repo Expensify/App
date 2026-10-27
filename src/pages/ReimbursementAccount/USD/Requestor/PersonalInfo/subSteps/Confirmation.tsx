@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const PERSONAL_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT.SUBSTEP_INDEX.PERSONAL_INFO;
@@ -24,7 +24,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
-    const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = getSubStepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount);
     const error = getLatestErrorMessage(reimbursementAccount ?? {});
 
     const summaryItems = [

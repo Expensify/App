@@ -21,7 +21,7 @@ import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type CardListItem = ListItem & {
     value: string;
@@ -37,54 +37,44 @@ function DynamicQuickbooksDesktopPreferredExporterConfigurationPage({policy}: Wi
     const policyID = policy?.id;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.path);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const data: CardListItem[] = useMemo(
-        () =>
-            exporters?.reduce<CardListItem[]>((options, exporter) => {
-                if (!exporter.email) {
-                    return options;
-                }
+    const data: CardListItem[] = exporters?.reduce<CardListItem[]>((options, exporter) => {
+        if (!exporter.email) {
+            return options;
+        }
 
-                // Don't show guides if the current user is not a guide themselves or an Expensify employee
-                if (isExpensifyTeam(exporter.email) && !isExpensifyTeam(policy?.owner) && !isExpensifyTeam(currentUserLogin)) {
-                    return options;
-                }
-                options.push({
-                    value: exporter.email,
-                    text: exporter.email,
-                    keyForList: exporter.email,
-                    // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string
-                    isSelected: (currentExporter || policy?.owner) === exporter.email,
-                });
-                return options;
-            }, []),
-        [exporters, policy?.owner, currentUserLogin, currentExporter],
-    );
+        // Don't show guides if the current user is not a guide themselves or an Expensify employee
+        if (isExpensifyTeam(exporter.email) && !isExpensifyTeam(policy?.owner) && !isExpensifyTeam(currentUserLogin)) {
+            return options;
+        }
+        options.push({
+            value: exporter.email,
+            text: exporter.email,
+            keyForList: exporter.email,
+            // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string
+            isSelected: (currentExporter || policy?.owner) === exporter.email,
+        });
+        return options;
+    }, []);
 
-    const selectExporter = useCallback(
-        (row: CardListItem) => {
-            if (!policyID) {
-                return;
-            }
-            if (row.value !== currentExporter) {
-                updateQuickbooksDesktopPreferredExporter(policyID, row.value, currentExporter);
-            }
-            goBack();
-        },
-        [currentExporter, goBack, policyID],
-    );
+    const selectExporter = (row: CardListItem) => {
+        if (!policyID) {
+            return;
+        }
+        if (row.value !== currentExporter) {
+            updateQuickbooksDesktopPreferredExporter(policyID, row.value, currentExporter);
+        }
+        goBack();
+    };
 
-    const headerContent = useMemo(
-        () => (
-            <>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
-            </>
-        ),
-        [translate, styles.ph5, styles.pb5],
+    const headerContent = (
+        <>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
+        </>
     );
 
     return (

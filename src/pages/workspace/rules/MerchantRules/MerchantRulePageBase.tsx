@@ -73,7 +73,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ValueOf} from 'type-fest';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
@@ -196,7 +196,7 @@ function MerchantRulePageBase({
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const policyTags = useMemo(() => getTagLists(policyTagsFromOnyx) ?? getEmptyArray<ValueOf<PolicyTagLists>>(), [policyTagsFromOnyx]);
+    const policyTags = getTagLists(policyTagsFromOnyx) ?? getEmptyArray<ValueOf<PolicyTagLists>>();
     const [shouldShowError, setShouldShowError] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
@@ -268,14 +268,14 @@ function MerchantRulePageBase({
     useEffect(() => () => clearDraftMerchantRule(), []);
 
     // Fetch categories and tags if they're not loaded (e.g. after cache clear)
-    const fetchPolicyData = useCallback(() => {
+    const fetchPolicyData = () => {
         if (policy?.areCategoriesEnabled && !policyCategories) {
             openPolicyCategoriesPage(policyID);
         }
         if (policy?.areTagsEnabled && !policyTagsFromOnyx) {
             openPolicyTagsPage(policyID);
         }
-    }, [policyID, policy?.areCategoriesEnabled, policy?.areTagsEnabled, policyCategories, policyTagsFromOnyx]);
+    };
 
     useNetwork({onReconnect: fetchPolicyData});
 

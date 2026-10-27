@@ -30,7 +30,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 function SearchActionsBarCreateButton() {
@@ -53,41 +53,38 @@ function SearchActionsBarCreateButton() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const handleCreateWorkspaceReport = useCallback(
-        (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
-            if (!policy?.id) {
-                return;
-            }
+    const handleCreateWorkspaceReport = (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!policy?.id) {
+            return;
+        }
 
-            const {reportID: createdReportID} = createNewReport(
-                currentUserPersonalDetails,
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                policy,
-                isTrackIntentUser,
-                getCurrencyDecimals,
-                rules,
-                false,
-                shouldDismissEmptyReportsConfirmation,
+        const {reportID: createdReportID} = createNewReport(
+            currentUserPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policy,
+            isTrackIntentUser,
+            getCurrencyDecimals,
+            rules,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(
+                isSearchTopmostFullScreenRoute()
+                    ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
+                    : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
             );
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(
-                    isSearchTopmostFullScreenRoute()
-                        ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
-                        : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
-                );
-            });
-        },
-        [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, getCurrencyDecimals, rules],
-    );
+        });
+    };
 
     const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
         onCreateReport: handleCreateWorkspaceReport,
         shouldSkipEmptyReportConfirmation: !isCreateMenuActive,
     });
 
-    const hideCreateMenu = useCallback(() => setIsCreateMenuActive(false), []);
-    const showCreateMenu = useCallback(() => {
+    const hideCreateMenu = () => setIsCreateMenuActive(false);
+    const showCreateMenu = () => {
         if (!createButtonRef.current) {
             return;
         }
@@ -98,38 +95,35 @@ function SearchActionsBarCreateButton() {
             setCreateMenuPosition(position);
             setIsCreateMenuActive(true);
         });
-    }, [calculatePopoverPosition]);
+    };
 
-    const createMenuItems = useMemo(
-        (): PopoverMenuItem[] => [
-            {
-                icon: getIconForAction(CONST.IOU.TYPE.CREATE, expensifyIcons),
-                text: translate('iou.createExpense'),
-                onSelected: () =>
-                    interceptAnonymousUser(() => {
-                        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
-                    }),
-            },
-            {
-                icon: expensifyIcons.Location,
-                text: translate('iou.trackDistance'),
-                onSelected: () =>
-                    interceptAnonymousUser(() => {
-                        startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
-                    }),
-            },
-            ...(isCreateReportVisible
-                ? [
-                      {
-                          icon: expensifyIcons.Document,
-                          text: translate('report.newReport.createReport'),
-                          onSelected: createReport,
-                      },
-                  ]
-                : []),
-        ],
-        [translate, expensifyIcons, draftTransactionIDs, createReport, isCreateReportVisible],
-    );
+    const createMenuItems: PopoverMenuItem[] = [
+        {
+            icon: getIconForAction(CONST.IOU.TYPE.CREATE, expensifyIcons),
+            text: translate('iou.createExpense'),
+            onSelected: () =>
+                interceptAnonymousUser(() => {
+                    startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
+                }),
+        },
+        {
+            icon: expensifyIcons.Location,
+            text: translate('iou.trackDistance'),
+            onSelected: () =>
+                interceptAnonymousUser(() => {
+                    startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
+                }),
+        },
+        ...(isCreateReportVisible
+            ? [
+                  {
+                      icon: expensifyIcons.Document,
+                      text: translate('report.newReport.createReport'),
+                      onSelected: createReport,
+                  },
+              ]
+            : []),
+    ];
 
     return (
         <View style={[styles.searchActionsBarCreateButton]}>
