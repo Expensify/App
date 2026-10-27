@@ -44,13 +44,13 @@ The **Import** tab controls which accounting data is imported from Dynamics 365 
 - **Dimensions** – Each Business Central dimension appears with its own toggle. Enable a dimension to import its values as tags. Dimensions aren't imported until you enable them.
 - **Taxes** – Imports your VAT posting setups as tax rates. This only appears when your Business Central company has VAT posting setups. 
 
-![Accounting tab showing Dynamics 365 Business Central connection with the Import configuration tab open]({{site.url}}/assets/images/Dynamics_Import.png.png){:width="100%"}
+![Accounting tab showing Dynamics 365 Business Central connection with the Import configuration tab open]({{site.url}}/assets/images/Dynamics_Import.png){:width="100%"}
 
 ---
 
 ## How vendors are matched to Dynamics 365 Business Central company card expenses
 
-Expensify imports your Business Central vendors and matches each company card expense to a vendor by merchant name. Learn how to [manage vendor matching for Dynamics 365 Business Central](/articles/new-expensify/connections/business-central/Manage-Vendor-Matching-for-Business-Central).
+Expensify imports your Business Central vendors and matches each company card expense to a vendor by merchant name. Learn how to [manage vendor matching for Business Central](/articles/new-expensify/connections/business-central/Manage-Vendor-Matching-for-Business-Central).
 
 ---
 
@@ -68,7 +68,7 @@ The **Export** tab determines how Expensify sends data to Business Central:
 - **Configure exporting to multiple accounts** – Export different card programs or individual cards to different accounts. Set **Card program account** for each program and **Per-card account** for individual cards.
 - **Payment method** – Optionally choose a payment method for purchase invoices, so Business Central can reconcile them with your bank. This doesn't appear when both export options are **General journal**.
 
-![Accounting tab showing Dynamics 365 Business Central connection with the Export configuration tab open]({{site.url}}/assets/images/Dynamics_Export.png.png){:width="100%"}
+![Accounting tab showing Dynamics 365 Business Central connection with the Export configuration tab open]({{site.url}}/assets/images/Dynamics_Export.png){:width="100%"}
 
 ---
 
