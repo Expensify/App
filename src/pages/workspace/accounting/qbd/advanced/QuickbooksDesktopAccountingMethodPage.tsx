@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 import type {ValueOf} from 'type-fest';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
@@ -46,27 +46,21 @@ function QuickbooksDesktopAccountingMethodPage({policy}: WithPolicyConnectionsPr
         settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC], config?.pendingFields) ??
         settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbd.accountingMethods.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbd.accountingMethods.description')}</Text>
+        </View>
     );
 
-    const selectAccountingMethod = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== accountingMethod) {
-                if (!policyID) {
-                    return;
-                }
-                updateQuickbooksDesktopAccountingMethod(policyID, row.value, accountingMethod);
+    const selectAccountingMethod = (row: MenuListItem) => {
+        if (row.value !== accountingMethod) {
+            if (!policyID) {
+                return;
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC.getRoute(policyID));
-        },
-        [accountingMethod, policyID],
-    );
+            updateQuickbooksDesktopAccountingMethod(policyID, row.value, accountingMethod);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen

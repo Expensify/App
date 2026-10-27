@@ -14,7 +14,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {memo} from 'react';
+import React from 'react';
 
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 import type {KYCWallProps} from './KYCWall/types';
@@ -135,4 +135,4 @@ function MoneyReportHeaderKYCDropdown({
     );
 }
 
-export default memo(MoneyReportHeaderKYCDropdown);
+export default MoneyReportHeaderKYCDropdown;

@@ -426,12 +426,18 @@ type FlowProps = Preset & {
     layout: DynamicFormLayout;
     confirmation: 'auto' | 'yes' | 'no';
 
+    /** Shows the submit button's spinner, as while the request is in flight */
+    isSubmitting?: boolean;
+
+    /** Shows the error the request failed with, next to the submit button */
+    submitError?: string;
+
     /** Remounts the route stack when it changes, so a new schema starts from its first page */
     resetKey: string;
 };
 
 /** The whole flow on a story-owned route stack: pages, resume, the entry editor pages and the confirmation are all clickable */
-function Flow({fields, draftValues, isFlat, layout, confirmation, resetKey}: FlowProps) {
+function Flow({fields, draftValues, isFlat, layout, confirmation, isSubmitting, submitError, resetKey}: FlowProps) {
     const isDraftReady = useSeededDraft(draftValues);
     if (!isDraftReady) {
         return <View />;
@@ -457,16 +463,18 @@ function Flow({fields, draftValues, isFlat, layout, confirmation, resetKey}: Flo
                 onRefreshRequirements={(inputID, value) => console.debug('Refresh requirements', inputID, value)}
                 layout={layout}
                 hasConfirmation={hasConfirmation}
+                isSubmitting={isSubmitting}
+                submitError={submitError}
             />
         </StoryRouterProvider>
     );
 }
 
-type FlowStoryProps = Pick<FlowProps, 'layout' | 'confirmation'> & {
+type FlowStoryProps = Pick<FlowProps, 'layout' | 'confirmation' | 'isSubmitting' | 'submitError'> & {
     preset: PresetName;
 };
 
-function FlowFromPreset({preset, layout, confirmation}: FlowStoryProps) {
+function FlowFromPreset({preset, layout, confirmation, isSubmitting, submitError}: FlowStoryProps) {
     const presetValues: Preset = PRESETS[preset];
     return (
         <Flow
@@ -476,6 +484,8 @@ function FlowFromPreset({preset, layout, confirmation}: FlowStoryProps) {
             isFlat={presetValues.isFlat}
             layout={layout}
             confirmation={confirmation}
+            isSubmitting={isSubmitting}
+            submitError={submitError}
         />
     );
 }
@@ -484,6 +494,8 @@ const flowArgTypes = {
     preset: {options: PRESET_NAMES, control: {type: 'select'}},
     layout: {options: ['auto', 'stepper', 'pages'], control: {type: 'radio'}},
     confirmation: {options: ['auto', 'yes', 'no'], control: {type: 'radio'}},
+    isSubmitting: {control: {type: 'boolean'}},
+    submitError: {control: {type: 'text'}},
 } as const;
 
 function presetFlowStory(preset: PresetName): StoryFn<FlowStoryProps> {

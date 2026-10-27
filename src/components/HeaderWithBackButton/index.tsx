@@ -34,7 +34,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {SvgProps} from 'react-native-svg';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
 
 import type HeaderWithBackButtonProps from './types';
@@ -107,22 +107,20 @@ function HeaderWithBackButton({
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
-    const middleContent = useMemo(() => {
-        const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
-        if (shouldShowReportAvatarWithDisplay) {
-            return (
-                <AvatarWithDisplayName
-                    report={report}
-                    shouldDisplayStatus={shouldDisplayStatus}
-                    shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
-                    openParentReportInCurrentTab={openParentReportInCurrentTab}
-                />
-            );
-        }
-
+    let middleContent;
+    const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
+    if (shouldShowReportAvatarWithDisplay) {
+        middleContent = (
+            <AvatarWithDisplayName
+                report={report}
+                shouldDisplayStatus={shouldDisplayStatus}
+                shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
+                openParentReportInCurrentTab={openParentReportInCurrentTab}
+            />
+        );
+    } else {
         const resolvedSubtitle = stepCounterTranslation ?? subtitle;
-
-        return (
+        middleContent = (
             <HeaderTitle
                 dialogLabel={title}
                 shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
@@ -139,28 +137,11 @@ function HeaderWithBackButton({
                 {!!subTitleLink && <HeaderTitle.SubtitleLink>{subTitleLink}</HeaderTitle.SubtitleLink>}
             </HeaderTitle>
         );
-    }, [
-        StyleUtils,
-        subTitleLink,
-        shouldUseHeadlineHeader,
-        report,
-        shouldEnableDetailPageNavigation,
-        shouldShowReportAvatarWithDisplay,
-        stepCounter,
-        styles.textHeadlineH2,
-        subtitle,
-        title,
-        titleColor,
-        titleStyles,
-        numberOfTitleLines,
-        translate,
-        openParentReportInCurrentTab,
-        shouldDisplayStatus,
-        shouldSkipFocusAfterTransition,
-    ]);
-    const ThreeDotMenuButton = useMemo(() => {
-        if (shouldShowThreeDotsButton) {
-            return threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
+    }
+    let ThreeDotMenuButton;
+    if (shouldShowThreeDotsButton) {
+        ThreeDotMenuButton =
+            threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
                 <Tooltip text={threeDotsMenuItems.at(0)?.text}>
                     <PressableWithoutFeedback
                         onPress={threeDotsMenuItems.at(0)?.onSelected}
@@ -189,22 +170,9 @@ function HeaderWithBackButton({
                     sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                 />
             );
-        }
-        return null;
-    }, [
-        shouldShowThreeDotsButton,
-        threeDotsMenuItems,
-        shouldMinimizeMenuButton,
-        styles.touchableButtonImage,
-        theme.icon,
-        threeDotsMenuIcon,
-        threeDotsMenuIconFill,
-        shouldDisableThreeDotsButton,
-        onThreeDotsButtonPress,
-        shouldOverlayDots,
-        threeDotsAnchorAlignment,
-        shouldSetModalVisibility,
-    ]);
+    } else {
+        ThreeDotMenuButton = null;
+    }
 
     return (
         <View
