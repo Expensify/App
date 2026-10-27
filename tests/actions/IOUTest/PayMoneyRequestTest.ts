@@ -256,6 +256,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     }
                     const iouReportTransactions = await getReportTransactionsFromOnyx(iouReport.reportID);
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -483,6 +484,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     }
                     const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
@@ -666,6 +668,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     }
                     const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: 'ACH',
@@ -725,6 +728,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // When paying the IOU report
             const chatReportPolicy = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -827,6 +831,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // expense the requestor deleted in the meantime
             mockFetch?.fail?.();
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -873,6 +878,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 mockFetch?.pause?.();
 
                 payMoneyRequest({
+                    bankAccountList: undefined,
                     isASAPSubmitBetaEnabled: false,
                     conciergeChat: undefined,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -906,6 +912,66 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 });
 
                 expect(payReportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+
+                mockFetch?.resume?.();
+            });
+            it('records the caller’s bank account details on an expense payment instead of reading cached accounts', async () => {
+                // Given an expense report and an account whose cached number differs from the caller’s snapshot.
+                const bankAccountID = 999;
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US, accountData: {accountNumber: 'XXXX1111'}}});
+                const chatReport = {
+                    ...createRandomReport(0, undefined),
+                    lastReadTime: DateUtils.getDBTime(),
+                    lastVisibleActionCreated: DateUtils.getDBTime(),
+                };
+                const iouReport = {
+                    ...createRandomReport(1, undefined),
+                    chatType: undefined,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    total: 10,
+                };
+                mockFetch?.pause?.();
+
+                // When paying with the account provided by the caller.
+                payMoneyRequest({
+                    bankAccountList: {[bankAccountID]: {bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US, accountData: {accountNumber: 'XXXX9876'}}},
+                    methodID: bankAccountID,
+                    isASAPSubmitBetaEnabled: false,
+                    conciergeChat: undefined,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                    chatReport,
+                    iouReport,
+                    iouReportTransactions: [],
+                    introSelected: undefined,
+                    currentUserAccountID: CARLOS_ACCOUNT_ID,
+                    currentUserLogin: CARLOS_EMAIL,
+                    isSelfTourViewed: false,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                    chatReportActions: undefined,
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
+                });
+
+                await waitForBatchedUpdates();
+
+                const payReportAction = await new Promise<ReportAction | undefined>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                        callback: (reportActions) => {
+                            Onyx.disconnect(connection);
+                            resolve(Object.values(reportActions ?? {}).pop());
+                        },
+                    });
+                });
+
+                // Then the action records the selected account and its current number for every viewer.
+                expect(payReportAction && isMoneyRequestAction(payReportAction) ? getOriginalMessage(payReportAction) : undefined).toEqual(
+                    expect.objectContaining({bankAccountID, accountNumber: 'XXXX9876'}),
+                );
 
                 mockFetch?.resume?.();
             });
@@ -987,6 +1053,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         policyID: CONST.POLICY.ID_FAKE,
                     };
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1088,6 +1155,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
 
             const newExpenseReportID = payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1198,6 +1266,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const pay = (expenseReport: Report, iouReportTransactions: Transaction[]) =>
                 payMoneyRequest({
+                    bankAccountList: undefined,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     chatReport,
                     iouReport: expenseReport,
@@ -1287,6 +1356,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyTrueTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1343,6 +1413,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyFalseTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1519,6 +1590,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1594,6 +1666,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1659,6 +1732,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1703,6 +1777,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyAmountZero = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -2144,6 +2219,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     }
                     const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -2657,6 +2733,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 mockFetch?.pause?.();
                 const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                 payMoneyRequest({
+                    bankAccountList: undefined,
                     isASAPSubmitBetaEnabled: false,
                     conciergeChat: undefined,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,

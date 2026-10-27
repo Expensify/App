@@ -2,7 +2,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import DecisionModal from '@components/DecisionModal';
 import EmployeesSeeTagsAsText from '@components/EmployeesSeeTagsAsText';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
@@ -13,6 +12,7 @@ import type {WorkspaceTagTableRowData} from '@components/Tables/WorkspaceTagsTab
 import WorkspaceTagsTable from '@components/Tables/WorkspaceTagsTable';
 import Text from '@components/Text';
 
+import useAlertModals from '@hooks/useAlertModals';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
@@ -43,6 +43,8 @@ import {
     downloadMultiLevelTagsCSV,
     downloadTagsCSV,
     openPolicyTagsPage,
+    setImportedSpreadsheetIsAppendingToExistingLists,
+    setImportedSpreadsheetIsImportingMultiLevelTags,
     setPolicyShowTagGLCodes,
     setPolicyTagsRequired,
     setWorkspaceTagEnabled,
@@ -80,7 +82,7 @@ import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {PolicyTag, PolicyTagList} from './types';
@@ -104,16 +106,15 @@ function getPendingAction(policyTagList: PolicyTagList): PendingAction | undefin
 }
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {pageGutter} = useLayoutSpacing();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {isBetaEnabledOrUnknown} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
+    const isIndirectTagUploadsBetaEnabled = isBetaEnabled(CONST.BETAS.INDIRECT_TAG_UPLOADS);
     const {showConfirmModal} = useConfirmModal();
-    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
+    const {showDownloadErrorModal} = useAlertModals();
     const {backTo, policyID} = route.params;
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
@@ -132,10 +133,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
     const buildDynamicRoute = useScreenBoundDynamicRoute();
 
-    const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
-        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
-        [policy, policyTags],
-    );
+    const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = [
+        getTagLists(policyTags),
+        isMultiLevelTagsPolicyUtils(policyTags),
+        hasDependentTagsPolicyUtils(policy, policyTags),
+        hasIndependentTagsPolicyUtils(policy, policyTags),
+    ];
 
     const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     // Multi-level tag rows only ever offered the Required bulk actions, and those moved to Rules, so selecting them
@@ -143,39 +146,32 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isSelectionEnabled = canWriteTags && !hasDependentTags && !isMultiLevelTags;
     const canSelectMultiple = isSelectionEnabled && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
-    const tagApproverEmails = useMemo(() => {
-        const approverEmails: Record<string, string> = {};
-
-        if (isMultiLevelTags) {
-            return approverEmails;
-        }
-
+    let tagApproverEmails;
+    const approverEmails: Record<string, string> = {};
+    if (isMultiLevelTags) {
+        tagApproverEmails = approverEmails;
+    } else {
         for (const tag of Object.values(policyTagLists?.at(0)?.tags ?? {})) {
             const approverEmail = getTagApproverRule(policy, tag.name)?.approver;
-
             if (approverEmail) {
                 approverEmails[tag.name] = approverEmail;
             }
         }
-
-        return approverEmails;
-    }, [isMultiLevelTags, policy, policyTagLists]);
+        tagApproverEmails = approverEmails;
+    }
 
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(tagApproverEmails).length > 0;
-    const fetchTags = useCallback(() => {
+    const fetchTags = () => {
         openPolicyTagsPage(policyID);
-    }, [policyID]);
+    };
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
 
-    const tagsList = useMemo(() => {
-        if (isMultiLevelTags) {
-            return policyTagLists.reduce<Record<string, PolicyTagList>>((acc, policyTagList) => {
-                acc[policyTagList.name] = policyTagList;
-                return acc;
-            }, {});
-        }
-        return policyTagLists?.at(0)?.tags;
-    }, [isMultiLevelTags, policyTagLists]);
+    const tagsList = isMultiLevelTags
+        ? policyTagLists.reduce<Record<string, PolicyTagList>>((acc, policyTagList) => {
+              acc[policyTagList.name] = policyTagList;
+              return acc;
+          }, {})
+        : policyTagLists?.at(0)?.tags;
 
     const [selectedTagKeys, setSelectedTagKeys] = useState<string[]>([]);
 
@@ -235,9 +231,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tagsList]);
 
-    const clearTableSelection = useCallback(() => {
+    const clearTableSelection = () => {
         setSelectedTagKeys((prevSelectedTagKeys) => (prevSelectedTagKeys.length > 0 ? [] : prevSelectedTagKeys));
-    }, []);
+    };
 
     useCleanupSelectedOptions(clearTableSelection);
 
@@ -246,73 +242,61 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         onNavigationCallBack: () => Navigation.goBack(backTo),
     });
 
-    const updateWorkspaceTagEnabled = useCallback(
-        (value: boolean, tagName: string) => {
-            if (!canWriteTags) {
-                showReadOnlyModal();
-                return;
-            }
+    const updateWorkspaceTagEnabled = (value: boolean, tagName: string) => {
+        if (!canWriteTags) {
+            showReadOnlyModal();
+            return;
+        }
 
-            setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0, isVendorMatchingBetaEnabled);
-        },
-        [canWriteTags, policyData, showReadOnlyModal, isVendorMatchingBetaEnabled],
-    );
+        setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0, isVendorMatchingBetaEnabled);
+    };
 
-    const updateWorkspaceRequiresTag = useCallback(
-        (value: boolean, orderWeight: number) => {
-            if (!canWriteTags) {
-                showReadOnlyModal();
-                return;
-            }
+    const updateWorkspaceRequiresTag = (value: boolean, orderWeight: number) => {
+        if (!canWriteTags) {
+            showReadOnlyModal();
+            return;
+        }
 
-            setPolicyTagsRequired(policyData, value, orderWeight, isVendorMatchingBetaEnabled);
-        },
-        [canWriteTags, policyData, showReadOnlyModal, isVendorMatchingBetaEnabled],
-    );
+        setPolicyTagsRequired(policyData, value, orderWeight, isVendorMatchingBetaEnabled);
+    };
     const shouldShowGLCodeColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && Object.values(policyTagLists?.at(0)?.tags ?? {}).some((tag) => !!tag['GL Code']);
 
-    const showAllTagsDisabledWarning = useCallback(() => {
+    const showAllTagsDisabledWarning = () => {
         showConfirmModal({
             title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
             prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    };
 
-    const handleTagEnabledToggle = useCallback(
-        (enabled: boolean, tag: PolicyTag) => {
-            if (!canWriteTags) {
-                showReadOnlyModal();
-                return;
-            }
+    const handleTagEnabledToggle = (enabled: boolean, tag: PolicyTag) => {
+        if (!canWriteTags) {
+            showReadOnlyModal();
+            return;
+        }
 
-            if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
-                showAllTagsDisabledWarning();
-                return;
-            }
+        if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
+            showAllTagsDisabledWarning();
+            return;
+        }
 
-            updateWorkspaceTagEnabled(enabled, tag.name);
-        },
-        [canWriteTags, policyTagLists, showAllTagsDisabledWarning, showReadOnlyModal, updateWorkspaceTagEnabled],
-    );
+        updateWorkspaceTagEnabled(enabled, tag.name);
+    };
 
-    const navigateToTagSettings = useCallback(
-        (tagValue: string, orderWeight?: number) => {
-            if (orderWeight !== undefined) {
-                Navigation.navigate(
-                    buildDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(orderWeight) : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(orderWeight)),
-                );
-            } else {
-                Navigation.navigate(
-                    isQuickSettingsFlow
-                        ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(0, tagValue))
-                        : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(0, tagValue)),
-                );
-            }
-        },
-        [buildDynamicRoute, isQuickSettingsFlow],
-    );
+    const navigateToTagSettings = (tagValue: string, orderWeight?: number) => {
+        if (orderWeight !== undefined) {
+            Navigation.navigate(
+                buildDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(orderWeight) : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(orderWeight)),
+            );
+        } else {
+            Navigation.navigate(
+                isQuickSettingsFlow
+                    ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(0, tagValue))
+                    : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(0, tagValue)),
+            );
+        }
+    };
 
     useEffect(() => {
         if (!canWriteTags || !isMultiLevelTags || hasDependentTags) {
@@ -329,61 +313,52 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const isSelectionModeActive = selectedTagKeys.length > 0 || isMobileSelectionModeEnabled;
 
-    const tagRows = useMemo<WorkspaceTagTableRowData[]>(() => {
-        if (isMultiLevelTags) {
-            return policyTagLists.reduce<WorkspaceTagTableRowData[]>((acc, policyTagList) => {
-                const isDisabled = policyTagList.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-                if (!isOffline && isDisabled) {
-                    return acc;
-                }
-
-                const areTagsEnabled = !!Object.values(policyTagList?.tags ?? {}).some((tag) => tag.enabled);
-                const isSwitchDisabled = !policyTagList.required && !areTagsEnabled;
-                const isSwitchEnabled = policyTagList.required && areTagsEnabled;
-                const tagCount = Object.keys(policyTagList?.tags ?? {}).length;
-
-                acc.push({
-                    keyForList: policyTagList.name,
-                    value: policyTagList.name,
-                    name: getCleanedTagName(policyTagList.name),
-                    orderWeight: policyTagList.orderWeight,
-                    enabled: true,
-                    required: isSwitchEnabled,
-                    tagCount,
-                    disabled: isDisabled,
-                    isSelectionDisabled: isSwitchDisabled,
-                    isSwitchDisabled,
-                    pendingAction: getPendingAction(policyTagList),
-                    isLocked: !canWriteTags || isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList]),
-                    showEnabledSwitch: false,
-                    // Inline renaming targets single-level tags only; tag lists are renamed from their settings page.
-                    action: () => navigateToTagSettings(policyTagList.name, policyTagList.orderWeight),
-                    onClose: () => {},
-                });
-
+    let tagRows: WorkspaceTagTableRowData[];
+    if (isMultiLevelTags) {
+        tagRows = policyTagLists.reduce<WorkspaceTagTableRowData[]>((acc, policyTagList) => {
+            const isDisabled = policyTagList.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            if (!isOffline && isDisabled) {
                 return acc;
-            }, []);
-        }
-
+            }
+            const areTagsEnabled = !!Object.values(policyTagList?.tags ?? {}).some((tag) => tag.enabled);
+            const isSwitchDisabled = !policyTagList.required && !areTagsEnabled;
+            const isSwitchEnabled = policyTagList.required && areTagsEnabled;
+            const tagCount = Object.keys(policyTagList?.tags ?? {}).length;
+            acc.push({
+                keyForList: policyTagList.name,
+                value: policyTagList.name,
+                name: getCleanedTagName(policyTagList.name),
+                orderWeight: policyTagList.orderWeight,
+                enabled: true,
+                required: isSwitchEnabled,
+                tagCount,
+                disabled: isDisabled,
+                isSelectionDisabled: isSwitchDisabled,
+                isSwitchDisabled,
+                pendingAction: getPendingAction(policyTagList),
+                isLocked: !canWriteTags || isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList]),
+                showEnabledSwitch: false,
+                // Inline renaming targets single-level tags only; tag lists are renamed from their settings page.
+                action: () => navigateToTagSettings(policyTagList.name, policyTagList.orderWeight),
+                onClose: () => {},
+            });
+            return acc;
+        }, []);
+    } else {
         const firstTagList = policyTagLists.at(0);
         const enabledTagsCount = getCountOfEnabledTagsOfList(firstTagList?.tags);
         const isLastEnabledTagLocked = !!firstTagList?.required && enabledTagsCount === 1;
         const shouldShowPendingSwitch = Object.keys(firstTagList?.tags ?? {}).length > PENDING_SWITCH_TAG_COUNT_THRESHOLD;
-
-        return Object.values(firstTagList?.tags ?? {}).reduce<WorkspaceTagTableRowData[]>((acc, tag) => {
+        tagRows = Object.values(firstTagList?.tags ?? {}).reduce<WorkspaceTagTableRowData[]>((acc, tag) => {
             const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
             if (!isOffline && isDisabled) {
                 return acc;
             }
-
             const approverEmail = shouldShowApproverColumn ? tagApproverEmails[tag.name] : undefined;
             const approverPersonalDetail = employeePersonalDetails[approverEmail ?? ''];
             const {avatar: approverAvatar, displayName = approverEmail, accountID: approverAccountID} = approverPersonalDetail ?? {};
             const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
             const isLastEnabledTagAndEnabled = isLastEnabledTagLocked && tag.enabled;
-
             acc.push({
                 keyForList: tag.name,
                 value: tag.name,
@@ -403,44 +378,27 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 action: () => navigateToTagSettings(tag.name),
                 onToggleEnabled: (enabled: boolean) => handleTagEnabledToggle(enabled, tag),
                 onRenameName: (newName: string) => showInlineEditError(renameTagInline(translate, policyData, tag.name, newName, isVendorMatchingBetaEnabled)),
-                onClose: () => clearPolicyTagErrors({policyID, tagName: tag.name, tagListIndex: 0, policyTags}),
+                onClose: () =>
+                    clearPolicyTagErrors({
+                        policyID,
+                        tagName: tag.name,
+                        tagListIndex: 0,
+                        policyTags,
+                    }),
             });
-
             return acc;
         }, []);
-    }, [
-        canWriteTags,
-        isSelectionModeActive,
-        policyData,
-        handleTagEnabledToggle,
-        isMultiLevelTags,
-        isOffline,
-        navigateToTagSettings,
-        policy,
-        policyID,
-        policyTagLists,
-        translate,
-        policyTags,
-        shouldShowApproverColumn,
-        tagApproverEmails,
-        employeePersonalDetails,
-        formatPhoneNumber,
-        isVendorMatchingBetaEnabled,
-    ]);
+    }
 
-    const tagRowsKeyedByName = useMemo(
-        () =>
-            tagRows.reduce<Record<string, WorkspaceTagTableRowData>>((acc, tag) => {
-                acc[tag.value] = tag;
-                return acc;
-            }, {}),
-        [tagRows],
-    );
+    const tagRowsKeyedByName = tagRows.reduce<Record<string, WorkspaceTagTableRowData>>((acc, tag) => {
+        acc[tag.value] = tag;
+        return acc;
+    }, {});
 
-    const navigateToCustomTagName = useCallback(() => {
+    const navigateToCustomTagName = () => {
         const orderWeight = policyTagLists.at(0)?.orderWeight ?? 0;
         Navigation.navigate(buildDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.getRoute(orderWeight) : DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.getRoute(orderWeight)));
-    }, [buildDynamicRoute, isQuickSettingsFlow, policyTagLists]);
+    };
 
     const navigateToCreateTagPage = () => {
         Navigation.navigate(isQuickSettingsFlow ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path) : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path));
@@ -458,7 +416,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isLoading = !isOffline && policyTags === undefined;
     const hasVisibleTags = tagRows.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
-    const navigateToImportSpreadsheet = useCallback(() => {
+    const navigateToImportSpreadsheet = () => {
         if (isOffline) {
             showConfirmModal({
                 title: translate('common.youAppearToBeOffline'),
@@ -474,128 +432,119 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
                 : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
         );
-    }, [backTo, isOffline, isQuickSettingsFlow, policyID, showConfirmModal, translate]);
+    };
+
+    const navigateToAppendCustomTagList = () => {
+        if (isOffline) {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: true,
+            });
+            return;
+        }
+        // Appending keeps the accounting connection tag lists, so we skip the import options page and its override warnings
+        setImportedSpreadsheetIsImportingMultiLevelTags(true);
+        setImportedSpreadsheetIsAppendingToExistingLists(true);
+        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_IMPORT.path));
+    };
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    const secondaryActions = useMemo(() => {
-        const menuItems = [];
-        // The former Settings page's rows are surfaced directly in this menu (the dedicated Settings page was removed).
-        if (canWriteTags && !isMultiLevelTags) {
-            menuItems.push({
-                // Match the design: the "Custom tag name" label is the small gray description on top, the tag list name is the regular-weight title below.
-                text: policyTagLists.at(0)?.name ?? '',
-                description: translate('workspace.tags.customTagName'),
-                shouldShowDescriptionOnTop: true,
-                titleStyle: styles.fontWeightNormal,
-                onSelected: navigateToCustomTagName,
-                shouldShowRightIcon: true,
-                shouldIgnoreCompactStyle: true,
-                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-                pendingAction: policyTags?.[policyTagLists.at(0)?.name ?? '']?.pendingAction,
-                errors: policyTags?.[policyTagLists.at(0)?.name ?? '']?.errors,
-                onCloseError: () => clearPolicyTagListErrors({policyID, tagListIndex: policyTagLists.at(0)?.orderWeight ?? 0, policyTags}),
-            });
-        }
-        if (canWriteTags && !!policy?.glCodes) {
-            menuItems.push({
-                text: translate('workspace.tags.showTagGLCodes'),
-                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-                // Selecting the row (click or Enter) toggles it; the Switch is a display-only indicator. Keep the menu open on select.
-                shouldCloseModalOnSelect: false,
-                onSelected: () => setPolicyShowTagGLCodes(policyID, !(policy?.showTagGLCodes ?? false), policy?.showTagGLCodes),
-                shouldIgnoreCompactStyle: true,
-                // Let the label wrap fully and keep the Switch centered against it on narrow screens.
-                numberOfLinesTitle: 0,
-                innerContainerStyle: styles.alignItemsCenter,
-                titleStyle: [styles.textLabel, styles.fontWeightNormal],
-                pendingAction: policy?.pendingFields?.showTagGLCodes,
-                errors: policy?.errorFields?.showTagGLCodes,
-                onCloseError: () => clearPolicyErrorField(policyID, 'showTagGLCodes'),
-                switchProps: {
-                    isOn: policy?.showTagGLCodes ?? false,
-                    accessibilityLabel: translate('workspace.tags.showTagGLCodes'),
-                    onToggle: (value: boolean) => setPolicyShowTagGLCodes(policyID, value, policy?.showTagGLCodes),
-                    disabled: !policy?.areTagsEnabled,
-                },
-            });
-        }
-
-        if (canWriteTags && !hasAccountingConnections) {
-            menuItems.push({
-                icon: expensifyIcons.Table,
-                text: translate('spreadsheet.importSpreadsheet'),
-                onSelected: navigateToImportSpreadsheet,
-                value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
-                // Group the settings rows apart from the spreadsheet actions.
-                addSeparatorBefore: true,
-            });
-        }
-
-        if (hasVisibleTags) {
-            menuItems.push({
-                icon: expensifyIcons.Download,
-                text: translate('spreadsheet.downloadCSV'),
-                onSelected: () => {
-                    if (isOffline) {
-                        showConfirmModal({
-                            title: translate('common.youAppearToBeOffline'),
-                            prompt: translate('common.thisFeatureRequiresInternet'),
-                            confirmText: translate('common.buttonConfirm'),
-                            shouldShowCancelButton: false,
-                            shouldHandleNavigationBack: true,
-                        });
-                        return;
-                    }
-                    close(() => {
-                        if (isMultiLevelTags) {
-                            downloadMultiLevelTagsCSV(
-                                policyID,
-                                () => {
-                                    setIsDownloadFailureModalVisible(true);
-                                },
-                                hasDependentTags,
-                                translate,
-                            );
-                        } else {
-                            downloadTagsCSV(
-                                policyID,
-                                () => {
-                                    setIsDownloadFailureModalVisible(true);
-                                },
-                                translate,
-                            );
-                        }
+    // Same as Classic, a custom tag list can only be appended to single-level or independent multi-level tags
+    const shouldShowAppendCustomTagList = canWriteTags && hasAccountingConnections && isIndirectTagUploadsBetaEnabled && !isQuickSettingsFlow && (!isMultiLevelTags || hasIndependentTags);
+    const menuItems = [];
+    // The former Settings page's rows are surfaced directly in this menu (the dedicated Settings page was removed).
+    if (canWriteTags && !isMultiLevelTags) {
+        menuItems.push({
+            // Match the design: the "Custom tag name" label is the small gray description on top, the tag list name is the regular-weight title below.
+            text: policyTagLists.at(0)?.name ?? '',
+            description: translate('workspace.tags.customTagName'),
+            shouldShowDescriptionOnTop: true,
+            titleStyle: styles.fontWeightNormal,
+            onSelected: navigateToCustomTagName,
+            shouldShowRightIcon: true,
+            shouldIgnoreCompactStyle: true,
+            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            pendingAction: policyTags?.[policyTagLists.at(0)?.name ?? '']?.pendingAction,
+            errors: policyTags?.[policyTagLists.at(0)?.name ?? '']?.errors,
+            onCloseError: () =>
+                clearPolicyTagListErrors({
+                    policyID,
+                    tagListIndex: policyTagLists.at(0)?.orderWeight ?? 0,
+                    policyTags,
+                }),
+        });
+    }
+    if (canWriteTags && !!policy?.glCodes) {
+        menuItems.push({
+            text: translate('workspace.tags.showTagGLCodes'),
+            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            // Selecting the row (click or Enter) toggles it; the Switch is a display-only indicator. Keep the menu open on select.
+            shouldCloseModalOnSelect: false,
+            onSelected: () => setPolicyShowTagGLCodes(policyID, !(policy?.showTagGLCodes ?? false), policy?.showTagGLCodes),
+            shouldIgnoreCompactStyle: true,
+            // Let the label wrap fully and keep the Switch centered against it on narrow screens.
+            numberOfLinesTitle: 0,
+            innerContainerStyle: styles.alignItemsCenter,
+            titleStyle: [styles.textLabel, styles.fontWeightNormal],
+            pendingAction: policy?.pendingFields?.showTagGLCodes,
+            errors: policy?.errorFields?.showTagGLCodes,
+            onCloseError: () => clearPolicyErrorField(policyID, 'showTagGLCodes'),
+            switchProps: {
+                isOn: policy?.showTagGLCodes ?? false,
+                accessibilityLabel: translate('workspace.tags.showTagGLCodes'),
+                onToggle: (value: boolean) => setPolicyShowTagGLCodes(policyID, value, policy?.showTagGLCodes),
+                disabled: !policy?.areTagsEnabled,
+            },
+        });
+    }
+    if (canWriteTags && !hasAccountingConnections) {
+        menuItems.push({
+            icon: expensifyIcons.Table,
+            text: translate('spreadsheet.importSpreadsheet'),
+            onSelected: navigateToImportSpreadsheet,
+            value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+            // Group the settings rows apart from the spreadsheet actions.
+            addSeparatorBefore: true,
+        });
+    }
+    if (shouldShowAppendCustomTagList) {
+        menuItems.push({
+            icon: expensifyIcons.Table,
+            text: translate('workspace.tags.appendCustomTagList'),
+            onSelected: navigateToAppendCustomTagList,
+            value: CONST.POLICY.SECONDARY_ACTIONS.APPEND_CUSTOM_TAG_LIST,
+        });
+    }
+    if (hasVisibleTags) {
+        menuItems.push({
+            icon: expensifyIcons.Download,
+            text: translate('spreadsheet.downloadCSV'),
+            onSelected: () => {
+                if (isOffline) {
+                    showConfirmModal({
+                        title: translate('common.youAppearToBeOffline'),
+                        prompt: translate('common.thisFeatureRequiresInternet'),
+                        confirmText: translate('common.buttonConfirm'),
+                        shouldShowCancelButton: false,
+                        shouldHandleNavigationBack: true,
                     });
-                },
-                value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
-            });
-        }
-
-        return menuItems;
-    }, [
-        translate,
-        hasAccountingConnections,
-        hasVisibleTags,
-        navigateToImportSpreadsheet,
-        isOffline,
-        isMultiLevelTags,
-        policyID,
-        hasDependentTags,
-        expensifyIcons,
-        showConfirmModal,
-        canWriteTags,
-        policyTagLists,
-        policyTags,
-        navigateToCustomTagName,
-        policy?.glCodes,
-        policy?.showTagGLCodes,
-        policy?.areTagsEnabled,
-        policy?.pendingFields?.showTagGLCodes,
-        policy?.errorFields?.showTagGLCodes,
-        styles.alignItemsCenter,
-        styles.textLabel,
-        styles.fontWeightNormal,
-    ]);
+                    return;
+                }
+                close(() => {
+                    if (isMultiLevelTags) {
+                        downloadMultiLevelTagsCSV(policyID, showDownloadErrorModal, hasDependentTags, translate);
+                    } else {
+                        downloadTagsCSV(policyID, showDownloadErrorModal, translate);
+                    }
+                });
+            },
+            value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+        });
+    }
+    const secondaryActions = menuItems;
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
@@ -784,16 +733,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const headerContent = <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>{getHeaderSubtitle()}</View>;
 
-    const subtitleText = useMemo(() => {
-        const emptyTagsSubtitle = hasAccountingConnections
-            ? translate('workspace.tags.emptyTags.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`, canWriteTags)
-            : translate('workspace.tags.emptyTags.subtitleHTML');
-        return (
-            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
-                <RenderHTML html={emptyTagsSubtitle} />
-            </View>
-        );
-    }, [hasAccountingConnections, translate, environmentURL, policyID, canWriteTags, styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]);
+    const emptyTagsSubtitle = hasAccountingConnections
+        ? translate('workspace.tags.emptyTags.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`, canWriteTags)
+        : translate('workspace.tags.emptyTags.subtitleHTML');
+    const subtitleText = (
+        <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
+            <RenderHTML html={emptyTagsSubtitle} />
+        </View>
+    );
 
     const tagsTableEmptyState = {
         title: translate('workspace.tags.emptyTags.title'),
@@ -818,77 +765,66 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     return (
-        <>
-            <AccessOrNotFoundWrapper
-                policyID={policyID}
-                accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
-                policyFeature={CONST.POLICY.POLICY_FEATURE.TAGS}
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.TAGS}
+        >
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
+                style={[styles.defaultModalContainer]}
+                testID="WorkspaceTagsPage"
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
             >
-                <ScreenWrapper
-                    enableEdgeToEdgeBottomSafeAreaPadding
-                    shouldEnableMaxHeight
-                    style={[styles.defaultModalContainer]}
-                    testID="WorkspaceTagsPage"
-                    shouldShowOfflineIndicatorInWideScreen
-                    offlineIndicatorStyle={styles.mtAuto}
+                <HeaderWithBackButton
+                    shouldUseHeadlineHeader={!selectionModeHeader}
+                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplayHelpButton
+                    onBackButtonPress={() => {
+                        if (isMobileSelectionModeEnabled) {
+                            clearTableSelection();
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
+
+                        if (backTo) {
+                            Navigation.goBack(backTo);
+                            return;
+                        }
+
+                        Navigation.goBack();
+                    }}
                 >
-                    <HeaderWithBackButton
-                        shouldUseHeadlineHeader={!selectionModeHeader}
-                        title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        shouldDisplayHelpButton
-                        onBackButtonPress={() => {
-                            if (isMobileSelectionModeEnabled) {
-                                clearTableSelection();
-                                turnOffMobileSelectionMode();
-                                return;
-                            }
-
-                            if (backTo) {
-                                Navigation.goBack(backTo);
-                                return;
-                            }
-
-                            Navigation.goBack();
-                        }}
-                    >
-                        {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
-                    </HeaderWithBackButton>
-                    {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={pageGutter}>{getHeaderButtons()}</View>}
-                    {(!hasVisibleTags || isLoading) && headerContent}
-                    {isLoading && (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                        />
-                    )}
-                    {!isLoading && (
-                        <WorkspaceTagsTable
-                            tags={tagRows}
-                            selectionEnabled={isSelectionEnabled}
-                            selectedKeys={selectedTagKeys}
-                            isMultiLevelTags={isMultiLevelTags}
-                            hasDependentTags={hasDependentTags}
-                            shouldShowApproverColumn={shouldShowApproverColumn}
-                            shouldShowGLCodeColumn={shouldShowGLCodeColumn}
-                            emptyState={tagsTableEmptyState}
-                            onRowSelectionChange={setSelectedTagKeys}
-                            headerComponent={hasVisibleTags ? headerContent : undefined}
-                        />
-                    )}
-                </ScreenWrapper>
-            </AccessOrNotFoundWrapper>
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadFailureModalVisible}
-                onClose={() => setIsDownloadFailureModalVisible(false)}
-            />
-        </>
+                    {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
+                </HeaderWithBackButton>
+                {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={pageGutter}>{getHeaderButtons()}</View>}
+                {(!hasVisibleTags || isLoading) && headerContent}
+                {isLoading && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                    />
+                )}
+                {!isLoading && (
+                    <WorkspaceTagsTable
+                        tags={tagRows}
+                        selectionEnabled={isSelectionEnabled}
+                        selectedKeys={selectedTagKeys}
+                        isMultiLevelTags={isMultiLevelTags}
+                        hasDependentTags={hasDependentTags}
+                        shouldShowApproverColumn={shouldShowApproverColumn}
+                        shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                        emptyState={tagsTableEmptyState}
+                        onRowSelectionChange={setSelectedTagKeys}
+                        headerComponent={hasVisibleTags ? headerContent : undefined}
+                    />
+                )}
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

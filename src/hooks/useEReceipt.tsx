@@ -8,8 +8,6 @@ import {getTripEReceiptIcon} from '@libs/TripReservationUtils';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
-import {useMemo} from 'react';
-
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useStyleUtils from './useStyleUtils';
 
@@ -36,7 +34,7 @@ export default function useEReceipt(transactionData: Transaction | TransactionLi
     const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
     const tripIcon = getTripEReceiptIcon(expensifyIcons, transactionData);
 
-    const backgroundImage = useMemo(() => backgroundImages[colorCode], [colorCode]);
+    const backgroundImage = backgroundImages[colorCode];
 
     return {
         primaryColor,

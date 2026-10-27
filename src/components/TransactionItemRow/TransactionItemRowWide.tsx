@@ -41,6 +41,7 @@ import {
     getTaxName,
     isDeletedTransaction as isDeletedTransactionUtil,
     isExpenseUnreported,
+    isOnHold,
     isPerDiemRequest,
     isScanning,
     isTimeRequest,
@@ -178,6 +179,20 @@ function TransactionItemRowWide({
     if (shouldUseFullHeightEditableCellHoverTarget) {
         fullHeightMainRowStyle = hasValidationMessage ? styles.mnh13 : styles.tableRowHeight;
     }
+
+    const renderYesNoCell = (columnName: SearchColumnType, value: boolean) => (
+        <View
+            key={columnName}
+            style={[getSearchColumnStyles(columnName)]}
+        >
+            <Text
+                selectable
+                dataSet={COPYABLE_TEXT_DATA_SET}
+            >
+                {value ? translate('common.yes') : translate('common.no')}
+            </Text>
+        </View>
+    );
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         const shouldHideTaxValueByRequestType = isTimeRequest(transactionItem) || isPerDiemRequest(transactionItem);
@@ -354,33 +369,11 @@ function TransactionItemRowWide({
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
-                return (
-                    <View
-                        key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
-                    >
-                        <Text
-                            selectable
-                            dataSet={COPYABLE_TEXT_DATA_SET}
-                        >
-                            {getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}
-                        </Text>
-                    </View>
-                );
+                return renderYesNoCell(column, getReimbursable(transactionItem));
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
-                return (
-                    <View
-                        key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
-                    >
-                        <Text
-                            selectable
-                            dataSet={COPYABLE_TEXT_DATA_SET}
-                        >
-                            {transactionItem.billable ? translate('common.yes') : translate('common.no')}
-                        </Text>
-                    </View>
-                );
+                return renderYesNoCell(column, !!transactionItem.billable);
+            case CONST.SEARCH.TABLE_COLUMNS.HELD:
+                return renderYesNoCell(column, isOnHold(transactionItem));
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
                 return (
                     <View

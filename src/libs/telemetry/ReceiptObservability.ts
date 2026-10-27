@@ -1,5 +1,6 @@
 import {getAll as getAllPersistedRequests, getOngoingRequest} from '@libs/actions/PersistedRequests';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import getFirstLine from '@libs/cameraCapture/getFirstLine';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIsOffline} from '@libs/NetworkState';
@@ -262,12 +263,12 @@ function logCameraCaptureFailed(error: unknown) {
     });
 }
 
-/** VisionCamera reported a runtime error, which usually means the preview never became usable. */
-function logCameraRuntimeError({code, message}: {code: string; message: string}) {
+/** VisionCamera reported a runtime error. v5 errors have no code, so the message's first line is what groups them. */
+function logCameraRuntimeError(error: Error) {
     Log.alert(`${RECEIPT_LOG_PREFIX} camera runtime error`, {
         event: 'cameraRuntimeError',
-        code,
-        error: message,
+        summary: getFirstLine(error.message),
+        error: error.message,
     });
 }
 

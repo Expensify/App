@@ -1,7 +1,7 @@
 import type {FocusTrapProps} from 'focus-trap-react';
 import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports -- type-only: the launcher union must cover every anchor shape popovers pass, including RN Text anchors
-import type {Text, View} from 'react-native';
+import type {Text, TextInput, View} from 'react-native';
 
 type FocusTrapOptions = Exclude<FocusTrapProps['focusTrapOptions'], undefined>;
 
@@ -18,10 +18,10 @@ type FocusTrapForModalProps = {
      * "+") leave nothing to infer the launcher from, so both the dismiss-time focus return and the nav-back
      * restore have no target. Pass the same ref the popover already uses to position itself.
      *
-     * Deliberately covers every anchor shape in use (`View`, `Text`, DOM element): the trap narrows it with
+     * Deliberately covers every anchor shape in use (`View`, `Text`, `TextInput`, DOM element): the trap narrows it with
      * `instanceof HTMLElement` anyway, so a ref it cannot use is simply ignored rather than rejected.
      */
-    launcherRef?: RefObject<ComponentRef<typeof View> | ComponentRef<typeof Text> | HTMLElement | null>;
+    launcherRef?: RefObject<ComponentRef<typeof View> | ComponentRef<typeof Text> | ComponentRef<typeof TextInput> | HTMLElement | null>;
 };
 
 export default FocusTrapForModalProps;

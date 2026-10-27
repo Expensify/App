@@ -75,7 +75,7 @@ const buildIntacctPolicy = (vendors: Array<{id: string; name: string; value: str
         }),
     });
 
-/** Xero policy whose supplier list scopes vendor matching to Xero (label flips vendor -> supplier). */
+/** Xero policy whose supplier list scopes vendor matching to Xero. */
 const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; email: string}> | undefined): Policy =>
     createMock<Policy>({
         ...createRandomPolicy(0),
@@ -184,13 +184,19 @@ describe('Vendor matching on merchant rules', () => {
             expect(buildTableData(policy, 'v-1').at(0)?.ruleDescription).toContain('Update vendor to "Acme Co"');
         });
 
-        it('uses "supplier" wording and "Supplier unavailable" on Xero workspaces', () => {
+        it('uses "vendor" wording and "Vendor unavailable" on Xero workspaces', () => {
+            // Given Xero workspaces where the rule's vendor is synced, missing from a loaded list, or not loaded yet
             const resolved = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-            expect(buildTableData(resolved, 'xc1').at(0)?.ruleDescription).toContain('Update supplier to "Acme Xero"');
 
-            expect(buildTableData(buildXeroPolicy({}), 'xc1').at(0)?.ruleDescription).toContain('Update supplier to "Supplier unavailable"');
+            // When the merchant rule summaries are built
+            const resolvedDescription = buildTableData(resolved, 'xc1').at(0)?.ruleDescription;
+            const unavailableDescription = buildTableData(buildXeroPolicy({}), 'xc1').at(0)?.ruleDescription;
+            const unsyncedDescription = buildTableData(buildXeroPolicy(undefined), 'xc1').at(0)?.ruleDescription;
 
-            expect(buildTableData(buildXeroPolicy(undefined), 'xc1').at(0)?.ruleDescription).toContain('Update supplier to "xc1"');
+            // Then they say "vendor" like every other integration, so the wording matches the rest of the app
+            expect(resolvedDescription).toContain('Update vendor to "Acme Xero"');
+            expect(unavailableDescription).toContain('Update vendor to "Vendor unavailable"');
+            expect(unsyncedDescription).toContain('Update vendor to "xc1"');
         });
     });
 

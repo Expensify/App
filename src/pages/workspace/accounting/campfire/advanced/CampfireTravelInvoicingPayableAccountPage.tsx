@@ -60,7 +60,7 @@ function CampfireTravelInvoicingPayableAccountPage({policy}: WithPolicyConnectio
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             shouldBeBlocked={shouldBeBlocked}
-            title="workspace.campfire.travelInvoicingPayableAccount.label"
+            title="workspace.campfire.travelBillingPayableAccount.label"
             displayName="CampfireTravelInvoicingPayableAccountSelectPage"
             data={data}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE}

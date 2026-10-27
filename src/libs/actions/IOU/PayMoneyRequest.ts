@@ -82,6 +82,7 @@ type PayInvoiceArgs = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
@@ -126,6 +127,7 @@ type PayMoneyRequestFunctionParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     isFallbackChatReport?: boolean;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
@@ -139,6 +141,7 @@ function getPayMoneyRequestParams({
     reportPolicy,
     payAsBusiness,
     bankAccountID,
+    bankAccountList,
     currentUserAccountIDParam,
     currentUserEmailParam,
     introSelected,
@@ -184,6 +187,7 @@ function getPayMoneyRequestParams({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     isFallbackChatReport?: boolean;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -265,6 +269,13 @@ function getPayMoneyRequestParams({
 
     const shouldMoveScanFailedTransactions = !!full && isExpenseReport(iouReport) && shouldSplitScanFailedTransactions(iouReportTransactions, iouReport);
 
+    // Store the masked account actually paid with on the action itself, so every viewer resolves the same account.
+    // The paying admin may not be the workspace payer, so the account can be their own (looked up in `bankAccountList`)
+    // rather than the policy's ACH account. We fall back to the policy account when it is the one being used.
+    const paidWithBankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : undefined;
+    const paidAccountNumber =
+        paidWithBankAccount?.accountData?.accountNumber ?? (bankAccountID === reportPolicy?.achAccount?.bankAccountID ? reportPolicy?.achAccount?.accountNumber : undefined);
+
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount: isExpenseReport(iouReport) ? -total : total,
@@ -277,6 +288,7 @@ function getPayMoneyRequestParams({
         isSettlingUp: true,
         payAsBusiness,
         bankAccountID,
+        accountNumber: paidAccountNumber,
         delegateAccountIDParam: delegateAccountID,
         getCurrencyDecimals,
     });
@@ -894,6 +906,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         getCurrencyDecimals,
         isFallbackChatReport,
         rules,
+        bankAccountList,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -927,6 +940,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+        bankAccountList,
         delegateAccountID,
         chatReportActions,
         isTrackIntentUser,
@@ -1140,6 +1154,7 @@ function payInvoice({
     isTrackIntentUser,
     getCurrencyDecimals,
     rules,
+    bankAccountList,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -1165,6 +1180,7 @@ function payInvoice({
         full: true,
         payAsBusiness,
         bankAccountID: methodID,
+        bankAccountList,
         existingB2BInvoiceReport,
         activePolicy,
         conciergeChat,
