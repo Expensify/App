@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
-index f7fc390..b5e82e2 100644
+index f7fc390..a6ac9d2 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 @@ -3,6 +3,7 @@ package com.swmansion.rnscreens.gamma.tabs.appearance
@@ -19,6 +19,37 @@ index f7fc390..b5e82e2 100644
              largeLabel.letterSpacing = 0f
          }
      }
+@@ -170,13 +171,16 @@ internal class TabsAppearanceApplicator(
+     fun updateMenuItemAppearance(
+         menuItem: MenuItem,
+         tabsScreen: TabsScreen,
++        tabBarAppearance: TabsAppearance?,
+     ) {
+         if (menuItem.title != tabsScreen.tabTitle) {
+             menuItem.title = tabsScreen.tabTitle
+         }
+ 
++        // With the selection hidden the selected tab is drawn unselected, so it must not switch to its selected icon.
++        val isSelectionHidden = tabBarAppearance?.tabBarItemActiveIndicatorColor == Color.TRANSPARENT
+         val targetIcon =
+-            if (tabsScreen.selectedIcon != null && tabsScreen.icon != null) {
++            if (!isSelectionHidden && tabsScreen.selectedIcon != null && tabsScreen.icon != null) {
+                 StateListDrawable().apply {
+                     addState(intArrayOf(android.R.attr.state_checked), tabsScreen.selectedIcon?.mutate())
+                     addState(intArrayOf(), tabsScreen.icon?.mutate())
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceCoordinator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceCoordinator.kt
+index d827309..c59fcb4 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceCoordinator.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceCoordinator.kt
+@@ -43,7 +43,7 @@ internal class TabsAppearanceCoordinator(
+         tabsScreen: TabsScreen,
+         appearance: TabsAppearance?,
+     ) {
+-        appearanceApplicator.updateMenuItemAppearance(menuItem, tabsScreen)
++        appearanceApplicator.updateMenuItemAppearance(menuItem, tabsScreen, appearance)
+         appearanceApplicator.updateBadgeAppearance(context, menuItem, tabsScreen, appearance)
+     }
+ }
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
 index b98825c..5c2dbb5 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
