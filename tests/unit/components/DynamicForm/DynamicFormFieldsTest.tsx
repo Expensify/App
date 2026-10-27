@@ -501,9 +501,9 @@ describe('DynamicFormFields', () => {
         // When it renders
         const rendered = renderFields([homeAddress]);
 
-        // Then the user sees and can correct every part, each stored under the field key, under a heading screen reader users can jump to
+        // Then the user sees and can correct every part, each stored under the field key, with no extra heading since every part is labeled
         expect([...rendered.keys()]).toEqual(['homeAddress', 'homeAddress.city', 'homeAddress.state', 'homeAddress.zipCode', 'homeAddress.country']);
-        expect(screen.getByRole('heading', {name: 'Home address'})).toBeOnTheScreen();
+        expect(screen.queryByText('Home address')).not.toBeOnTheScreen();
     });
 
     it('opens the numeric keyboard for a text field whose regex takes digits only', () => {
