@@ -135,12 +135,14 @@ describe('live development worker', () => {
         const nonce = /nonce="([^"]+)"/.exec(html)?.[1];
         // Then the returned body and CSP agree, no validator survives, and a new load has a new nonce
         assert.equal(response.status, 200);
-        assert.ok(nonce && nonce !== 'nonce-random-value');
+        assert.ok(nonce);
+        assert.notEqual(nonce, 'nonce-random-value');
         assert.ok(response.headers.get('Content-Security-Policy')?.includes(`'nonce-${nonce}'`));
         assert.equal(response.headers.get('ETag'), null);
         assert.equal(response.headers.get('Last-Modified'), null);
         assert.equal(response.headers.get('X-Content-Type-Options'), 'nosniff');
-        assert.doesNotMatch(await (await server.fetch('/')).text(), new RegExp(nonce));
+        // Base64 can contain "+", which is not a valid RegExp source.
+        assert.ok(!(await (await server.fetch('/')).text()).includes(nonce));
         assert.equal(((await (await server.fetch('/echo', {headers: {'If-None-Match': 'html'}})).json()) as {validator: string | null}).validator, null);
     });
 

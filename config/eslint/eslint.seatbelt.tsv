@@ -104,7 +104,6 @@
 "../../src/components/CountryPicker/CountrySelectorModal.tsx"	"no-restricted-imports"	1
 "../../src/components/CountryPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/CountrySelector.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
-"../../src/components/createOnyxContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/CurrencyPicker.tsx"	"no-restricted-imports"	1
 "../../src/components/CurrencySelector.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/CustomUnitDefaultCategorySelector/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
@@ -381,7 +380,6 @@
 "../../src/components/TextInput/BaseTextInput/implementation/index.tsx"	"react-hooks/refs"	2
 "../../src/components/TextInput/BaseTextInput/implementation/index.tsx"	"react-hooks/static-components"	1
 "../../src/components/TextInput/BaseTextInput/implementations.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/components/TextInput/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/TextInput/index.tsx"	"no-restricted-syntax"	1
 "../../src/components/TextInput/TextInputMeasurement/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TextLinkBlock.tsx"	"no-restricted-syntax"	1
@@ -407,7 +405,6 @@
 "../../src/components/TransactionItemRow/DataCells/MerchantCell.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/UploadFile.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/UserInitialsAvatar.tsx"	"@typescript-eslint/no-deprecated/fontSize"	1
-"../../src/components/ValidateCodeInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ValidateCodeInput.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/components/ValuePicker/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/ValuePicker/ValueSelectorModal.tsx"	"no-restricted-imports"	1
@@ -456,7 +453,6 @@
 "../../src/hooks/useDebounceNonReactive.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDragAndDrop/types.ts"	"@typescript-eslint/no-deprecated/React.MutableRefObject"	1
 "../../src/hooks/useExportedToFilterOptions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useFilterFormValues.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useHydrateReportsFromSnapshot.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useImportSpreadsheetConfirmModal.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useInitial.ts"	"react-hooks/refs"	4
@@ -480,7 +476,6 @@
 "../../src/hooks/usePolicyData/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/usePreferredCurrency.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/usePrevious.ts"	"react-hooks/refs"	1
-"../../src/hooks/useReportScrollManager/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -528,7 +523,6 @@
 "../../src/libs/actions/getCompanyCardBankConnection/index.tsx"	"no-restricted-syntax"	2
 "../../src/libs/actions/Help.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/HybridApp/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/actions/ImportTransactions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/ImportTransactions.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/InputFocus/index.web.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/BulkEdit.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -629,7 +623,6 @@
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Session/index.ts"	"no-restricted-syntax"	9
 "../../src/libs/actions/Session/index.ts"	"rulesdir/no-onyx-connect"	2
-"../../src/libs/actions/SplitExpenses.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/StatsCounter.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/StoreReview/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Subscription.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -673,7 +666,6 @@
 "../../src/libs/DateUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/DebugUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../src/libs/DistanceRequestUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/DomUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/EmojiUtils.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Environment/getEnvironment/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ErrorUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -932,7 +924,6 @@
 "../../src/pages/EnablePayments/shared/IdologyQuestions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/EnablePayments/Wallet/AddBankAccount/AddBankAccount.tsx"	"no-restricted-imports"	1
 "../../src/pages/EnablePayments/Wallet/EnablePayments.tsx"	"no-restricted-imports"	1
-"../../src/pages/EnablePayments/Wallet/utils/getSubstepValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/EnablePayments/Wallet/VerifyIdentity/VerifyIdentity.tsx"	"no-restricted-imports"	1
 "../../src/pages/GroupChatNameEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/home/ForYouSection/ConciergePromptBox.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
