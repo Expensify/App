@@ -46,7 +46,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & PlatformStackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT>;
@@ -79,25 +79,49 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
-    let participants: Array<Participant | OptionData>;
-    if (isPolicyExpenseChat(report)) {
-        participants = [
-            getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails, translate),
-            getPolicyExpenseReportOption(
-                {...report, selected: true, reportID},
-                privateIsArchived,
-                personalDetails,
-                report,
-                policy,
-                {translate, dateFnsLocale, convertToDisplayString},
-                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                rules,
-                reportAttributesDerived,
-            ),
-        ];
-    } else {
-        participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails, translate));
-    }
+    const participants: Array<Participant | OptionData> = isPolicyExpenseChat(report)
+        ? [
+              getParticipantsOption(
+                  {
+                      accountID: participantAccountIDs.at(0),
+                      selected: true,
+                      reportID: '',
+                  },
+                  personalDetails,
+                  translate,
+              ),
+              getPolicyExpenseReportOption(
+                  {
+                      ...report,
+                      selected: true,
+                      reportID,
+                  },
+                  privateIsArchived,
+                  personalDetails,
+                  report,
+                  policy,
+                  {
+                      translate,
+                      dateFnsLocale,
+                      convertToDisplayString,
+                      formatPhoneNumber,
+                  },
+                  session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                  rules,
+                  reportAttributesDerived,
+              ),
+          ]
+        : participantAccountIDs.map((accountID) =>
+              getParticipantsOption(
+                  {
+                      accountID,
+                      selected: true,
+                      reportID: '',
+                  },
+                  personalDetails,
+                  translate,
+              ),
+          );
     const actorAccountID = reportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const payeePersonalDetails = personalDetails?.[actorAccountID];
     const participantsExcludingPayee = participants.filter((participant) => participant.accountID !== reportAction?.actorAccountID);
@@ -113,7 +137,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const delegateAccountID = useDelegateAccountID();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const chatReportTransactions = useReportTransactions(reportID);
-    const onConfirm = useCallback(() => {
+    const onConfirm = () => {
         setIsConfirmed(true);
         completeSplitBill({
             isVendorMatchingBetaEnabled,
@@ -134,24 +158,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
         });
         cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(reportID, undefined, chatReportTransactions.length > 0);
-    }, [
-        isVendorMatchingBetaEnabled,
-        chatReportTransactions.length,
-        reportID,
-        reportAction,
-        draftTransaction,
-        session?.accountID,
-        session?.email,
-        isASAPSubmitBetaEnabled,
-        quickAction,
-        transactionViolations,
-        personalDetails,
-        delegateAccountID,
-        isTrackIntentUser,
-        formatPhoneNumber,
-        getCurrencyDecimals,
-        rules,
-    ]);
+    };
 
     return (
         <ScreenWrapper testID="DynamicSplitBillDetailsPage">

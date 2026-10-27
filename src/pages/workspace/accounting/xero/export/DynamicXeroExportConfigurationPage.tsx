@@ -20,7 +20,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -46,12 +46,10 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
-    const selectedBankAccountName = useMemo(() => {
-        const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === exportConfiguration?.nonReimbursableAccount);
-        return selectedAccount?.name ?? '';
-    }, [bankAccounts, exportConfiguration?.nonReimbursableAccount]);
+    const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === exportConfiguration?.nonReimbursableAccount);
+    const selectedBankAccountName = selectedAccount?.name ?? '';
 
-    const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
+    const currentXeroOrganizationName = getCurrentXeroOrganizationName(policy ?? undefined);
 
     const menuItems = [
         {
@@ -90,7 +88,7 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
             ? [
                   {
                       title: translate('workspace.xero.bankTransactions'),
-                      description: translate('workspace.common.travelInvoicing'),
+                      description: translate('workspace.common.travelBilling'),
                       onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_CONFIGURATION.path)),
                       subscribedSettings: [CONST.XERO_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
                   },

@@ -128,7 +128,7 @@
 
 ### [react-native+0.86.0+017+publish-gradle.patch](react-native+0.86.0+017+publish-gradle.patch)
 
-- Reason: This patch customizes the Gradle publishing script to allow publishing our custom React Native artifacts to GitHub Packages.
+- Reason: This patch customizes the Gradle publishing script to allow publishing our custom React Native artifacts to GitHub Packages. The POM records the patches hash and the Hermes version the artifact was compiled against, which `scripts/artifacts-utils/lib/artifactsResolver.ts` matches before consuming an artifact.
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/59738
@@ -144,10 +144,10 @@
 
 ### [react-native+0.86.0+019+fix-modal-transparent-navigation-bar.patch](react-native+0.86.0+019+fix-modal-transparent-navigation-bar.patch)
 
-- Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android
+- Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android, and keeps the modal's system bar icons in sync with the activity. The `dialog === newDialog` check in the call that `showOrUpdate()` posts fixes the fatal `IllegalStateException: dialog must exist when we call updateProperties` behind `APP-M66`, which happens when the modal is dismissed before that call runs. Keep this check when regenerating the patch.
 - Upstream PR/issue: 🛑
-- E/App issue: [#69005](https://github.com/Expensify/App/issues/69005)
-- PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004)
+- E/App issue: [#69005](https://github.com/Expensify/App/issues/69005), [#103778](https://github.com/Expensify/App/issues/103778)
+- PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004) (introduced), [#104689](https://github.com/Expensify/App/pull/104689) (`APP-M66` guard)
 
 ### [react-native+0.86.0+021+perf-increase-initial-heap-size.patch](react-native+0.86.0+021+perf-increase-initial-heap-size.patch)
 

@@ -26,7 +26,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
         if (!isAgentOwnedByWorkspace && !isAgentMemberOfWorkspace) {
             return [];
         }
-        // Attach the workspace role to the agent row; the agent object is local to this flatMap and not shared
+        // Attach the workspace role to the agent row. The agent object is local to this flatMap and not shared
         // eslint-disable-next-line no-param-reassign
         agent.role = policyRoles.find((policyRole) => policyRole === agentMembership?.policyEmployee.role);
         return [agent];
