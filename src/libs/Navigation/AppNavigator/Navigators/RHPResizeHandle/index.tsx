@@ -46,7 +46,7 @@ const LINE_STYLE: React.CSSProperties = {
     top: 0,
     bottom: 0,
     right: '50%',
-    width: CONST.RESIZE_HANDLE.INDICATOR_WIDTH,
+    borderRadius: CONST.RHP_RESIZE.SNAPPED_INDICATOR_WIDTH / 2,
     pointerEvents: 'none',
 };
 
@@ -65,13 +65,19 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
 
     /** Thickens the line while a drag is held on the default width. Set on the DOM, so a drag stays free of React renders. */
     const setLineSnapped = (isSnapped: boolean) => {
-        lineRef.current?.style.setProperty('width', `${isSnapped ? CONST.RESIZE_HANDLE.SNAPPED_INDICATOR_WIDTH : CONST.RESIZE_HANDLE.INDICATOR_WIDTH}px`);
+        lineRef.current?.style.setProperty('width', `${isSnapped ? CONST.RHP_RESIZE.SNAPPED_INDICATOR_WIDTH : CONST.RHP_RESIZE.ACTIVE_INDICATOR_WIDTH}px`);
     };
 
     const pointerDrag = usePointerDrag<Drag>({
         dragRef,
         onMove: (drag, clientX) => {
             const liveWidth = getDraggedSize(drag.startWidth, drag.startClientX - clientX, {min, max, snap: SNAP});
+
+            // Pressing an edge already on the default and moving within the threshold changes nothing, so the snapped line waits for a real snap.
+            if (liveWidth === (drag.liveWidth ?? drag.startWidth)) {
+                return;
+            }
+
             writeLiveSingleRHPWidth(scopeRef.current, liveWidth);
             setLineSnapped(liveWidth === SNAP.to);
             // eslint-disable-next-line no-param-reassign -- the drag is the ref's own object, read back when the drag ends
@@ -79,11 +85,15 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
         },
         onEnd: ({liveWidth}) => {
             setIsDragging(false);
-            setLineSnapped(false);
 
             // Nothing gets saved, so no render follows to clear the live width.
             if (liveWidth === undefined || liveWidth === width) {
                 clearLiveSingleRHPWidth(scopeRef.current);
+                return;
+            }
+
+            if (liveWidth === SNAP.to) {
+                resetSingleRHPWidth();
                 return;
             }
 
@@ -127,7 +137,7 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
                     <div
                         ref={lineRef}
                         aria-hidden
-                        style={{...LINE_STYLE, ...styles.resizeIndicator}}
+                        style={{...LINE_STYLE, width: isDragging ? CONST.RHP_RESIZE.ACTIVE_INDICATOR_WIDTH : CONST.RESIZE_HANDLE.INDICATOR_WIDTH, ...styles.resizeIndicator}}
                     />
                 )}
             </div>

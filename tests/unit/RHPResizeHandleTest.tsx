@@ -3,6 +3,10 @@ import {fireEvent, render} from '@testing-library/react-native';
 import {resetSingleRHPWidth, setSingleRHPWidth} from '@libs/actions/SingleRHPWidth';
 import type RHPResizeHandleComponent from '@libs/Navigation/AppNavigator/Navigators/RHPResizeHandle';
 
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 // Jest resolves the native no-op, so the web implementation is loaded by its file name.
@@ -24,9 +28,9 @@ jest.mock('@hooks/useSingleRHPWidth', () => () => ({width: mockSavedWidth, min: 
 
 const WIDTH_VARIABLE = '--rhp-width';
 
-type PointerEventName = 'pointerDown' | 'pointerMove' | 'pointerUp' | 'lostPointerCapture';
+type PointerEventName = 'pointerEnter' | 'pointerDown' | 'pointerMove' | 'pointerUp' | 'lostPointerCapture';
 
-const DEFAULT_WIDTH = 440;
+const DEFAULT_WIDTH = variables.rhpWidth;
 
 /** Renders the handle with a scope element, the way the RHP navigators mount it. */
 function renderHandle() {
@@ -60,7 +64,12 @@ function renderHandle() {
 
     const fireDoubleClick = () => fireEvent(getHandle(), 'doubleClick');
 
-    return {...screen, firePointer, fireDoubleClick, readLiveWidth, rerenderHandle};
+    const readLineWidth = () => {
+        const lineStyle: unknown = screen.UNSAFE_root.findAll((node) => node.type === 'div').at(1)?.props.style;
+        return lineStyle && typeof lineStyle === 'object' && 'width' in lineStyle ? lineStyle.width : undefined;
+    };
+
+    return {...screen, firePointer, fireDoubleClick, readLineWidth, readLiveWidth, rerenderHandle};
 }
 
 describe('RHPResizeHandle', () => {
@@ -176,8 +185,9 @@ describe('RHPResizeHandle', () => {
         expect(readLiveWidth()).toBe(`${DEFAULT_WIDTH}px`);
         firePointer('pointerUp', releaseClientX);
 
-        // Then the default width is saved, so getting back to it doesn't take pixel-perfect aim
-        expect(jest.mocked(setSingleRHPWidth).mock.calls).toEqual([[DEFAULT_WIDTH]]);
+        // Then the saved width is dropped, so getting back to the default doesn't take pixel-perfect aim and follows the default if it changes
+        expect(resetSingleRHPWidth).toHaveBeenCalledTimes(1);
+        expect(setSingleRHPWidth).not.toHaveBeenCalled();
     });
 
     it('lets go of the default width once a drag passes the snap threshold', () => {
@@ -206,5 +216,40 @@ describe('RHPResizeHandle', () => {
         // Then the saved width is dropped, so the RHP returns to the default, and the presses save nothing of their own
         expect(resetSingleRHPWidth).toHaveBeenCalledTimes(1);
         expect(setSingleRHPWidth).not.toHaveBeenCalled();
+    });
+
+    it('widens the line by a pixel while the edge is pressed', () => {
+        // Given a single RHP saved at 400px, its edge hovered
+        const {firePointer, readLineWidth} = renderHandle();
+        firePointer('pointerEnter', 1000);
+
+        // When its edge is pressed without moving
+        firePointer('pointerDown', 1000);
+
+        // Then the line is a pixel wider than the hover one, so the press reads as grabbing the edge
+        expect(readLineWidth()).toBe(CONST.RHP_RESIZE.ACTIVE_INDICATOR_WIDTH);
+
+        // When it is released
+        firePointer('pointerUp', 1000);
+
+        // Then the still-hovered line goes back to the resting width
+        expect(readLineWidth()).toBe(CONST.RESIZE_HANDLE.INDICATOR_WIDTH);
+    });
+
+    it('stays put when an edge already on the default is dragged within the snap threshold', () => {
+        // Given a single RHP already at the 440px default
+        mockSavedWidth = DEFAULT_WIDTH;
+        const {firePointer, readLiveWidth} = renderHandle();
+
+        // When its edge is dragged 10px, inside the snap threshold, and released
+        firePointer('pointerDown', 1000);
+        firePointer('pointerMove', 990);
+        const liveWidthMidDrag = readLiveWidth();
+        firePointer('pointerUp', 990);
+
+        // Then nothing is painted or saved, so the drag holds on the default without counting as a snap onto it
+        expect(liveWidthMidDrag).toBe('');
+        expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(resetSingleRHPWidth).not.toHaveBeenCalled();
     });
 });

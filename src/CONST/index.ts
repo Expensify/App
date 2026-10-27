@@ -9989,9 +9989,6 @@ const CONST = {
     RESIZE_HANDLE: {
         /** Width of the line drawn on a dragged edge, and of the grip shown while a table heading is hovered. */
         INDICATOR_WIDTH: 2,
-
-        /** Width of the line while a drag is held on the snap point. */
-        SNAPPED_INDICATOR_WIDTH: 5,
     },
 
     RHP_RESIZE: {
@@ -10000,6 +9997,12 @@ const CONST = {
 
         /** How close, in px, a drag has to come to the default width to snap onto it. */
         SNAP_THRESHOLD: 20,
+
+        /** Width of the line while the edge is pressed or dragged. */
+        ACTIVE_INDICATOR_WIDTH: 3,
+
+        /** Width of the line while a drag is held on the default width. */
+        SNAPPED_INDICATOR_WIDTH: 5,
 
         /** Narrowest the single RHP can be dragged, in px. */
         MIN_WIDTH: 380,

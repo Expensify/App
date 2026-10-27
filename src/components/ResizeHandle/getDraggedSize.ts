@@ -18,12 +18,12 @@ type DraggedSizeBounds = {
     snap?: DraggedSizeSnap;
 };
 
-/** `travel` is positive when the drag grows the size. The minimum wins over the maximum, and both win over the snap. */
+/** `travel` is positive when the drag grows the size. The minimum wins over the maximum, and a snap size outside them never catches. */
 function getDraggedSize(startSize: number, travel: number, {min, max = Infinity, snap}: DraggedSizeBounds): number {
     const size = Math.round(startSize + travel);
-    const snappedSize = snap && Math.abs(size - snap.to) <= snap.threshold ? snap.to : size;
+    const canSnap = snap && snap.to >= min && snap.to <= max && Math.abs(size - snap.to) <= snap.threshold;
 
-    return lodashClamp(snappedSize, min, max);
+    return canSnap ? snap.to : lodashClamp(size, min, max);
 }
 
 export default getDraggedSize;
