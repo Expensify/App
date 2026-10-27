@@ -44,6 +44,12 @@ import createMockScreenNavigation from '../../utils/createMockScreenNavigation';
 import {setupGlobalFetchMock, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
+// The screen is rendered outside a navigator, which the flow's discard guard needs, so this stands in for it
+jest.mock('@pages/iou/request/step/CreateFlowRootDiscardGuard', () => () => {
+    const {createElement} = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<{View: React.ComponentType<{testID: string}>}>('react-native');
+    return createElement(View, {testID: 'MockCreateFlowRootDiscardGuard'});
+});
 jest.mock('@rnmapbox/maps', () => {
     return {
         default: jest.fn(),
@@ -2679,6 +2685,23 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             // Then it still wraps itself, so the standalone screen keeps trapping focus exactly as before
             expect(await screen.findByTestId(CONFIRMATION_SCREEN_TEST_ID)).toBeOnTheScreen();
+        });
+
+        it('leaves guarding the flow to the start page when embedded', async () => {
+            // Given the body embedded in the start page, which guards the whole flow
+            await renderConfirmation({isEmbedded: true});
+
+            // Then the body adds no flow guard of its own, so leaving the flow prompts once
+            expect(await screen.findByTestId('MockParticipantPicker')).toBeOnTheScreen();
+            expect(screen.queryByTestId('MockCreateFlowRootDiscardGuard')).not.toBeOnTheScreen();
+        });
+
+        it('guards the flow on the standalone route, where dropping a receipt can open it with no start page below', async () => {
+            // Given the standalone RHP route of a create flow
+            await renderConfirmation({isEmbedded: false});
+
+            // Then it mounts the flow guard, which only reacts when the screen is the first one of the flow
+            expect(await screen.findByTestId('MockCreateFlowRootDiscardGuard')).toBeOnTheScreen();
         });
     });
 });

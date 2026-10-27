@@ -71,6 +71,7 @@ import useSubmitLock from '@pages/iou/request/step/confirmation/submission/useSu
 import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
 import TelemetrySpanManager from '@pages/iou/request/step/confirmation/TelemetrySpanManager';
 import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
+import CreateFlowRootDiscardGuard from '@pages/iou/request/step/CreateFlowRootDiscardGuard';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 
@@ -631,6 +632,14 @@ function IOURequestStepConfirmationContent({
                 requestType={requestType}
                 hasReceipt={!!transaction?.receipt}
             />
+            {!shouldHideHeader && action === CONST.IOU.ACTION.CREATE && (
+                <CreateFlowRootDiscardGuard
+                    onBeforeClose={() => {
+                        cancelTracking();
+                        cleanupPreMount();
+                    }}
+                />
+            )}
             <DraftWorkspaceOpener
                 isCreatingTrackExpense={isCreatingTrackExpense}
                 policyID={policyID}
