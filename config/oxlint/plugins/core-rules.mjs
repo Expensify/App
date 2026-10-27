@@ -1,5 +1,5 @@
 /**
- * ESLint core rules that oxlint 1.89.0 has no native version of. They run inside oxlint as a JS
+ * ESLint core rules that oxlint has no native version of. They run inside oxlint as a JS
  * plugin under the `core/` prefix, using ESLint's own rule code, so each one behaves as it does
  * under ESLint.
  *

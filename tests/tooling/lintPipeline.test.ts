@@ -397,7 +397,7 @@ describe('parseOxlintStdout', () => {
     });
 
     it('treats a crashing JS plugin as fatal, not a finding', () => {
-        // Given the codeless, label-less diagnostic oxlint 1.89.0 emits when a JS plugin rule throws
+        // Given the codeless, label-less diagnostic oxlint emits when a JS plugin rule throws
         const crash = oxlintDiagnostic({code: undefined, labels: [], message: 'Error running JS plugin.\nFile path: /repo/src/a.ts\nError: plugin blew up'});
 
         // When the report is parsed
