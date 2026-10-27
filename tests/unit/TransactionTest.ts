@@ -20,7 +20,7 @@ import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {isRecord} from '@libs/ObjectUtils';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -2024,8 +2024,11 @@ describe('Transaction', () => {
             expect(updatedTransaction?.comment?.customUnit?.defaultP2PRate).toBeUndefined();
         });
 
-        it('should auto-select a valid distance rate when the current rate is disabled on the destination workspace', async () => {
+        it('should auto-select a valid distance rate when the current rate is disabled on a different destination workspace', async () => {
             const policyID = '101';
+            // Given the expense is on a report on another workspace, so the move changes its workspace
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, {reportID: FAKE_OLD_REPORT_ID, policyID: 'otherPolicy', type: CONST.REPORT.TYPE.EXPENSE});
+            await loadReports();
             const disabledRateID = 'disabled_rate';
             const enabledRateID = 'enabled_rate';
             const transaction = generateTransaction({
@@ -2272,6 +2275,182 @@ describe('Transaction', () => {
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
             // Rate should remain unchanged since it was already valid
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
+        });
+
+        describe('distance rate when the workspace changes', () => {
+            const SOURCE_POLICY_ID = 'sourcePolicy';
+            const DESTINATION_POLICY_ID = 'destinationPolicy';
+
+            function createDistancePolicy(policyID: string, rates: Record<string, {rate: number; enabled?: boolean}>): Policy {
+                return {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    outputCurrency: 'USD',
+                    customUnits: {
+                        distanceUnit: {
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            customUnitID: 'distanceUnit',
+                            defaultCategory: '',
+                            enabled: true,
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            rates: Object.fromEntries(
+                                Object.entries(rates).map(([customUnitRateID, {rate, enabled = true}], index) => [
+                                    customUnitRateID,
+                                    {currency: 'USD', customUnitRateID, enabled, name: customUnitRateID, rate, index},
+                                ]),
+                            ),
+                        },
+                    },
+                };
+            }
+
+            function createDistanceTransaction(reportID: string, customUnitRateID: string): Transaction {
+                return generateTransaction({
+                    reportID,
+                    amount: -500,
+                    currency: 'USD',
+                    merchant: '10.00 mi @ $0.50 / mi',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    comment: {
+                        type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                        customUnit: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitRateID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 10,
+                        },
+                    },
+                });
+            }
+
+            async function moveToDestinationReport(transaction: Transaction, policies: Record<string, Policy>, sourcePolicyID?: string) {
+                // Spy without mocking so the optimistic data still lands in Onyx
+                const mockAPIWrite = jest.spyOn(API, 'write');
+                const destinationReport = {
+                    ...createExpenseReport(Number(FAKE_NEW_REPORT_ID)),
+                    reportID: FAKE_NEW_REPORT_ID,
+                    policyID: DESTINATION_POLICY_ID,
+                    ownerAccountID: CURRENT_USER_ID,
+                    currency: 'USD',
+                };
+                if (sourcePolicyID) {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, {reportID: FAKE_OLD_REPORT_ID, policyID: sourcePolicyID, type: CONST.REPORT.TYPE.EXPENSE});
+                }
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, destinationReport);
+                await loadReports();
+
+                const policyCollection = Object.fromEntries(Object.entries(policies).map(([policyID, policy]) => [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy]));
+                changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
+                    transactionIDs: [transaction.transactionID],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: CURRENT_USER_ID,
+                    email: 'test@example.com',
+                    newReport: destinationReport,
+                    policy: policies[DESTINATION_POLICY_ID],
+                    policies: policyCollection,
+                    allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
+                    policyTagList: undefined,
+                    reports,
+                    transactionViolations: {},
+                    isTrackIntentUser: false,
+                    cardList: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+                const params = apiWriteCall?.[1];
+                if (!isChangeTransactionsReportParams(params)) {
+                    throw new Error('Expected ChangeTransactionsReport params');
+                }
+                const threadData = readProperty(parseJSONRecord(params.transactionIDToReportActionAndThreadData, 'transactionIDToReportActionAndThreadData'), transaction.transactionID);
+                const modifiedExpenseActions = (apiWriteCall?.[2]?.optimisticData ?? [])
+                    .filter((update) => update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
+                    .flatMap((update) => {
+                        const reportActions: unknown = update.value;
+                        return isRecord(reportActions) ? Object.values(reportActions) : [];
+                    })
+                    .filter(
+                        (action): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> =>
+                            isRecord(action) && action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    );
+                const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+                const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
+                return {threadData, modifiedExpenseActions, updatedTransaction, violations};
+            }
+
+            it('should keep the rate and its violation when moving to another report on the same workspace', async () => {
+                // Given an expense whose rate was deleted from its workspace
+                const transaction = createDistanceTransaction(FAKE_OLD_REPORT_ID, 'deletedRate');
+                const policies = {[DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}})};
+
+                // When it moves to another report on the same workspace
+                const {threadData, modifiedExpenseActions, updatedTransaction, violations} = await moveToDestinationReport(transaction, policies, DESTINATION_POLICY_ID);
+
+                // Then the workspace didn't change, so the rate stays and the user still sees the violation prompting them to fix it
+                expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe('deletedRate');
+                expect(updatedTransaction?.amount).toBe(-500);
+                expect(violations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)).toBe(true);
+                expect(modifiedExpenseActions).toHaveLength(0);
+                expect(readProperty(threadData, 'modifiedExpenseReportActionID')).toBeUndefined();
+            });
+
+            it('should keep the rate when an unreported expense moves back to its last workspace', async () => {
+                // Given an unreported expense that still carries a now-disabled rate from its last workspace
+                const transaction = createDistanceTransaction(CONST.REPORT.UNREPORTED_REPORT_ID, 'disabledRate');
+                const policies = {[DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}, disabledRate: {rate: 50, enabled: false}})};
+
+                // When it moves to a report on that workspace
+                const {modifiedExpenseActions, updatedTransaction} = await moveToDestinationReport(transaction, policies);
+
+                // Then the destination has its rate, so the server treats it as the same workspace and leaves the rate alone
+                expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe('disabledRate');
+                expect(updatedTransaction?.amount).toBe(-500);
+                expect(modifiedExpenseActions).toHaveLength(0);
+            });
+
+            it('should move to the matching rate and keep the amount when the destination workspace has an equivalent rate', async () => {
+                // Given an expense on a workspace rate of $0.50 / mi
+                const transaction = createDistanceTransaction(FAKE_OLD_REPORT_ID, 'sourceRate');
+                const policies = {
+                    [SOURCE_POLICY_ID]: createDistancePolicy(SOURCE_POLICY_ID, {sourceRate: {rate: 50}}),
+                    [DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}, matchingRate: {rate: 50}}),
+                };
+
+                // When it moves to a workspace that also has a $0.50 / mi rate
+                const {threadData, modifiedExpenseActions, updatedTransaction} = await moveToDestinationReport(transaction, policies, SOURCE_POLICY_ID);
+
+                // Then it moves to the matching rate without being repriced, so there is nothing to tell the user
+                expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe('matchingRate');
+                expect(updatedTransaction?.amount).toBe(-500);
+                expect(updatedTransaction?.modifiedMerchant).toBeUndefined();
+                expect(modifiedExpenseActions).toHaveLength(0);
+                expect(readProperty(threadData, 'modifiedExpenseReportActionID')).toBeUndefined();
+            });
+
+            it('should reprice onto the default rate and add a Concierge rate change message when the destination workspace has no equivalent rate', async () => {
+                // Given an expense on a workspace rate of $0.50 / mi
+                const transaction = createDistanceTransaction(FAKE_OLD_REPORT_ID, 'sourceRate');
+                const policies = {
+                    [SOURCE_POLICY_ID]: createDistancePolicy(SOURCE_POLICY_ID, {sourceRate: {rate: 50}}),
+                    [DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}}),
+                };
+
+                // When it moves to a workspace without a $0.50 / mi rate
+                const {threadData, modifiedExpenseActions, updatedTransaction} = await moveToDestinationReport(transaction, policies, SOURCE_POLICY_ID);
+
+                // Then it is repriced onto the default rate
+                expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe('defaultRate');
+                expect(updatedTransaction?.modifiedAmount).toBe(-670);
+
+                // And Concierge explains the rate change, with the action ID sent so the server creates the same action
+                expect(modifiedExpenseActions).toHaveLength(1);
+                const modifiedExpenseAction = modifiedExpenseActions.at(0);
+                expect(modifiedExpenseAction?.actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+                expect(getOriginalMessage(modifiedExpenseAction)).toEqual(expect.objectContaining({oldAmount: 500, amount: 670, oldMerchant: '10.00 mi @ $0.50 / mi'}));
+                expect(readProperty(threadData, 'modifiedExpenseReportActionID')).toBe(modifiedExpenseAction?.reportActionID);
+            });
         });
 
         describe('when all matching items are selected (jsonQuery + hash)', () => {

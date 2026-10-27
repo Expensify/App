@@ -64,6 +64,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const [transactions] = useTransactionsByID(selectedIds);
     const reports = useChangeTransactionsReportReports(transactions, reportToConfirm?.reportID);
@@ -106,6 +107,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         email: session?.email ?? '',
                         newReport: reportToConfirm,
                         policy,
+                        policies: allPolicies,
                         policyCategories,
                         policyTagList,
                         transactions,

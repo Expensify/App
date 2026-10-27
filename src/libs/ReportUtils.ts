@@ -9167,6 +9167,39 @@ function buildOptimisticModifiedExpenseReportAction(
 }
 
 /**
+ * Builds the optimistic Concierge MODIFIED_EXPENSE action for a distance expense that moved to another workspace and was repriced onto its default rate.
+ * The server creates the same action with this reportActionID, so it replaces the optimistic one.
+ *
+ * @param created Lets the caller order it after the "moved this expense" action.
+ */
+function buildOptimisticConciergeDistanceRateModifiedExpenseReportAction({
+    transactionThreadReportID,
+    oldTransaction,
+    updatedTransaction,
+    policy,
+    created,
+}: {
+    transactionThreadReportID: string;
+    oldTransaction: OnyxInputOrEntry<Transaction>;
+    updatedTransaction: OnyxInputOrEntry<Transaction>;
+    policy: OnyxInputOrEntry<Policy>;
+    created: string;
+}): OptimisticModifiedExpenseReportAction {
+    const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
+    const transactionChanges: TransactionChanges = {customUnitRateID};
+    const reportAction = buildOptimisticModifiedExpenseReportAction({reportID: transactionThreadReportID}, oldTransaction, transactionChanges, true, policy, undefined, updatedTransaction);
+
+    return {
+        ...reportAction,
+        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        avatar: getDefaultAvatarURL({accountID: CONST.ACCOUNT_ID.CONCIERGE, accountEmail: CONST.EMAIL.CONCIERGE}),
+        created,
+        message: [{text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE, style: 'strong', type: CONST.REPORT.MESSAGE.TYPE.TEXT}],
+        person: [{style: 'strong', text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE, type: 'TEXT'}],
+    };
+}
+
+/**
  * Builds an optimistic "added a receipt" action that shares its ID with the server action.
  *
  * @param created Shared clock sample so a replacement can order the removal first.
@@ -15393,6 +15426,7 @@ export {
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
     buildOptimisticModifiedExpenseReportAction,
+    buildOptimisticConciergeDistanceRateModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedReportAction,
     buildOptimisticChangePolicyReportAction,
