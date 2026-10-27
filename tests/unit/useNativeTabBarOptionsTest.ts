@@ -37,6 +37,7 @@ const mockGetTabBarIcon = jest.mocked(getTabBarIcon);
 
 const PARAMS: NativeTabBarOptionsParams = {
     shouldShowNativeTabBar: true,
+    isTabBarVertical: false,
     isAccountAvatarShown: true,
     dotColors: {},
     tabLabels: {

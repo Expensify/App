@@ -18,6 +18,7 @@ import type {EnterAnimation} from './useModalCardStyleInterpolator';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import RHP_WEB_TRANSITION_SPEC from './RHPTransitionSpec';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
+import useModalHorizontalSafeAreaStyle from './useModalHorizontalSafeAreaStyle';
 
 type RootNavigatorScreenOptions = {
     rightModalNavigator: PlatformStackNavigationOptions;
@@ -40,6 +41,7 @@ const useRootNavigatorScreenOptions = () => {
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const themeStyles = useThemeStyles();
+    const modalHorizontalSafeAreaStyle = useModalHorizontalSafeAreaStyle();
 
     const fullScreenEnter: EnterAnimation = shouldUseNarrowLayout ? {kind: 'slide-from-width'} : {kind: 'none'};
     const onboardingEnter: EnterAnimation = onboardingIsMediumOrLargerScreenWidth ? {kind: 'fade'} : {kind: 'slide-from-width'};
@@ -67,6 +69,11 @@ const useRootNavigatorScreenOptions = () => {
         },
         basicModalNavigator: {
             presentation: Presentation.TRANSPARENT_MODAL,
+            // The screen container keeps the content out of the horizontal safe area (see useModalHorizontalSafeAreaStyle).
+            hasOwnHorizontalSafeArea: true,
+            native: {
+                contentStyle: modalHorizontalSafeAreaStyle,
+            },
             web: {
                 cardOverlayEnabled: false,
                 cardStyle: {
@@ -84,11 +91,12 @@ const useRootNavigatorScreenOptions = () => {
         },
         centeredModalNavigator: {
             presentation: Presentation.TRANSPARENT_MODAL,
-            // The backdrop spans the window so that it covers the side insets too.
+            // The screen container keeps the content out of the horizontal safe area (see useModalHorizontalSafeAreaStyle).
             hasOwnHorizontalSafeArea: true,
             native: {
                 contentStyle: {
                     ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
+                    ...modalHorizontalSafeAreaStyle,
                 },
             },
             animation: InternalPlatformAnimations.FADE,

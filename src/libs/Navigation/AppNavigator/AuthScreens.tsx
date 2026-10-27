@@ -400,9 +400,7 @@ function AuthScreens() {
                             options={{
                                 ...rootNavigatorScreenOptions.basicModalNavigator,
                                 native: {
-                                    contentStyle: {
-                                        ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
-                                    },
+                                    contentStyle: [rootNavigatorScreenOptions.basicModalNavigator.native?.contentStyle, StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72)],
                                     animation: InternalPlatformAnimations.FADE,
                                 },
                                 web: {
