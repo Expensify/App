@@ -1,6 +1,7 @@
 import {fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
+import type {DayProps} from '@components/DatePicker/CalendarPicker/Day';
 
 import DateUtils from '@libs/DateUtils';
 
@@ -124,6 +125,12 @@ jest.mock('@components/DatePicker/CalendarPicker/YearPickerModal', () => {
     return MockYearPickerModal;
 });
 
+// Exposes the today prop as a testID, since the real Day shows it only as a background color
+function MockTodayDay({today}: DayProps) {
+    const {View} = jest.requireActual<MockReactNativePrimitives>('react-native');
+    return <View testID={today ? 'today-day' : undefined} />;
+}
+
 describe('CalendarPicker', () => {
     test('renders calendar component', () => {
         render(<CalendarPicker />);
@@ -220,6 +227,29 @@ describe('CalendarPicker', () => {
 
         // Then today is shown but not selected, because nothing has been picked yet
         expect(screen.getByLabelText(DateUtils.formatToLongDateWithWeekday(new Date(), undefined))).not.toBeSelected();
+    });
+
+    test('marks only today as today', () => {
+        // Given a day component that shows which day it was told is today
+        const todayLabel = DateUtils.formatToLongDateWithWeekday(new Date(), undefined);
+
+        // When the calendar opens, which it does on the current month
+        render(<CalendarPicker DayComponent={MockTodayDay} />);
+
+        // Then exactly one day is marked, and it is today's date, so the user can find relative dates like "yesterday"
+        expect(screen.getAllByTestId('today-day')).toHaveLength(1);
+        expect(within(screen.getByLabelText(todayLabel)).getByTestId('today-day')).toBeTruthy();
+    });
+
+    test('marks no day as today in another month', () => {
+        // Given a day component that shows which day it was told is today
+        render(<CalendarPicker DayComponent={MockTodayDay} />);
+
+        // When the user moves to the previous month
+        fireEvent.press(screen.getByTestId('prev-month-arrow'));
+
+        // Then no day is marked, because today isn't in that month
+        expect(screen.queryByTestId('today-day')).toBeNull();
     });
 
     test('clicking next month arrow and selecting day updates the selected date', () => {
