@@ -1,5 +1,3 @@
-import {useCallback} from 'react';
-
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import useShouldShowEmptyReportConfirmation from './useShouldShowEmptyReportConfirmation';
 
@@ -36,12 +34,9 @@ export default function useConditionalCreateEmptyReportConfirmation({
 }: UseConditionalCreateEmptyReportConfirmationParams): UseConditionalCreateEmptyReportConfirmationResult {
     const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(policyID, shouldBypassConfirmation);
 
-    const handleReportCreationConfirmed = useCallback(
-        (shouldDismissEmptyReportsConfirmation?: boolean) => {
-            onCreateReport(shouldDismissEmptyReportsConfirmation);
-        },
-        [onCreateReport],
-    );
+    const handleReportCreationConfirmed = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        onCreateReport(shouldDismissEmptyReportsConfirmation);
+    };
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID,
@@ -50,14 +45,14 @@ export default function useConditionalCreateEmptyReportConfirmation({
         onCancel,
     });
 
-    const handleCreateReport = useCallback(() => {
+    const handleCreateReport = () => {
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
             return;
         }
 
         onCreateReport(false);
-    }, [shouldShowEmptyReportConfirmation, onCreateReport, openCreateReportConfirmation]);
+    };
 
     return {
         handleCreateReport,

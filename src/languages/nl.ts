@@ -1192,6 +1192,7 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Gestegen met ${percentage}`,
             decrease: (percentage: string) => `Gedaald met ${percentage}`,
         },
+        runningTotal: 'Doorlopend totaal',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2503,8 +2504,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Weet je zeker dat je accounts wilt samenvoegen?',
-            lossOfUnsubmittedData: (login: string) =>
-                `Het samenvoegen van je accounts is onomkeerbaar en zal leiden tot het verlies van alle niet-ingediende uitgaven voor <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Het samenvoegen van je accounts is onomkeerbaar. Alle uitgaven en rapporten van <strong>${login}</strong>, inclusief concepten en niet-gerapporteerde uitgaven, worden verplaatst naar het account dat je behoudt.`,
             enterSecurityCode: (login: string) => `Om door te gaan, voer de beveiligingscode in die is verzonden naar <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Onjuiste of ongeldige beveiligingscode. Probeer het opnieuw of vraag een nieuwe code aan.',
@@ -2853,6 +2854,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
             getStarted: 'Aan de slag',
             headerTitle: 'Wereldwijde terugbetalingen',
+            payingReportSubtitle: 'De bankrekeningen van het bedrijf en de medewerker gebruiken verschillende valuta.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Betaal mensen wereldwijd', subtitle: 'Schakel wereldwijde terugbetalingen in op je USD-rekening.'},
     },
@@ -3009,6 +3011,8 @@ ${amount} voor ${merchant} - ${date}`,
         addApprovalsDescription: 'Extra goedkeuring vereisen voordat je een betaling autoriseert.',
         makeOrTrackPaymentsTitle: 'Betalingen',
         makeOrTrackPaymentsDescription: 'Voeg een gemachtigde betaler toe voor betalingen die in Expensify worden gedaan of volg betalingen die elders zijn gedaan.',
+        collectEmployeeBankDetails: 'Bankgegevens van medewerkers verzamelen',
+        collectEmployeeBankDetailsDescription: 'Verzamel de bankgegevens van medewerkers, zodat je ze buiten Expensify kunt terugbetalen.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met je <account-manager-link>Accountmanager</account-manager-link> of <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6729,6 +6733,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             provisioningError:
                                 'We konden voor sommige leden van je werkruimte geen toegang instellen tot Geconsolideerde Reisfacturering. Probeer het later opnieuw of neem contact op met Concierge voor ondersteuning.',
                             sendInvoiceNowCta: 'Verzend factuur nu',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `De maandelijkse bestedingslimiet per lid mag de huidige reiskostenlimiet van ${travelLimit} niet overschrijden.`,
                         },
                         setUpNewFeed: 'Nieuwe reiskoppeling instellen',
                         feedSelectorIntro:
@@ -7455,6 +7461,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7700,6 +7708,18 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Kaartafrekeningen synchroniseren';
                         case 'campfireSyncTravelSettlements':
                             return 'Reisverrekeningen synchroniseren';
+                        case 'digitsSyncTitle':
+                            return 'Digits-gegevens synchroniseren';
+                        case 'digitsSyncConnection':
+                            return 'Verbinding met Digits initialiseren';
+                        case 'digitsSyncImportData':
+                            return 'Gegevens laden';
+                        case 'digitsSyncPayments':
+                            return 'Leveranciersbetalingen synchroniseren';
+                        case 'digitsSyncCardSettlements':
+                            return 'Kaartafrekeningen synchroniseren';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Reisverrekeningen synchroniseren';
                         case 'businessCentralSyncTitle':
                             return 'Dynamics 365 Business Central-gegevens synchroniseren';
                         case 'businessCentralSyncConnection':
@@ -7749,6 +7769,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             syncTravelBillingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Doorlopende afstemming wordt per kaartfeed geconfigureerd. Selecteer een feed om te wijzigen welke je configureert.</muted-text-label>',
@@ -8841,11 +8862,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 applyExpenseDefaultsDescription: 'Velden automatisch bijwerken',
                 flagForReview: 'Markeren voor controle',
                 flagForReviewDescription: 'Melding wanneer aan je voorwaarden is voldaan',
-                requireFields: 'Veldvereisten instellen',
-                requireFieldsShort: 'Velden verplichten',
+                requireFields: 'Velden verplichten',
                 requireFieldsDescription: 'Bonnen, categorieën, enz.',
-                createAgentRule: 'Agentregel beschrijven',
-                createAgentRuleDescription: 'Maak flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
                 describeItBelow: 'Of beschrijf hem hieronder',
                 describeRulePlaceholder: 'Blokkeer alle uitgaven boven $2.000',
                 selectTemplateOrDescribe: 'Selecteer een sjabloon of beschrijf een regel om door te gaan',
@@ -10302,6 +10320,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Deze maand',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Jaar tot nu toe',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Laatste 12 maanden',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Deze week',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Vorige week',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER]: 'Dit kwartaal',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER]: 'Vorig kwartaal',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR]: 'Dit jaar',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_YEAR]: 'Vorig jaar',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS]: 'Laatste 30 dagen',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS]: 'Laatste 90 dagen',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS]: 'Laatste 6 maanden',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Laatste afschrift',
                 },
                 customDay: 'Aangepaste dag',
@@ -10425,6 +10452,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         noCategory: 'Geen categorie',
         noMerchant: 'Geen handelaar',
         noTag: 'Geen tag',
+        noVendor: 'Geen leverancier',
         expenseType: 'Onkostentype',
         receiptType: 'Bontype',
         receiptTypeValues: {
@@ -11605,6 +11633,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 one: '1 actieve gebruiker',
                 other: `${count} actieve gebruikers`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 lid',
+                other: `${count} leden`,
+            }),
             state: {paid: 'Betaald', cleared: 'Afgeboekt', failed: 'Mislukt', refunded: 'Terugbetaald', disputed: 'Betwist', balanceTransfer: 'Saldo-overboeking'},
             details: 'Betalingsgegevens',
             badge: {
@@ -11619,6 +11651,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             billedTo: 'Gefactureerd aan',
             activity: 'Activiteit',
             findActiveUser: 'Zoek een actieve gebruiker',
+            findMember: 'Zoek een lid',
             viewReceipt: 'Bon bekijken',
             viewInvoice: 'Factuur bekijken',
         },
@@ -11917,6 +11950,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
         currentView: 'Huidige weergave',
+        currentViewGroupsOnly: 'Huidige weergave (alleen groepen)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

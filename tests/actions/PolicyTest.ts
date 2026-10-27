@@ -5861,6 +5861,39 @@ describe('actions/Policy', () => {
             expect(apiWriteSpy).not.toHaveBeenCalled();
             apiWriteSpy.mockRestore();
         });
+
+        it('should mark the connections as fetched when it turns Connections on for a workspace that is still being created', async () => {
+            // Given a workspace whose create request hasn't finished, so it can't have connections yet
+            const policy: PolicyType = {
+                ...createRandomPolicy(20, CONST.POLICY.TYPE.CORPORATE),
+                areConnectionsEnabled: false,
+                connections: undefined,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When connecting an integration from the Connections page turns Connections on
+            Policy.enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+            await waitForBatchedUpdates();
+
+            // Then the open Connections page has nothing to fetch, so it keeps showing instead of a loader
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`)).toBe(true);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`))?.areConnectionsEnabled).toBe(true);
+        });
+
+        it('should leave the connections to be fetched for an existing workspace', async () => {
+            // Given an existing workspace with Connections off, which can still hold connections that haven't loaded,
+            // like an integration only supported on OldDot
+            const policy: PolicyType = {...createRandomPolicy(21, CONST.POLICY.TYPE.CORPORATE), areConnectionsEnabled: false, connections: undefined, pendingAction: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When connecting an integration from the Connections page turns Connections on
+            Policy.enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+            await waitForBatchedUpdates();
+
+            // Then the connections are not marked as fetched, so the page still loads any that exist
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`)).toBeUndefined();
+        });
     });
 
     describe('enablePolicyTaxes', () => {
@@ -7384,6 +7417,62 @@ describe('actions/Policy', () => {
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.isAttendeeTrackingEnabled).toBe(initialIsAttendeeTrackingEnabled);
             expect(updatedPolicy?.errorFields?.isAttendeeTrackingEnabled).toBeDefined();
+        });
+    });
+
+    describe('toggleCollectDepositAccounts', () => {
+        it('should enable collecting deposit accounts optimistically without changing the reimbursement countries', async () => {
+            // Given a policy that isn't collecting deposit accounts but already has a reimbursement country
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                isCollectDepositAccountsEnabled: false,
+                reimbursement: {countries: {GB: {}}},
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the admin turns the toggle on
+            mockFetch.pause();
+            Policy.toggleCollectDepositAccounts(policyID, true, false);
+            await waitForBatchedUpdates();
+
+            // Then the flag flips optimistically with a pending update, and the countries stay as they were, because
+            // the toggle only controls the flag, like Classic
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.isCollectDepositAccountsEnabled).toBe(true);
+            expect(updatedPolicy?.pendingFields?.isCollectDepositAccountsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedPolicy?.reimbursement?.countries).toEqual({GB: {}});
+
+            // When the request succeeds
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the pending update is cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.pendingFields?.isCollectDepositAccountsEnabled).toBeFalsy();
+        });
+
+        it('should revert the flag and show an error when the request fails', async () => {
+            // Given a policy that is collecting deposit accounts
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                isCollectDepositAccountsEnabled: true,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the admin turns the toggle off and the request fails
+            mockFetch.fail();
+            Policy.toggleCollectDepositAccounts(policyID, false, true);
+            await waitForBatchedUpdates();
+
+            // Then the flag goes back to its previous value so the toggle reflects the saved setting, with an error to explain why
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.isCollectDepositAccountsEnabled).toBe(true);
+            expect(updatedPolicy?.pendingFields?.isCollectDepositAccountsEnabled).toBeFalsy();
+            expect(updatedPolicy?.errorFields?.isCollectDepositAccountsEnabled).toBeDefined();
         });
     });
 

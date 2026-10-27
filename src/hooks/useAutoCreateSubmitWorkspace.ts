@@ -1,7 +1,7 @@
 import Log from '@libs/Log';
 import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
-import {canEditWorkspaceSettings, isGroupPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, getGroupPoliciesWhereReportCanBeCreated, isSubmitPolicy} from '@libs/PolicyUtils';
 
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
@@ -12,8 +12,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
-
-import {useCallback, useMemo} from 'react';
 
 import useDelegateAccountID from './useDelegateAccountID';
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
@@ -46,117 +44,87 @@ function useAutoCreateSubmitWorkspace() {
     } = useOnboardingWorkspaceCreationState();
     const delegateAccountID = useDelegateAccountID();
 
-    const groupPolicySelector = useMemo(
-        () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).some((policy) => isGroupPolicy(policy) && canEditWorkspaceSettings(policy)),
-        [],
-    );
-    const [hasEditableGroupPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
-    const existingSubmitPolicyIDSelector = useMemo(
-        // Pass the login so the per-employee role fallback in canEditWorkspaceSettings covers
-        // partially-loaded policies where the top-level `role` isn't populated yet.
-        () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).find((policy) => isSubmitPolicy(policy) && canEditWorkspaceSettings(policy, currentUserEmail))?.id,
-        [currentUserEmail],
-    );
+    // Use the same check as the Submit plan welcome modal guard, so the modal only opens when "Get the free plan" will
+    // create a workspace. It also skips workspaces pending deletion (e.g. deleted while offline), which stay in Onyx
+    // until the request succeeds and would otherwise block creating a new workspace and send us to a deleted one.
+    const groupPolicySelector = (policies: OnyxCollection<Policy>) => getGroupPoliciesWhereReportCanBeCreated(policies, currentUserEmail).length > 0;
+    const [hasGroupPolicyWhereReportCanBeCreated] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
+    const existingSubmitPolicyIDSelector = (policies: OnyxCollection<Policy>) =>
+        getGroupPoliciesWhereReportCanBeCreated(policies, currentUserEmail).find((policy) => isSubmitPolicy(policy) && canEditWorkspaceSettings(policy, currentUserEmail))?.id;
     const [existingSubmitPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: existingSubmitPolicyIDSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
-    const autoCreateSubmitWorkspace = useCallback(
-        // Callers that already finished onboarding (e.g. the Submit plan welcome modal) don't need to
-        // run guided setup again, so they can skip the CompleteGuidedSetup request by passing `false`.
-        async (firstName: string, lastName: string, shouldCompleteOnboarding = true) => {
-            const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasEditableGroupPolicy;
-            const displayName = createDisplayName(currentUserEmail, {firstName, lastName}, formatPhoneNumber);
+    const autoCreateSubmitWorkspace = async (firstName: string, lastName: string, shouldCompleteOnboarding = true) => {
+        const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasGroupPolicyWhereReportCanBeCreated;
+        const displayName = createDisplayName(currentUserEmail, {firstName, lastName}, formatPhoneNumber);
 
-            const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
-                ? createWorkspace({
-                      policyOwner: undefined,
-                      makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(currentUserEmail, displayName, lastWorkspaceNumber, translate),
-                      policyID: generatePolicyID(),
-                      engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
-                      currency: localCurrencyCode,
-                      file: undefined,
-                      shouldAddOnboardingTasks: false,
-                      introSelected,
-                      activePolicy,
-                      conciergeChat,
-                      currentUserAccountIDParam: currentUserAccountID,
-                      currentUserEmailParam: currentUserEmail,
-                      shouldAddGuideWelcomeMessage: false,
-                      type: CONST.POLICY.TYPE.SUBMIT,
-                      isSelfTourViewed,
-                      hasActiveAdminPolicies,
-                      delegateAccountID,
-                      hasOwnedPaidPolicy,
-                  })
-                : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+        const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
+            ? createWorkspace({
+                  policyOwner: undefined,
+                  makeMeAdmin: true,
+                  policyName: generateDefaultWorkspaceName(currentUserEmail, displayName, lastWorkspaceNumber, translate),
+                  policyID: generatePolicyID(),
+                  engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                  currency: localCurrencyCode,
+                  file: undefined,
+                  shouldAddOnboardingTasks: false,
+                  introSelected,
+                  activePolicy,
+                  conciergeChat,
+                  currentUserAccountIDParam: currentUserAccountID,
+                  currentUserEmailParam: currentUserEmail,
+                  shouldAddGuideWelcomeMessage: false,
+                  type: CONST.POLICY.TYPE.SUBMIT,
+                  isSelfTourViewed,
+                  hasActiveAdminPolicies,
+                  delegateAccountID,
+                  hasOwnedPaidPolicy,
+              })
+            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
-            if (shouldCompleteOnboarding) {
-                try {
-                    await completeOnboarding({
-                        engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
-                        onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.EMPLOYER],
-                        firstName,
-                        lastName,
-                        adminsChatReportID: newAdminsChatReportID,
-                        onboardingPolicyID: newPolicyID,
-                        introSelected,
-                        isSelfTourViewed,
-                        conciergeChat,
-                        // Creating a Submit workspace posts a Concierge welcome with suggested responses in its
-                        // #admins room, so a Concierge DM checklist on top of that is a competing second onboarding
-                        // experience. Without a new workspace there is no #admins welcome, so the checklist stays.
-                        shouldSkipConciergeOnboarding: shouldCreateWorkspace,
-                        currentUserAccountID,
-                        delegateAccountID,
-                    });
-                } catch (error) {
-                    // Swallow onboarding completion failures so a network error doesn't block workspace
-                    // creation or the follow-up navigation; the optimistic Onyx data is already applied.
-                    // Still log so the failure remains diagnosable.
-                    Log.warn('[useAutoCreateSubmitWorkspace] Error completing onboarding', {error});
-                }
+        if (shouldCompleteOnboarding) {
+            try {
+                await completeOnboarding({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                    onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.EMPLOYER],
+                    firstName,
+                    lastName,
+                    adminsChatReportID: newAdminsChatReportID,
+                    onboardingPolicyID: newPolicyID,
+                    introSelected,
+                    isSelfTourViewed,
+                    conciergeChat,
+                    // Creating a Submit workspace posts a Concierge welcome with suggested responses in its
+                    // #admins room, so a Concierge DM checklist on top of that is a competing second onboarding
+                    // experience. Without a new workspace there is no #admins welcome, so the checklist stays.
+                    shouldSkipConciergeOnboarding: shouldCreateWorkspace,
+                    currentUserAccountID,
+                    delegateAccountID,
+                });
+            } catch (error) {
+                // Swallow onboarding completion failures so a network error doesn't block workspace
+                // creation or the follow-up navigation; the optimistic Onyx data is already applied.
+                // Still log so the failure remains diagnosable.
+                Log.warn('[useAutoCreateSubmitWorkspace] Error completing onboarding', {error});
             }
+        }
 
-            setOnboardingAdminsChatReportID();
-            setOnboardingPolicyID();
+        setOnboardingAdminsChatReportID();
+        setOnboardingPolicyID();
 
-            // Already-onboarded callers (the Submit plan welcome modal) can reach this point with no workspace
-            // created and no onboarding policy ID when an editable Submit workspace already exists. Navigate to
-            // that existing workspace instead of falling back to Home. Onboarding callers keep the current
-            // behavior since they complete onboarding with `newPolicyID` and should land accordingly.
-            let policyIDForNavigation = newPolicyID;
-            if (!policyIDForNavigation && !shouldCompleteOnboarding) {
-                policyIDForNavigation = existingSubmitPolicyID;
-            }
+        // Already-onboarded callers (the Submit plan welcome modal) can reach this point with no workspace
+        // created and no onboarding policy ID when an editable Submit workspace already exists. Navigate to
+        // that existing workspace instead of falling back to Home. Onboarding callers keep the current
+        // behavior since they complete onboarding with `newPolicyID` and should land accordingly.
+        let policyIDForNavigation = newPolicyID;
+        if (!policyIDForNavigation && !shouldCompleteOnboarding) {
+            policyIDForNavigation = existingSubmitPolicyID;
+        }
 
-            // Onboarding lands on Expenses with the side panel closed. Already-onboarded callers keep opening it.
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout, !shouldCompleteOnboarding);
-        },
-        [
-            currentUserEmail,
-            currentUserAccountID,
-            lastWorkspaceNumber,
-            translate,
-            formatPhoneNumber,
-            isRestrictedPolicyCreation,
-            onboardingPolicyID,
-            hasEditableGroupPolicy,
-            existingSubmitPolicyID,
-            onboardingAdminsChatReportID,
-            localCurrencyCode,
-            introSelected,
-            activePolicy,
-            isSelfTourViewed,
-            onboardingMessages,
-            hasActiveAdminPolicies,
-            hasOwnedPaidPolicy,
-            shouldUseNarrowLayout,
-            conciergeChat,
-            delegateAccountID,
-        ],
-    );
+        // Onboarding lands on Expenses with the side panel closed. Already-onboarded callers keep opening it.
+        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout, !shouldCompleteOnboarding);
+    };
 
     return autoCreateSubmitWorkspace;
 }
