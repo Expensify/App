@@ -2919,8 +2919,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 legalFirstName: 'Επίσημο μικρό όνομα',
                 legalLastName: 'Νόμιμο επώνυμο',
                 ssn: 'Αριθμός κοινωνικής ασφάλισης ή ITIN',
+                hasNoSSN: 'Δεν διαθέτω αριθμό κοινωνικής ασφάλισης ή ITIN',
+                hasSSN: 'Έχω αριθμό κοινωνικής ασφάλισης ή ITIN.',
                 idDocument: 'Επαλήθευση ταυτότητας',
-                idDocumentDescription: 'Ανεβάστε ένα επίσημο έγγραφο ταυτότητας.',
+                idDocumentDescription: 'Παρακαλώ ανεβάστε μια ταυτότητα που έχει εκδοθεί από κρατική αρχή. Μπορείτε να προσθέσετε έως 5 αρχεία.',
             },
             business: {
                 title: 'Εισαγάγετε τα στοιχεία της επιχείρησής σας',

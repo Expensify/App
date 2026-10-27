@@ -2853,8 +2853,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 legalFirstName: 'Nome legale',
                 legalLastName: 'Cognome legale',
                 ssn: 'Numero di previdenza sociale o ITIN',
+                hasNoSSN: 'Non ho un numero di previdenza sociale o un ITIN',
+                hasSSN: 'Ho un numero di previdenza sociale o un ITIN.',
                 idDocument: "Verifica dell'identità",
-                idDocumentDescription: "Carica un documento d'identità ufficiale.",
+                idDocumentDescription: 'Carica un documento d’identità rilasciato dal governo. Puoi aggiungere fino a 5 file.',
             },
             business: {
                 title: "Inserisci i dati dell'azienda",

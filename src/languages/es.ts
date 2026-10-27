@@ -2769,8 +2769,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 legalFirstName: 'Nombre legal',
                 legalLastName: 'Apellidos legales',
                 ssn: 'Número de seguro social o ITIN',
+                hasNoSSN: 'No tengo número de la seguridad social ni ITIN',
+                hasSSN: 'Tengo un número de la seguridad social o ITIN.',
                 idDocument: 'Verificación de identidad',
-                idDocumentDescription: 'Sube un documento de identidad oficial.',
+                idDocumentDescription: 'Sube un documento de identidad emitido por el gobierno. Puedes añadir hasta 5 archivos.',
             },
             business: {
                 title: 'Introduce los datos de tu empresa',

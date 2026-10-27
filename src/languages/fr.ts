@@ -2869,8 +2869,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 legalFirstName: 'Prénom légal',
                 legalLastName: 'Nom de famille légal',
                 ssn: 'Numéro de sécurité sociale ou ITIN',
+                hasNoSSN: 'Je n’ai pas de numéro de sécurité sociale ni d’ITIN',
+                hasSSN: 'Je possède un numéro de sécurité sociale ou un ITIN.',
                 idDocument: 'Vérification d’identité',
-                idDocumentDescription: 'Veuillez téléverser une pièce d’identité officielle.',
+                idDocumentDescription: "Veuillez téléverser une pièce d'identité délivrée par le gouvernement. Vous pouvez ajouter jusqu'à 5 fichiers.",
             },
             business: {
                 title: 'Saisissez les informations de votre entreprise',

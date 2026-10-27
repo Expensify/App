@@ -2832,8 +2832,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 legalFirstName: '法的な名',
                 legalLastName: '法的な姓',
                 ssn: '社会保障番号またはITIN',
+                hasNoSSN: '社会保障番号またはITINを持っていません',
+                hasSSN: '社会保障番号または ITIN を持っています。',
                 idDocument: '本人確認',
-                idDocumentDescription: '政府発行の身分証明書をアップロードしてください。',
+                idDocumentDescription: '政府発行の本人確認書類をアップロードしてください。ファイルは最大5件まで追加できます。',
             },
             business: {
                 title: '会社情報を入力',

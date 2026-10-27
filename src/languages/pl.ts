@@ -2892,8 +2892,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 legalFirstName: 'Imię (zgodnie z dokumentem tożsamości)',
                 legalLastName: 'Nazwisko zgodne z dokumentami',
                 ssn: 'Numer ubezpieczenia społecznego lub ITIN',
+                hasNoSSN: 'Nie mam numeru Social Security ani ITIN',
+                hasSSN: 'Mam numer Social Security lub ITIN.',
                 idDocument: 'Weryfikacja tożsamości',
-                idDocumentDescription: 'Prześlij urzędowy dokument tożsamości.',
+                idDocumentDescription: 'Prześlij dokument tożsamości wydany przez instytucję rządową. Możesz dodać maksymalnie 5 plików.',
             },
             business: {
                 title: 'Wpisz dane firmy',
