@@ -16,6 +16,7 @@ import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isTrackExpenseReportNew} from '@libs/ReportUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
+import {filterRulesForPolicy} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +33,7 @@ import {guidedSetupAndTourStatusSelector, isTrackIntentUserSelector} from '@sele
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
-import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
+import Onyx, {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useDelegateAccountID from './useDelegateAccountID';
@@ -87,6 +88,20 @@ type UseTransactionInlineEditReturn = {
     wasEditingOnMouseDownRef: React.RefObject<boolean>;
 };
 
+type EditParamsReadOnSave =
+    | 'reportPolicyTags'
+    | 'policyRecentlyUsedCategories'
+    | 'policyRecentlyUsedTags'
+    | 'fullPolicySnapshotLastModified'
+    | 'isSelfTourViewed'
+    | 'hasCompletedGuidedSetupFlow'
+    | 'conciergeChat'
+    | 'isTrackIntentUser'
+    | 'introSelected'
+    | 'currentUserAccountID'
+    | 'currentUserEmail'
+    | 'rules';
+
 function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: UseTransactionInlineEditParams): UseTransactionInlineEditReturn {
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -138,29 +153,14 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const [liveTransactionThreadReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reportPolicyID)}`);
-    // The thread report is built under the report passed as parentReport, so the snapshot comes from that report's policy
-    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(parentReportForAction?.policyID)}`, {
-        selector: fullPolicySnapshotLastModifiedSelector,
-    });
     const [transactionThreadNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [chatReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(chatReportID)}`);
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
-    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     // Use original Onyx here because the useOnyx wrapper can read partial Search snapshot policy data instead of the full policy object.
     const [completePolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
 
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(originalTransactionID)}`);
     const [personalDetailsList] = useAllPersonalDetails();
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
 
@@ -177,6 +177,8 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const isTrackExpense = isTrackExpenseReportNew(transactionThreadReport, effectiveParentReport, parentReportAction);
 
     const editPolicy = completePolicy ?? policy;
+    // Edit permissions only read the rules of the policy they get
+    const [policyRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rules) => filterRulesForPolicy(rules, editPolicy?.id)});
     const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
     const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(editPolicy, customUnitRateID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
@@ -195,16 +197,15 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         policyTags,
         transactionThreadNVP,
         chatReportNVP,
-        reportNameValuePairs,
         originalTransaction,
         disabled: hasSelectedTransactions,
         shouldSelectPolicyForUnreported: shouldSelectPolicy,
-        rules,
+        rules: policyRules,
     });
 
     const wasEditingOnMouseDownRef = useRef(false);
 
-    const getEditParams = (): TransactionInlineEditParams => {
+    const getRenderedEditParams = (): Omit<TransactionInlineEditParams, EditParamsReadOnSave> => {
         return {
             isVendorMatchingBetaEnabled,
             hash,
@@ -215,25 +216,62 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             transactionThreadReport: transactionThreadReport ?? liveTransactionThreadReport,
             policy: completePolicy ?? policy,
             policyForTrackExpense: isTrackExpense ? policyForMovingExpenses : undefined,
-            fullPolicySnapshotLastModified,
             policyCategories,
             policyTags,
-            reportPolicyTags,
-            policyRecentlyUsedCategories,
-            policyRecentlyUsedTags,
             isOffline,
-            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
-            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
-            conciergeChat,
             distanceOriginalPolicy,
             personalDetailsList,
             delegateAccountID,
-            isTrackIntentUser,
             getCurrencyDecimals,
             getCurrencySymbol,
             transactions: duplicateTransactions,
             transactionViolations: duplicateTransactionViolations,
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+        };
+    };
+
+    // Rows pass the handlers down, so they keep one identity and read the latest rendered values when called.
+    // Otherwise every write to the policy or the other data above would re-render the whole row.
+    const renderedEditData = {
+        getRenderedEditParams,
+        policyID,
+        reportPolicyID,
+        // The thread report is built under the report passed as parentReport, so the snapshot comes from that report's policy
+        snapshotPolicyID: parentReportForAction?.policyID,
+        personalOutputCurrency: personalPolicy?.outputCurrency,
+    };
+    const renderedEditDataRef = useRef(renderedEditData);
+    useEffect(() => {
+        renderedEditDataRef.current = renderedEditData;
+    });
+
+    // Only the edit actions need these, so they are read on save instead of re-running the hook in every row on each write
+    const getEditParams = async (): Promise<TransactionInlineEditParams> => {
+        const {getRenderedEditParams: getLatestRenderedEditParams, policyID: editPolicyID, reportPolicyID: editReportPolicyID, snapshotPolicyID} = renderedEditDataRef.current;
+        const [reportPolicyTags, policyRecentlyUsedCategories, policyRecentlyUsedTags, fullPolicySnapshot, onboarding, introSelected, session, rules, conciergeReportID] =
+            await Onyx.multiGet([
+                `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(editReportPolicyID)}`,
+                `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(editPolicyID)}`,
+                `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getNonEmptyStringOnyxID(editPolicyID)}`,
+                `${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(snapshotPolicyID)}`,
+                ONYXKEYS.NVP_ONBOARDING,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+                ONYXKEYS.SESSION,
+                ONYXKEYS.COLLECTION.RULE,
+                ONYXKEYS.CONCIERGE_REPORT_ID,
+            ]);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        const {isSelfTourViewed, hasCompletedGuidedSetupFlow} = guidedSetupAndTourStatusSelector(onboarding);
+        return {
+            ...getLatestRenderedEditParams(),
+            reportPolicyTags,
+            policyRecentlyUsedCategories,
+            policyRecentlyUsedTags,
+            fullPolicySnapshotLastModified: fullPolicySnapshotLastModifiedSelector(fullPolicySnapshot),
+            isSelfTourViewed: isSelfTourViewed ?? false,
+            hasCompletedGuidedSetupFlow: hasCompletedGuidedSetupFlow ?? false,
+            conciergeChat,
+            isTrackIntentUser: isTrackIntentUserSelector(introSelected),
             introSelected,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmail: session?.email ?? '',
@@ -241,37 +279,28 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         };
     };
 
-    // Rows pass these handlers down, so they keep one identity and read the latest edit params when called.
-    // Otherwise every write to the policy or the other data above would re-render the whole row.
-    const getEditParamsRef = useRef(getEditParams);
-    const personalOutputCurrencyRef = useRef(personalPolicy?.outputCurrency);
-    useEffect(() => {
-        getEditParamsRef.current = getEditParams;
-        personalOutputCurrencyRef.current = personalPolicy?.outputCurrency;
-    });
-
     const onEditDate = (newDate: string) => {
-        editTransactionDateInline(getEditParamsRef.current(), newDate, personalOutputCurrencyRef.current);
+        getEditParams().then((params) => editTransactionDateInline(params, newDate, renderedEditDataRef.current.personalOutputCurrency));
     };
 
     const onEditMerchant = (newMerchant: string) => {
-        showInlineEditError(editTransactionMerchantInline(translate, getEditParamsRef.current(), newMerchant));
+        getEditParams().then((params) => showInlineEditError(editTransactionMerchantInline(translate, params, newMerchant)));
     };
 
     const onEditDescription = (newDescription: string) => {
-        showInlineEditError(editTransactionDescriptionInline(translate, getEditParamsRef.current(), newDescription));
+        getEditParams().then((params) => showInlineEditError(editTransactionDescriptionInline(translate, params, newDescription)));
     };
 
     const onEditCategory = (newCategory: string) => {
-        editTransactionCategoryInline(getEditParamsRef.current(), newCategory);
+        getEditParams().then((params) => editTransactionCategoryInline(params, newCategory));
     };
 
     const onEditAmount = (newAmount: number) => {
-        showInlineEditError(editTransactionAmountInline(translate, getEditParamsRef.current(), newAmount));
+        getEditParams().then((params) => showInlineEditError(editTransactionAmountInline(translate, params, newAmount)));
     };
 
     const onEditTag = (newTag: string) => {
-        editTransactionTagInline(getEditParamsRef.current(), newTag);
+        getEditParams().then((params) => editTransactionTagInline(params, newTag));
     };
 
     return {
