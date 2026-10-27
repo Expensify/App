@@ -8,7 +8,7 @@ import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {cancelAllSendMessageSpans} from '@libs/telemetry/sendMessageSpans';
+import {cancelSendMessageSpansForReport} from '@libs/telemetry/sendMessageSpans';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,8 +51,8 @@ function ReportLifecycleHandler({reportID}: ReportLifecycleHandlerProps) {
             // Cancel telemetry span when user leaves the screen before full report data is loaded
             cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${onyxReportID}`);
 
-            // Cancel any pending send-message spans to prevent orphaned spans when navigating away
-            cancelAllSendMessageSpans();
+            // Cancel this report's pending send-message spans to prevent orphaned spans when navigating away
+            cancelSendMessageSpansForReport(onyxReportID);
         };
     }, [onyxReportID]);
 

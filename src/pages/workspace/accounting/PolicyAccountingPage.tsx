@@ -41,14 +41,14 @@ import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
 import ExactOnlineWaitlistRow from './ExactOnlineWaitlistRow';
-import {getNetSuiteOAuthMigrationSeverity, shouldShowNetSuiteOAuthMigrationNudge} from './netsuite/utils';
+import {getNetSuiteOAuthMigrationSeverity, shouldShowNetSuiteOAuthMigrationOption} from './netsuite/utils';
 import useConnectedAccountingIntegration from './useConnectedAccountingIntegration';
 
 type RouteParams = {
@@ -61,7 +61,6 @@ type RouteParams = {
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.accounting');
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -228,7 +227,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
         let netSuiteOAuthMigrationHint;
         const netSuiteAccountID = policy?.connections?.netsuite?.accountID;
-        if (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && shouldShowNetSuiteOAuthMigrationNudge(policy, allPolicies) && canWriteAccounting && netSuiteAccountID) {
+        if (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && shouldShowNetSuiteOAuthMigrationOption(policy) && canWriteAccounting && netSuiteAccountID) {
             const severity = getNetSuiteOAuthMigrationSeverity();
             netSuiteOAuthMigrationHint = (
                 <>
@@ -326,19 +325,18 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     };
     const otherIntegrationsItems = getOtherIntegrationsItems();
 
-    const [chatTextLink, chatReportID] = useMemo(() => {
-        // If they have an onboarding specialist assigned display the following and link to the #admins room with the account executive.
-        if (policy?.chatReportIDAdmins) {
-            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins?.toString()];
-        }
-
-        // If not, if they have an account manager assigned display the following and link to the DM with their account manager.
-        if (account?.accountManagerAccountID) {
-            return [translate('workspace.accounting.talkYourAccountManager'), account?.accountManagerReportID];
-        }
+    let derivedValue;
+    // If they have an onboarding specialist assigned display the following and link to the #admins room with the account executive.
+    if (policy?.chatReportIDAdmins) {
+        derivedValue = [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins?.toString()];
+    } else // If not, if they have an account manager assigned display the following and link to the DM with their account manager.
+    if (account?.accountManagerAccountID) {
+        derivedValue = [translate('workspace.accounting.talkYourAccountManager'), account?.accountManagerReportID];
+    } else {
         // Else, display the following and link to their Concierge DM.
-        return [translate('workspace.accounting.talkToConcierge'), conciergeReportID];
-    }, [account?.accountManagerAccountID, account?.accountManagerReportID, conciergeReportID, policy?.chatReportIDAdmins, translate]);
+        derivedValue = [translate('workspace.accounting.talkToConcierge'), conciergeReportID];
+    }
+    const [chatTextLink, chatReportID] = derivedValue;
 
     return (
         <AccessOrNotFoundWrapper

@@ -25,7 +25,7 @@ import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {TableListMetadata} from './buildTableListData';
@@ -295,6 +295,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         resolvedColumnWidths,
         dragMinWidths,
         getStoredTableColumnWidths,
+        getTargetColumnWidth,
     } = useDynamicColumnWidths<DataType, ColumnKey>({
         columns,
         data,
@@ -313,6 +314,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         resolvedColumnWidths,
         dragMinWidths,
         getStoredTableColumnWidths,
+        getTargetColumnWidth,
         columnGap: styles.gap3.gap,
     });
 
@@ -365,18 +367,14 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     const hasBulkActionBarChild = childrenArray.some((child) => React.isValidElement(child) && child.type === TableBulkActionBar);
     const isBulkActionBarVisible = hasBulkActionBarChild && !shouldUseNarrowLayout && selectedKeys.length > 0;
 
-    const tableListMetadata = useMemo(
-        () =>
-            getTableListMetadata({
-                listHeaderElement,
-                listHeaderComponent: listProps.ListHeaderComponent,
-                hasColumnHeaderElement,
-                hasRows,
-                isColumnHeaderHiddenInNarrowLayout,
-                canStickColumnHeaderInScroller,
-            }),
-        [listHeaderElement, listProps.ListHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, canStickColumnHeaderInScroller],
-    );
+    const tableListMetadata = getTableListMetadata({
+        listHeaderElement,
+        listHeaderComponent: listProps.ListHeaderComponent,
+        hasColumnHeaderElement,
+        hasRows,
+        isColumnHeaderHiddenInNarrowLayout,
+        canStickColumnHeaderInScroller,
+    });
     /**
      * Exposes table control methods through the ref.
      * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
