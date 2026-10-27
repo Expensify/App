@@ -11,26 +11,25 @@ import {isAnonymousUser} from '@libs/actions/Session';
 
 import variables from '@styles/variables';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 function SignInHeroImage() {
     const styles = useThemeStyles();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['Hands']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const imageSize = useMemo(() => {
-        if (shouldUseNarrowLayout) {
-            return {
-                height: variables.signInHeroImageMobileHeight,
-                width: variables.signInHeroImageMobileWidth,
-            };
-        }
-
-        return {
+    let imageSize;
+    if (shouldUseNarrowLayout) {
+        imageSize = {
+            height: variables.signInHeroImageMobileHeight,
+            width: variables.signInHeroImageMobileWidth,
+        };
+    } else {
+        imageSize = {
             height: isMediumScreenWidth ? variables.signInHeroImageTabletHeight : variables.signInHeroImageDesktopHeight,
             width: isMediumScreenWidth ? variables.signInHeroImageTabletWidth : variables.signInHeroImageDesktopWidth,
         };
-    }, [shouldUseNarrowLayout, isMediumScreenWidth]);
+    }
 
     if (isReduceMotionEnabled) {
         return (

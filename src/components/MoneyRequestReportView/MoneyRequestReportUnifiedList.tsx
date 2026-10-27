@@ -15,7 +15,7 @@ import type {ViewableItemsChanged, ViewToken} from '@src/types/utils/ReactNative
 import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
-import React, {memo, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {ExternalScrollFlashListTableHandle} from './ExternalScrollFlashListTable';
@@ -420,4 +420,4 @@ function MoneyRequestReportUnifiedList({
     );
 }
 
-export default memo(MoneyRequestReportUnifiedList);
+export default MoneyRequestReportUnifiedList;

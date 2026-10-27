@@ -11,7 +11,8 @@
 
 import CLI from 'expensify-common/CLI';
 
-import checkOnyxConnectBypass from '../checkOnyxConnectBypass';
+import checkOnyxLintBypass from '../checkOnyxLintBypass';
+import checkOnyxLintDisableReason from '../checkOnyxLintDisableReason';
 import Bench from '../utils/Bench';
 import ESLintLinter from './eslint/ESLintLinter';
 import StylishFormatter from './formatters/StylishFormatter';
@@ -84,6 +85,8 @@ if (result.exitCode !== 0) {
     process.exit(result.exitCode);
 }
 
-if (await checkOnyxConnectBypass(lintTargets)) {
+const onyxChecksFailed = await Promise.all([checkOnyxLintBypass(lintTargets), checkOnyxLintDisableReason(lintTargets)]);
+
+if (onyxChecksFailed.some(Boolean)) {
     process.exit(1);
 }
