@@ -126,8 +126,6 @@ type GetWorkspaceMenuItemsParams = {
     isVendorMatchingBetaEnabled?: boolean;
     /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
     isRecruitingBetaEnabled?: boolean;
-    /** Whether the company agents beta is enabled. */
-    isCompanyAgentsBetaEnabled?: boolean;
     /** Whether the unified Connections beta replaces the Accounting, HR, Recruiting, Receipt partners, and MCP items. */
     isUnifiedConnectionsBetaEnabled?: boolean;
     /** Formats the invoice account balance for its menu badge. */
@@ -149,7 +147,6 @@ function getWorkspaceMenuItems({
     hasApprovalWorkflowWithNonMemberApprover = false,
     isVendorMatchingBetaEnabled = false,
     isRecruitingBetaEnabled = false,
-    isCompanyAgentsBetaEnabled = false,
     isUnifiedConnectionsBetaEnabled = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
@@ -258,7 +255,7 @@ function getWorkspaceMenuItems({
         return canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MEMBERS);
     });
 
-    if (isGroupPolicy(policy) && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.AGENTS) && isCompanyAgentsBetaEnabled && !isAgentAccount) {
+    if (isGroupPolicy(policy) && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.AGENTS) && !isAgentAccount) {
         const membersItemIndex = items.findIndex((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
         items.splice(membersItemIndex + 1, 0, {
             translationKey: 'agentsPage.title',
