@@ -4,6 +4,7 @@ import InlineIcon from '@components/Icon/InlineIcon';
 import PopoverMenu from '@components/PopoverMenu';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -370,20 +371,27 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                       shouldGreyOutWhenDisabled: false,
                                       shouldRemoveHoverBackground: !!isSwitchDisabled,
                                       // Decorative Switch: isNested lets it animate without double-toggling, focusable={false} keeps the row the only tab stop, and the wrapper is aria-hidden.
+                                      // The tooltip wraps the Switch (not the whole row) so it's centered above the lock, per design. It wraps the View so it has a child that forwards a ref to measure.
                                       rightComponent: (
-                                          <View
-                                              style={styles.justifyContentCenter}
-                                              aria-hidden
-                                              accessibilityElementsHidden
-                                              importantForAccessibility="no-hide-descendants"
+                                          <Tooltip
+                                              text={item.tooltipText}
+                                              shouldRender={!!item.tooltipText}
+                                              shouldTeleportPortalToModalLayer
                                           >
-                                              <Switch
-                                                  {...item.switchProps}
-                                                  isNested
-                                                  shouldAnimateOnExternalChange
-                                                  focusable={false}
-                                              />
-                                          </View>
+                                              <View
+                                                  style={styles.justifyContentCenter}
+                                                  aria-hidden
+                                                  accessibilityElementsHidden
+                                                  importantForAccessibility="no-hide-descendants"
+                                              >
+                                                  <Switch
+                                                      {...item.switchProps}
+                                                      isNested
+                                                      shouldAnimateOnExternalChange
+                                                      focusable={false}
+                                                  />
+                                              </View>
+                                          </Tooltip>
                                       ),
                                   }
                                 : {}),
