@@ -83,6 +83,7 @@ import {
     isConsecutiveActionMadeByPreviousActor,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
+    isReportActionFromCurrentUser,
     shouldHideNewMarker,
     wasActionTakenByCurrentUser,
 } from '../../src/libs/ReportActionsUtils';
@@ -2788,6 +2789,46 @@ describe('ReportActionsUtils', () => {
 
         it('returns false for null reportAction', () => {
             expect(wasActionTakenByCurrentUser(null, 42)).toBe(false);
+        });
+    });
+
+    describe('isReportActionFromCurrentUser', () => {
+        const currentUserAccountID = 42;
+        const otherUserAccountID = 99;
+
+        it('returns true for a regular action whose actor is the current user', () => {
+            // Given a comment written by the current user
+            const action = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, actorAccountID: currentUserAccountID} as ReportAction;
+
+            // When / Then the action is attributed to the current user through actorAccountID
+            expect(isReportActionFromCurrentUser(action, currentUserAccountID)).toBe(true);
+        });
+
+        it('returns false for a regular action whose actor is another user', () => {
+            // Given a comment written by someone else
+            const action = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, actorAccountID: otherUserAccountID} as ReportAction;
+
+            // When / Then the action is not attributed to the current user
+            expect(isReportActionFromCurrentUser(action, currentUserAccountID)).toBe(false);
+        });
+
+        it('uses childLastActorAccountID for a report preview', () => {
+            // Given a report preview created by someone else whose latest child action came from the current user
+            const action = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                actorAccountID: otherUserAccountID,
+                childLastActorAccountID: currentUserAccountID,
+            } as ReportAction;
+
+            // When / Then the preview is attributed to the child report's last actor, not to the preview's own actor
+            expect(isReportActionFromCurrentUser(action, currentUserAccountID)).toBe(true);
+            expect(isReportActionFromCurrentUser({...action, childLastActorAccountID: otherUserAccountID, actorAccountID: currentUserAccountID}, currentUserAccountID)).toBe(false);
+        });
+
+        it('returns false for an undefined action', () => {
+            // Given no action / When / Then nothing is attributed to the current user
+            expect(isReportActionFromCurrentUser(undefined, currentUserAccountID)).toBe(false);
         });
     });
 

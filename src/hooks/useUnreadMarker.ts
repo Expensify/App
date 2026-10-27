@@ -1,4 +1,4 @@
-import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
+import {isReportActionFromCurrentUser, wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
@@ -120,7 +120,9 @@ function useUnreadMarker({
     let oldestUnreadReportActionMarker: [string, number] | undefined;
     if (oldestUnreadReportActionID && !hasOnceLoadedReportActions) {
         const visibleIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === oldestUnreadReportActionID);
-        if (visibleIndex >= 0) {
+        // Another session can have a stale lastReadTime, so the anchor may be the user's own message sent from a
+        // different device. Leave that case to the scan, which never places a fresh marker on a self-authored action.
+        if (visibleIndex >= 0 && !isReportActionFromCurrentUser(sortedVisibleReportActions.at(visibleIndex), currentUserAccountID)) {
             oldestUnreadReportActionMarker = [oldestUnreadReportActionID, visibleIndex];
         }
     }
