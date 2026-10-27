@@ -144,12 +144,12 @@ import {
     arePaymentsEnabled,
     canMemberWrite as canMemberWritePolicyUtils,
     canCreateExpensesOnPolicy,
+    canCreateReportOnPolicy,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
     getForwardsToAccount,
-    getGroupPoliciesWhereReportCanBeCreated,
     getManagerAccountEmail,
     getManagerAccountID,
     getPerDiemCustomUnit,
@@ -6226,24 +6226,24 @@ function canEditFieldOfMoneyRequest({
                 return false;
             }
             const isPerDiem = isPerDiemRequest(transaction);
-            const isEligibleDestination = (destinationPolicy: Policy) =>
-                destinationPolicy.id !== moneyRequestReport.policyID && (!isPerDiem || canSubmitPerDiemExpenseFromWorkspace(destinationPolicy));
-            const canCreateReportElsewhere = getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail).some(isEligibleDestination);
-            return (
-                canCreateReportElsewhere ||
-                policiesArray.some(
-                    (destinationPolicy) =>
-                        isEligibleDestination(destinationPolicy) &&
-                        canCreateExpensesOnPolicy(destinationPolicy, deprecatedCurrentUserEmail) &&
+            return policiesArray.some((destinationPolicy) => {
+                if (destinationPolicy.id === moneyRequestReport.policyID || (isPerDiem && !canSubmitPerDiemExpenseFromWorkspace(destinationPolicy))) {
+                    return false;
+                }
+                const destinationPolicyID = destinationPolicy.id;
+                const canCreateReportElsewhere = canCreateReportOnPolicy(destinationPolicy, deprecatedCurrentUserEmail);
+                return (
+                    canCreateReportElsewhere ||
+                    (canCreateExpensesOnPolicy(destinationPolicy, deprecatedCurrentUserEmail) &&
                         getOutstandingReportsForUser(
-                            destinationPolicy.id,
+                            destinationPolicyID,
                             moneyRequestReport.ownerAccountID,
                             rules,
                             reportNameValuePairs,
-                            outstandingReportsByPolicyID?.[destinationPolicy.id] ?? {},
-                        ).length > 0,
-                )
-            );
+                            outstandingReportsByPolicyID?.[destinationPolicyID] ?? {},
+                        ).length > 0)
+                );
+            });
         }
 
         // Check the cheaper condition first
