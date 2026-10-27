@@ -1,6 +1,6 @@
 ---
-title: Manage Vendor Matching for Dynamics 365 Business Central
-description: Learn how Dynamics 365 Business Central vendor matching assigns vendors to non-reimbursable company card expenses, including automatic matching, manual selection, and blocked vendor behavior.
+title: Manage Vendor Matching for Business Central
+description: Learn how Business Central vendor matching assigns vendors to non-reimbursable company card expenses, including automatic matching, manual selection, and blocked vendor behavior.
 keywords: [Dynamics 365 Business Central, Business Central, D365, vendor matching, vendor, blocked vendor, company card expenses]
 internalScope: Audience is workspace admins using the Dynamics 365 Business Central connection. Covers imported Business Central vendors, automatic and manual vendor assignment, blocked vendor filtering, and vendors that are no longer valid. Does not cover Business Central connection setup, Business Central export configuration, or vendor matching for other accounting connections.
 order: 3
@@ -8,7 +8,7 @@ noindex: true
 sitemap: false
 ---
 
-# Manage Vendor Matching for Dynamics 365 Business Central
+# Manage Vendor Matching for Business Central
 
 Dynamics 365 Business Central vendor matching lets workspace admins review and update the vendor assigned to non-reimbursable company card expenses before they export to Business Central. Expensify imports your Business Central vendor list, automatically matches vendors where possible, and lets admins set or update the **Vendor** field before export. This helps ensure expenses export with the correct vendor instead of requiring manual corrections in Business Central.
 
