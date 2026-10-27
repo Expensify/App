@@ -65,6 +65,7 @@
     "oxlint-eslint-directives": "node oxlint-migration/checkEslintDirectives.mjs",
     "oxlint-sidecar-coverage": "python3 oxlint-migration/checkSidecarCoverage.py",
     "oxlint-config-drift": "python3 oxlint-migration/checkConfigDrift.py",
+    "oxlint-onyx-read-and-memo-rules": "python3 oxlint-migration/checkOnyxReadAndMemoRules.py",
     "lint-changed": "./scripts/lintChanged.sh",
     "lint-watch": "onchange '**/*.{js,jsx,ts,tsx,mjs,cjs}' -- bun scripts/lint/index.ts {{changed}}",
     "eslint-report": "bun scripts/eslint-report.ts",

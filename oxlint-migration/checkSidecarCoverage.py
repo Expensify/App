@@ -58,6 +58,18 @@ PROBE_EVIDENCE = {
         'npm run oxlint-jsx-uses-port',
         'same, for JSX-only variables rather than the React import',
     ),
+    'rulesdir/no-unsafe-onyx-read': (
+        'npm run oxlint-onyx-read-and-memo-rules',
+        'the rule decides by where the file sits in src/, which the fixture and replay trees under oxlint-migration/ cannot reproduce, and its upstream tests are a TypeScript Jest suite the replay cannot import',
+    ),
+    'rulesdir/no-onyx-get-snapshot-key': (
+        'npm run oxlint-onyx-read-and-memo-rules',
+        'same probe; its upstream tests are a TypeScript Jest suite too',
+    ),
+    'rulesdir/no-manual-memoization': (
+        'npm run oxlint-onyx-read-and-memo-rules',
+        'what decides whether a finding survives is the ReactCompilerFilter pipeline stage, so the probe runs both tools through the lint pipeline as well as raw',
+    ),
 }
 
 EXEMPT = {}

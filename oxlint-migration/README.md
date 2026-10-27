@@ -53,6 +53,7 @@ stopped matching. The root file is therefore the real config, and that is delibe
 | `rule-tester/` | harvests the upstream `RuleTester` cases for the custom rules and replays them as real files through both tools | `npm run oxlint-rule-tester` |
 | `checkSidecarCoverage.py` | fails if any hand-hosted sidecar rule has no fixture, replayed case or probe | `npm run oxlint-sidecar-coverage` |
 | `checkReactCompilerGate.py` | asserts the gate suppresses exactly what the ESLint side suppresses | `npm run oxlint-react-compiler-gate` |
+| `checkOnyxReadAndMemoRules.py` | `no-unsafe-onyx-read`, `no-onyx-get-snapshot-key` and `no-manual-memoization`, line by line, through the lint pipeline and raw: the Onyx rules depend on where a file sits in `src/`, and the memoization rule on a pipeline stage | `npm run oxlint-onyx-read-and-memo-rules` |
 | `checkLocaleComparePort.py` | asserts the type-free rule rewrite matches the type-aware original, receiver shape by receiver shape | `npm run oxlint-locale-compare-port` |
 | `checkJsxUsesPort.py` | the two rules that cannot report anything, asserted by outcome instead | `npm run oxlint-jsx-uses-port` |
 | `listAllRules.py` | inventory of every rule either tool enables, and why anything is off | `npm run oxlint-rule-inventory`, `npm run oxlint-rule-availability` |
