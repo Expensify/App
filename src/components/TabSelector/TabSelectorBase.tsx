@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {TabSelectorBaseProps} from './types';
 
@@ -43,7 +43,7 @@ function TabSelectorBase<K extends string = string>({
 
     const routesLength = tabs.length;
 
-    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: routesLength}, (_v, i) => i), [routesLength]);
+    const defaultAffectedAnimatedTabs = Array.from({length: routesLength}, (_v, i) => i);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
 
     const {containerRef} = useTabSelectorState();

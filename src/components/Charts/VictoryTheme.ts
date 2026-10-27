@@ -3,6 +3,7 @@
  */
 import type {ColorScheme} from '@styles/index';
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -123,6 +124,8 @@ const VictoryTheme = {
         legendGap: 24,
         /** Gap (px) between the donut and the legend below it in the stacked layout */
         legendStackGap: 32,
+        /** Gap (px) between the rows of the side and stacked legends */
+        legendRowGap: 12,
     },
 } as const;
 
@@ -134,6 +137,13 @@ const CARTESIAN_Y_AXIS = {
 
 /** Minimum height for the chart content area (bars, Y-axis, grid lines) */
 const CHART_CONTENT_MIN_HEIGHT = 250;
+
+/** ExpensifyNeue's ascent plus descent over its em, 950 + 230 of 1000 units, which is the line height Skia reports for label text. */
+const LABEL_LINE_HEIGHT_RATIO = 1.18;
+
+const X_AXIS_LABEL_LINE_HEIGHT = variables.iconSizeExtraSmall * LABEL_LINE_HEIGHT_RATIO;
+
+const X_AXIS_LABEL_MIN_HEIGHT = Math.ceil(X_AXIS_LABEL_LINE_HEIGHT);
 
 /** Pixel height of the y-scale output range inside CartesianChart (content height minus base axis padding). */
 const CHART_Y_SCALE_HEIGHT = CHART_CONTENT_MIN_HEIGHT - VictoryTheme.axis.padding.top - VictoryTheme.axis.padding.bottom;
@@ -185,6 +195,8 @@ export {
     CHART_CONTENT_MIN_HEIGHT,
     X_AXIS_LABEL_MIN_GAP,
     CHART_Y_SCALE_HEIGHT,
+    X_AXIS_LABEL_LINE_HEIGHT,
+    X_AXIS_LABEL_MIN_HEIGHT,
     LABEL_ROTATIONS,
     SIN_45,
     LABEL_PADDING,

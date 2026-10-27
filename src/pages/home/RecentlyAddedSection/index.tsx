@@ -24,6 +24,7 @@ import ROUTES from '@src/ROUTES';
 
 import {useIsFocused} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Policy';
 import React from 'react';
 
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
@@ -50,6 +51,7 @@ function RecentlyAddedSection() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
 
     const hasExpenses = transactions.length > 0;
     const listBottomPadding = shouldUseNarrowLayout ? styles.pb2 : styles.pb5;
@@ -67,6 +69,7 @@ function RecentlyAddedSection() {
             currentUserEmail,
             currentUserAccountID,
             personalDetails,
+            fullPolicySnapshotLastModifiedByPolicyID,
         };
         const reportID = getReportIDToOpenForExpense(expense, resolveContext);
 
