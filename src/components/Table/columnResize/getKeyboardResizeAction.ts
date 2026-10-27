@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 type KeyboardResizeAction = {type: 'step'; step: number} | {type: 'toggleFit'};
 
 /** `undefined` for keys a column edge leaves alone. */
-function getKeyboardResizeAction({key, code}: Pick<KeyboardEvent, 'key' | 'code'>): KeyboardResizeAction | undefined {
+function getKeyboardResizeAction({key}: Pick<KeyboardEvent, 'key'>): KeyboardResizeAction | undefined {
     if (key === CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey) {
         return {type: 'step', step: -CONST.TABLES.COLUMN_RESIZE.KEYBOARD_STEP};
     }
@@ -14,10 +14,7 @@ function getKeyboardResizeAction({key, code}: Pick<KeyboardEvent, 'key' | 'code'
         return {type: 'step', step: CONST.TABLES.COLUMN_RESIZE.KEYBOARD_STEP};
     }
 
-    const isEnter = key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey;
-    const isSpace = code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey && key === CONST.KEYBOARD_SHORTCUTS.SPACE.trigger.DEFAULT.input;
-
-    if (isEnter || isSpace) {
+    if (key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || key === CONST.KEYBOARD_SHORTCUTS.SPACE.trigger.DEFAULT.input) {
         return {type: 'toggleFit'};
     }
 
@@ -25,4 +22,3 @@ function getKeyboardResizeAction({key, code}: Pick<KeyboardEvent, 'key' | 'code'
 }
 
 export default getKeyboardResizeAction;
-export type {KeyboardResizeAction};

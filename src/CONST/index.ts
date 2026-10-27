@@ -7308,6 +7308,8 @@ const CONST = {
         SCROLLBAR: 'scrollbar',
         /** Use for text fields that are used for searching. */
         SEARCHBOX: 'searchbox',
+        /** Use for dividers, including focusable ones that resize the areas on either side. */
+        SEPARATOR: 'separator',
         /** Use for adjustable elements like sliders. */
         SLIDER: 'slider',
         /** Use for a button that opens a list of choices. */

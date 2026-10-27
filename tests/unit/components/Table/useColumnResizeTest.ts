@@ -55,10 +55,10 @@ function createPointerEvent(handleElement: HTMLDivElement, {clientX, clientY = 0
 }
 
 /** A key press carrying only what the hook reads, aimed at the given handle, with its mocks to assert on. */
-function createKeyboardEvent(handleElement: HTMLDivElement, key: string, code = key) {
+function createKeyboardEvent(handleElement: HTMLDivElement, key: string) {
     const preventDefault = jest.fn();
     const stopPropagation = jest.fn();
-    const event = {key, code, currentTarget: handleElement, preventDefault, stopPropagation};
+    const event = {key, currentTarget: handleElement, preventDefault, stopPropagation};
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the hook only reads the fields above
     return {event: event as unknown as React.KeyboardEvent<HTMLDivElement>, preventDefault, stopPropagation};
@@ -839,7 +839,7 @@ describe('useColumnResize', () => {
         // When the stored width renders and Space is pressed
         rerender({...initialProps, resolvedColumnWidths: {name: 120, email: 280, role: 200}});
         act(() => {
-            getHandleProps().onKeyDown?.(createKeyboardEvent(handleElement, ' ', 'Space').event);
+            getHandleProps().onKeyDown?.(createKeyboardEvent(handleElement, ' ').event);
         });
 
         // Then the column is handed back to content sizing, the same as a double-click, since one key can't tell the two apart
@@ -909,5 +909,53 @@ describe('useColumnResize', () => {
 
         // Then the line goes away
         expect(readLineOpacity()).toBe('0');
+    });
+
+    it('keeps an arrow-key width when new resolved widths render before the key is released', () => {
+        // Given a 200px column edge moved one step right by a held arrow key
+        const {handleElement, getHandleProps, readWidth, rerender, initialProps} = renderColumnResize();
+
+        act(() => {
+            getHandleProps().onKeyDown?.(createKeyboardEvent(handleElement, 'ArrowRight').event);
+        });
+
+        // When the table renders new resolved widths mid-hold, e.g. because another table's stored widths changed
+        rerender({...initialProps, resolvedColumnWidths: {name: 210, email: 190, role: 200}});
+
+        // Then the edge stays where the key put it, so the next press doesn't step from the resolved width and snap back
+        expect(readWidth(NAME_COLUMN_KEY)).toBe(`${200 + CONST.TABLES.COLUMN_RESIZE.KEYBOARD_STEP}px`);
+    });
+
+    it('updates the announced width on each arrow press, before the key is released', () => {
+        // Given a 200px column whose edge has focus
+        const {handleElement, getHandleProps} = renderColumnResize();
+
+        // When the right arrow is pressed and still held
+        act(() => {
+            getHandleProps().onKeyDown?.(createKeyboardEvent(handleElement, 'ArrowRight').event);
+        });
+
+        // Then the separator's value follows the painted width, since nothing renders until the key is released
+        expect(handleElement.getAttribute('aria-valuenow')).toBe(String(200 + CONST.TABLES.COLUMN_RESIZE.KEYBOARD_STEP));
+    });
+
+    it('keeps the edge line after dragging an edge that has keyboard focus', () => {
+        // Given an edge focused from the keyboard, so its line shows
+        const {handleElement, getHandleProps} = renderColumnResize();
+        const readLineOpacity = () => handleElement.style.getPropertyValue(RESIZE_INDICATOR_OPACITY_VARIABLE);
+
+        act(() => {
+            getHandleProps().onFocus?.(createFocusEvent(handleElement, true));
+        });
+
+        // When the edge is dragged and released
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
+            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 110}));
+            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 110}));
+        });
+
+        // Then the line stays, since the edge still has keyboard focus and the arrow keys still move it
+        expect(readLineOpacity()).toBe('1');
     });
 });

@@ -83,17 +83,20 @@ function useColumnResize({
 }: UseColumnResizeParams): ColumnResizeController | undefined {
     const styles = useThemeStyles();
     const dragRef = useRef<Drag | null>(null);
-    const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
-    const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef);
-
-    // Fitting on the first click would move the edge before the second click, which would then land on the heading and sort it.
-    const pendingFitRef = useRef<PendingFit | null>(null);
 
     // Stored on key release, so a held arrow doesn't store on every repeat, each store's render clearing the painted width
     // and pulling the edge back mid-hold.
     const keyboardResizeRef = useRef<KeyboardResize | null>(null);
 
+    const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef, keyboardResizeRef});
+    const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef);
+
+    // Fitting on the first click would move the edge before the second click, which would then land on the heading and sort it.
+    const pendingFitRef = useRef<PendingFit | null>(null);
+
     const readPaintedColumnWidths = () => Object.fromEntries(Object.keys(resolvedColumnWidths).map((columnKey) => [columnKey, readColumnWidth(columnKey) ?? 0]));
+
+    const getMinWidth = (columnKey: string) => dragMinWidths?.[columnKey] ?? CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH;
 
     const writeColumnWidths = (columnWidths: Record<string, number>) => {
         for (const [columnKey, width] of Object.entries(columnWidths)) {
@@ -120,20 +123,28 @@ function useColumnResize({
         setTableColumnWidths(columnResizingID, storedTableColumnWidths);
     };
 
-    // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
-    const endDrag = (drag: Drag) => {
-        hideIndicator();
-        scopeElementRef.current?.style.removeProperty(SCROLL_EXTENT_FLOOR_VARIABLE);
-
-        const width = readColumnWidth(drag.columnKey) ?? drag.startWidth;
+    /** Stores the width painted on a column since it was `startWidth`. Shared by drags and arrow keys. */
+    const settlePaintedWidth = (columnKey: string, startWidth: number) => {
+        const width = readColumnWidth(columnKey) ?? startWidth;
 
         // Nothing gets stored when the width doesn't change, so no render would follow to clear the live widths.
-        if (width === drag.startWidth) {
+        if (width === startWidth) {
             clearLiveWidths();
             return;
         }
 
-        settleColumn(drag.columnKey, width, true);
+        settleColumn(columnKey, width, true);
+    };
+
+    // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
+    const endDrag = (drag: Drag) => {
+        // A keyboard-focused edge keeps its line, the same as before the drag.
+        if (!drag.handle.matches(':focus-visible')) {
+            hideIndicator();
+        }
+
+        scopeElementRef.current?.style.removeProperty(SCROLL_EXTENT_FLOOR_VARIABLE);
+        settlePaintedWidth(drag.columnKey, drag.startWidth);
     };
 
     // Releasing or losing capture doesn't reliably fire boundary events, so hit-test the heading, including the handle overhanging it.
@@ -143,15 +154,17 @@ function useColumnResize({
         setGripHovered(event.currentTarget, isPointerOnHeading);
     };
 
-    const fitColumnToContent = (columnKey: string) => {
+    /** Returns whether the column changed, which it doesn't when it already fits or can't be fitted. */
+    const fitColumnToContent = (columnKey: string): boolean => {
         const width = getTargetColumnWidth?.(columnKey, CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT);
 
         // Nothing gets stored when the width doesn't change, so no render would follow to clear the live widths.
         if (width === undefined || readColumnWidth(columnKey) === width) {
-            return;
+            return false;
         }
 
         settleColumn(columnKey, width, true);
+        return true;
     };
 
     const resetColumnWidth = (columnKey: string) => {
@@ -166,24 +179,21 @@ function useColumnResize({
 
     // One key can't tell a click from a double-click, so it fits unless the column is already fitted, and resets otherwise.
     const toggleFitToContent = (columnKey: string) => {
-        const fittedWidth = getTargetColumnWidth?.(columnKey, CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT);
-
-        if (fittedWidth !== undefined && readColumnWidth(columnKey) !== fittedWidth) {
-            fitColumnToContent(columnKey);
+        if (fitColumnToContent(columnKey)) {
             return;
         }
 
         resetColumnWidth(columnKey);
     };
 
-    const stepColumnWidth = (columnKey: string, step: number) => {
+    const stepColumnWidth = (columnKey: string, step: number, handle: HTMLDivElement) => {
         const width = readColumnWidth(columnKey);
 
         if (width === undefined) {
             return;
         }
 
-        const steppedWidth = getDraggedSize(width, step, {min: dragMinWidths?.[columnKey] ?? CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH});
+        const steppedWidth = getDraggedSize(width, step, {min: getMinWidth(columnKey)});
 
         // A column already past the bound would otherwise jump to it, against the arrow pressed.
         if (Math.sign(steppedWidth - width) !== Math.sign(step)) {
@@ -192,6 +202,9 @@ function useColumnResize({
 
         keyboardResizeRef.current ??= {columnKey, startWidth: width};
         writeColumnWidths(getResizedColumnWidths(columnKey, steppedWidth));
+
+        // Nothing renders until the key is released, so screen readers would otherwise announce the old width on each press.
+        handle.setAttribute('aria-valuenow', String(steppedWidth));
     };
 
     /** Stores the width the arrow keys painted. Shared by key release and blur. */
@@ -203,15 +216,7 @@ function useColumnResize({
         }
 
         keyboardResizeRef.current = null;
-        const width = readColumnWidth(keyboardResize.columnKey) ?? keyboardResize.startWidth;
-
-        // Nothing gets stored when the width doesn't change, so no render would follow to clear the live widths.
-        if (width === keyboardResize.startWidth) {
-            clearLiveWidths();
-            return;
-        }
-
-        settleColumn(keyboardResize.columnKey, width, true);
+        settlePaintedWidth(keyboardResize.columnKey, keyboardResize.startWidth);
     };
 
     const handleKeyDown = (columnKey: string, event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -230,7 +235,7 @@ function useColumnResize({
         revealIndicator(event.currentTarget);
 
         if (action.type === 'step') {
-            stepColumnWidth(columnKey, action.step);
+            stepColumnWidth(columnKey, action.step, event.currentTarget);
             return;
         }
 
@@ -310,7 +315,7 @@ function useColumnResize({
             }
 
             // The line rides the handle, so it follows the clamped width, not the pointer.
-            const width = getDraggedSize(drag.startWidth, clientX - drag.startClientX, {min: dragMinWidths?.[drag.columnKey] ?? CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH});
+            const width = getDraggedSize(drag.startWidth, clientX - drag.startClientX, {min: getMinWidth(drag.columnKey)});
 
             writeColumnWidths(getResizedColumnWidths(drag.columnKey, width));
         },
@@ -364,14 +369,14 @@ function useColumnResize({
         const width = readColumnWidth(columnKey) ?? 0;
 
         return {
-            role: 'separator',
+            role: CONST.ROLE.SEPARATOR,
             tabIndex: 0,
             // The DOM names these attributes, so they can't follow the naming convention.
             /* eslint-disable @typescript-eslint/naming-convention */
             'aria-orientation': 'vertical',
             'aria-valuenow': width,
             // Widened to take in a width already past the bound, which the arrow keys leave alone.
-            'aria-valuemin': Math.min(dragMinWidths?.[columnKey] ?? CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH, width),
+            'aria-valuemin': Math.min(getMinWidth(columnKey), width),
             /* eslint-enable @typescript-eslint/naming-convention */
             style: {...getHandleStyle(columnGap), ...styles.cursorColResize},
             ref: trackHeadingHover,
