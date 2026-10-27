@@ -164,15 +164,15 @@ describe('getPathWithoutDynamicSuffix', () => {
         });
 
         it('strips a shared query param when the match underneath is not a screen the stripped route opens from', () => {
-            // Given a profile opened from the settings of a category named "downgrade", with the profile's own `policyID`. The
-            // base path only looks like it ends in the workspace downgrade route, which declares `policyID` too
-            const profileSuffix = DYNAMIC_ROUTES.PROFILE.path;
-            const path = `workspaces/A/categories/${DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.path.replace(':categoryName', 'downgrade')}/a/123?policyID=B`;
+            // Given the signer info step opened from the settings of a category named "downgrade", with the step's own `policyID`.
+            // The base path only looks like it ends in the workspace downgrade route, which declares `policyID` too
+            const signerInfoSuffix = DYNAMIC_ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.path;
+            const path = `workspaces/A/categories/${DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.path.replace(':categoryName', 'downgrade')}/enter-signer-info?policyID=B&bankAccountID=2&isCompleted=false`;
 
-            // When the profile suffix is stripped
-            const backPath = getPathWithoutDynamicSuffix(path, 'a/123', profileSuffix);
+            // When the signer info suffix is stripped
+            const backPath = getPathWithoutDynamicSuffix(path, 'enter-signer-info', signerInfoSuffix);
 
-            // Then `policyID` goes with it: the profile opens from anywhere, which vouches for no particular route underneath,
+            // Then `policyID` goes with it: the signer info step opens from anywhere, which vouches for no particular route underneath,
             // so the category settings are not rebuilt with another workspace's policy
             expect(backPath).toBe('workspaces/A/categories/category/downgrade');
         });
