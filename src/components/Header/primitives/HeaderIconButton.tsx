@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {ReactNode} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 type HeaderTooltipIconButtonProps = {
@@ -35,10 +36,13 @@ type HeaderTooltipIconButtonProps = {
 
     /** Ref forwarded to the underlying `PressableWithoutFeedback`. */
     ref?: PressableRef;
+
+    /** Drawn behind the icon, e.g. a glass background. */
+    children?: ReactNode;
 };
 
 /** Shared shape for the header's icon buttons: Tooltip, Pressable and Icon. Callers own their own onPress wrapping, loading states and fill logic. This only renders the common skeleton. */
-function HeaderIconButton({tooltipText, onPress, iconSrc, iconFill, sentryLabel, style, id, ref}: HeaderTooltipIconButtonProps) {
+function HeaderIconButton({tooltipText, onPress, iconSrc, iconFill, sentryLabel, style, id, ref, children}: HeaderTooltipIconButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -53,6 +57,7 @@ function HeaderIconButton({tooltipText, onPress, iconSrc, iconFill, sentryLabel,
                 id={id}
                 sentryLabel={sentryLabel}
             >
+                {children}
                 <Icon
                     src={iconSrc}
                     fill={iconFill ?? theme.icon}

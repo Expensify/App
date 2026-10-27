@@ -1,3 +1,5 @@
+import {isLiquidGlassSupported} from '@components/LiquidGlassBackground';
+
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,10 +30,22 @@ function Header({children, shouldSkipFocusAfterTransition = false, style}: Heade
 
     return (
         <View
-            style={[styles.headerBar, contentHeaderHeightStyle, style]}
+            // The row below clips its content, so with glass part of this padding moves into the row to leave room for a glass button's rim.
+            style={[styles.headerBar, isLiquidGlassSupported && styles.pl1, contentHeaderHeightStyle, style]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
+            <View
+                style={[
+                    styles.dFlex,
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.flexGrow1,
+                    styles.justifyContentBetween,
+                    styles.overflowHidden,
+                    styles.mr3,
+                    isLiquidGlassSupported && styles.pl4,
+                ]}
+            >
                 <HeaderContext
                     value={{
                         shouldSkipFocusAfterTransition,

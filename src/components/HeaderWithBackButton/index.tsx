@@ -4,6 +4,7 @@ import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import HeaderTitle from '@components/HeaderTitle';
 import Icon from '@components/Icon';
+import LiquidGlassBackground, {isLiquidGlassSupported} from '@components/LiquidGlassBackground';
 import AccountAvatarButton from '@components/Navigation/AccountAvatarButton';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -180,13 +181,25 @@ function HeaderWithBackButton({
                 styles.headerBar,
                 contentHeaderHeightStyle,
                 shouldShowBorderBottom && styles.borderBottom,
-                shouldShowBackButton && [styles.pl2],
+                // The row below clips its content, so with glass part of this padding moves into the row to leave room for the circle's rim.
+                shouldShowBackButton && (isLiquidGlassSupported ? styles.pl1 : styles.pl2),
                 shouldOverlay && StyleSheet.absoluteFill,
                 style,
             ]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
+            <View
+                style={[
+                    styles.dFlex,
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.flexGrow1,
+                    styles.justifyContentBetween,
+                    styles.overflowHidden,
+                    styles.mr3,
+                    shouldShowBackButton && isLiquidGlassSupported && styles.pl1,
+                ]}
+            >
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
@@ -202,12 +215,13 @@ function HeaderWithBackButton({
                                     onBackButtonPress();
                                 }
                             }}
-                            style={[styles.touchableButtonImage]}
+                            style={[styles.touchableButtonImage, isLiquidGlassSupported && styles.mr2]}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
                             id={CONST.BACK_BUTTON_NATIVE_ID}
                             sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
                         >
+                            <LiquidGlassBackground style={styles.liquidGlassCircle} />
                             <Icon
                                 src={icons.BackArrow}
                                 fill={iconFill ?? theme.icon}

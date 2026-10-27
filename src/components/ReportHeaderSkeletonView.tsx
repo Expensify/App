@@ -10,6 +10,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
+import LiquidGlassBackground, {isLiquidGlassSupported} from './LiquidGlassBackground';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import ReportHeaderTitleSkeleton from './ReportHeaderTitleSkeleton';
 
@@ -31,11 +32,12 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                 {shouldUseNarrowLayout && (
                     <PressableWithFeedback
                         onPress={onBackButtonPress}
-                        style={[styles.touchableButtonImage]}
+                        style={[styles.touchableButtonImage, isLiquidGlassSupported && styles.mr2]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.back')}
                         sentryLabel={CONST.SENTRY_LABEL.REPORT_HEADER_SKELETON.GO_BACK}
                     >
+                        <LiquidGlassBackground style={styles.liquidGlassCircle} />
                         <Icon
                             fill={theme.icon}
                             src={icons.BackArrow}

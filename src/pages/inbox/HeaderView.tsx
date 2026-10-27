@@ -6,6 +6,7 @@ import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import DisplayNames from '@components/DisplayNames';
 import HeaderLoadingBar from '@components/HeaderLoadingBar';
 import Icon from '@components/Icon';
+import LiquidGlassBackground, {isLiquidGlassSupported} from '@components/LiquidGlassBackground';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -401,7 +402,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                         text={translate('common.back')}
                                         shiftVertical={4}
                                     >
-                                        <View>
+                                        <View style={isLiquidGlassSupported && [styles.touchableButtonImage, styles.reportHeaderBackButtonGlass]}>
+                                            <LiquidGlassBackground style={styles.liquidGlassCircle} />
                                             <Icon
                                                 src={icons.BackArrow}
                                                 fill={theme.icon}

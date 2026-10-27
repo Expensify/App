@@ -32,6 +32,10 @@ const avatarSizes = {
 export default {
     bottomTabHeight: 72,
     floatingTabBarHeight: 60,
+    // How strongly a floating button's color tints its liquid glass, leaving the rest to show what is behind it.
+    floatingButtonGlassTintOpacity: 0.8,
+    // Stronger than the other floating buttons, so the camera button's glass renders close to the solid green buttons in both themes.
+    floatingCameraButtonGlassTintOpacity: 0.9,
     floatingTabBarHorizontalInset: 16,
     // How far the selected pill reaches past its tab on each side, whatever the label's length.
     floatingTabBarSelectedOverhang: 4,

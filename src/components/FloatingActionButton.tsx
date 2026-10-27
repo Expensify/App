@@ -17,6 +17,7 @@ import React, {useEffect, useRef} from 'react';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 
+import LiquidGlassBackground, {isLiquidGlassSupported} from './LiquidGlassBackground';
 import {PressableWithoutFeedback} from './Pressable';
 import Tooltip from './Tooltip';
 
@@ -66,7 +67,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
         return {
             transform: [{rotate: `${sharedValue.get() * 135}deg`}],
-            backgroundColor,
+            backgroundColor: isLiquidGlassSupported ? 'transparent' : backgroundColor,
         };
     });
 
@@ -115,9 +116,20 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
                     return (
                         <Animated.View
-                            style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle]}
+                            style={[
+                                styles.floatingActionButton,
+                                {borderRadius},
+                                isLHBVisible && styles.floatingActionButtonSmall,
+                                isLiquidGlassSupported && styles.floatingActionButtonGlass,
+                                animatedStyle,
+                            ]}
                             testID="fab-animated-container"
                         >
+                            <LiquidGlassBackground
+                                tintColor={buttonDefaultBG}
+                                tintOpacity={variables.floatingButtonGlassTintOpacity}
+                                style={styles.liquidGlassCircle}
+                            />
                             <Svg
                                 width={fabSize}
                                 height={fabSize}

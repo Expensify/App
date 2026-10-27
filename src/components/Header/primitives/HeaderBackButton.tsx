@@ -1,4 +1,5 @@
 import {useHeaderContext} from '@components/Header/context/HeaderContext';
+import LiquidGlassBackground, {isLiquidGlassSupported} from '@components/LiquidGlassBackground';
 
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -41,10 +42,12 @@ function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill}: Heade
             iconSrc={icons.BackArrow}
             iconFill={iconFill}
             // Header makes the space for this button with the padding, so we need to add negative margin to fill the space - instead of reducing the padding from pl5 to pl2
-            style={styles.mln3}
+            style={[styles.mln3, isLiquidGlassSupported && styles.mr2]}
             id={CONST.BACK_BUTTON_NATIVE_ID}
             sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
-        />
+        >
+            <LiquidGlassBackground style={styles.liquidGlassCircle} />
+        </HeaderIconButton>
     );
 }
 
