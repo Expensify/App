@@ -456,6 +456,12 @@ describe('ReportActionAvatars', () => {
             isSubscriptAvatarRendered({...retrievedData, negate: true});
             isMultipleAvatarRendered({...retrievedData, stacked: true});
         });
+
+        it('applies the subscript container style on top of the default subscript layout', async () => {
+            await retrieveDataFromAvatarView({reportID: chatReport.reportID, subscriptAvatarContainerStyle: {marginRight: 0}});
+
+            expect(screen.getByTestId('ReportActionAvatars-Subscript')).toHaveStyle({marginRight: 0});
+        });
     });
 
     describe('renders properly multiple and single avatars', () => {

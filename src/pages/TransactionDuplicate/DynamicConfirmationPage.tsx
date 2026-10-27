@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -27,8 +27,9 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
@@ -66,6 +67,7 @@ function DynamicConfirmationPage() {
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newTransaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newTransaction?.reportID}`);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
@@ -74,19 +76,21 @@ function DynamicConfirmationPage() {
 
     const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates);
     const transactionsMergeParams = useMemo(
-        () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
-        [duplicates, reviewDuplicates, newTransaction],
+        () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction, duplicatedTransaction),
+        [duplicates, reviewDuplicates, newTransaction, duplicatedTransaction],
     );
-    const transactionThreadReportIDMap = useTransactionThreadReportIDs(transactionsMergeParams.transactionIDList);
+    const transactionIDList = transactionsMergeParams.transactionList.map((transaction) => transaction.transactionID);
+    const transactionThreadReportIDMap = useTransactionThreadReportIDs(transactionIDList);
     const reviewDuplicatesTaxCode = reviewDuplicates?.taxCode;
     const reviewDuplicatesTaxAmount = reviewDuplicates?.taxAmount;
     const duplicatedTransactionTaxCode = duplicatedTransaction?.taxCode;
     const taxRates = duplicatedTransactionPolicy?.taxRates?.taxes;
     const taxData = useMemo(() => {
-        const taxCode = reviewDuplicatesTaxCode ?? '';
+        const taxCode = resolveCurrentTaxCode(duplicatedTransactionPolicy, reviewDuplicatesTaxCode ?? '');
+        const currentDuplicatedTransactionTaxCode = resolveCurrentTaxCode(duplicatedTransactionPolicy, duplicatedTransactionTaxCode ?? '');
         const taxRate = taxCode ? taxRates?.[taxCode] : undefined;
         // Preserve taxAmount and taxValue if taxCode is deleted or remains unchanged compared to duplicatedTransaction?.taxCode.
-        if (!taxRate || (taxCode && duplicatedTransactionTaxCode === taxCode) || reviewDuplicatesTaxAmount === undefined) {
+        if (!taxRate || (taxCode && currentDuplicatedTransactionTaxCode === taxCode) || reviewDuplicatesTaxAmount === undefined) {
             return;
         }
 
@@ -95,7 +99,7 @@ function DynamicConfirmationPage() {
             taxValue: taxRate?.value,
             taxCode,
         };
-    }, [reviewDuplicatesTaxCode, reviewDuplicatesTaxAmount, taxRates, duplicatedTransactionTaxCode]);
+    }, [reviewDuplicatesTaxCode, duplicatedTransactionPolicy, reviewDuplicatesTaxAmount, taxRates, duplicatedTransactionTaxCode]);
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
     const [mergeErrorMessage, setMergeErrorMessage] = useState('');
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -109,7 +113,15 @@ function DynamicConfirmationPage() {
         // Suppress the NotFound guard for the discarded thread the server tears down on merge.
         const keptReportRoute = ROUTES.REPORT_WITH_ID.getRoute(mergeParams.reportID);
         setDeleteTransactionNavigateBackUrl(keptReportRoute);
-        mergeDuplicates({...mergeParams, ...taxData, currentUserAccountID, currentUserLogin: currentUserLogin ?? '', allTransactionViolations, allReportActionsList: allReportActions});
+        mergeDuplicates({
+            ...mergeParams,
+            ...taxData,
+            currentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
+            allTransactionViolations,
+            allReportActionsList: allReportActions,
+            allReportsList: allReports,
+        });
         if (isSuperWideRHPDisplayed) {
             Navigation.dismissToSuperWideRHP();
             return;
@@ -123,7 +135,7 @@ function DynamicConfirmationPage() {
         Navigation.dismissModal({
             afterTransition: () => Navigation.navigate(keptReportRoute, {forceReplace: true}),
         });
-    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, allTransactionViolations, allReportActions]);
+    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, allTransactionViolations, allReportActions, allReports]);
 
     const handleResolveDuplicates = useCallback(() => {
         resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActionsList: allReportActions, delegateAccountID});
@@ -160,7 +172,7 @@ function DynamicConfirmationPage() {
         (reviewDuplicatesResult.status === 'loaded' && (!newTransaction?.transactionID || !doesTransactionBelongToReport));
 
     if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult) || !newTransaction?.transactionID) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(backPath, {compareParams: false})} />;
     }
 
     return (
@@ -178,7 +190,7 @@ function DynamicConfirmationPage() {
                         <View style={[styles.ph5, styles.pb8]}>
                             <Text
                                 family="EXP_NEW_KANSAS_MEDIUM"
-                                fontSize={variables.fontSizeLarge}
+                                fontSize={fontScale.pageHeader}
                                 style={styles.pb5}
                             >
                                 {translate('violations.confirmDetails')}
@@ -213,7 +225,7 @@ function DynamicConfirmationPage() {
                                 // With every duplicate filtered out (e.g. all on approved/closed/reimbursed reports) there
                                 // is nothing to act on: merging would be rejected by Auth and resolving would only clear
                                 // the kept transaction, leaving the duplicate violation one-sided. Guard both paths.
-                                if (transactionsMergeParams.transactionIDList.length === 0) {
+                                if (transactionsMergeParams.transactionList.length === 0) {
                                     setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
                                     return;
                                 }
@@ -225,7 +237,7 @@ function DynamicConfirmationPage() {
                                 }
                                 // Auth's MergeTransactions also rejects a merge when the kept expense's report is no
                                 // longer editable, so block it here and explain rather than failing server-side.
-                                if (!TransactionUtils.canMergeDuplicates(iouReport, transactionsMergeParams.transactionIDList)) {
+                                if (!TransactionUtils.canMergeDuplicates(iouReport, transactionIDList)) {
                                     setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
                                     return;
                                 }

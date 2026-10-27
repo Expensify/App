@@ -7,7 +7,6 @@ const AUTHENTICATION_METHOD = {
     /** Facial recognition authentication */
     BIOMETRIC_FACE: 'BIOMETRIC_FACE',
 
-    /** Fingerprint authentication */
     BIOMETRIC_FINGERPRINT: 'BIOMETRIC_FINGERPRINT',
 
     /** Voice pattern recognition authentication */

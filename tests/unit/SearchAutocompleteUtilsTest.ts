@@ -1,7 +1,8 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 
-import {getSearchValueForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate, isStandardExportTemplateLabel} from '@libs/AccountingUtils';
-import {getParsableSearchValue, getTrimmedUserSearchQueryPreservingComma, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {getExportLabelForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate, isStandardExportTemplateLabel} from '@libs/AccountingUtils';
+import {getTrimmedUserSearchQueryPreservingComma, parseForAutocomplete, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {parse} from '@libs/SearchParser/autocompleteParser';
 
 import CONST from '@src/CONST';
 
@@ -49,6 +50,26 @@ describe('SearchAutocompleteUtils', () => {
             expect(result).toEqual([
                 {start: 5, type: 'mention-here', length: 23}, // from:currentuser@example.com (length is 23, not 24)
             ]);
+        });
+
+        it('should highlight the Spend footer selections in either spelling', () => {
+            const input = 'footer-count:reports footerTotal:non-reimbursable footer-currency:EUR';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([
+                {start: 13, type: 'mention-user', length: 7}, // footer-count:reports
+                {start: 33, type: 'mention-user', length: 16}, // footerTotal:non-reimbursable
+                {start: 66, type: 'mention-user', length: 3}, // footer-currency:EUR
+            ]);
+        });
+
+        it('should not highlight a Spend footer selection the footer cannot render', () => {
+            const input = 'footer-count:pandas footerTotal:whatever footer-currency:NOPE';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([]);
         });
 
         it('should highlight new PURCHASE_CURRENCY filter', () => {
@@ -135,6 +156,19 @@ describe('SearchAutocompleteUtils', () => {
             const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
 
             expect(result).toEqual([]);
+        });
+
+        it('should highlight VENDOR filter with a typed vendor name', () => {
+            // Given a typed vendor filter, whose names are matched by text on the server
+            const input = 'vendor:"Acme Tools"';
+
+            // When the input is parsed for highlighting
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then the vendor value is highlighted like other free-text filters
+            expect(result).toEqual([
+                {start: 7, type: 'mention-user', length: 12}, // vendor:"Acme Tools"
+            ]);
         });
 
         it('should highlight EXPORTED_TO filter when value is in predefined integrations or custom template list', () => {
@@ -535,13 +569,13 @@ describe('SearchAutocompleteUtils', () => {
     });
 
     describe('AccountingUtils exported-to search filter helpers', () => {
-        describe('getSearchValueForConnection', () => {
+        describe('getExportLabelForConnection', () => {
             it('returns user-friendly name for QBO', () => {
-                expect(getSearchValueForConnection(CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe('QuickBooks Online');
+                expect(getExportLabelForConnection(CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe('QuickBooks Online');
             });
 
             it('returns user-friendly name for Sage Intacct', () => {
-                expect(getSearchValueForConnection(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toBe('Sage Intacct');
+                expect(getExportLabelForConnection(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toBe('Sage Intacct');
             });
         });
 
@@ -558,6 +592,10 @@ describe('SearchAutocompleteUtils', () => {
                 expect(getStandardExportTemplateDisplayName(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT)).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT);
             });
 
+            it('returns display name for the Reconciliation - All Expenses template', () => {
+                expect(getStandardExportTemplateDisplayName(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES)).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES);
+            });
+
             it('returns template name as-is when no standard mapping', () => {
                 const customName = 'Custom Export Layout';
                 expect(getStandardExportTemplateDisplayName(customName)).toBe(customName);
@@ -569,6 +607,7 @@ describe('SearchAutocompleteUtils', () => {
                 expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT)).toBe(true);
                 expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT)).toBe(true);
                 expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT)).toBe(true);
+                expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES)).toBe(true);
             });
 
             it('returns false for a custom template ID', () => {
@@ -581,6 +620,7 @@ describe('SearchAutocompleteUtils', () => {
                 expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT)).toBe(true);
                 expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT)).toBe(true);
                 expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT)).toBe(true);
+                expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES)).toBe(true);
             });
 
             it('returns false for a custom template label', () => {
@@ -588,34 +628,75 @@ describe('SearchAutocompleteUtils', () => {
             });
         });
     });
+});
 
-    describe('getParsableSearchValue', () => {
-        describe('name filters, which the parser reads back with quotes intact', () => {
-            it.each(['from', 'to', 'payer', 'assignee'])('keeps a quoted display name for %s', (filterKey) => {
-                expect(getParsableSearchValue(filterKey, 'Bob "The Builder" Smith')).toBe('Bob "The Builder" Smith');
-            });
+describe('ordinary autocomplete parser boundaries', () => {
+    afterEach(() => jest.restoreAllMocks());
 
-            it('keeps a plain display name', () => {
-                expect(getParsableSearchValue('from', 'Alice Smith')).toBe('Alice Smith');
-            });
+    it('returns the original generated object with extra properties and escaped offsets', () => {
+        // Given the real parser result, with an unused property at the generated-result boundary.
+        const query = 'merchant:"Acme\\,Inc"';
+        const parsed: unknown = parse(query);
+        if (typeof parsed !== 'object' || parsed === null) {
+            throw new Error('Expected the ordinary generated parser object');
+        }
+        Object.defineProperty(parsed, 'extra', {value: 'Unused parser metadata', enumerable: true});
+        const parser = jest.spyOn(jest.requireActual<{parse: typeof parse}>('@libs/SearchParser/autocompleteParser'), 'parse').mockReturnValueOnce(parsed);
+        // When the existing ordinary consumer handles it.
+        const result = parseForAutocomplete(query);
+        // Then narrowing preserves identity, extras and source widths instead of projecting fields.
+        expect(result).toBe(parsed);
+        expect(result).toHaveProperty('extra', 'Unused parser metadata');
+        expect(result?.ranges).toEqual([{key: 'merchant', negated: false, value: 'Acme,Inc', start: 9, length: 11}]);
+        expect(parser).toHaveBeenCalledWith(query);
+    });
 
-            it('strips quotes only when the name cannot be read back as one value', () => {
-                expect(getParsableSearchValue('from', 'Acme "US",Inc')).toBe('Acme US,Inc');
-            });
-        });
+    const unknownLibraryResult: unknown = parse('from:alice', {peg$library: true});
+    test.each([
+        {description: 'library wrapper', result: unknownLibraryResult},
+        {description: 'absent result', result: null},
+        {description: 'invalid range value', result: {autocomplete: null, ranges: [{key: 'from', value: null, start: 5, length: 0}]}},
+        {description: 'invalid autocomplete offset', result: {autocomplete: {key: 'from', value: '', start: '5', length: 0}, ranges: []}},
+    ])('returns no highlights for $description', ({result}) => {
+        // Given an erased result that cannot prove the consumed ordinary fields.
+        const parser = jest.spyOn(jest.requireActual<{parse: typeof parse}>('@libs/SearchParser/autocompleteParser'), 'parse').mockReturnValue(result);
+        const log = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const emptyList = createSharedValueMock<string[]>([]);
+        // When each existing consumer handles the same boundary result.
+        expect(parseForAutocomplete('from:alice')).toBeUndefined();
+        // Then autocomplete logs once while live markdown safely skips highlighting.
+        expect(log).toHaveBeenCalledTimes(1);
+        expect(parseForLiveMarkdown('from:alice', '', {}, emptyList, emptyList, emptyList, emptyList, emptyList)).toEqual([]);
+        expect(parser).toHaveBeenCalledTimes(2);
+    });
 
-        describe('workspace and room filters, which cannot carry quotes', () => {
-            it('strips quotes from a workspace name', () => {
-                expect(getParsableSearchValue('workspace', 'Bob "The Builder" Smith')).toBe('Bob The Builder Smith');
-            });
+    it('keeps real parser exceptions caught for autocomplete and propagated for live markdown', () => {
+        // Given the real parser rejecting an unsupported input type at its public boundary.
+        const log = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const emptyList = createSharedValueMock<string[]>([]);
+        // When a deliberately malformed input reaches the existing consumers.
+        // @ts-expect-error This malformed runtime input tests the parser's existing exception handling.
+        expect(parseForAutocomplete(null)).toBeUndefined();
+        // Then the same production parser exception propagates through live markdown.
+        expect(() => {
+            // @ts-expect-error Keep the exception limited to the invalid parser input.
+            parseForLiveMarkdown(null, '', {}, emptyList, emptyList, emptyList, emptyList, emptyList);
+        }).toThrow();
+        expect(log).toHaveBeenCalledTimes(1);
+    });
 
-            it('keeps a workspace name containing only a comma', () => {
-                expect(getParsableSearchValue('workspace', 'Acme,Inc')).toBe('Acme,Inc');
-            });
-
-            it('keeps a room name whose quote survives the round trip', () => {
-                expect(getParsableSearchValue('in', 'Acme,"Inc')).toBe('Acme,"Inc');
-            });
-        });
+    test.each([
+        ['columns:date', [{start: 8, type: 'mention-user', length: 4}]],
+        ['columns:unknown-column', []],
+        ['report-field-Custom:value', [{start: 20, type: 'mention-user', length: 5}]],
+        ['createdBy:alice ReportID:123 TAXRATE:20', []],
+        ['merchant:""', []],
+    ])('highlights the real parser result for %s', (query, expected) => {
+        // Given actual generated ranges and empty lookup data, without substituting the parser.
+        const emptyList = createSharedValueMock<string[]>([]);
+        // When live markdown applies its existing highlighting rules.
+        const result = parseForLiveMarkdown(query, '', {}, emptyList, emptyList, emptyList, emptyList, emptyList);
+        // Then column equality, dynamic keys and unsupported key spelling retain their outcomes.
+        expect(result).toEqual(expected);
     });
 });

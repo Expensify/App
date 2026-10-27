@@ -6,6 +6,7 @@ type SignInUserParams = {
     preferredLocale: Locale | null;
     validateCode?: string;
     deviceInfo: string;
+    authToken?: string;
 };
 
 export default SignInUserParams;

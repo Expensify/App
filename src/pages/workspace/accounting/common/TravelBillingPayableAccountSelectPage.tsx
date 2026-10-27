@@ -28,6 +28,7 @@ type TravelBillingPayableAccountSelectPageProps = {
     emptyStateSubtitle: TranslationPaths;
     emptyStateSubtitleAlreadyTranslated?: string;
     accessVariants?: AccessVariant[];
+    shouldBeBlocked?: boolean;
     pendingAction?: OnyxCommon.PendingAction | null;
     errors?: OnyxCommon.Errors | ReceiptErrors | null;
     onSelect: (row: SelectorType<string>) => void;
@@ -38,13 +39,14 @@ type TravelBillingPayableAccountSelectPageProps = {
 function TravelBillingPayableAccountSelectPage({
     policyID,
     displayName,
-    title = 'workspace.common.travelInvoicingPayableAccount',
+    title = 'workspace.common.travelBillingPayableAccount',
     data,
     connectionName,
     emptyStateTitle,
     emptyStateSubtitle,
     emptyStateSubtitleAlreadyTranslated,
     accessVariants = [CONST.POLICY.ACCESS_VARIANTS.ADMIN],
+    shouldBeBlocked,
     pendingAction,
     errors,
     onSelect,
@@ -70,6 +72,7 @@ function TravelBillingPayableAccountSelectPage({
         <SelectionScreen
             policyID={policyID}
             accessVariants={accessVariants}
+            shouldBeBlocked={shouldBeBlocked}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={displayName}
             title={title}

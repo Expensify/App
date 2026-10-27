@@ -1,0 +1,126 @@
+name: Verify Podfile.lock uses prebuilt react-native
+
+# Fails a PR whose Podfile.lock was resolved from source instead of our prebuilt artifacts.
+# Also exposed via `workflow_call` so Mobile-Expensify can run this same check on its own lockfile.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths:
+      - 'ios/Podfile.lock'
+      - '.github/scripts/verifyPodfilePrebuilt.sh'
+      - '.github/scripts/renderVerifyPodfilePrebuiltRemedy.sh'
+      - '.github/VERIFY_PODFILE_PREBUILT_REMEDY.md'
+      - '.github/workflows/verifyPodfilePrebuilt.yml'
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  verify:
+    if: github.actor != 'OSBotify' && !endsWith(github.actor, '[bot]')
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      # Checks out the caller's own repo - App directly, or Mobile-Expensify via workflow_call -
+      # since that's where the Podfile.lock to verify lives.
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # The scripts only live in App; fetch them when the caller is a different repo.
+      - name: Checkout verifyPodfilePrebuilt scripts from App
+        if: github.repository != 'Expensify/App'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: Expensify/App
+          ref: main
+          sparse-checkout: |
+            .github/scripts/verifyPodfilePrebuilt.sh
+            .github/scripts/renderVerifyPodfilePrebuiltRemedy.sh
+            .github/VERIFY_PODFILE_PREBUILT_REMEDY.md
+            scripts/shellUtils.sh
+          sparse-checkout-cone-mode: false
+          path: .github-app-scripts
+
+      # Each repo keeps its Podfile.lock at a fixed, differently-cased path.
+      - name: Resolve scripts directory and lockfile path
+        id: scripts
+        run: |
+          if [[ '${{ github.repository }}' == 'Expensify/App' ]]; then
+            echo "DIR=.github/scripts" >> "$GITHUB_OUTPUT"
+            echo "LOCKFILE=ios/Podfile.lock" >> "$GITHUB_OUTPUT"
+          else
+            echo "DIR=.github-app-scripts/.github/scripts" >> "$GITHUB_OUTPUT"
+            echo "LOCKFILE=iOS/Podfile.lock" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Delay the job failure so the comment step runs first. The job still fails at the end.
+      - name: Check which react-native the lockfile resolved against
+        id: mode
+        run: |
+          set +e
+          "${{ steps.scripts.outputs.DIR }}/verifyPodfilePrebuilt.sh" "${{ steps.scripts.outputs.LOCKFILE }}"
+          STATUS=$?
+          set -e
+          echo "STATUS=$STATUS" >> "$GITHUB_OUTPUT"
+
+      # On a fork the token is read-only, so a failure to post must not replace the check's own.
+      - name: Post or take down the explanation comment
+        continue-on-error: true
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          SCRIPTS_DIR: ${{ steps.scripts.outputs.DIR }}
+          LOCKFILE_PATH: ${{ steps.scripts.outputs.LOCKFILE }}
+        with:
+          script: |
+            // Identifies our own comment on a later run, so pushes update it instead of stacking.
+            const MARKER = '<!-- verify-podfile-prebuilt -->';
+            const status = '${{ steps.mode.outputs.STATUS }}';
+
+            const {owner, repo} = context.repo;
+            const prNumber = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {owner, repo, issue_number: prNumber});
+            const existing = comments.find((comment) => comment.body?.includes(MARKER));
+
+            // A fixed lockfile takes the comment down; a check that couldn't run leaves it alone.
+            if (status !== '1') {
+              if (existing && status === '0') {
+                await github.rest.issues.deleteComment({owner, repo, comment_id: existing.id});
+              }
+              return;
+            }
+
+            const {execFileSync} = require('child_process');
+            const remedy = execFileSync(`${process.env.SCRIPTS_DIR}/renderVerifyPodfilePrebuiltRemedy.sh`, [process.env.LOCKFILE_PATH], {encoding: 'utf8'});
+
+            const body = [
+              MARKER,
+              `Hi @${context.payload.pull_request.user.login}, \`${process.env.LOCKFILE_PATH}\` in this PR was resolved against a react-native compiled from source, not against our prebuilt artifacts.`,
+              '',
+              'The fallback to a source build only logs a warning during `pod install`, so it is easy to miss. Merging it would make everyone else compile react-native too. The check log lists which pods gave it away.',
+              '',
+              remedy,
+            ].join('\n');
+
+            if (existing) {
+              await github.rest.issues.updateComment({owner, repo, comment_id: existing.id, body});
+            } else {
+              await github.rest.issues.createComment({owner, repo, issue_number: prNumber, body});
+            }
+
+      # Echo a reason for the failed step.
+      - name: Fail unless the lockfile is prebuilt
+        if: steps.mode.outputs.STATUS != '0'
+        run: |
+          if [[ '${{ steps.mode.outputs.STATUS }}' == '1' ]]; then
+            echo "::error::Podfile.lock was resolved against a react-native compiled from source. See the check step above for how to fix it."
+          else
+            echo "::error::The Podfile.lock check could not run. See the check step above."
+          fi
+          exit 1

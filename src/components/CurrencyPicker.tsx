@@ -4,6 +4,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
@@ -15,7 +17,8 @@ import type {CurrencyListItem} from './CurrencySelectionList/types';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import CurrencySelectionList from './CurrencySelectionList';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import MenuItem from './MenuItem';
+import MenuItemField from './MenuItem/presets/MenuItemField';
 import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
 
@@ -23,10 +26,16 @@ type CurrencyPickerProps = {
     /** Label for the input */
     label: string;
 
-    /** Current value of the selected item */
-    value?: string;
+    /** Title of the picker's modal, when it differs from the label */
+    modalHeaderTitle?: string;
 
-    /** Custom content to display in the header */
+    /** Name read by screen readers instead of the label, for a picker whose label alone does not say which value it belongs to */
+    accessibilityLabel?: string;
+
+    /** Whether screen readers hear the error with the row's name, since the row hides the error line from them on native */
+    shouldReadErrorWithLabel?: boolean;
+
+    value?: string;
     headerContent?: ReactNode;
 
     /** Callback when the list item is selected */
@@ -35,7 +44,6 @@ type CurrencyPickerProps = {
     /** Form Error description */
     errorText?: string;
 
-    /** List of currencies to exclude from the list */
     excludeCurrencies?: string[];
 
     /** Is the MenuItem disabled */
@@ -45,7 +53,19 @@ type CurrencyPickerProps = {
     shouldShowFullPageOfflineView?: boolean;
 };
 
-function CurrencyPicker({label, value, errorText, headerContent, excludeCurrencies, disabled = false, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
+function CurrencyPicker({
+    label,
+    modalHeaderTitle,
+    accessibilityLabel,
+    shouldReadErrorWithLabel,
+    value,
+    errorText,
+    headerContent,
+    excludeCurrencies,
+    disabled = false,
+    shouldShowFullPageOfflineView = false,
+    onInputChange = () => {},
+}: CurrencyPickerProps) {
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -64,15 +84,26 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
 
     return (
         <>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                title={value ? `${value} - ${getCurrencySymbol(value)}` : undefined}
-                description={label}
-                onPress={() => setIsPickerVisible(true)}
-                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={errorText}
-                disabled={disabled}
-            />
+            <MenuItem.Root
+                onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true))}
+                isDisabled={disabled}
+                accessibilityLabel={accessibilityLabel ? [accessibilityLabel, value ? `${value} - ${getCurrencySymbol(value)}` : undefined].filter(Boolean).join(', ') : undefined}
+            >
+                <MenuItemField.Row
+                    name={label}
+                    value={value ? `${value} - ${getCurrencySymbol(value)}` : undefined}
+                >
+                    {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    <MenuItem.Chevron />
+                </MenuItemField.Row>
+                {!!errorText && (
+                    <MenuItem.HelpText
+                        isError
+                        message={errorText}
+                        shouldReadErrorWithLabel={shouldReadErrorWithLabel}
+                    />
+                )}
+            </MenuItem.Root>
             <Modal
                 type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
                 isVisible={isPickerVisible}
@@ -91,7 +122,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                     enableEdgeToEdgeBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
-                        title={label}
+                        title={modalHeaderTitle ?? label}
                         shouldShowBackButton
                         onBackButtonPress={hidePickerModal}
                     />

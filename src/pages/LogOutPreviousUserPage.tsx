@@ -3,6 +3,7 @@ import {useInitialURLState} from '@components/InitialURLContextProvider';
 
 import useOnyx from '@hooks/useOnyx';
 
+import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getLastShortAuthToken} from '@libs/Network/NetworkStore';
 import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
@@ -10,7 +11,7 @@ import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInA
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 
-import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {isDelegateSession, signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -41,22 +42,28 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         const isSupportalLogin = authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
         if (isLoggingInAsNewUser) {
+            Log.info('[LogOutPreviousUserPage] Signing out for a transition to another user', false, {
+                isLinkNamingDelegator: isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined),
+                isDelegateSession: isDelegateSession(session),
+                isSupportalLogin,
+            });
             // We don't want to close react-native app in this particular case.
-            signOutAndRedirectToSignIn(false, isSupportalLogin);
+            signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return;
         }
 
         if (isSupportalLogin) {
             // The public transition page may already have started this exact sign-in before the Public/Auth
             // navigator swap re-mounted us here. Firing it again trips the support-token rate limit, so skip
-            // the duplicate but still finish navigating home.
+            // the duplicate but still finish the navigation.
             if (shortLivedAuthToken !== getLastShortAuthToken()) {
                 signInWithSupportAuthToken(shortLivedAuthToken);
             }
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
-                Navigation.navigate(ROUTES.HOME);
+                // A workspace/new link goes Home, because App.setUpPoliciesAndNavigate owns that route, as in the effect below
+                Navigation.navigate(exitTo && exitTo !== ROUTES.WORKSPACE_NEW ? exitTo : ROUTES.HOME);
             });
             return;
         }
@@ -68,7 +75,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
         // Even if the user was already authenticated in NewDot, we need to reauthenticate them with shortLivedAuthToken,
         // because the old authToken stored in Onyx may be invalid.
-        signInWithShortLivedAuthToken(shortLivedAuthToken);
+        signInWithShortLivedAuthToken(shortLivedAuthToken, false, undefined, undefined);
 
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,7 +101,8 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);
 
-    return <FullScreenLoadingIndicator />;
+    // No "Go Back" button: going back would pop /transition into the outgoing user's session mid sign-out.
+    return <FullScreenLoadingIndicator shouldUseGoBackButton={false} />;
 }
 
 export default LogOutPreviousUserPage;

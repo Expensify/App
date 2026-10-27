@@ -23,6 +23,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActionReactions} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
+
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -46,7 +48,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
     const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const ref = useRef<View>(null);
+    const ref = useRef<ComponentRef<typeof View>>(null);
     const {translate, preferredLocale} = useLocalize();
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
@@ -106,7 +108,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                         width={variables.iconSizeMedium}
                         height={variables.iconSizeMedium}
                         src={icons.AddReaction}
-                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
+                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered, isPressed: pressed})})}
                     />
                 )}
             </BaseMiniContextMenuItem>

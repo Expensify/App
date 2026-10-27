@@ -5,14 +5,15 @@ import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {isValidSSNFullNine} from '@libs/ValidationUtils';
 
-import getSubstepValues from '@pages/EnablePayments/Wallet/utils/getSubstepValues';
+import {getPersonalInfoStepValues} from '@pages/EnablePayments/Wallet/utils/getBankAccountOwnerDetails';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const PERSONAL_INFO_STEP_INDEXES = CONST.WALLET.SUBSTEP_INDEXES.PERSONAL_INFO;
@@ -22,11 +23,13 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     const isLoading = walletAdditionalDetails?.isLoading ?? false;
     const error = getLatestErrorMessage(walletAdditionalDetails ?? {});
-    const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
-    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
+    const values = getPersonalInfoStepValues(walletAdditionalDetailsDraft, walletAdditionalDetails, privatePersonalDetails);
+    // Also check the shown value: errorCode is cleared optimistically on submit while a full 9-digit SSN is still displayed.
+    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN || isValidSSNFullNine(values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4]);
     const shouldShowSSNRowError = shouldAskForFullSSN && values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4].length < CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN;
 
     const summaryItems = [
@@ -51,7 +54,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
         {
             id: 'address',
             description: translate('personalInfoStep.address'),
-            title: `${values[PERSONAL_INFO_STEP_KEYS.STREET]}, ${values[PERSONAL_INFO_STEP_KEYS.CITY]}, ${values[PERSONAL_INFO_STEP_KEYS.STATE]} ${values[PERSONAL_INFO_STEP_KEYS.ZIP_CODE]}`,
+            title: `${values[PERSONAL_INFO_STEP_KEYS.STREET].replaceAll('\n', ', ')}, ${values[PERSONAL_INFO_STEP_KEYS.CITY]}, ${values[PERSONAL_INFO_STEP_KEYS.STATE]} ${values[PERSONAL_INFO_STEP_KEYS.ZIP_CODE]}`,
             shouldShowRightIcon: true,
             onPress: () => {
                 onMove(PERSONAL_INFO_STEP_INDEXES.ADDRESS);

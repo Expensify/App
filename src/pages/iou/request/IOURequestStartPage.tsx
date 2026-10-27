@@ -1,26 +1,30 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKeyboard/Group';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ParticipantPickerOverlayHost from '@components/ParticipantPicker/OverlayHost';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+import type {TabSelectorProps} from '@components/TabSelector/types';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResetIOUType from '@hooks/useResetIOUType';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getActivePoliciesWithExpenseChatAndTimeEnabled, isControlPolicy, isPerDiemEnabled, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {createOnyxTabNavigator, TabScreenWithFocusTrapWrapper} from '@libs/Navigation/OnyxTabNavigator';
+import {isPerDiemEligiblePolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
@@ -31,12 +35,14 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {iouRequestPolicyCollectionSelector} from '@src/selectors/Policy';
+import {createIOURequestStartPoliciesSelector} from '@src/selectors/Policy';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import type {TupleToUnion} from 'type-fest';
+
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
@@ -44,18 +50,29 @@ import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportO
 import DynamicIOURequestStepDestination from './step/DynamicIOURequestStepDestination';
 import DynamicIOURequestStepDistance from './step/DynamicIOURequestStepDistance';
 import {IOURequestStepAmountWithTransactionOnly} from './step/IOURequestStepAmount';
-import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
+import {IOURequestStepConfirmationContentWithWritableReportOrNotFound as IOURequestStepConfirmationContent} from './step/IOURequestStepConfirmation';
 import IOURequestStepHours from './step/IOURequestStepHours';
 import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import IOURequestStepTimeWorkspace from './step/IOURequestStepTimeWorkspace';
 
+const tabNames = [CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN, CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.PER_DIEM, CONST.TAB_REQUEST.TIME] as const;
+const {OnyxTabNavigator, TopTab} = createOnyxTabNavigator(tabNames);
+
 type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE> & {
-    defaultSelectedTab: SelectedTabRequest;
+    defaultSelectedTab: TupleToUnion<typeof tabNames>;
 };
 
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
+
+function CollapsibleTabSelector(props: TabSelectorProps) {
+    return (
+        <CollapsibleHeaderOnKeyboardGroupMember>
+            <TabSelector {...props} />
+        </CollapsibleHeaderOnKeyboardGroupMember>
+    );
+}
 
 function IOURequestStartPage({
     route,
@@ -79,12 +96,11 @@ function IOURequestStartPage({
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: iouRequestPolicyCollectionSelector,
-    });
-
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [iouRequestStartPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: createIOURequestStartPoliciesSelector(currentUserPersonalDetails.login, iouType === CONST.IOU.TYPE.INVOICE),
+    });
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
@@ -107,28 +123,20 @@ function IOURequestStartPage({
     };
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
-    const policiesWithPerDiemEnabled = useMemo(
-        () => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserPersonalDetails.login),
-        [allPolicies, currentUserPersonalDetails.login],
-    );
-    const policiesWithTimeEnabled = useMemo(
-        () => getActivePoliciesWithExpenseChatAndTimeEnabled(allPolicies, currentUserPersonalDetails.login),
-        [allPolicies, currentUserPersonalDetails.login],
-    );
-    const doesPerDiemPolicyExist = policiesWithPerDiemEnabled.length > 0;
-    const moreThanOnePerDiemExist = policiesWithPerDiemEnabled.length > 1;
-    const hasCurrentPolicyPerDiemEnabled = isControlPolicy(policy) && isPerDiemEnabled(policy);
+    const doesPerDiemPolicyExist = !!iouRequestStartPolicies?.hasPerDiemPolicy;
+    const moreThanOnePerDiemExist = !!iouRequestStartPolicies?.hasMultiplePerDiemPolicies;
+    const hasCurrentPolicyPerDiemEnabled = isPerDiemEligiblePolicy(policy);
     const hasCurrentPolicyTimeTrackingEnabled = policy ? isTimeTrackingEnabled(policy) : false;
     const shouldShowPerDiemOption = shouldShowPerDiemTabOption(iouType, isFromGlobalCreate, hasCurrentPolicyPerDiemEnabled, doesPerDiemPolicyExist);
     const shouldShowTimeOption =
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) &&
-        ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!policiesWithTimeEnabled.length));
+        ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!iouRequestStartPolicies?.hasTimePolicy));
 
     // Mirrors the tabs rendered below so a stale persisted selectedTab that isn't valid for this iouType is rejected.
-    const availableTabs = useMemo<Set<SelectedTabRequest>>(() => {
-        if (!shouldUseTab) {
-            return new Set();
-        }
+    let availableTabs: Set<SelectedTabRequest>;
+    if (!shouldUseTab) {
+        availableTabs = new Set();
+    } else {
         const tabs = new Set<SelectedTabRequest>([CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN]);
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             tabs.add(CONST.TAB_REQUEST.DISTANCE);
@@ -139,8 +147,8 @@ function IOURequestStartPage({
         if (shouldShowTimeOption) {
             tabs.add(CONST.TAB_REQUEST.TIME);
         }
-        return tabs;
-    }, [shouldUseTab, iouType, shouldShowPerDiemOption, shouldShowTimeOption]);
+        availableTabs = tabs;
+    }
 
     // A quick-action deeplink (e.g. iOS home-screen "Scan receipt") bypasses startMoneyRequest
     // and leaves the previous flow's draft in place under OPTIMISTIC_TRANSACTION_ID. Detect it
@@ -151,23 +159,18 @@ function IOURequestStartPage({
     }
     const isStaleTransactionDraft = latchedDraftStaleness?.isStale ?? false;
 
-    const transactionRequestType = useMemo(() => {
-        if (transaction?.iouRequestType && !isStaleTransactionDraft) {
-            return transaction.iouRequestType;
-        }
-        if (!shouldUseTab) {
-            return CONST.IOU.REQUEST_TYPE.MANUAL;
-        }
-        // selectedTab must be valid for the currently-rendered tab set; otherwise let
-        // OnyxTabNavigator.onTabSelected initialize from the URL (which is authoritative).
-        if (selectedTab && availableTabs.has(selectedTab)) {
-            return selectedTab;
-        }
-        return undefined;
-    }, [transaction?.iouRequestType, isStaleTransactionDraft, shouldUseTab, selectedTab, availableTabs]);
-
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+    let transactionRequestType;
+    if (transaction?.iouRequestType && !isStaleTransactionDraft) {
+        transactionRequestType = transaction.iouRequestType;
+    } else if (!shouldUseTab) {
+        transactionRequestType = CONST.IOU.REQUEST_TYPE.MANUAL;
+    } else // selectedTab must be valid for the currently-rendered tab set; otherwise let
+    // OnyxTabNavigator.onTabSelected initialize from the URL (which is authoritative).
+    if (selectedTab && availableTabs.has(selectedTab)) {
+        transactionRequestType = selectedTab;
+    } else {
+        transactionRequestType = undefined;
+    }
 
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,
@@ -179,7 +182,6 @@ function IOURequestStartPage({
         iouType,
         policy,
         skipKeyboardDismissForPerDiem: true,
-        isNewManualExpenseFlowEnabled,
     });
 
     useEffect(() => {
@@ -193,7 +195,7 @@ function IOURequestStartPage({
     }, []);
 
     const navigateBack = () => {
-        // In the new manual expense beta the confirmation is embedded with its header hidden,
+        // The confirmation is embedded with its header hidden,
         // so this back button is the only way to abandon the flow. Cancel any active span
         // unconditionally (mirrors IOURequestStepConfirmation.navigateBack). No-op when no
         // tracking session is active.
@@ -203,17 +205,23 @@ function IOURequestStartPage({
         // REMOVE_FULLSCREEN_UNDER_RHP branch is used. Otherwise closeRHPFlow pops the RHP first and the
         // confirmation's unmount cleanup restores the original tab a frame later, briefly flashing the
         // pre-inserted Search/Spend tab. This is a no-op when nothing was pre-inserted.
+        const hadPreInsertedFullscreen = Navigation.getIsFullscreenPreInsertedUnderRHP();
         Navigation.removePreInsertedFullscreenIfNeeded();
-        Navigation.closeRHPFlow();
+        if (!hadPreInsertedFullscreen) {
+            Navigation.closeRHPFlow();
+            return;
+        }
+
+        // Close the RHP a frame later. Closed in the same update as the restore, Android dismisses it with the
+        // pre-insert's `none` animation instead of the restored slide.
+        requestAnimationFrame(() => Navigation.closeRHPFlow());
     };
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
 
-    const focusTrapContainerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
-    }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
+    const focusTrapContainerElements = [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
 
     const onBackButtonPress = () => {
         navigateBack();
@@ -224,18 +232,36 @@ function IOURequestStartPage({
 
     const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
 
-    let manualTabContent: React.ReactNode;
-    if (!isNewManualExpenseFlowEnabled) {
-        manualTabContent = (
+    // Every flow that reaches this page embeds the confirmation as its landing step except INVOICE, which stays on the
+    // amount-first flow. (`shouldUseTab` also excludes the deprecated SEND type, but nothing builds a create route with
+    // it, so PAY is the only type this has to add back.)
+    // The pay quick action still writes SKIP_CONFIRMATION, but IOURequestStepAmount is its only reader and no longer
+    // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
+    const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
+
+    // The embedded confirmation renders its body without a ScreenWrapper of its own, so that this page's focus trap
+    // stays the sole owner of the header + tab bar + content Tab cycle. Its viewport sizing has to move here with it:
+    // shouldEnableMaxHeight gates the keyboard-open height clamp and `marginTop: viewportOffsetTop`, and together with
+    // shouldAvoidScrollOnVirtualViewport (true by default here) it gates useTackInputFocus on mobile WebKit. Same
+    // condition the standalone confirmation uses - mobile Safari opts out, and canUseTouchScreen() is false on desktop.
+    const shouldEnableManualConfirmationMaxHeight = shouldEmbedConfirmation && (!shouldUseTab || selectedTab === CONST.TAB_REQUEST.MANUAL) && canUseTouchScreen() && !isMobileSafari();
+
+    let manualContent: React.ReactNode;
+    if (!shouldEmbedConfirmation) {
+        manualContent = (
             <IOURequestStepAmountWithTransactionOnly
                 shouldKeepUserInput
+                shouldHideHeader
                 route={route}
                 navigation={navigation}
                 report={report}
                 reportDraft={reportDraft}
             />
         );
-    } else if (isScanRequest(transaction) || isPerDiemRequest(transaction)) {
+    } else if (shouldUseTab && (isScanRequest(transaction) || isPerDiemRequest(transaction))) {
+        // Only the tabbed flows can land here with a stale draft, and only they run the reset that clears it
+        // (`resetIOUTypeIfChanged` is wired to `onTabSelected` below). PAY renders no tabs, so it must skip this
+        // branch or a leftover scan/per-diem draft would strand it on a loader with no way out but the back button.
         // When switching from the Scan or Per diem tab, the shared draft is briefly still a scan/per-diem request
         // until the tab-switch reset rebuilds it as manual. Mounting the embedded confirmation against that stale
         // draft does throwaway work that is immediately discarded once the reset lands - for scan a heavy first
@@ -243,7 +269,7 @@ function IOURequestStartPage({
         // (wrong fields, and the "Confirm page shows per diem" bug). Wait for the reset so the manual confirmation
         // mounts once against the rebuilt manual draft.
         // The header and tab bar remain visible above this loader, so per UI-1 use ActivityIndicator (users can still go back) instead of FullScreenLoadingIndicator.
-        manualTabContent = (
+        manualContent = (
             <View style={[styles.flex1, styles.fullScreenLoading]}>
                 <ActivityIndicator
                     testID="manualTabPendingReset"
@@ -252,8 +278,8 @@ function IOURequestStartPage({
             </View>
         );
     } else {
-        manualTabContent = (
-            <IOURequestStepConfirmation
+        manualContent = (
+            <IOURequestStepConfirmationContent
                 route={route}
                 navigation={navigation}
                 shouldHideHeader
@@ -267,122 +293,127 @@ function IOURequestStartPage({
             iouType={iouType}
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
-            allPolicies={iouType === CONST.IOU.TYPE.INVOICE ? allPolicies : undefined}
+            canSendInvoice={iouRequestStartPolicies?.canSendInvoiceFromAnyWorkspace}
         >
             <ScreenWrapper
-                shouldEnableKeyboardAvoidingView={isNewManualExpenseFlowEnabled}
-                shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
+                shouldEnableKeyboardAvoidingView
+                shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM || shouldEnableManualConfirmationMaxHeight}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
-                {/* If the new manual expense flow is enabled, the confirmation screen is shown on the start page, so we do not want to disable the drag and drop provider in that case */}
-                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN && !(isNewManualExpenseFlowEnabled && selectedTab === CONST.TAB_REQUEST.MANUAL)}>
-                    <View style={styles.flex1}>
-                        <FocusTrapContainerElement
-                            onContainerElementChanged={setHeaderWithBackButtonContainerElement}
-                            style={[styles.w100]}
-                        >
-                            <HeaderWithBackButton
-                                title={tabTitles[iouType]}
-                                onBackButtonPress={navigateBack}
-                            />
-                        </FocusTrapContainerElement>
+                {/* The confirmation screen is shown on the start page for the manual tab, so we do not want to disable the drag and drop provider in that case */}
+                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN && selectedTab !== CONST.TAB_REQUEST.MANUAL}>
+                    {/*
+                        The embedded confirmation opens the participant picker, which on iOS is an overlay rather
+                        than a modal. Hosting it here is what lets the overlay cover this page's header and tab
+                        bar, instead of stopping at the top of the form it is declared in.
+                    */}
+                    <ParticipantPickerOverlayHost>
+                        <CollapsibleHeaderOnKeyboardGroup>
+                            <View style={styles.flex1}>
+                                <CollapsibleHeaderOnKeyboardGroupMember>
+                                    <FocusTrapContainerElement
+                                        onContainerElementChanged={setHeaderWithBackButtonContainerElement}
+                                        style={[styles.w100]}
+                                    >
+                                        <HeaderWithBackButton
+                                            title={tabTitles[iouType]}
+                                            onBackButtonPress={navigateBack}
+                                        />
+                                    </FocusTrapContainerElement>
+                                </CollapsibleHeaderOnKeyboardGroupMember>
 
-                        {shouldUseTab ? (
-                            <OnyxTabNavigator
-                                id={CONST.TAB.IOU_REQUEST_TYPE}
-                                defaultSelectedTab={defaultSelectedTab}
-                                onTabSelected={resetIOUTypeIfChanged}
-                                onTabSelect={onTabSelectFocusHandler}
-                                tabBar={TabSelector}
-                                onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
-                                onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
-                                lazyLoadEnabled
-                                shouldReapplyInterruptedTabPress
-                            >
-                                <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <TabScreenWithFocusTrapWrapper>{manualTabContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
-                                <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
-                                    {() => (
-                                        <TabScreenWithFocusTrapWrapper>
-                                            <IOURequestStepScan
-                                                key={transactionRequestType}
-                                                route={route}
-                                                navigation={navigation}
-                                            />
-                                        </TabScreenWithFocusTrapWrapper>
-                                    )}
-                                </TopTab.Screen>
-                                {iouType === CONST.IOU.TYPE.SPLIT && (
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
-                                        {() => (
-                                            <TabScreenWithFocusTrapWrapper>
-                                                <DynamicIOURequestStepDistance
-                                                    route={route}
-                                                    navigation={navigation}
-                                                />
-                                            </TabScreenWithFocusTrapWrapper>
-                                        )}
-                                    </TopTab.Screen>
-                                )}
-                                {!!shouldShowPerDiemOption && (
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
-                                        {() => (
-                                            <TabScreenWithFocusTrapWrapper>
-                                                {shouldShowWorkspaceSelectForPerDiem ? (
-                                                    <IOURequestStepPerDiemWorkspace
+                                {shouldUseTab ? (
+                                    <OnyxTabNavigator
+                                        id={CONST.TAB.IOU_REQUEST_TYPE}
+                                        defaultSelectedTab={defaultSelectedTab}
+                                        onTabSelected={resetIOUTypeIfChanged}
+                                        onTabSelect={onTabSelectFocusHandler}
+                                        tabBar={CollapsibleTabSelector}
+                                        onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
+                                        onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
+                                        lazyLoadEnabled
+                                        shouldReapplyInterruptedTabPress
+                                    >
+                                        <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <TabScreenWithFocusTrapWrapper>{manualContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
+                                        <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
+                                            {() => (
+                                                <TabScreenWithFocusTrapWrapper>
+                                                    <IOURequestStepScan
+                                                        key={transactionRequestType}
                                                         route={route}
                                                         navigation={navigation}
                                                     />
-                                                ) : (
-                                                    <DynamicIOURequestStepDestination
-                                                        openedFromStartPage
-                                                        ref={perDiemInputRef}
-                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabled.at(0)?.id}
-                                                        route={route}
-                                                        navigation={navigation}
-                                                    />
+                                                </TabScreenWithFocusTrapWrapper>
+                                            )}
+                                        </TopTab.Screen>
+                                        {iouType === CONST.IOU.TYPE.SPLIT && (
+                                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
+                                                {() => (
+                                                    <TabScreenWithFocusTrapWrapper>
+                                                        <DynamicIOURequestStepDistance
+                                                            route={route}
+                                                            navigation={navigation}
+                                                        />
+                                                    </TabScreenWithFocusTrapWrapper>
                                                 )}
-                                            </TabScreenWithFocusTrapWrapper>
+                                            </TopTab.Screen>
                                         )}
-                                    </TopTab.Screen>
-                                )}
-                                {shouldShowTimeOption && (
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.TIME}>
-                                        {() => (
-                                            <TabScreenWithFocusTrapWrapper>
-                                                {isFromGlobalCreate && policiesWithTimeEnabled.length > 1 ? (
-                                                    <IOURequestStepTimeWorkspace
-                                                        route={route}
-                                                        navigation={navigation}
-                                                    />
-                                                ) : (
-                                                    <IOURequestStepHours
-                                                        route={route}
-                                                        navigation={navigation}
-                                                        explicitPolicyID={isFromGlobalCreate ? policiesWithTimeEnabled.at(0)?.id : undefined}
-                                                    />
+                                        {!!shouldShowPerDiemOption && (
+                                            <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
+                                                {() => (
+                                                    <TabScreenWithFocusTrapWrapper>
+                                                        {shouldShowWorkspaceSelectForPerDiem ? (
+                                                            <IOURequestStepPerDiemWorkspace
+                                                                route={route}
+                                                                navigation={navigation}
+                                                            />
+                                                        ) : (
+                                                            <DynamicIOURequestStepDestination
+                                                                openedFromStartPage
+                                                                ref={perDiemInputRef}
+                                                                explicitPolicyID={moreThanOnePerDiemExist ? undefined : iouRequestStartPolicies?.firstPerDiemPolicyID}
+                                                                route={route}
+                                                                navigation={navigation}
+                                                            />
+                                                        )}
+                                                    </TabScreenWithFocusTrapWrapper>
                                                 )}
-                                            </TabScreenWithFocusTrapWrapper>
+                                            </TopTab.Screen>
                                         )}
-                                    </TopTab.Screen>
+                                        {shouldShowTimeOption && (
+                                            <TopTab.Screen name={CONST.TAB_REQUEST.TIME}>
+                                                {() => (
+                                                    <TabScreenWithFocusTrapWrapper>
+                                                        {isFromGlobalCreate && iouRequestStartPolicies?.hasMultipleTimePolicies ? (
+                                                            <IOURequestStepTimeWorkspace
+                                                                route={route}
+                                                                navigation={navigation}
+                                                            />
+                                                        ) : (
+                                                            <IOURequestStepHours
+                                                                route={route}
+                                                                navigation={navigation}
+                                                                explicitPolicyID={isFromGlobalCreate ? iouRequestStartPolicies?.firstTimePolicyID : undefined}
+                                                            />
+                                                        )}
+                                                    </TabScreenWithFocusTrapWrapper>
+                                                )}
+                                            </TopTab.Screen>
+                                        )}
+                                    </OnyxTabNavigator>
+                                ) : (
+                                    <FocusTrapContainerElement
+                                        onContainerElementChanged={setActiveTabContainerElement}
+                                        style={[styles.flexColumn, styles.flex1]}
+                                    >
+                                        {manualContent}
+                                    </FocusTrapContainerElement>
                                 )}
-                            </OnyxTabNavigator>
-                        ) : (
-                            <FocusTrapContainerElement
-                                onContainerElementChanged={setActiveTabContainerElement}
-                                style={[styles.flexColumn, styles.flex1]}
-                            >
-                                <IOURequestStepAmountWithTransactionOnly
-                                    route={route}
-                                    navigation={navigation}
-                                    shouldKeepUserInput
-                                    report={report}
-                                    reportDraft={reportDraft}
-                                />
-                            </FocusTrapContainerElement>
-                        )}
-                    </View>
+                            </View>
+                        </CollapsibleHeaderOnKeyboardGroup>
+                    </ParticipantPickerOverlayHost>
                 </DragAndDropProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

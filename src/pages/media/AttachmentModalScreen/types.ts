@@ -7,7 +7,6 @@ import type ModalType from '@src/types/utils/ModalType';
 import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent/types';
 
 type AttachmentModalContainerModalProps = {
-    /** The type of the modal */
     modalType?: ModalType;
 
     /** Callback to fire when the modal is shown */
@@ -16,7 +15,6 @@ type AttachmentModalContainerModalProps = {
     /** Callback to fire when the modal is closed */
     onClose?: () => void;
 
-    /** Whether to handle navigation back */
     shouldHandleNavigationBack?: boolean;
 };
 
@@ -27,6 +25,7 @@ type AttachmentModalScreenType =
     | typeof SCREENS.DYNAMIC_PROFILE_AVATAR
     | typeof SCREENS.WORKSPACE_AVATAR
     | typeof SCREENS.WORKSPACE_DOCUMENT
+    | typeof SCREENS.BILLING_RECEIPT
     | typeof SCREENS.TRANSACTION_RECEIPT
     | typeof SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW
     | typeof SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW

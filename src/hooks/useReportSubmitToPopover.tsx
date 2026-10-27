@@ -7,19 +7,20 @@ import ReportSubmitToContent from '@pages/ReportSubmitToContent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import calculateModalHeightInLandscapeMode from '@src/utils/calculateModalHeightInLandscapeMode';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {loginSelector} from '@selectors/PersonalDetails';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import useIsInLandscapeMode from './useIsInLandscapeMode';
 import useKeyboardState from './useKeyboardState';
 import useOnyx from './useOnyx';
+import {usePersonalDetail} from './usePersonalDetails';
 import usePopoverPosition from './usePopoverPosition';
 import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
@@ -32,7 +33,7 @@ import useWindowDimensions from './useWindowDimensions';
 const popoverDimensions = {
     width: CONST.POPOVER_DROPDOWN_WIDTH,
     height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
-    minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT,
+    portraitHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT,
 };
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
@@ -43,7 +44,12 @@ const DEFAULT_ANCHOR_ALIGNMENT = {
 type ReportSubmitToPopoverOpenOptions = {
     onSubmitSuccess?: () => void;
     /** When provided, called with the selected submit-to email instead of `submitReport`. */
-    onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number) => void;
+    onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number, shouldResolveAcknowledgedViolations?: boolean) => void;
+    /**
+     * Resolved by the caller's own `confirmSubmitReportViolations` call before opening the popover (iOS can't present
+     * the violations modal while this popover is still open), then forwarded once the user picks a submit-to member.
+     */
+    shouldResolveAcknowledgedViolations?: boolean;
 };
 
 type UseReportSubmitToPopoverParams = {
@@ -51,7 +57,7 @@ type UseReportSubmitToPopoverParams = {
     onSubmitSuccess?: () => void;
     anchorAlignment?: AnchorAlignment;
     /** When provided, resolves the anchor at open time (used by the shared Search host). */
-    getAnchorRef?: () => RefObject<View | null> | null;
+    getAnchorRef?: () => RefObject<ComponentRef<typeof View> | null> | null;
 };
 
 function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT, getAnchorRef}: UseReportSubmitToPopoverParams) {
@@ -66,18 +72,19 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const {keyboardActiveHeight} = useKeyboardState();
     const {top: topSafeAreaInset} = useSafeAreaInsets();
 
-    const submitToPopoverContentHeight = useMemo(() => {
-        if (!isInLandscapeMode) {
-            return popoverDimensions.height;
-        }
-
+    let submitToPopoverContentHeight;
+    if (!isInLandscapeMode) {
+        // Portrait uses the dedicated fixed height for this popover (`POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT`),
+        // so the intent stays explicit rather than silently coupling to the generic dropdown max.
+        submitToPopoverContentHeight = popoverDimensions.portraitHeight;
+    } else {
         const contentHeightLandscapeMode = calculateModalHeightInLandscapeMode(windowHeight, topSafeAreaInset, keyboardActiveHeight);
-
-        return Math.min(popoverDimensions.height, contentHeightLandscapeMode);
-    }, [isInLandscapeMode, windowHeight, keyboardActiveHeight, topSafeAreaInset]);
-    const anchorRef = useRef<View>(null);
+        submitToPopoverContentHeight = Math.min(popoverDimensions.height, contentHeightLandscapeMode);
+    }
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const oneShotOnSubmitSuccessRef = useRef<(() => void) | undefined>(undefined);
     const onSubmitWithManagerEmailRef = useRef<ReportSubmitToPopoverOpenOptions['onSubmitWithManagerEmail']>(undefined);
+    const [shouldResolveViolationsOnOpen, setShouldResolveViolationsOnOpen] = useState<boolean | undefined>(undefined);
     const canSubmitRef = useRef(true);
     const ignoreNextSearchSubmitPressRef = useRef(false);
     const pendingSearchSubmitOpenOptionsRef = useRef<ReportSubmitToPopoverOpenOptions | undefined>(undefined);
@@ -97,7 +104,8 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
+    const [ownerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {
         selector: willAlertModalBecomeVisibleSelector,
     });
@@ -110,24 +118,25 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         willAlertModalBecomeVisibleRef.current = willAlertModalBecomeVisible;
     }, [willAlertModalBecomeVisible]);
 
-    const submitToContentKey = `${reportID}:${getSubmitToEmail(policy, report, ownerLogin)}`;
+    const submitToContentKey = `${reportID}:${getSubmitToEmail(policy, report, ownerLogin, rules)}`;
 
-    const clearDismissGuard = useCallback(() => {
+    const clearDismissGuard = () => {
         setIsDismissGuardActive(false);
         ignoreNextSearchSubmitPressRef.current = false;
-    }, []);
+    };
 
-    const consumeIgnoreNextSearchSubmitPress = useCallback(() => {
+    const consumeIgnoreNextSearchSubmitPress = () => {
         if (!ignoreNextSearchSubmitPressRef.current) {
             return false;
         }
         clearDismissGuard();
         return true;
-    }, [clearDismissGuard]);
+    };
 
-    const closeReportSubmitToPopover = useCallback(() => {
+    const closeReportSubmitToPopover = () => {
         canSubmitRef.current = false;
         onSubmitWithManagerEmailRef.current = undefined;
+        setShouldResolveViolationsOnOpen(undefined);
         oneShotOnSubmitSuccessRef.current = undefined;
         pendingSearchSubmitOpenOptionsRef.current = undefined;
         setIsSearchSubmitFlow(false);
@@ -139,13 +148,13 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             ignoreNextSearchSubmitPressRef.current = false;
         });
         setIsVisible(false);
-    }, []);
+    };
 
-    const handleReportSubmitToPopoverModalHide = useCallback(() => {
+    const handleReportSubmitToPopoverModalHide = () => {
         clearDismissGuard();
-    }, [clearDismissGuard]);
+    };
 
-    const handleCombinedSubmitSuccess = useCallback(() => {
+    const handleCombinedSubmitSuccess = () => {
         if (!canSubmitRef.current) {
             return;
         }
@@ -155,9 +164,9 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         setIsSearchSubmitFlow(false);
         oneShot?.();
         onSubmitSuccess?.();
-    }, [onSubmitSuccess]);
+    };
 
-    const handleSearchSubmitWithManagerEmail = useCallback((managerEmail: string, managerAccountID?: number) => {
+    const handleSearchSubmitWithManagerEmail = (managerEmail: string, managerAccountID?: number, shouldResolveAcknowledgedViolations?: boolean) => {
         if (!canSubmitRef.current) {
             return;
         }
@@ -168,31 +177,29 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         canSubmitRef.current = false;
         onSubmitWithManagerEmailRef.current = undefined;
         setIsSearchSubmitFlow(false);
-        onSubmit(managerEmail, managerAccountID);
-    }, []);
+        onSubmit(managerEmail, managerAccountID, shouldResolveAcknowledgedViolations);
+    };
 
-    const showReportSubmitToPopover = useCallback(
-        (options?: ReportSubmitToPopoverOpenOptions) => {
-            canSubmitRef.current = true;
-            clearDismissGuard();
-            oneShotOnSubmitSuccessRef.current = options?.onSubmitSuccess;
-            onSubmitWithManagerEmailRef.current = options?.onSubmitWithManagerEmail;
-            setIsSearchSubmitFlow(!!options?.onSubmitWithManagerEmail);
-            const anchorToMeasure = getAnchorRef?.() ?? anchorRef;
-            calculatePopoverPosition(anchorToMeasure, anchorAlignment)
-                .then((pos) => {
-                    setAnchorPosition({
-                        horizontal: pos.horizontal,
-                        vertical: pos.vertical,
-                    });
-                    setIsVisible(true);
-                })
-                .catch(() => {
-                    clearDismissGuard();
+    const showReportSubmitToPopover = (options?: ReportSubmitToPopoverOpenOptions) => {
+        canSubmitRef.current = true;
+        clearDismissGuard();
+        oneShotOnSubmitSuccessRef.current = options?.onSubmitSuccess;
+        onSubmitWithManagerEmailRef.current = options?.onSubmitWithManagerEmail;
+        setShouldResolveViolationsOnOpen(options?.shouldResolveAcknowledgedViolations);
+        setIsSearchSubmitFlow(!!options?.onSubmitWithManagerEmail);
+        const anchorToMeasure = getAnchorRef?.() ?? anchorRef;
+        calculatePopoverPosition(anchorToMeasure, anchorAlignment)
+            .then((pos) => {
+                setAnchorPosition({
+                    horizontal: pos.horizontal,
+                    vertical: pos.vertical,
                 });
-        },
-        [calculatePopoverPosition, anchorAlignment, getAnchorRef, clearDismissGuard],
-    );
+                setIsVisible(true);
+            })
+            .catch(() => {
+                clearDismissGuard();
+            });
+    };
 
     useEffect(() => {
         if (!reportID || willAlertModalBecomeVisible || !pendingSearchSubmitOpenOptionsRef.current) {
@@ -204,107 +211,81 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         showReportSubmitToPopover(pendingOptions);
     }, [reportID, willAlertModalBecomeVisible, showReportSubmitToPopover]);
 
-    const openReportSubmitToPopover = useCallback(
-        (options?: ReportSubmitToPopoverOpenOptions) => {
-            if (!reportID) {
-                return;
-            }
-
-            if (willAlertModalBecomeVisibleRef.current) {
-                pendingSearchSubmitOpenOptionsRef.current = options;
-                return;
-            }
-
-            showReportSubmitToPopover(options);
-        },
-        [reportID, showReportSubmitToPopover],
-    );
-
-    const popoverContainerStyle = useMemo(() => (isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}), [isSmallScreenWidth, styles.w100]);
-
-    const outerStyle = useMemo(
-        () => ({
-            ...(isSmallScreenWidth ? StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop) : {}),
-            ...popoverContainerStyle,
-        }),
-        [StyleUtils, isSmallScreenWidth, popoverContainerStyle, viewportOffsetTop, windowHeight],
-    );
-
-    const innerContainerStyle = useMemo(
-        () => ({
-            ...popoverContainerStyle,
-            ...(isInLandscapeMode ? styles.getPopoverMaxHeight(windowHeight, true) : {minHeight: popoverDimensions.minHeight}),
-        }),
-        [popoverContainerStyle, isInLandscapeMode, windowHeight, styles],
-    );
-
-    const reportSubmitToPopover = useMemo(() => {
-        if (!shouldRenderSubmitToPopover) {
-            return null;
+    const openReportSubmitToPopover = (options?: ReportSubmitToPopoverOpenOptions) => {
+        if (!reportID) {
+            return;
         }
 
-        return (
-            <PopoverWithMeasuredContent
-                innerContainerStyle={innerContainerStyle}
-                outerStyle={outerStyle}
-                anchorRef={anchorRef}
-                isVisible={isVisible}
-                onClose={closeReportSubmitToPopover}
-                onModalHide={handleReportSubmitToPopoverModalHide}
-                anchorPosition={anchorPosition}
-                popoverDimensions={popoverDimensions}
-                anchorAlignment={anchorAlignment}
-                restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-                shouldSwitchPositionIfOverflow
-                shouldEnableNewFocusManagement
-                shouldSkipRemeasurement
-                shouldDisplayBelowModals
-                shouldUseModalPaddingStyle
-                avoidKeyboard
-                shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+        if (willAlertModalBecomeVisibleRef.current) {
+            pendingSearchSubmitOpenOptionsRef.current = options;
+            return;
+        }
+
+        showReportSubmitToPopover(options);
+    };
+
+    const popoverContainerStyle = isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH};
+
+    const outerStyle = {
+        ...(isSmallScreenWidth ? StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop) : {}),
+        ...popoverContainerStyle,
+    };
+
+    // No height in portrait: the wrapper `View` below owns it. This container is the modal's own box, so a height set
+    // here does not bound the content (the wrapper's `flex1` had nothing to resolve against, which let the content
+    // overflow the fixed box and pushed the Confirm button out of view).
+    const innerContainerStyle = {
+        ...popoverContainerStyle,
+        ...(isInLandscapeMode ? styles.getPopoverMaxHeight(windowHeight, true) : {}),
+    };
+
+    // `FixedFooter` inside the list already applies the bottom safe area on top of its own 20px, so let it
+    // own that spacing entirely. Without this the narrow bottom-docked modal adds its own 16px plus a
+    // second safe area inset (both helpers sum rather than max), leaving far too much room under Confirm.
+    // Single owner of the popover height: this is the `flexColumn` box that directly parents the
+    // content, so the height here is what bounds the chain below and lets the list scroll instead of
+    // growing the popover. `flex1` is deliberately omitted, since `flex-basis: 0` would override the
+    // height and hand sizing back to the content. `pt4` (wide only) is padding within that height.
+    const reportSubmitToPopover = !shouldRenderSubmitToPopover ? null : (
+        <PopoverWithMeasuredContent
+            innerContainerStyle={innerContainerStyle}
+            outerStyle={outerStyle}
+            anchorRef={anchorRef}
+            isVisible={isVisible}
+            onClose={closeReportSubmitToPopover}
+            onModalHide={handleReportSubmitToPopoverModalHide}
+            anchorPosition={anchorPosition}
+            popoverDimensions={popoverDimensions}
+            anchorAlignment={anchorAlignment}
+            restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
+            shouldSwitchPositionIfOverflow
+            shouldEnableNewFocusManagement
+            shouldSkipRemeasurement
+            shouldDisplayBelowModals
+            shouldUseModalPaddingStyle
+            enableEdgeToEdgeBottomSafeAreaPadding
+            avoidKeyboard
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+        >
+            <View
+                collapsable={false}
+                style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.w100, !isSmallScreenWidth && styles.pt4]}
             >
-                <View
-                    collapsable={false}
-                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, !isInLandscapeMode && styles.flex1, styles.w100, styles.pt4]}
-                >
-                    <ReportSubmitToContent
-                        key={submitToContentKey}
-                        report={report}
-                        policy={policy}
-                        isLoadingReportData={isLoadingReportData}
-                        onDismiss={closeReportSubmitToPopover}
-                        onSubmitSuccess={handleCombinedSubmitSuccess}
-                        onSubmitWithManagerEmail={isSearchSubmitFlow ? handleSearchSubmitWithManagerEmail : undefined}
-                        canSubmitRef={canSubmitRef}
-                        shouldDismissRHPAfterSubmit={false}
-                    />
-                </View>
-            </PopoverWithMeasuredContent>
-        );
-    }, [
-        shouldRenderSubmitToPopover,
-        innerContainerStyle,
-        outerStyle,
-        isVisible,
-        closeReportSubmitToPopover,
-        handleReportSubmitToPopoverModalHide,
-        anchorPosition,
-        anchorAlignment,
-        StyleUtils,
-        submitToPopoverContentHeight,
-        styles.flexColumn,
-        styles.flex1,
-        styles.w100,
-        styles.pt4,
-        isInLandscapeMode,
-        submitToContentKey,
-        report,
-        policy,
-        isLoadingReportData,
-        handleCombinedSubmitSuccess,
-        isSearchSubmitFlow,
-        handleSearchSubmitWithManagerEmail,
-    ]);
+                <ReportSubmitToContent
+                    key={submitToContentKey}
+                    report={report}
+                    policy={policy}
+                    isLoadingReportData={isLoadingReportData}
+                    onDismiss={closeReportSubmitToPopover}
+                    onSubmitSuccess={handleCombinedSubmitSuccess}
+                    onSubmitWithManagerEmail={isSearchSubmitFlow ? handleSearchSubmitWithManagerEmail : undefined}
+                    shouldResolveAcknowledgedViolations={shouldResolveViolationsOnOpen}
+                    canSubmitRef={canSubmitRef}
+                    shouldDismissRHPAfterSubmit={false}
+                />
+            </View>
+        </PopoverWithMeasuredContent>
+    );
 
     return {
         anchorRef,

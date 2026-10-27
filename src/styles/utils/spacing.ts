@@ -231,6 +231,10 @@ export default {
         marginLeft: 12,
     },
 
+    mln3: {
+        marginLeft: -12,
+    },
+
     ml4: {
         marginLeft: 16,
     },
@@ -865,6 +869,10 @@ export default {
 
     gap8: {
         gap: 32,
+    },
+
+    gap96: {
+        gap: 96,
     },
 
     rowGap4: {

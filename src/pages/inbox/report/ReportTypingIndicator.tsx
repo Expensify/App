@@ -10,7 +10,7 @@ import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {memo, useMemo} from 'react';
+import React from 'react';
 
 type ReportTypingIndicatorProps = {
     reportID: string;
@@ -22,7 +22,7 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
 
     const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`);
     const styles = useThemeStyles();
-    const usersTyping = useMemo(() => Object.keys(userTypingStatuses ?? {}).filter((loginOrAccountID) => userTypingStatuses?.[loginOrAccountID]), [userTypingStatuses]);
+    const usersTyping = Object.keys(userTypingStatuses ?? {}).filter((loginOrAccountID) => userTypingStatuses?.[loginOrAccountID]);
     const firstUserTyping = usersTyping.at(0);
 
     const isUserTypingADisplayName = Number.isNaN(Number(firstUserTyping));
@@ -35,7 +35,7 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
     // If the user is typing on OldDot, firstUserTyping will be a string (the user's displayName)
     const firstUserTypingDisplayName = isUserTypingADisplayName
         ? firstUserTyping
-        : getDisplayNameForParticipant({accountID: Number(firstUserTyping), shouldFallbackToHidden: false, formatPhoneNumber, translate});
+        : getDisplayNameForParticipant({accountID: Number(firstUserTyping), shouldFallbackToHidden: false, formatPhoneNumber, hiddenTranslation: translate('common.hidden')});
 
     if (usersTyping.length === 1) {
         return (
@@ -59,4 +59,4 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
     );
 }
 
-export default memo(ReportTypingIndicator);
+export default ReportTypingIndicator;

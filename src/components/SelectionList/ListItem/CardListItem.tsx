@@ -1,7 +1,7 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
-import TextWithTooltip from '@components/TextWithTooltip';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -20,7 +20,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ListItem, SelectableListItemProps} from './types';
+import type {ListItem, ListItemProps, SelectableListItemProps} from './types';
 
 import SelectableListItem from './SelectableListItem';
 
@@ -33,7 +33,7 @@ type AdditionalCardProps = {
     cardName?: string;
     plaidUrl?: string;
 };
-type CardListItemProps<TItem extends ListItem> = SelectableListItemProps<TItem & AdditionalCardProps>;
+type CardListItemProps<TItem extends ListItem> = SelectableListItemProps<TItem & AdditionalCardProps> & Pick<ListItemProps<TItem>, 'titleNumberOfLines'>;
 
 /**
  * A row with a bank/card icon (or owner avatar with card miniature), card name, and last-four
@@ -49,14 +49,14 @@ function CardListItem<TItem extends ListItem>({
     onSelectRow,
     onSelectionButtonPress,
     onDismissError,
-    rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
+    titleNumberOfLines = 1,
 }: CardListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
 
     const ownersAvatar = {
@@ -72,10 +72,16 @@ function CardListItem<TItem extends ListItem>({
         `${item.cardName ? ` ${CONST.DOT_SEPARATOR} ${item.cardName}` : ''}` +
         `${item.isVirtual ? ` ${CONST.DOT_SEPARATOR} ${translate('workspace.expensifyCard.virtual')}` : ''}`;
 
+    // The subtitle takes the second line, so the title stays on one
+    const cardTitleNumberOfLines = subtitleText ? 1 : titleNumberOfLines;
+
+    // The bold heading style is the primitive's default; non-bold items reset the weight and color.
+    const titleStyle = [cardTitleNumberOfLines > 1 && styles.preWrap, item.alternateText ? styles.mb1 : null, item.isBold === false && [styles.fontWeightNormal, styles.textSupporting]];
+
     return (
         <SelectableListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
+            wrapperStyle={styles.listItemRow}
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             isDisabled={isDisabled}
@@ -84,10 +90,6 @@ function CardListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onSelectionButtonPress={onSelectionButtonPress}
             onDismissError={onDismissError}
-            rightHandSideComponent={rightHandSideComponent}
-            errors={item.errors}
-            pendingAction={item.pendingAction}
-            keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
         >
@@ -98,18 +100,16 @@ function CardListItem<TItem extends ListItem>({
                             <View>
                                 <UserDetailsTooltip
                                     shouldRender={showTooltip}
-                                    accountID={Number(item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
+                                    accountID={ownersAvatar.id}
                                     icon={ownersAvatar}
                                     fallbackUserDetails={{
                                         displayName: item.cardOwnerPersonalDetails?.displayName,
                                     }}
                                 >
                                     <View>
-                                        <Avatar
+                                        <UserAvatar
                                             source={ownersAvatar.source}
-                                            name={ownersAvatar.name}
-                                            avatarID={ownersAvatar.id}
-                                            type={CONST.ICON_TYPE_AVATAR}
+                                            accountID={ownersAvatar.id}
                                             fallbackIcon={ownersAvatar.fallbackIcon}
                                         />
                                     </View>
@@ -146,28 +146,14 @@ function CardListItem<TItem extends ListItem>({
                         )}
                     </View>
                 )}
-                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={Str.removeSMSDomain(item.text ?? '')}
-                            style={[
-                                styles.optionDisplayName,
-                                styles.sidebarLinkText,
-                                item.isBold !== false && styles.sidebarLinkTextBold,
-                                styles.pre,
-                                item.alternateText ? styles.mb1 : null,
-                            ]}
-                        />
-                        {!!subtitleText && (
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={subtitleText}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            />
-                        )}
-                    </View>
-                </View>
+                <ListItemComposed.TextColumn style={styles.optionRow}>
+                    <ListItemComposed.Title
+                        text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
+                        style={titleStyle}
+                        numberOfLines={cardTitleNumberOfLines}
+                    />
+                    {!!subtitleText && <ListItemComposed.Subtitle text={subtitleText} />}
+                </ListItemComposed.TextColumn>
             </>
         </SelectableListItem>
     );

@@ -1,19 +1,26 @@
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translate} from '@libs/Localize';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
-import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
+import {getDistanceRateCustomUnitRate, isSelectableTaxCode} from '@libs/PolicyUtils';
+import {getReportOrDraftReport, getTransactionDetails, isExpenseReport, isSelfDM} from '@libs/ReportUtils';
 import {
     buildOptimisticTransaction,
     getAmount,
     getCurrency,
+    getDefaultTaxCode,
     getSelectedRouteKey,
+    getTaxAmount,
+    getTaxValue,
     hasManualDistanceOverride,
+    hasValidModifiedAmount,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isManagedCardTransaction,
+    calculateTaxAmount,
 } from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -23,6 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -60,6 +68,32 @@ function getDistanceMerchantFromDistance(
         getCurrencySymbol,
         true,
     );
+}
+
+/**
+ * Resolve the `reimbursable` value to seed a split with.
+ *
+ * When the policy locks the reimbursable field (`disabledFields.reimbursable === true`, i.e. one of the two
+ * "Always …" cash-expense modes), the split must follow the policy's `defaultReimbursable` regardless of the
+ * parent expense's stored value. A pre-rule expense can still carry `reimbursable: true` under an
+ * "Always non-reimbursable" workspace. Seeding the locked default also equals the value the
+ * `shouldShowReimbursable` gate compares against, so the toggle hides automatically.
+ *
+ * When the field is not locked (the two "default" modes), the split keeps inheriting the parent's value.
+ *
+ * Managed-card transactions always inherit the parent's value. The workspace "Always …" modes only apply to cash
+ * expenses, while a card expense's reimbursable value is set at import by the card feed's reimbursable preference.
+ * Their reimbursable control is hidden in the split editor, so the split must keep that stored value rather than
+ * the policy default or a hardcoded `false`.
+ */
+function getSplitReimbursable(policy: OnyxEntry<OnyxTypes.Policy>, parentReimbursable: boolean | undefined, transaction: OnyxEntry<OnyxTypes.Transaction>): boolean | undefined {
+    if (isManagedCardTransaction(transaction)) {
+        return parentReimbursable;
+    }
+    if (policy?.disabledFields?.reimbursable === true) {
+        return policy.defaultReimbursable;
+    }
+    return parentReimbursable;
 }
 
 /**
@@ -184,8 +218,7 @@ function resolveSplitItemRate({
         return {rate: fallbackMileageRate.rate, unit};
     }
 
-    const selectedRate =
-        DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID}) ?? DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID, policies);
+    const selectedRate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({policy, customUnitRateID, policies});
     if (!selectedRate?.rate || selectedRate.rate <= 0 || selectedRate.enabled === false) {
         return {rate: fallbackMileageRate.rate, unit};
     }
@@ -231,7 +264,21 @@ function initSplitExpenseItemData(
         merchant,
         customUnit,
         isManuallyEdited,
-    }: {amount?: number; transactionID?: string; reportID?: string; created?: string; merchant?: string; customUnit?: TransactionCustomUnit; isManuallyEdited?: boolean} = {},
+        taxAmount,
+        policy,
+        getCurrencyDecimals,
+    }: {
+        amount?: number;
+        transactionID?: string;
+        reportID?: string;
+        created?: string;
+        merchant?: string;
+        customUnit?: TransactionCustomUnit;
+        isManuallyEdited?: boolean;
+        taxAmount?: number;
+        policy?: OnyxEntry<OnyxTypes.Policy>;
+        getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    },
 ): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
     const sourceCustomUnit = customUnit ?? transaction?.comment?.customUnit;
@@ -242,6 +289,57 @@ function initSplitExpenseItemData(
         delete splitCustomUnit.commuterExclusionMethod;
     }
 
+    // Resolve a tax code to its live value, but only when the rate is still selectable. A disabled or pending-delete
+    // rate still resolves to a value, yet the user can no longer pick it, so treat it the same as a removed rate.
+    const getSelectableTaxValue = (code: string | undefined) => {
+        const value = code ? getTaxValue(policy, transaction, code) : undefined;
+        return value !== undefined && isSelectableTaxCode(policy, code) ? value : undefined;
+    };
+
+    // The stored tax is out of date when the stored taxCode and taxValue no longer match a currently-selectable rate,
+    // i.e. the rate's value was edited, or the rate was deleted or disabled after the expense was created. When that
+    // happens the tax is resolved fresh below so all three tax fields stay consistent, rather than persisting stale
+    // values. Only gate when a policy is available to compare against.
+    const isStoredTaxValueStale = !!policy && !!transaction?.taxValue && getSelectableTaxValue(transaction?.taxCode) !== transaction.taxValue;
+
+    let resolvedTaxCode = transactionDetails?.taxCode;
+    let resolvedTaxValue = transactionDetails?.taxValue;
+    let resolvedTaxAmount = taxAmount ?? transactionDetails?.taxAmount;
+    if (isStoredTaxValueStale) {
+        let liveTaxCode = transactionDetails?.taxCode;
+        let liveTaxValue = getSelectableTaxValue(liveTaxCode);
+        // The stored taxCode no longer points to a selectable rate (deleted or disabled), so fall back to the policy default.
+        if (liveTaxValue === undefined) {
+            liveTaxCode = getDefaultTaxCode(policy, transaction);
+            liveTaxValue = getSelectableTaxValue(liveTaxCode);
+            if (liveTaxValue === undefined) {
+                liveTaxCode = undefined;
+            }
+        }
+        // The tax is computed from the whole split amount, matching every other split tax recalculation in this file.
+        // Distance tax is only reclaimable on part of the mileage amount, so the rate's claimable percentage is applied
+        // the same way DistanceRequestUtils.getTaxableAmount does.
+        if (liveTaxValue !== undefined) {
+            const splitAmount = Math.abs(amount ?? transactionDetails?.amount ?? 0);
+            const splitCustomUnitRateID = splitCustomUnit?.customUnitRateID;
+            const splitCustomUnitRate = splitCustomUnitRateID ? getDistanceRateCustomUnitRate(policy, splitCustomUnitRateID) : undefined;
+            const taxableAmount = isDistanceRequestTransactionUtils(transaction)
+                ? splitAmount * (splitCustomUnitRate?.attributes?.taxClaimablePercentage ?? CONST.DEFAULT_NUMBER_ID)
+                : splitAmount;
+            const splitCurrency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
+            resolvedTaxCode = liveTaxCode;
+            resolvedTaxValue = liveTaxValue;
+            resolvedTaxAmount = convertToBackendAmount(calculateTaxAmount(liveTaxValue, taxableAmount, getCurrencyDecimals(splitCurrency)));
+        } else {
+            // No selectable rate resolves, so clear all three fields, the same as removing the tax by hand. Keeping the
+            // parent's stored trio would send a tax code the policy no longer accepts, and the split request would fail.
+            // Empty strings (not undefined) are used so the save path doesn't fall back to the parent's stale values.
+            resolvedTaxCode = '';
+            resolvedTaxValue = '';
+            resolvedTaxAmount = 0;
+        }
+    }
+
     return {
         transactionID: transactionID ?? transactionDetails?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID),
         amount: amount ?? transactionDetails?.amount ?? 0,
@@ -250,10 +348,12 @@ function initSplitExpenseItemData(
         tags: transaction?.tag ? [transaction?.tag] : [],
         created: created ?? transactionDetails?.created ?? DateUtils.formatMachineDateWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
         merchant: merchant ?? transactionDetails?.merchant,
-        statusNum: transactionReport?.statusNum ?? 0,
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
-        reimbursable: transactionDetails?.reimbursable,
+        reimbursable: getSplitReimbursable(policy, transactionDetails?.reimbursable, transaction),
         billable: transactionDetails?.billable,
+        taxCode: resolvedTaxCode,
+        taxAmount: resolvedTaxAmount,
+        taxValue: resolvedTaxValue,
         customUnit: splitCustomUnit,
         waypoints: transaction?.comment?.waypoints ?? undefined,
         odometerStart: transaction?.comment?.odometerStart ?? undefined,
@@ -292,6 +392,11 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
             reportID,
             created: splitTransactionData?.created ?? '',
             category: splitTransactionData?.category ?? '',
+            reimbursable: splitTransactionData?.reimbursable,
+            billable: splitTransactionData?.billable,
+            taxCode: splitTransactionData?.taxCode,
+            taxAmount: splitTransactionData?.taxAmount,
+            taxValue: splitTransactionData?.taxValue,
             customUnit: splitTransactionData?.customUnit,
             waypoints: splitTransactionData?.waypoints ?? undefined,
             odometerStart: splitTransactionData?.odometerStart ?? undefined,
@@ -322,28 +427,71 @@ function redistributeSplitExpenseAmounts(
     // Calculate sum of manually edited splits
     const editedSum = splitExpenses.filter((split) => split.isManuallyEdited).reduce((sum, split) => sum + split.amount, 0);
 
-    // Find all unedited splits
     const uneditedSplits = splitExpenses.filter((split) => !split.isManuallyEdited);
     const uneditedCount = uneditedSplits.length;
 
-    // If no unedited splits, return as-is
     if (uneditedCount === 0) {
         return splitExpenses;
     }
 
-    // Redistribute remaining amount among unedited splits
     const remaining = total - editedSum;
     const lastUneditedIndex = uneditedCount - 1;
     let uneditedIndex = 0;
-
     return splitExpenses.map((split) => {
         if (split.isManuallyEdited) {
             return split;
         }
         const isLast = uneditedIndex === lastUneditedIndex;
         const newAmount = calculateIOUAmount(lastUneditedIndex, remaining, currency, isLast, true, getCurrencyDecimals);
+        // Not the initial split state: recalculate tax from the split's own rate applied to its new amount.
+        const newTaxAmount = convertToBackendAmount(calculateTaxAmount(split.taxValue, newAmount, getCurrencyDecimals(currency)));
+
         uneditedIndex += 1;
-        return {...split, amount: newAmount};
+        return {...split, amount: newAmount, taxAmount: newTaxAmount};
+    });
+}
+
+/** Bundled to stay within the max-params lint limit. */
+type FrozenSplitsContext = {
+    frozenSplitTransactionIDs?: Set<string>;
+    searchResultsData?: SearchResultDataType;
+};
+
+/**
+ * Same as `redistributeSplitExpenseAmounts`, but a frozen split is restored to its live transaction amount
+ * instead. `unlockManualEditsIfAllLocked` unlocks non-frozen manual edits if every split is locked, so there's
+ * still somewhere to redistribute to.
+ */
+function redistributeExcludingFrozenSplits(
+    splitExpenses: SplitExpense[],
+    total: number,
+    currency: string,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    frozenSplitsContext?: FrozenSplitsContext,
+    unlockManualEditsIfAllLocked = false,
+): SplitExpense[] {
+    const isFrozenSplit = (item: SplitExpense) => frozenSplitsContext?.frozenSplitTransactionIDs?.has(item.transactionID) ?? false;
+    const lockedSplits = splitExpenses.map((item) => (isFrozenSplit(item) ? {...item, isManuallyEdited: true} : item));
+    const hasAnyUneditedSplit = lockedSplits.some((item) => !item.isManuallyEdited);
+    const splitExpensesToRedistribute =
+        unlockManualEditsIfAllLocked && !hasAnyUneditedSplit ? lockedSplits.map((item) => (isFrozenSplit(item) ? item : {...item, isManuallyEdited: false})) : lockedSplits;
+
+    return redistributeSplitExpenseAmounts(splitExpensesToRedistribute, total, currency, getCurrencyDecimals).map((item) => {
+        if (!isFrozenSplit(item)) {
+            return item;
+        }
+        const original = splitExpenses.find((split) => split.transactionID === item.transactionID) ?? item;
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` as const;
+        const liveTransaction = getAllTransactions()[transactionKey] ?? frozenSplitsContext?.searchResultsData?.[transactionKey];
+        if (!liveTransaction) {
+            return original;
+        }
+        const liveReport = getReportOrDraftReport(liveTransaction.reportID) ?? frozenSplitsContext?.searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${liveTransaction.reportID}`];
+        const isLiveTransactionFromExpenseReport = isExpenseReport(liveReport);
+        const rawLiveAmount = hasValidModifiedAmount(liveTransaction) ? Number(liveTransaction.modifiedAmount) : (liveTransaction.amount ?? 0);
+        const liveAmount = isLiveTransactionFromExpenseReport && rawLiveAmount ? -rawLiveAmount : rawLiveAmount;
+        // Keep the live tax as-is - a frozen split isn't supposed to change, and its tax may have been edited manually.
+        return {...original, amount: liveAmount, taxAmount: getTaxAmount(liveTransaction, isLiveTransactionFromExpenseReport)};
     });
 }
 
@@ -361,6 +509,7 @@ function addSplitExpenseField(
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     policies?: OnyxCollection<OnyxTypes.Policy>,
+    frozenSplitsContext?: FrozenSplitsContext,
 ) {
     if (!transaction || !draftTransaction) {
         return;
@@ -402,11 +551,14 @@ function addSplitExpenseField(
 
     const newSplitExpense = initSplitExpenseItemData(transaction, transactionReport, {
         amount: 0,
+        taxAmount: 0,
         transactionID: rand64(),
         reportID: draftTransaction?.reportID,
         customUnit,
         merchant,
         isManuallyEdited: false,
+        policy,
+        getCurrencyDecimals,
     });
 
     const existingSplits = draftTransaction.comment?.splitExpenses ?? [];
@@ -427,7 +579,7 @@ function addSplitExpenseField(
     // Skip redistribution only when manual edits exist AND splits sum to total
     const shouldRedistribute = !splitsAlreadyMatchTotal || !hasManuallyEditedSplits;
     if (!isDistanceRequest && shouldRedistribute) {
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(updatedSplitExpenses, total, currency, getCurrencyDecimals);
+        redistributedSplitExpenses = redistributeExcludingFrozenSplits(updatedSplitExpenses, total, currency, getCurrencyDecimals, frozenSplitsContext);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -483,9 +635,14 @@ function evenlyDistributeSplitExpenseAmounts(
 
     const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => {
         const amount = calculateIOUAmount(splitCount - 1, total, currency, index === 0, true, getCurrencyDecimals);
+        // "Make splits even" is a user action on splits that already have their own tax rate, not the initial
+        // split state, so recalculate each split's tax from its own rate rather than splitting the original tax amount.
+        const splitTaxAmount = convertToBackendAmount(calculateTaxAmount(splitExpense.taxValue, amount, getCurrencyDecimals(currency)));
+
         let updatedSplitExpense: SplitExpense = {
             ...splitExpense,
             amount,
+            taxAmount: splitTaxAmount,
             // Reset isManuallyEdited since user explicitly requested even distribution
             isManuallyEdited: false,
         };
@@ -544,7 +701,6 @@ type ResetSplitExpensesByDateRangeParams = {
     /** Whether the split is created in a self-DM */
     isSelfDMSplit: boolean;
 
-    /** The output currency of the personal policy */
     personalPolicyOutputCurrency: string | undefined;
 
     /** Resolves the symbol of a currency */
@@ -595,11 +751,17 @@ function resetSplitExpensesByDateRange({
     // Create split expenses for each date with proportional amounts, the remainder going to the first one
     const newSplitExpenses: SplitExpense[] = dates.map((date, index) => {
         const amount = calculateIOUAmount(dates.length - 1, total, currency, index === 0, true, getCurrencyDecimals);
+        // Not the initial split state: recalculate tax from the (inherited) tax rate applied to the new amount.
+        const splitTaxAmount = convertToBackendAmount(calculateTaxAmount(transactionDetails?.taxValue, amount, getCurrencyDecimals(currency)));
+
         let splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
             amount,
+            taxAmount: splitTaxAmount,
             transactionID: rand64(),
             reportID: draftTransaction?.reportID,
             created: format(date, CONST.DATE.FNS_FORMAT_STRING),
+            policy,
+            getCurrencyDecimals,
         });
 
         // Update distance for distance transactions based on new amount and rate
@@ -640,8 +802,14 @@ function removeSplitExpenseField(
     draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
     splitExpenseTransactionID: string,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    frozenSplitsContext?: FrozenSplitsContext,
 ) {
     if (!draftTransaction || !splitExpenseTransactionID) {
+        return;
+    }
+
+    // A frozen split can't be dropped from the set either - its amount must stay accounted for.
+    if (frozenSplitsContext?.frozenSplitTransactionIDs?.has(splitExpenseTransactionID)) {
         return;
     }
 
@@ -653,16 +821,11 @@ function removeSplitExpenseField(
 
     const originalTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const isDistanceRequest = originalTransaction && isDistanceRequestTransactionUtils(originalTransaction);
-
     let redistributedSplitExpenses = splitExpenses;
 
     // Auto-redistribute amounts for all splits if this is not a distance request
     if (!isDistanceRequest) {
-        const hasAnyUneditedSplit = splitExpenses.some((item) => !item.isManuallyEdited);
-        // If every remaining split is locked, temporarily unlock them so removing one split
-        // still redistributes to a valid, saveable total in the split edit flow.
-        const splitExpensesToRedistribute = hasAnyUneditedSplit ? splitExpenses : splitExpenses.map((item) => ({...item, isManuallyEdited: false}));
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpensesToRedistribute, total, currency, getCurrencyDecimals);
+        redistributedSplitExpenses = redistributeExcludingFrozenSplits(splitExpenses, total, currency, getCurrencyDecimals, frozenSplitsContext, true);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -684,8 +847,15 @@ function updateSplitExpenseField(
     personalPolicyOutputCurrency: string | undefined,
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     policies?: OnyxCollection<OnyxTypes.Policy>,
+    frozenSplitsContext?: FrozenSplitsContext,
 ) {
     if (!splitExpenseDraftTransaction || !splitExpenseTransactionID || !originalTransactionDraft) {
+        return;
+    }
+
+    // A frozen split's fields must stay fixed - editing it here and saving would push the dirty amount/tax
+    // into the finalized report.
+    if (frozenSplitsContext?.frozenSplitTransactionIDs?.has(splitExpenseTransactionID)) {
         return;
     }
 
@@ -724,6 +894,11 @@ function updateSplitExpenseField(
                 odometerStart: splitExpenseDraftTransaction?.comment?.odometerStart ?? undefined,
                 odometerEnd: splitExpenseDraftTransaction?.comment?.odometerEnd ?? undefined,
                 amount: splitExpenseDraftTransaction?.amount ?? 0,
+                reimbursable: getSplitReimbursable(policy, transactionDetails?.reimbursable, originalTransaction),
+                billable: transactionDetails?.billable,
+                taxCode: transactionDetails?.taxCode,
+                taxAmount: Math.abs(transactionDetails?.taxAmount ?? 0),
+                taxValue: transactionDetails?.taxValue,
                 routes: splitExpenseDraftTransaction?.routes ?? undefined,
                 merchant: splitExpenseDraftTransaction?.modifiedMerchant ? splitExpenseDraftTransaction.modifiedMerchant : (splitExpenseDraftTransaction?.merchant ?? ''),
             };
@@ -771,8 +946,15 @@ function updateSplitExpenseAmountField(
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     policies?: OnyxCollection<OnyxTypes.Policy>,
+    frozenSplitsContext?: FrozenSplitsContext,
 ) {
     if (!draftTransaction?.transactionID || !currentItemTransactionID || Number.isNaN(amount)) {
+        return;
+    }
+
+    // A frozen split's amount must stay fixed - `redistributeExcludingFrozenSplits` only guards it from
+    // absorbing changes made to other splits, not from a direct edit applied to itself below.
+    if (frozenSplitsContext?.frozenSplitTransactionIDs?.has(currentItemTransactionID)) {
         return;
     }
 
@@ -782,13 +964,15 @@ function updateSplitExpenseAmountField(
     const splitExpenses = draftTransaction.comment?.splitExpenses ?? [];
     const total = getAmount(draftTransaction, undefined, undefined, true, true);
     const currency = getCurrency(draftTransaction);
-
     // Mark the edited split and update its amount
     const splitWithUpdatedAmount = splitExpenses.map((splitExpense) => {
         if (splitExpense.transactionID === currentItemTransactionID) {
             let updatedSplitExpense: SplitExpense = {
                 ...splitExpense,
                 amount,
+                // Editing a split's amount is a user action on a split that already has its own tax rate, so
+                // recalculate its tax from that rate applied to the new amount rather than the original tax amount.
+                taxAmount: convertToBackendAmount(calculateTaxAmount(splitExpense.taxValue, amount, getCurrencyDecimals(currency))),
                 isManuallyEdited: true,
             };
 
@@ -825,7 +1009,7 @@ function updateSplitExpenseAmountField(
 
     // Auto-redistribute amounts for all splits if this is not a distance request
     if (!isDistanceRequest) {
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitWithUpdatedAmount, total, currency, getCurrencyDecimals);
+        redistributedSplitExpenses = redistributeExcludingFrozenSplits(splitWithUpdatedAmount, total, currency, getCurrencyDecimals, frozenSplitsContext);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -848,9 +1032,14 @@ function clearSplitTransactionDraftErrors(transactionID: string | undefined) {
     });
 }
 
+function updateSplitExpenseDraftField(fields: Partial<OnyxTypes.Transaction>) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, fields);
+}
+
 export {
     updateSplitExpenseDistanceFromAmount,
     initSplitExpenseItemData,
+    getSplitReimbursable,
     resolveSplitItemReportID,
     resolveSplitMileageRate,
     initDraftSplitExpenseDataForEdit,
@@ -861,4 +1050,5 @@ export {
     updateSplitExpenseField,
     updateSplitExpenseAmountField,
     clearSplitTransactionDraftErrors,
+    updateSplitExpenseDraftField,
 };

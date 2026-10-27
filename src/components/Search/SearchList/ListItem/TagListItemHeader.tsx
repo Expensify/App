@@ -10,7 +10,6 @@ import type {TransactionTagGroupListItemType} from './types';
 import BaseListItemHeader from './BaseListItemHeader';
 
 type TagListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
-    /** The tag currently being looked at */
     tag: TransactionTagGroupListItemType;
 };
 

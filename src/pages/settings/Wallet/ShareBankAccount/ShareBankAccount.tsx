@@ -1,5 +1,5 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,11 +15,12 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
-import {getEligibleBankAccountShareRecipients} from '@libs/PolicyUtils';
+import {getEligibleBankAccountShareRecipientEmails} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';
@@ -58,7 +59,25 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const admins = getEligibleBankAccountShareRecipients(allPolicies, currentUserLogin, bankAccountID);
+    const adminEmails = getEligibleBankAccountShareRecipientEmails(allPolicies, currentUserLogin, bankAccountID);
+    const adminPersonalDetails = usePersonalDetailsByLogins(adminEmails);
+    const admins = adminEmails.flatMap((email) => {
+        const personalDetails = adminPersonalDetails[email];
+        if (!personalDetails) {
+            return [];
+        }
+        return [
+            formatMemberForList({
+                text: personalDetails.displayName,
+                alternateText: personalDetails.login,
+                keyForList: personalDetails.login ?? String(personalDetails.accountID),
+                accountID: personalDetails.accountID,
+                login: personalDetails.login,
+                pendingAction: personalDetails.pendingAction,
+                reportID: '',
+            }),
+        ];
+    });
     const shouldShowTextInput = admins && admins?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
     const debouncedSearchValue = debouncedSearchTerm.trim().toLowerCase();
@@ -157,7 +176,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         },
     ];
 
-    const headerMessage = getHeaderMessage(sections?.at(0)?.data.length !== 0, false, debouncedSearchValue, countryCode, false);
+    const headerMessage = getHeaderMessage(translate, sections?.at(0)?.data.length !== 0, false, debouncedSearchValue, countryCode, false);
 
     const onButtonPress = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
 
@@ -169,16 +188,14 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
             />
             {shouldShowSuccess ? (
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    <ConfirmationPage
+                    <ConfirmationPageDefault
                         heading={translate('walletPage.shareBankAccountSuccess')}
                         description={translate('walletPage.shareBankAccountSuccessDescription')}
                         illustration={illustrations.ShareBank}
-                        shouldShowButton
                         descriptionStyle={[styles.ph4, styles.textSupporting]}
                         illustrationStyle={styles.successBankSharedCardIllustration}
                         onButtonPress={onButtonPress}
                         buttonText={translate('common.buttonConfirm')}
-                        containerStyle={styles.h100}
                     />
                 </ScrollView>
             ) : (

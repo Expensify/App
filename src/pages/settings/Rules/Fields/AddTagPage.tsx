@@ -6,7 +6,7 @@ import {updateDraftRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagLists, matchesParentTagPath} from '@libs/PolicyUtils';
 import {trimTag} from '@libs/TagUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -18,7 +18,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type AddTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_TAG>;
 
@@ -32,19 +32,25 @@ function AddTagPage({route}: AddTagPageProps) {
     const tagList = policyTags.find((item) => item.orderWeight === orderWeight);
     const formTags = getTagArrayFromName(form?.tag ?? '');
     const formTag = formTags.at(orderWeight);
+    const parentTagPath = formTags.slice(0, orderWeight).join(':');
 
-    const tagItems = useMemo(() => {
-        const tags: Array<{name: string; value: string}> = [];
-
-        for (const tag of Object.values(tagList?.tags ?? {})) {
-            if (tag.name !== formTag && !tag.enabled) {
-                continue;
-            }
-            tags.push({name: getCleanedTagName(tag.name), value: tag.name});
+    const tags: Array<{
+        name: string;
+        value: string;
+    }> = [];
+    for (const tag of Object.values(tagList?.tags ?? {})) {
+        if (tag.name !== formTag && !tag.enabled) {
+            continue;
         }
-
-        return tags;
-    }, [tagList?.tags, formTag]);
+        if (!matchesParentTagPath(tag, parentTagPath)) {
+            continue;
+        }
+        tags.push({
+            name: getCleanedTagName(tag.name),
+            value: tag.name,
+        });
+    }
+    const tagItems = tags;
 
     const selectedTagItem = tagItems.find(({value}) => value === formTag);
 

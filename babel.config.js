@@ -5,13 +5,7 @@ require('dotenv').config();
  */
 process.env.EXPO_PUBLIC_USE_RN_FETCH = process.env.EXPO_PUBLIC_USE_RN_FETCH ?? '1';
 
-const BaseReactCompilerConfig = require('./config/babel/reactCompilerConfig');
 const {expoInlineEnvVars} = require('babel-preset-expo/build/plugins/inline-env-vars');
-
-const ReactCompilerConfig = {
-    ...BaseReactCompilerConfig,
-    sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/'),
-};
 
 /**
  * Custom plugin that prints a file name when it's being processed by babel.
@@ -32,8 +26,6 @@ const isTestEnv = process.env.BABEL_ENV === 'test' || process.env.NODE_ENV === '
 const metro = {
     presets: [require('@react-native/babel-preset')],
     plugins: [
-        ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
-
         // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
         // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
         '@babel/plugin-transform-flow-strip-types',
@@ -160,8 +152,15 @@ if (process.env.CAPTURE_METRICS === 'true') {
     ]);
 }
 
+const repack = {
+    ...metro,
+    plugins: metro.plugins
+        .filter((plugin) => !(Array.isArray(plugin) && plugin[0] === 'module-resolver' && plugin[2] !== 'extra-alias'))
+        .map((plugin) => (Array.isArray(plugin) && plugin[0] === 'react-native-worklets/plugin' ? 'react-native-worklets/plugin' : plugin)),
+};
+
 module.exports = (api) => {
-    if (!process.env.KNIP) {
+    if (process.env.DEBUG_BABEL_CONFIG === 'true') {
         console.debug('babel.config.js');
         console.debug('  - api.version:', api.version);
         console.debug('  - api.env:', api.env());
@@ -170,12 +169,22 @@ module.exports = (api) => {
     }
 
     // For `react-native` (iOS/Android) caller will be "metro"
+    // For `@callstack/repack` (Re.Pack native bundler) caller will be "@callstack/repack"
     // For jest, it will be babel-jest
     // The web build and Storybook (Rsbuild) don't call into this file at all
     const runningIn = api.caller((args = {}) => args.name);
-    if (!process.env.KNIP) {
+    if (process.env.DEBUG_BABEL_CONFIG === 'true') {
         console.debug('  - running in: ', runningIn);
     }
 
-    return ['metro', 'babel-jest'].includes(runningIn) ? metro : {};
+    if (runningIn === '@callstack/repack') {
+        return repack;
+    }
+
+    // React Compiler now runs only in OXC (Re.Pack and Jest), so a Metro bundle would ship without it.
+    if (runningIn === 'metro') {
+        throw new Error('Metro bundles no longer run React Compiler. Build with Re.Pack instead (unset BUNDLER=metro).');
+    }
+
+    return runningIn === 'babel-jest' ? metro : {};
 };

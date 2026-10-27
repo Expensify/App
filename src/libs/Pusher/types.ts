@@ -1,4 +1,5 @@
 import type CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
@@ -19,7 +20,6 @@ type States = {
 type Args = {
     appKey: string;
     cluster: string;
-    authEndpoint: string;
 };
 
 type UserIsTypingEvent = ReportUserIsTyping & {
@@ -30,9 +30,14 @@ type UserIsLeavingRoomEvent = Record<string, boolean> & {
     userLogin?: string;
 };
 
-type PingPongEvent = Record<string, string | number> & {
-    pingID: string;
-    pingTimestamp: number;
+type AgentZeroProcessingStatusEvent = {
+    updates: Array<{
+        onyxMethod: 'merge';
+        key: `${typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${string}`;
+        value: {
+            agentZeroProcessingRequestIndicator: Record<string, string | null>;
+        };
+    }>;
 };
 
 type ConciergeReasoningEvent = {
@@ -74,7 +79,7 @@ type ConciergeDraftEventsEvent = {
 type PusherEventMap = {
     [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
-    [TYPE.PONG]: PingPongEvent;
+    [TYPE.AGENT_ZERO_PROCESSING_STATUS]: AgentZeroProcessingStatusEvent;
     [TYPE.CONCIERGE_REASONING]: ConciergeReasoningEvent;
     [TYPE.CONCIERGE_DRAFT_EVENTS]: ConciergeDraftEventsEvent;
     [TYPE.CONCIERGE_DRAFT_STARTED]: ConciergeDraftEvent;
@@ -112,13 +117,9 @@ type PusherSubscription = Promise<void> & {
 
 type PusherModule = {
     init: (args: Args) => Promise<void>;
-    subscribe: <EventName extends PusherEventName>(
-        channelName: string,
-        eventName?: EventName,
-        eventCallback?: (data: EventData<EventName>) => void,
-        onResubscribe?: () => void,
-    ) => PusherSubscription;
+    subscribe: <EventName extends PusherEventName>(channelName: string, eventName?: EventName, eventCallback?: (data: EventData<EventName>) => void) => PusherSubscription;
     unsubscribe: (channelName: string, eventName?: PusherEventName) => void;
+    onChannelResubscribe: (channelName: string, callback: () => void) => () => void;
     getChannel: (channelName: string) => Channel | PusherChannel | undefined;
     isSubscribed: (channelName: string) => boolean;
     isAlreadySubscribing: (channelName: string) => boolean;
@@ -126,6 +127,7 @@ type PusherModule = {
     disconnect: () => void;
     reconnect: () => void;
     registerSocketEventCallback: (cb: SocketEventCallback) => void;
+    claimOutageSync: () => boolean;
     registerCustomAuthorizer?: (authorizer: ChannelAuthorizerGenerator) => void;
     getPusherSocketID: () => string | undefined;
     TYPE: typeof TYPE;
@@ -139,7 +141,6 @@ export type {
     Args,
     UserIsTypingEvent,
     UserIsLeavingRoomEvent,
-    PingPongEvent,
     ConciergeDraftEvent,
     ConciergeDraftEventsEvent,
     EventData,

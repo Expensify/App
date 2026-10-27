@@ -2,7 +2,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import type {ComponentType, ForwardedRef} from 'react';
+import type {ComponentRef, ComponentType, ForwardedRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
@@ -24,7 +24,6 @@ type RequiredLabelProps =
           LabelComponent?: ComponentType;
       }
     | {
-          /** Component to display for label */
           LabelComponent: ComponentType;
 
           /** Text that appears next to check box
@@ -34,7 +33,6 @@ type RequiredLabelProps =
       };
 
 type CheckboxWithLabelProps = RequiredLabelProps & {
-    /** Whether the checkbox is checked */
     isChecked?: boolean;
 
     /** Called when the checkbox or label is pressed */
@@ -43,14 +41,15 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
     /** Container styles */
     style?: StyleProp<ViewStyle>;
 
-    /** Error text to display */
     errorText?: string;
 
     /** Value for checkbox. This prop is intended to be set by FormProvider only */
     value?: boolean;
 
-    /** The default value for the checkbox */
     defaultValue?: boolean;
+
+    /** Whether the checkbox can't be toggled */
+    disabled?: boolean;
 
     /** The ID used to uniquely identify the input in a Form */
     /* eslint-disable-next-line react/no-unused-prop-types */
@@ -60,11 +59,8 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     shouldSaveDraft?: boolean;
 
-    /** An accessibility label for the checkbox */
     accessibilityLabel?: string;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 function CheckboxWithLabel({
@@ -77,6 +73,7 @@ function CheckboxWithLabel({
     accessibilityLabel,
     style,
     value,
+    disabled = false,
     ref,
 }: CheckboxWithLabelProps) {
     const styles = useThemeStyles();
@@ -103,6 +100,7 @@ function CheckboxWithLabel({
                     onPress={toggleCheckbox}
                     style={[styles.checkboxWithLabelCheckboxStyle]}
                     hasError={!!errorText}
+                    disabled={disabled}
                     ref={ref}
                     accessibilityLabel={accessibilityLabel ?? label ?? ''}
                 />
@@ -110,6 +108,7 @@ function CheckboxWithLabel({
                     tabIndex={-1}
                     accessible={false}
                     onPress={toggleCheckbox}
+                    disabled={disabled}
                     pressDimmingValue={variables.checkboxLabelActiveOpacity}
                     // We want to disable hover dimming
                     hoverDimmingValue={variables.checkboxLabelHoverOpacity}

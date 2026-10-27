@@ -1,13 +1,14 @@
 import useSyncModalWithHistory from '@components/Modal/useSyncModalWithHistory';
 
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSearchRouterQuerySpan} from '@libs/telemetry/searchRouterQuerySpans';
 
 import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-import React, {useContext, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 
 import {closeSearch, openSearch} from './toggleSearch';
 
@@ -26,6 +27,20 @@ function clearPendingRouterState() {
 }
 
 export {peekPendingRouterState, clearPendingRouterState};
+
+// Mirrors whether the SearchRouter is open or mid-open at module level, so logic outside the provider
+// tree (e.g. SearchRouterWarmup's idle callbacks) can check it without a context subscription.
+let isSearchRouterOpenOrOpening = false;
+
+function getIsSearchRouterOpenOrOpening() {
+    return isSearchRouterOpenOrOpening;
+}
+
+function setIsSearchRouterOpenOrOpening(isOpenOrOpening: boolean) {
+    isSearchRouterOpenOrOpening = isOpenOrOpening;
+}
+
+export {getIsSearchRouterOpenOrOpening, setIsSearchRouterOpenOrOpening};
 
 type SearchRouterStateContextType = {
     isSearchRouterDisplayed: boolean;
@@ -55,6 +70,15 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     const [isSearchRouterDisplayed, setIsSearchRouterDisplayed] = useState(false);
     const searchRouterDisplayedRef = useRef(false);
 
+    // The provider unmounts on sign-out without going through closeSearchRouter, so reset the module-level
+    // flag to keep an open router from leaking the "open" state into the next session.
+    useEffect(
+        () => () => {
+            isSearchRouterOpenOrOpening = false;
+        },
+        [],
+    );
+
     // Registers a browser-history entry when the SearchRouter is open, so browser Back closes it
     // and browser Forward (after Back) reopens it. Uses the same back-guard mechanism as other modals
     // rather than direct window.history calls, avoiding misalignment with other guard-tracked overlays.
@@ -62,10 +86,13 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         isVisible: isSearchRouterDisplayed,
         shouldHandleNavigationBack: true,
         onClose: () => {
+            isSearchRouterOpenOrOpening = false;
+            cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLOSED);
             closeSearch(setIsSearchRouterDisplayed);
             searchRouterDisplayedRef.current = false;
         },
         onOpen: () => {
+            isSearchRouterOpenOrOpening = true;
             openSearch(setIsSearchRouterDisplayed);
             searchRouterDisplayedRef.current = true;
         },
@@ -80,6 +107,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     };
 
     const openSearchRouter = (query?: string, isFromSearchPageSearchButton?: boolean) => {
+        isSearchRouterOpenOrOpening = true;
         pendingRouterQuery = query ?? '';
         pendingIsFromSearchPageSearchButton = isFromSearchPageSearchButton ?? false;
         startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT, {
@@ -100,10 +128,12 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     };
 
     const closeSearchRouter = (afterTransition?: () => void) => {
+        isSearchRouterOpenOrOpening = false;
         cancelSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT);
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE);
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
+        cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLOSED);
         closeSearch(setIsSearchRouterDisplayed, afterTransition);
         searchRouterDisplayedRef.current = false;
     };

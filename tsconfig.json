@@ -1,12 +1,21 @@
 {
     "$schema": "https://json.schemastore.org/tsconfig",
-    "extends": "expo/tsconfig.base",
+
+    // This is a solution-style config: it owns no files of its own, it just names every project in
+    // the repo. Two things read it:
+    //
+    //   1. Editors. A language service resolves a file to the *closest* `tsconfig.json`, so every
+    //      file in the repo lands here first. Because this config has no files, the editor walks
+    //      `references` to find the project that does own the file, and type-checks it with that
+    //      project's options. Without the references a file outside the app program (a Jest test, a
+    //      Bun script) falls into an inferred project, which has no `paths`, which is why `@libs`
+    //      and friends stopped resolving in `tests/` when the Jest project was split out.
+    //   2. `npm run typecheck`, which type-checks exactly the projects listed here. Adding a project
+    //      to `references` is all it takes to put it in CI.
+    //
+    // `paths` is duplicated here from `tsconfig.base.json` because tools that read this file
+    // directly do not resolve its `extends` chain.
     "compilerOptions": {
-        "types": ["react-native", "react-native-web", "jest", "node"],
-        "lib": ["DOM", "ESNext"],
-        "isolatedModules": true,
-        "strict": true,
-        "incremental": true,
         "paths": {
             "@assets/*": ["./assets/*"],
             "@components/*": ["./src/components/*"],
@@ -17,6 +26,7 @@
             "@pages/*": ["./src/pages/*"],
             "@prompts/*": ["./prompts/*"],
             "@scripts/*": ["./scripts/*", "./.github/scripts/*"],
+            "@server/*": ["./server/*"],
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
             "@userActions/*": ["./src/libs/actions/*"],
@@ -24,32 +34,14 @@
             "tests/*": ["./tests/*"]
         }
     },
-    // bun:test's module declaration, for tests/tooling. Referenced through `files` rather than `include`
-    // because `exclude` below covers node_modules and would otherwise drop it. This is the one file in bun-types
-    // that declares the module; the package's other declarations (notably its global JSX namespace) are
-    // deliberately not pulled in, as they conflict with the app's React types.
-    "files": ["node_modules/bun-types/test.d.ts"],
-    "include": [
-        "src",
-        "web",
-        "website",
-        "docs",
-        "assets",
-        "config",
-        "tests",
-        "jest",
-        "prompts",
-        "__mocks__",
-        ".github/**/*",
-        ".storybook/**/*",
-        ".claude/**/*",
-        "scripts",
-        "modules",
-        "**/*.nitro/*.ts",
-        "**/*.nitro/*.tsx"
-    ],
-    // CIGitLogic, lint.ts and everything under evals/ use Bun's APIs, so they need @types/bun, whose globals
-    // conflict with this project's. They are type-checked by tests/tooling/tsconfig.json,
-    // scripts/tsconfig.json and evals/tsconfig.json instead — see the comments there.
-    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*", ".claude/worktrees/**", "tests/tooling/CIGitLogic.test.ts", "scripts/lint.ts", "evals"]
+    "files": [],
+    // Order matters for editors: a file that appears in more than one project (all of `src` is in
+    // both the app and Jest programs) resolves to the first project here that lists it.
+    "references": [
+        {"path": "./tsconfig.app.json"},
+        {"path": "./tsconfig.jest.json"},
+        {"path": "./tsconfig.bun.json"},
+        {"path": "./tsconfig.node.json"},
+        {"path": "./server/victory-chart-renderer"}
+    ]
 }

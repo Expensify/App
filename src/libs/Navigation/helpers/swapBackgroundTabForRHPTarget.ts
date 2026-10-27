@@ -10,9 +10,9 @@ import type {NavigationState} from '@react-navigation/native';
 
 import {findFocusedRoute} from '@react-navigation/native';
 
-import {getMatchingFullScreenRoute} from './getAdaptedStateFromPath';
+import getMatchingFullScreenRoute from './getMatchingFullScreenRoute';
 import getStateFromPath from './getStateFromPath';
-import {shouldChangeToMatchingFullScreen} from './linkTo';
+import {getMatchingFullScreenRouteParams, shouldChangeToMatchingFullScreen} from './linkTo';
 import {getTabState} from './tabNavigatorUtils';
 
 type CrossTabContext = {
@@ -38,7 +38,7 @@ function getCrossTabContext(currentState: NavigationState | undefined, route: Ro
         }
 
         const matchingTabNavigatorRoute = getMatchingFullScreenRoute(targetFocusedRoute);
-        const matchingTabState = matchingTabNavigatorRoute ? getTabState(matchingTabNavigatorRoute as NavigationPartialRoute) : undefined;
+        const matchingTabState = matchingTabNavigatorRoute ? getTabState(matchingTabNavigatorRoute) : undefined;
         const matchingFullScreenRoute = matchingTabState?.routes?.at(matchingTabState.index ?? 0) as NavigationPartialRoute | undefined;
 
         const tabRoute = currentState.routes.findLast((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
@@ -95,12 +95,11 @@ function swapBackgroundTabForRHPTarget(currentState: NavigationState | undefined
         navigationRef.dispatch(additionalAction);
     } else {
         // Plain tab switch within the existing TAB_NAVIGATOR.
-        const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
         const additionalAction: StackNavigationAction = {
             type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
             payload: {
                 name: matchingFullScreenRoute.name,
-                params: lastRouteInMatchingFullScreen ? {screen: lastRouteInMatchingFullScreen.name, params: lastRouteInMatchingFullScreen.params} : matchingFullScreenRoute.params,
+                params: getMatchingFullScreenRouteParams(matchingFullScreenRoute),
             },
             target: tabNavigatorStateKey,
         };

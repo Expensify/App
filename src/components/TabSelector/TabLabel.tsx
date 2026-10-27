@@ -11,7 +11,6 @@ import React from 'react';
 import {Animated, StyleSheet, View} from 'react-native';
 
 type TabLabelProps = {
-    /** Title of the tab */
     title?: string;
 
     /** Animated opacity value while the label is in inactive state */
@@ -23,7 +22,6 @@ type TabLabelProps = {
     /** Whether an icon is present - used to conditionally apply margin */
     hasIcon?: boolean;
 
-    /** Text style */
     textStyle?: StyleProp<TextStyle>;
 };
 

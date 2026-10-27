@@ -1,6 +1,6 @@
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import QRCode from '@components/QRCode';
@@ -27,10 +27,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import ToggleTwoFactorAuthForm from './ToggleTwoFactorAuthForm';
@@ -81,12 +82,12 @@ function DynamicVerifyPage() {
         return `otpauth://totp/Expensify:${contactMethod}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
-    const scrollViewRef = useRef<RNScrollView>(null);
-    const handleInputFocus = useCallback(() => {
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const handleInputFocus = () => {
         requestAnimationFrame(() => {
             scrollViewRef.current?.scrollToEnd({animated: true});
         });
-    }, []);
+    };
 
     return (
         <TwoFactorAuthWrapper

@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -39,9 +39,10 @@ type DomainRowData = {
 
 type DomainListTableProps = {
     domains: DomainRowData[];
+    headerComponent?: React.ReactElement;
 };
 
-export default function DomainListTable({domains}: DomainListTableProps) {
+export default function DomainListTable({domains, headerComponent}: DomainListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EarthWithControls']);
@@ -73,6 +74,9 @@ export default function DomainListTable({domains}: DomainListTableProps) {
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.common.findDomain')} />;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
+
     const renderTableItem = ({item, index}: ListRenderItemInfo<DomainRowData>) => {
         return (
             <DomainListTableRow
@@ -85,7 +89,7 @@ export default function DomainListTable({domains}: DomainListTableProps) {
 
     const emptyStateButtons = [
         {
-            success: true,
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
             buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN)),
             buttonText: translate('domain.addDomain.newDomain'),
         },
@@ -102,7 +106,7 @@ export default function DomainListTable({domains}: DomainListTableProps) {
             title={translate('common.domains')}
             keyExtractor={(row, index) => `${row.domainAccountID}-${index}`}
         >
-            <Table.FilterBar label={translate('workspace.common.findDomain')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 headerMedia={illustrations.EarthWithControls}
                 headerContentStyles={styles.emptyDomainListStaticIllustrationStyle}

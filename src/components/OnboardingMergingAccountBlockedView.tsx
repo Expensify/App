@@ -9,6 +9,7 @@ import variables from '@styles/variables';
 
 import {setOnboardingErrorMessage} from '@userActions/Welcome';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -18,20 +19,29 @@ import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
 
 type OnboardingMergingAccountBlockedViewProps = {
-    // Work email to display in the subtitle
+    /** Work email to display in the subtitle */
     workEmail: string | undefined;
 
-    // Whether the user is a VSB
     isVsb: boolean | undefined;
+
+    /** Called when this blocking view was opened from a Concierge onboarding task. */
+    onConfirm?: () => void;
 };
 
-function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergingAccountBlockedViewProps) {
+function OnboardingMergingAccountBlockedView({workEmail, isVsb, onConfirm}: OnboardingMergingAccountBlockedViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
 
     const getErrorSubtitle = () => {
+        if (onboardingErrorMessage === 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle') {
+            return translate(onboardingErrorMessage, workEmail);
+        }
+        // This subtitle interpolates the work email, so translate it with the email explicitly.
+        if (onboardingErrorMessage === 'onboarding.mergeBlockScreen.domainControlledSubtitle') {
+            return translate('onboarding.mergeBlockScreen.domainControlledSubtitle', workEmail);
+        }
         if (onboardingErrorMessage) {
             return translate(onboardingErrorMessage);
         }
@@ -50,11 +60,14 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
                 subtitleStyle={[styles.colorMuted]}
             />
             <Button
-                success
-                large
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.mb5]}
-                text={translate('common.buttonConfirm')}
                 onPress={() => {
+                    if (onConfirm) {
+                        onConfirm();
+                        return;
+                    }
                     setOnboardingErrorMessage(null);
                     if (isVsb) {
                         Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
@@ -62,7 +75,9 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
                     }
                     Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
                 }}
-            />
+            >
+                <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+            </Button>
         </>
     );
 }

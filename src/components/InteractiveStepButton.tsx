@@ -33,7 +33,6 @@ type InteractiveStepButtonProps = {
     /** Whether this step is locked (future step) */
     isLockedStep: boolean;
 
-    /** Whether this step is completed */
     isCompletedStep: boolean;
 
     /**

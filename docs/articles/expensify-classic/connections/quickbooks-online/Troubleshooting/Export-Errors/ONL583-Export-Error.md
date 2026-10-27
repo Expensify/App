@@ -1,78 +1,41 @@
 ---
 title: ONL583 Export Error in QuickBooks Online Integration
-description: Learn what the ONL583 export error means in QuickBooks Online and how to resolve vendor record matching conflicts.
-keywords: ONL583, QuickBooks Online export error, vendor already exists QuickBooks, vendor could not be matched QuickBooks, duplicate vendor record QuickBooks, Expensify QuickBooks Online integration, Workspace Admin
-internalScope: Audience is Workspace Admins using the QuickBooks Online integration. Covers resolving the ONL583 export error caused by duplicate or mismatched vendor records. Does not cover other QuickBooks Online error codes.
+description: Learn how to fix the ONL583 export error when a vendor, supplier, customer, or employee name in QuickBooks Online prevents Expensify from creating a vendor for the report submitter.
+keywords: ONL583, QuickBooks Online duplicate name, vendor already exists, supplier name conflict, customer or employee name conflict, submitter email mismatch, Expensify QuickBooks Online integration, Workspace Admin
+internalScope: Audience is Workspace Admins using the QuickBooks Online integration. Covers fixing the ONL583 export error caused by a name conflict when automatically creating a vendor for the report submitter. Does not cover other QuickBooks Online error codes.
 ---
 
 # ONL583 Export Error in QuickBooks Online Integration
 
-If you see the error:
+The ONL583 error identifies the submitter's email and the conflicting record name. For example:
 
-ONL583: A vendor with this name already exists but could not be matched.
+> ONL583 Export Error: We could not find a vendor/supplier in QuickBooks Online for jane@acme.com. A record named 'Jane Doe' already exists in QuickBooks Online under a different email, or as another record type such as a customer or employee. Please rename that record, or create a vendor/supplier for jane@acme.com under a different name.
 
-This means Expensify attempted to create or match a Vendor record for the report submitter, but QuickBooks Online could not confidently match it to an existing vendor, preventing the export from completing.
+This means Expensify cannot find a matching vendor/supplier by email, and QuickBooks Online rejects creating one because its name is already in use.
 
 ---
 
 ## Why the ONL583 Export Error Happens in QuickBooks Online
 
-The ONL583 error typically indicates:
+The ONL583 error occurs when:
 
-- A Vendor record already exists in QuickBooks Online.
-- The email address on the Vendor record does not exactly match the email address used in Expensify.
-- The same email address appears on multiple records (such as both an Employee and a Vendor).
-- QuickBooks cannot determine which record to use.
+- Expensify cannot find a vendor/supplier matching the report submitter's email address.
+- Expensify attempts to create a vendor for the submitter.
+- The name is already used by a vendor/supplier with a different email, or by a customer or employee record.
 
-QuickBooks requires a clear one-to-one match between the report submitter and a single Vendor record.
-
-This is a QuickBooks Online vendor matching issue, not a Workspace configuration issue.
+Expensify matches vendors by email address. QuickBooks Online requires unique names across vendors/suppliers, customers, and employees.
 
 ---
 
-## How to Fix the ONL583 Export Error
-
-This issue can be resolved by reviewing and correcting Vendor records in QuickBooks Online.
-
-### Confirm the Vendor Email Matches Expensify
+## How to Fix the Name Conflict in QuickBooks Online
 
 1. Log in to QuickBooks Online.
-2. Open the Vendor record for the report creator or submitter.
-3. Confirm the email address exactly matches the email listed in Expensify.
-4. Save any changes.
-
-The email must match exactly for Expensify to link the records correctly.
-
----
-
-### Check for Duplicate Records
-
-1. Use the QuickBooks Online search function.
-2. Search for the report submitter’s email address.
-3. Confirm the email is not listed on multiple records (such as both an Employee and Vendor).
-
-If duplicates exist:
-
-- Remove the email from the incorrect record, or  
-- Deactivate duplicate records if appropriate.
-
-Only one active Vendor record should contain the matching email.
-
----
-
-### Disable Automatic Entity Creation (If Needed)
-
-If matching issues continue:
-
-1. Go to **Settings > Workspaces**.
-2. Select your Workspace.
-3. Click **Accounting**.
-4. Click **Configure**.
-5. Open the **Advanced** tab.
-6. Disable **Automatically Create Employees/Vendors**.
-7. Click **Save**.
-
-Then retry exporting the report.
+2. Search for the **record name shown in the error**, not just the submitter's email. Check vendor/supplier, customer, and employee records.
+3. If the record is the correct vendor/supplier for the submitter, update its email to exactly match the submitter's email in Expensify and save your changes.
+4. If the record belongs to someone else or is a customer or employee, choose one of these fixes:
+   - Rename the conflicting record so Expensify can automatically create the vendor/supplier under the original name.
+   - Create a vendor/supplier with a different, unique name and the submitter's exact email address.
+5. In Expensify, select **Sync Now** for the QuickBooks Online connection. Once the sync completes, retry exporting the report.
 
 ---
 
@@ -80,12 +43,16 @@ Then retry exporting the report.
 
 ## Can I Retry the Export?
 
-Yes. After correcting Vendor records and selecting **Sync Now**, retry the export.
+Yes. After correcting the records in QuickBooks Online, select **Sync Now** in Expensify and retry exporting the report.
 
 ## Does ONL583 Mean the Vendor Does Not Exist?
 
-Not necessarily. It usually means the Vendor exists but could not be matched due to email differences or duplicate records.
+Not necessarily. A vendor/supplier may exist under a different email, or the name may belong to a customer or employee. Expensify cannot find a vendor/supplier matching the submitter's email and cannot create one with the conflicting name.
+
+## Can I Fix This by Disabling Automatic Vendor Creation?
+
+Disabling automatic creation does not resolve the name conflict or create a matching vendor/supplier. If you manage vendors manually, create a vendor/supplier with a unique name and the submitter's exact email, then select **Sync Now** in Expensify and retry the export.
 
 ## Do I Need to Reconnect QuickBooks Online?
 
-No. Correcting Vendor records and retrying the export is typically sufficient.
+No. Resolve the name conflict or correct the vendor/supplier email, then select **Sync Now** in Expensify and retry the export.

@@ -74,7 +74,7 @@ const getAuthenticationErrorKey = (err: string): TranslationPaths | null => {
         return null;
     }
 
-    if (err.includes('Invalid validateCode')) {
+    if (err.includes(CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR)) {
         return 'mergeAccountsPage.accountValidate.errors.incorrectSecurityCode';
     }
 
@@ -178,7 +178,7 @@ function AccountValidatePage() {
                     descriptionSecondary={
                         <View style={[styles.w100]}>
                             <View style={[styles.mb8, styles.renderHTML, styles.flexRow]}>
-                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', email)} />
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.mergeIsIrreversible', email)} />
                             </View>
                             <View style={[styles.renderHTML, styles.flexRow]}>
                                 <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterSecurityCode', email)} />

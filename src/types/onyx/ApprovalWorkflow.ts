@@ -64,6 +64,18 @@ type Approver = {
     isCircularReference?: boolean;
 
     /**
+     * Is this approver no longer a workspace member. Members can still submit to them when they were removed without
+     * their submitters being reassigned, so the workflow is shown with an error until an admin fixes it.
+     */
+    isNotWorkspaceMember?: boolean;
+
+    /**
+     * Is this approver's `overLimitForwardsTo` no longer a workspace member. Reports over the approval limit still go
+     * to them, so the workflow is shown with an error until an admin picks a new additional approver.
+     */
+    isOverLimitForwardsToNotWorkspaceMember?: boolean;
+
+    /**
      * If report total is above this limit, the report will be forwarded to 'overLimitForwardsTo' instead of 'forwardsTo'
      */
     approvalLimit?: number | null;
@@ -121,7 +133,7 @@ type ApprovalWorkflow = OnyxValueWithOfflineFeedback<{
     approvers: Approver[];
 
     /**
-     * Is this the default workflow for the policy (first approver of this workflow is the same as the policy's default approver)
+     * Is this the default workflow for the policy
      */
     isDefault: boolean;
 }>;
@@ -152,9 +164,6 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      */
     usedApproverEmails: string[];
 
-    /**
-     * Errors for the workflow
-     */
     errors?: Record<string, TranslationPaths>;
 
     /**
@@ -163,9 +172,30 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
     originalApprovers: Approver[];
 
     /**
+     * List of original members in the workflow, used to work out which members were removed by an edit
+     */
+    originalMembers?: Member[];
+
+    /**
+     * The policy's default workflow, where members taken out of this workflow go back to
+     */
+    defaultApprovalWorkflow?: ApprovalWorkflow;
+
+    /**
+     * Email of the member whose workflow this edit session belongs to.
+     */
+    memberEmail?: string;
+
+    /**
      * Whether the user is in the initial creation flow
      */
     isInitialFlow?: boolean;
+
+    /**
+     * Whether this edit session was opened from the "+N more" shortcut on the workflows page. No edit page is
+     * behind it, so the members page has to save the workflow itself.
+     */
+    isFastEdit?: boolean;
 };
 
 export default ApprovalWorkflow;

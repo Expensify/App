@@ -124,9 +124,6 @@ beforeAll(() => {
             ...FAKE_POLICIES,
         },
     });
-    // @ts-expect-error Until we add NVP_PRIVATE_DOMAINS to ONYXKEYS, we need to mock it here
-
-    Onyx.connect({key: ONYXKEYS.NVP_PRIVATE_DOMAINS, callback: () => {}});
 });
 
 describe('getIcons', () => {
@@ -134,6 +131,23 @@ describe('getIcons', () => {
         const report = createMock<Report>({});
         const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
+    });
+
+    it('should return the assigned support rep avatar for a support ticket', () => {
+        // Given a support ticket where the customer appears before the assigned support rep
+        const report: Report = {
+            ...LHNTestUtils.getFakeReport([2, 1], 0, true),
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            ownerAccountID: 2,
+            managerID: 1,
+        };
+
+        // When the ticket avatar is resolved
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
+
+        // Then it represents the assigned support rep
+        expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.id).toBe(report.managerID);
     });
 
     it('should return the correct icons for an expense request', () => {
@@ -184,6 +198,18 @@ describe('getIcons', () => {
         const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.name).toBe('Email Two');
+    });
+
+    it('should return the Concierge icon for a thread under the Concierge DM', () => {
+        const report: Report = {
+            ...LHNTestUtils.getFakeReport([1], 0, true),
+            parentReportID: '1',
+            parentReportActionID: '1',
+        };
+
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, undefined, undefined, false, undefined, '1');
+        expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.id).toBe(CONST.ACCOUNT_ID.CONCIERGE);
     });
 
     it('should return the correct icons for a task report', () => {

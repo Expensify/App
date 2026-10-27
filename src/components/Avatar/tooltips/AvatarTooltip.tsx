@@ -18,7 +18,6 @@ type AvatarTooltipProps = PropsWithChildren<{
     /** Display name shown when the account has no personal details yet. Falls back to `avatar.name` */
     fallbackDisplayName?: string;
 
-    /** Style for the wrapper View */
     style?: StyleProp<ViewStyle>;
 }>;
 
@@ -40,7 +39,6 @@ function AvatarTooltip({avatar, fallbackDisplayName, style, children}: AvatarToo
             icon={avatar}
             fallbackUserDetails={{
                 // Nullish coalescing thinks that empty strings are truthy, thus I'm using OR operator
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 displayName: fallbackDisplayName || avatar?.name,
             }}
         >

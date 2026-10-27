@@ -12,8 +12,6 @@ import type {ExpensifyCardSettings} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useCallback} from 'react';
-
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
@@ -27,28 +25,29 @@ function useDefaultFundID(policyID: string | undefined) {
     const [lastSelectedCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`);
     const lastSelectedSettings = getCardSettings(lastSelectedCardSettings);
 
-    const getDomainFundID = useCallback(
-        (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
-            const eligibleEntries = Object.entries(cardSettings ?? {}).filter(
-                ([key, settings]) => !!settings && !key.includes(workspaceAccountID.toString()) && settings.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            );
+    const getDomainFundID = (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
+        // Compare the parsed fund ID rather than testing the raw key for a substring: a substring test
+        // also excludes unrelated funds whose ID merely contains these digits, and while the workspace
+        // fund is still unresolved it holds CONST.DEFAULT_NUMBER_ID, which would drop every fund whose
+        // ID contains a zero.
+        const eligibleEntries = Object.entries(cardSettings ?? {}).filter(
+            ([key, settings]) => !!settings && getFundIdFromSettingsKey(key) !== workspaceAccountID && settings.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
 
-            if (policyID) {
-                const preferredMatch = eligibleEntries.find(([, settings]) => getPreferredPolicyFromExpensifyCardSettings(settings)?.toUpperCase() === policyID.toUpperCase());
-                if (preferredMatch) {
-                    return getFundIdFromSettingsKey(preferredMatch[0]);
-                }
-
-                const linkedMatch = eligibleEntries.find(([, settings]) => isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(settings), policyID));
-                if (linkedMatch) {
-                    return getFundIdFromSettingsKey(linkedMatch[0]);
-                }
+        if (policyID) {
+            const preferredMatch = eligibleEntries.find(([, settings]) => getPreferredPolicyFromExpensifyCardSettings(settings)?.toUpperCase() === policyID.toUpperCase());
+            if (preferredMatch) {
+                return getFundIdFromSettingsKey(preferredMatch[0]);
             }
 
-            return getFundIdFromSettingsKey('');
-        },
-        [policyID, workspaceAccountID],
-    );
+            const linkedMatch = eligibleEntries.find(([, settings]) => isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(settings), policyID));
+            if (linkedMatch) {
+                return getFundIdFromSettingsKey(linkedMatch[0]);
+            }
+        }
+
+        return undefined;
+    };
 
     const [domainFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
         selector: getDomainFundID,

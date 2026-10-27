@@ -1,18 +1,15 @@
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import useLiveFilteredReportActions from '@components/Search/hooks/useLiveFilteredReportActions';
-import {useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,8 +23,9 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getSections} from '@libs/SearchUIUtils';
-import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
+import {isCashBackWithdrawalGroup, isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
+import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -35,6 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -42,7 +41,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import type {
     TransactionCardGroupListItemType,
@@ -63,19 +62,21 @@ import type {
 
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
+import DayListItemHeader from './DayListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
 import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
+import shouldCollapseExpandedGroupAfterPendingDelete from './shouldCollapseExpandedGroupAfterPendingDelete';
 import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
+import useGroupChildren from './useGroupChildren';
+import useGroupOpenForShiftRange from './useGroupOpenForShiftRange';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
-
-const emptyChildReportIDs: string[] = [];
 
 /**
  * Non-generic implementation so OXC's React Compiler can memoize the component.
@@ -83,7 +84,6 @@ const emptyChildReportIDs: string[] = [];
  */
 function TransactionGroupListItemImpl({
     item,
-    isFocused,
     showTooltip,
     isDisabled,
     canSelectMultiple,
@@ -105,24 +105,23 @@ function TransactionGroupListItemImpl({
     ownerBillingGracePeriodEnd,
     onUndelete,
 }: TransactionGroupListItemProps<ListItem>) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const groupItem = item as unknown as TransactionGroupListItemType;
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {selectedTransactions} = useSearchSelectionContext();
+    const {pageGutterMargin} = useLayoutSpacing();
     const {currentSearchResults} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
-    const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
-    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`);
-    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportAction?.childReportID}`);
-    const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(oneTransactionItem?.transactionID)}`);
-    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`, {
+    const [parentReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`);
+    const [oneTransactionThreadReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportAction?.childReportID}`);
+    const [oneTransaction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(oneTransactionItem?.transactionID)}`);
+    const [parentReportAction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`, {
         selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
     });
     const transactionPreviewData: TransactionPreviewData = {
@@ -132,15 +131,10 @@ function TransactionGroupListItemImpl({
         hasTransactionThreadReport: !!oneTransactionThreadReport,
     };
 
-    const selectedTransactionIDs = Object.keys(selectedTransactions);
-    const selectedTransactionIDsSet = new Set(selectedTransactionIDs);
-    // A group selected before its children were fetched is stored under the group key, since no transaction IDs were known yet
-    const isGroupSelected = !!(item?.keyForList && selectedTransactions[item.keyForList]?.isSelected);
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
 
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const reportGroupID = isExpenseReportType ? (groupItem as TransactionReportGroupListItemType).reportID : undefined;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const snapshotActions = reportGroupID ? Object.values(currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportGroupID}`] ?? {}) : [];
     const liveGroupItem = useLiveRowCapabilities<TransactionReportGroupListItemType>({
@@ -154,55 +148,31 @@ function TransactionGroupListItemImpl({
 
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
-    const isActionLoadingSet = useActionLoadingReportIDs();
-    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const liveReportActions = useLiveFilteredReportActions(
-        isExpenseReportType ? emptyChildReportIDs : groupItem.transactions.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID),
-    );
-    const groupKey = groupItem.keyForList;
 
-    let transactions: TransactionListItemType[];
-    if (isExpenseReportType) {
-        transactions = groupItem.transactions;
-    } else if (!transactionsSnapshot?.data) {
-        transactions = [];
-    } else {
-        const [sectionData] = getSections({
-            dateFnsLocale,
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            data: transactionsSnapshot?.data,
-            currentAccountID: currentUserDetails.accountID,
-            currentUserEmail: currentUserDetails.email ?? '',
-            translate,
-            formatPhoneNumber,
-            bankAccountList,
-            isActionLoadingSet,
-            cardFeeds,
-            conciergeReportID,
-            convertToDisplayString,
-            reportActions: liveReportActions,
-            reportAttributesDerivedValue: undefined,
-        }) as [TransactionListItemType[], number, boolean];
-        transactions = sectionData.map((transactionItem) => ({
-            ...transactionItem,
-            // The whole group being selected implies every child is, even though only the group key is stored
-            isSelected: isGroupSelected || selectedTransactionIDsSet.has(transactionItem.transactionID),
-            selectionGroupKey: groupKey,
-        }));
+    // Expense-report rows are already part of the list, so only group-by views need this.
+    useGroupOpenForShiftRange(groupItem.keyForList, isExpanded && !isExpenseReportType);
+
+    const {transactions, isSelectAllChecked, isIndeterminate} = useGroupChildren({
+        groupKey: groupItem.keyForList,
+        groupTransactions: groupItem.transactions,
+    });
+
+    const transactionsWithoutPendingDelete = transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
+
+    if (
+        shouldCollapseExpandedGroupAfterPendingDelete({
+            isExpanded,
+            groupPendingAction: item.pendingAction,
+            loadedChildrenCount: transactions.length,
+            remainingChildrenCount: transactionsWithoutPendingDelete.length,
+        })
+    ) {
+        setIsExpanded(false);
+        setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
     }
 
-    const selectedItemsLength = transactions.reduce((acc, transaction) => (transaction.isSelected ? acc + 1 : acc), 0);
-
-    const transactionsWithoutPendingDelete = transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-
     // A group whose children are lazily loaded (it has a transactionsQueryJSON) is not empty, it just hasn't been fetched yet
-    const isEmpty = transactions.length === 0 && groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
-
-    const isEmptyReportSelected = transactions.length === 0 && isGroupSelected;
-
-    const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
-    const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
+    const isEmpty = groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
 
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
@@ -219,7 +189,6 @@ function TransactionGroupListItemImpl({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
     };
 
@@ -235,20 +204,12 @@ function TransactionGroupListItemImpl({
             offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
     };
 
     const StyleUtils = useStyleUtils();
     const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
     const isItemSelected = isSelectAllChecked || (liveRowSelected && (isExpenseReportType || transactionsWithoutPendingDelete.length === 0));
-
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
-        shouldApplyOtherStyles: false,
-    });
 
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
@@ -258,9 +219,15 @@ function TransactionGroupListItemImpl({
             paddingVertical: variables.tableGroupRowPaddingVertical,
             ...(isLastItem ? styles.tableBottomRadius : {}),
         },
+        // A selected row paints an opaque background here, on top of the rounded wrapper below, so the outer
+        // corners have to be rounded on this element too or the list's top/bottom corners look square.
+        !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,
+        isLastItem && styles.tableBottomRadius,
         isItemSelected && styles.activeComponentBG,
     ];
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
 
     useEffect(() => {
         if (!newTransactionID || !isExpanded) {
@@ -276,9 +243,8 @@ function TransactionGroupListItemImpl({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
-    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
+    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.isLoading]);
 
     const wasScreenFocusedRef = useRef(isScreenFocused);
     useEffect(() => {
@@ -300,9 +266,8 @@ function TransactionGroupListItemImpl({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
-    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
+    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.isLoading]);
 
     const handleToggle = () => {
         setIsExpanded((prev) => {
@@ -318,7 +283,17 @@ function TransactionGroupListItemImpl({
         });
     };
 
+    const isCashBackWithdrawal = isCashBackWithdrawalGroup(groupItem);
+
     const onPress = (event?: ModifiedMouseEvent) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
+        // A cash back row has no children to drill into.
+        if (isCashBackWithdrawal) {
+            return;
+        }
         const isEmptyGroupWithoutTransactionsQuery = transactions.length === 0 && !groupItem.transactionsQueryJSON;
         if (isExpenseReportType || isEmptyGroupWithoutTransactionsQuery) {
             onSelectRow(item, transactionPreviewData, event);
@@ -329,6 +304,9 @@ function TransactionGroupListItemImpl({
     };
 
     const onLongPress = () => {
+        if (shouldSuppressCopyableTextRowLongPress()) {
+            return;
+        }
         onLongPressRow?.(item, isExpenseReportType ? undefined : transactions);
     };
 
@@ -336,11 +314,15 @@ function TransactionGroupListItemImpl({
         onLongPressRow?.(transaction as ListItem);
     };
 
-    const handleSelectionButtonPress = (val: ListItem) => {
-        onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions);
+    // Group headers never send shiftKey, so only an expanded child row can start a range from here.
+    const handleSelectionButtonPress = (val: ListItem, _itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => {
+        onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions, shiftKey);
     };
 
     const onExpandIconPress = () => {
+        if (isCashBackWithdrawal) {
+            return;
+        }
         if (isEmpty && !shouldDisplayEmptyView) {
             onPress();
             // onPress handles handleToggle() for us, so we return early to avoid calling it twice
@@ -350,7 +332,7 @@ function TransactionGroupListItemImpl({
     };
 
     const getHeader = (hovered: boolean) => {
-        const headers: Record<SearchGroupBy, React.JSX.Element> = {
+        const headers: Record<SearchGroupBy, React.ReactNode> = {
             [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
@@ -388,7 +370,7 @@ function TransactionGroupListItemImpl({
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onExpandIconPress}
+                    onDownArrowClick={isCashBackWithdrawal ? undefined : onExpandIconPress}
                     isExpanded={isExpanded}
                 />
             ),
@@ -431,6 +413,24 @@ function TransactionGroupListItemImpl({
                     isExpanded={isExpanded}
                 />
             ),
+            [CONST.SEARCH.GROUP_BY.DAY]: (() => {
+                if (!isTransactionDayGroupListItemType(groupItem)) {
+                    return null;
+                }
+                return (
+                    <DayListItemHeader
+                        day={groupItem}
+                        onCheckboxPress={handleSelectionButtonPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                    />
+                );
+            })(),
             [CONST.SEARCH.GROUP_BY.MONTH]: (
                 <MonthListItemHeader
                     month={groupItem as TransactionMonthGroupListItemType}
@@ -516,12 +516,6 @@ function TransactionGroupListItemImpl({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
-    const pendingAction =
-        item.pendingAction ??
-        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            : undefined);
-
     const snapshotData = transactionsSnapshot?.data;
     const groupViolations: Record<string, TransactionViolations | undefined> = {};
     if (snapshotData) {
@@ -567,7 +561,7 @@ function TransactionGroupListItemImpl({
     }
 
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={onLongPress}
@@ -575,28 +569,52 @@ function TransactionGroupListItemImpl({
                 disabled={isDisabled && !isItemSelected}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
-                role={getButtonRole(true)}
+                role={isCashBackWithdrawal ? undefined : CONST.ROLE.BUTTON}
                 isNested
-                hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
-                onMouseDown={(e) => e.preventDefault()}
+                shouldAllowTextSelection={!isCashBackWithdrawal}
+                interactive={!isCashBackWithdrawal}
+                focusable={!isCashBackWithdrawal}
+                pressDimmingValue={isCashBackWithdrawal ? 1 : undefined}
+                hoverStyle={[!isExpanded && !item.isDisabled && !isCashBackWithdrawal && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
+                dataSet={{
+                    ...(isCashBackWithdrawal ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : COPYABLE_ROW_DATA_SET),
+                    [CONST.INNER_BOX_SHADOW_ELEMENT]: true,
+                }}
+                onMouseDown={(e) => {
+                    if (isCashBackWithdrawal) {
+                        e.preventDefault();
+                        return;
+                    }
+                    const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
+                    if (isCopyableTarget) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
+                onTouchStart={(event) => {
+                    if (isCashBackWithdrawal) {
+                        return;
+                    }
+                    markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
+                }}
                 id={item.keyForList ?? ''}
                 style={[
                     pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
-                onFocus={onFocus}
+                onFocus={(event) => {
+                    if (shouldSuppressCopyableTextRowFocus()) {
+                        return;
+                    }
+                    onFocus?.(event);
+                }}
                 wrapperStyle={[
-                    styles.mh5,
-                    animatedHighlightStyle,
+                    pageGutterMargin,
+                    StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]
-                        : [
-                              isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
-                              isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-                              !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
-                          ],
+                        : [isFirstItem && styles.tableTopRadius, isLastItem && styles.tableBottomRadius, !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected)],
                 ]}
             >
                 {({hovered}) => (
@@ -606,7 +624,7 @@ function TransactionGroupListItemImpl({
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
                             expandButtonStyle={isLargeScreenWidth ? styles.pv2 : styles.pv4Half}
-                            shouldShowToggleButton={isLargeScreenWidth}
+                            shouldShowToggleButton={isLargeScreenWidth && !isCashBackWithdrawal}
                             borderBottomStyle={isLargeScreenWidth ? styles.borderNone : isItemSelected && {borderColor: theme.buttonHoveredBG}}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >

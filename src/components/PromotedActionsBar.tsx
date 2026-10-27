@@ -13,7 +13,6 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import type Beta from '@src/types/onyx/Beta';
 import type OnyxReport from '@src/types/onyx/Report';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -44,18 +43,16 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         personalDetails: OnyxEntry<PersonalDetailsList>;
         isSelfTourViewed: boolean | undefined;
         hasCompletedGuidedSetupFlow: boolean | undefined;
-        betas: OnyxEntry<Beta[]>;
         hasReportActions: boolean | undefined;
+        conciergeChat: OnyxEntry<OnyxReport>;
+        isSupportalSession: boolean;
     }) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
 };
 
 type PromotedActionsBarProps = {
-    /** The list of actions to show */
     promotedActions: PromotedAction[];
-
-    /** The style of the container */
     containerStyle?: StyleProp<ViewStyle>;
 };
 
@@ -81,7 +78,19 @@ const PromotedActions = {
             joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login, personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions}) => ({
+    message: ({
+        reportID,
+        accountID,
+        login,
+        personalDetails,
+        currentUserAccountID,
+        introSelected,
+        isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
+        hasReportActions,
+        conciergeChat,
+        isSupportalSession,
+    }) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -99,7 +108,8 @@ const PromotedActions = {
                     introSelected,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
-                    betas,
+                    conciergeChat,
+                    isSupportalSession,
                     shouldDismissModal: false,
                     shouldRevalidateExistingChat: true,
                     hasReportActions,
@@ -113,8 +123,8 @@ const PromotedActions = {
                     introSelected,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
-                    betas,
                     personalDetails,
+                    conciergeChat,
                     true,
                     hasReportActions,
                 );
@@ -144,12 +154,13 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
                     style={[styles.flex1, styles.mw50]}
                     key={key}
                 >
-                    <Button
-                        onPress={onSelected}
-                        iconFill={theme.icon}
-                        text={translate(translationKey)}
-                        icon={typeof icon === 'string' ? icons[icon] : icon}
-                    />
+                    <Button onPress={onSelected}>
+                        <Button.Icon
+                            src={typeof icon === 'string' ? icons[icon] : icon}
+                            fill={theme.icon}
+                        />
+                        <Button.Text>{translate(translationKey)}</Button.Text>
+                    </Button>
                 </View>
             ))}
         </View>

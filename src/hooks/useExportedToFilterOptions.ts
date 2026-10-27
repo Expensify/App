@@ -1,11 +1,11 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
-import {getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
+import {getExportLabelsForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies, getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -14,7 +14,6 @@ import useOnyx from './useOnyx';
 
 type UseExportedToFilterDataResult = {
     exportedToFilterOptions: string[];
-    combinedUniqueExportTemplates: ExportTemplate[];
     connectedIntegrationNames: Set<string>;
 };
 
@@ -31,7 +30,15 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
         if (!policy) {
             continue;
         }
-        result[key] = {id: policy.id, name: policy.name, connections: policy.connections, exportLayouts: policy.exportLayouts, outputCurrency: policy.outputCurrency} as Policy;
+        result[key] = {
+            id: policy.id,
+            name: policy.name,
+            connections: policy.connections,
+            outputCurrency: policy.outputCurrency,
+            role: policy.role,
+            areCompanyCardsEnabled: policy.areCompanyCardsEnabled,
+            areExpensifyCardsEnabled: policy.areExpensifyCardsEnabled,
+        } as Policy;
     }
     return result;
 }
@@ -49,14 +56,13 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
 
     // When search is scoped to workspaces, use only those policies otherwise use all.
     const policiesToUse = getAllPolicyValues(policyIDs, ONYXKEYS.COLLECTION.POLICY, policies);
-    const {combinedExportTemplates: combinedUniqueExportTemplates} = useCombinedExportTemplates(policiesToUse);
+    const combinedExportTemplates = useCombinedExportTemplates(policiesToUse);
 
     const integrationConnectionNamesSet = new Set<string>(CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
 
     const standardAndCustomExportTemplates: string[] = [];
-    for (const template of combinedUniqueExportTemplates) {
-        // Classic export formats map to in-app templates and cannot be identified in exported-to filter.
-        if (template.type === CONST.EXPORT_TEMPLATE_TYPES.IN_APP || integrationConnectionNamesSet.has(template.templateName)) {
+    for (const template of combinedExportTemplates) {
+        if (integrationConnectionNamesSet.has(template.templateName)) {
             continue;
         }
 
@@ -67,20 +73,18 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
 
     const connectedIntegrationNames = policyIDs.value?.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
 
-    const displayNameToConnectionName = new Map<string, string>(
-        Object.entries(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY).map(([connectionName, displayName]) => [displayName, connectionName]),
-    );
+    const connectedIntegrationSearchValues = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.flatMap((connectionName) => {
+        if (!connectedIntegrationNames.has(connectionName)) {
+            return [];
+        }
 
-    const connectedIntegrationDisplayNames = CONST.POLICY.CONNECTIONS.EXPORTED_TO_INTEGRATION_DISPLAY_NAMES.filter((displayName) => {
-        const connectionName = displayNameToConnectionName.get(displayName);
-        return connectionName && connectedIntegrationNames.has(connectionName);
+        return getExportLabelsForConnection(connectionName, policiesToUse);
     });
 
-    const exportedToFilterOptions = [...new Set([...connectedIntegrationDisplayNames, ...standardAndCustomExportTemplates])];
+    const exportedToFilterOptions = [...new Set([...connectedIntegrationSearchValues, ...standardAndCustomExportTemplates])];
 
     return {
         exportedToFilterOptions,
-        combinedUniqueExportTemplates,
         connectedIntegrationNames,
     };
 }

@@ -15,7 +15,7 @@ import Onyx from 'react-native-onyx';
 
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
-import {navigateToSidebarOption} from '../utils/TestHelper';
+import {navigateToSidebarOption, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -39,8 +39,23 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
 
 jest.mock('@react-navigation/native');
 
-// Mock Avatar component to prevent act() warnings from state updates during render
-jest.mock('@src/components/Avatar', () => {
+// Mock avatar components to prevent act() warnings from state updates during render
+jest.mock('@src/components/Avatar/UserAvatar', () => {
+    const {View} = require('react-native');
+    return ({source, accountID, testID = 'Avatar'}: {source?: unknown; accountID?: number; testID?: string}) => {
+        return (
+            <View
+                dataSet={{
+                    avatarID: accountID,
+                    uri: typeof source === 'string' ? source : 'No Source',
+                    parent: testID,
+                }}
+                testID="MockedAvatarData"
+            />
+        );
+    };
+});
+jest.mock('@src/components/Avatar/WorkspaceAvatar', () => {
     const {View} = require('react-native');
     return ({source, name, avatarID, testID = 'Avatar'}: {source?: unknown; name?: string; avatarID?: string; testID?: string}) => {
         return (
@@ -191,7 +206,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
         })
         .then(async () => TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A'))
         .then(() => {
-            subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, () => {}, undefined);
+            subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, () => {}, formatPhoneNumber, undefined);
             return waitForBatchedUpdates();
         })
         .then(async () => {

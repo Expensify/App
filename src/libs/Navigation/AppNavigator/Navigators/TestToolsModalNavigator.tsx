@@ -2,6 +2,7 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import TestToolsModalPage from '@components/TestToolsModalPage';
+import TestToolsServerPage from '@components/TestToolsServerPage';
 
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -17,9 +18,9 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
-import type {MouseEvent} from 'react';
+import type {ComponentRef, MouseEvent} from 'react';
 
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import Overlay from './Overlay';
@@ -29,20 +30,20 @@ const Stack = createPlatformStackNavigator<TestToolsModalModalNavigatorParamList
 function TestToolsModalNavigator() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const outerViewRef = useRef<View>(null);
+    const outerViewRef = useRef<ComponentRef<typeof View>>(null);
     const isAuthenticated = useIsAuthenticated();
 
-    const handleOuterClick = useCallback(() => {
+    const handleOuterClick = () => {
         // Release focus from any focused element before closing the modal
         blurActiveElement();
         requestAnimationFrame(() => {
             toggleTestToolsModal();
         });
-    }, []);
+    };
 
-    const handleInnerClick = useCallback((e: MouseEvent) => {
+    const handleInnerClick = (e: MouseEvent) => {
         e.stopPropagation();
-    }, []);
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => toggleTestToolsModal(), {shouldBubble: false});
 
@@ -65,6 +66,10 @@ function TestToolsModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.TEST_TOOLS_MODAL.ROOT}
                                 component={TestToolsModalPage}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.TEST_TOOLS_MODAL.SERVER}
+                                component={TestToolsServerPage}
                             />
                         </Stack.Navigator>
                     </View>

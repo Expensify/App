@@ -1,9 +1,12 @@
 import type CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {ValueOf} from 'type-fest';
+
 import type AccountData from './AccountData';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
+import type {WiseBusinessOnboarding} from './ReimbursementAccount';
 
 /** Model of additional bank account data */
 type BankAccountAdditionalData = {
@@ -13,32 +16,26 @@ type BankAccountAdditionalData = {
     /** Owners that can benefit from this bank account */
     beneficialOwners?: string[];
 
-    /** In which currency is the bank account */
     currency?: string;
-
-    /** In which bank is the bank account */
     bankName?: BankName;
-
-    /** Plaid account id */
     plaidAccountID?: string;
 
     /** Whether the bank account details were obtained for local transfer or international wire */
     fieldsType?: string;
 
-    /** In which country is the bank account */
     country?: string;
-
-    /** Is billing card */
     isBillingCard?: boolean;
-
-    /** ID of related policy */
     policyID?: string;
-
-    /** Corpay fields */
     corpay?: {
         /** Powerform files */
         achAuthorizationForm?: FileObject[];
     };
+
+    /** Global reimbursement provider, derived by the server */
+    globalReimbursementProvider?: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>;
+
+    /** The business's Wise onboarding as every holder of the account sees it: the status only, the answers are the admin's */
+    wise?: Pick<WiseBusinessOnboarding, 'status'>;
 
     /** Verification statuses returned by the backend, mirroring how Classic determines status */
     verifications?: {
@@ -76,7 +73,6 @@ type BankAccountAdditionalData = {
 
 /** Model of bank account */
 type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** The bank account type */
     accountType?: typeof CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
 
     /** string like 'Account ending in XXXX' */

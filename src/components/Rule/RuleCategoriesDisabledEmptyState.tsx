@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScrollView from '@components/ScrollView';
@@ -7,6 +7,7 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -28,6 +29,8 @@ type RuleCategoriesDisabledEmptyStateProps = {
 function RuleCategoriesDisabledEmptyState({policyID}: RuleCategoriesDisabledEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen']);
     const policyData = usePolicyData(policyID);
     const {showConfirmModal} = useConfirmModal();
@@ -49,7 +52,7 @@ function RuleCategoriesDisabledEmptyState({policyID}: RuleCategoriesDisabledEmpt
             return;
         }
 
-        enablePolicyCategories(policyData, true, false);
+        enablePolicyCategories(policyData, true, isVendorMatchingBetaEnabled, false);
 
         // The categories collection is empty while the feature is disabled, and enabling it only merges the
         // categories we already know about, so the collection has to be fetched for the picker to have rows.

@@ -4,12 +4,17 @@ import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {useMemo} from 'react';
+import {useRoute} from '@react-navigation/native';
 
 function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | undefined {
     const isInSidePanel = useIsInSidePanel();
@@ -18,52 +23,64 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const {selectedTransactionIDs, selectedTransactions, selectedReports} = useSearchSelectionContext();
 
-    return useMemo(() => {
-        if (conciergeReportID !== reportID || !isInSidePanel) {
-            return undefined;
-        }
+    // On native there is no side panel: the source report is threaded onto this Concierge screen's route params
+    // (see SidePanelButton/index.native.tsx). Reading it here keeps it scoped to this navigation entry, so a second
+    // Concierge screen pushed later (e.g. via search) has its own param and can't collide.
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const sourceReportID = route.params?.sourceReportID;
 
-        const contextReportID = currentRHPReportID ?? currentReportID ?? undefined;
+    if (conciergeReportID !== reportID) {
+        return undefined;
+    }
 
-        // selectedTransactions (map) is populated from the Search list; selectedTransactionIDs (array)
-        // is populated from the report table view. The two are mutually exclusive.
-        const txIDsFromMap = !isEmptyObject(selectedTransactions)
-            ? Object.entries(selectedTransactions)
-                  .filter(([, info]) => info.isSelected && !!info.transaction)
-                  .map(([id]) => id)
-            : [];
-        const allTransactionIDs = txIDsFromMap.length > 0 ? txIDsFromMap : selectedTransactionIDs;
-        const selectedTransactionIDsForContext = allTransactionIDs.length > 0 ? allTransactionIDs.join(',') : undefined;
+    // Native (no side panel): use the source report captured when Concierge Anywhere was opened via the sidebar
+    // button. Mirrors the {reportID} context the side panel builds on web. The button drops a self-referencing
+    // source report, but it can only do so when CONCIERGE_REPORT_ID is already cached. On the create/open path
+    // it is not, so guard here as well (reportID is the Concierge report by the check above).
+    if (!isInSidePanel) {
+        return sourceReportID && sourceReportID !== reportID ? {reportID: sourceReportID} : undefined;
+    }
 
-        const selectedReportIDsForContext =
-            selectedReports.length > 0
-                ? selectedReports
-                      .map((r) => r.reportID)
-                      .filter((id): id is string => !!id)
-                      .join(',') || undefined
-                : undefined;
+    const contextReportID = currentRHPReportID ?? currentReportID ?? undefined;
 
-        // This condition is reached when we are either in the global Reports => Reports page, or within a single expense report having multiple transactions.
-        // If we have selectedReportIDs, that means we're in the Reports page, otherwise we're in the expense report RHP.
-        if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-            return selectedReportIDsForContext ? {selectedReportIDs: selectedReportIDsForContext} : {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext};
-        }
+    // selectedTransactions (map) is populated from the Search list; selectedTransactionIDs (array)
+    // is populated from the report table view. The two are mutually exclusive.
+    const txIDsFromMap = !isEmptyObject(selectedTransactions)
+        ? Object.entries(selectedTransactions)
+              .filter(([, info]) => info.isSelected && !!info.transaction)
+              .map(([id]) => id)
+        : [];
+    const allTransactionIDs = txIDsFromMap.length > 0 ? txIDsFromMap : selectedTransactionIDs;
+    const selectedTransactionIDsForContext = allTransactionIDs.length > 0 ? allTransactionIDs.join(',') : undefined;
 
-        if (!contextReportID && !selectedTransactionIDsForContext && !selectedReportIDsForContext) {
-            return undefined;
-        }
+    const selectedReportIDsForContext =
+        selectedReports.length > 0
+            ? selectedReports
+                  .map((r) => r.reportID)
+                  .filter((id): id is string => !!id)
+                  .join(',') || undefined
+            : undefined;
 
-        // On Spend > Expenses (EXPENSE search) the selected transactions can span multiple reports,
-        // so contextReportID doesn't correspond to them. Send selectedReportIDs (+ selectedTransactionIDs)
-        // instead of an invalid reportID. We only do this while no report is open in the RHP: once the user
-        // opens a report from the list (currentRHPReportID is set) contextReportID is a valid, meaningful
-        // report, so we fall through to the default return and keep sending reportID.
-        if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !currentRHPReportID && selectedReportIDsForContext) {
-            return {selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
-        }
+    // This condition is reached when we are either in the global Reports => Reports page, or within a single expense report having multiple transactions.
+    // If we have selectedReportIDs, that means we're in the Reports page, otherwise we're in the expense report RHP.
+    if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        return selectedReportIDsForContext ? {selectedReportIDs: selectedReportIDsForContext} : {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext};
+    }
 
-        return {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
-    }, [conciergeReportID, reportID, isInSidePanel, currentSearchQueryJSON?.type, currentRHPReportID, currentReportID, selectedTransactionIDs, selectedTransactions, selectedReports]);
+    if (!contextReportID && !selectedTransactionIDsForContext && !selectedReportIDsForContext) {
+        return undefined;
+    }
+
+    // On Spend > Expenses (EXPENSE search) the selected transactions can span multiple reports,
+    // so contextReportID doesn't correspond to them. Send selectedReportIDs (+ selectedTransactionIDs)
+    // instead of an invalid reportID. We only do this while no report is open in the RHP: once the user
+    // opens a report from the list (currentRHPReportID is set) contextReportID is a valid, meaningful
+    // report, so we fall through to the default return and keep sending reportID.
+    if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !currentRHPReportID && selectedReportIDsForContext) {
+        return {selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
+    }
+
+    return {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
 }
 
 export default useSidePanelContext;

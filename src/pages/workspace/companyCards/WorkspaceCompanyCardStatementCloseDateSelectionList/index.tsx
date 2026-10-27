@@ -20,7 +20,7 @@ import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import CustomCloseDateSelectionList from './CustomCloseDateSelectionList';
@@ -68,35 +68,29 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
     const [error, setError] = useState<string | undefined>(undefined);
     const {isLoading, startWithLoading} = usePressLoading();
 
-    const title = useMemo(
-        () => (isChoosingCustomDate ? translate('workspace.companyCards.customCloseDate') : translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')),
-        [translate, isChoosingCustomDate],
-    );
+    const title = isChoosingCustomDate ? translate('workspace.companyCards.customCloseDate') : translate('workspace.moreFeatures.companyCards.statementCloseDateTitle');
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         if (isChoosingCustomDate) {
             setIsChoosingCustomDate(false);
             return;
         }
 
         onBackButtonPress();
-    }, [isChoosingCustomDate, onBackButtonPress]);
+    };
 
-    const selectDateAndClearError = useCallback((item: StatementCloseDateListItem) => {
+    const selectDateAndClearError = (item: StatementCloseDateListItem) => {
         setSelectedDate(item.value);
         setError(undefined);
-    }, []);
+    };
 
-    const selectCustomDateAndClearError = useCallback(
-        (day: number) => {
-            setSelectedCustomDate(day);
-            setError(undefined);
-            goBack();
-        },
-        [goBack],
-    );
+    const selectCustomDateAndClearError = (day: number) => {
+        setSelectedCustomDate(day);
+        setError(undefined);
+        goBack();
+    };
 
-    const submit = useCallback(() => {
+    const submit = () => {
         if (!selectedDate) {
             setError(translate('workspace.moreFeatures.companyCards.error.statementCloseDateRequired'));
             return;
@@ -115,7 +109,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
 
             onSubmit(selectedDate, undefined);
         });
-    }, [selectedDate, selectedCustomDate, onSubmit, translate, startWithLoading]);
+    };
 
     return (
         <ScreenWrapper
@@ -157,7 +151,6 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                                             keyForList: option,
                                         }}
                                         onSelectRow={selectDateAndClearError}
-                                        keyForList={option}
                                     />
                                 ))}
                                 {selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH && (

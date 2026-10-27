@@ -1,9 +1,6 @@
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 
-import {getParsableSearchValue} from '@libs/SearchAutocompleteUtils';
 import {getPolicyNameWithFallback, sanitizeSearchValue} from '@libs/SearchQueryUtils';
-
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
@@ -51,24 +48,22 @@ function getContextualReportData(state: NavigationState | undefined): Contextual
     }
 
     if (maybeReportRoute?.name === SCREENS.REPORT || maybeReportRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
-        // We're guaranteed that the type of params is of SCREENS.REPORT
-        return {contextualReportID: (maybeReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID, isSearchRouterScreen};
+        const params = maybeReportRoute.params;
+        const contextualReportID = params && 'reportID' in params && typeof params.reportID === 'string' ? params.reportID : undefined;
+        return {contextualReportID, isSearchRouterScreen};
     }
     return {contextualReportID: undefined, isSearchRouterScreen};
 }
 
 function getContextualSearchAutocompleteKey(item: SearchQueryItem, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
     if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${getParsableSearchValue(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO, item.searchQuery ?? '')}`;
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${item.searchQuery ?? ''}`;
     }
     if (item.roomType === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${getParsableSearchValue(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN, item.searchQuery ?? '')}`;
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery ?? ''}`;
     }
     if (item.roomType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${getParsableSearchValue(
-            CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID,
-            item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : '',
-        )}`;
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : ''}`;
     }
 }
 
@@ -78,26 +73,17 @@ function getContextualSearchQuery(item: SearchQueryItem, policies: OnyxCollectio
 
     switch (item.roomType) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${sanitizeSearchValue(
-                getParsableSearchValue(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID, item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : ''),
-                true,
-            )}`;
+            additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${sanitizeSearchValue(item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : '')}`;
             break;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${item.policyID}`;
             if (item.autocompleteID) {
-                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeSearchValue(
-                    getParsableSearchValue(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO, item.searchQuery ?? ''),
-                    true,
-                )}`;
+                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeSearchValue(item.searchQuery ?? '')}`;
             }
             break;
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
-            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeSearchValue(
-                getParsableSearchValue(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN, item.searchQuery ?? ''),
-                true,
-            )}`;
+            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeSearchValue(item.searchQuery ?? '')}`;
             break;
     }
     return baseQuery + additionalQuery;

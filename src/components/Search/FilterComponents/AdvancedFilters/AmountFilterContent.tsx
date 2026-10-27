@@ -1,5 +1,5 @@
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -8,6 +8,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -28,9 +29,10 @@ const BETWEEN_MODIFIER = 'Between';
 type AmountFilterContentProps = {
     baseFilterKey: SearchAmountFilterKeys;
     value: SearchAmountValues;
-    largeButton?: boolean;
+    buttonSize?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
+    buttonText?: string;
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
@@ -152,10 +154,11 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
     );
 }
 
-function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, style, onChange}: AmountFilterContentProps) {
+function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style, buttonText, onChange}: AmountFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const shouldButtonBeInScrollView = useShouldFooterBeInsideList();
 
     const getInitialSelectedAmountModifier = () => {
         const hasLessThan = !!value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
@@ -205,6 +208,18 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, styl
     ];
     const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
 
+    const button = (
+        <Button
+            style={[styles.ph5, styles.pb5]}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={buttonSize}
+            onPress={updateAmountFilter}
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
+        </Button>
+    );
+
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
             <ScrollView
@@ -218,7 +233,6 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, styl
                         <SingleSelectListItem
                             item={config}
                             showTooltip={false}
-                            keyForList={config.keyForList}
                             onSelectRow={() => setSelectedModifier(config.keyForList)}
                             wrapperStyle={styles.optionRowCompact}
                         />
@@ -243,16 +257,9 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, styl
                             ))}
                     </Fragment>
                 ))}
+                {shouldButtonBeInScrollView && button}
             </ScrollView>
-            <Button
-                style={[styles.ph5, styles.pb5]}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={largeButton ? CONST.BUTTON_SIZE.LARGE : undefined}
-                onPress={updateAmountFilter}
-            >
-                <Button.KeyboardShortcut />
-                <Button.Text>{translate('common.confirm')}</Button.Text>
-            </Button>
+            {!shouldButtonBeInScrollView && button}
         </View>
     );
 }

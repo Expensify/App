@@ -1,9 +1,12 @@
+import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
@@ -19,7 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 import WorkspaceExpensifyCardListPage from './WorkspaceExpensifyCardListPage';
 import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEmptyState';
@@ -27,6 +30,8 @@ import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEm
 type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.expensifyCard');
@@ -35,11 +40,12 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const settings = getCardSettings(cardSettings);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
+    const [cardsPageLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE}${policyID}`);
 
-    const fetchExpensifyCards = useCallback(() => {
+    const fetchExpensifyCards = () => {
         updateSelectedExpensifyCardFeed(defaultFundID, policyID);
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [policyID, defaultFundID]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
 
@@ -48,11 +54,25 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     }, [fetchExpensifyCards]);
 
     const paymentBankAccountID = settings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const isLoading = !isOffline && (!cardSettings || settings?.isLoading) && !cardSettings?.hasOnceLoaded;
+
+    // Persisted settings can render immediately while the RAM-only page state is rebuilt after a reload.
+    const hasOnceLoadedPage = cardsPageLoadingState?.hasOnceLoadedPage ?? cardSettings?.hasOnceLoaded;
+    const isLoading = !isOffline && !hasOnceLoadedPage;
 
     const renderContent = () => {
+        if (!isOffline && cardsPageLoadingState?.hasLoadingError && !hasOnceLoadedPage) {
+            return (
+                <FullPageErrorView
+                    shouldShow
+                    title={translate('errorPage.title', {isBreakLine: false})}
+                    subtitle={translate('errorPage.subtitle')}
+                    buttonTranslationKey="common.tryAgain"
+                    onButtonPress={fetchExpensifyCards}
+                />
+            );
+        }
         if (isLoading) {
-            return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+            return <FullScreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
         }
         if (paymentBankAccountID) {
             return (

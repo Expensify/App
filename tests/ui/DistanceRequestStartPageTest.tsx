@@ -4,6 +4,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import type * as OnyxTabNavigatorModule from '@libs/Navigation/OnyxTabNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
@@ -54,7 +55,38 @@ jest.mock('react-native-tab-view', () => ({
 
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
+    useCameraDevices: jest.fn(() => []),
+    usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
 }));
+
+// Plain objects, not jest mocks, so they aren't cleared by `jest.clearAllMocks()`. Both mocks below delegate to the
+// real component so existing behavior (and the other tests in this file) is unaffected — they only add prop capture.
+const mockScreenWrapperProps = {current: undefined as Record<string, unknown> | undefined};
+const mockOnyxTabNavigatorProps = {current: undefined as Record<string, unknown> | undefined};
+
+jest.mock('@components/ScreenWrapper', () => {
+    const ReactActual = jest.requireActual<typeof React>('react');
+    const actual = jest.requireActual<{default: React.ComponentType<Record<string, unknown>>}>('@components/ScreenWrapper');
+    function MockScreenWrapper(props: Record<string, unknown>) {
+        mockScreenWrapperProps.current = props;
+        return ReactActual.createElement(actual.default, props);
+    }
+    return {...actual, __esModule: true, default: MockScreenWrapper};
+});
+
+jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
+    const ReactActual = jest.requireActual<typeof React>('react');
+    const actual = jest.requireActual<typeof OnyxTabNavigatorModule>('@libs/Navigation/OnyxTabNavigator');
+    const createNavigator: typeof actual.createOnyxTabNavigator = (names) => {
+        const pair = actual.createOnyxTabNavigator(names);
+        function MockOnyxTabNavigator(props: Parameters<typeof pair.OnyxTabNavigator>[0]) {
+            mockOnyxTabNavigatorProps.current = props;
+            return ReactActual.createElement(pair.OnyxTabNavigator, props);
+        }
+        return {...pair, OnyxTabNavigator: MockOnyxTabNavigator};
+    };
+    return {...actual, createOnyxTabNavigator: createNavigator};
+});
 
 const REPORT_ID = '1';
 const ACCOUNT_ID = 1;
@@ -84,7 +116,11 @@ async function setUpOnyx({selectedTab, lastDistanceExpenseType}: {selectedTab?: 
     });
 }
 
-async function renderPage(defaultSelectedTab: SelectedTabRequest, iouType: IOUType = CONST.IOU.TYPE.TRACK, action: IOUAction = CONST.IOU.ACTION.CREATE) {
+async function renderPage(
+    defaultSelectedTab: Parameters<typeof DistanceRequestStartPage>[0]['defaultSelectedTab'],
+    iouType: IOUType = CONST.IOU.TYPE.TRACK,
+    action: IOUAction = CONST.IOU.ACTION.CREATE,
+) {
     render(
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
@@ -154,6 +190,17 @@ describe('DistanceRequestStartPage', () => {
 
         // Then the draft is rebuilt as a map expense, so it keeps the waypoints the Map tab needs
         await expect(getDraftRequestType()).resolves.toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+    });
+
+    // Cropped-map regression (#95376): a shared KeyboardAvoidingView here used to leak keyboard-driven padding from
+    // the Odometer tab into the others. The fix is these two props; nothing else in this file exercises them.
+    it('keeps the shared KeyboardAvoidingView disabled and waits for the keyboard before switching tabs', async () => {
+        await setUpOnyx({selectedTab: CONST.TAB_REQUEST.DISTANCE_MAP});
+
+        await renderPage(CONST.TAB_REQUEST.DISTANCE_MAP);
+
+        expect(mockScreenWrapperProps.current?.shouldEnableKeyboardAvoidingView).toBe(false);
+        expect(mockOnyxTabNavigatorProps.current?.shouldDismissKeyboardBeforeTabSwitch).toBe(true);
     });
 
     it('should seed the waypoints that keep the waypoint editor reachable from the Map tab', async () => {
@@ -238,7 +285,6 @@ describe('DistanceRequestStartPage', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 name: 'Workspace',
                 role: CONST.POLICY.ROLE.USER,
-                isPolicyExpenseChatEnabled: true,
                 autoReporting: true,
                 commuterExclusions: {
                     method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
@@ -342,7 +388,6 @@ describe('DistanceRequestStartPage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     name: policyID,
                     role: CONST.POLICY.ROLE.USER,
-                    isPolicyExpenseChatEnabled: true,
                     autoReporting: false,
                     commuterExclusions: {
                         method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
@@ -352,6 +397,38 @@ describe('DistanceRequestStartPage', () => {
                 }),
             );
         }
+
+        await renderPage(CONST.TAB_REQUEST.DISTANCE_MAP, CONST.IOU.TYPE.CREATE);
+
+        expect(screen.getByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_MANUAL}`)).toBeOnTheScreen();
+        expect(screen.getByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_ODOMETER}`)).toBeOnTheScreen();
+    });
+
+    it('keeps manual and odometer distance available when the active destination is the personal policy', async () => {
+        await setUpOnyx({selectedTab: CONST.TAB_REQUEST.DISTANCE_MAP});
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: ACCOUNT_LOGIN});
+        await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, PERSONAL_POLICY_ID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}workspaceReport`, {
+            reportID: 'workspaceReport',
+            policyID: 'workspacePolicy',
+            ownerAccountID: ACCOUNT_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        });
+        await Onyx.set(
+            `${ONYXKEYS.COLLECTION.POLICY}workspacePolicy`,
+            createMock<Policy>({
+                id: 'workspacePolicy',
+                type: CONST.POLICY.TYPE.TEAM,
+                name: 'Workspace',
+                role: CONST.POLICY.ROLE.USER,
+                autoReporting: true,
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 1,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            }),
+        );
 
         await renderPage(CONST.TAB_REQUEST.DISTANCE_MAP, CONST.IOU.TYPE.CREATE);
 

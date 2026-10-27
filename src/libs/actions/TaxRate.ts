@@ -22,7 +22,7 @@ import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import {default as INPUT_IDS_TAX_CODE} from '@src/types/form/WorkspaceTaxCodeForm';
 import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
+import type {CustomUnit, ExpenseRule, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
@@ -550,7 +550,18 @@ function setPolicyTaxCode(
     oldForeignTaxDefault: string | undefined,
     oldDefaultExternalID: string | undefined,
     distanceRateCustomUnit: CustomUnit | undefined,
+    expenseRules: ExpenseRule[] = [],
 ) {
+    const hasExpenseRuleWithOldTaxCode = expenseRules.some((rule) => rule.tax?.field_id_TAX?.externalID === oldTaxCode);
+    const optimisticExpenseRules = expenseRules.map((rule) => {
+        if (rule.tax?.field_id_TAX?.externalID !== oldTaxCode) {
+            return rule;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        return {...rule, tax: {field_id_TAX: {...rule.tax.field_id_TAX, externalID: newTaxCode}}};
+    });
+
     const optimisticDistanceRateCustomUnit = distanceRateCustomUnit && {
         ...distanceRateCustomUnit,
         rates: {
@@ -571,6 +582,10 @@ function setPolicyTaxCode(
         },
     };
 
+    // Mirror the rename history the back-end persists so that expenses referencing any older code keep resolving to
+    // this rate while the rename is still optimistic or was made offline.
+    const previousTaxCodes = [...new Set([...(originalTaxRate.previousTaxCodes ?? []), oldTaxCode])];
+
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -588,11 +603,13 @@ function setPolicyTaxCode(
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {code: null},
                                 previousTaxCode: oldTaxCode,
+                                previousTaxCodes,
                                 optimisticPreviousTaxCode: oldTaxCode,
                             },
                         },
                     },
                     ...(!!distanceRateCustomUnit && {customUnits: {[distanceRateCustomUnit.customUnitID]: optimisticDistanceRateCustomUnit}}),
+                    ...(hasExpenseRuleWithOldTaxCode && {rules: {expenseRules: optimisticExpenseRules}}),
                 },
             },
         ],
@@ -609,10 +626,11 @@ function setPolicyTaxCode(
                             [newTaxCode]: {
                                 ...originalTaxRate,
                                 code: newTaxCode,
+                                previousTaxCode: oldTaxCode,
+                                previousTaxCodes,
                                 pendingFields: {...originalTaxRate.pendingFields, code: null},
                                 pendingAction: null,
                                 errorFields: {code: null},
-                                previousTaxCode: oldTaxCode,
                                 optimisticPreviousTaxCode: null,
                             },
                         },
@@ -640,6 +658,7 @@ function setPolicyTaxCode(
                         },
                     },
                     ...(!!distanceRateCustomUnit && {customUnits: {[distanceRateCustomUnit.customUnitID]: distanceRateCustomUnit}}),
+                    ...(hasExpenseRuleWithOldTaxCode && {rules: {expenseRules}}),
                 },
             },
         ],

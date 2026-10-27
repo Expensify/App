@@ -27,10 +27,7 @@ type CardTypeStepProps = {
     /** The policy that the card will be issued under */
     policy: OnyxEntry<Policy>;
 
-    /** Array of step names */
     stepNames: readonly string[];
-
-    /** Start from step index */
     startStepIndex: number;
 };
 

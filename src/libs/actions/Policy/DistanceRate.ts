@@ -1,30 +1,41 @@
 import * as API from '@libs/API';
 import type {
+    AddOfficeLocationParams,
     CreatePolicyDistanceRateParams,
+    DeleteOfficeLocationParams,
     DeletePolicyDistanceRatesParams,
     DisablePolicyCommuterExclusionsParams,
     EnablePolicyDistanceRatesParams,
     OpenPolicyDistanceRatesPageParams,
+    SetEmployeeWorkArrangementParams,
     SetPolicyCommuterExclusionsParams,
     SetPolicyDistanceRatesEnabledParams,
     SetPolicyDistanceRatesUnitParams,
+    SetPolicyRequireMapOrGPSParams,
+    SetPolicyWorkArrangementParams,
+    SetWorkspaceDistanceAutoUpdateParams,
+    UpdateEmployeeOfficeLocationParams,
+    UpdateOfficeLocationParams,
     UpdatePolicyDistanceRateParams,
     UpdatePolicyDistanceRateValueParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import {buildOnyxDataForPolicyDistanceRateUpdates} from '@libs/PolicyDistanceRatesUtils';
+import {generateHexadecimalValue} from '@libs/NumberUtils';
+import {buildOnyxDataForGovernmentRateAutoUpdate, buildOnyxDataForPolicyDistanceRateUpdates} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {TransactionViolation} from '@src/types/onyx';
-import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
-import type {CommuterExclusions, CustomUnit, Rate} from '@src/types/onyx/Policy';
+import type {GovernmentMileageRate, PersonalDetailsList, Policy, PolicyEmployee, TransactionViolation} from '@src/types/onyx';
+import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {CommuterExclusions, CompanyAddress, CustomUnit, OfficeLocation, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -247,7 +258,12 @@ function clearPolicyDistanceRateErrorFields(policyID: string, customUnitID: stri
     });
 }
 
-function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
+function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit, previousCommuterExclusions?: CommuterExclusions) {
+    const newDistanceUnit = newCustomUnit.attributes?.unit;
+    const shouldUpdateCommuterExclusionUnit =
+        previousCommuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && typeof previousCommuterExclusions.fixedDistance === 'number' && !!newDistanceUnit;
+    const optimisticCommuterExclusions = shouldUpdateCommuterExclusionUnit ? {...previousCommuterExclusions, fixedDistanceUnit: newDistanceUnit} : undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -259,6 +275,13 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                         pendingFields: {attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
                 },
+                ...(optimisticCommuterExclusions
+                    ? {
+                          commuterExclusions: optimisticCommuterExclusions,
+                          pendingFields: {commuterExclusions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                          errorFields: {commuterExclusions: null},
+                      }
+                    : {}),
             },
         },
     ];
@@ -273,6 +296,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                         pendingFields: {attributes: null},
                     },
                 },
+                ...(optimisticCommuterExclusions ? {pendingFields: {commuterExclusions: null}} : {}),
             },
         },
     ];
@@ -289,6 +313,16 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                         pendingFields: {attributes: null},
                     },
                 },
+                ...(optimisticCommuterExclusions
+                    ? {
+                          commuterExclusions: {
+                              ...previousCommuterExclusions,
+                              fixedDistanceUnit: previousCommuterExclusions?.fixedDistanceUnit ?? null,
+                          },
+                          pendingFields: {commuterExclusions: null},
+                          errorFields: {commuterExclusions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                      }
+                    : {}),
             },
         },
     ];
@@ -525,27 +559,31 @@ function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customU
 }
 
 /**
- * Set the commuter exclusion for a workspace. Currently only `fixedDistance` is supported; the
- * distance unit is owned by the workspace's distance custom unit (Auth resolves it server-side and
- * snapshots it into the change log), so we only echo it into Onyx optimistically.
+ * Set the commuter exclusion for a policy. Two methods are supported:
+ *   - "fixedDistance" - subtracts a fixed distance per claim. `fixedDistance` (> 0) and `fixedDistanceUnit`
+ *                       (mirrors the policy's distance custom unit) are required.
+ *   - "homeAndOffice" - subtracts each member's home-to-office distance, computed per-claim from the
+ *                       member's saved addresses. No client-side distance/unit needed. `isOffice` sets the
+ *                       default work arrangement in the same request.
  *
- * Callers should pass the workspace's current `commuterExclusions` so the failure path can restore
+ * Callers should pass the policy's current `commuterExclusions` so the failure path can restore
  * the prior state.
  */
 function setPolicyCommuterExclusions(
     policyID: string,
-    method: 'fixedDistance',
-    fixedDistance: number,
-    fixedDistanceUnit: string,
+    method: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>,
+    fixedDistance: number | undefined,
+    fixedDistanceUnit: string | undefined,
     previousCommuterExclusions: CommuterExclusions | undefined,
+    isOffice?: boolean,
 ) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const isFixedDistance = method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
+    const isSettingWorkArrangement = !isFixedDistance && isOffice !== undefined;
 
-    const optimisticCommuterExclusions: CommuterExclusions = {
-        method,
-        fixedDistance,
-        fixedDistanceUnit,
-    };
+    const optimisticCommuterExclusions: CommuterExclusions = isFixedDistance
+        ? {method, fixedDistance, fixedDistanceUnit}
+        : {method, ...(isSettingWorkArrangement ? {isOfficeWorkArrangement: isOffice} : {})};
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -573,7 +611,11 @@ function setPolicyCommuterExclusions(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    commuterExclusions: previousCommuterExclusions ?? null,
+                    // Merging the previous object back would keep an arrangement it never had, so that field is restored explicitly
+                    commuterExclusions:
+                        previousCommuterExclusions && isSettingWorkArrangement
+                            ? {...previousCommuterExclusions, isOfficeWorkArrangement: previousCommuterExclusions.isOfficeWorkArrangement ?? null}
+                            : (previousCommuterExclusions ?? null),
                     pendingFields: {commuterExclusions: null},
                     errorFields: {commuterExclusions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
@@ -581,8 +623,59 @@ function setPolicyCommuterExclusions(
         ],
     };
 
-    const parameters: SetPolicyCommuterExclusionsParams = {policyID, commuterExclusionMethod: method, distance: fixedDistance};
+    // Only send distance when the server actually needs it. HomeAndOffice ignores the field.
+    const parameters: SetPolicyCommuterExclusionsParams = isFixedDistance
+        ? {policyID, commuterExclusionMethod: method, distance: fixedDistance}
+        : {policyID, commuterExclusionMethod: method, ...(isSettingWorkArrangement ? {isOffice} : {})};
     API.write(WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
+}
+
+/**
+ * Set the workspace-wide default work arrangement, which only applies while the policy uses the
+ * "homeAndOffice" commuter exclusion method. `isOffice` is true when members commute to an office and
+ * false when they have no regular workplace.
+ *
+ * Callers should pass the policy's current value so the failure path can restore it.
+ */
+function setPolicyWorkArrangement(policyID: string, isOffice: boolean, previousIsOffice: boolean | undefined) {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    commuterExclusions: {isOfficeWorkArrangement: isOffice},
+                    pendingFields: {commuterExclusions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {commuterExclusions: null},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    pendingFields: {commuterExclusions: null},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    commuterExclusions: {isOfficeWorkArrangement: previousIsOffice ?? null},
+                    pendingFields: {commuterExclusions: null},
+                    errorFields: {commuterExclusions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyWorkArrangementParams = {policyID, isOffice};
+    API.write(WRITE_COMMANDS.SET_POLICY_WORK_ARRANGEMENT, parameters, onyxData);
 }
 
 /**
@@ -630,6 +723,477 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
     API.write(WRITE_COMMANDS.DISABLE_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
 }
 
+type WorkArrangementMemberUpdate = {
+    /** The account ID of the workspace member being updated. */
+    accountID: number;
+    /** The member's login, used as the employeeList key. */
+    email: string;
+    /** The member's previous office arrangement, used to restore it if the update fails. */
+    previousHasOfficeWorkArrangement: boolean | undefined;
+    /** The member may still be an optimistic invite, so changing the arrangement must not clear its pending action. */
+    previousPendingAction: PolicyEmployee['pendingAction'];
+};
+
+/**
+ * Set the work arrangement (office-based or no regular workspace) for one or more policy members.
+ * The single command covers both individual and bulk updates: employeeAccountIDList carries every
+ * affected accountID. The server logs each change in the workspace admins room, where it can land in a thread, so no
+ * change log is added optimistically.
+ */
+function setEmployeeWorkArrangement(policy: OnyxEntry<Policy>, employeeAccountIDList: number[], isOffice: boolean, personalDetails: OnyxEntry<PersonalDetailsList>) {
+    const policyID = policy?.id;
+    if (!policyID) {
+        return;
+    }
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const updates: WorkArrangementMemberUpdate[] = [];
+    for (const accountID of employeeAccountIDList) {
+        const personalDetail = personalDetails?.[accountID];
+        const login = personalDetail?.login;
+        if (!login) {
+            continue;
+        }
+        const employee = policy?.employeeList?.[login];
+        if (!employee) {
+            continue;
+        }
+        const previousHasOfficeWorkArrangement = employee.hasOfficeWorkArrangement;
+        if (previousHasOfficeWorkArrangement === isOffice) {
+            continue;
+        }
+        updates.push({
+            accountID,
+            email: login,
+            previousHasOfficeWorkArrangement,
+            previousPendingAction: employee.pendingAction,
+        });
+    }
+
+    if (updates.length === 0) {
+        return;
+    }
+
+    const employeeListOptimisticUpdate: Record<string, Pick<PolicyEmployee, 'hasOfficeWorkArrangement' | 'pendingAction'>> = {};
+    const employeeListSuccessUpdate: Record<string, Pick<PolicyEmployee, 'pendingAction'>> = {};
+    const employeeListFailureUpdate: Record<string, NullishDeep<PolicyEmployee>> = {};
+    for (const update of updates) {
+        employeeListOptimisticUpdate[update.email] = {
+            hasOfficeWorkArrangement: isOffice,
+            pendingAction: update.previousPendingAction ?? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        };
+        if (!update.previousPendingAction) {
+            employeeListSuccessUpdate[update.email] = {pendingAction: null};
+        }
+        employeeListFailureUpdate[update.email] = {
+            hasOfficeWorkArrangement: update.previousHasOfficeWorkArrangement ?? null,
+            ...(!update.previousPendingAction && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+        };
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: employeeListOptimisticUpdate},
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: employeeListSuccessUpdate},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: employeeListFailureUpdate},
+        },
+    ];
+
+    const parameters: SetEmployeeWorkArrangementParams = {
+        policyID,
+        employeeAccountIDList: updates.map((update) => update.accountID).join(','),
+        employeeLoginList: updates.map((update) => update.email).join(','),
+        isOffice,
+    };
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {optimisticData, successData, failureData};
+    API.write(WRITE_COMMANDS.SET_EMPLOYEE_WORK_ARRANGEMENT, parameters, onyxData);
+}
+
+type OfficeLocationMemberUpdate = {
+    /** The member's login, used as the employeeList key and to match the member on the server. */
+    email: string;
+    /** The office the member was assigned to, used to restore it if the update fails. */
+    previousOfficeID: string | undefined;
+    /** The member may still be an optimistic invite, so changing the office must not clear its pending action. */
+    previousPendingAction: PolicyEmployee['pendingAction'];
+};
+
+/**
+ * Assign one or more workspace members to an office, keyed in the workspace's officeLocations, or to the company
+ * address with CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID. The single command covers both individual and bulk updates:
+ * employeeLoginList carries the login of every affected member. The server logs each change in the workspace admins
+ * room, where it can land in a thread, so no change log is added optimistically.
+ */
+function updateEmployeeOfficeLocation(policy: OnyxEntry<Policy>, employeeAccountIDList: number[], officeID: string, personalDetails: OnyxEntry<PersonalDetailsList>) {
+    const policyID = policy?.id;
+    if (!policyID) {
+        return;
+    }
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const updates: OfficeLocationMemberUpdate[] = [];
+    for (const accountID of employeeAccountIDList) {
+        const personalDetail = personalDetails?.[accountID];
+        const login = personalDetail?.login;
+        if (!login) {
+            continue;
+        }
+        const employee = policy?.employeeList?.[login];
+        if (!employee || employee.officeID === officeID) {
+            continue;
+        }
+        updates.push({
+            email: login,
+            previousOfficeID: employee.officeID,
+            previousPendingAction: employee.pendingAction,
+        });
+    }
+
+    if (updates.length === 0) {
+        return;
+    }
+
+    const employeeListOptimisticUpdate: Record<string, Pick<PolicyEmployee, 'officeID' | 'pendingAction'>> = {};
+    const employeeListSuccessUpdate: Record<string, Pick<PolicyEmployee, 'pendingAction'>> = {};
+    const employeeListFailureUpdate: Record<string, NullishDeep<PolicyEmployee>> = {};
+    for (const update of updates) {
+        employeeListOptimisticUpdate[update.email] = {officeID, pendingAction: update.previousPendingAction ?? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+        if (!update.previousPendingAction) {
+            employeeListSuccessUpdate[update.email] = {pendingAction: null};
+        }
+        employeeListFailureUpdate[update.email] = {
+            officeID: update.previousOfficeID ?? null,
+            ...(!update.previousPendingAction && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+        };
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: employeeListOptimisticUpdate},
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: employeeListSuccessUpdate},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: employeeListFailureUpdate},
+        },
+    ];
+
+    const parameters: UpdateEmployeeOfficeLocationParams = {
+        policyID,
+        employeeLoginList: updates.map((update) => update.email).join(','),
+        officeID,
+    };
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {optimisticData, successData, failureData};
+    API.write(WRITE_COMMANDS.UPDATE_EMPLOYEE_OFFICE_LOCATION, parameters, onyxData);
+}
+
+/**
+ * Add an office to a workspace. Making it the default clears the flag on the current default office, so callers
+ * pass the workspace's current `officeLocations` for the failure path to restore it. An office added without a `name`
+ * is named by the server, and shows `defaultName` until then.
+ */
+function addOfficeLocation(policyID: string, officeLocations: Record<string, OfficeLocation> | undefined, address: CompanyAddress, isDefault: boolean, name: string, defaultName: string) {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const officeID = generateHexadecimalValue(16);
+    const previousDefaultOfficeID = isDefault
+        ? Object.entries(officeLocations ?? {}).find(([, officeLocation]) => officeLocation.isDefault && officeLocation.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)?.[0]
+        : undefined;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    officeLocations: {
+                        ...(previousDefaultOfficeID ? {[previousDefaultOfficeID]: {isDefault: false}} : {}),
+                        [officeID]: {name: name || defaultName, address, isDefault, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null},
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    officeLocations: {[officeID]: {pendingAction: null}},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    officeLocations: {
+                        ...(previousDefaultOfficeID ? {[previousDefaultOfficeID]: {isDefault: true}} : {}),
+                        [officeID]: {isDefault: false, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: AddOfficeLocationParams = {policyID, officeID, officeName: name || undefined, address: JSON.stringify(address), isDefault};
+    API.write(WRITE_COMMANDS.ADD_OFFICE_LOCATION, parameters, onyxData);
+}
+
+/**
+ * Update the name, address or default flag of a workspace office. Unsetting the default flag makes the company address
+ * the default. Callers pass the workspace's current `officeLocations` so the failure path can restore the office, and
+ * the default office it replaced.
+ */
+function updateOfficeLocation(
+    policyID: string,
+    officeLocations: Record<string, OfficeLocation> | undefined,
+    officeID: string,
+    changes: Partial<Pick<OfficeLocation, 'name' | 'address' | 'isDefault'>>,
+) {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const officeLocation = officeLocations?.[officeID];
+    const previousDefaultOfficeID = changes.isDefault
+        ? Object.entries(officeLocations ?? {}).find(
+              ([, otherOfficeLocation]) => otherOfficeLocation.isDefault && otherOfficeLocation.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+          )?.[0]
+        : undefined;
+
+    // An office that hasn't reached the server yet stays pending addition, so dismissing a failed addition still removes it
+    const pendingAction = officeLocation?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    officeLocations: {
+                        ...(previousDefaultOfficeID ? {[previousDefaultOfficeID]: {isDefault: false}} : {}),
+                        [officeID]: {...changes, pendingAction, errors: null},
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    officeLocations: {[officeID]: {pendingAction: null}},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    officeLocations: {
+                        ...(previousDefaultOfficeID ? {[previousDefaultOfficeID]: {isDefault: true}} : {}),
+                        [officeID]: {
+                            name: officeLocation?.name,
+                            address: officeLocation?.address,
+                            isDefault: officeLocation?.isDefault ?? false,
+                            pendingAction: officeLocation?.pendingAction ?? null,
+                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: UpdateOfficeLocationParams = {
+        policyID,
+        officeID,
+        officeName: changes.name,
+        address: changes.address ? JSON.stringify(changes.address) : undefined,
+        isDefault: changes.isDefault,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_OFFICE_LOCATION, parameters, onyxData);
+}
+
+/**
+ * Delete a workspace office. Deleting the default office makes the company address the default, or, in a workspace
+ * without a company address, the server makes another office the default. An office whose addition failed was never
+ * stored by the server, so it is only removed locally.
+ */
+function deleteOfficeLocation(policyID: string, officeID: string, officeLocation: OfficeLocation | undefined) {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    if (officeLocation?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(officeLocation.errors)) {
+        Onyx.merge(policyKey, {officeLocations: {[officeID]: null}});
+        return;
+    }
+
+    // An office that hasn't reached the server yet stays pending addition, so dismissing the error still removes it
+    const failedPendingAction = officeLocation?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    officeLocations: {[officeID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null}},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    officeLocations: {[officeID]: null},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    officeLocations: {[officeID]: {pendingAction: failedPendingAction, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}},
+                },
+            },
+        ],
+    };
+
+    const parameters: DeleteOfficeLocationParams = {policyID, officeID};
+    API.write(WRITE_COMMANDS.DELETE_OFFICE_LOCATION, parameters, onyxData);
+}
+
+/**
+ * Dismiss the error on a workspace office. An office whose addition failed is removed, since the server never stored it.
+ */
+function clearOfficeLocationErrors(policyID: string, officeID: string, pendingAction: PendingAction | undefined) {
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {officeLocations: {[officeID]: null}});
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {officeLocations: {[officeID]: {errors: null}}});
+}
+
+/**
+ * Turn the "Require GPS or map entry" setting on or off for a policy. When it's on, the manual and odometer
+ * distance flows are unavailable because neither can produce a mapped route.
+ */
+function setPolicyRequireMapOrGPS(policyID: string, requireMapOrGPS: boolean, previousRequireMapOrGPS: boolean | undefined) {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    requireMapOrGPS,
+                    pendingFields: {requireMapOrGPS: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {requireMapOrGPS: null},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    pendingFields: {requireMapOrGPS: null},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    requireMapOrGPS: previousRequireMapOrGPS ?? false,
+                    pendingFields: {requireMapOrGPS: null},
+                    errorFields: {requireMapOrGPS: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyRequireMapOrGPSParams = {policyID, enabled: requireMapOrGPS};
+    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS, parameters, onyxData);
+}
+
+function clearPolicyRequireMapOrGPSErrors(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {requireMapOrGPS: null},
+        pendingFields: {requireMapOrGPS: null},
+    });
+}
+
+/**
+ * Turns government rate auto-update on or off for a workspace. The rate copying, unit correction and missing `customUnit`
+ * behavior are documented on buildOnyxDataForGovernmentRateAutoUpdate, which provides the Onyx data used here.
+ */
+function setWorkspaceDistanceAutoUpdate(
+    policyID: string,
+    customUnit: CustomUnit | undefined,
+    shouldAutoUpdateGovernmentDistanceRates: boolean,
+    governmentMileageRates: GovernmentMileageRate[],
+    outputCurrency: string | undefined,
+    countryCode?: string,
+    previousAutoUpdateEnabled?: boolean,
+    previousCountryCode?: string,
+) {
+    const {optimisticRateIDs, onyxData} = buildOnyxDataForGovernmentRateAutoUpdate(
+        policyID,
+        customUnit,
+        shouldAutoUpdateGovernmentDistanceRates,
+        governmentMileageRates,
+        outputCurrency,
+        countryCode,
+        previousAutoUpdateEnabled,
+        previousCountryCode,
+    );
+
+    const parameters: SetWorkspaceDistanceAutoUpdateParams = {
+        policyID,
+        shouldAutoUpdateGovernmentDistanceRates,
+        ...(Object.keys(optimisticRateIDs).length > 0 ? {optimisticRateIDs: JSON.stringify(optimisticRateIDs)} : {}),
+        ...(countryCode ? {countryCode} : {}),
+    };
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_DISTANCE_AUTO_UPDATE, parameters, onyxData);
+}
+
+function clearWorkspaceDistanceAutoUpdateErrors(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {shouldAutoUpdateGovernmentDistanceRates: null},
+        pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null, autoUpdateGovernmentRateCountry: null},
+    });
+}
+
 function clearPolicyCommuterExclusionsErrors(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {commuterExclusions: null},
@@ -654,6 +1218,17 @@ export {
     updateDistanceTaxClaimableValue,
     updateDistanceTaxRate,
     setPolicyCommuterExclusions,
+    setPolicyWorkArrangement,
     disablePolicyCommuterExclusions,
     clearPolicyCommuterExclusionsErrors,
+    setEmployeeWorkArrangement,
+    updateEmployeeOfficeLocation,
+    addOfficeLocation,
+    updateOfficeLocation,
+    deleteOfficeLocation,
+    clearOfficeLocationErrors,
+    setPolicyRequireMapOrGPS,
+    clearPolicyRequireMapOrGPSErrors,
+    setWorkspaceDistanceAutoUpdate,
+    clearWorkspaceDistanceAutoUpdateErrors,
 };

@@ -1,7 +1,6 @@
 type SetTravelBillingReconciliationBankAccountParams = {
     domainName: string;
-    // The backend reads this request key, so it keeps the legacy spelling.
-    travelInvoicingReconciliationBankAccountID: string;
+    travelBillingReconciliationBankAccountID: string;
 };
 
 export default SetTravelBillingReconciliationBankAccountParams;

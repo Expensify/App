@@ -32,13 +32,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {Route} from '@react-navigation/native';
-import type {ReactNode} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 
 import {NavigationRouteContext, useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {DeviceEventEmitter, Keyboard} from 'react-native';
 
 import type {ScreenWrapperContainerProps} from './ScreenWrapperContainer';
@@ -73,19 +73,16 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
             | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>
             | PlatformStackNavigationProp<RightModalNavigatorParamList>;
 
-        /** A unique ID to find the screen wrapper in tests */
         testID: string;
 
         /** Returns a function as a child to pass insets to or a node to render without insets */
         children: ReactNode | ((props: ScreenWrapperChildrenProps) => ReactNode);
 
-        /** Additional styles to add */
         style?: StyleProp<ViewStyle>;
 
         /** Whether to disable the safe area padding for (nested) offline indicators */
         disableOfflineIndicatorSafeAreaPadding?: boolean;
 
-        /** Settings for the focus trap */
         focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
 
         /** Called when navigated Screen's transition is finished. It does not fire when user exit the page. */
@@ -123,7 +120,7 @@ function ScreenWrapper({
     const navigationFallback = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
-    const screenWrapperRef = useRef<View | HTMLElement>(null);
+    const screenWrapperRef = useRef<ComponentRef<typeof View> | HTMLElement>(null);
     const mergedScreenWrapperRef = mergeRefs(screenWrapperRef, ref);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
@@ -146,10 +143,7 @@ function ScreenWrapper({
     // We disable legacy bottom safe area padding handling, if we are using edge-to-edge mode.
     const includeSafeAreaPaddingBottom = isUsingEdgeToEdgeMode ? false : includeSafeAreaPaddingBottomProp;
     const isSafeAreaTopPaddingApplied = includePaddingTop;
-    const statusContextValue = useMemo(
-        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
-        [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
-    );
+    const statusContextValue = {didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom};
 
     // This context allows us to disable the safe area padding offsetting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.
     // This is useful e.g. for the RightModalNavigator, where we want to avoid the safe area padding offsetting the offline indicator because we only show the offline indicator on small screens.
@@ -158,17 +152,14 @@ function ScreenWrapper({
     const shouldMoveAccessibilityFocus = isMobileWebNarrowLayout && isInNarrowPane;
     const shouldHideFromAccessibility = isMobileWebNarrowLayout && !isFocused;
     const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens} = useContext(ScreenWrapperOfflineIndicatorContext);
-    const offlineIndicatorContextValue = useMemo(() => {
-        const newAddSafeAreaPadding = isInNarrowPane ? isSmallScreenWidth : addSafeAreaPadding;
-
-        return {
-            // Allows for individual screens to disable the offline indicator safe area padding for the screen and all nested ScreenWrapper components.
-            addSafeAreaPadding: disableOfflineIndicatorSafeAreaPadding === undefined ? (newAddSafeAreaPadding ?? true) : !disableOfflineIndicatorSafeAreaPadding,
-            // Prevent any nested ScreenWrapper components from rendering another offline indicator.
-            showOnSmallScreens: false,
-            showOnWideScreens: false,
-        };
-    }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, isSmallScreenWidth]);
+    const newAddSafeAreaPadding = isInNarrowPane ? isSmallScreenWidth : addSafeAreaPadding;
+    const offlineIndicatorContextValue = {
+        // Allows for individual screens to disable the offline indicator safe area padding for the screen and all nested ScreenWrapper components.
+        addSafeAreaPadding: disableOfflineIndicatorSafeAreaPadding === undefined ? (newAddSafeAreaPadding ?? true) : !disableOfflineIndicatorSafeAreaPadding,
+        // Prevent any nested ScreenWrapper components from rendering another offline indicator.
+        showOnSmallScreens: false,
+        showOnWideScreens: false,
+    };
 
     /** If there is no bottom content, the mobile offline indicator will stick to the bottom of the screen by default. */
     const displayStickySmallScreenOfflineIndicator = shouldSmallScreenOfflineIndicatorStickToBottom && !bottomContent;
@@ -282,12 +273,7 @@ function ScreenWrapper({
         }, [navigation]),
     );
 
-    const ChildrenContent = useMemo(() => {
-        return (
-            // If props.children is a function, call it to provide the insets to the children.
-            typeof children === 'function' ? children({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) : children
-        );
-    }, [children, insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd]);
+    const ChildrenContent = typeof children === 'function' ? children({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) : children;
 
     return (
         <FocusTrapForScreen focusTrapSettings={focusTrapSettings}>

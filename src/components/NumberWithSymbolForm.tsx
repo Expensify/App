@@ -27,7 +27,7 @@ import type {ForwardedRef} from 'react';
 import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -48,19 +48,16 @@ type NumberWithSymbolFormProps = {
     /** Callback to update the value in the FormProvider */
     onInputChange?: (number: string) => void;
 
-    /** Number of decimals to display in the number */
     decimals?: number;
 
     /** Currency of the input */
     currency?: string;
 
-    /** Whether the big number pad should be shown */
     shouldShowBigNumberPad?: boolean;
 
     /** Footer to display at the bottom of the form */
     footer?: React.ReactNode;
 
-    /** Reference to the number form */
     numberFormRef?: ForwardedRef<NumberWithSymbolFormRef>;
 
     /** Error to display at the bottom of the form */
@@ -72,11 +69,11 @@ type NumberWithSymbolFormProps = {
     /** Custom label for the TextInput */
     label?: string;
 
-    /** Whether to wrap the input in a container */
     shouldWrapInputInContainer?: boolean;
-
-    /** Style applied to the outer ScrollView */
     scrollViewStyle?: StyleProp<ViewStyle>;
+
+    /** Style for the outer text-input wrapper, the sibling of the currency symbol. */
+    outerContainerStyles?: StyleProp<ViewStyle>;
 
     /** Whether to refocus the input when clicking on the ScrollView empty space */
     shouldRefocusOnScrollViewClick?: boolean;
@@ -96,7 +93,6 @@ type NumberWithSymbolFormProps = {
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
 
-    /** Style for the negative symbol */
     negativeSymbolStyle?: StyleProp<TextStyle>;
 
     /** Whether to use dynamic font size for the amount input */
@@ -105,22 +101,17 @@ type NumberWithSymbolFormProps = {
     /** Whether the input is disabled or not */
     disabled?: boolean;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
-
-    /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
-
-    /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
-
-    /** Whether to show the flip (+/-) button */
     shouldShowFlipButton?: boolean;
 
     /** Whether to show the currency selection button */
     shouldShowCurrencyButton?: boolean;
 
-    /** Callback when currency button is pressed */
+    /** Extra content rendered at the start of the right-hand side, before the flip and currency buttons. `displayAsTextInput` mode only. */
+    leadingRightHandSideComponent?: React.ReactNode;
+
     onCurrencyButtonPress?: () => void;
 
     /**
@@ -130,7 +121,15 @@ type NumberWithSymbolFormProps = {
 
     /** Accessibility label for the trailing dropdown button (defaults to currency-based copy when unset) */
     currencyButtonAccessibilityLabel?: string;
-} & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
+
+    /**
+     * Renders the flip and currency buttons as their icon plus label, without the pill background, so they read as
+     * part of the field rather than as controls stacked on top of it. Their tap targets are unchanged.
+     * Left off for `AmountForm`, whose trailing button (e.g. the Chronos OOO duration unit) is a control on top of a
+     * standalone amount input rather than a row inside a form, so it keeps the pill.
+     */
+    shouldUseBorderlessButtons?: boolean;
+} & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp' | 'containerStyles'>;
 
 type NumberWithSymbolFormRef = {
     clearSelection: () => void;
@@ -187,6 +186,7 @@ function NumberWithSymbolForm({
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
     scrollViewStyle,
+    outerContainerStyles,
     shouldRefocusOnScrollViewClick = false,
     isNegative = false,
     allowFlippingAmount = false,
@@ -199,9 +199,11 @@ function NumberWithSymbolForm({
     onSubmitEditing,
     shouldShowFlipButton = false,
     shouldShowCurrencyButton = false,
+    leadingRightHandSideComponent,
     onCurrencyButtonPress,
     currencyButtonLabel,
     currencyButtonAccessibilityLabel,
+    shouldUseBorderlessButtons = false,
     ...props
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus', 'CoinsButton']);
@@ -252,9 +254,9 @@ function NumberWithSymbolForm({
         setMouseUp();
     };
 
-    const clearSelection = useCallback(() => {
+    const clearSelection = () => {
         setSelection({start: selection.end, end: selection.end});
-    }, [selection.end]);
+    };
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -280,41 +282,38 @@ function NumberWithSymbolForm({
      * Sets the selection and the number accordingly to the number passed to the input
      * @param newNumber - Changed number from user input
      */
-    const setNewNumber = useCallback(
-        (newNumber: string) => {
-            // Remove spaces from the newNumber number because Safari on iOS adds spaces when pasting a copied number
-            // More info: https://github.com/Expensify/App/issues/16974
-            const newNumberWithoutSpaces = stripSpacesFromAmount(newNumber);
-            const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
+    const setNewNumber = (newNumber: string) => {
+        // Remove spaces from the newNumber number because Safari on iOS adds spaces when pasting a copied number
+        // More info: https://github.com/Expensify/App/issues/16974
+        const newNumberWithoutSpaces = stripSpacesFromAmount(newNumber);
+        const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
 
-            // When allowNegativeInput is true, keep negative sign as-is (for split amounts)
-            // When allowFlippingAmount is true, strip the negative sign and call toggleNegative
-            const finalNumber = allowNegativeInput ? rawFinalNumber : handleNegativeAmountFlipping(rawFinalNumber, allowFlippingAmount, toggleNegative);
+        // When allowNegativeInput is true, keep negative sign as-is (for split amounts)
+        // When allowFlippingAmount is true, strip the negative sign and call toggleNegative
+        const finalNumber = allowNegativeInput ? rawFinalNumber : handleNegativeAmountFlipping(rawFinalNumber, allowFlippingAmount, toggleNegative);
 
-            // Use a shallow copy of selection to trigger setSelection
-            // More info: https://github.com/Expensify/App/issues/16385
-            if (!validateAmount(finalNumber, decimals, maxLength, allowNegativeInput)) {
-                setSelection((prevSelection) => ({...prevSelection}));
-                return;
+        // Use a shallow copy of selection to trigger setSelection
+        // More info: https://github.com/Expensify/App/issues/16385
+        if (!validateAmount(finalNumber, decimals, maxLength, allowNegativeInput)) {
+            setSelection((prevSelection) => ({...prevSelection}));
+            return;
+        }
+
+        willSelectionBeUpdatedManually.current = true;
+        let hasSelectionBeenSet = false;
+        const strippedNumber = stripCommaFromAmount(finalNumber);
+        numberRef.current = strippedNumber;
+        setCurrentNumber((prevNumber) => {
+            const isForwardDelete = prevNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
+            if (!hasSelectionBeenSet) {
+                hasSelectionBeenSet = true;
+                setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedNumber.length : prevNumber.length, strippedNumber.length));
+                willSelectionBeUpdatedManually.current = false;
             }
-
-            willSelectionBeUpdatedManually.current = true;
-            let hasSelectionBeenSet = false;
-            const strippedNumber = stripCommaFromAmount(finalNumber);
-            numberRef.current = strippedNumber;
-            setCurrentNumber((prevNumber) => {
-                const isForwardDelete = prevNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
-                if (!hasSelectionBeenSet) {
-                    hasSelectionBeenSet = true;
-                    setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedNumber.length : prevNumber.length, strippedNumber.length));
-                    willSelectionBeUpdatedManually.current = false;
-                }
-                return strippedNumber;
-            });
-            onInputChange?.(strippedNumber);
-        },
-        [decimals, maxLength, onInputChange, allowFlippingAmount, toggleNegative, allowNegativeInput],
-    );
+            return strippedNumber;
+        });
+        onInputChange?.(strippedNumber);
+    };
 
     /**
      * Set a new number number properly formatted, used for the TextInput
@@ -373,37 +372,34 @@ function NumberWithSymbolForm({
      * Update number with number or Backspace pressed for BigNumberPad.
      * Validate new number with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
      */
-    const updateValueNumberPad = useCallback(
-        (key: string) => {
-            if (shouldUpdateSelection && !isTextInputFocused(textInput)) {
-                textInput.current?.focus();
+    const updateValueNumberPad = (key: string) => {
+        if (shouldUpdateSelection && !isTextInputFocused(textInput)) {
+            textInput.current?.focus();
+        }
+        // Backspace button is pressed
+        if (key === '<' || key === 'Backspace') {
+            if (currentNumber.length > 0) {
+                const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
+                const newNumber = `${currentNumber.substring(0, selectionStart)}${currentNumber.substring(selection.end)}`;
+                setNewNumber(addLeadingZero(newNumber, allowNegativeInput));
             }
-            // Backspace button is pressed
-            if (key === '<' || key === 'Backspace') {
-                if (currentNumber.length > 0) {
-                    const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
-                    const newNumber = `${currentNumber.substring(0, selectionStart)}${currentNumber.substring(selection.end)}`;
-                    setNewNumber(addLeadingZero(newNumber, allowNegativeInput));
-                }
-                return;
-            }
-            const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`, allowNegativeInput);
-            setNewNumber(newNumber);
-        },
-        [currentNumber, selection.start, selection.end, shouldUpdateSelection, setNewNumber, allowNegativeInput],
-    );
+            return;
+        }
+        const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`, allowNegativeInput);
+        setNewNumber(newNumber);
+    };
 
     /**
      * Update long press number, to remove items pressing on <
      *
      * @param value - Changed text from user input
      */
-    const updateLongPressHandlerState = useCallback((value: boolean) => {
+    const updateLongPressHandlerState = (value: boolean) => {
         setShouldUpdateSelection(!value);
         if (!value && !isTextInputFocused(textInput)) {
             textInput.current?.focus();
         }
-    }, []);
+    };
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -458,16 +454,14 @@ function NumberWithSymbolForm({
     };
 
     // Calculate dynamic font size based on the total length of the amount display
-    const dynamicAmountStyle = useMemo(() => {
-        const totalLength = formattedNumber.length + (hideSymbol ? 0 : symbol.length) + (isNegative ? 1 : 0);
-        return StyleUtils.getAmountInputFontSize(totalLength);
-    }, [StyleUtils, formattedNumber.length, hideSymbol, symbol.length, isNegative]);
+    const totalLength = formattedNumber.length + (hideSymbol ? 0 : symbol.length) + (isNegative ? 1 : 0);
+    const dynamicAmountStyle = StyleUtils.getAmountInputFontSize(totalLength);
 
     /**
      * Handles pressing the flip button (+/-) to toggle negative sign
      * Only available in displayAsTextInput mode for manual expense flow
      */
-    const handleFlipPress = useCallback(() => {
+    const handleFlipPress = () => {
         // Toggle the minus sign prefix in the value
         const isRemovingSign = currentNumber.startsWith('-');
         const newValue = isRemovingSign ? currentNumber.slice(1) : `-${currentNumber}`;
@@ -488,56 +482,65 @@ function NumberWithSymbolForm({
             end: Math.max(prevSelection.end + offset, 0),
         }));
         onInputChange?.(newValue);
-    }, [currentNumber, onInputChange]);
+    };
+
+    // Borderless buttons read as part of the field rather than as controls on top of it, so their labels take the
+    // supporting text color instead of the button's own, matching the icons beside them.
+    const borderlessButtonTextStyle = shouldUseBorderlessButtons ? styles.textSupporting : undefined;
 
     /**
      * Creates the right-hand side component for text input mode
      * Renders flip (+/-) button and/or currency selection button when enabled
      * Only shown when clear button is not visible (see TextInput conditional rendering)
      */
-    const textInputRightHandSideComponent = useMemo(() => {
-        return (
-            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                {shouldShowFlipButton && allowNegativeInput && canUseTouchScreen && (
-                    <Button
-                        small
-                        icon={icons.PlusMinus}
-                        iconAccessibilityLabel={translate('iou.flip')}
-                        onPress={handleFlipPress}
-                        onMouseDown={(e) => e.preventDefault()}
-                        iconWrapperStyles={styles.justifyContentCenter}
-                        text={translate('iou.flip')}
+    const textInputRightHandSideComponent = (
+        <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+            {leadingRightHandSideComponent}
+            {shouldShowFlipButton && allowNegativeInput && canUseTouchScreen && (
+                <Button
+                    size={CONST.BUTTON_SIZE.SMALL}
+                    innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
+                    // `innerStyles` never reaches the hover style `Button` layers on top, so the pill the
+                    // borderless treatment removes would come back under the cursor without this.
+                    hoverStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
+                    onPress={handleFlipPress}
+                    onMouseDown={(e) => e.preventDefault()}
+                    contentContainerStyle={styles.justifyContentCenter}
+                    accessibilityLabel={translate('iou.flip')}
+                    isDisabled={disabled}
+                >
+                    <Button.Icon
+                        src={icons.PlusMinus}
                         accessibilityLabel={translate('iou.flip')}
-                        isDisabled={disabled}
                     />
-                )}
-                {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
-                    <Button
-                        small
-                        icon={icons.CoinsButton}
-                        iconAccessibilityLabel={translate('common.currency')}
-                        onPress={onTrailingDropdownPress}
-                        iconWrapperStyles={styles.justifyContentCenter}
-                        text={currencyOrUnitButtonText}
-                        accessibilityLabel={currencyButtonAccessibilityLabel ?? `${translate('common.selectCurrency')}, ${currencyOrUnitButtonText}`}
-                        isDisabled={disabled}
+                    <Button.Text style={borderlessButtonTextStyle}>{translate('iou.flip')}</Button.Text>
+                </Button>
+            )}
+            {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
+                <Button
+                    size={CONST.BUTTON_SIZE.SMALL}
+                    innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
+                    // `innerStyles` never reaches the hover style `Button` layers on top, so the pill the
+                    // borderless treatment removes would come back under the cursor without this.
+                    hoverStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
+                    onPress={onTrailingDropdownPress}
+                    // Keep the press from blurring the input. Callers that only reveal these buttons while the
+                    // field is focused would otherwise unmount this one before the press lands, leaving the
+                    // currency unreachable until an amount is typed.
+                    onMouseDown={(e) => e.preventDefault()}
+                    contentContainerStyle={styles.justifyContentCenter}
+                    accessibilityLabel={currencyButtonAccessibilityLabel ?? `${translate('common.selectCurrency')}, ${currencyOrUnitButtonText}`}
+                    isDisabled={disabled}
+                >
+                    <Button.Icon
+                        src={icons.CoinsButton}
+                        accessibilityLabel={translate('common.currency')}
                     />
-                )}
-            </View>
-        );
-    }, [
-        shouldShowFlipButton,
-        allowNegativeInput,
-        disabled,
-        shouldShowCurrencyButton,
-        styles,
-        icons,
-        handleFlipPress,
-        onTrailingDropdownPress,
-        currencyOrUnitButtonText,
-        currencyButtonAccessibilityLabel,
-        translate,
-    ]);
+                    <Button.Text style={borderlessButtonTextStyle}>{currencyOrUnitButtonText}</Button.Text>
+                </Button>
+            )}
+        </View>
+    );
 
     if (displayAsTextInput) {
         return (
@@ -573,7 +576,8 @@ function NumberWithSymbolForm({
                 onSubmitEditing={onSubmitEditing}
                 onFocus={props.onFocus}
                 onBlur={props.onBlur}
-                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
+                testID={props.testID}
+                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton || !!leadingRightHandSideComponent ? textInputRightHandSideComponent : undefined}
             />
         );
     }
@@ -604,6 +608,7 @@ function NumberWithSymbolForm({
             symbolTextStyle={[symbolTextStyle, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
             style={[style, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
             containerStyle={containerStyle}
+            containerStyles={outerContainerStyles}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             autoFocus={props.autoFocus}
@@ -645,27 +650,33 @@ function NumberWithSymbolForm({
                         <View style={[styles.flexRow, styles.justifyContentCenter, styles.gap2]}>
                             {isSymbolPressable && (
                                 <Button
-                                    small
-                                    icon={icons.CoinsButton}
-                                    iconAccessibilityLabel={translate('common.currency')}
+                                    size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={onSymbolButtonPress}
                                     style={styles.minWidth18}
-                                    iconWrapperStyles={styles.justifyContentCenter}
-                                    text={currency}
+                                    contentContainerStyle={styles.justifyContentCenter}
                                     accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
-                                />
+                                >
+                                    <Button.Icon
+                                        src={icons.CoinsButton}
+                                        accessibilityLabel={translate('common.currency')}
+                                    />
+                                    <Button.Text>{currency}</Button.Text>
+                                </Button>
                             )}
                             {allowFlippingAmount && (
                                 <Button
-                                    small
-                                    icon={icons.PlusMinus}
-                                    iconAccessibilityLabel={translate('iou.flip')}
+                                    size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={toggleNegative}
                                     style={styles.minWidth18}
-                                    iconWrapperStyles={styles.justifyContentCenter}
-                                    text={translate('iou.flip')}
+                                    contentContainerStyle={styles.justifyContentCenter}
                                     accessibilityLabel={translate('iou.flip')}
-                                />
+                                >
+                                    <Button.Icon
+                                        src={icons.PlusMinus}
+                                        accessibilityLabel={translate('iou.flip')}
+                                    />
+                                    <Button.Text>{translate('iou.flip')}</Button.Text>
+                                </Button>
                             )}
                         </View>
                         {!!errorText && (
@@ -725,15 +736,18 @@ function NumberWithSymbolForm({
                         <View style={[styles.flexRow, styles.moneyRequestAmountContainer, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
                         {isSymbolPressable && !!currency && !canUseTouchScreen && (
                             <Button
-                                small
-                                icon={icons.CoinsButton}
-                                iconAccessibilityLabel={translate('common.currency')}
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
-                                iconWrapperStyles={styles.justifyContentCenter}
-                                text={currency}
+                                contentContainerStyle={styles.justifyContentCenter}
                                 accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
-                            />
+                            >
+                                <Button.Icon
+                                    src={icons.CoinsButton}
+                                    accessibilityLabel={translate('common.currency')}
+                                />
+                                <Button.Text>{currency}</Button.Text>
+                            </Button>
                         )}
                         {!!errorText && (
                             <FormHelpMessage
@@ -751,27 +765,33 @@ function NumberWithSymbolForm({
             <View style={[styles.flexRow, styles.justifyContentCenter, shouldShowBigNumberPad ? styles.mb2 : styles.mb0, styles.gap2]}>
                 {isSymbolPressable && canUseTouchScreen && (
                     <Button
-                        small
-                        icon={icons.CoinsButton}
-                        iconAccessibilityLabel={translate('common.currency')}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
-                        iconWrapperStyles={styles.justifyContentCenter}
-                        text={currency}
+                        contentContainerStyle={styles.justifyContentCenter}
                         accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
-                    />
+                    >
+                        <Button.Icon
+                            src={icons.CoinsButton}
+                            accessibilityLabel={translate('common.currency')}
+                        />
+                        <Button.Text>{currency}</Button.Text>
+                    </Button>
                 )}
                 {allowFlippingAmount && canUseTouchScreen && (
                     <Button
-                        small
-                        icon={icons.PlusMinus}
-                        iconAccessibilityLabel={translate('iou.flip')}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={toggleNegative}
                         style={styles.minWidth18}
-                        iconWrapperStyles={styles.justifyContentCenter}
-                        text={translate('iou.flip')}
+                        contentContainerStyle={styles.justifyContentCenter}
                         accessibilityLabel={translate('iou.flip')}
-                    />
+                    >
+                        <Button.Icon
+                            src={icons.PlusMinus}
+                            accessibilityLabel={translate('iou.flip')}
+                        />
+                        <Button.Text>{translate('iou.flip')}</Button.Text>
+                    </Button>
                 )}
             </View>
 

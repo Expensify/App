@@ -17,22 +17,16 @@ import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type CountrySelectorModalProps = {
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Function to call when the user closes the business type selector modal */
     onClose: () => void;
 
-    /** Label to display on field */
     label: string;
-
-    /** Country selected  */
     currentCountry: string;
-
-    /** Function to call when the user selects a country */
     onCountrySelected: (value: Option) => void;
 
     /** Function to call when the user presses on the modal backdrop */
@@ -45,35 +39,28 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
     const initialSelectedValue = useInitialSelection(currentCountry || undefined, {isVisible});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
-    const countries = useMemo(
-        () =>
-            Object.keys(CONST.ALL_COUNTRIES).map((countryISO) => {
-                const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
-                return {
-                    value: countryISO,
-                    keyForList: countryISO,
-                    text: countryName,
-                    isSelected: currentCountry === countryISO,
-                    searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-                };
-            }),
-        [translate, currentCountry],
-    );
+    const countries = Object.keys(CONST.ALL_COUNTRIES).map((countryISO) => {
+        const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
+        return {
+            value: countryISO,
+            keyForList: countryISO,
+            text: countryName,
+            isSelected: currentCountry === countryISO,
+            searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+        };
+    });
     const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const styles = useThemeStyles();
 
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchValue,
-            label: translate('common.search'),
-            onChangeText: setSearchValue,
-            headerMessage,
-        }),
-        [headerMessage, searchValue, translate, setSearchValue],
-    );
+    const textInputOptions = {
+        value: searchValue,
+        label: translate('common.search'),
+        onChangeText: setSearchValue,
+        headerMessage,
+    };
 
     return (
         <Modal

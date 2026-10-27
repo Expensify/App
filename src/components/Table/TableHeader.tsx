@@ -3,9 +3,11 @@ import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,6 +22,9 @@ import {StyleSheet, View} from 'react-native';
 
 import type {TableColumn, TableData} from './types';
 
+import {rendersColumnHeaderInListHeader} from './buildTableListData';
+import ColumnResizeHandle from './columnResize/ColumnResizeHandle';
+import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {getColumnHeaderAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
@@ -33,7 +38,13 @@ const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
 /**
  * Props for the TableHeader component.
  */
-type TableHeaderProps = ViewProps;
+type TableHeaderProps = ViewProps & {
+    /** Whether this header is rendered as a sticky FlashList item. */
+    isStickyListHeader?: boolean;
+
+    /** Whether this duplicate sticky-header render must be hidden and removed from keyboard focus. */
+    isAccessibilityHidden?: boolean;
+};
 
 /**
  * Renders the table header row with sortable column headers.
@@ -58,19 +69,36 @@ type TableHeaderProps = ViewProps;
  * </Table>
  * ```
  */
-function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
+function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, isStickyListHeader = false, isAccessibilityHidden = false, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {pageGutterMargin} = useLayoutSpacing();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, processedData, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal} =
-        useTableContext<DataType, ColumnKey>();
+    const {
+        columns,
+        isEmptyResult,
+        title,
+        shouldUseNarrowTableLayout,
+        tableMethods,
+        selectionEnabled,
+        processedData,
+        isMobileSelectionEnabled,
+        shouldEnableSelectionInNarrowPaneModal,
+        dynamicGridTemplateColumns,
+        scrollWidth,
+        rowWidth,
+        columnResize,
+        tableListMetadata,
+    } = useTableContext<DataType, ColumnKey>();
     // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
     // shouldUseNarrowLayout is always true in an RHP. Other tables keep the original behavior. Visual padding below still uses shouldUseNarrowLayout.
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+    const inertProps = isAccessibilityHidden ? {inert: true} : {};
 
     if (shouldUseNarrowTableLayout && !title) {
         return null;
@@ -80,7 +108,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         return null;
     }
 
-    const gridTemplateColumns = getGridTemplateColumns(columns);
+    // The tracks resolved from the columns' content are shared by the header and every row, so they take precedence over
+    // the static ones. They're only ever set on wide web layouts.
+    const gridTemplateColumns = dynamicGridTemplateColumns ? [...dynamicGridTemplateColumns] : getGridTemplateColumns(columns);
 
     if (isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
@@ -100,11 +130,13 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         }
     }
 
-    return (
+    const header = (
         <View
             style={[
                 styles.pv2,
-                styles.mh5,
+                pageGutterMargin,
+                // Same expression as the rows, so headings stay aligned with their cells.
+                !!rowWidth && StyleUtils.getWidthStyle(rowWidth),
                 styles.highlightBG,
                 styles.borderBottom,
                 styles.tableTopRadius,
@@ -117,21 +149,28 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
                 !shouldUseNarrowTableLayout && {gridTemplateColumns: gridTemplateColumns.join(' ')},
+                // Overrides the flex fallback's `justifyContentBetween`, which would spread a narrowed column's leftover room between grid tracks.
+                !!dynamicGridTemplateColumns && !shouldUseNarrowTableLayout && styles.justifyContentStart,
+                // Resize lines hang below the header, so keep them above the rows.
+                !!columnResize && styles.zIndex1,
                 style,
             ]}
+            dataSet={TABLE_ROW_DATA_SET}
             {...getRowAccessibilityProps(isTableSemanticsEnabled, 0, true)}
             {...props}
+            {...inertProps}
         >
             {shouldUseNarrowTableLayout && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.gap3]}>
                     {!!isSelectionCheckboxVisible && (
                         <Checkbox
                             containerStyle={styles.m0}
-                            disabled={!hasSelectableRows}
+                            disabled={isAccessibilityHidden || !hasSelectableRows}
                             isChecked={isEverySelectableRowSelected}
                             isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                             onPress={tableMethods.handleSelectAll}
                             accessibilityLabel={translate('workspace.common.selectAll')}
+                            tabIndex={isAccessibilityHidden ? -1 : undefined}
                             style={styles.pl1}
                         />
                     )}
@@ -154,11 +193,12 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                         // accessibility props are empty otherwise, leaving the checkbox's layout unchanged.
                         <View {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 1)}>
                             <Checkbox
-                                disabled={!hasSelectableRows}
+                                disabled={isAccessibilityHidden || !hasSelectableRows}
                                 isChecked={isEverySelectableRowSelected}
                                 isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                                 onPress={tableMethods.handleSelectAll}
                                 accessibilityLabel={translate('workspace.common.selectAll')}
+                                tabIndex={isAccessibilityHidden ? -1 : undefined}
                             />
                         </View>
                     )}
@@ -168,6 +208,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                             <TableHeaderColumn
                                 column={column}
                                 isTableSemanticsEnabled={isTableSemanticsEnabled}
+                                isAccessibilityHidden={isAccessibilityHidden}
                                 // 1-based, and offset by the leading selection column (column 1) when present, so it
                                 // aligns with the matching data cell's aria-colindex.
                                 columnIndex={index + 1 + (isSelectionCheckboxVisible ? 1 : 0)}
@@ -179,7 +220,21 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
             )}
         </View>
     );
+
+    // In the list header rather than FlashList's sticky overlay, so it scrolls sideways with the columns. Resizable tables
+    // size the inner row. The rest need the wrapper at the scroll width, or the background and bottom border fall short of the columns.
+    if (rendersColumnHeaderInListHeader(tableListMetadata)) {
+        return <View style={[styles.appBG, !rowWidth && typeof scrollWidth === 'number' && StyleUtils.getWidthStyle(scrollWidth)]}>{header}</View>;
+    }
+
+    if (!isStickyListHeader) {
+        return header;
+    }
+
+    return <View style={styles.appBG}>{header}</View>;
 }
+
+TableHeader.type = 'header';
 
 /**
  * Renders a single sortable column header.
@@ -190,10 +245,12 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
 function TableHeaderColumn<DataType extends TableData, ColumnKey extends string = string>({
     column,
     isTableSemanticsEnabled,
+    isAccessibilityHidden,
     columnIndex,
 }: {
-    column: TableColumn<ColumnKey>;
+    column: TableColumn<ColumnKey, DataType>;
     isTableSemanticsEnabled: boolean;
+    isAccessibilityHidden: boolean;
     columnIndex: number;
 }) {
     const theme = useTheme();
@@ -272,7 +329,8 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             accessible
             accessibilityLabel={column.label}
             accessibilityRole="button"
-            disabled={!column.sortable}
+            disabled={isAccessibilityHidden || !column.sortable}
+            tabIndex={isAccessibilityHidden ? -1 : undefined}
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
             // In the semantic path the column's flex sizing lives on the columnheader cell wrapper below, so the button
             // just fills it — `flex1` on both the pressable and its OpacityView wrapper (`wrapperStyle`) so neither
@@ -298,8 +356,12 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             {...getColumnHeaderAccessibilityProps(true, !!column.sortable, isSortingByColumn, activeSorting.order, columnIndex)}
         >
             {sortButton}
+
+            {/* Skipped in the sticky header's hidden twin to avoid duplicate handles. */}
+            {!isAccessibilityHidden && <ColumnResizeHandle columnKey={column.key} />}
         </View>
     );
 }
 
 export default TableHeader;
+export type {TableHeaderProps};

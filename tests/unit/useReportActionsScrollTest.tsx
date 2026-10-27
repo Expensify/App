@@ -45,19 +45,25 @@ jest.mock('@hooks/useReportScrollManager', () => ({
 
 // --- useReportUnreadMessageScrollTracking ---
 const mockSetIsFloatingMessageCounterVisible = jest.fn();
+const mockSetIsActionBadgeAboveViewport = jest.fn();
 const mockTrackVerticalScrolling = jest.fn();
 const mockOnViewableItemsChanged = jest.fn();
 let mockIsFloatingMessageCounterVisible = false;
 let mockIsActionBadgeAboveViewport = false;
+let mockShouldDisablePillTracking: boolean | undefined;
 jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
     __esModule: true,
-    default: () => ({
-        isFloatingMessageCounterVisible: mockIsFloatingMessageCounterVisible,
-        setIsFloatingMessageCounterVisible: mockSetIsFloatingMessageCounterVisible,
-        isActionBadgeAboveViewport: mockIsActionBadgeAboveViewport,
-        trackVerticalScrolling: mockTrackVerticalScrolling,
-        onViewableItemsChanged: mockOnViewableItemsChanged,
-    }),
+    default: ({shouldDisablePillTracking}: {shouldDisablePillTracking?: boolean}) => {
+        mockShouldDisablePillTracking = shouldDisablePillTracking;
+        return {
+            isFloatingMessageCounterVisible: mockIsFloatingMessageCounterVisible,
+            setIsFloatingMessageCounterVisible: mockSetIsFloatingMessageCounterVisible,
+            isActionBadgeAboveViewport: mockIsActionBadgeAboveViewport,
+            setIsActionBadgeAboveViewport: mockSetIsActionBadgeAboveViewport,
+            trackVerticalScrolling: mockTrackVerticalScrolling,
+            onViewableItemsChanged: mockOnViewableItemsChanged,
+        };
+    },
 }));
 
 // --- useReportActionsNewActionLiveTail ---
@@ -93,12 +99,16 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 
 // --- Navigation ---
 const mockNavigate = jest.fn();
+const mockSetParams = jest.fn();
 let mockReportRHPActiveRoute: string | undefined;
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
         navigate: (...args: unknown[]) => {
             mockNavigate(...args);
+        },
+        setParams: (...args: unknown[]) => {
+            mockSetParams(...args);
         },
         getReportRHPActiveRoute: () => mockReportRHPActiveRoute,
     },
@@ -114,7 +124,7 @@ jest.mock('@userActions/Report', () => ({
 }));
 
 // --- react-navigation route ---
-let mockRouteParams: {reportActionID?: string; backTo?: string} = {};
+let mockRouteParams: {reportActionID?: string; backTo?: string; shouldScrollToLatest?: string} = {};
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
@@ -172,6 +182,7 @@ function makeAction(reportActionID: string, overrides: Partial<ReportAction> = {
 function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
     return {
         reportID: REPORT_ID,
+        conciergeChat: undefined,
         report: createMockReport({reportID: REPORT_ID}),
         transactionThreadReport: undefined,
         parentReportAction: undefined,
@@ -234,6 +245,7 @@ describe('useReportActionsScroll', () => {
         mockReportRHPActiveRoute = undefined;
         mockIsFloatingMessageCounterVisible = false;
         mockIsActionBadgeAboveViewport = false;
+        mockShouldDisablePillTracking = undefined;
         mockIsScrollToBottomEnabled = false;
         mockIsTransactionThread = false;
         mockIsSentMoneyReportAction = false;
@@ -315,6 +327,28 @@ describe('useReportActionsScroll', () => {
             // No key + aligned-to-top → focus to top.
             expect(result.current.shouldFocusToTopOnMount).toBe(true);
         });
+
+        it('does not focus to top for a single-expense money request report opened from the X Replies link', async () => {
+            mockIsMoneyRequestReport = true;
+            mockRouteParams = {shouldScrollToLatest: 'true'};
+
+            const {result} = await renderScroll();
+
+            // Still aligned to top so short reports keep their layout, but the mount position is the latest message.
+            expect(result.current.shouldBeAlignedToTop).toBe(true);
+            expect(result.current.shouldFocusToTopOnMount).toBe(false);
+            expect(result.current.initialScrollIndex).toBeUndefined();
+        });
+
+        it('does not focus to top for an invoice report opened from the X Replies link', async () => {
+            mockIsInvoiceReport = true;
+            mockRouteParams = {shouldScrollToLatest: 'true'};
+
+            const {result} = await renderScroll();
+
+            expect(result.current.shouldBeAlignedToTop).toBe(true);
+            expect(result.current.shouldFocusToTopOnMount).toBe(false);
+        });
     });
 
     describe('scrollToBottomAndMarkReportAsRead', () => {
@@ -376,7 +410,60 @@ describe('useReportActionsScroll', () => {
                 result.current.scrollToActionBadgeTarget();
             });
 
-            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+        });
+
+        it('leaves the pills to viewability tracking when the composer is not expanded', async () => {
+            // Given a valid action badge target with the composer at its normal size
+            const {result} = await renderScroll({actionBadgeTargetIndex: 5});
+
+            // When the action badge pill is pressed
+            act(() => {
+                result.current.scrollToActionBadgeTarget();
+            });
+
+            // Then the pills are not hidden directly because the target scrolls into view and viewability tracking hides the pill
+            expect(mockSetIsActionBadgeAboveViewport).not.toHaveBeenCalled();
+            expect(mockSetIsFloatingMessageCounterVisible).not.toHaveBeenCalled();
+        });
+
+        it('hides both pills on press when the composer is expanded', async () => {
+            // Given a valid action badge target while the expanded composer covers the list
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${REPORT_ID}`, true);
+            const {result} = await renderScroll({actionBadgeTargetIndex: 5});
+
+            // When the action badge pill is pressed
+            act(() => {
+                result.current.scrollToActionBadgeTarget();
+            });
+
+            // Then both pills are hidden directly because the target can never become viewable to hide them, and the list still scrolls
+            expect(mockSetIsActionBadgeAboveViewport).toHaveBeenCalledWith(false);
+            expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
+            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+        });
+    });
+
+    describe('pill tracking', () => {
+        it('keeps scroll-based pill tracking enabled when the composer is not expanded', async () => {
+            // Given the composer at its normal size and no linked message to position
+
+            // When the hook renders
+            await renderScroll();
+
+            // Then scroll-based pill tracking stays enabled so the Latest messages pill follows scrolling
+            expect(mockShouldDisablePillTracking).toBe(false);
+        });
+
+        it('disables scroll-based pill tracking while the composer is expanded', async () => {
+            // Given the expanded composer covers the list
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${REPORT_ID}`, true);
+
+            // When the hook renders
+            await renderScroll();
+
+            // Then scroll-based pill tracking is disabled so scrolling the hidden list cannot bring the Latest messages pill back
+            expect(mockShouldDisablePillTracking).toBe(true);
         });
     });
 
@@ -493,6 +580,33 @@ describe('useReportActionsScroll', () => {
             flushTransitions();
 
             expect(mockScrollToBottom).not.toHaveBeenCalled();
+        });
+
+        it('scrolls to bottom on mount for a single-expense money request report opened from the X Replies link', async () => {
+            mockIsMoneyRequestReport = true;
+            mockRouteParams = {shouldScrollToLatest: 'true'};
+
+            await renderScroll();
+            flushTransitions();
+
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+        });
+
+        it('clears the X Replies flag once it has been applied', async () => {
+            mockIsMoneyRequestReport = true;
+            mockRouteParams = {shouldScrollToLatest: 'true'};
+
+            await renderScroll();
+
+            expect(mockSetParams).toHaveBeenCalledWith({shouldScrollToLatest: undefined});
+        });
+
+        it('does not clear the X Replies flag when it was never set', async () => {
+            mockIsMoneyRequestReport = true;
+
+            await renderScroll();
+
+            expect(mockSetParams).not.toHaveBeenCalled();
         });
 
         it('auto-scrolls to bottom when a new draft key arrives near the bottom and the newest action is present', async () => {

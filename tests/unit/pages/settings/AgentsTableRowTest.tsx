@@ -5,9 +5,10 @@ import AgentsTableRow from '@components/Tables/AgentsTable/AgentsTableRow';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type ReactNative from 'react-native';
 
@@ -63,7 +64,12 @@ jest.mock('@components/Table/TableContext', () => ({
         tableMethods: {},
         selectionEnabled: false,
         isMobileSelectionEnabled: false,
+        tableListMetadata: {
+            hasPageHeader: false,
+            columnHeaderPlacement: 'none',
+        },
     })),
+    useTableRowSemanticID: jest.fn(() => undefined),
 }));
 
 jest.mock('@components/Avatar/connected/AccountAvatar', () => {
@@ -107,7 +113,7 @@ const mockRecordButtonInnerStyles = jest.fn((accessibilityLabel: string, innerSt
     mockButtonInnerStyles[accessibilityLabel] = innerStyles;
 });
 
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     const {TouchableOpacity, Text} = jest.requireActual<typeof ReactNative>('react-native');
 
     function MockButtonIcon() {
@@ -190,7 +196,8 @@ const BASE_ITEM: AgentRowData = {
     accountID: TEST_ACCOUNT_ID,
     displayName: 'Test Agent',
     login: 'agent@example.com',
-    action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(TEST_ACCOUNT_ID)),
+    canManage: true,
+    action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(TEST_ACCOUNT_ID))),
     onChatPress: mockOnChatPress,
     onCopilotPress: mockOnCopilotPress,
     dismissError: jest.fn(),
@@ -230,7 +237,7 @@ describe('AgentsTableRow', () => {
 
         fireEvent.press(screen.getByLabelText('Test Agent, agent@example.com'));
 
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(TEST_ACCOUNT_ID));
+        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(TEST_ACCOUNT_ID)));
     });
 
     it('shows action buttons on wide layout', () => {
@@ -272,7 +279,7 @@ describe('AgentsTableRow', () => {
 
         fireEvent.press(screen.getByText('common.edit'));
 
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(TEST_ACCOUNT_ID));
+        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(TEST_ACCOUNT_ID)));
     });
 
     it('pressing Chat button calls onChatPress', () => {

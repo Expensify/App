@@ -32,6 +32,8 @@ type TableAccessibilityProps = {
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 
+type VirtualizedRowTarget = 'Cell' | 'Measurement' | 'StickyHeader';
+
 /**
  * Whether table semantics should be applied. They only help on web, and only in the wide layout: the narrow layout
  * renders a single column card list, which screen readers already announce correctly.
@@ -44,9 +46,9 @@ function shouldUseTableSemantics(shouldUseNarrowTableLayout: boolean): boolean {
  * Props for the element wrapping the whole table. The row count lives on the container because FlashList virtualizes
  * rows, so a screen reader cannot derive the total by walking the DOM. `columnCount` includes the leading selection
  * column when present, so it matches the 1-based `aria-colindex` assigned to headers and cells (the checkbox is
- * column 1).
+ * column 1). `hasHeaderRow` reflects whether the active virtualized layout currently exposes a column-header row.
  */
-function getTableContainerAccessibilityProps(isEnabled: boolean, label: string | undefined, rowCount: number, columnCount: number): TableAccessibilityProps {
+function getTableContainerAccessibilityProps(isEnabled: boolean, label: string | undefined, rowCount: number, columnCount: number, hasHeaderRow = true): TableAccessibilityProps {
     if (!isEnabled) {
         return {};
     }
@@ -57,9 +59,9 @@ function getTableContainerAccessibilityProps(isEnabled: boolean, label: string |
         // eslint-disable-next-line @typescript-eslint/naming-convention
         'aria-label': label,
 
-        // The header row is rendered as a sibling of the data rows, so it has to be counted separately.
+        // The header row is rendered as a sibling of the data rows when present, so count it separately.
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        'aria-rowcount': rowCount + 1,
+        'aria-rowcount': rowCount + (hasHeaderRow ? 1 : 0),
 
         // eslint-disable-next-line @typescript-eslint/naming-convention
         'aria-colcount': columnCount,
@@ -68,15 +70,19 @@ function getTableContainerAccessibilityProps(isEnabled: boolean, label: string |
 
 /** Props for the element grouping rows together, i.e. the table body wrapper. */
 function getRowGroupAccessibilityProps(isEnabled: boolean): TableAccessibilityProps {
-    return isEnabled ? {role: CONST.ROLE.ROWGROUP} : {};
+    if (!isEnabled) {
+        return {};
+    }
+
+    return {role: CONST.ROLE.ROWGROUP};
 }
 
 /**
  * Props for a table row. `aria-rowindex` is 1-based and has to be set explicitly because FlashList only keeps the
  * visible rows in the DOM, so a screen reader would otherwise announce the position within the rendered window.
- * The header occupies index 1, so data rows start at 2.
+ * Data rows start at 2 when a header occupies index 1, and at 1 when the current table layout has no exposed header.
  */
-function getRowAccessibilityProps(isEnabled: boolean, rowIndex: number, isHeaderRow = false): TableAccessibilityProps {
+function getRowAccessibilityProps(isEnabled: boolean, rowIndex: number, isHeaderRow = false, hasHeaderRow = true): TableAccessibilityProps {
     if (!isEnabled) {
         return {};
     }
@@ -85,8 +91,17 @@ function getRowAccessibilityProps(isEnabled: boolean, rowIndex: number, isHeader
         role: CONST.ROLE.ROW,
 
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        'aria-rowindex': isHeaderRow ? 1 : rowIndex + 2,
+        'aria-rowindex': isHeaderRow ? 1 : rowIndex + (hasHeaderRow ? 2 : 1),
     };
+}
+
+/** Keeps real FlashList cells in the semantic tree while marking measurement and sticky clones as hidden. */
+function getVirtualizedRowSemanticID(isEnabled: boolean, target: VirtualizedRowTarget): null | undefined {
+    if (!isEnabled) {
+        return undefined;
+    }
+
+    return target === 'Cell' ? undefined : null;
 }
 
 /**
@@ -183,6 +198,7 @@ export {
     getTableContainerAccessibilityProps,
     getRowGroupAccessibilityProps,
     getRowAccessibilityProps,
+    getVirtualizedRowSemanticID,
     getColumnHeaderAccessibilityProps,
     getCellAccessibilityProps,
     assignCellColumnIndexes,

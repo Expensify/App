@@ -34,26 +34,27 @@ describe('PromotedActions.message', () => {
     it('should pass introSelected to navigateToAndOpenReport when login is provided', () => {
         const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
         const action = PromotedActions.message({
+            isSupportalSession: false,
+            conciergeChat: undefined,
             login: 'test@example.com',
             currentUserAccountID: 1,
             personalDetails: {},
             introSelected,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: false,
         });
 
         action.onSelected();
 
         expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith({
+            isSupportalSession: false,
             userLogins: ['test@example.com'],
             personalDetails: {},
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             shouldDismissModal: false,
             shouldRevalidateExistingChat: true,
             hasReportActions: false,
@@ -63,47 +64,50 @@ describe('PromotedActions.message', () => {
     it('should pass introSelected to navigateToAndOpenReportWithAccountIDs when accountID is provided', () => {
         const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
         const action = PromotedActions.message({
+            isSupportalSession: false,
+            conciergeChat: undefined,
             accountID: 42,
             currentUserAccountID: 1,
             personalDetails: {},
             introSelected,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: false,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, undefined, undefined, {}, true, false);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, undefined, {}, undefined, true, false);
     });
 
     it('should pass undefined introSelected when not provided', () => {
         const action = PromotedActions.message({
+            isSupportalSession: false,
+            conciergeChat: undefined,
             accountID: 42,
             currentUserAccountID: 1,
             personalDetails: {},
             introSelected: undefined,
             isSelfTourViewed: undefined,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: false,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, undefined, undefined, undefined, undefined, {}, true, false);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, undefined, undefined, undefined, {}, undefined, true, false);
     });
 
     it('should navigate to report directly when reportID is provided', () => {
         const action = PromotedActions.message({
+            isSupportalSession: false,
+            conciergeChat: undefined,
             reportID: 'report123',
             currentUserAccountID: 1,
             personalDetails: {},
             introSelected: undefined,
             isSelfTourViewed: undefined,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: false,
         });
 
@@ -117,6 +121,8 @@ describe('PromotedActions.message', () => {
     it('should prefer login over accountID when both are provided', () => {
         const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
         const action = PromotedActions.message({
+            isSupportalSession: false,
+            conciergeChat: undefined,
             accountID: 42,
             personalDetails: {},
             login: 'test@example.com',
@@ -124,20 +130,19 @@ describe('PromotedActions.message', () => {
             introSelected,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: false,
         });
 
         action.onSelected();
 
         expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith({
+            isSupportalSession: false,
             userLogins: ['test@example.com'],
             personalDetails: {},
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             shouldDismissModal: false,
             shouldRevalidateExistingChat: true,
             hasReportActions: false,
@@ -145,83 +150,36 @@ describe('PromotedActions.message', () => {
         expect(mockNavigateToAndOpenReportWithAccountIDs).not.toHaveBeenCalled();
     });
 
-    it('should pass betas to navigateToAndOpenReportWithAccountIDs when accountID is provided', () => {
-        const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
-        const betas = [CONST.BETAS.ALL];
-        const action = PromotedActions.message({
-            accountID: 42,
-            personalDetails: {},
-            currentUserAccountID: 1,
-            introSelected,
-            isSelfTourViewed: false,
-            hasCompletedGuidedSetupFlow: undefined,
-            betas,
-            hasReportActions: false,
-        });
-
-        action.onSelected();
-
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, undefined, betas, {}, true, false);
-    });
-
     it('should call navigateToAndOpenReportWithAccountIDs with isSelfTourViewed=true when self tour has been viewed and accountID is provided', () => {
         const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
         const action = PromotedActions.message({
+            isSupportalSession: false,
+            conciergeChat: undefined,
             accountID: 42,
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: true,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             personalDetails: {},
             hasReportActions: false,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, true, undefined, undefined, {}, true, false);
-    });
-
-    it('should pass betas to navigateToAndOpenReport when login is provided', () => {
-        const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
-        const betas = [CONST.BETAS.ALL];
-        const action = PromotedActions.message({
-            login: 'test@example.com',
-            currentUserAccountID: 1,
-            introSelected,
-            personalDetails: {},
-            isSelfTourViewed: false,
-            hasCompletedGuidedSetupFlow: undefined,
-            betas,
-            hasReportActions: false,
-        });
-
-        action.onSelected();
-
-        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith({
-            userLogins: ['test@example.com'],
-            personalDetails: {},
-            currentUserAccountID: 1,
-            introSelected,
-            isSelfTourViewed: false,
-            hasCompletedGuidedSetupFlow: undefined,
-            betas,
-            shouldDismissModal: false,
-            shouldRevalidateExistingChat: true,
-            hasReportActions: false,
-        });
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, true, undefined, {}, undefined, true, false);
     });
 
     it('should pass hasReportActions to navigateToAndOpenReport when the existing chat already has report actions', () => {
         const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
         const action = PromotedActions.message({
+            isSupportalSession: false,
+            conciergeChat: undefined,
             login: 'test@example.com',
             currentUserAccountID: 1,
             personalDetails: {},
             introSelected,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: true,
         });
 
@@ -232,6 +190,8 @@ describe('PromotedActions.message', () => {
 
     it('should prefer reportID for self profile message action', () => {
         const action = PromotedActions.message({
+            isSupportalSession: false,
+            conciergeChat: undefined,
             reportID: 'selfReport123',
             accountID: 1,
             currentUserAccountID: 1,
@@ -239,7 +199,6 @@ describe('PromotedActions.message', () => {
             introSelected: undefined,
             isSelfTourViewed: undefined,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: false,
         });
 

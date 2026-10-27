@@ -1,8 +1,9 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {toggleTravelBillingContinuousReconciliation} from '@libs/actions/TravelBilling';
@@ -20,7 +21,6 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
@@ -29,18 +29,12 @@ type TravelBillingContinuousReconciliationSectionProps = {
     policy: OnyxEntry<Policy>;
     connectionName: ConnectionName;
     isAutoSyncEnabled: boolean;
-    toggleWrapperStyle?: StyleProp<ViewStyle>;
-    menuItemWrapperStyle?: StyleProp<ViewStyle>;
+    isPayableAccountSet: boolean;
 };
 
-function TravelBillingContinuousReconciliationSection({
-    policy,
-    connectionName,
-    isAutoSyncEnabled,
-    toggleWrapperStyle,
-    menuItemWrapperStyle,
-}: TravelBillingContinuousReconciliationSectionProps) {
+function TravelBillingContinuousReconciliationSection({policy, connectionName, isAutoSyncEnabled, isPayableAccountSet}: TravelBillingContinuousReconciliationSectionProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
@@ -53,6 +47,8 @@ function TravelBillingContinuousReconciliationSection({
     const travelBillingReconciliationBankAccount = getConnectionBankAccountsForReconciliation(policy?.connections, connectionName).find(
         (account) => account.id === travelBillingReconciliationBankAccountID,
     );
+
+    const isToggleDisabled = !isPayableAccountSet || !isAutoSyncEnabled;
 
     const navigateToTravelBillingReconciliationAccountSettings = () => {
         Navigation.navigate(
@@ -71,27 +67,32 @@ function TravelBillingContinuousReconciliationSection({
     return (
         <>
             <ToggleSettingOptionRow
-                title={translate('workspace.accounting.syncTravelInvoicingSettlements')}
+                title={translate('workspace.accounting.syncTravelBillingSettlements')}
                 isActive={!!travelBillingContinuousReconciliation}
-                switchAccessibilityLabel={translate('workspace.accounting.syncTravelInvoicingSettlements')}
-                disabled={!isAutoSyncEnabled}
+                switchAccessibilityLabel={translate('workspace.accounting.syncTravelBillingSettlements')}
+                disabled={isToggleDisabled}
+                showLockIcon={isToggleDisabled}
+                disabledText={
+                    isPayableAccountSet
+                        ? translate('workspace.accounting.syncTravelBillingSettlementsNoAutoSyncTooltip')
+                        : translate('workspace.accounting.syncTravelBillingSettlementsNoAccountTooltip')
+                }
                 onToggle={(isEnabled) => {
-                    toggleTravelBillingContinuousReconciliation(workspaceAccountID, isEnabled, connectionName, travelBillingContinuousReconciliationConnection);
-                    if (isEnabled) {
+                    if (isEnabled && !travelBillingReconciliationBankAccountID) {
                         navigateToTravelBillingReconciliationAccountSettings();
+                        return;
                     }
+                    toggleTravelBillingContinuousReconciliation(workspaceAccountID, isEnabled, connectionName, travelBillingContinuousReconciliationConnection);
                 }}
                 pendingAction={travelBillingContinuousReconciliationPendingAction}
-                wrapperStyle={toggleWrapperStyle}
+                wrapperStyle={[styles.mv3, styles.ph5]}
             />
             {!!travelBillingContinuousReconciliation && (
                 <OfflineWithFeedback pendingAction={travelBillingContinuousReconciliationPendingAction}>
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.accounting.reconciliationAccount')}
+                    <MenuItemField
+                        name={translate('workspace.accounting.reconciliationAccount')}
                         onPress={navigateToTravelBillingReconciliationAccountSettings}
-                        title={travelBillingReconciliationBankAccount?.name}
-                        shouldShowRightIcon
-                        wrapperStyle={menuItemWrapperStyle}
+                        value={travelBillingReconciliationBankAccount?.name}
                     />
                 </OfflineWithFeedback>
             )}

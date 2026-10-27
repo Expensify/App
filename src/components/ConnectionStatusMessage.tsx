@@ -1,7 +1,9 @@
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
 
 import type {ComponentProps} from 'react';
 
@@ -34,7 +36,7 @@ function ConnectionStatusMessage({
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
 
     if (!message && !actionText) {
         return null;
@@ -42,7 +44,7 @@ function ConnectionStatusMessage({
 
     let statusMessageRowPadding;
     if (shouldIncludeHorizontalPadding) {
-        statusMessageRowPadding = shouldUseNarrowLayout ? styles.ph5 : styles.ph8;
+        statusMessageRowPadding = cardPaddingHorizontal;
     }
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
@@ -69,13 +71,14 @@ function ConnectionStatusMessage({
 
     const actionButton = shouldShowActionButton ? (
         <Button
-            small
-            danger
+            variant={CONST.BUTTON_VARIANT.DANGER}
+            size={CONST.BUTTON_SIZE.SMALL}
             style={styles.alignSelfStart}
-            text={actionText}
             onPress={onActionPress}
             isDisabled={isActionDisabled}
-        />
+        >
+            <Button.Text>{actionText}</Button.Text>
+        </Button>
     ) : null;
 
     return (

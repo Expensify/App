@@ -16,7 +16,7 @@ function AvailableBookingDay({disabled, selected, pressed, hovered, children}: D
         <View
             style={[
                 themeStyles.calendarDayContainer,
-                !disabled ? [themeStyles.buttonDefaultBG, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))] : {},
+                !disabled ? [themeStyles.buttonDefaultBG, StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered, isPressed: pressed}))] : {},
                 selected ? themeStyles.buttonSuccess : {},
             ]}
         >

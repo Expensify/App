@@ -53,6 +53,8 @@ If you are exporting an invoice, continue to the next step.
 
 ### Update the Expensify Connect Bundle in NetSuite
 
+Before updating, record any customized integration role permissions. Learn how to [update the Expensify Connect bundle and verify permissions afterward](/articles/new-expensify/connections/netsuite/Update-Expensify-Connect-Bundle-in-NetSuite).
+
 1. Log in to NetSuite as an administrator.
 2. Go to **Customization > SuiteBundler > Search & Install Bundles > List**.
 3. Locate the **Expensify Connect bundle**.

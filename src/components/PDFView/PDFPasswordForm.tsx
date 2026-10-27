@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -13,7 +13,7 @@ import {getBrowser} from '@libs/Browser';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import PDFInfoMessage from './PDFInfoMessage';
@@ -22,7 +22,6 @@ type PDFPasswordFormProps = {
     /** If the submitted password is invalid (show an error message) */
     isPasswordInvalid?: boolean;
 
-    /** If loading indicator should be shown */
     shouldShowLoadingIndicator?: boolean;
 
     /** Notify parent that the password form has been submitted */
@@ -50,15 +49,12 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
-    const errorText = useMemo(() => {
-        if (isPasswordInvalid) {
-            return translate('attachmentView.passwordIncorrect');
-        }
-        if (validationErrorText) {
-            return translate(validationErrorText);
-        }
-        return '';
-    }, [isPasswordInvalid, validationErrorText, translate]);
+    let errorText;
+    if (isPasswordInvalid) {
+        errorText = translate('attachmentView.passwordIncorrect');
+    } else {
+        errorText = validationErrorText ? translate(validationErrorText) : '';
+    }
 
     useEffect(() => {
         if (!isFocused) {

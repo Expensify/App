@@ -23,6 +23,9 @@ type OpenPicker = Parameters<AttachmentPickerProps['children']>[0]['openPicker']
 
 const mockOpenPicker = jest.fn<ReturnType<OpenPicker>, Parameters<OpenPicker>>();
 
+// The component renders outside a NavigationContainer here, so the screen-bound hook cannot read focus.
+jest.mock('@hooks/useScreenBoundDynamicRoute', () => () => (suffix: string) => suffix);
+
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@react-navigation/native');
@@ -53,15 +56,57 @@ jest.mock(
         },
 );
 
+// The real PDF overlay reports its own load completion on its own timing, independent of the generic image load
+// (onLoad) and of re-renders. Tests drive that timing explicitly via reportPDFLoadSuccess/reportPDFLoadFailure,
+// instead of this mock inferring "loaded" from a prop changing, which can't represent a load still in flight.
+const mockReceiptImage: {shouldCompleteLoad: boolean; lastPDFPage?: number; reportPDFLoadSuccess?: () => void; reportPDFLoadFailure?: () => void} = {
+    shouldCompleteLoad: true,
+};
+
 jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
     const {useEffect} = jest.requireActual<typeof React>('react');
-    function MockReportActionItemImage({onLoad}: {onLoad?: () => void}) {
+    function MockReportActionItemImage({
+        onLoad,
+        onPDFLoadSuccess,
+        onPDFLoadFailure,
+        pdfPage,
+    }: {
+        onLoad?: () => void;
+        onPDFLoadSuccess?: () => void;
+        onPDFLoadFailure?: () => void;
+        pdfPage?: number;
+    }) {
         useEffect(() => {
+            mockReceiptImage.lastPDFPage = pdfPage;
+            if (pdfPage === undefined) {
+                mockReceiptImage.reportPDFLoadSuccess = undefined;
+                mockReceiptImage.reportPDFLoadFailure = undefined;
+                return;
+            }
+            mockReceiptImage.reportPDFLoadSuccess = onPDFLoadSuccess;
+            mockReceiptImage.reportPDFLoadFailure = onPDFLoadFailure;
+        }, [pdfPage, onPDFLoadSuccess, onPDFLoadFailure]);
+        useEffect(() => {
+            if (!mockReceiptImage.shouldCompleteLoad) {
+                return;
+            }
             onLoad?.();
         }, [onLoad]);
         return null;
     }
     return MockReportActionItemImage;
+});
+
+const mockDeviceCapabilities = {hasHoverSupport: false};
+
+jest.mock('@libs/DeviceCapabilities', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@libs/DeviceCapabilities');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        hasHoverSupport: () => mockDeviceCapabilities.hasHoverSupport,
+    };
 });
 
 jest.mock('@src/languages/IntlStore', () => {
@@ -100,6 +145,9 @@ jest.mock('@libs/EmojiTrie', () => ({
 
 // Override IDs so we control Onyx keys and can use evictableKeys for REPORT_ACTIONS
 const TEST_PARENT_REPORT_ID = 'testParentReportID';
+const TEST_CHAT_REPORT_ID = 'testChatReportID';
+const TEST_OWNER_ACCOUNT_ID = 1;
+const TEST_OTHER_ACCOUNT_ID = 2;
 const TEST_REPORT_ID = 'testReportID';
 const TEST_ACTION_ID = 'testActionID';
 const TEST_TRANSACTION_ID = 'testTransactionID';
@@ -193,6 +241,16 @@ const transactionWithReceipt: Transaction = {
     },
 };
 
+const transactionWithMultiPagePDFReceipt: Transaction = {
+    ...transactionWithoutReceipt,
+    receipt: {
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+        source: 'https://example.com/receipt.pdf',
+        filename: 'receipt.pdf',
+        pageCount: 3,
+    },
+};
+
 const transactionWithScanningReceipt: Transaction = {
     ...transactionWithoutReceipt,
     receipt: {
@@ -220,6 +278,20 @@ const transactionWithOdometerDistanceReceipt: Transaction = {
     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
 };
 
+// The expense's own report, whose parent is the conversation the expense was created in.
+const testMoneyRequestReport: Report = {
+    ...testReport,
+    reportID: TEST_PARENT_REPORT_ID,
+    parentReportID: TEST_CHAT_REPORT_ID,
+    chatReportID: TEST_CHAT_REPORT_ID,
+};
+
+const testChatReport: Report = {
+    ...testReport,
+    reportID: TEST_CHAT_REPORT_ID,
+    type: CONST.REPORT.TYPE.CHAT,
+};
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
@@ -233,6 +305,11 @@ describe('MoneyRequestReceiptView', () => {
     });
 
     beforeEach(async () => {
+        mockReceiptImage.shouldCompleteLoad = true;
+        mockReceiptImage.lastPDFPage = undefined;
+        mockReceiptImage.reportPDFLoadSuccess = undefined;
+        mockReceiptImage.reportPDFLoadFailure = undefined;
+        mockDeviceCapabilities.hasHoverSupport = false;
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_PARENT_REPORT_ID}`, {
@@ -241,6 +318,11 @@ describe('MoneyRequestReceiptView', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithoutReceipt);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {id: TEST_POLICY_ID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${TEST_POLICY_ID}`, {});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, testMoneyRequestReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, testChatReport);
+            // Signed in as the person who raised the expense unless a test says otherwise. Who the viewer is decides
+            // the add button, so with no session nobody qualifies and every expense would look uneditable.
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_OWNER_ACCOUNT_ID, email: 'owner@test.com'});
         });
         await waitForBatchedUpdatesWithAct();
     });
@@ -271,6 +353,272 @@ describe('MoneyRequestReceiptView', () => {
             const firstCall = mockOpenPicker.mock.calls.at(0);
             const onPicked = firstCall?.at(0)?.onPicked;
             expect(onPicked).toBeDefined();
+        });
+    });
+
+    describe('receipt page count badge', () => {
+        it('does not show the page count while the receipt is still loading', async () => {
+            mockReceiptImage.shouldCompleteLoad = false;
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMultiPagePDFReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeNull();
+        });
+
+        it('shows the page count for a multi-page PDF receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMultiPagePDFReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+        });
+
+        it('does not show the page count for a single page PDF receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    ...transactionWithMultiPagePDFReceipt,
+                    receipt: {...transactionWithMultiPagePDFReceipt.receipt, pageCount: 1},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 1}))).toBeNull();
+        });
+
+        // An optimistic merge that swaps a PDF for an image can leave the PDF's count behind, so the
+        // badge has to follow the current file type rather than the leftover count
+        it('does not show the page count when a stale count is left on an image receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    ...transactionWithMultiPagePDFReceipt,
+                    receipt: {...transactionWithMultiPagePDFReceipt.receipt, source: 'https://example.com/photo.jpg', filename: 'photo.jpg'},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeNull();
+        });
+
+        // An image receipt carries no page count at all, which is also what a PDF uploaded before the
+        // backend started reporting one looks like
+        it('does not show the page count for a receipt without one', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeNull();
+        });
+
+        // The regenerated receipt makes the old count stale
+        it('does not show the page count while a map distance receipt is regenerating', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    ...transactionWithMultiPagePDFReceipt,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    pendingFields: {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeNull();
+        });
+    });
+
+    describe('receipt page navigation', () => {
+        const renderMultiPagePDFReceipt = async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMultiPagePDFReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        it('flips pages once the PDF has loaded on a hover-capable device', async () => {
+            // Given a multi-page PDF receipt on a device that supports hover, with its PDF already loaded
+            mockDeviceCapabilities.hasHoverSupport = true;
+            await renderMultiPagePDFReceipt();
+            act(() => mockReceiptImage.reportPDFLoadSuccess?.());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+            expect(mockReceiptImage.lastPDFPage).toBe(1);
+
+            // When the user clicks next
+            fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the pill's label and the page requested from the PDF overlay both move to page 2
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 2, pageCount: 3}))).toBeTruthy();
+            expect(mockReceiptImage.lastPDFPage).toBe(2);
+
+            // When the user clicks previous
+            fireEvent.press(screen.getByLabelText(translateLocal('common.previous')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it goes back to page 1
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+            expect(mockReceiptImage.lastPDFPage).toBe(1);
+        });
+
+        it('clamps the current page if the page count drops below it', async () => {
+            // Given the user has flipped to the last page of a 3-page receipt
+            mockDeviceCapabilities.hasHoverSupport = true;
+            await renderMultiPagePDFReceipt();
+            act(() => mockReceiptImage.reportPDFLoadSuccess?.());
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 3, pageCount: 3}))).toBeTruthy();
+
+            // When the same receipt's reported page count drops to 2 (e.g. a later scan corrected it)
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {receipt: {pageCount: 2}});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the pill clamps down to the new last page, rather than showing "Page 3 of 2"
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 2, pageCount: 2}))).toBeTruthy();
+        });
+
+        it('disables the page buttons again when the receipt is replaced by a same-named file still loading', async () => {
+            // Given the user has flipped to page 2 of a loaded receipt named receipt.pdf
+            mockDeviceCapabilities.hasHoverSupport = true;
+            await renderMultiPagePDFReceipt();
+            act(() => mockReceiptImage.reportPDFLoadSuccess?.());
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 2, pageCount: 3}))).toBeTruthy();
+
+            // When that receipt is replaced by a new upload with the same filename (a common case: "receipt.pdf"
+            // uploaded twice) and a different source, before the new file's own load has been reported
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    receipt: {...transactionWithMultiPagePDFReceipt.receipt, source: 'https://example.com/receipt-replacement.pdf'},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the pill resets to page 1 with both buttons disabled, instead of staying on the old page 2 as if
+            // the new file were already loaded
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('common.next'))).toBeDisabled();
+            expect(screen.getByLabelText(translateLocal('common.previous'))).toBeDisabled();
+        });
+
+        it('disables the page buttons while the PDF is still loading', async () => {
+            // Given a multi-page PDF receipt on a hover-capable device, whose PDF has not loaded yet
+            mockDeviceCapabilities.hasHoverSupport = true;
+
+            // When the receipt view renders
+            await renderMultiPagePDFReceipt();
+
+            // Then the pill shows right away (so it doesn't change size once it can flip), but both buttons are
+            // disabled, because until the PDF loads only the page 1 thumbnail exists and there is nothing to flip to
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('common.next'))).toBeDisabled();
+            expect(screen.getByLabelText(translateLocal('common.previous'))).toBeDisabled();
+        });
+
+        it('falls back to the static badge when the PDF fails to load', async () => {
+            // Given a multi-page PDF receipt on a hover-capable device
+            mockDeviceCapabilities.hasHoverSupport = true;
+            await renderMultiPagePDFReceipt();
+
+            // When its PDF fails to load
+            act(() => mockReceiptImage.reportPDFLoadFailure?.());
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the view falls back to the plain static badge instead of a pill stuck disabled forever, because
+            // only the page 1 thumbnail exists and there is nothing to flip to
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+            expect(screen.queryByLabelText(translateLocal('common.next'))).toBeNull();
+        });
+
+        it('keeps the static badge on devices without hover support', async () => {
+            // Given a multi-page PDF receipt on a device without hover support
+
+            // When the receipt view renders
+            await renderMultiPagePDFReceipt();
+
+            // Then the static badge shows instead of the pill, because without hover support the real PDF is never
+            // drawn over the thumbnail, so there is no page to flip to (and nothing to report as loaded)
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+            expect(screen.queryByLabelText(translateLocal('common.next'))).toBeNull();
+            expect(mockReceiptImage.lastPDFPage).toBeUndefined();
+        });
+
+        it('does not show the page count for a settled map distance receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    ...transactionWithMultiPagePDFReceipt,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeNull();
         });
     });
 
@@ -341,6 +689,101 @@ describe('MoneyRequestReceiptView', () => {
             expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
         });
 
+        it('hides the add button but keeps the expand button for someone who may not edit the expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // Invited to look at an expense somebody else raised, as in the reported flow.
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_OTHER_ACCOUNT_ID, email: 'invited@test.com'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+        });
+
+        it('shows action buttons to the person who raised the expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+        });
+
+        it('hides both buttons when the expense is on its way out', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // Deleting the expense marks the action that created it, which puts the whole report beyond reach.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_PARENT_REPORT_ID}`, {
+                    [TEST_ACTION_ID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('hides both buttons for an anonymous viewer', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('hides both buttons on an archived report', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // An IOU thread, because archiving leaves an expense report's receipts reachable on purpose.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, {type: CONST.REPORT.TYPE.IOU});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${TEST_REPORT_ID}`, {private_isArchived: '2025-02-14 08:12:19'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={{...testReport, type: CONST.REPORT.TYPE.CHAT}} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
         it('shows both action buttons for a map distance receipt', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMapDistanceReceipt);
@@ -382,8 +825,8 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
-            expect(screen.getByText(translateLocal('iou.error.saveReceipt'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedSaveOnlyMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('common.save'))).toBeTruthy();
         });
 
         it('does not show the receipt-upload error for a distance expense', async () => {
@@ -399,8 +842,8 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeNull();
-            expect(screen.queryByText(translateLocal('iou.error.saveReceipt'))).toBeNull();
+            expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedSaveOnlyMessage'))).toBeNull();
+            expect(screen.queryByText(translateLocal('common.save'))).toBeNull();
         });
 
         it('shows the receipt-upload error for an odometer distance expense (real uploaded file)', async () => {
@@ -416,8 +859,8 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
-            expect(screen.getByText(translateLocal('iou.error.saveReceipt'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedSaveOnlyMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('common.save'))).toBeTruthy();
         });
     });
 });

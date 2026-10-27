@@ -1,3 +1,4 @@
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import AvatarNamesTooltip from '@components/Avatar/tooltips/AvatarNamesTooltip';
 import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 import Text from '@components/Text';
@@ -16,8 +17,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {MultipleAvatarsProps} from './types';
-
-import Avatar from '..';
 
 type HorizontalStackingOptions = Partial<{
     isHovered: boolean;
@@ -77,9 +76,9 @@ function HorizontalAvatars({
                     key={`stackedAvatars-${icon.id}`}
                     avatar={icon}
                     fallbackDisplayName={fallbackDisplayName}
-                    style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}
+                    style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, StyleUtils.getShapeFromIconType(icon.type))]}
                 >
-                    <Avatar
+                    <AvatarFromIcon
                         iconAdditionalStyles={[
                             StyleUtils.getHorizontalStackedAvatarBorderStyle({
                                 theme,
@@ -91,12 +90,7 @@ function HorizontalAvatars({
                             }),
                             StyleUtils.getAvatarBorderWidth(size),
                         ]}
-                        type={icon.type}
-                        source={icon.source}
-                        name={icon.name ?? ''}
-                        avatarID={icon.id ?? CONST.DEFAULT_NUMBER_ID}
-                        fallbackIcon={icon.fallbackIcon}
-                        fill={icon.fill}
+                        icon={icon}
                         size={size}
                         testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar"
                     />
@@ -118,7 +112,7 @@ function HorizontalAvatars({
                             }),
                             StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
                             StyleUtils.getHorizontalStackedOverlayAvatarStyle(size),
-                            icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(3)?.type),
+                            icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE),
                         ]}
                     >
                         <View style={[styles.justifyContentCenter, styles.alignItemsCenter, StyleUtils.getHeight(oneAvatarSize.height), StyleUtils.getWidthStyle(oneAvatarSize.width)]}>

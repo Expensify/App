@@ -6,6 +6,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 
 import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import deferNavigate from '@libs/Navigation/deferNavigate';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -33,7 +34,7 @@ import type {OnyxEntry} from 'react-native-onyx';
  * camera isn't torn down when subscriptions become ready. useNavigateGlobalCreate()
  * returns a stable callable.
  */
-import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
 
 type NavigateGlobalCreateFn = (transactionIDs: string[], isMultiScanEnabled: boolean) => void;
 
@@ -63,9 +64,9 @@ function NavigateGlobalCreateProvider({children, ...rest}: ProviderProps) {
 
     // Stable dispatch — context value identity never changes, so consumers
     // don't re-render on Onyx ticks. Late-binds to fnRef.current at call time.
-    const dispatch = useCallback((transactionIDs: string[], isMultiScanEnabled: boolean) => {
+    const dispatch = (transactionIDs: string[], isMultiScanEnabled: boolean) => {
         fnRef.current(transactionIDs, isMultiScanEnabled);
-    }, []);
+    };
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional one-tick defer to keep heavy Onyx subscriptions off the camera-mount critical path
@@ -95,8 +96,17 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
 
     const navigateGlobalCreate: NavigateGlobalCreateFn = (transactionIDs, isMultiScanEnabled) => {
         startScanProcessSpan(isMultiScanEnabled);
-        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserPersonalDetails.accountID)) {
-            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+
+        // Manual's confirmation flips the shared route to TRACK once it lands on the self DM, so a later scan arrives already resolved.
+        const isSelfDMTrackExpense = iouType === CONST.IOU.TYPE.TRACK && !!transaction?.isFromGlobalCreate && !!selfDMReport;
+
+        if (
+            isSelfDMTrackExpense ||
+            shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserPersonalDetails.accountID)
+        ) {
+            // Quick-scan entry points (e.g. the bottom-tab camera button) start from the default workspace chat rather than a generated reportID,
+            // so the draft isn't flagged as global create yet. Flag it here so the workspace stays editable on the confirmation page, like the FAB scan flow.
+            const shouldAutoReport = !isSelfDMTrackExpense && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
             const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
             const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
             const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
@@ -104,24 +114,29 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
             // If the user previously selected different participants in confirmation, preserve that choice
             if (transaction?.participants && transaction.participants.at(0)?.reportID !== targetReport?.reportID) {
                 const isTrackExpense = transaction.participants.at(0)?.reportID === selfDMReport?.reportID;
+                const preservedParticipants = transaction.participants;
+                const preservedReportID = transaction.reportID;
 
-                const setParticipantsPromises = transactionIDs.map((tid) => setMoneyRequestParticipants(tid, transaction.participants));
-                Promise.all(setParticipantsPromises).then(() => {
+                for (const tid of transactionIDs) {
+                    setMoneyRequestParticipants(tid, preservedParticipants);
+                    setTransactionReport(tid, {isFromGlobalCreate: true}, true);
+                }
+                deferNavigate(() => {
                     if (isTrackExpense) {
                         endScanProcessAndStartConfirmationMountSpan();
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, selfDMReport?.reportID));
                     } else {
-                        navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, transaction.reportID);
+                        navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, preservedReportID);
                     }
                 });
                 return;
             }
 
-            const setParticipantsPromises = transactionIDs.map((tid) => {
-                setTransactionReport(tid, {reportID: transactionReportID}, true);
-                return setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
-            });
-            Promise.all(setParticipantsPromises).then(() => {
+            for (const tid of transactionIDs) {
+                setTransactionReport(tid, {reportID: transactionReportID, isFromGlobalCreate: true}, true);
+                setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
+            }
+            deferNavigate(() => {
                 endScanProcessAndStartConfirmationMountSpan();
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
             });

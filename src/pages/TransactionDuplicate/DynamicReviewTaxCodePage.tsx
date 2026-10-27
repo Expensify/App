@@ -15,7 +15,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import {getTaxByID} from '@libs/PolicyUtils';
+import {getTaxByID, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {calculateTaxAmount, compareDuplicateTransactionFields, getAmount, getDefaultTaxCode, getTaxValue, getTransactionID} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -24,7 +24,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 import type {FieldItemType} from './ReviewFields';
 
@@ -42,10 +42,7 @@ function DynamicReviewTaxCodePage() {
     const transactionID = getTransactionID(transactionThreadReport);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-    const allDuplicateIDs = useMemo(
-        () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
-        [transactionViolations],
-    );
+    const allDuplicateIDs = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reviewDuplicates?.reportID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
@@ -53,38 +50,34 @@ function DynamicReviewTaxCodePage() {
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
+    const selectedTaxCode = reviewDuplicates?.taxCode ? resolveCurrentTaxCode(policy, reviewDuplicates.taxCode) : reviewDuplicates?.taxCode;
+
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'taxCode', route.params.reportID, route.params.backTo);
 
-    const options = useMemo(
-        () =>
-            compareResult.change.taxCode?.map((taxID) =>
-                !taxID
-                    ? {text: translate('violations.none'), value: getDefaultTaxCode(policy, transaction) ?? ''}
-                    : {
-                          text: getTaxByID(policy, taxID)?.name ?? '',
-                          value: taxID,
-                      },
-            ),
-        [compareResult.change.taxCode, policy, transaction, translate],
-    );
-    const getTaxAmount = useCallback(
-        (taxID: string) => {
-            const taxPercentage = getTaxValue(policy, transaction, taxID);
-            const decimals = getCurrencyDecimals(transaction?.currency);
-            return convertToBackendAmount(calculateTaxAmount(taxPercentage ?? '', getAmount(transaction), decimals));
-        },
-        [policy, transaction, getCurrencyDecimals],
-    );
+    const options = compareResult.change.taxCode?.map((taxID) => {
+        const currentTaxID = taxID ? resolveCurrentTaxCode(policy, taxID) : taxID;
+        return !currentTaxID
+            ? {
+                  text: translate('violations.none'),
+                  value: resolveCurrentTaxCode(policy, getDefaultTaxCode(policy, transaction) ?? ''),
+              }
+            : {
+                  text: getTaxByID(policy, currentTaxID)?.name ?? '',
+                  value: currentTaxID,
+              };
+    });
+    const getTaxAmount = (taxID: string) => {
+        const taxPercentage = getTaxValue(policy, transaction, taxID);
+        const decimals = getCurrencyDecimals(transaction?.currency);
+        return convertToBackendAmount(calculateTaxAmount(taxPercentage ?? '', getAmount(transaction), decimals));
+    };
 
-    const setTaxCode = useCallback(
-        (data: FieldItemType<'taxCode'>) => {
-            if (data.value !== undefined) {
-                setReviewDuplicatesKey({taxCode: data.value, taxAmount: getTaxAmount(data.value)});
-            }
-            navigateToNextScreen();
-        },
-        [getTaxAmount, navigateToNextScreen],
-    );
+    const setTaxCode = (data: FieldItemType<'taxCode'>) => {
+        if (data.value !== undefined) {
+            setReviewDuplicatesKey({taxCode: data.value, taxAmount: getTaxAmount(data.value)});
+        }
+        navigateToNextScreen();
+    };
 
     return (
         <ScreenWrapper testID="DynamicReviewTaxCodePage">
@@ -98,7 +91,7 @@ function DynamicReviewTaxCodePage() {
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={setTaxCode}
-                selectedValue={reviewDuplicates?.taxCode}
+                selectedValue={selectedTaxCode}
             />
         </ScreenWrapper>
     );

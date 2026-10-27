@@ -2,8 +2,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {BankName} from '@src/types/onyx/Bank';
-
 import React from 'react';
 import {View} from 'react-native';
 
@@ -18,10 +16,7 @@ import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem'
 type BankAccountListItem = ListItem & {value: number | undefined};
 
 type SettlementAccountSelectorProps = {
-    /** Bank account list items to display */
     listOptions: BankAccountListItem[];
-
-    /** Callback when an account is selected */
     onSelectAccount: (value: number) => void;
 
     /** Optional callback for "Add new bank account" - if provided, the option will be shown */
@@ -30,14 +25,15 @@ type SettlementAccountSelectorProps = {
     /** Whether to show the "Add new bank account" option */
     showAddNewAccountOption?: boolean;
 
-    /** Optional custom header content */
     customHeaderContent?: React.ReactElement;
-
-    /** Initial key to focus */
     initiallyFocusedItemKey?: string;
 };
 
-function BankAccountListItemLeftElement({bankName}: {bankName: BankName}) {
+type BankAccountListItemLeftElementProps = {
+    bankName: string;
+};
+
+function BankAccountListItemLeftElement({bankName}: BankAccountListItemLeftElementProps) {
     const styles = useThemeStyles();
     const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 

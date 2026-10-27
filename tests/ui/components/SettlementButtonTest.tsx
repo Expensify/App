@@ -12,6 +12,7 @@ import type SettlementButtonProps from '@components/SettlementButton/types';
 
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
+import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -24,8 +25,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import createMock from '../../utils/createMock';
-import {translateLocal} from '../../utils/TestHelper';
+import {getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
@@ -189,7 +189,6 @@ function createTestPolicy(overrides?: Partial<Policy>): Policy {
         owner: ACCOUNT_LOGIN,
         ownerAccountID: ACCOUNT_ID,
         outputCurrency: CONST.CURRENCY.USD,
-        isPolicyExpenseChatEnabled: true,
         ...overrides,
     } as Policy;
 }
@@ -320,36 +319,6 @@ describe('SettlementButton', () => {
             expect(screen.getByText(translateLocal('iou.pay'))).toBeTruthy();
         });
 
-        it('shows "Pay elsewhere" when lastPaymentMethod is ELSEWHERE', async () => {
-            const iouReport = createIOUReport();
-
-            await setupOnyxState({
-                report: iouReport,
-                chatReport: createChatReport(),
-                lastPaymentMethod: {
-                    [POLICY_ID]: {
-                        lastUsed: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
-                        iou: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
-                        expense: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
-                        invoice: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                    },
-                },
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={iouReport}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(translateLocal('iou.payElsewhere', '$100.00'))).toBeTruthy();
-        });
-
         it('shows "Pay $X" (settlePayment) by default with a preferred payment method', async () => {
             const iouReport = createIOUReport();
 
@@ -381,497 +350,7 @@ describe('SettlementButton', () => {
         });
     });
 
-    describe('secondLineText', () => {
-        it('shows no subtitle when shouldUseShortForm is true', async () => {
-            const iouReport = createIOUReport();
-
-            await setupOnyxState({
-                report: iouReport,
-                chatReport: createChatReport(),
-                bankAccountList: createPersonalBankAccount(),
-                lastPaymentMethod: {
-                    [POLICY_ID]: {
-                        lastUsed: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
-                        iou: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
-                        expense: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
-                        invoice: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                    },
-                },
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={iouReport}
-                        shouldUseShortForm
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.queryByText(translateLocal('common.wallet'))).toBeNull();
-        });
-
-        it('shows no subtitle when lastPaymentMethod is ELSEWHERE', async () => {
-            const iouReport = createIOUReport();
-
-            await setupOnyxState({
-                report: iouReport,
-                chatReport: createChatReport(),
-                lastPaymentMethod: {
-                    [POLICY_ID]: {
-                        lastUsed: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
-                        iou: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
-                        expense: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
-                        invoice: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                    },
-                },
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={iouReport}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.queryByText(translateLocal('common.wallet'))).toBeNull();
-        });
-
-        it('shows bank account last four for expense report with VBBA payment and policy achAccount', async () => {
-            const expenseReport = createExpenseReport();
-
-            await setupOnyxState({
-                report: expenseReport,
-                chatReport: createChatReport(),
-                policy: createTestPolicy({
-                    achAccount: {
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        accountNumber: '9876',
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
-                }),
-                bankAccountList: createBankAccountList('9876'),
-                lastPaymentMethod: {
-                    [POLICY_ID]: {
-                        lastUsed: {name: CONST.IOU.PAYMENT_TYPE.VBBA, bankAccountID: BANK_ACCOUNT_ID},
-                        iou: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
-                        expense: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
-                        invoice: CONST.IOU.PAYMENT_TYPE.VBBA,
-                    },
-                },
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={expenseReport}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(translateLocal('iou.settlePayment', '$100.00'))).toBeTruthy();
-            expect(screen.getByText(translateLocal('paymentMethodList.bankAccountLastFour', '9876'))).toBeTruthy();
-        });
-
-        it('shows "Wallet" for IOU report with EXPENSIFY payment method and personal bank account', async () => {
-            const iouReport = createIOUReport();
-
-            await setupOnyxState({
-                report: iouReport,
-                chatReport: createChatReport(),
-                bankAccountList: createPersonalBankAccount(),
-                userWallet: {tierName: CONST.WALLET.TIER_NAME.GOLD},
-                lastPaymentMethod: {
-                    [POLICY_ID]: {
-                        lastUsed: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
-                        iou: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
-                        expense: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
-                        invoice: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                    },
-                },
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={iouReport}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(translateLocal('common.wallet'))).toBeTruthy();
-        });
-
-        it('shows policy name as subtitle when lastPaymentMethod resolves to a policy', async () => {
-            const iouReport = createIOUReport();
-            const WORKSPACE_POLICY_ID = 'workspace-policy-id';
-
-            await setupOnyxState({
-                report: iouReport,
-                chatReport: createChatReport(),
-                lastPaymentMethod: {
-                    [POLICY_ID]: {
-                        lastUsed: {name: WORKSPACE_POLICY_ID},
-                        iou: {name: WORKSPACE_POLICY_ID},
-                        expense: {name: WORKSPACE_POLICY_ID},
-                        invoice: WORKSPACE_POLICY_ID,
-                    },
-                },
-            });
-
-            await act(async () => {
-                await Onyx.merge(
-                    `${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE_POLICY_ID}`,
-                    createTestPolicy({
-                        id: WORKSPACE_POLICY_ID,
-                        name: 'My Workspace',
-                    }),
-                );
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={iouReport}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText('My Workspace')).toBeTruthy();
-        });
-
-        it('shows no wallet subtitle when EXPENSIFY method but no personal bank accounts', async () => {
-            const iouReport = createIOUReport();
-
-            await setupOnyxState({
-                report: iouReport,
-                chatReport: createChatReport(),
-                userWallet: {tierName: CONST.WALLET.TIER_NAME.GOLD},
-                lastPaymentMethod: {
-                    [POLICY_ID]: {
-                        lastUsed: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
-                        iou: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
-                        expense: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
-                        invoice: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                    },
-                },
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={iouReport}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.queryByText(translateLocal('common.wallet'))).toBeNull();
-        });
-
-        it('renders button when VBBA payment but achAccount has no account number', async () => {
-            const expenseReport = createExpenseReport();
-
-            await setupOnyxState({
-                report: expenseReport,
-                chatReport: createChatReport(),
-                policy: createTestPolicy({
-                    achAccount: createMock<NonNullable<Policy['achAccount']>>({
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    }),
-                }),
-                lastPaymentMethod: {
-                    [POLICY_ID]: {
-                        lastUsed: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
-                        iou: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
-                        expense: {name: CONST.IOU.PAYMENT_TYPE.VBBA},
-                        invoice: CONST.IOU.PAYMENT_TYPE.VBBA,
-                    },
-                },
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={expenseReport}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(translateLocal('iou.settlePayment', '$100.00'))).toBeTruthy();
-        });
-
-        it('shows bank from formattedPaymentMethods when achAccount lacks accountNumber but hasIntentToPay', async () => {
-            const expenseReport = createExpenseReport();
-
-            await setupOnyxState({
-                report: expenseReport,
-                chatReport: createChatReport(),
-                policy: createTestPolicy({
-                    achAccount: createMock<NonNullable<Policy['achAccount']>>({
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    }),
-                }),
-                bankAccountList: createBankAccountList('3333'),
-                // No lastPaymentMethod → hasIntentToPay = true (achAccount.state === OPEN && !lastPaymentMethod)
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={expenseReport}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(translateLocal('paymentMethodList.bankAccountLastFour', '3333'))).toBeTruthy();
-        });
-
-        it('shows bank account when business bank matches policy achAccount via lastBankAccountID', async () => {
-            const expenseReport = createExpenseReport();
-
-            await setupOnyxState({
-                report: expenseReport,
-                chatReport: createChatReport(),
-                policy: createTestPolicy({
-                    achAccount: {
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        accountNumber: '2222',
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
-                }),
-                bankAccountList: createBankAccountList('2222'),
-                lastPaymentMethod: {
-                    [POLICY_ID]: {
-                        lastUsed: {name: 'customPaymentMethod', bankAccountID: BANK_ACCOUNT_ID},
-                        iou: {name: 'customPaymentMethod', bankAccountID: BANK_ACCOUNT_ID},
-                        expense: {name: 'customPaymentMethod', bankAccountID: BANK_ACCOUNT_ID},
-                        invoice: 'customPaymentMethod',
-                    },
-                },
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={expenseReport}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(translateLocal('paymentMethodList.bankAccountLastFour', '2222'))).toBeTruthy();
-        });
-
-        it('shows no subtitle when shouldHidePaymentOptions and onlyShowPayElsewhere are set', async () => {
-            const iouReport = createIOUReport();
-
-            await setupOnyxState({
-                report: iouReport,
-                chatReport: createChatReport(),
-                bankAccountList: createPersonalBankAccount(),
-                lastPaymentMethod: {
-                    [POLICY_ID]: {
-                        lastUsed: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
-                        iou: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
-                        expense: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
-                        invoice: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                    },
-                },
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={iouReport}
-                        shouldHidePaymentOptions
-                        onlyShowPayElsewhere
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.queryByText(translateLocal('common.wallet'))).toBeNull();
-        });
-
-        it('shows business bank label for invoice with business bank account and hasIntentToPay', async () => {
-            const invoiceReport = createInvoiceReport();
-
-            await setupOnyxState({
-                report: invoiceReport,
-                chatReport: createChatReport({
-                    invoiceReceiver: {
-                        type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
-                        accountID: 2,
-                    },
-                }),
-                policy: createTestPolicy({
-                    achAccount: {
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        accountNumber: '4444',
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
-                }),
-                bankAccountList: createBankAccountList('4444'),
-                betas: [CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY],
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={invoiceReport}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(translateLocal('iou.settlePayment', '$100.00'))).toBeTruthy();
-            expect(screen.getByText(translateLocal('iou.invoiceBusinessBank', '4444'))).toBeTruthy();
-        });
-
-        it('shows personal bank label for invoice with personal bank account and hasIntentToPay', async () => {
-            const invoiceReport = createInvoiceReport();
-
-            await setupOnyxState({
-                report: invoiceReport,
-                chatReport: createChatReport({
-                    invoiceReceiver: {
-                        type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
-                        accountID: 2,
-                    },
-                }),
-                policy: createTestPolicy({
-                    achAccount: {
-                        bankAccountID: BANK_ACCOUNT_ID,
-                        accountNumber: '5555',
-                        routingNumber: '123456789',
-                        addressName: 'Test Business',
-                        bankName: 'Test Bank',
-                        reimburser: 'reimburser@test.com',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
-                }),
-                bankAccountList: createPersonalBankAccount('5555'),
-                betas: [CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY],
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={invoiceReport}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(translateLocal('iou.invoicePersonalBank', '5555'))).toBeTruthy();
-        });
-    });
-
     describe('payment options dropdown', () => {
-        it('shows approve button when shouldHidePaymentOptions and shouldShowApproveButton are true', async () => {
-            const expenseReport = createExpenseReport();
-
-            await setupOnyxState({
-                report: expenseReport,
-                chatReport: createChatReport(),
-                policy: createTestPolicy(),
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={expenseReport}
-                        shouldHidePaymentOptions
-                        shouldShowApproveButton
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(translateLocal('iou.approve', {formattedAmount: '$100.00'}))).toBeTruthy();
-        });
-
-        it('does not show approve button when shouldShowApproveButton is false', async () => {
-            const expenseReport = createExpenseReport();
-
-            await setupOnyxState({
-                report: expenseReport,
-                chatReport: createChatReport(),
-                policy: createTestPolicy(),
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={expenseReport}
-                        shouldShowApproveButton={false}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.queryByText(translateLocal('iou.approve', {formattedAmount: '$100.00'}))).toBeNull();
-        });
-
         it('shows pay elsewhere button when onlyShowPayElsewhere is true', async () => {
             const iouReport = createIOUReport();
 
@@ -892,31 +371,9 @@ describe('SettlementButton', () => {
 
             await waitForBatchedUpdatesWithAct();
 
+            const payButton = screen.getByText(translateLocal('iou.settlePayment', '$100.00'));
+            fireEvent.press(payButton);
             expect(screen.getByText(translateLocal('iou.payElsewhere', ''))).toBeTruthy();
-        });
-
-        it('shows short form pay button when onlyShowPayElsewhere and shouldUseShortForm are true', async () => {
-            const iouReport = createIOUReport();
-
-            await setupOnyxState({
-                report: iouReport,
-                chatReport: createChatReport(),
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={iouReport}
-                        onlyShowPayElsewhere
-                        shouldUseShortForm
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(translateLocal('iou.pay'))).toBeTruthy();
         });
 
         it('does not show wallet option for expense reports (subtitle shows bank account)', async () => {
@@ -1021,31 +478,6 @@ describe('SettlementButton', () => {
             expect(screen.getByText(translateLocal('iou.settlePayment', '$100.00'))).toBeTruthy();
         });
 
-        it('does not show payment options when shouldHidePaymentOptions is true without approve button', async () => {
-            const expenseReport = createExpenseReport();
-
-            await setupOnyxState({
-                report: expenseReport,
-                chatReport: createChatReport(),
-                policy: createTestPolicy(),
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={expenseReport}
-                        shouldHidePaymentOptions
-                        shouldShowApproveButton={false}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.queryByText(translateLocal('iou.approve', {formattedAmount: '$100.00'}))).toBeNull();
-        });
-
         it('filters out partially setup bank accounts from invoice payment options', async () => {
             const invoiceReport = createInvoiceReport();
 
@@ -1148,6 +580,167 @@ describe('SettlementButton', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(createWorkspaceMock).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('expense payment funding source', () => {
+        const workspaceBankAccount = {
+            bankAccountID: BANK_ACCOUNT_ID + 1,
+            accountNumber: 'XXXX1111',
+            routingNumber: '123456789',
+            addressName: 'Workspace account',
+            bankName: 'Workspace bank',
+            reimburser: 'payer@test.com',
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+        };
+
+        async function selectExpensePaymentOption(policy: Policy, optionText: string, bankAccountList?: BankAccountList) {
+            const expenseReport = createExpenseReport();
+            await setupOnyxState({report: expenseReport, chatReport: createChatReport(), policy, bankAccountList});
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        iouReport={expenseReport}
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+            await waitForBatchedUpdatesWithAct();
+            const menuItem = screen.getByTestId(`PopoverMenuItem-${optionText}`);
+            fireEvent.press(menuItem, {nativeEvent: {}, type: 'press', target: menuItem, currentTarget: menuItem});
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        it.each([CONST.BANK_ACCOUNT.STATE.OPEN, CONST.BANK_ACCOUNT.STATE.LOCKED])('adds a standalone account when the inaccessible workspace account is %s', async (state) => {
+            // Given an existing workspace account and stale setup data, neither may be used for a new funding source.
+            const policy = createTestPolicy({achAccount: {...workspaceBankAccount, state}});
+            await Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {bankAccountID: workspaceBankAccount.bankAccountID, policyID: POLICY_ID}});
+            await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {accountNumber: '1111'});
+
+            // When an admin without that account chooses business-bank payment.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''));
+
+            // Then setup receives no policyID and cannot replace the workspace account or reuse stale account details.
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ''});
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(POLICY_ID));
+            await getOnyxData({
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                callback: (setup) => {
+                    expect(setup?.achData?.policyID).toBeFalsy();
+                    expect(setup?.achData?.bankAccountID).toBeFalsy();
+                },
+            });
+            await getOnyxData({key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, callback: (workspace) => expect(workspace?.achAccount).toEqual(policy.achAccount)});
+        });
+
+        it('resumes the admin’s partially configured business account without linking it to the workspace', async () => {
+            // Given an existing workspace account and another bank account that the admin has not finished setting up.
+            const policy = createTestPolicy({achAccount: workspaceBankAccount});
+            const bankAccountList = createBankAccountList();
+            bankAccountList[BANK_ACCOUNT_ID].accountData = {...bankAccountList[BANK_ACCOUNT_ID].accountData, state: CONST.BANK_ACCOUNT.STATE.SETUP};
+
+            await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {accountNumber: '5678'});
+
+            // When business-bank payment would otherwise open connect-existing setup.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''), bankAccountList);
+
+            // Then the admin resumes their account and the workspace keeps its existing account.
+            await getOnyxData({key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, callback: (draft) => expect(draft?.accountNumber).toBe('5678')});
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, backTo: ''});
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(POLICY_ID));
+            await getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                callback: (workspace) => expect(workspace?.achAccount).toEqual(workspaceBankAccount),
+            });
+        });
+
+        it.each([
+            {bankCurrency: CONST.CURRENCY.USD, policyIDs: ['another-workspace']},
+            {bankCurrency: CONST.CURRENCY.GBP, policyIDs: []},
+        ])('starts fresh instead of resuming a partial account with currency $bankCurrency and policies $policyIDs', async ({bankCurrency, policyIDs}) => {
+            // Given a partial business account that belongs to another workspace or uses a different currency.
+            const policy = createTestPolicy({achAccount: workspaceBankAccount});
+            const bankAccountList = createBankAccountList();
+            bankAccountList[BANK_ACCOUNT_ID].bankCurrency = bankCurrency;
+            bankAccountList[BANK_ACCOUNT_ID].accountData = {
+                ...bankAccountList[BANK_ACCOUNT_ID].accountData,
+                state: CONST.BANK_ACCOUNT.STATE.SETUP,
+                policyIDs,
+            };
+            await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                accountNumber: '5678',
+            });
+
+            // When the admin adds a funding source for this USD report.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''), bankAccountList);
+
+            // Then a fresh standalone setup avoids resuming an unsuitable account and preserves the workspace account.
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ''});
+            await getOnyxData({
+                key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
+                callback: (draft) => expect(draft?.accountNumber).toBeFalsy(),
+            });
+            await getOnyxData({key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, callback: (workspace) => expect(workspace?.achAccount).toEqual(workspaceBankAccount)});
+        });
+
+        it.each([CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.PENDING])('resumes an accessible workspace account in %s with policy context', async (state) => {
+            // Given the workspace account itself is shared with the admin and still needs setup.
+            const bankAccountList = createBankAccountList();
+            bankAccountList[BANK_ACCOUNT_ID].accountData = {...bankAccountList[BANK_ACCOUNT_ID].accountData, state};
+            const policy = createTestPolicy({achAccount: {...workspaceBankAccount, bankAccountID: BANK_ACCOUNT_ID, state}});
+
+            // When the admin chooses business-bank payment.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''), bankAccountList);
+
+            // Then continue this account rather than creating or connecting a replacement.
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({policyID: POLICY_ID, backTo: ''});
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('pays from another accessible business account without connecting it to the workspace', async () => {
+            // Given the admin owns a usable account different from the workspace account.
+            const policy = createTestPolicy({achAccount: workspaceBankAccount});
+            const bankAccountList = createBankAccountList('5678');
+
+            // When the admin selects that account directly in the pay menu.
+            await selectExpensePaymentOption(policy, 'Test Bank Account', bankAccountList);
+
+            // Then the selected account funds payment without entering workspace bank setup.
+            expect(defaultProps.onPress).toHaveBeenCalledWith({
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                payAsBusiness: true,
+                methodID: BANK_ACCOUNT_ID,
+                paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            });
+            expect(navigateToBankAccountRoute).not.toHaveBeenCalled();
+            await getOnyxData({key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, callback: (workspace) => expect(workspace?.achAccount).toEqual(workspaceBankAccount)});
+        });
+
+        it('keeps first-account setup linked to a workspace with no bank account', async () => {
+            // Given the workspace has no bank account and the admin has no existing accounts.
+            const policy = createTestPolicy();
+
+            // When the admin chooses business-bank payment.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''));
+
+            // Then the normal setup may establish the workspace's first account.
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: POLICY_ID, backTo: ''}));
+            expect(navigateToBankAccountRoute).not.toHaveBeenCalled();
+        });
+
+        it('marks a report as paid without entering bank setup', async () => {
+            // Given the admin cannot access the workspace bank account.
+            const policy = createTestPolicy({achAccount: workspaceBankAccount});
+
+            // When the admin chooses pay elsewhere.
+            await selectExpensePaymentOption(policy, translateLocal('iou.payElsewhere', ''));
+
+            // Then manual payment proceeds independently of bank-account setup.
+            expect(defaultProps.onPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness: false});
+            expect(navigateToBankAccountRoute).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
     });
 

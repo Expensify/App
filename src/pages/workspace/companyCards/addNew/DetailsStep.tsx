@@ -34,7 +34,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type DetailsStepProps = {
-    /** ID of the current policy */
     policyID?: string;
 
     /** Existing card feeds for the current policy */

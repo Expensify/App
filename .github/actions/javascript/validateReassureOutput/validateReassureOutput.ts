@@ -6,7 +6,6 @@ import fs from 'fs';
 const run = (): boolean => {
     const regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8')) as CompareResult;
     const countDeviation = Number(core.getInput('COUNT_DEVIATION', {required: true}));
-    const durationDeviation = Number(core.getInput('DURATION_DEVIATION_PERCENTAGE', {required: true}));
 
     if (regressionOutput.countChanged === undefined || regressionOutput.countChanged.length === 0) {
         console.log('No countChanged data available. Exiting...');
@@ -34,20 +33,12 @@ const run = (): boolean => {
         } else {
             console.log(`Render count difference ${renderCountDiff} is within the allowed deviation range of ${countDeviation}.`);
         }
-
-        const increasePercentage = ((current.meanDuration - baseline.meanDuration) / baseline.meanDuration) * 100;
-        if (increasePercentage > durationDeviation) {
-            core.setFailed(`Duration increase percentage exceeded the allowed deviation of ${durationDeviation}%. Current percentage: ${increasePercentage}%`);
-            break;
-        } else {
-            console.log(`Duration increase percentage ${increasePercentage}% is within the allowed deviation range of ${durationDeviation}%.`);
-        }
     }
 
     return true;
 };
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

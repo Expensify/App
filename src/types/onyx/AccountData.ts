@@ -18,13 +18,11 @@ type AccountData = {
     /** Can we use this account to receive money from other people? */
     defaultCredit?: boolean;
 
-    /** Is a saving account */
     isSavings?: boolean;
 
     /** Return whether or not this bank account has been risk checked */
     riskChecked?: boolean;
 
-    /** Account routing number */
     routingNumber?: string;
 
     /** The status of the bank account */
@@ -39,10 +37,7 @@ type AccountData = {
     /** The bankAccountID in the bankAccounts db */
     bankAccountID?: number;
 
-    /** Unique identifier for this account in Plaid */
     plaidAccountID?: string;
-
-    /** All data related to the bank account */
     additionalData?: BankAccountAdditionalData;
 
     /** The bank account type */

@@ -1,8 +1,7 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
+import NumericInput from '@components/NumericInput';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -15,8 +14,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,7 +22,6 @@ import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 
 type WorkspaceCreateTaxValuePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CREATE_VALUE>;
 
@@ -67,37 +63,31 @@ function WorkspaceCreateTaxValuePage({
                 title={translate('workspace.taxes.value')}
                 onBackButtonPress={goBack}
             />
-            <ScrollView
-                contentContainerStyle={[styles.flexGrow1, styles.mb5]}
-                addBottomSafeAreaPadding
-            >
-                <View style={styles.flex1}>
-                    <NumberWithSymbolForm
-                        value={currentValue}
-                        onInputChange={setCurrentValue}
-                        ref={inputRef}
-                        decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
-                        maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
-                        isSymbolPressable={false}
-                        symbol="%"
-                        symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
-                        autoGrowExtraSpace={variables.w80}
-                        autoGrowMarginSide="left"
-                        style={[styles.iouAmountTextInput, styles.textAlignRight]}
-                        containerStyle={styles.iouAmountTextInputContainer}
-                        touchableInputWrapperStyle={styles.heightUndefined}
-                    />
+            <NumericInput
+                value={currentValue}
+                onInputChange={setCurrentValue}
+                decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
+                footer={
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={save}
-                        style={styles.mh5}
+                        style={styles.w100}
                     >
                         <Button.KeyboardShortcut />
                         <Button.Text>{translate('common.save')}</Button.Text>
                     </Button>
-                </View>
-            </ScrollView>
+                }
+            >
+                <NumericInput.TextInput
+                    accessibilityLabel={translate('workspace.taxes.value')}
+                    autoGrowMarginSide="left"
+                    style={styles.textAlignRight}
+                    ref={inputRef}
+                />
+                <NumericInput.Symbol>%</NumericInput.Symbol>
+            </NumericInput>
         </ScreenWrapper>
     );
 }

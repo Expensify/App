@@ -29,7 +29,6 @@ async function initPusher() {
     Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     });
 
     // Flush microtasks so initPromise resolves.
@@ -120,6 +119,116 @@ describe('Pusher.subscribe', () => {
         await jest.runAllTimersAsync();
 
         await expect(subscribePromise).resolves.toBeUndefined();
+    });
+
+    it('should not fire onResubscribe on the first handshake and should fire it once on every later handshake', async () => {
+        // Given a channel with one resubscribe registration, because native counted the first
+        // handshake as a resubscribe and asked the server to reconnect when nothing had dropped
+        const channelName = 'private-user-resubscribe';
+        const onResubscribe = jest.fn();
+
+        await initPusher();
+
+        Pusher.onChannelResubscribe(channelName, onResubscribe);
+        const handle = Pusher.subscribe(channelName, 'multipleEvents', () => {});
+        await jest.runAllTimersAsync();
+        await handle;
+
+        // Then the callback stays quiet, because a clean boot owes the server no reconnect
+        expect(onResubscribe).not.toHaveBeenCalled();
+
+        // When the socket drops and the channel shakes hands a second time
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+
+        // Then the callback runs one time, because one drop earns one reconnect
+        expect(onResubscribe).toHaveBeenCalledTimes(1);
+
+        // When the socket drops again
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+
+        // Then the count follows the number of drops, so the app misses no drop and doubles none
+        expect(onResubscribe).toHaveBeenCalledTimes(2);
+    });
+
+    it('should keep the other callbacks when one caller unregisters twice', async () => {
+        // Given two callers that hold a resubscribe registration on one channel, because a report
+        // channel carries one registration per screen and one screen must not cancel the other
+        const channelName = 'private-user-double-unregister';
+        const first = jest.fn();
+        const second = jest.fn();
+
+        await initPusher();
+
+        const unregisterFirst = Pusher.onChannelResubscribe(channelName, first);
+        Pusher.onChannelResubscribe(channelName, second);
+        const handle = Pusher.subscribe(channelName, 'multipleEvents', () => {});
+        await jest.runAllTimersAsync();
+        await handle;
+
+        // When the first caller unregisters two times, which a repeated unmount can cause, and the
+        // channel then shakes hands again
+        unregisterFirst();
+        unregisterFirst();
+
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+
+        // Then only the second caller hears about the handshake, because the extra unregister must
+        // remove nothing
+        expect(first).not.toHaveBeenCalled();
+        expect(second).toHaveBeenCalledTimes(1);
+    });
+
+    it('should drop the resubscribe callbacks on disconnect so a new session registers only one', async () => {
+        // Given a registration made in a session that then disconnects, because a sign out and a
+        // Pusher restart must leave no callback of the old session behind
+        const channelName = 'private-user-new-session';
+        const onResubscribe = jest.fn();
+
+        await initPusher();
+
+        Pusher.onChannelResubscribe(channelName, onResubscribe);
+        const handle = Pusher.subscribe(channelName, 'multipleEvents', () => {});
+        await jest.runAllTimersAsync();
+        await handle;
+
+        Pusher.disconnect();
+        await initPusher();
+
+        // When the new session registers the same callback, subscribes again, and the channel shakes
+        // hands after a drop
+        Pusher.onChannelResubscribe(channelName, onResubscribe);
+        const newHandle = Pusher.subscribe(channelName, 'multipleEvents', () => {});
+        await jest.runAllTimersAsync();
+        await newHandle;
+
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+
+        // Then the callback runs one time, because disconnect dropped the registration of the old
+        // session and only the new one remains
+        expect(onResubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('should deliver an event once to a caller that lived through several handshakes', async () => {
+        // Given one caller subscribed to an event, because native bound the event callback again on
+        // every handshake and eventsBoundToChannels kept each copy
+        const channelName = 'private-user-rebind';
+        const eventCallback = jest.fn();
+
+        await initPusher();
+
+        const handle = Pusher.subscribe(channelName, 'multipleEvents', eventCallback);
+        await jest.runAllTimersAsync();
+        await handle;
+
+        // When two more handshakes follow a drop and the channel then carries one event
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+
+        MockedPusher.getInstance().trigger({channelName, eventName: 'multipleEvents', data: {}});
+        await jest.runAllTimersAsync();
+
+        // Then the caller reads the event one time, because a handshake must add no second binding
+        expect(eventCallback).toHaveBeenCalledTimes(1);
     });
 });
 

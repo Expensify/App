@@ -1,6 +1,5 @@
-import AttachmentPicker from '@components/AttachmentPicker';
-import Avatar from '@components/Avatar';
-import Button from '@components/ButtonComposed';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import UserInitialsAvatar from '@components/UserInitialsAvatar';
 
@@ -33,12 +32,12 @@ type AvatarPreviewProps = {
     isRemoved: boolean;
     /** Callback when the current avatar photo is removed */
     onImageRemoved: () => void;
-    /** The image data */
     imageData: ImageData;
-    /** The function to set the error */
     setError: (error: TranslationPaths | null, phraseParam?: Record<string, unknown>) => void;
     /** Opens the avatar crop screen for the picked image */
     openCropper: (image: FileObject) => void;
+    /** Opens the attachment picker owned by the parent page */
+    openPicker: (options: {onPicked: (files: FileObject[]) => void}) => void;
 };
 
 type ImageData = {
@@ -48,7 +47,7 @@ type ImageData = {
     file: File | CustomRNImageManipulatorResult | null;
 };
 
-function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError, openCropper}: AvatarPreviewProps) {
+function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError, openCropper, openPicker}: AvatarPreviewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -118,6 +117,7 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
         source: imageData.uri,
         originalFileName: imageData.name,
     });
+    const menuItems = createMenuItems(openPicker);
 
     return (
         <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
@@ -130,55 +130,43 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     />
                 </View>
             ) : (
-                <Avatar
+                <UserAvatar
                     containerStyles={avatarStyle}
                     imageStyles={avatarStyle}
                     source={avatarURL}
-                    avatarID={accountID}
+                    accountID={accountID}
                     fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                    type={CONST.ICON_TYPE_AVATAR}
                 />
             )}
-            <AttachmentPicker
-                type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
-                shouldValidateImage={false}
-            >
-                {({openPicker}) => {
-                    const menuItems = createMenuItems(openPicker);
-                    if (menuItems?.length <= 1) {
-                        return (
-                            <Button
-                                accessibilityLabel={translate('avatarPage.uploadPhoto')}
-                                onPress={() => {
-                                    openPicker({
-                                        onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
-                                    });
-                                }}
-                            >
-                                <Button.Icon src={icons.Upload} />
-                                <Button.Text>{translate('avatarPage.uploadPhoto')}</Button.Text>
-                            </Button>
-                        );
-                    }
-
-                    return (
-                        <ButtonWithDropdownMenu
-                            shouldUseOptionIcon
-                            onPress={() => {}}
-                            anchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                            }}
-                            customText={translate('common.edit')}
-                            options={menuItems}
-                            isSplitButton={false}
-                        />
-                    );
-                }}
-            </AttachmentPicker>
+            {menuItems.length <= 1 ? (
+                <Button
+                    accessibilityLabel={translate('avatarPage.uploadPhoto')}
+                    onPress={() => {
+                        openPicker({
+                            onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
+                        });
+                    }}
+                >
+                    <Button.Icon src={icons.Upload} />
+                    <Button.Text>{translate('avatarPage.uploadPhoto')}</Button.Text>
+                </Button>
+            ) : (
+                <ButtonWithDropdownMenu
+                    shouldUseOptionIcon
+                    onPress={() => {}}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
+                    customText={translate('common.edit')}
+                    options={menuItems}
+                    isSplitButton={false}
+                />
+            )}
         </View>
     );
 }
 
 export default AvatarPreview;
+export type {AvatarPreviewProps};

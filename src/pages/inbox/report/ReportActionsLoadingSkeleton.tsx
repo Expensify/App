@@ -1,7 +1,8 @@
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ReportActionsSkeletonCover, {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
 
 import useCancelSendMessageSpanOnSkeleton from '@hooks/useCancelSendMessageSpanOnSkeleton';
 import type {SkeletonName} from '@hooks/useCancelSendMessageSpanOnSkeleton';
+import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 
 import React from 'react';
 
@@ -14,15 +15,22 @@ type ReportActionsLoadingSkeletonProps = {
 
     /** Whether the skeleton rows animate */
     shouldAnimate?: boolean;
+
+    /** Whether this skeleton closes the open-report span as a cold open. Off when it isn't waiting on report data */
+    shouldMarkOpenReportEnd?: boolean;
 };
 
 /**
- * Report-actions loading skeleton. Mounted only while the skeleton shows, so it hosts the hook that cancels
- * the otherwise never-ending send-message span (tagged with `skeletonName`).
+ * Report-actions loading skeleton. Hosts the skeleton-phase span marks: cancelling the never-ending
+ * send-message span, and closing the open-report span as cold. Mounted here means visible, while a parent's
+ * copy of the skeleton condition can drift from what actually renders.
  */
-function ReportActionsLoadingSkeleton({reportID, skeletonName, shouldAnimate = true}: ReportActionsLoadingSkeletonProps) {
+function ReportActionsLoadingSkeleton({reportID, skeletonName, shouldAnimate = true, shouldMarkOpenReportEnd = true}: ReportActionsLoadingSkeletonProps) {
     useCancelSendMessageSpanOnSkeleton(reportID, skeletonName);
-    return <ReportActionsSkeletonView shouldAnimate={shouldAnimate} />;
+    useMarkOpenReportEndOnSkeleton(reportID, shouldMarkOpenReportEnd);
+    const SkeletonCover = shouldAnimate ? ReportActionsAnimatedSkeletonCover : ReportActionsSkeletonCover;
+
+    return <SkeletonCover />;
 }
 
 ReportActionsLoadingSkeleton.displayName = 'ReportActionsLoadingSkeleton';

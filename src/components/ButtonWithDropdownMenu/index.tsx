@@ -1,14 +1,14 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import InlineIcon from '@components/Icon/InlineIcon';
 import PopoverMenu from '@components/PopoverMenu';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,6 +18,7 @@ import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 
+import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -70,6 +71,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         disabledStyle,
         size = CONST.BUTTON_SIZE.MEDIUM,
         anchorAlignment = defaultAnchorAlignment,
+        shouldSwitchPositionIfOverflow = false,
         buttonRef,
         onPress,
         options,
@@ -90,9 +92,11 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldUseModalPaddingStyle = true,
         shouldUseShortForm = false,
         shouldUseOptionIcon = false,
+        headerTextStyles,
         stayNormalOnDisable = false,
         brickRoadIndicator,
         sentryLabel,
+        shouldPutHeaderTextAfterBackButton = false,
     } = props;
 
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'DotIndicator']);
@@ -105,7 +109,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     // In tests, skip the popover anchor position calculation. The default values are needed for popover menu to be rendered in tests.
     const defaultPopoverAnchorPosition = process.env.NODE_ENV === 'test' ? {horizontal: 100, vertical: 100} : null;
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
-    const dropdownAnchor = useRef<View | null>(null);
+    const dropdownAnchor = useRef<ComponentRef<typeof View> | null>(null);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -130,8 +134,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     useEffect(() => {
         setSelectedItemIndex(defaultSelectedIndex);
     }, [defaultSelectedIndex]);
-
-    const {paddingBottom} = useSafeAreaPaddings(true);
 
     const {calculatePopoverPosition} = usePopoverPosition();
 
@@ -339,38 +341,77 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             setIsMenuVisible(false);
                         }
                     }}
+                    headerStyles={headerTextStyles}
                     anchorPosition={popoverAnchorPosition}
                     shouldShowRadioButton={shouldShowRadioButton}
                     anchorRef={dropdownAnchor}
-                    scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && {...styles.pt4, paddingBottom}}
+                    scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pt4}
                     anchorAlignment={anchorAlignment}
+                    shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
+                    enableEdgeToEdgeBottomSafeAreaPadding
                     headerText={menuHeaderText}
                     shouldUseScrollView={shouldPopoverUseScrollView}
                     containerStyles={containerStyles}
-                    menuItems={options.map((item, index) => ({
-                        ...item,
-                        onSelected: item.onSelected
-                            ? () => {
-                                  item.onSelected?.();
-                                  if (item.shouldUpdateSelectedIndex) {
-                                      setSelectedItemIndex(index);
+                    menuItems={options.map((item, index) => {
+                        const isSwitchDisabled = item.disabled ?? item.switchProps?.disabled;
+                        return {
+                            ...item,
+                            ...(item.switchProps
+                                ? {
+                                      shouldShowRightComponent: true,
+                                      // The row is the toggle and the only focus target, so it owns the switch role and state.
+                                      role: CONST.ROLE.SWITCH,
+                                      accessibilityState: {checked: item.switchProps.isOn, disabled: isSwitchDisabled},
+                                      // Mirror the disabled state so the row (and Enter) can't flip a disabled toggle.
+                                      disabled: isSwitchDisabled,
+                                      shouldGreyOutWhenDisabled: false,
+                                      shouldRemoveHoverBackground: !!isSwitchDisabled,
+                                      // Decorative Switch: isNested lets it animate without double-toggling, focusable={false} keeps the row the only tab stop, and the wrapper is aria-hidden.
+                                      rightComponent: (
+                                          <View
+                                              style={styles.justifyContentCenter}
+                                              aria-hidden
+                                              accessibilityElementsHidden
+                                              importantForAccessibility="no-hide-descendants"
+                                          >
+                                              <Switch
+                                                  {...item.switchProps}
+                                                  isNested
+                                                  shouldAnimateOnExternalChange
+                                                  focusable={false}
+                                              />
+                                          </View>
+                                      ),
                                   }
-                              }
-                            : () => {
-                                  onOptionSelected?.(item);
-                                  if (item.shouldUpdateSelectedIndex === false) {
-                                      return;
+                                : {}),
+                            onSelected: item.onSelected
+                                ? () => {
+                                      // Enter routes here directly, bypassing the row's disabled press-guard, so block a disabled toggle.
+                                      if (item.switchProps?.disabled) {
+                                          return;
+                                      }
+                                      item.onSelected?.();
+                                      if (item.shouldUpdateSelectedIndex) {
+                                          setSelectedItemIndex(index);
+                                      }
                                   }
+                                : () => {
+                                      onOptionSelected?.(item);
+                                      if (item.shouldUpdateSelectedIndex === false) {
+                                          return;
+                                      }
 
-                                  setSelectedItemIndex(index);
-                              },
-                        shouldCallAfterModalHide: true,
-                        subMenuItems: item.subMenuItems?.map((subItem) => ({
-                            ...subItem,
+                                      setSelectedItemIndex(index);
+                                  },
                             shouldCallAfterModalHide: true,
-                        })),
-                    }))}
+                            subMenuItems: item.subMenuItems?.map((subItem) => ({
+                                ...subItem,
+                                shouldCallAfterModalHide: true,
+                            })),
+                        };
+                    })}
+                    shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                 />
             )}
         </View>

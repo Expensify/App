@@ -66,13 +66,14 @@ function BankAccountVerificationView({verificationState, children, onVerifiedBut
                         iconWidth={variables.cardPreviewHeight}
                     />
                     <Button
-                        success
-                        large
-                        text={translate('workspace.expensifyCard.goToConcierge')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.m5, bottomSafeAreaPaddingStyle]}
-                        pressOnEnter
                         onPress={() => Navigation.navigate(ROUTES.CONCIERGE)}
-                    />
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('workspace.expensifyCard.goToConcierge')}</Button.Text>
+                    </Button>
                 </>
             );
         case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED:
@@ -98,13 +99,14 @@ function BankAccountVerificationView({verificationState, children, onVerifiedBut
                         />
                     )}
                     <Button
-                        success
-                        large
-                        text={verifiedButtonText ?? translate('workspace.expensifyCard.gotIt')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.m5, bottomSafeAreaPaddingStyle]}
-                        pressOnEnter
                         onPress={onVerifiedButtonPress}
-                    />
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{verifiedButtonText ?? translate('workspace.expensifyCard.gotIt')}</Button.Text>
+                    </Button>
                 </>
             );
         default:

@@ -3,11 +3,14 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
-import React, {useLayoutEffect, useMemo, useRef} from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import Animated, {cancelAnimation, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
+import ActivityIndicator from './ActivityIndicator';
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
@@ -18,11 +21,11 @@ type SwitchProps = {
     /** Callback to fire when the switch is toggled */
     onToggle: (isOn: boolean) => void;
 
-    /** Accessibility label for the switch */
     accessibilityLabel: string;
-
-    /** Whether the switch is disabled */
     disabled?: boolean;
+
+    /** Whether the switch is mid-flight (an optimistic update is pending). Shows a spinner and blocks interaction. */
+    pending?: boolean;
 
     /** Whether to show the lock icon even if the switch is enabled */
     showLockIcon?: boolean;
@@ -32,6 +35,12 @@ type SwitchProps = {
 
     /** Whether the switch is nested inside another pressable */
     isNested?: boolean;
+
+    /** Animate the thumb on any `isOn` change, not only when the switch itself is pressed. */
+    shouldAnimateOnExternalChange?: boolean;
+
+    /** Whether the switch is a keyboard tab stop. */
+    focusable?: boolean;
 };
 
 const OFFSET_X = {
@@ -39,7 +48,7 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction, isNested}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, showLockIcon, disabledAction, isNested, shouldAnimateOnExternalChange = false, focusable}: SwitchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
@@ -55,8 +64,8 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
         if (prevIsOn.current === isOn) {
             return;
         }
-        if (hasUserToggled.current) {
-            // User just toggled - animate to new position
+        if (hasUserToggled.current || shouldAnimateOnExternalChange) {
+            // User just toggled (or the caller opted in to animate external changes) - animate to new position
             offsetX.set(withTiming(targetOffsetX, {duration: 300}));
             hasUserToggled.current = false;
         } else {
@@ -66,10 +75,14 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
             offsetX.set(targetOffsetX);
         }
         prevIsOn.current = isOn;
-    }, [isOn, offsetX, targetOffsetX]);
+    }, [isOn, offsetX, targetOffsetX, shouldAnimateOnExternalChange]);
 
     const handleSwitchPress = () => {
         requestAnimationFrame(() => {
+            // While an optimistic update is in flight, ignore presses so users can't stack serialized requests.
+            if (pending) {
+                return;
+            }
             if (disabled) {
                 disabledAction?.();
                 return;
@@ -94,18 +107,15 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
         backgroundColor: interpolateColor(offsetX.get(), [OFFSET_X.OFF, OFFSET_X.ON], [theme.icon, theme.success]),
     }));
 
-    // Enhance accessibility label to include locked state when disabled
-    const enhancedAccessibilityLabel = useMemo(() => {
-        if (disabled) {
-            return `${accessibilityLabel}, ${translate('common.locked')}`;
-        }
-        return accessibilityLabel;
-    }, [accessibilityLabel, disabled, translate]);
+    // Announce the locked state whenever the switch is disabled or shows the lock icon (e.g. a pressable switch that routes to an upgrade)
+    const isLocked = !!disabled || !!showLockIcon;
+    const enhancedAccessibilityLabel = isLocked ? `${accessibilityLabel}, ${translate('common.locked')}` : accessibilityLabel;
 
     return (
         <PressableWithFeedback
-            disabled={!disabledAction && disabled}
+            disabled={pending || (!disabledAction && disabled)}
             isNested={isNested}
+            focusable={focusable}
             onPress={handleSwitchPress}
             onMouseDown={(e) => {
                 if (!isNested) {
@@ -118,6 +128,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
             onLongPress={handleSwitchPress}
             role={CONST.ROLE.SWITCH}
             aria-checked={isOn}
+            aria-busy={pending}
             accessibilityLabel={enhancedAccessibilityLabel}
             // disable hover dim for switch
             hoverDimmingValue={1}
@@ -126,14 +137,21 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
         >
             <Animated.View style={[styles.switchTrack, animatedSwitchTrackStyle]}>
                 <Animated.View style={[styles.switchThumb, animatedThumbStyle]}>
-                    {(!!disabled || !!showLockIcon) && (
-                        <Icon
-                            testID={CONST.SWITCH_LOCK_ICON_TEST_ID}
-                            src={expensifyIcons.Lock}
-                            fill={isOn ? theme.text : theme.icon}
-                            width={styles.toggleSwitchLockIcon.width}
-                            height={styles.toggleSwitchLockIcon.height}
+                    {pending ? (
+                        <ActivityIndicator
+                            size={variables.iconSizeSmall}
+                            extraLoadingContext={{context: 'Switch'}}
                         />
+                    ) : (
+                        (!!disabled || !!showLockIcon) && (
+                            <Icon
+                                testID={CONST.SWITCH_LOCK_ICON_TEST_ID}
+                                src={expensifyIcons.Lock}
+                                fill={isOn ? theme.text : theme.icon}
+                                width={styles.toggleSwitchLockIcon.width}
+                                height={styles.toggleSwitchLockIcon.height}
+                            />
+                        )
                     )}
                 </Animated.View>
             </Animated.View>
@@ -142,3 +160,4 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
 }
 
 export default Switch;
+export type {SwitchProps};

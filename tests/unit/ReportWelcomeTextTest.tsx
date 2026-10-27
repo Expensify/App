@@ -9,6 +9,7 @@ import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type ReactNative from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -92,10 +93,12 @@ const personalDetails: Record<string, PersonalDetails> = {
 
 function renderComponent(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>) {
     return render(
-        <ReportWelcomeText
-            report={report}
-            policy={policy ?? undefined}
-        />,
+        <NavigationContainer>
+            <ReportWelcomeText
+                report={report}
+                policy={policy ?? undefined}
+            />
+        </NavigationContainer>,
     );
 }
 

@@ -1,6 +1,6 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Badge from '@components/Badge';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -63,6 +63,7 @@ function TitleCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
             shouldShowTooltip={showTooltip}
             numberOfLines={2}
             style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.preWrap, styles.justifyContentCenter]}
+            isSelectable
         />
     );
 }
@@ -76,6 +77,7 @@ function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellPr
             text={taskItem.description}
             numberOfLines={2}
             style={[styles.lineHeightLarge, styles.preWrap, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+            isSelectable
         />
     );
 }
@@ -134,8 +136,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldDisplayCompactArrowIcon = !!(item.parentReportIcon || item.parentReportName);
+    const shouldDisplayCompactArrowIcon = !!(item.parentReportIcon ?? item.parentReportName);
 
     if (!isLargeScreenWidth) {
         return (
@@ -165,6 +166,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                                 reportName={item?.parentReportName}
                                 icon={item?.parentReportIcon}
                                 isLargeScreenWidth={isLargeScreenWidth}
+                                isSelectable
                             />
                         </View>
                     </View>
@@ -194,14 +196,17 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
 
                     <View style={[styles.gap2, styles.alignItemsEnd]}>
                         {!!item.assignee.accountID && (
-                            <Avatar
-                                imageStyles={[styles.alignSelfCenter]}
-                                size={CONST.AVATAR_SIZE.XXX_SMALL}
-                                source={item.assignee.avatar}
-                                name={item.formattedAssignee}
-                                type={CONST.ICON_TYPE_AVATAR}
-                                avatarID={item.assignee.accountID}
-                            />
+                            <View
+                                style={styles.userSelectNone}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            >
+                                <UserAvatar
+                                    imageStyles={styles.alignSelfCenter}
+                                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                                    source={item.assignee.avatar}
+                                    accountID={item.assignee.accountID}
+                                />
+                            </View>
                         )}
 
                         <DateCell
@@ -218,7 +223,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear})]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear, isDateColumnCreated: true})]}>
                     <DateCell
                         date={item.created}
                         showTooltip={showTooltip}
@@ -252,6 +257,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         reportName={item?.parentReportName}
                         icon={item?.parentReportIcon}
                         isLargeScreenWidth={isLargeScreenWidth}
+                        isSelectable
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE)]}>

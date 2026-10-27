@@ -1,10 +1,10 @@
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
 
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,7 +35,6 @@ function ChooseSSOOrValidateCode({setIsUsingValidateCode}: ChooseSSOOrValidateCo
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -52,18 +51,18 @@ function ChooseSSOOrValidateCode({setIsUsingValidateCode}: ChooseSSOOrValidateCo
         <>
             <View>
                 <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !shouldUseNarrowLayout ? styles.textAlignLeft : {}]}>{translate('samlSignIn.welcomeSAMLEnabled')}</Text>
-                <Button
-                    isDisabled={isOffline}
-                    success
-                    large
+                <ButtonDisabledWhenOffline
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mv3]}
-                    text={translate('samlSignIn.useSingleSignOn')}
                     isLoading={account?.isLoading}
                     onPress={() => {
                         Navigation.navigate(ROUTES.SAML_SIGN_IN);
                     }}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.SSO}
-                />
+                >
+                    <Button.Text>{translate('samlSignIn.useSingleSignOn')}</Button.Text>
+                </ButtonDisabledWhenOffline>
 
                 <View style={[styles.mt5]}>
                     <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !shouldUseNarrowLayout ? styles.textAlignLeft : {}]}>
@@ -71,18 +70,18 @@ function ChooseSSOOrValidateCode({setIsUsingValidateCode}: ChooseSSOOrValidateCo
                     </Text>
                 </View>
 
-                <Button
-                    isDisabled={isOffline}
+                <ButtonDisabledWhenOffline
                     style={[styles.mv3]}
-                    large
-                    text={translate('samlSignIn.useSecurityCode')}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading && account?.loadingForm === (account?.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
                     onPress={() => {
                         resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SIGN_IN}, credentials?.login);
                         setIsUsingValidateCode(true);
                     }}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.VALIDATE_CODE}
-                />
+                >
+                    <Button.Text>{translate('samlSignIn.useSecurityCode')}</Button.Text>
+                </ButtonDisabledWhenOffline>
                 {!!account && !isEmptyObject(account.errors) && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                 <ChangeExpensifyLoginLink onPress={() => clearSignInData()} />
             </View>

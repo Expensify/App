@@ -1,7 +1,7 @@
 ---
 title: Managing Workspace Members in New Expensify
 description: Learn how to add, remove, filter, and manage user roles in a New Expensify workspace.
-keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter]
+keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, guest, invite users, filter members, role filter, member display name]
 ---
 
 
@@ -12,10 +12,11 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 - **Member** – Can submit and/or approve expenses.
 - **Workspace admin** – Can manage members, roles, workflows, and settings.
 - **Card admin** – Can manage the Expensify Card and Company cards, including issuing cards, setting limits, and assigning company cards. Has read-only access to Overview and Members, and all other workspace settings pages are hidden. (Control workspaces only)
-- **People admin** – Can manage workspace membership and configure approval workflows. People admins can add and remove Members and Auditors only, and cannot add or remove admins or other scoped admin roles. They have read-only access to the workspace overview and edit access to Members and the Approvals section of Workflows. All other workspace editor pages are hidden. (Control workspaces only)
+- **People admin** – Can manage workspace membership and configure approval workflows. People admins can add and remove Members, Guests, and Auditors only, and cannot add or remove admins or other scoped admin roles. They have read-only access to the workspace overview and edit access to Members and the Approvals section of Workflows. All other workspace editor pages are hidden. (Control workspaces only)
 - **Payments admin** – Can manage workspace payment settings in the **Payments** section of **Workflows**, including business bank accounts, the authorized expense payer, and payment methods. Payment permissions are otherwise unchanged, so paying a report still depends on the relevant bank account being shared with the payer. Has read-only access to the workspace overview and Members, and all other workspace editor pages are hidden. (Control workspaces only)
 - **Auditor** – Can view and comment on reports and has read-only access to all workspace editor pages (such as Categories, Tags, Rules, Workflows, and Accounting). Auditors cannot change any workspace settings or take workflow actions such as approving, paying, or taking control. (Control workspaces only)
-- **Editor** – Can edit workspace settings, but cannot see all expenses associated with the workspace. They cannot add admins to the workspace or change other users’ roles. (Submit workspaces only)
+- **Guest** – Can submit reports with limited visibility. Guests can’t view the workspace member list or create rooms. (Control workspaces only)
+- **Editor** – Can edit workspace settings, but cannot see all expenses associated with the workspace. They cannot add admins to the workspace or change other members' roles. (Submit workspaces only)
 
 ---
 
@@ -24,15 +25,15 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 To invite someone to your workspace:
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
-2. Click **Invite Member**.
-3. Search for the user by name, email, or phone number.
+2. Click **Invite member**.
+3. Search for the member by name, email, or phone number.
 4. (Optional) Click **Role** to change the default role (Member).
 5. (Optional) Add a message to the invitation.
 6. Click **Invite**.
 
 **Tip:** You can also invite members under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
 
-**Note:** Workspace admins and People admins can invite members. People admins can only invite users as **Members** or **Auditors** — they cannot invite admins or other scoped admin roles.
+**Note:** Workspace admins and People admins can invite members. People admins can only invite members as **Members**, **Guests**, or **Auditors** — they cannot assign admin roles.
 
 ---
 
@@ -49,6 +50,7 @@ You can filter the member list by role to quickly find specific groups of member
    - **People Admins** – Members with the People Admin role (Control workspaces only).
    - **Payments admins** – Shows only members with the Payments admin role (Control workspaces only).
    - **Auditors** – Members with the Auditor role (Control workspaces only).
+   - **Guests** – Members with the Guest role (Control workspaces only).
    - **Editors** – Members with the Editor role (Submit workspaces only).
    - **Members** – Members with the Member role.
 
@@ -64,7 +66,7 @@ If no members match the selected filters, an empty state is displayed with the m
 
 If someone no longer needs access to your workspace, you can remove them individually or in bulk to keep your member list up to date.
 
-**Note:** Workspace admins and People admins can remove members. People admins can only remove **Members** and **Auditors** — they cannot remove admins or other scoped admin roles.
+**Note:** Workspace admins and People admins can remove members. People admins can only remove **Members**, **Guests**, and **Auditors** — they cannot remove admins or other scoped admin roles.
 
 **Note:** If you remove a member who is an approver on an Outstanding report, the workspace owner replaces them as the approver. Learn more about [automatic approver reassignment](/articles/new-expensify/workspaces/Add-Approvals).
 
@@ -72,27 +74,43 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Click the member’s name.
-3. In the right-hand panel, click **Remove from Workspace**.
+3. In the right-hand panel, click **Remove from workspace**.
 4. Confirm by clicking **Remove**.
 
 ## Remove Multiple Members
 
-1. Go to **Workspaces > Members**.
+1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Select the checkboxes next to the members you want to remove.
-3. Click the **green dropdown arrow** in the top-right.
-4. Choose **Remove Member(s)**.
-5. Confirm by clicking **Remove**.
+3. On web, select **Remove members** from the selection bar. On mobile, select **[number] selected** at the top, then select **Remove members**.
+4. Confirm by clicking **Remove**.
 
 ---
 
 # Change a User’s Role
 
-1. Go to **Workspaces > Members**.
+1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Click the member’s name.
 3. In the right-hand panel, click **Roles**.
 4. Select the new role and confirm.
 
-**Note:** People admins can change a member’s role between **Member** and **Auditor** only. Granting or removing the admin role or any scoped admin role (such as Card admin, People admin, or Payments admin) requires a Workspace admin.
+On the web, you can also change a member’s role directly from the members list. Hover over the member’s **Role** and click the pencil icon that appears to select a new role.
+
+**Note:** People admins can change a member’s role between **Member**, **Guest**, and **Auditor** only. Granting or removing the admin role or any scoped admin role (such as Card admin, People admin, or Payments admin) requires a Workspace admin.
+
+**Note:** You can’t change the role of the member set as the workspace’s authorized payer. Their **Role** can’t be edited and role-change options are hidden until you assign a different payer. To change their role, first go to **Workspaces > Workflows**, open **Payments**, and set a different admin as the **Payer**.
+
+---
+
+# How to Set a Member’s Display Name
+
+Workspace admins can set a display name for a member who hasn’t added a name of their own.
+
+1. Go to **Workspaces > [Workspace Name] > Members**.
+2. Click the member’s name.
+3. In the right-hand panel, click **Profile**.
+4. Click **Display name**, enter a first and last name, and click **Save**.
+
+The name applies in every workspace the member belongs to. After it’s saved, only the member can change it.
 
 ---
 
@@ -102,7 +120,7 @@ To transfer ownership to another admin:
 
 1. Go to **Workspaces > Members**.
 2. Click the current **Owner** (identified with a tag).
-3. Click **Transfer Owner** in the right-hand panel.
+3. Click **Transfer owner** in the right-hand panel.
 4. Click **Continue** to confirm.
 
 After the transfer, the initiating user becomes the new **Owner**.
@@ -115,8 +133,8 @@ After the transfer, the initiating user becomes the new **Owner**.
 
 # Invite Multiple Members via Spreadsheet
 
-1. Go to **Workspaces > Members**.
-2. Click the **three-dot menu** in the top-right.
+1. Go to **Workspaces > [Workspace Name] > Members**.
+2. Select the three dots **(⋮)** in the top-right.
 3. Select **Import via Spreadsheet**.
 4. Drag and drop your file or click **Upload File** to browse.
 5. Map each column in your file to a member field, then complete the import.
@@ -134,11 +152,25 @@ When mapping columns, you can assign each one to any of the following member fie
 
 Mapping the **Submit to**, **Forward to**, **Over limit forward to**, and **Approval limit** fields sets up each member's approval workflow, which you can review under **Workflows** after the import completes.
 
+**Approval limit format:** Enter the **Approval limit** as an amount in your workspace currency, not in cents. For example, `500` sets a $500 limit. Currency symbols, currency codes, commas, and spaces are allowed, so `$1,234.56` also works. If any value isn't a valid amount, the import stops and shows the error "Approval limits must be valid amounts for the workspace currency."
+
 **Note:** Use this **[spreadsheet import template](https://docs.google.com/spreadsheets/d/19fjknN-KOS74RjXDccXZGUNTm-utdV7Gvveo5EyrJLE/edit?gid=0#gid=0)** to ensure proper formatting.
 
 **Control plan required:** The **Submit to**, **Forward to**, **Over limit forward to**, **Approval limit**, **Custom field 1**, and **Custom field 2** fields — along with specialized roles like **Auditor** and **Card admin** — are only available on the Control plan. If your workspace isn't on the Control plan, you'll be prompted to upgrade before the import can finish.
 
 ---
+
+# Download a CSV of workspace members
+
+Workspace admins, People admins, and Editors on Submit workspaces can download a CSV of workspace members.
+
+To download a list of workspace members to a CSV file:
+
+1. Go to **Workspaces > [Workspace Name] > Members**.
+2. Select the three dots **(⋮)** in the top-right.
+3. Select **Download CSV**.
+
+The CSV file will be downloaded to your computer.
 
 # FAQ
 
@@ -148,9 +180,17 @@ You must be a **Workspace admin**, and the email or phone number of the individu
 
 ## Can I invite multiple members to a workspace at the same time?
 
-Yes. Use the search tool during invite or import members using a spreadsheet (see the **Invite Multiple Members via Spreadsheet** section above.
+Yes. Use the search tool during invite or import members using a spreadsheet (see the **Invite Multiple Members via Spreadsheet** section above).
 
 ## Why am I prompted to upgrade when importing members from a spreadsheet?
 
 Your file maps an advanced field (**Submit to**, **Forward to**, **Over limit forward to**, **Approval limit**, **Custom field 1**, or **Custom field 2**) or assigns a specialized role like **Auditor** or **Card admin**. These are only available on the Control plan, so you'll need to upgrade your workspace to the Control plan before the import can finish.
+
+## Why do I see "Approval limits must be valid amounts for the workspace currency" when importing members?
+
+At least one value in your **Approval limit** column isn't a valid amount. Enter each limit as an amount in your workspace currency, such as `500` or `$1,234.56`, and remove any text that isn't part of the amount. Then upload the file again.
+
+## Why can't I download a list of workspace members to a CSV file?
+
+Only Workspace admins, People admins, and Editors on Submit workspaces can download the list of workspace members to a CSV file. If you are a Member, Auditor, Card admin, or Payments admin, you will not be able to download the members list.
 

@@ -18,7 +18,7 @@ import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} fro
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -26,28 +26,23 @@ import ProgressBar from './ProgressBar';
 import VolumeButton from './VolumeButton';
 
 type VideoPlayerControlsProps = {
-    /** Duration of a video. */
     duration: number;
 
     /** Position of progress pointer. */
     position: number;
 
-    /** Url of a video. */
     url: string;
 
-    /** Ref for video player. */
+    /** Original file name of the video, used to name the file saved by the popover menu's Download action. */
+    fileName?: string;
+
     videoPlayerRef: RefObject<VideoPlayer | null>;
-
-    /** Ref for video view component. */
     videoViewRef: RefObject<VideoView | null>;
-
-    /** Is video playing. */
     isPlaying: boolean;
 
     /** Defines if component should have small icons and tighter spacing inline. */
     small?: boolean;
 
-    /** Style of video player controls. */
     style?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /** Function to play and pause the video.  */
@@ -65,7 +60,7 @@ type VideoPlayerControlsProps = {
 };
 
 /** Three-dots overflow trigger; records the active player + source before opening. */
-function MoreMenuTrigger({videoPlayerRef, url, small}: {videoPlayerRef: RefObject<VideoPlayer | null>; url: string; small: boolean}) {
+function MoreMenuTrigger({videoPlayerRef, url, fileName, small}: {videoPlayerRef: RefObject<VideoPlayer | null>; url: string; fileName: string | undefined; small: boolean}) {
     const {updateVideoPopoverMenuPlayerRef, updateSource} = useVideoPopoverMenuActions();
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const {translate} = useLocalize();
@@ -76,7 +71,7 @@ function MoreMenuTrigger({videoPlayerRef, url, small}: {videoPlayerRef: RefObjec
             return;
         }
         updateVideoPopoverMenuPlayerRef(videoPlayerRef.current);
-        updateSource(url);
+        updateSource(url, fileName);
     };
 
     return (
@@ -96,6 +91,7 @@ function VideoPlayerControls({
     duration,
     position,
     url,
+    fileName,
     videoPlayerRef,
     videoViewRef,
     isPlaying,
@@ -119,23 +115,20 @@ function VideoPlayerControls({
         setShouldShowTime(event.nativeEvent.layout.width > CONST.VIDEO_PLAYER.HIDE_TIME_TEXT_WIDTH);
     };
 
-    const enterFullScreenMode = useCallback(() => {
+    const enterFullScreenMode = () => {
         updateCurrentURLAndReportID(url, report, reportID);
         videoViewRef.current?.enterFullscreen();
-    }, [report, reportID, updateCurrentURLAndReportID, url, videoViewRef]);
+    };
 
-    const seekPosition = useCallback(
-        (newPosition: number) => {
-            if (!videoPlayerRef.current) {
-                return;
-            }
-            // eslint-disable-next-line no-param-reassign
-            videoPlayerRef.current.currentTime = newPosition;
-        },
-        [videoPlayerRef],
-    );
+    const seekPosition = (newPosition: number) => {
+        if (!videoPlayerRef.current) {
+            return;
+        }
+        // eslint-disable-next-line no-param-reassign
+        videoPlayerRef.current.currentTime = newPosition;
+    };
 
-    const durationFormatted = useMemo(() => convertSecondsToTime(duration), [duration]);
+    const durationFormatted = convertSecondsToTime(duration);
 
     return (
         <Animated.View
@@ -179,6 +172,7 @@ function VideoPlayerControls({
                         <MoreMenuTrigger
                             videoPlayerRef={videoPlayerRef}
                             url={url}
+                            fileName={fileName}
                             small={small}
                         />
                     </View>

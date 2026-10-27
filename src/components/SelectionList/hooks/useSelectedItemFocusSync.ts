@@ -1,12 +1,11 @@
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 
-import {useEffect, useMemo} from 'react';
+import {useEffect} from 'react';
 
 type UseSelectedItemFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** Array of items to search in */
     data: TData[];
 
-    /** Key of the item to focus initially */
     initiallyFocusedItemKey: string | null | undefined;
 
     /** Function to check if an item is selected */
@@ -18,7 +17,6 @@ type UseSelectedItemFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** Current search value - if present, don't sync focus */
     searchValue: string | undefined;
 
-    /** Function to set the focused index */
     setFocusedIndex: (index: number, shouldScrollHint?: boolean) => void;
 };
 
@@ -34,7 +32,7 @@ function useSelectedItemFocusSync<TItem extends ListItem, TData = TItem>({
     searchValue,
     setFocusedIndex,
 }: UseSelectedItemFocusSyncParams<TItem, TData>) {
-    const selectedItemIndex = useMemo(() => (initiallyFocusedItemKey ? data.findIndex(isItemSelected) : -1), [data, initiallyFocusedItemKey, isItemSelected]);
+    const selectedItemIndex = initiallyFocusedItemKey ? data.findIndex(isItemSelected) : -1;
 
     useEffect(() => {
         if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || searchValue) {

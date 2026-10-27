@@ -32,7 +32,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntacctDimensionsForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import DimensionTypeSelector from './DimensionTypeSelector';
@@ -51,25 +51,22 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
     const editedUserDimension = userDimensions?.find((userDimension) => userDimension.dimension === editedUserDimensionName);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM> = {};
 
-            if (!values[INPUT_IDS.INTEGRATION_NAME]) {
-                addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('common.error.fieldRequired'));
-            }
+        if (!values[INPUT_IDS.INTEGRATION_NAME]) {
+            addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('common.error.fieldRequired'));
+        }
 
-            if (userDimensions?.some((userDimension) => userDimension.dimension === values[INPUT_IDS.INTEGRATION_NAME] && editedUserDimensionName !== values[INPUT_IDS.INTEGRATION_NAME])) {
-                addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('workspace.intacct.dimensionExists'));
-            }
+        if (userDimensions?.some((userDimension) => userDimension.dimension === values[INPUT_IDS.INTEGRATION_NAME] && editedUserDimensionName !== values[INPUT_IDS.INTEGRATION_NAME])) {
+            addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('workspace.intacct.dimensionExists'));
+        }
 
-            if (!values[INPUT_IDS.DIMENSION_TYPE]) {
-                addErrorMessage(errors, INPUT_IDS.DIMENSION_TYPE, translate('common.error.fieldRequired'));
-            }
-            return errors;
-        },
-        [editedUserDimensionName, translate, userDimensions],
-    );
+        if (!values[INPUT_IDS.DIMENSION_TYPE]) {
+            addErrorMessage(errors, INPUT_IDS.DIMENSION_TYPE, translate('common.error.fieldRequired'));
+        }
+        return errors;
+    };
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     return (
@@ -141,7 +138,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                                     prompt: translate('workspace.intacct.removeDimensionPrompt'),
                                     confirmText: translate('common.remove'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                     shouldEnableNewFocusManagement: true,
                                 }).then((result) => {
                                     if (result.action !== ModalActions.CONFIRM) {

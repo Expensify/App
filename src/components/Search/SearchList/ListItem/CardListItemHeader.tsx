@@ -1,7 +1,6 @@
 import AccountAvatarWithCardFeed from '@components/Avatar/connected/AccountAvatarWithCardFeed';
 import Checkbox from '@components/Checkbox';
 import type {SearchColumnType} from '@components/Search/types';
-import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
@@ -14,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
-import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -25,17 +23,13 @@ import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
-type CardListItemHeaderProps<TItem extends ListItem> = {
-    /** The card currently being looked at */
+type CardListItemHeaderProps = {
     card: TransactionCardGroupListItemType;
-
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TransactionCardGroupListItemType) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
 
-    /** Whether the item is focused */
     isFocused?: boolean;
 
     /** Whether selecting multiple transactions at once is allowed */
@@ -47,7 +41,6 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */
@@ -57,11 +50,7 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-/**
- * Non-generic implementation so OXC's React Compiler can memoize the component.
- * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
- */
-function CardListItemHeaderImpl({
+function CardListItemHeader({
     card: cardItem,
     onCheckboxPress,
     isDisabled,
@@ -72,7 +61,7 @@ function CardListItemHeaderImpl({
     onDownArrowClick,
     columns,
     isExpanded,
-}: CardListItemHeaderProps<ListItem>) {
+}: CardListItemHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -82,7 +71,7 @@ function CardListItemHeaderImpl({
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
-    const columnComponents = {
+    const columnComponents: Partial<Record<SearchColumnType, React.JSX.Element>> = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.AVATAR}
@@ -92,7 +81,7 @@ function CardListItemHeaderImpl({
                     <View>
                         <AccountAvatarWithCardFeed
                             accountID={cardItem.accountID}
-                            cardFeed={cardItem.bank as CompanyCardFeed}
+                            cardFeed={cardItem.bank}
                             borderColor={backgroundColor}
                             containerStyle={styles.mr0}
                             size={CONST.AVATAR_SIZE.SMALL}
@@ -111,6 +100,7 @@ function CardListItemHeaderImpl({
                         text={cardItem.formattedCardName ?? ''}
                         numberOfLines={2}
                         style={[styles.preWrap]}
+                        isSelectable
                     />
                 </View>
             </View>
@@ -124,6 +114,7 @@ function CardListItemHeaderImpl({
                     text={cardItem.formattedFeedName ?? ''}
                     numberOfLines={2}
                     style={[styles.lineHeightLarge, styles.preWrap]}
+                    isSelectable
                 />
             </View>
         ),
@@ -154,7 +145,7 @@ function CardListItemHeaderImpl({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(cardItem as ListItem)}
+                            onPress={() => onCheckboxPress?.(cardItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}
@@ -166,7 +157,7 @@ function CardListItemHeaderImpl({
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                             <AccountAvatarWithCardFeed
                                 accountID={cardItem.accountID}
-                                cardFeed={cardItem.bank as CompanyCardFeed}
+                                cardFeed={cardItem.bank}
                                 borderColor={backgroundColor}
                                 containerStyle={styles.mr0}
                             />
@@ -174,16 +165,18 @@ function CardListItemHeaderImpl({
                                 <TextWithTooltip
                                     text={formattedDisplayName}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                    isSelectable
                                 />
                                 <TextWithTooltip
                                     text={cardItem.formattedCardName ?? ''}
                                     numberOfLines={2}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.preWrap]}
+                                    isSelectable
                                 />
                             </View>
                         </View>
                     )}
-                    {isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
+                    {isLargeScreenWidth && columns?.map((column) => columnComponents[column])}
                 </View>
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
@@ -202,10 +195,6 @@ function CardListItemHeaderImpl({
             </View>
         </View>
     );
-}
-
-function CardListItemHeader<TItem extends ListItem>(props: CardListItemHeaderProps<TItem>) {
-    return <CardListItemHeaderImpl {...(props as CardListItemHeaderProps<ListItem>)} />;
 }
 
 export default CardListItemHeader;

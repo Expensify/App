@@ -8,11 +8,12 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 
 import {isAuthenticationError} from '@libs/actions/connections';
 
-import {useAccountingState} from '@pages/workspace/accounting/AccountingContext';
+import {useAccountingState} from '@pages/workspace/accounting/AccountingContext/contexts';
 
 import type {AnchorPosition} from '@styles/index';
 
@@ -37,12 +38,14 @@ const anchorAlignment = {
 function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, onConnect}: BaseConnectToQuickbooksOnlineFlowProps) {
     const {environment} = useEnvironment();
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {popoverAnchorRefs} = useAccountingState();
     const {calculatePopoverPosition} = usePopoverPosition();
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy']);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.QBO);
-    const shouldShowConnectionOptions = !!isIntuitEnterpriseSuite && environment === CONST.ENVIRONMENT.DEV && !isAuthError;
+    const shouldShowConnectionOptions = !!isIntuitEnterpriseSuite && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) && !isAuthError;
     const [isConnectionOptionsPopoverOpen, setIsConnectionOptionsPopoverOpen] = useState(shouldShowConnectionOptions);
     const [connectionOptionsPopoverPosition, setConnectionOptionsPopoverPosition] = useState<AnchorPosition | null>(null);
     const didInitialize = useRef(false);
@@ -61,12 +64,12 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
         didInitialize.current = true;
 
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
-        enablePolicyTaxes(policyID, false);
+        enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled);
         // Reconnect starts from the overflow menu, so there is no connection button to anchor this popover to.
         if (!shouldShowConnectionOptions) {
             onConnect(false);
         }
-    }, [onConnect, policyID, shouldShowConnectionOptions]);
+    }, [onConnect, policyID, shouldShowConnectionOptions, isVendorMatchingBetaEnabled]);
 
     useLayoutEffect(() => {
         if (!isConnectionOptionsPopoverOpen) {

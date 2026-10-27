@@ -10,8 +10,8 @@ import {openLink} from '@userActions/Link';
  * The OAuth tab is a separate browsing context, so this tab never hears back from it. Dismiss the RHP here rather
  * than waiting for the connection to land in Onyx.
  */
-function connectToNetSuiteOAuthSetup(policyID: string, accountID: string, environmentURL: string) {
-    openLink(getNetSuiteSetupLink(policyID, accountID), environmentURL);
+function connectToNetSuiteOAuthSetup(policyID: string, accountID: string, environmentURL: string, isMigration?: boolean) {
+    openLink(getNetSuiteSetupLink(policyID, accountID, isMigration), environmentURL);
     Navigation.dismissModal();
 }
 

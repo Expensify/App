@@ -45,7 +45,7 @@ function CopyPolicySettingsUpgradePage() {
     const parts = copyPolicySettingsState?.parts ?? [];
 
     const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]);
-    const policiesToUpgrade = getCollectTargetsToUpgrade(targetPolicies, parts);
+    const policiesToUpgrade = getCollectTargetsToUpgrade(targetPolicies, parts, sourcePolicy);
 
     // Don't trust an "all targets are Corporate" reading until both Onyx keys have loaded and every
     // target policy has actually resolved. Otherwise unresolved targets look like `undefined` (not
@@ -54,7 +54,7 @@ function CopyPolicySettingsUpgradePage() {
     const isDataLoaded = !isLoadingOnyxValue(copyPolicySettingsMetadata, policiesMetadata) && areAllTargetPoliciesResolved;
 
     const controlOnlyFeatures = formatList(
-        getControlOnlySelectedParts(targetPolicies, parts)
+        getControlOnlySelectedParts(targetPolicies, parts, sourcePolicy)
             .map((part) => {
                 const labelKey = FEATURE_ROWS.find((row) => row.part === part)?.labelKey;
                 return labelKey ? translate(labelKey) : undefined;
@@ -86,7 +86,8 @@ function CopyPolicySettingsUpgradePage() {
         if (!sourcePolicyID || !isDataLoaded || hasRequestedUpgrade || policiesToUpgrade.length > 0) {
             return;
         }
-        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
+        // This step is no longer valid, so replace it instead of leaving it beneath Confirm in the navigation stack.
+        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID), {forceReplace: true});
     }, [isDataLoaded, hasRequestedUpgrade, policiesToUpgrade.length, sourcePolicyID]);
 
     const onUpgrade = () => {
@@ -103,7 +104,8 @@ function CopyPolicySettingsUpgradePage() {
         if (!sourcePolicyID) {
             return;
         }
-        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
+        // Upgrade is a one-way step, so replace it to keep a refreshed stack from returning to the stale success view.
+        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID), {forceReplace: true});
     };
 
     return (

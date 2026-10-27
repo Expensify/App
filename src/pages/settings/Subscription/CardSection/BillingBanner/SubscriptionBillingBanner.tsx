@@ -14,7 +14,6 @@ type SubscriptionBillingBannerProps = Omit<BillingBannerProps, 'titleStyle' | 's
     /** Indicates whether there is an error */
     isError?: boolean;
 
-    /** An optional icon prop */
     icon?: IconAsset;
 };
 

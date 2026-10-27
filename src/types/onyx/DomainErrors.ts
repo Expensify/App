@@ -7,9 +7,6 @@ import type * as OnyxCommon from './OnyxCommon';
  * Basic errors for domain members and admins
  */
 type GeneralDomainMemberErrors = {
-    /**
-     * Base errors
-     */
     errors: OnyxCommon.Errors;
 };
 
@@ -97,8 +94,10 @@ type DomainErrors = {
     adminErrors?: Record<number, GeneralDomainMemberErrors>;
 
     /**
-     * Errors related to the technical contact email
+     * Errors related to approving/denying a pending domain adminship request, keyed by the requester's accountID
      */
+    adminshipRequesterErrors?: Record<number, GeneralDomainMemberErrors>;
+
     technicalContactEmailErrors?: OnyxCommon.Errors;
 
     /**
@@ -120,6 +119,11 @@ type DomainErrors = {
      * Errors related to the 2FA toggle
      */
     setTwoFactorAuthRequiredError?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to requesting adminship of a domain already claimed by someone else
+     */
+    requestAdminshipError?: OnyxCommon.Errors;
 } & PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroupErrors>;
 
 export type {DomainMemberErrors, DomainSecurityGroupErrors};

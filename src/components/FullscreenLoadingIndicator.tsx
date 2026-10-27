@@ -18,16 +18,14 @@ import Text from './Text';
 type FullScreenLoadingIndicatorIconSize = ActivityIndicatorProps['size'];
 
 type FullScreenLoadingIndicatorProps = {
-    /** Styles of the outer view */
     style?: StyleProp<ViewStyle>;
-
-    /** Size of the icon */
     iconSize?: FullScreenLoadingIndicatorIconSize;
 
-    /** Whether the "Go Back" button appears after a timeout. */
+    /** Whether the "Go Back" button appears after a timeout. Defaults to true, pass false where going back is dead or harmful (e.g. global overlays, or a transition that is mid sign-out). */
     shouldUseGoBackButton?: boolean;
 
-    /** The ID of the test to be used for testing */
+    onGoBack?: () => void;
+
     testID?: string;
 
     /** Extra loading context to be passed to the logAppStateOnLongLoading function */
@@ -37,7 +35,8 @@ type FullScreenLoadingIndicatorProps = {
 function FullScreenLoadingIndicator({
     style,
     iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE,
-    shouldUseGoBackButton = false,
+    shouldUseGoBackButton = true,
+    onGoBack = Navigation.goBack,
     testID = '',
     extraLoadingContext,
 }: FullScreenLoadingIndicatorProps) {
@@ -69,10 +68,9 @@ function FullScreenLoadingIndicator({
                         <View style={styles.pv4}>
                             <Text>{translate('common.thisIsTakingLongerThanExpected')}</Text>
                         </View>
-                        <Button
-                            text={translate('common.goBack')}
-                            onPress={() => Navigation.goBack()}
-                        />
+                        <Button onPress={() => onGoBack()}>
+                            <Button.Text>{translate('common.goBack')}</Button.Text>
+                        </Button>
                     </View>
                 )}
             </View>

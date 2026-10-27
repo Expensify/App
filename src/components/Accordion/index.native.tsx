@@ -21,7 +21,6 @@ type AccordionProps = {
     /** Additional external style */
     style?: StyleProp<ViewStyle>;
 
-    /** Was toggle triggered */
     isToggleTriggered: SharedValue<boolean>;
 };
 
@@ -45,10 +44,20 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
             return isExpanded.get() ? 1 : 0;
         }
 
-        return withTiming(isExpanded.get() ? 1 : 0, {
-            duration,
-            easing: Easing.inOut(Easing.quad),
-        });
+        return withTiming(
+            isExpanded.get() ? 1 : 0,
+            {
+                duration,
+                easing: Easing.inOut(Easing.quad),
+            },
+            (finished) => {
+                if (!finished) {
+                    return;
+                }
+                // Reset the toggled-state so we don't keep animating the accordion on remount
+                isToggleTriggered.set(false);
+            },
+        );
     });
 
     const animatedStyle = useAnimatedStyle(() => {

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 
@@ -60,4 +60,4 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonOptions, ad
 
 Footer.displayName = 'Footer';
 
-export default React.memo(Footer) as typeof Footer;
+export default Footer;

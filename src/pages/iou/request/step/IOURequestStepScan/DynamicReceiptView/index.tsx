@@ -2,7 +2,7 @@ import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/A
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,7 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 type DynamicReceiptViewProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_RECEIPT_VIEW>;
 
@@ -79,23 +79,23 @@ function DynamicReceiptView({route}: DynamicReceiptViewProps) {
         Navigation.goBack(undefined, {afterTransition: handleDeleteReceipt});
     };
 
-    const handleGoBack = useCallback(() => {
+    const handleGoBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const handleDeleteReceiptPress = useCallback(async () => {
+    const handleDeleteReceiptPress = async () => {
         const result = await showConfirmModal({
             title: translate('receipt.deleteReceipt'),
             prompt: translate('receipt.deleteConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
         deleteReceipt();
-    }, [showConfirmModal, translate, deleteReceipt]);
+    };
 
     return (
         <ScreenWrapper

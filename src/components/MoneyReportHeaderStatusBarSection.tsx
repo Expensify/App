@@ -6,6 +6,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isProcessingReport} from '@libs/ReportUtils';
+import {getUnsuppressibleBrokenConnectionTransactionID} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -33,8 +34,9 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
-    const {transactions: reportTransactionsMap} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
+    const {transactions: reportTransactionsMap, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Box', 'Stopwatch', 'Flag', 'CreditCardHourglass', 'ReceiptScan']);
@@ -98,7 +100,9 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.BROKEN_CONNECTION) {
-        if (!iouTransactionID) {
+        // A multi-expense report has no single transaction, so use one whose broken connection cannot be suppressed.
+        const brokenConnectionTransactionID = iouTransactionID ?? getUnsuppressibleBrokenConnectionTransactionID(transactions, violations, cardList);
+        if (!brokenConnectionTransactionID) {
             return null;
         }
         return (
@@ -106,7 +110,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
                 icon={getStatusIcon(expensifyIcons.Hourglass)}
                 description={
                     <BrokenConnectionDescription
-                        transactionID={iouTransactionID}
+                        transactionID={brokenConnectionTransactionID}
                         report={moneyRequestReport}
                         policy={policy}
                     />

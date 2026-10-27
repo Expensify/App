@@ -5,6 +5,7 @@ import type {CombinedCardFeeds} from '@hooks/useCardFeeds';
 import * as API from '@libs/API';
 import type {
     AssignCompanyCardParams,
+    BulkUpdateCardTransactionStartDateParams,
     GetExpensifyCardStatementPDFParams,
     ImportCSVCompanyCardsParams,
     OpenPolicyAddCardFeedPageParams,
@@ -23,7 +24,6 @@ import parseCSVDate from '@libs/CSVDateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -31,7 +31,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card, CardFeeds, CurrencyList, Policy} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
-import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {
     AddNewCardFeedData,
     AddNewCardFeedStep,
@@ -69,7 +68,7 @@ type ImportCSVCompanyCardsData = {
     policyID: string;
     domainAccountID: number;
     layoutName: string;
-    layoutType: string;
+    layoutType: CompanyCardFeedWithNumber;
     columnMappings: string[];
     csvData: string[][];
     lastSelectedFeed?: CompanyCardFeedWithDomainID;
@@ -101,7 +100,7 @@ function parseCSVAmount(value: string): number | undefined {
 function buildOptimisticCompanyCardCSVTransactions(
     csvData: string[][],
     columnMappings: string[],
-    feedName: CompanyCardFeed,
+    feedName: CompanyCardFeedWithNumber,
 ): {
     csvDataWithGeneratedIDs: string[][];
     normalizedColumnMappings: string[];
@@ -110,10 +109,18 @@ function buildOptimisticCompanyCardCSVTransactions(
     const normalizedColumnMappings = [...columnMappings];
     const csvDataWithGeneratedIDs = csvData.map((row) => [...row]);
 
-    normalizedColumnMappings.push(CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID);
-    const externalIDColumnIndex = normalizedColumnMappings.length - 1;
+    // The backend dedupes rows by their `externalID`, so a mapped Unique ID column makes re-uploading
+    // the same file idempotent. Without one, every row gets a fresh generated ID and always imports.
+    const mappedExternalIDColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID);
+    const isExternalIDColumnMapped = mappedExternalIDColumnIndex >= 0;
+    if (!isExternalIDColumnMapped) {
+        normalizedColumnMappings.push(CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID);
+    }
+    const externalIDColumnIndex = isExternalIDColumnMapped ? mappedExternalIDColumnIndex : normalizedColumnMappings.length - 1;
 
     const cardNumberColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
+    const cardNameColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CARD_NAME);
+    const cardIdentityColumnIndex = cardNumberColumnIndex >= 0 ? cardNumberColumnIndex : cardNameColumnIndex;
     const postedDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.POSTED_DATE);
     const originalTransactionDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.ORIGINAL_TRANSACTION_DATE);
     const merchantColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.MERCHANT);
@@ -126,9 +133,13 @@ function buildOptimisticCompanyCardCSVTransactions(
     const transactions: OptimisticCompanyCardCSVTransaction[] = [];
     for (const row of csvDataWithGeneratedIDs) {
         const transactionID = rand64();
-        row[externalIDColumnIndex] = transactionID;
 
-        const cardName = row.at(cardNumberColumnIndex)?.trim();
+        // Fills the synthetic column, and any row whose mapped Unique ID cell is blank.
+        if (!row.at(externalIDColumnIndex)?.trim()) {
+            row[externalIDColumnIndex] = transactionID;
+        }
+
+        const cardName = cardIdentityColumnIndex >= 0 ? row.at(cardIdentityColumnIndex)?.trim() : undefined;
         const rawPostedDate = row.at(postedDateColumnIndex)?.trim();
         const created = rawPostedDate ? parseCSVDate(rawPostedDate) : null;
         const merchant = row.at(merchantColumnIndex)?.trim() ?? '';
@@ -204,6 +215,10 @@ function clearAddNewCardFlow() {
         currentStep: null,
         data: {},
     });
+}
+
+function clearAddNewCompanyCardErrors() {
+    Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {errors: null});
 }
 
 function addNewCompanyCardsFeed(
@@ -336,6 +351,7 @@ function setWorkspaceCompanyCardTransactionLiability(domainOrWorkspaceAccountID:
 
     const parameters = {
         policyID,
+        domainAccountID: domainOrWorkspaceAccountID,
         bankName,
         liabilityType,
     };
@@ -450,16 +466,15 @@ function deleteWorkspaceCompanyCardFeed(
 function assignWorkspaceCompanyCard(
     policy: OnyxEntry<Policy>,
     domainOrWorkspaceAccountID: number,
-    translate: LocaleContextProps['translate'],
     data: Partial<AssignCardData>,
+    assigneeAccountID: number | undefined,
     currentUserAccountID: number,
 ) {
     if (!policy?.id) {
         return;
     }
     const {bankName, email = '', encryptedCardNumber = '', startDate = '', customCardName = ''} = data;
-    const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-    const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID);
+    const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID);
 
     const parameters: AssignCompanyCardParams = {
         domainAccountID: domainOrWorkspaceAccountID,
@@ -485,7 +500,7 @@ function assignWorkspaceCompanyCard(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ASSIGN_CARD,
-                value: {isAssigning: true},
+                value: {isAssigning: true, errors: null},
             },
         ],
         successData: [
@@ -513,6 +528,13 @@ function assignWorkspaceCompanyCard(
                         pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ASSIGN_CARD,
+                value: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.assignCardFailedError'),
                 },
             },
         ],
@@ -808,7 +830,7 @@ function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: strin
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
-            value: {[cardID]: oldCardTitle},
+            value: {[cardID]: oldCardTitle ?? null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -872,7 +894,7 @@ function updateCardTransactionStartDate(domainOrWorkspaceAccountID: number, card
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
             value: {
                 [cardID]: {
-                    scrapeMinDate: oldStartDate,
+                    scrapeMinDate: oldStartDate ?? null,
                     pendingFields: {
                         scrapeMinDate: null,
                     },
@@ -893,6 +915,79 @@ function updateCardTransactionStartDate(domainOrWorkspaceAccountID: number, card
         optimisticData,
         finallyData,
         failureData,
+    });
+}
+
+function bulkUpdateCardTransactionStartDate(
+    domainOrWorkspaceAccountID: number,
+    bankName: CompanyCardFeedWithNumber,
+    cards: Array<{cardID: string; oldStartDate?: string}>,
+    newStartDate: string,
+) {
+    const optimisticCards: Record<string, NullishDeep<Card>> = {};
+    const finallyCards: Record<string, NullishDeep<Card>> = {};
+    const failureCards: Record<string, NullishDeep<Card>> = {};
+    for (const {cardID, oldStartDate} of cards) {
+        optimisticCards[cardID] = {
+            scrapeMinDate: newStartDate,
+            pendingFields: {
+                scrapeMinDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+            errorFields: {scrapeMinDate: null},
+        };
+        finallyCards[cardID] = {
+            pendingFields: {scrapeMinDate: null},
+        };
+        failureCards[cardID] = {
+            scrapeMinDate: oldStartDate ?? null,
+            pendingFields: {scrapeMinDate: null},
+            errorFields: {
+                scrapeMinDate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        };
+    }
+
+    const key = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}` as const;
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: optimisticCards}];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: finallyCards}];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: failureCards}];
+    const bulkTransactionStartDateUpdateID = rand64();
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`,
+            value: {bulkTransactionStartDateUpdateSuccessID: bulkTransactionStartDateUpdateID},
+        },
+    ];
+
+    const parameters: BulkUpdateCardTransactionStartDateParams = {
+        cardIDs: JSON.stringify(cards.map(({cardID}) => Number(cardID))),
+        startDate: newStartDate,
+    };
+
+    const request = API.write(WRITE_COMMANDS.BULK_UPDATE_CARD_TRANSACTION_START_DATE, parameters, {
+        optimisticData,
+        successData,
+        finallyData,
+        failureData,
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`, {
+        bulkTransactionStartDateUpdateID,
+    });
+
+    return request;
+}
+
+function clearBulkUpdateTransactionStartDateUpdate(domainOrWorkspaceAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`, {
+        bulkTransactionStartDateUpdateID: null,
+    });
+}
+
+function clearBulkUpdateTransactionStartDateSuccess(domainOrWorkspaceAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`, {
+        bulkTransactionStartDateUpdateSuccessID: null,
     });
 }
 
@@ -1245,7 +1340,7 @@ function importCSVCompanyCards({
     workspaceCardFeeds,
     existingInstanceID,
 }: ImportCSVCompanyCardsData): Promise<ImportFinalModal> {
-    const feedName = layoutType as CompanyCardFeed;
+    const feedName = layoutType;
     const {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions} = buildOptimisticCompanyCardCSVTransactions(csvData, columnMappings, feedName);
     // `existingInstanceID` is typed as a string, but for legacy feeds Onyx/NVP can store it as a number.
     // The backend rejects a non-string `instanceID` before parsing the CSV, so coerce it to a string here.
@@ -1283,7 +1378,7 @@ function importCSVCompanyCards({
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importCompanyCardTransactionsSuccessfulDescription',
         promptKeyParams: {
-            transactions: transactionsCount,
+            count: transactionsCount,
         },
         pendingMessageKey: 'spreadsheet.importCompanyCardTransactionsPendingMessage',
     };
@@ -1359,14 +1454,14 @@ function importCSVCompanyCards({
 }
 
 /**
- * Seeds ASSIGN_CARD Onyx state for a card feed refresh flow. The correct connection step (Plaid vs OAuth) is
- * derived from the feed type. For Plaid feeds, ADD_NEW_COMPANY_CARD.data.selectedCountry is also populated
- * so that PlaidConnectionStep can open the correct institution login.
+ * Starts the card feed refresh flow: seeds ASSIGN_CARD Onyx state and navigates to the refresh connection page.
+ * The correct connection step (Plaid vs OAuth) is derived from the feed type. For Plaid feeds,
+ * ADD_NEW_COMPANY_CARD.data.selectedCountry is also populated so that PlaidConnectionStep can open the correct
+ * institution login.
  *
- * Called directly after identity verification succeeds (from VerifyAccountPageBase.onValidationSuccess).
- * Navigation to the refresh page is handled by the caller (VerifyAccountPageBase.navigateForwardTo).
+ * When identity validation is required first, call this from the `useVerifyAccountAndResume` resume callback.
  */
-function seedCardFeedRefresh(feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
     const isPlaidFeed = !!CardUtils.getPlaidInstitutionId(feed);
     const currentStep = isPlaidFeed ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
 
@@ -1375,22 +1470,14 @@ function seedCardFeedRefresh(feed: CompanyCardFeedWithDomainID, outputCurrency?:
         Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data: {selectedCountry}});
     }
 
+    // An abandoned assign flow can leave errors or cardToAssign behind, which BankConnection would read as a failed import or as a Plaid token.
+    clearAssignCardStepAndData();
     setAssignCardStepAndData({
         currentStep,
         isRefreshing: true,
         isEditing: false,
     });
-}
 
-/**
- * Starts the card feed refresh flow for an already-validated user: seeds Onyx state and navigates
- * directly to the refresh connection page.
- *
- * When identity validation is required first, use the VERIFY_ACCOUNT screen with seedCardFeedRefresh
- * as the onValidationSuccess callback instead.
- */
-function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
-    seedCardFeedRefresh(feed, outputCurrency, currencyList, countryByIp);
     Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute(policyID, feed));
 }
 
@@ -1425,7 +1512,7 @@ function linkCardFeedToPolicy(domainAccountID: number, policyID: string, feedTyp
                     reject('common.genericErrorMessage');
                     return;
                 }
-                resolve(response as ExpensifyCardDetails);
+                resolve(response);
             })
             // eslint-disable-next-line prefer-promise-reject-errors
             .catch(() => reject('common.genericErrorMessage'));
@@ -1485,10 +1572,14 @@ export {
     updateWorkspaceCompanyCard,
     updateCompanyCardName,
     updateCardTransactionStartDate,
+    bulkUpdateCardTransactionStartDate,
+    clearBulkUpdateTransactionStartDateUpdate,
+    clearBulkUpdateTransactionStartDateSuccess,
     setCompanyCardExportAccount,
     clearCompanyCardErrorField,
     setAddNewCompanyCardStepAndData,
     clearAddNewCardFlow,
+    clearAddNewCompanyCardErrors,
     setAssignCardStepAndData,
     clearAssignCardStepAndData,
     openPolicyAddCardFeedPage,
@@ -1497,7 +1588,6 @@ export {
     clearErrorField,
     clearAssignCardErrors,
     linkCardFeedToPolicy,
-    seedCardFeedRefresh,
     startCardFeedRefresh,
     getExpensifyCardStatementPDF,
 };

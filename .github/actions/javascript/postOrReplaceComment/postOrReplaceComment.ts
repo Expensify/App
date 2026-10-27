@@ -6,7 +6,20 @@ import type {TupleToUnion} from 'type-fest';
 import * as core from '@actions/core';
 import {context} from '@actions/github';
 
-function getTestBuildMessage(appPr?: number, mobileExpensifyPr?: number): string {
+/** Describe which Mobile-Expensify source the build used, so a mismatch with what was requested is visible in the PR thread */
+function getMobileExpensifySource(mobileExpensifyPr?: number, mobileExpensifyRef?: string): string {
+    if (mobileExpensifyPr) {
+        return `Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}`;
+    }
+
+    if (mobileExpensifyRef === 'main') {
+        return 'Mobile-Expensify `main`';
+    }
+
+    return 'the pinned Mobile-Expensify submodule';
+}
+
+function getTestBuildMessage(appPr?: number, mobileExpensifyPr?: number, mobileExpensifyRef?: string): string {
     const inputs = ['ANDROID', 'IOS', 'WEB'] as const;
     const names = {
         [inputs[0]]: 'Android',
@@ -49,7 +62,7 @@ function getTestBuildMessage(appPr?: number, mobileExpensifyPr?: number): string
     );
 
     const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS${appPr ? ', and Web' : ''}. Happy testing! :test_tube::test_tube:
-Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? ` Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}` : ''}.
+Built from${appPr ? ` App PR Expensify/App#${appPr} with` : ''} ${getMobileExpensifySource(mobileExpensifyPr, mobileExpensifyRef)}.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | ${result.ANDROID.link}  | ${result.IOS.link}  |
@@ -121,6 +134,7 @@ async function hidePreviousComment(repo: string, issueNumber: number, commentPre
 async function run() {
     const APP_PR_NUMBER = Number(core.getInput('APP_PR_NUMBER', {required: false}));
     const MOBILE_EXPENSIFY_PR_NUMBER = Number(core.getInput('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}));
+    const MOBILE_EXPENSIFY_REF = core.getInput('MOBILE_EXPENSIFY_REF', {required: false});
     const REPO = String(core.getInput('REPO', {required: true}));
     const COMMENT_BODY = core.getInput('COMMENT_BODY', {required: false});
     const COMMENT_PREFIX = core.getInput('COMMENT_PREFIX', {required: true});
@@ -137,10 +151,10 @@ async function run() {
 
     const destinationPRNumber = REPO === CONST.APP_REPO ? APP_PR_NUMBER : MOBILE_EXPENSIFY_PR_NUMBER;
     await hidePreviousComment(REPO, destinationPRNumber, COMMENT_PREFIX);
-    await commentPR(REPO, destinationPRNumber, COMMENT_BODY || getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
+    await commentPR(REPO, destinationPRNumber, COMMENT_BODY || getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER, MOBILE_EXPENSIFY_REF));
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

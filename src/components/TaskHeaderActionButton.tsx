@@ -15,7 +15,6 @@ import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
@@ -24,34 +23,33 @@ import {View} from 'react-native';
 import Button from './Button';
 
 type TaskHeaderActionButtonProps = {
-    /** The report currently being looked at */
-    report: OnyxTypes.Report;
+    reportID: string;
 };
 
-function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
+function TaskHeaderActionButton({reportID}: TaskHeaderActionButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const parentReport = useParentReport(report.reportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const parentReport = useParentReport(reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const parentReportAction = useParentReportAction(report);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
 
-    if (!canWriteInReport(report)) {
+    if (!report || !canWriteInReport(report)) {
         return null;
     }
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
-                success
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isDisabled={!isTaskActionable}
-                text={translate(isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
                 onPress={callFunctionIfActionIsAllowed(() => {
                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                    if (isActiveTaskEditRoute(report.reportID)) {
+                    if (isActiveTaskEditRoute(reportID)) {
                         return;
                     }
                     if (isCompletedTaskReport(report)) {
@@ -62,7 +60,9 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                 })}
                 style={styles.flex1}
                 sentryLabel={CONST.SENTRY_LABEL.TASK.HEADER_ACTION_BUTTON}
-            />
+            >
+                <Button.Text>{translate(isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}</Button.Text>
+            </Button>
         </View>
     );
 }

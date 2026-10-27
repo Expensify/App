@@ -95,11 +95,15 @@ function computeLabelLineWidth(
     typefaces: ChartDefaultTypeface,
 ): number {
     const fontSize = baseLabelItem.fontSize?.[lineIndex];
-    const typeface = getChartSkiaTypeface(typefaces, {
-        fontFamily: baseLabelItem.fontFamily?.[lineIndex],
-        fontStyle: baseLabelItem.fontStyle?.[lineIndex],
-        fontWeight: baseLabelItem.fontWeight?.[lineIndex],
-    });
+    const typeface = getChartSkiaTypeface(
+        typefaces,
+        {
+            fontFamily: baseLabelItem.fontFamily?.[lineIndex],
+            fontStyle: baseLabelItem.fontStyle?.[lineIndex],
+            fontWeight: baseLabelItem.fontWeight?.[lineIndex],
+        },
+        line,
+    );
     const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
 
     if (!font) {

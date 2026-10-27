@@ -19,7 +19,7 @@ import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type ValidateCodeModalProps = {
@@ -35,7 +35,7 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
     const illustrations = useMemoizedLazyIllustrations(['ValidateCode']);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const signInHere = useCallback(() => signInWithValidateCode(accountID, code, preferredLocale), [accountID, code, preferredLocale]);
+    const signInHere = () => signInWithValidateCode(accountID, code, preferredLocale);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isValidCode = isValidValidateCode(code);
@@ -62,7 +62,7 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                             src={illustrations.ValidateCode}
                         />
                     </View>
-                    <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.title')}</Text>
+                    <Text style={[styles.textHeadline, styles.textAlignCenter]}>{translate('validateCodeModal.title')}</Text>
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={styles.textAlignCenter}>
                             {translate('validateCodeModal.description')}

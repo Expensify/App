@@ -1,8 +1,8 @@
 ---
 title: Change Your Workspace Plan
-description: Switch a Workspace's Plan type between Collect and Control. 
-keywords: [New Expensify, change workspace plan, switch plan, Collect plan, Control plan, plan type, upgrade, downgrade, upgrade to Control, downgrade to Collect, workspace admin]
-internalScope: Audience is Workspace owners. Covers how to switch a Workspace between the Collect and Control plans. Does not cover the differences between plans or how to change a subscription.
+description: Change your Workspace's Plan type to Collect or Control. 
+keywords: [New Expensify, change workspace plan, switch plan, Collect plan, Control plan, Submit plan, plan type, upgrade, downgrade, upgrade to Control, downgrade to Collect, upgrade Submit workspace, Workspace Admin]
+internalScope: Audience is Workspace Admins. Covers how to switch a Workspace between the Collect and Control plans, what happens in the #admins room after the plan changes, and how upgrading a free Submit workspace works. Does not cover the differences between plans or how to change a subscription.
 retrievalIntent: How to switch a Workspace plan between Collect and Control.
 contentType: task
 platform: new
@@ -11,7 +11,7 @@ order: 4
 
 # Change Your Workspace Plan
 
-Every workspace uses either the Collect or Control plan. Your workspace plan determines which features are available. If your needs change, you can switch the workspace's **Plan type**. 
+Paid workspaces use either the Collect or Control plan. Your workspace plan determines which features are available. If your needs change, you can switch the workspace's **Plan type**. 
 
 To learn which plan is right for your organization, see [Compare Collect and Control Plans](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans).
 
@@ -19,19 +19,38 @@ To learn which plan is right for your organization, see [Compare Collect and Con
 
 ## Who can change the workspace plan
 
-Only the Workspace owner can change a workspace's plan. 
+Any Workspace Admin can change a Workspace's plan, including upgrading from Collect to Control and downgrading from Control to Collect. 
+
+The Workspace owner pays for the Workspace, so plan changes made by any Workspace Admin affect the Workspace owner's bill.
 
 If you have an Annual subscription, changes to your plan may be restricted. To learn more, see [When You Can Change Your Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Learn-About-Plan-and-Subscription-Management#when-you-can-change-your-plan).
 
 ---
 
-## How to switch between the Collect and Control plans
+## What happens after you change the Workspace plan
+
+When a Workspace Admin changes the plan, Expensify posts a message in the Workspace's **#admins** room. The message shows which Workspace Admin made the change, and the Workspace owner and all Workspace Admins can see it.
+
+- **Upgrade to Control:** The message says "[Admin name] upgraded this workspace to the Control plan." The Workspace Admin who upgraded also gets a private message in #admins with Control plan pricing.
+- **Downgrade to Collect:** The message says "[Admin name] downgraded this workspace to the Collect plan."
+
+---
+
+## How to switch to the Collect or Control plans
 
 1. In the navigation tabs (on the left on web, at the bottom on mobile), go to **Workspaces > [workspace name]**.
 2. Select **Overview**. 
 3. Select **Plan type**. 
 4. Choose **Collect** or **Control**.
 5. Confirm your selection. 
+
+---
+
+## How to upgrade from a Submit workspace
+
+A free Submit workspace can be upgraded to Collect or Control. Once upgraded, it can’t be downgraded back to Submit.
+
+[Learn how to upgrade a Submit workspace](/articles/new-expensify/getting-started/Submit-Workspace#how-to-upgrade-a-submit-workspace).
 
 ---
 
@@ -43,6 +62,14 @@ If you have an Annual subscription, changes to your plan may be restricted. To l
 ---
 
 # FAQ
+
+## Can a Workspace Admin change the Workspace plan?
+
+Yes. Any Workspace Admin can upgrade or downgrade the Workspace plan. Subscription settings, such as the subscription type and payment card, are still managed by the Workspace owner.
+
+## How will the Workspace owner know if a Workspace Admin changed the plan?
+
+Expensify posts every plan change in the Workspace's **#admins** room, which the Workspace owner and all Workspace Admins can see. The message shows which Workspace Admin upgraded or downgraded the Workspace.
 
 ## Can I switch back to Control after downgrading to Collect?
 
@@ -60,3 +87,6 @@ This happens when you're on the Control plan with an Annual subscription. You've
 
 You can't downgrade the plan on an invoiced subscription from the app. Reach out to your Account Manager or Concierge to discuss or make changes to your subscription.
 
+## Can I downgrade a paid workspace back to a Submit workspace?
+
+No. Once a Submit workspace is upgraded to Collect or Control, it can't be downgraded back to Submit. 

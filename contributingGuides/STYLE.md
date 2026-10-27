@@ -35,6 +35,7 @@
 - [Object / Array Methods](#object--array-methods)
 - [Asynchronous code](#asynchronous-code)
 - [Accessing Object Properties and Default Values](#accessing-object-properties-and-default-values)
+  - [When `||` is the right operator](#when--is-the-right-operator)
 - [JSDocs](#jsdocs)
 - [Component props](#component-props)
 - [Destructuring](#destructuring)
@@ -892,6 +893,33 @@ const name = user?.name || "default name";
 const name = user?.name ?? "default name";
 ```
 
+### When `||` is the right operator
+
+`??` only falls back on `null` and `undefined`. Use `||` when an empty string, `0` or `false` must fall back too, and leave a comment saying why.
+
+This comes up often because many API fields represent "unset" as an empty string rather than `null`:
+
+```ts
+// GOOD - `exporter` is an empty string on a fresh connection, so it has to fall through
+const exporter = exportConfig?.exporter || policy?.owner;
+```
+
+It is required when an ID is interpolated into an Onyx key, because an empty string subscribes to the whole collection instead of one record. Normalize it to `undefined` first — see [Default value for inexistent IDs](#default-value-for-inexistent-IDs):
+
+```ts
+// GOOD - `|| undefined` stops an empty reportID subscribing to every report
+const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`);
+```
+
+`||` is also correct when the expression is a boolean OR rather than a default, since `??` does not short circuit on `false`:
+
+```ts
+// GOOD
+return disabled || shouldBeDisabledByScreenReader || isExecuting;
+```
+
+[`@typescript-eslint/prefer-nullish-coalescing`](https://typescript-eslint.io/rules/prefer-nullish-coalescing/) only reports `||` where the left operand cannot be `''`, `0` or `false` — that is, where the two operators are provably equivalent. The cases above are judgment calls it cannot make, so they are not reported and do not need a suppression.
+
 ## JSDocs
 
 - Omit comments that are redundant with TypeScript. Do not declare types in `@param` or `@return` blocks. Do not write `@implements`, `@enum`, `@private`, `@override`. eslint: [`jsdoc/no-types`](https://github.com/gajus/eslint-plugin-jsdoc/blob/main/.README/rules/no-types.md)
@@ -1026,41 +1054,39 @@ So, if a new language feature isn't something we have agreed to support it's off
 
 ## React Coding Standards
 
-For additional React best practices and patterns that are automatically enforced during code review, see the [Coding Standards](../.claude/skills/coding-standards/SKILL.md).
+For additional React best practices and patterns that are automatically enforced during code review, see the [App Coding Standards](../.claude/skills/app-coding-standards/SKILL.md).
 
 ### Code Documentation
 
-- Add descriptions to all component props using a block comment above the definition. No need to document the types, but add some context for each property so that other developers understand the intended use.
+- Add a `/** ... */` block comment above a component prop or an `src/types/onyx/**` property only when there is a non-obvious fact to add: a unit, a default, a boundary condition, null/undefined semantics, ownership, an invariant, or how it differs from a sibling. A comment that only restates the name or type adds nothing; delete it instead of padding it. A prop or property with nothing non-obvious to say is already documented by its name.
 
 ```tsx
-// Bad
-type ComponentProps = {
-  currency: string;
-  amount: number;
-  isIgnored: boolean;
-};
-
-// Bad
-type ComponentProps = {
-  // The currency that the reward is in
-  currency: string;
-
-  // The amount of reward
-  amount: number;
-
-  // If the reward has been ignored or not
-  isIgnored: boolean;
-};
-
-// Good
+// Bad: comments just restate the name
 type ComponentProps = {
   /** The currency that the reward is in */
-  currency: string;
+  currency?: string;
 
-  /** The amount of the reward */
+  /** The amount of reward */
   amount: number;
 
-  /** If the reward has not been ignored yet */
+  /** Whether the reward has been ignored */
+  isIgnored: boolean;
+};
+
+// Bad: same issue with // comments
+type ComponentProps = {
+  // The currency that the reward is in
+  currency?: string;
+};
+
+// Good: comments add facts the name and type can't - isIgnored is obvious so it has no comment
+type ComponentProps = {
+  /** ISO 4217 currency code, defaults to the workspace currency */
+  currency?: string;
+
+  /** In cents */
+  amount: number;
+
   isIgnored: boolean;
 };
 ```

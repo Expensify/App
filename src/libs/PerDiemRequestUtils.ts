@@ -226,7 +226,7 @@ function formatDateTimeTo12Hour(dateTimeString: string, dateFnsLocale: DateFnsLo
         return '';
     }
     const date = new Date(dateTimeString);
-    return format(date, 'hh:mm a, yyyy-MM-dd', {locale: dateFnsLocale});
+    return format(date, `${CONST.DATE.LOCAL_TIME_FORMAT}, ${CONST.DATE.FNS_FORMAT_STRING}`, {locale: dateFnsLocale});
 }
 
 function getTimeForDisplay(transaction: OnyxEntry<Transaction>, dateFnsLocale: DateFnsLocale | undefined) {

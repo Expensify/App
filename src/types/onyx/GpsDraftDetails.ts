@@ -45,6 +45,9 @@ type GpsDraftDetails = {
     /** Distance unit of the ongoing GPS trip */
     unit: Unit;
 
+    /** accountID that started the trip, so a draft kept across a re-auth is never resumed by a different user */
+    accountID?: number;
+
     /**
      * Distance the user trimmed to in the Edit Stop screen.
      * When set, this is the distance shown to the user and used when creating the expense.

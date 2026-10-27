@@ -1,37 +1,48 @@
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useAlertModals from '@hooks/useAlertModals';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
+import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
+import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 import {createNewReport} from '@libs/actions/Report';
-import {changeTransactionsReport} from '@libs/actions/Transaction';
+import {autoReportTransactions, changeTransactionsReport} from '@libs/actions/Transaction';
+import {canResolveTransactionCard} from '@libs/CardUtils';
+import getAllMatchingQueryParams from '@libs/getAllMatchingQueryParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getSelectedTransactionOwnerAccountID from '@libs/getSelectedTransactionOwnerAccountID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
-import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {generateReportID, getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isManualDistanceRequest as isManualDistanceRequestUtil, isOdometerDistanceRequest as isOdometerDistanceRequestUtil, isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
+import {
+    isDistanceRequest as isDistanceRequestUtil,
+    isManualDistanceRequest as isManualDistanceRequestUtil,
+    isOdometerDistanceRequest as isOdometerDistanceRequestUtil,
+    isUnreportedManagedCardTransaction,
+} from '@libs/TransactionUtils';
 
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {PersonalDetails, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect, useMemo} from 'react';
-import Onyx from 'react-native-onyx';
+import React from 'react';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -39,11 +50,23 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
-    const {selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, areAllMatchingItemsSelected, excludedTransactions} = useSearchSelectionContext();
     const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
-    const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
+    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const selectedTransactionsKeys = Object.keys(selectedTransactions);
+    const {isOffline} = useNetwork();
+    const {showOfflineModal} = useAlertModals();
+
+    const allMatchingQueryParams = getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
+
+    /**
+     * Block offline all-matching moves because the backend reevaluates the query after reconnecting,
+     * which can include newly matching expenses. Recheck here because the connection may have dropped after the RHP opened
+     */
+    const shouldBlockOfflineAllMatchingMove = () => isOffline && !!allMatchingQueryParams.jsonQuery;
+
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
         .map((transactionItem) => transactionItem.transaction)
@@ -56,7 +79,6 @@ function SearchTransactionsChangeReport() {
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
@@ -64,13 +86,19 @@ function SearchTransactionsChangeReport() {
     const managedCardTransactionID = transactions.find((transaction) => isUnreportedManagedCardTransaction(transaction))?.transactionID;
     const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+    // Asked for here too, so opening this screen retries a fetch that failed earlier.
+    const {areCardsLoaded: isSearchCardListComplete} = useLoadSearchCardData();
     const reports = useChangeTransactionsReportReports(transactions, undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const {isBetaEnabled} = usePermissions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -81,7 +109,7 @@ function SearchTransactionsChangeReport() {
     // Get the policyID from the selected transactions' report to pass to usePolicyForMovingExpenses
     // This ensures the "Create report" button shows the correct workspace instead of the user's default
     const selectedReportPolicyID = selectedReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`]?.policyID : undefined;
-    const {policyForMovingExpensesID, shouldSelectPolicy, shouldNavigateToUpgradePath} = usePolicyForMovingExpenses(
+    const {policyForMovingExpensesID, shouldSelectPolicy, shouldNavigateToUpgradePath, arePoliciesLoaded} = usePolicyForMovingExpenses(
         hasPerDiemTransactions,
         undefined,
         selectedReportPolicyID,
@@ -90,68 +118,44 @@ function SearchTransactionsChangeReport() {
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const areAllTransactionsUnreported =
         selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((transactionKey) => selectedTransactions[transactionKey]?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
-    const targetOwnerAccountID = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0) {
-            return undefined;
-        }
-
+    let targetOwnerAccountID;
+    if (selectedTransactionsKeys.length === 0) {
+        targetOwnerAccountID = undefined;
+    } else {
         // Prefer owner metadata attached to each selection (handles unreported expenses)
         const ownerFromSelection = selectedTransactionsKeys.map((transactionKey) => selectedTransactions[transactionKey]?.ownerAccountID).find((ownerID) => typeof ownerID === 'number');
         if (ownerFromSelection !== undefined) {
-            return ownerFromSelection;
+            targetOwnerAccountID = ownerFromSelection;
+        } else {
+            // Then the cardholder of an unreported card expense, or the report owner, so another cardholder's expenses
+            // are not moved onto the current user's reports
+            targetOwnerAccountID = selectedTransactionsKeys
+                .map((transactionKey) => getSelectedTransactionOwnerAccountID(transactionKey, selectedTransactions[transactionKey], {cardList, nonPersonalAndWorkspaceCards, allReports}))
+                .find((ownerID) => typeof ownerID === 'number');
         }
-
-        const reportIDWithOwner = selectedTransactionsKeys
-            .map((transactionKey) => selectedTransactions[transactionKey]?.reportID)
-            .find((reportID) => reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
-
-        if (!reportIDWithOwner) {
-            return undefined;
+    }
+    const targetOwnerPersonalDetails = getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails;
+    // Kept separate from `targetOwnerAccountID`, which stops at the first owner it finds. Counting needs them all.
+    // Only distinct resolved owners count. An owner we cannot resolve must not stand in for a second submitter: for an
+    // unreported expense whose card we cannot find, the report lookup can never resolve one (its reportID is `0`), so a
+    // search snapshot missing the money-request action would otherwise file one cardholder's bulk selection as mixed
+    // and strip its report list.
+    // "Auto report" resolves each destination through the expense's card. A card this user cannot resolve, because
+    // it is missing or on a feed they do not administer, fails the whole request.
+    const areAllManagedCardsResolvable =
+        selectedTransactionsKeys.length > 0 &&
+        transactions.length === selectedTransactionsKeys.length &&
+        transactions.every((transaction) => canResolveTransactionCard(transaction, nonPersonalAndWorkspaceCards, isSearchCardListComplete));
+    const ownerAccountIDs = new Set<number>();
+    for (const transactionKey of selectedTransactionsKeys) {
+        const ownerAccountID = getSelectedTransactionOwnerAccountID(transactionKey, selectedTransactions[transactionKey], {cardList, nonPersonalAndWorkspaceCards, allReports});
+        if (typeof ownerAccountID === 'number') {
+            ownerAccountIDs.add(ownerAccountID);
         }
+    }
+    const hasMultipleSubmitters = ownerAccountIDs.size > 1;
 
-        const report = getReportOrDraftReport(reportIDWithOwner, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithOwner}`]);
-        return report?.ownerAccountID;
-    }, [selectedTransactions, selectedTransactionsKeys, allReports]);
-    const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
-
-    useEffect(() => {
-        const snapshotData = currentSearchResults?.data;
-        if (!snapshotData) {
-            return;
-        }
-
-        const onyxUpdates: Array<{
-            onyxMethod: typeof Onyx.METHOD.MERGE;
-            key: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
-            value: Report;
-        }> = [];
-
-        for (const key of Object.keys(snapshotData)) {
-            if (!key.startsWith(ONYXKEYS.COLLECTION.REPORT) || key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) || key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS)) {
-                continue;
-            }
-
-            const typedKey = key as `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
-            if (allReports?.[typedKey]) {
-                continue;
-            }
-
-            const report = snapshotData[typedKey];
-            if (report) {
-                onyxUpdates.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: typedKey,
-                    value: report,
-                });
-            }
-        }
-
-        if (onyxUpdates.length > 0) {
-            Onyx.update(onyxUpdates);
-        }
-        // Hydration should only run once on mount using the initial snapshot data
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useHydrateReportsFromSnapshot(currentSearchResults, allReports);
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
         const optimisticReport = createNewReport(
@@ -159,9 +163,9 @@ function SearchTransactionsChangeReport() {
             hasViolations,
             isASAPSubmitBetaEnabled,
             policyForMovingExpenses,
-            betas,
             isTrackIntentUser,
             getCurrencyDecimals,
+            rules,
             false,
             shouldDismissEmptyReportsConfirmation,
             {managedCardTransactionID},
@@ -173,6 +177,7 @@ function SearchTransactionsChangeReport() {
         };
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled,
                 transactionIDs: selectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -184,11 +189,15 @@ function SearchTransactionsChangeReport() {
                 transactions,
                 allTransactionViolation: transactionViolations,
                 reports: reportsForCall,
+                rules,
+                cardList,
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
                 delegateAccountID,
                 getCurrencyDecimals,
+                getCurrencySymbol,
+                ...allMatchingQueryParams,
             });
             clearSelectedTransactions();
         });
@@ -203,6 +212,15 @@ function SearchTransactionsChangeReport() {
     });
 
     const createReport = () => {
+        if (shouldBlockOfflineAllMatchingMove()) {
+            showOfflineModal();
+            return;
+        }
+
+        if (!arePoliciesLoaded) {
+            return;
+        }
+
         if (shouldNavigateToUpgradePath && selectedTransactionsKeys.length > 0) {
             const firstTransactionID = selectedTransactionsKeys.at(0);
             if (firstTransactionID) {
@@ -254,6 +272,10 @@ function SearchTransactionsChangeReport() {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }
+        if (shouldBlockOfflineAllMatchingMove()) {
+            showOfflineModal();
+            return;
+        }
 
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
@@ -264,6 +286,7 @@ function SearchTransactionsChangeReport() {
               }
             : reports;
         changeTransactionsReport({
+            isVendorMatchingBetaEnabled,
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -275,12 +298,24 @@ function SearchTransactionsChangeReport() {
             transactions,
             allTransactionViolation: transactionViolations,
             reports: reportsForCall,
+            rules,
+            cardList,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
             delegateAccountID,
             getCurrencyDecimals,
+            getCurrencySymbol,
+            ...allMatchingQueryParams,
         });
+        Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
+    };
+
+    const autoReport = () => {
+        if (selectedTransactionsKeys.length === 0) {
+            return;
+        }
+        autoReportTransactions(selectedTransactionsKeys);
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
 
@@ -288,8 +323,13 @@ function SearchTransactionsChangeReport() {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }
+        if (shouldBlockOfflineAllMatchingMove()) {
+            showOfflineModal();
+            return;
+        }
         const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
         changeTransactionsReport({
+            isVendorMatchingBetaEnabled,
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -299,11 +339,15 @@ function SearchTransactionsChangeReport() {
             transactions,
             allTransactionViolation: transactionViolations,
             reports,
+            rules,
+            cardList,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
             delegateAccountID,
             getCurrencyDecimals,
+            getCurrencySymbol,
+            ...allMatchingQueryParams,
         });
         clearSelectedTransactions();
         Navigation.goBack();
@@ -315,6 +359,7 @@ function SearchTransactionsChangeReport() {
             transactionIDs={selectedTransactionsKeys}
             isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
             isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
+            isDistanceRequest={transactions.some(isDistanceRequestUtil)}
             selectedReportID={selectedReportID}
             selectReport={selectReport}
             removeFromReport={removeFromReport}
@@ -325,6 +370,9 @@ function SearchTransactionsChangeReport() {
             transactionPolicyID={selectedReportPolicyID}
             isPerDiemRequest={hasPerDiemTransactions}
             isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
+            hasMultipleSubmitters={hasMultipleSubmitters}
+            areAllManagedCardsResolvable={areAllManagedCardsResolvable}
+            autoReport={autoReport}
         />
     );
 }

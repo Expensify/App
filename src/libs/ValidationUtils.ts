@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -15,7 +16,9 @@ import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
+import containsHtmlTag from './containsHtmlTag';
 import DateUtils from './DateUtils';
+import {addErrorMessage} from './ErrorUtils';
 import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
@@ -130,7 +133,7 @@ function isValidPastDate(date: string | Date): boolean {
  * Used to validate a value that is "required".
  * @param value - field value
  */
-function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<string, string>): boolean {
+function isRequiredFulfilled(value?: unknown): boolean {
     if (!value) {
         return false;
     }
@@ -160,11 +163,40 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(
     const errors: FormInputErrors<TFormID> = {};
 
     for (const fieldKey of requiredFields) {
-        if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
+        if (isRequiredFulfilled(values[fieldKey])) {
             continue;
         }
 
         errors[fieldKey] = translate('common.error.fieldRequired');
+    }
+
+    return errors;
+}
+
+/**
+ * Builds the errors for a first and last name that a display name is made of.
+ */
+function getDisplayNameErrors(firstName: string, lastName: string, translate: LocalizedTranslate): FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> {
+    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> = {};
+
+    if (!isValidDisplayName(firstName)) {
+        addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
+    } else if (firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+        addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', firstName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
+    } else if (!isRequiredFulfilled(firstName)) {
+        addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
+    }
+    if (doesContainReservedWord(firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+        addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
+    }
+
+    if (!isValidDisplayName(lastName)) {
+        addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
+    } else if (lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+        addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', lastName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
+    }
+    if (doesContainReservedWord(lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+        addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
     }
 
     return errors;
@@ -219,7 +251,7 @@ function getCountryZipRegexDetails(country?: Country | ''): CountryZipRegex | un
         return undefined;
     }
 
-    return COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex | undefined;
+    return COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country];
 }
 
 function isValidZipCodeForCountry(zipCode: string, country?: Country | ''): boolean {
@@ -702,7 +734,7 @@ type EUCountry = keyof typeof CONST.ALL_EUROPEAN_UNION_COUNTRIES;
  * Validates the given value if it is EU member country
  * @param country
  */
-function isEUMember(country: Country | ''): boolean {
+function isEUMember(country: Country | ''): country is EUCountry {
     return country in CONST.ALL_EUROPEAN_UNION_COUNTRIES;
 }
 
@@ -723,7 +755,7 @@ function isValidEURegistrationNumber(registrationNumber: string, country: EUCoun
  */
 function isValidRegistrationNumber(registrationNumber: string, country: Country | '') {
     if (isEUMember(country)) {
-        return isValidEURegistrationNumber(registrationNumber, country as EUCountry);
+        return isValidEURegistrationNumber(registrationNumber, country);
     }
 
     switch (country) {
@@ -818,6 +850,54 @@ function isInvalidMerchantValue(merchant?: string): boolean {
     return merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
 }
 
+type MerchantValidationError =
+    | {type: typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED}
+    | {type: typeof CONST.INPUT_VALIDATION_ERRORS.INVALID}
+    | {type: typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG; byteLength: number};
+
+/**
+ * Copy for a merchant validation error on the merchant form.
+ */
+function getMerchantErrorMessage(translate: LocalizedTranslate, error: MerchantValidationError): string {
+    // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+    // eslint-disable-next-line default-case
+    switch (error.type) {
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
+            return translate('common.error.fieldRequired');
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
+            return translate('iou.error.invalidMerchant');
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
+            return translate('common.error.characterLimitExceedCounter', error.byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
+    }
+}
+
+/**
+ * Returns the first merchant validation error (required, invalid value, or too long), or `undefined` if the merchant is valid.
+ */
+function getMerchantError(merchant: string | undefined, isMerchantRequired: boolean): MerchantValidationError | undefined {
+    const trimmedMerchant = merchant?.trim() ?? '';
+
+    if (isMerchantRequired && !trimmedMerchant) {
+        return {type: CONST.INPUT_VALIDATION_ERRORS.REQUIRED};
+    }
+    if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
+        return {type: CONST.INPUT_VALIDATION_ERRORS.INVALID};
+    }
+    const {isValid: isLengthValid, byteLength} = isValidInputLength(trimmedMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
+    if (!isLengthValid) {
+        return {type: CONST.INPUT_VALIDATION_ERRORS.TOO_LONG, byteLength};
+    }
+    return undefined;
+}
+
+/**
+ * Checks if a merchant is a placeholder the user never typed: the flow seeded the "Expense" / "(none)" value,
+ * so it should be treated as empty rather than as an invalid entry the user is responsible for.
+ */
+function isUntypedPlaceholderMerchant(isMerchantSet: boolean | undefined, merchant?: string): boolean {
+    return !isMerchantSet && isInvalidMerchantValue(merchant);
+}
+
 /**
  * Validates a 4-digit PIN for UK/EU Expensify Card.
  * PIN must be exactly 4 digits and not in the list of invalid/weak PINs.
@@ -827,44 +907,6 @@ function isValidPIN(pin: string): boolean {
         return false;
     }
     return !(CONST.EXPENSIFY_CARD.PIN.INVALID_PINS as readonly string[]).includes(pin);
-}
-
-/**
- * Returns true if the given string contains a non-whitelisted HTML-like tag.
- *
- * Mirrors the HTML-tag check in FormProvider.onValidate so callers that don't go through
- * FormProvider (e.g. inline edit-in-place sections) can produce the same `Invalid character`
- * error for inputs like `<script>...</script>` while still allowing the harmless tokens listed
- * in CONST.WHITELISTED_TAGS (`<>`, `<->`, `<br>`, etc.).
- *
- * @param strict - When true, uses STRICT_VALIDATE_FOR_HTML_TAG_REGEX, which also flags
- * non-standard angle-bracket content (e.g. `<✓>`). Defaults to the non-strict variant
- * to match FormProvider's default.
- */
-function containsHtmlTag(value: string, strict = false): boolean {
-    if (!value) {
-        return false;
-    }
-    const tagRegex = strict ? CONST.STRICT_VALIDATE_FOR_HTML_TAG_REGEX : CONST.VALIDATE_FOR_HTML_TAG_REGEX;
-    const foundHtmlTagIndex = value.search(tagRegex);
-    const leadingSpaceIndex = value.search(CONST.VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX);
-
-    if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
-        return false;
-    }
-
-    const matchedHtmlTags = value.match(tagRegex);
-    let isWhitelisted = CONST.WHITELISTED_TAGS.some((regex) => regex.test(value));
-    if (matchedHtmlTags) {
-        for (const htmlTag of matchedHtmlTags) {
-            isWhitelisted = CONST.WHITELISTED_TAGS.some((regex) => regex.test(htmlTag));
-            if (!isWhitelisted) {
-                break;
-            }
-        }
-    }
-
-    return !(isWhitelisted && leadingSpaceIndex === -1);
 }
 
 export {
@@ -885,6 +927,7 @@ export {
     isValidZipCodeForCountry,
     isValidPaymentZipCode,
     isRequiredFulfilled,
+    getDisplayNameErrors,
     getFieldRequiredErrors,
     isValidUSPhone,
     isValidPhoneNumber,
@@ -926,6 +969,9 @@ export {
     isValidInputLength,
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
+    getMerchantError,
+    getMerchantErrorMessage,
+    isUntypedPlaceholderMerchant,
     isValidPIN,
     containsHtmlTag,
 };

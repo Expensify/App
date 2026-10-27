@@ -13,21 +13,6 @@
     <meta property="og:title" content="New Expensify">
     <meta property="og:description" content="Corporate cards, reimbursements, receipt scanning, invoicing, and bill pay.">
     <meta property="og:image" content="https://new.expensify.com/og-preview-image.png">
-    <style>
-        @font-face {
-            font-family: Expensify Neue;
-            font-weight: 400;
-            font-style: normal;
-            src: url('/fonts/ExpensifyNeue-Regular.woff2') format('woff2');
-        }
-        @font-face {
-            font-family: Expensify Neue;
-            font-weight: 700;
-            font-style: normal;
-            src: url('/fonts/ExpensifyNeue-Bold.woff2') format('woff2');
-        }
-    </style>
-    <link rel="stylesheet" type="text/css" href="/css/fonts.css" />
     <link rel="stylesheet" type="text/css" href="/css/pdf.css" />
     <!-- Do not index the staging site -->
     <% if (isStaging) { %>
@@ -42,7 +27,7 @@
 
     <% if (isWeb) { %>
         <!-- begin Convert Experiences code-->
-        <script type="text/javascript" src="//cdn-4.convertexperiments.com/v1/js/10042537-100413459.js">
+        <script type="text/javascript" src="//cdn-4.convertexperiments.com/v1/js/10019937-100413459.js?environment=production">
         </script>
         <!-- end Convert Experiences code -->
     <% } %>
@@ -81,14 +66,17 @@
             -webkit-user-select: none !important;
             -webkit-touch-callout: none !important;
         }
+        .drag-in-progress, .drag-in-progress * {
+            cursor: grabbing !important;
+        }
         :focus-visible:not([data-programmatic-focus="true"]) {
             outline: 0;
             box-shadow: inset 0px 0px 0px 1px #5AB0FF;
         }
-        :focus-visible:not([data-programmatic-focus="true"])[data-inner-box-shadow-element]{
+        :focus-visible:not([data-programmatic-focus="true"])[data-inner-box-shadow-element="true"]{
             overflow: hidden;
         }
-        :focus-visible:not([data-programmatic-focus="true"])[data-inner-box-shadow-element]::before {
+        :focus-visible:not([data-programmatic-focus="true"])[data-inner-box-shadow-element="true"]::before {
             content: '';
             position: absolute;
             top: 0;
@@ -120,6 +108,11 @@
         div:has(input:-webkit-autofill, input[chrome-autofilled]) > label {
             transform: translateY(var(--active-label-translate-y)) scale(var(--active-label-scale)) !important;
             transition: transform var(--label-transition-duration);
+        }
+
+        /* Hold a table's columns still while the pointer is on the filter bar pinned inside their scroller */
+        [data-table-column-scroller='true']:has([data-table-page-header='true']:hover) {
+            overflow-x: hidden !important;
         }
 
         .splash-logo > svg {

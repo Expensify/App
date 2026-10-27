@@ -1,5 +1,6 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import {isLiveWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToWebNavigationOptions';
 import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {
@@ -18,7 +19,7 @@ import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import {StackView} from '@react-navigation/stack';
 import React from 'react';
 
-import wrapDescriptorsWithFreeze from './wrapDescriptorsWithFreeze';
+import wrapDescriptorsWithNonTopScreensBehavior from './wrapDescriptorsWithNonTopScreensBehavior';
 
 type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = PlatformStackNavigatorProps<ParamListBase, RouterOptions> & {
     createRouter: NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['createRouter']>;
@@ -27,7 +28,6 @@ type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions
     ExtraContent?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['ExtraContent'];
     NavigationContentWrapper?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['NavigationContentWrapper'];
     Effects?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['Effects'];
-    freezeNonTopScreens?: boolean;
     displayName: string;
 };
 
@@ -47,7 +47,6 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     ExtraContent,
     NavigationContentWrapper,
     Effects,
-    freezeNonTopScreens,
     displayName,
     ...props
 }: PlatformNavigatorImplProps<RouterOptions>) {
@@ -99,13 +98,14 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     const mappedState = {
         ...state,
         routes: state.routes.map((route) => {
+            // A wide submit pre-mount sits covered until its reveal, so it stays attached to be laid out and painted by then.
             // eslint-disable-next-line rulesdir/no-negated-variables
-            const dontDetachScreen = persistentScreens?.includes(route.name) ? {dontDetachScreen: true} : {};
+            const dontDetachScreen = persistentScreens?.includes(route.name) || isLiveWideTabPreMountRouteKey(route.key) ? {dontDetachScreen: true} : {};
             return {...route, ...dontDetachScreen};
         }),
     };
 
-    const wrappedDescriptors = freezeNonTopScreens ? wrapDescriptorsWithFreeze(descriptors, state, persistentScreens) : descriptors;
+    const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state, persistentScreens);
 
     const content = (
         <NavigationContent>
@@ -143,7 +143,6 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 ExtraContent={options?.ExtraContent}
                 NavigationContentWrapper={options?.NavigationContentWrapper}
                 Effects={options?.Effects}
-                freezeNonTopScreens={options?.freezeNonTopScreens}
                 displayName={displayName}
                 {...props}
             />

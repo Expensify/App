@@ -314,11 +314,57 @@ function initSearchPage() {
     document.getElementById('search-page-clear').addEventListener('click', clearSearchInput);
 }
 
-const FIXED_HEADER_HEIGHT = 80;
+const ARTICLE_TOC_SELECTOR = '.article-toc';
+const TOC_LINK_CLASS = 'link';
+const ACTIVE_TOC_LINK_CLASS = 'selected-article';
+
+function getArticleTocLinks() {
+    return document.querySelectorAll(`${ARTICLE_TOC_SELECTOR} .${TOC_LINK_CLASS}`);
+}
+
+/**
+ * decodeURIComponent throws on a stray %, which would skip search and header-menu setup.
+ * Keep the raw fragment so a bad hash only fails to highlight.
+ *
+ * @param {String} value
+ * @returns {String}
+ */
+function decodeHashFragment(value) {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+}
+
+function getHeadingForTocLink(link) {
+    const headingID = decodeHashFragment(link.href.split('#').pop());
+    return headingID ? document.getElementById(headingID) : null;
+}
+
+function setActiveTocLink(activeLink) {
+    getArticleTocLinks().forEach((link) => {
+        link.classList.toggle(ACTIVE_TOC_LINK_CLASS, link === activeLink);
+    });
+}
+
+// Highlights the entry matching the URL hash, so that landing on a deep link, or coming back to one
+// through the browser's history, bolds the same section a click on that entry would have.
+function highlightTocLinkForHash() {
+    if (!window.location.hash) {
+        return;
+    }
+    const headingID = decodeHashFragment(window.location.hash.slice(1)).toLowerCase();
+    const link = Array.from(getArticleTocLinks()).find((tocLink) => getHeadingForTocLink(tocLink)?.id.toLowerCase() === headingID);
+    if (!link) {
+        return;
+    }
+    setActiveTocLink(link);
+}
 
 const tocbotOptions = {
     // Where to render the table of contents.
-    tocSelector: '.article-toc',
+    tocSelector: ARTICLE_TOC_SELECTOR,
 
     // Where to grab the headings to build the table of contents.
     contentSelector: '',
@@ -332,57 +378,37 @@ const tocbotOptions = {
     listClass: 'lhn-items',
 
     // Main class to add to links.
-    linkClass: 'link',
+    linkClass: TOC_LINK_CLASS,
 
-    // Class to add to active links,
-    // the link corresponding to the top most heading on the page.
-    activeLinkClass: 'selected-article',
+    // The highlight follows what the reader asked for, so it is applied in `onClick` and by
+    // `highlightTocLinkForHash`. tocbot's own scrollspy would fight that by reassigning the class
+    // from the scroll position, so its active class is pointed at an unstyled name to disable it.
+    activeLinkClass: 'tocbot-active-link',
 
-    // Headings offset between the headings and the top of the document (requires scrollSmooth enabled)
-    headingsOffset: FIXED_HEADER_HEIGHT,
-    scrollSmoothOffset: -FIXED_HEADER_HEIGHT,
-    scrollSmooth: true,
-
-    // If there is a fixed article scroll container, set to calculate titles' offset
-    scrollContainer: 'content-area',
+    // `overflow-x: hidden` on `html, body` in _main.scss makes `overflow-y` compute to `auto`, so
+    // `body` is the element that scrolls the page. tocbot scrolls with `window.scrollTo`, which does
+    // nothing when the documentElement is not the scrolling element, so `onClick` uses
+    // `scrollIntoView`: it scrolls whichever ancestor scrolls and honours its `scroll-padding-top`.
+    scrollSmooth: false,
 
     onClick: (e) => {
         e.preventDefault();
+
+        setActiveTocLink(e.target);
+
+        const heading = getHeadingForTocLink(e.target);
+        if (!heading) {
+            return;
+        }
+
         const hashText = e.target.href.split('#').pop();
         // Append hashText to the current URL without saving to history
         const newUrl = `${window.location.pathname}#${hashText}`;
         history.replaceState(null, '', newUrl);
+
+        heading.scrollIntoView({behavior: 'smooth', block: 'start'});
     },
 };
-
-// Define the media query string for the mobile breakpoint
-const mobileBreakpoint = window.matchMedia('(max-width: 799px)');
-
-// Function to update tocbot options and refresh
-function updateTocbotOptions(headingsOffset, scrollSmoothOffset) {
-    tocbotOptions.headingsOffset = headingsOffset;
-    tocbotOptions.scrollSmoothOffset = scrollSmoothOffset;
-    window.tocbot.refresh({
-        ...tocbotOptions,
-    });
-}
-
-function handleBreakpointChange() {
-    const isMobile = mobileBreakpoint.matches;
-    const headingsOffset = isMobile ? FIXED_HEADER_HEIGHT : 0;
-    const scrollSmoothOffset = isMobile ? -FIXED_HEADER_HEIGHT : 0;
-
-    // Update tocbot options only if there is a change in offsets
-    if (tocbotOptions.headingsOffset !== headingsOffset || tocbotOptions.scrollSmoothOffset !== scrollSmoothOffset) {
-        updateTocbotOptions(headingsOffset, scrollSmoothOffset);
-    }
-}
-
-// Add listener for changes to the media query status using addEventListener
-mobileBreakpoint.addEventListener('change', handleBreakpointChange);
-
-// Initial check
-handleBreakpointChange();
 
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopyright();
@@ -393,6 +419,8 @@ window.addEventListener('DOMContentLoaded', () => {
             contentSelector: '.article-toc-content',
         });
     }
+
+    highlightTocLinkForHash();
 
     initSearchPage();
 
@@ -453,4 +481,5 @@ window.addEventListener('hashchange', () => {
     document.getElementById(lowerCaseHash.slice(1))?.scrollIntoView({
         behavior: 'smooth',
     });
+    highlightTocLinkForHash();
 });

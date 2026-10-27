@@ -4,12 +4,12 @@ import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -20,14 +20,16 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
-import useTheme from '@hooks/useTheme';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isSafari} from '@libs/Browser';
+import getButtonState from '@libs/getButtonState';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import {isGroupPolicyByType} from '@libs/PolicyUtils';
-import {canCreateTaskInReport, getPayeeName, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
+import {canCreateExpensesOnPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
+import {canCreateTaskInReport, getPayeeName, isPolicyExpenseChat, isReportOwner, isTeachersUniteReport, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
@@ -44,11 +46,12 @@ import type {AnchorPosition} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {ComponentRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import ExpandCollapseButton from './ExpandCollapseButton';
@@ -59,40 +62,20 @@ type MoneyRequestOptions = Record<
 >;
 
 type AttachmentPickerWithMenuItemsProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
-
-    /** The personal details of the current user */
     currentUserPersonalDetails: OnyxTypes.PersonalDetails;
-
-    /** Callback when the attachment is picked */
     onAttachmentPicked: (url: FileObject | FileObject[]) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
 
-    /** Whether or not the composer is full size */
     isComposerFullSize: boolean;
-
-    /** Whether or not the attachment picker is disabled */
     disabled?: boolean;
-
-    /** Sets the menu visibility */
     setMenuVisibility: (isVisible: boolean) => void;
-
-    /** Whether or not the menu is visible */
     isMenuVisible: boolean;
-
-    /** Report ID */
     reportID: string;
-
-    /** Called when opening the attachment picker */
     onTriggerAttachmentPicker: () => void;
-
-    /** Called when cancelling the attachment picker */
     onCanceledAttachmentPicker?: () => void;
-
-    /** Called when the menu with the items is closed after it was open */
     onMenuClosed?: () => void;
 
     /** Called when the add action button is pressed */
@@ -101,8 +84,7 @@ type AttachmentPickerWithMenuItemsProps = {
     /** Called when the menu item is selected */
     onItemSelected: () => void;
 
-    /** A ref for the add action button */
-    actionButtonRef: React.RefObject<HTMLDivElement | View | null>;
+    actionButtonRef: React.RefObject<HTMLDivElement | ComponentRef<typeof View> | null>;
 
     /** A function that toggles isScrollLikelyLayoutTriggered flag for a certain period of time */
     raiseIsScrollLikelyLayoutTriggered: () => void;
@@ -156,7 +138,7 @@ function AttachmentPickerWithMenuItems({
         'Transfer',
     ]);
     const isFocused = useIsFocused();
-    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -169,37 +151,38 @@ function AttachmentPickerWithMenuItems({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const {isProduction} = useEnvironment();
+    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+    });
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {accountID} = currentUserPersonalDetails;
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
-    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID);
+    // A new report has no expenses yet, so it can't have violations.
+    const hasViolations = false;
+    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID, !isMenuVisible);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const selectOption = useCallback(
-        (onSelected: () => void, shouldRestrictAction: boolean) => {
-            if (
-                shouldRestrictAction &&
-                policy &&
-                policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)
-            ) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                return;
-            }
+    const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
+        if (
+            shouldRestrictAction &&
+            policy &&
+            policy.type !== CONST.POLICY.TYPE.PERSONAL &&
+            shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)
+        ) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            return;
+        }
 
-            onSelected();
-        },
-        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, accountID],
-    );
+        onSelected();
+    };
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: report?.policyID,
@@ -209,12 +192,12 @@ function AttachmentPickerWithMenuItems({
                 () =>
                     createNewReport(
                         currentUserPersonalDetails,
-                        isASAPSubmitBetaEnabled,
                         hasViolations,
+                        isASAPSubmitBetaEnabled,
                         policy,
-                        betas,
                         isTrackIntentUser,
                         getCurrencyDecimals,
+                        rules,
                         true,
                         shouldDismissEmptyReportsConfirmation,
                     ),
@@ -226,152 +209,128 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, getCurrencyDecimals, true, false);
+            createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, isTrackIntentUser, getCurrencyDecimals, rules, true, false);
         }
     };
 
-    const teacherUnitePolicyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
-    const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
+    const isReportTeachersUnite = isTeachersUniteReport(report);
 
     /**
      * Returns the list of IOU Options
      */
-    const moneyRequestOptions = useMemo(() => {
-        const options: MoneyRequestOptions = {
-            [CONST.IOU.TYPE.SPLIT]: [
-                {
-                    icon: icons.Transfer,
-                    text: translate('iou.splitExpense'),
-                    shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SPLIT_EXPENSE,
-                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
-                },
-            ],
-            [CONST.IOU.TYPE.SUBMIT]: [
-                {
-                    icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
-                    text: translate('iou.createExpense'),
-                    shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
-                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
-                },
-                {
-                    icon: icons.Location,
-                    text: translate('quickAction.recordDistance'),
-                    shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
-                    onSelected: () =>
-                        selectOption(
-                            () => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, lastDistanceExpenseType),
-                            true,
-                        ),
-                },
-            ],
-            [CONST.IOU.TYPE.PAY]: [
-                {
-                    icon: getIconForAction(CONST.IOU.TYPE.SEND, icons),
-                    text: translate('iou.paySomeone', getPayeeName(report, translate, accountID)),
-                    shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_PAY_SOMEONE,
-                    onSelected: () => {
-                        if (isDelegateAccessRestricted) {
-                            close(() => {
-                                showDelegateNoAccessModal();
-                            });
+    const options: MoneyRequestOptions = {
+        [CONST.IOU.TYPE.SPLIT]: [
+            {
+                icon: icons.Transfer,
+                text: translate('iou.splitExpense'),
+                shouldCallAfterModalHide: shouldUseNarrowLayout,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SPLIT_EXPENSE,
+                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
+            },
+        ],
+        [CONST.IOU.TYPE.SUBMIT]: [
+            {
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
+                text: translate('iou.createExpense'),
+                shouldCallAfterModalHide: shouldUseNarrowLayout,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
+                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
+            },
+            {
+                icon: icons.Location,
+                text: translate('quickAction.recordDistance'),
+                shouldCallAfterModalHide: shouldUseNarrowLayout,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
+                onSelected: () =>
+                    selectOption(() => {
+                        if (blockDistanceRequestIfNeeded()) {
                             return;
                         }
-                        selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), false);
-                    },
-                },
-            ],
-            [CONST.IOU.TYPE.TRACK]: [
-                {
-                    icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
-                    text: translate('iou.createExpense'),
-                    shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
-                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
-                },
-                {
-                    icon: icons.Location,
-                    text: translate('iou.trackDistance'),
-                    shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
-                    onSelected: () =>
-                        selectOption(
-                            () => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, lastDistanceExpenseType),
-                            true,
-                        ),
-                },
-            ],
-            [CONST.IOU.TYPE.INVOICE]: [
-                {
-                    icon: icons.InvoiceGeneric,
-                    text: translate('workspace.invoices.sendInvoice'),
-                    shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SEND_INVOICE,
-                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), false),
-                },
-            ],
-        };
-
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], betas, isReportArchived, isRestrictedToPreferredPolicy).map(
-            (option) => options[option],
-        );
-
-        return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
-    }, [
-        accountID,
-        isDelegateAccessRestricted,
-        isReportArchived,
-        isRestrictedToPreferredPolicy,
-        lastDistanceExpenseType,
-        policy,
-        report,
-        reportParticipantIDs,
-        selectOption,
-        shouldUseNarrowLayout,
-        showDelegateNoAccessModal,
-        translate,
-        icons,
-        betas,
-        draftTransactionIDs,
-    ]);
-
-    const createReportOption: PopoverMenuItem[] = useMemo(() => {
-        if (!isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report)) {
-            return [];
-        }
-
-        return [
-            {
-                icon: icons.Document,
-                text: translate('report.newReport.createReport'),
-                shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_REPORT,
-                onSelected: () => selectOption(() => handleCreateReport(), true),
+                        startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, distanceExpenseType);
+                    }, true),
             },
-        ];
-    }, [icons.Document, handleCreateReport, policy?.type, report, selectOption, shouldUseNarrowLayout, translate]);
+        ],
+        [CONST.IOU.TYPE.PAY]: [
+            {
+                icon: getIconForAction(CONST.IOU.TYPE.SEND, icons),
+                text: translate('iou.paySomeone', getPayeeName(report, translate, accountID)),
+                shouldCallAfterModalHide: shouldUseNarrowLayout,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_PAY_SOMEONE,
+                onSelected: () => {
+                    if (isDelegateAccessRestricted) {
+                        close(() => {
+                            showDelegateNoAccessModal();
+                        });
+                        return;
+                    }
+                    selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), false);
+                },
+            },
+        ],
+        [CONST.IOU.TYPE.TRACK]: [
+            {
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
+                text: translate('iou.createExpense'),
+                shouldCallAfterModalHide: shouldUseNarrowLayout,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
+                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
+            },
+            {
+                icon: icons.Location,
+                text: translate('iou.trackDistance'),
+                shouldCallAfterModalHide: shouldUseNarrowLayout,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
+                onSelected: () =>
+                    selectOption(() => {
+                        if (blockDistanceRequestIfNeeded()) {
+                            return;
+                        }
+                        startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, distanceExpenseType);
+                    }, true),
+            },
+        ],
+        [CONST.IOU.TYPE.INVOICE]: [
+            {
+                icon: icons.InvoiceGeneric,
+                text: translate('workspace.invoices.sendInvoice'),
+                shouldCallAfterModalHide: shouldUseNarrowLayout,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SEND_INVOICE,
+                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), false),
+            },
+        ],
+    };
+    const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], rules, isReportArchived, isRestrictedToPreferredPolicy).map(
+        (option) => options[option],
+    );
+    const moneyRequestOptions = moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
+
+    const createReportOption: PopoverMenuItem[] =
+        !isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report) || !canCreateExpensesOnPolicy(policy)
+            ? []
+            : [
+                  {
+                      icon: icons.Document,
+                      text: translate('report.newReport.createReport'),
+                      shouldCallAfterModalHide: shouldUseNarrowLayout,
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_REPORT,
+                      onSelected: () => selectOption(() => handleCreateReport(), true),
+                  },
+              ];
 
     /**
      * Determines if we can show the task option
      */
-    const taskOption: PopoverMenuItem[] = useMemo(() => {
-        if (!canCreateTaskInReport(report)) {
-            return [];
-        }
-
-        return [
-            {
-                icon: icons.Task,
-                text: translate('newTaskPage.assignTask'),
-                shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_ASSIGN_TASK,
-                onSelected: () => clearOutTaskInfoAndNavigate(currentUserPersonalDetails.accountID, undefined, reportID, report),
-            },
-        ];
-    }, [report, translate, shouldUseNarrowLayout, currentUserPersonalDetails.accountID, reportID, icons.Task]);
+    const taskOption: PopoverMenuItem[] = !canCreateTaskInReport(report)
+        ? []
+        : [
+              {
+                  icon: icons.Task,
+                  text: translate('newTaskPage.assignTask'),
+                  shouldCallAfterModalHide: shouldUseNarrowLayout,
+                  sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_ASSIGN_TASK,
+                  onSelected: () => clearOutTaskInfoAndNavigate(currentUserPersonalDetails.accountID, undefined, reportID, report),
+              },
+          ];
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
@@ -384,9 +343,8 @@ function AttachmentPickerWithMenuItems({
      * Check if current screen is inactive and previous screen is active.
      * Used to close already opened popover menu when any other page is opened over current page.
      *
-     * @return {Boolean}
      */
-    const didScreenBecomeInactive = useCallback(() => !isFocused && prevIsFocused, [isFocused, prevIsFocused]);
+    const didScreenBecomeInactive = () => !isFocused && prevIsFocused;
 
     // When the navigation is focused, we want to close the popover menu.
     useEffect(() => {
@@ -402,7 +360,7 @@ function AttachmentPickerWithMenuItems({
             return;
         }
 
-        calculatePopoverPosition(actionButtonRef as React.RefObject<View>, {
+        calculatePopoverPosition(actionButtonRef as React.RefObject<ComponentRef<typeof View>>, {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
         }).then((position) => {
@@ -411,21 +369,11 @@ function AttachmentPickerWithMenuItems({
     }, [isMenuVisible, calculatePopoverPosition, actionButtonRef]);
 
     // 1. Limit the container width to a single column.
-    const outerContainerStyles = [{flexBasis: styles.composerSizeButton.width + styles.composerSizeButton.marginHorizontal * 2}, styles.flexGrow0, styles.flexShrink0];
+    const outerContainerStyles = styles.composerButtonColumn;
 
-    // 2. If there isn't enough height for two buttons, the Expand/Collapse button wraps to the next column so that it's intentionally hidden,
-    //    and the Create button is centered vertically.
-    const innerContainerStyles = [
-        styles.dFlex,
-        styles.flexColumnReverse,
-        styles.flexWrap,
-        styles.justifyContentCenter,
-        styles.pAbsolute,
-        styles.h100,
-        styles.w100,
-        styles.overflowHidden,
-        {paddingVertical: styles.composerSizeButton.marginHorizontal},
-    ];
+    // 2. If there isn't enough height for two buttons, the Expand/Collapse button wraps to the next column so that it's intentionally hidden.
+    //    The Create button stays anchored to the bottom (flex-start in a reversed column) to match the Emoji and Send buttons.
+    const innerContainerStyles = styles.composerButtonStack;
 
     // 3. If there is enough height for two buttons, the Expand/Collapse button is at the top.
     const expandCollapseButtonContainerStyles = [styles.flexGrow1, styles.flexShrink0];
@@ -454,7 +402,7 @@ function AttachmentPickerWithMenuItems({
                 };
                 const menuItems = [
                     ...moneyRequestOptions,
-                    ...(!isTeachersUniteReport ? createReportOption : []),
+                    ...(!isReportTeachersUnite ? createReportOption : []),
                     ...taskOption,
                     {
                         icon: icons.Paperclip,
@@ -472,7 +420,7 @@ function AttachmentPickerWithMenuItems({
                             <View style={innerContainerStyles}>
                                 <View style={createButtonContainerStyles}>
                                     <Tooltip text={translate('common.create')}>
-                                        <PressableWithFeedback
+                                        <PressableWithoutFeedback
                                             ref={actionButtonRef}
                                             onPress={(e) => {
                                                 e?.preventDefault();
@@ -485,17 +433,22 @@ function AttachmentPickerWithMenuItems({
                                                 actionButtonRef.current?.blur();
                                                 setMenuVisibility(!isMenuVisible);
                                             }}
-                                            style={styles.composerSizeButton}
+                                            style={({hovered, pressed}) => [
+                                                styles.composerSizeButton,
+                                                StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered && !disabled, isPressed: pressed && !disabled})),
+                                            ]}
                                             disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
                                             sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_CREATE_BUTTON}
                                         >
-                                            <Icon
-                                                fill={theme.icon}
-                                                src={icons.Plus}
-                                            />
-                                        </PressableWithFeedback>
+                                            {({hovered, pressed}) => (
+                                                <Icon
+                                                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered && !disabled, isPressed: pressed && !disabled})})}
+                                                    src={icons.Plus}
+                                                />
+                                            )}
+                                        </PressableWithoutFeedback>
                                     </Tooltip>
                                 </View>
                                 <ExpandCollapseButton
@@ -536,6 +489,7 @@ function AttachmentPickerWithMenuItems({
                             }}
                             menuItems={menuItems}
                             anchorRef={actionButtonRef}
+                            enableEdgeToEdgeBottomSafeAreaPadding
                         />
                     </>
                 );

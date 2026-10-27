@@ -18,7 +18,7 @@ import {isCycleIdle, Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusAr
 import CONST from '@src/CONST';
 
 import type {NavigationState} from '@react-navigation/native';
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 
 import setFifoEntry from './fifoMap';
@@ -38,6 +38,7 @@ let lastMouseTriggerAt = 0;
 let lastKeyboardTriggerElement: HTMLElement | null = null;
 let lastKeyboardTriggerTime = 0;
 let pendingActivationKey: 'Enter' | 'Space' | null = null;
+let nominatedFallback: HTMLElement | null = null;
 
 function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
     setFifoEntry(triggerMap, routeKey, entry, TRIGGER_MAP_MAX);
@@ -121,7 +122,21 @@ function captureTriggerForRoute(routeKey: string): void {
     if (!inner) {
         return;
     }
+    if (nominatedFallback && nominatedFallback !== inner) {
+        setTriggerEntry(routeKey, {primary: inner, fallback: nominatedFallback});
+        return;
+    }
     setTriggerEntry(routeKey, {primary: inner});
+}
+
+/**
+ * Nominates a second choice to return to for the next route opened from here, for callers whose controls are removed
+ * while that route is open. A bulk action bar is the case this exists for. Its buttons go away with the selection the
+ * route cleared, so the captured trigger is detached by the time the route pops and focus falls to the document.
+ * Passing null withdraws the nomination, which callers do when they unmount.
+ */
+function nominateTriggerFallback(element: HTMLElement | null): void {
+    nominatedFallback = element;
 }
 
 /** Single-site latch reset so the three fields always clear together and future additions get one call site. */
@@ -169,19 +184,33 @@ function skipNextFocusRestore(): void {
     skipNextRestore = true;
 }
 
+/** Undo `skipNextFocusRestore` when its goBack never happened. */
+function cancelSkipNextFocusRestore(): void {
+    skipNextRestore = false;
+}
+
 /** Native-only. Web captures via `focusin` so this stub exists only to keep the import cross-platform. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function notifyPressedTrigger(_ref: RefObject<View | null> | null, _identifier?: string): void {}
+function notifyPressedTrigger(_ref: RefObject<ComponentRef<typeof View> | null> | null, _identifier?: string): void {}
 
 /** Native-only registry. Cross-platform stub. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function registerPressable(_routeKey: string, _identifier: string, _ref: RefObject<View | null>): () => void {
+function registerPressable(_routeKey: string, _identifier: string, _ref: RefObject<ComponentRef<typeof View> | null>): () => void {
     return () => {};
 }
 
 /** True only while restoreTriggerForRoute is in its .focus() call. Lists use it to tell the restore apart from a real keyboard Tab, which also has no sourceCapabilities. */
 function isFocusRestoreInProgress(): boolean {
     return isRestoringFocus;
+}
+
+/** Seeds the trigger candidate for focus restoration */
+function seedTriggerCandidate(element: HTMLElement): void {
+    if (getHadTabNavigation()) {
+        return;
+    }
+    lastMouseTrigger = element;
+    lastMouseTriggerAt = performance.now();
 }
 
 /* Empty = nothing focusable yet (detached mid-remount, missing attributes); caller's retry budget owns cleanup, not this function. */
@@ -290,6 +319,7 @@ function restoreTriggerForRoute(routeKey: string, restoreBaseline: Element | nul
         if (after === candidate) {
             triggerMap.delete(routeKey);
             lastRestoreTarget = candidate;
+            seedTriggerCandidate(candidate);
             scheduleReturnHoldRelease();
             return true;
         }
@@ -297,6 +327,7 @@ function restoreTriggerForRoute(routeKey: string, restoreBaseline: Element | nul
         if (after !== before && after && after !== document.body) {
             triggerMap.delete(routeKey);
             lastRestoreTarget = after instanceof HTMLElement ? after : candidate;
+            seedTriggerCandidate(lastRestoreTarget);
             scheduleReturnHoldRelease();
             return true;
         }
@@ -583,6 +614,7 @@ function resetForTests(): void {
     clearTransientCaptures();
     lastRestoreTarget = null;
     skipNextRestore = false;
+    nominatedFallback = null;
 }
 
 function setLastInteractiveElementForTests(element: HTMLElement | null): void {
@@ -674,11 +706,13 @@ export {
     teardownNavigationFocusReturn,
     handleStateChange,
     captureTriggerForRoute,
+    nominateTriggerFallback,
     restoreTriggerForRoute,
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
     skipNextFocusRestore,
+    cancelSkipNextFocusRestore,
     notifyPressedTrigger,
     registerPressable,
     isFocusRestoreInProgress,

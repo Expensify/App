@@ -3,6 +3,7 @@ import {areTransactionsEligibleForMerge, getTransactionsForMerging, mergeTransac
 import {addComment, openReport} from '@libs/actions/Report';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getMergeFieldUpdatedValues} from '@libs/MergeTransactionUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction, isActionOfType} from '@libs/ReportActionsUtils';
 import {buildTransactionThread} from '@libs/ReportUtils';
@@ -12,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     MergeTransaction as MergeTransactionType,
     OriginalMessageIOU,
+    Policy,
     Report,
     ReportAction,
     ReportActions,
@@ -27,6 +29,7 @@ import Onyx from 'react-native-onyx';
 import type {MockFetch} from '../utils/TestHelper';
 
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
+import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
@@ -74,6 +77,7 @@ type CrossReportMergeToSourceReportFixtures = {
     mergeTransaction: MergeTransactionType;
     mergeTransactionID: string;
     sourceExpenseReport: Report;
+    sourceChatReport: Report;
     targetReport: Report;
     sourceIOUAction: ReportAction;
     sourceIOUActionID: string;
@@ -93,9 +97,12 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
         category: 'Original Category',
         reportID: 'target-report-456',
     };
+    const sourceChatReport = {...createRandomReport(5, undefined), reportID: 'source-chat-report-123'};
+
     const sourceExpenseReport = {
         ...createExpenseReport(1),
         reportID: 'source-report-123',
+        chatReportID: sourceChatReport.reportID,
     };
     const targetReport = {
         ...createExpenseReport(1),
@@ -163,19 +170,20 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceChatReport.reportID}`, sourceChatReport);
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceExpenseReport.reportID}`, {[sourceIOUAction.reportActionID]: sourceIOUAction});
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThread.reportID}`, sourceTransactionThread);
     await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReport.reportID}`, {[targetIOUAction.reportActionID]: targetIOUAction});
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThread.reportID}`, targetTransactionThread);
-
     return {
         targetTransaction,
         sourceTransaction,
         mergeTransaction,
         mergeTransactionID,
         sourceExpenseReport,
+        sourceChatReport,
         targetReport,
         sourceIOUAction,
         sourceIOUActionID,
@@ -187,18 +195,21 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
 }
 
 function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSourceReportFixtures) {
-    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction} = fixtures;
+    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction, sourceExpenseReport, sourceChatReport} = fixtures;
 
     mergeTransactionRequest({
+        isVendorMatchingBetaEnabled: false,
         iouReportOwnerLogin: undefined,
         mergeTransactionID,
         mergeTransaction,
         targetTransaction,
+        transactionsOfDeletableReportCollection: {[targetTransaction.transactionID]: targetTransaction},
         sourceTransaction,
         policy: undefined,
         policyTags: undefined,
         policyCategories: undefined,
         allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, mockViolations, mockViolations),
+        sourceIOUActionThreadReport: undefined,
         targetTransactionThreadReport: {reportID: targetReport.reportID},
         targetTransactionThreadParentReport: undefined,
         reportPolicyTags: undefined,
@@ -211,8 +222,11 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         isTrackIntentUser: false,
         sourceTransactionThreadReportActions: undefined,
         sourceIOUAction,
+        sourceActionIOUReport: sourceExpenseReport,
+        sourceActionChatReport: sourceChatReport,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         getCurrencySymbol: getCurrencySymbolLocal,
+        rules: undefined,
     });
 }
 
@@ -311,11 +325,14 @@ describe('mergeTransactionRequest', () => {
         // When: The merge transaction request is initiated
         // This should immediately update the UI with optimistic values
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
+            transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
             sourceTransaction,
+            sourceIOUActionThreadReport: undefined,
             targetTransactionThreadReport: {reportID: 'target-report-456'},
             targetTransactionThreadParentReport: undefined,
             reportPolicyTags: undefined,
@@ -332,8 +349,11 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            sourceActionIOUReport: undefined,
+            sourceActionChatReport: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
+            rules: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -433,11 +453,14 @@ describe('mergeTransactionRequest', () => {
 
         // When the merge fires
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
+            transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
             sourceTransaction,
+            sourceIOUActionThreadReport: undefined,
             targetTransactionThreadReport: {reportID: targetReportID},
             targetTransactionThreadParentReport: undefined,
             reportPolicyTags: undefined,
@@ -454,8 +477,11 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            sourceActionIOUReport: undefined,
+            sourceActionChatReport: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
+            rules: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -538,11 +564,14 @@ describe('mergeTransactionRequest', () => {
 
         // When: The Merge Expense flow is executed
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
+            transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
             sourceTransaction,
+            sourceIOUActionThreadReport: undefined,
             targetTransactionThreadReport: {reportID: targetExpenseReport.reportID},
             targetTransactionThreadParentReport: undefined,
             reportPolicyTags: undefined,
@@ -559,8 +588,11 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            sourceActionIOUReport: undefined,
+            sourceActionChatReport: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
+            rules: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -693,11 +725,14 @@ describe('mergeTransactionRequest', () => {
         mockFetch?.fail?.();
 
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
+            transactionsOfDeletableReportCollection: {[targetTransaction.transactionID]: targetTransaction},
             sourceTransaction,
+            sourceIOUActionThreadReport: undefined,
             targetTransactionThreadReport: {reportID: 'target-report-456'},
             targetTransactionThreadParentReport: undefined,
             reportPolicyTags: undefined,
@@ -714,8 +749,11 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            sourceActionIOUReport: undefined,
+            sourceActionChatReport: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
+            rules: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -803,11 +841,14 @@ describe('mergeTransactionRequest', () => {
         // - Optimistically remove DUPLICATED_TRANSACTION violations since transactions are being merged
         // - Keep other violations like MISSING_CATEGORY intact
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
+            transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
             sourceTransaction,
+            sourceIOUActionThreadReport: undefined,
             targetTransactionThreadReport: {reportID: 'target123'},
             targetTransactionThreadParentReport: undefined,
             reportPolicyTags: undefined,
@@ -824,8 +865,11 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            sourceActionIOUReport: undefined,
+            sourceActionChatReport: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
+            rules: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -1036,11 +1080,14 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
+                transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction, [otherTransaction.transactionID]: otherTransaction},
                 sourceTransaction,
+                sourceIOUActionThreadReport: undefined,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
                 targetTransactionThreadParentReport: undefined,
                 reportPolicyTags: undefined,
@@ -1057,8 +1104,11 @@ describe('mergeTransactionRequest', () => {
                 isTrackIntentUser: false,
                 sourceTransactionThreadReportActions: undefined,
                 sourceIOUAction: undefined,
+                sourceActionIOUReport: undefined,
+                sourceActionChatReport: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             await mockFetch?.resume?.();
@@ -1180,12 +1230,12 @@ describe('mergeTransactionRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
-                betas: undefined,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
                 currentUserAccountID: TEST_ACCOUNT_ID,
@@ -1243,11 +1293,14 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
+                transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction, [otherTransaction.transactionID]: otherTransaction},
                 sourceTransaction,
+                sourceIOUActionThreadReport: thread,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
                 targetTransactionThreadParentReport: undefined,
                 reportPolicyTags: undefined,
@@ -1264,8 +1317,11 @@ describe('mergeTransactionRequest', () => {
                 isTrackIntentUser: false,
                 sourceTransactionThreadReportActions: undefined,
                 sourceIOUAction,
+                sourceActionIOUReport: sourceReport,
+                sourceActionChatReport: chatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1372,12 +1428,12 @@ describe('mergeTransactionRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
-                betas: undefined,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
                 currentUserAccountID: TEST_ACCOUNT_ID,
@@ -1399,11 +1455,14 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
+                transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
                 sourceTransaction,
+                sourceIOUActionThreadReport: thread,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
                 targetTransactionThreadParentReport: undefined,
                 reportPolicyTags: undefined,
@@ -1420,8 +1479,11 @@ describe('mergeTransactionRequest', () => {
                 isTrackIntentUser: false,
                 sourceTransactionThreadReportActions: undefined,
                 sourceIOUAction: undefined,
+                sourceActionIOUReport: undefined,
+                sourceActionChatReport: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1454,6 +1516,295 @@ describe('mergeTransactionRequest', () => {
                 });
             });
         });
+
+        /* eslint-disable rulesdir/no-multiple-api-calls -- Each it callback independently spies on API.write once; the rule's ancestor token scan combines otherwise independent tests. */
+        it('should delete the passed source IOU action thread report on the self-DM merge path', async () => {
+            // Given: An unreported (tracked) source transaction whose IOU action lives in the self-DM report and
+            // whose transaction thread report + report actions are passed in by the confirmation page.
+            const selfDMReportID = 'selfDM-report-123';
+            const targetReportID = 'target-report-456';
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: selfDMReportID,
+            };
+            const targetTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'target123',
+                reportID: targetReportID,
+            };
+            const sourceTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'source456',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const mergeTransaction: MergeTransactionType = {
+                ...createRandomMergeTransaction(1),
+                targetTransactionID: targetTransaction.transactionID,
+                sourceTransactionID: sourceTransaction.transactionID,
+                reportID: targetReportID,
+            };
+            const mergeTransactionID = 'merge789';
+            const sourceTransactionThreadID = 'source-thread-123';
+
+            const sourceIOUAction: ReportAction = {
+                reportActionID: 'source-action-123',
+                reportID: selfDMReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2024-01-01 12:00:00',
+                originalMessage: {
+                    IOUTransactionID: sourceTransaction.transactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                } as OriginalMessageIOU,
+                childReportID: sourceTransactionThreadID,
+                message: [{type: 'TEXT', text: 'Test IOU message'}],
+            };
+            const selfDMReportActions: ReportActions = {[sourceIOUAction.reportActionID]: sourceIOUAction};
+            const sourceIOUActionThreadReport: Report = {
+                ...createRandomReport(3, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: sourceTransactionThreadID,
+                parentReportID: selfDMReportID,
+                parentReportActionID: sourceIOUAction.reportActionID,
+            };
+            const sourceTransactionThreadReportActions: ReportActions = {
+                threadAction1: {...createRandomReportAction(1), reportID: sourceTransactionThreadID},
+            };
+
+            // The thread report cached in Onyx is deliberately different from the one passed in below, so the
+            // assertions prove the passed-in report wins over the getAllReports() fallback.
+            const cachedSourceIOUActionThreadReport: Report = {
+                ...createRandomReport(4, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: sourceTransactionThreadID,
+                parentReportID: 'stale-parent-report',
+                parentReportActionID: 'stale-parent-action',
+            };
+
+            // Set up initial state
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, selfDMReportActions);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThreadID}`, cachedSourceIOUActionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
+            await waitForBatchedUpdates();
+
+            const writeSpy = jest.spyOn(API, 'write');
+
+            mockFetch?.pause?.();
+
+            // When: The merge request is executed for the unreported source transaction
+            mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
+                iouReportOwnerLogin: undefined,
+                mergeTransactionID,
+                mergeTransaction,
+                targetTransaction,
+                transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
+                sourceTransaction,
+                sourceIOUActionThreadReport,
+                targetTransactionThreadReport: {reportID: targetReportID},
+                targetTransactionThreadParentReport: undefined,
+                reportPolicyTags: undefined,
+                allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID),
+                policy: undefined,
+                policyTags: undefined,
+                policyCategories: undefined,
+                currentUserAccountIDParam: TEST_ACCOUNT_ID,
+                currentUserEmailParam: TEST_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                selfDMReport,
+                selfDMReportActions,
+                isTrackIntentUser: false,
+                sourceTransactionThreadReportActions,
+                sourceIOUAction: undefined,
+                sourceActionIOUReport: undefined,
+                sourceActionChatReport: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then: The passed thread report is marked for deletion on success and restored on failure, using the
+            // passed report + report actions rather than the stale cached report the fallback would pick.
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_TRANSACTION,
+                expect.anything(),
+                expect.objectContaining({
+                    successData: expect.arrayContaining([
+                        expect.objectContaining({
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThreadID}`,
+                            value: null,
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThreadID}`,
+                            value: sourceIOUActionThreadReport,
+                        }),
+                        expect.objectContaining({
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceTransactionThreadID}`,
+                            value: sourceTransactionThreadReportActions,
+                        }),
+                    ]),
+                }),
+            );
+
+            // And: The self-DM report is the chat report whose IOU action is cleaned up
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_TRANSACTION,
+                expect.anything(),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`})]),
+                }),
+            );
+
+            writeSpy.mockRestore();
+        });
+
+        it('should use the passed sourceIOUActionThreadReport when cleaning up the source transaction thread', async () => {
+            // Given: A source expense in an expense report whose IOU action has a transaction thread, merged into
+            // the target report (so the source thread must be cleaned up).
+            const targetReportID = 'target-report-456';
+            const sourceReportID = 'source-report-123';
+            const sourceThreadID = 'source-thread-123';
+            const targetTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'target123',
+                reportID: targetReportID,
+            };
+            const sourceExpenseReport: Report = {
+                ...createExpenseReport(1),
+                reportID: sourceReportID,
+            };
+            const sourceTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'source456',
+                reportID: sourceReportID,
+            };
+            const mergeTransaction: MergeTransactionType = {
+                ...createRandomMergeTransaction(1),
+                targetTransactionID: targetTransaction.transactionID,
+                sourceTransactionID: sourceTransaction.transactionID,
+                reportID: targetReportID,
+            };
+            const mergeTransactionID = 'merge789';
+
+            const sourceIOUAction: ReportAction = {
+                reportActionID: 'source-action-123',
+                reportID: sourceReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2024-01-01 12:00:00',
+                originalMessage: {
+                    IOUTransactionID: sourceTransaction.transactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                } as OriginalMessageIOU,
+                childReportID: sourceThreadID,
+                message: [{type: 'TEXT', text: 'Test IOU message'}],
+            };
+            const sourceIOUActionThreadReport: Report = {
+                ...createRandomReport(3, CONST.REPORT.CHAT_TYPE.INVOICE),
+                reportID: sourceThreadID,
+                parentReportID: sourceReportID,
+                parentReportActionID: sourceIOUAction.reportActionID,
+            };
+            const sourceTransactionThreadReportActions: ReportActions = {
+                threadAction1: {...createRandomReportAction(1), reportID: sourceThreadID},
+            };
+
+            // The thread report cached in Onyx is deliberately different from the one passed in below, so the
+            // assertions prove the passed-in report wins over the getAllReports() fallback.
+            const cachedSourceIOUActionThreadReport: Report = {
+                ...createRandomReport(4, CONST.REPORT.CHAT_TYPE.INVOICE),
+                reportID: sourceThreadID,
+                parentReportID: 'stale-parent-report',
+                parentReportActionID: 'stale-parent-action',
+            };
+
+            // Set up initial state
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`, {reportID: targetReportID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`, sourceExpenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`, {[sourceIOUAction.reportActionID]: sourceIOUAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceThreadID}`, cachedSourceIOUActionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
+            await waitForBatchedUpdates();
+
+            const writeSpy = jest.spyOn(API, 'write');
+
+            mockFetch?.pause?.();
+
+            // When: The merge request is executed
+            mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
+                iouReportOwnerLogin: undefined,
+                mergeTransactionID,
+                mergeTransaction,
+                targetTransaction,
+                transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
+                sourceTransaction,
+                sourceIOUActionThreadReport,
+                targetTransactionThreadReport: {reportID: targetReportID},
+                targetTransactionThreadParentReport: undefined,
+                reportPolicyTags: undefined,
+                allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID),
+                policy: undefined,
+                policyTags: undefined,
+                policyCategories: undefined,
+                currentUserAccountIDParam: TEST_ACCOUNT_ID,
+                currentUserEmailParam: TEST_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                selfDMReport: undefined,
+                selfDMReportActions: undefined,
+                isTrackIntentUser: false,
+                sourceTransactionThreadReportActions,
+                sourceIOUAction,
+                sourceActionIOUReport: sourceExpenseReport,
+                sourceActionChatReport: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then: The passed thread report is marked for deletion on success and restored on failure, using the
+            // passed report + report actions rather than the stale cached report the fallback would pick.
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_TRANSACTION,
+                expect.anything(),
+                expect.objectContaining({
+                    successData: expect.arrayContaining([
+                        expect.objectContaining({
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${sourceThreadID}`,
+                            value: null,
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${sourceThreadID}`,
+                            value: sourceIOUActionThreadReport,
+                        }),
+                        expect.objectContaining({
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceThreadID}`,
+                            value: sourceTransactionThreadReportActions,
+                        }),
+                    ]),
+                }),
+            );
+
+            writeSpy.mockRestore();
+        });
+        /* eslint-enable rulesdir/no-multiple-api-calls */
     });
 });
 
@@ -1471,15 +1822,601 @@ describe('getTransactionsForMerging', () => {
             isOffline: true,
             targetTransaction,
             transactions: {},
+            reportTransactions: [],
             policy: undefined,
             report: undefined,
             currentUserLogin: undefined,
+            rules: undefined,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
-        // Then no merge transaction entry is written for the empty key
+        // Then no merge transaction entry is written for the empty key. The empty transactionID resolves
+        // to the collection root key, and reading an empty collection returns an empty object.
         const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
-        expect(mergeTransaction).toBeUndefined();
+        expect(mergeTransaction).toEqual({});
+    });
+
+    it('should allow admin to see cash candidates from another open draft report in the same workspace (offline)', async () => {
+        // Given an admin user and two open draft expense reports in the same workspace
+        const adminLogin = 'admin@test.com';
+        const submitterAccountID = 42;
+
+        const policy = {
+            ...createRandomPolicy(1),
+            id: 'workspace-1',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+
+        const targetReport = {
+            ...createExpenseReport(1),
+            reportID: 'target-report-1',
+            policyID: 'workspace-1',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const otherDraftReport = {
+            ...createExpenseReport(2),
+            reportID: 'other-report-2',
+            policyID: 'workspace-1',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        // Card expense (target) on the first report
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'card-tx-1',
+            reportID: 'target-report-1',
+            // Make it a card transaction by giving it a cardNumber
+            cardNumber: '1234',
+            bank: undefined,
+        };
+
+        // Cash expense candidate on the other draft report
+        const candidateTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'cash-tx-2',
+            reportID: 'other-report-2',
+            // Cash: no cardNumber, bank, or managedCard
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 500,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${otherDraftReport.reportID}`, otherDraftReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await waitForBatchedUpdates();
+
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`]: targetTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${candidateTransaction.transactionID}`]: candidateTransaction,
+        };
+        const allPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+        };
+
+        // When the admin requests merge candidates offline
+        const allReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`]: targetReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${otherDraftReport.reportID}`]: otherDraftReport,
+        };
+
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: allTransactions,
+            reportTransactions: [],
+            policy,
+            report: targetReport,
+            currentUserLogin: adminLogin,
+            rules: undefined,
+            allPolicies,
+            allReports,
+            personalDetails: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the cash candidate from the other draft report appears in eligible transactions
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === candidateTransaction.transactionID)).toBe(true);
+    });
+
+    it('should allow admin to see cash candidates from a submitted report pending final approval in the same workspace (offline)', async () => {
+        // Given an admin user, an open draft report, and a submitted report awaiting approval in the same workspace
+        const adminLogin = 'admin@test.com';
+        const submitterAccountID = 42;
+
+        const policy = {
+            ...createRandomPolicy(1),
+            id: 'workspace-1',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+
+        const targetReport = {
+            ...createExpenseReport(1),
+            reportID: 'target-report-1',
+            policyID: 'workspace-1',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const submittedReport = {
+            ...createExpenseReport(2),
+            reportID: 'submitted-report-2',
+            policyID: 'workspace-1',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'card-tx-1',
+            reportID: 'target-report-1',
+            cardNumber: '1234',
+            bank: undefined,
+        };
+
+        const candidateTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'cash-tx-2',
+            reportID: 'submitted-report-2',
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 500,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`, submittedReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await waitForBatchedUpdates();
+
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`]: targetTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${candidateTransaction.transactionID}`]: candidateTransaction,
+        };
+        const allPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+        };
+        const allReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`]: targetReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`]: submittedReport,
+        };
+
+        // When the admin requests merge candidates offline
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: allTransactions,
+            reportTransactions: [],
+            policy,
+            report: targetReport,
+            currentUserLogin: adminLogin,
+            rules: undefined,
+            allPolicies,
+            allReports,
+            personalDetails: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the cash candidate from the submitted report appears in eligible transactions, because admins can still edit reports before final approval
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === candidateTransaction.transactionID)).toBe(true);
+    });
+
+    it('should NOT allow admin to see candidates from another workspace where they are not an admin (offline)', async () => {
+        // Given an admin in workspace-1 but only a member in workspace-2
+        const adminLogin = 'admin@test.com';
+        const submitterAccountID = 42;
+
+        const adminPolicy = {
+            ...createRandomPolicy(1),
+            id: 'workspace-1',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+        const memberPolicy = {
+            ...createRandomPolicy(2),
+            id: 'workspace-2',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+        };
+
+        const targetReport = {
+            ...createExpenseReport(1),
+            reportID: 'admin-report-1',
+            policyID: 'workspace-1',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const otherWorkspaceReport = {
+            ...createExpenseReport(2),
+            reportID: 'member-report-2',
+            policyID: 'workspace-2',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'card-tx-a',
+            reportID: 'admin-report-1',
+            cardNumber: '1234',
+            bank: undefined,
+        };
+
+        const candidateTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'cash-tx-b',
+            reportID: 'member-report-2',
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 500,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${otherWorkspaceReport.reportID}`, otherWorkspaceReport);
+        await waitForBatchedUpdates();
+
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`]: targetTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${candidateTransaction.transactionID}`]: candidateTransaction,
+        };
+        const allPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`]: adminPolicy,
+            [`${ONYXKEYS.COLLECTION.POLICY}${memberPolicy.id}`]: memberPolicy,
+        };
+
+        const allReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`]: targetReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${otherWorkspaceReport.reportID}`]: otherWorkspaceReport,
+        };
+
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: allTransactions,
+            reportTransactions: [],
+            policy: adminPolicy,
+            report: targetReport,
+            currentUserLogin: adminLogin,
+            rules: undefined,
+            allPolicies,
+            allReports,
+            personalDetails: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the candidate from the non-admin workspace is NOT in the eligible list
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === candidateTransaction.transactionID)).toBe(false);
+    });
+
+    it('should exclude candidates when their policy is missing from the local cache (offline)', async () => {
+        // Given an admin with a candidate whose policy is not cached locally
+        const adminLogin = 'admin@test.com';
+        const submitterAccountID = 42;
+
+        const adminPolicy = {
+            ...createRandomPolicy(1),
+            id: 'workspace-known',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+
+        const targetReport = {
+            ...createExpenseReport(1),
+            reportID: 'known-report',
+            policyID: 'workspace-known',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const unknownPolicyReport = {
+            ...createExpenseReport(2),
+            reportID: 'unknown-policy-report',
+            policyID: 'workspace-unknown',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'card-tx-known',
+            reportID: 'known-report',
+            cardNumber: '9999',
+            bank: undefined,
+        };
+        const candidateTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'cash-tx-unknown',
+            reportID: 'unknown-policy-report',
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 300,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${unknownPolicyReport.reportID}`, unknownPolicyReport);
+        await waitForBatchedUpdates();
+
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`]: targetTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${candidateTransaction.transactionID}`]: candidateTransaction,
+        };
+        // workspace-unknown is intentionally absent from the local policy cache
+        const allPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`]: adminPolicy,
+        };
+
+        const allReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`]: targetReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${unknownPolicyReport.reportID}`]: unknownPolicyReport,
+        };
+
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: allTransactions,
+            reportTransactions: [],
+            policy: adminPolicy,
+            report: targetReport,
+            currentUserLogin: adminLogin,
+            rules: undefined,
+            allPolicies,
+            allReports,
+            personalDetails: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the candidate from the uncached workspace is excluded rather than allowed
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === candidateTransaction.transactionID)).toBe(false);
+    });
+
+    it('should limit manager (non-admin approver) to same-report candidates on processing reports (offline)', async () => {
+        // Given a manager (not admin) reviewing a processing report
+        const managerLogin = 'manager@test.com';
+        const managerAccountID = 99;
+        const submitterAccountID = 42;
+
+        // Set the session so module-level currentUserAccountID resolves to the manager
+        await Onyx.set(ONYXKEYS.SESSION, {email: managerLogin, accountID: managerAccountID});
+        await waitForBatchedUpdates();
+
+        const policy = {
+            ...createRandomPolicy(1),
+            id: 'workspace-manager',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+        };
+
+        const processingReport = {
+            ...createExpenseReport(1),
+            reportID: 'processing-report',
+            policyID: 'workspace-manager',
+            ownerAccountID: submitterAccountID,
+            managerID: managerAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+        const otherOpenReport = {
+            ...createExpenseReport(2),
+            reportID: 'other-open-report',
+            policyID: 'workspace-manager',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'card-tx-mgr',
+            reportID: 'processing-report',
+            cardNumber: '5678',
+            bank: undefined,
+        };
+        const sameReportCandidate = {
+            ...createRandomTransaction(2),
+            transactionID: 'cash-tx-same',
+            reportID: 'processing-report',
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 400,
+        };
+        const otherReportCandidate = {
+            ...createRandomTransaction(3),
+            transactionID: 'cash-tx-other',
+            reportID: 'other-open-report',
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 600,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sameReportCandidate.transactionID}`, sameReportCandidate);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${otherReportCandidate.transactionID}`, otherReportCandidate);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${processingReport.reportID}`, processingReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${otherOpenReport.reportID}`, otherOpenReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await waitForBatchedUpdates();
+
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`]: targetTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${sameReportCandidate.transactionID}`]: sameReportCandidate,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${otherReportCandidate.transactionID}`]: otherReportCandidate,
+        };
+        const allPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+        };
+
+        const allReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${processingReport.reportID}`]: processingReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${otherOpenReport.reportID}`]: otherOpenReport,
+        };
+
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: allTransactions,
+            reportTransactions: [targetTransaction, sameReportCandidate],
+            policy,
+            report: processingReport,
+            currentUserLogin: managerLogin,
+            rules: undefined,
+            allPolicies,
+            allReports,
+            personalDetails: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        // Same-report candidate is included; cross-report candidate is excluded for a non-admin manager
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === sameReportCandidate.transactionID)).toBe(true);
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === otherReportCandidate.transactionID)).toBe(false);
+    });
+
+    it('should include candidates from other draft reports for admin who is also the submitter (treated as submitter)', async () => {
+        // Given an admin who is also the report owner (submitter), they go through the submitter path
+        const adminLogin = 'admin-owner@test.com';
+        const adminAccountID = 7;
+
+        // Set the session so module-level currentUserAccountID resolves to the admin/submitter
+        await Onyx.set(ONYXKEYS.SESSION, {email: adminLogin, accountID: adminAccountID});
+        await waitForBatchedUpdates();
+
+        const policy = {
+            ...createRandomPolicy(1),
+            id: 'workspace-self',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+
+        const ownReport = {
+            ...createExpenseReport(1),
+            reportID: 'own-report',
+            policyID: 'workspace-self',
+            ownerAccountID: adminAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const otherOwnDraftReport = {
+            ...createExpenseReport(2),
+            reportID: 'own-other-report',
+            policyID: 'workspace-self',
+            ownerAccountID: adminAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'self-card-tx',
+            reportID: 'own-report',
+            cardNumber: '1111',
+            bank: undefined,
+        };
+        const candidateTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'self-cash-tx',
+            reportID: 'own-other-report',
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 250,
+        };
+
+        // Set individual transactions in Onyx so the offline filter can access them
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${candidateTransaction.transactionID}`, candidateTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${ownReport.reportID}`, ownReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${otherOwnDraftReport.reportID}`, otherOwnDraftReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await waitForBatchedUpdates();
+
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`]: targetTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${candidateTransaction.transactionID}`]: candidateTransaction,
+        };
+        const allPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+        };
+
+        // Session matches the report ownerAccountID so this is treated as the submitter path
+        const allReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${ownReport.reportID}`]: ownReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${otherOwnDraftReport.reportID}`]: otherOwnDraftReport,
+        };
+
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: allTransactions,
+            reportTransactions: [],
+            policy,
+            report: ownReport,
+            currentUserLogin: adminLogin,
+            rules: undefined,
+            allPolicies,
+            allReports,
+            personalDetails: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === candidateTransaction.transactionID)).toBe(true);
+    });
+
+    it('builds the eligible list from reportTransactions when a workspace approver merges from a report they did not submit', async () => {
+        // Given a non-admin workspace approver reviewing a report submitted by someone else (TEST_ACCOUNT_ID
+        // is the signed-in user for this file, so ownerAccountID must differ from it for isCurrentUserSubmitter to be false)
+        const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.USER};
+        const report = {...createRandomReport(1), ownerAccountID: TEST_ACCOUNT_ID + 1, managerID: TEST_ACCOUNT_ID};
+        const targetTransaction = {...createRandomTransaction(1), reportID: report.reportID, managedCard: false, cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME, amount: 1000};
+        const eligibleTransaction = {...createRandomTransaction(2), reportID: report.reportID, managedCard: false, cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME, amount: 2000};
+        const pendingDeleteTransaction = {
+            ...createRandomTransaction(3),
+            reportID: report.reportID,
+            managedCard: false,
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            amount: 3000,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        };
+
+        // When we request merge candidates, passing the report's already-loaded transactions via reportTransactions
+        // (the collect/control workspace path no longer falls back to the deprecated getReportTransactions global lookup)
+        getTransactionsForMerging({
+            isOffline: false,
+            targetTransaction,
+            transactions: {},
+            reportTransactions: [targetTransaction, eligibleTransaction, pendingDeleteTransaction],
+            policy,
+            report,
+            currentUserLogin: 'approver@example.com',
+            rules: undefined,
+            personalDetails: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the eligible list is built from reportTransactions: it excludes the target transaction itself and the
+        // pending-delete transaction, keeping only the transaction that is actually eligible for merge
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction?.eligibleTransactions).toStrictEqual([eligibleTransaction]);
     });
 });
 
@@ -1557,6 +2494,52 @@ describe('setMergeTransactionKey', () => {
             category: 'New Category', // Added
             description: 'New Description', // Added
         });
+    });
+
+    it('should apply the commuter exclusion to the newly selected distance rather than the previously selected one', async () => {
+        // Given a merge onto a workspace that excludes 1 commuter mile, where the merchant of the 4.49 mile expense was
+        // selected first
+        const transactionID = 'merge-distance-transaction';
+        const excludingWorkspace: Policy = {
+            ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, fixedDistance: 1, fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+        };
+        const selectMerchantOf = async (transaction: Transaction) => {
+            setMergeTransactionKey(
+                transactionID,
+                getMergeFieldUpdatedValues({
+                    transaction,
+                    field: 'merchant',
+                    fieldValue: transaction.merchant,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    mergeTransaction: await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`),
+                    destinationPolicy: excludingWorkspace,
+                }),
+            );
+            await waitForBatchedUpdates();
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {targetTransactionID: transactionID});
+        await selectMerchantOf({
+            ...createRandomDistanceRequestTransaction(0),
+            amount: -349,
+            comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 4.49, commuterExclusion: 1, reimbursableDistance: 3.49}},
+        });
+
+        // When the merchant of the 10.2 mile expense is selected instead
+        await selectMerchantOf({
+            ...createRandomDistanceRequestTransaction(1),
+            amount: -1020,
+            comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 10.2}},
+        });
+
+        // Then the exclusion still applies, but to the newly selected distance: the distance field renders the
+        // reimbursable distance in place of the full one, so keeping the previous 3.49 would show the wrong expense
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`);
+        expect(mergeTransaction?.customUnit?.quantity).toBe(10.2);
+        expect(mergeTransaction?.customUnit?.commuterExclusion).toBe(1);
+        expect(mergeTransaction?.customUnit?.reimbursableDistance).toBe(9.2);
+        expect(mergeTransaction?.amount).toBe(920);
     });
 });
 

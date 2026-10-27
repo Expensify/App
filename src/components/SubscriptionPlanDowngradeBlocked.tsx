@@ -3,6 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 
+import CONST from '@src/CONST';
 import type {PrivateSubscription} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -38,11 +39,12 @@ function SubscriptionPlanDowngradeBlocked({privateSubscription, formattedSubscri
             )}
             <FixedFooter style={[styles.mtAuto]}>
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={onClosePress}
-                    text={translate('common.close')}
-                />
+                >
+                    <Button.Text>{translate('common.close')}</Button.Text>
+                </Button>
             </FixedFooter>
         </View>
     );

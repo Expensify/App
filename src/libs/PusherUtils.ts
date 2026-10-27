@@ -1,10 +1,10 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import type {AnyOnyxUpdatesFromServer, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 
 import type {OnyxKey} from 'react-native-onyx';
 
-import type {PingPongEvent} from './Pusher/types';
+import type {EventData, PusherEventName} from './Pusher/types';
 
 import {reconnect} from './actions/Reconnect';
 import Log from './Log';
@@ -37,19 +37,14 @@ function triggerMultiEventHandler<TKey extends OnyxKey>(eventType: string, data:
 /**
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
  */
-function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) => void) {
+function subscribeToPrivateUserChannelEvent<EventName extends PusherEventName>(eventName: EventName, accountID: string, onEvent: (pushJSON: EventData<EventName>) => void) {
     const pusherChannelName = getUserChannelName(accountID);
 
-    function logPusherEvent(pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) {
+    function logPusherEvent(pushJSON: EventData<EventName>) {
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
     }
 
-    function onPusherResubscribeToPrivateUserChannel() {
-        Log.info('[PusherUtils] Pusher re-subscribed to private user channel, triggering reconnect');
-        reconnect();
-    }
-
-    function onEventPush(pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) {
+    function onEventPush(pushJSON: EventData<EventName>) {
         logPusherEvent(pushJSON);
         onEvent(pushJSON);
     }
@@ -57,11 +52,28 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
     function onSubscriptionFailed(error: Error) {
         Log.hmmm('Failed to subscribe to Pusher channel', {error, pusherChannelName, eventName});
     }
-    Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel).catch(onSubscriptionFailed);
+    Pusher.subscribe(pusherChannelName, eventName, onEventPush).catch(onSubscriptionFailed);
+}
+
+let unregisterPrivateUserChannelResubscribe: (() => void) | undefined;
+
+function onPrivateUserChannelResubscribe(accountID: string) {
+    unregisterPrivateUserChannelResubscribe?.();
+    unregisterPrivateUserChannelResubscribe = Pusher.onChannelResubscribe(getUserChannelName(accountID), () => {
+        if (!Pusher.claimOutageSync()) {
+            Log.info('[PusherUtils] Skipping reconnect, socket recovered without going unavailable');
+            return;
+        }
+        Log.info('[PusherUtils] Pusher re-subscribed to private user channel, triggering reconnect');
+        reconnect();
+    });
+
+    return unregisterPrivateUserChannelResubscribe;
 }
 
 export default {
     subscribeToPrivateUserChannelEvent,
+    onPrivateUserChannelResubscribe,
     subscribeToMultiEvent,
     triggerMultiEventHandler,
 };

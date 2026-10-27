@@ -1,22 +1,23 @@
 import {close} from '@libs/actions/Modal';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
+import {useEffect, useLayoutEffect, useRef} from 'react';
 
 import useOnyx from './useOnyx';
+import useScreenBoundDynamicRoute from './useScreenBoundDynamicRoute';
 
 function usePayAndDowngrade(continueAction: () => void) {
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const [shouldBillWhenDowngrading] = useOnyx(ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING);
     const isDeletingPaidWorkspaceRef = useRef(false);
 
-    const setIsDeletingPaidWorkspace = useCallback((value: boolean) => {
+    const setIsDeletingPaidWorkspace = (value: boolean) => {
         isDeletingPaidWorkspaceRef.current = value;
-    }, []);
+    };
 
     // Store continueAction in a ref to avoid stale closures in the useEffect below.
     // This ensures we always call the latest version of continueAction when the effect runs,
@@ -35,11 +36,11 @@ function usePayAndDowngrade(continueAction: () => void) {
         if (!shouldBillWhenDowngrading) {
             close(continueActionRef.current);
         } else {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.path));
+            Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.path));
         }
 
         isDeletingPaidWorkspaceRef.current = false;
-    }, [isLoadingBill, shouldBillWhenDowngrading]);
+    }, [isLoadingBill, shouldBillWhenDowngrading, buildDynamicRoute]);
 
     return {setIsDeletingPaidWorkspace, isLoadingBill};
 }

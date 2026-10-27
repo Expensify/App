@@ -1,3 +1,4 @@
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -14,7 +15,7 @@ import GenericPressable from './GenericPressable';
  * https://github.com/Expensify/App/issues/6806
  */
 function PressableWithoutFocus({children, onPress, onLongPress, ...rest}: PressableProps) {
-    const ref = useRef<View>(null);
+    const ref = useRef<ComponentRef<typeof View>>(null);
 
     const pressAndBlur = () => {
         ref?.current?.blur();

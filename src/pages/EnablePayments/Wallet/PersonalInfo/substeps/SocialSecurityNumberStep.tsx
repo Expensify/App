@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
@@ -21,25 +21,26 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
-    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
+    const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
     const defaultSsnLast4 = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
+    // The value FormProvider actually renders uses the draft first, then the base value.
+    const ssnValue = walletAdditionalDetailsDraft?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? defaultSsnLast4;
+    // Also check the shown value: errorCode is cleared optimistically on submit while a full 9-digit SSN is still displayed.
+    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN || isValidSSNFullNine(ssnValue);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
-            if (shouldAskForFullSSN) {
-                if (values.ssn && !isValidSSNFullNine(values.ssn)) {
-                    errors.ssn = translate('additionalDetailsStep.ssnFull9Error');
-                }
-            } else if (values.ssn && !isValidSSNLastFour(values.ssn)) {
-                errors.ssn = translate('bankAccount.error.ssnLast4');
+        if (shouldAskForFullSSN) {
+            if (values.ssn && !isValidSSNFullNine(values.ssn)) {
+                errors.ssn = translate('additionalDetailsStep.ssnFull9Error');
             }
+        } else if (values.ssn && !isValidSSNLastFour(values.ssn)) {
+            errors.ssn = translate('bankAccount.error.ssnLast4');
+        }
 
-            return errors;
-        },
-        [translate, shouldAskForFullSSN],
-    );
+        return errors;
+    };
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,

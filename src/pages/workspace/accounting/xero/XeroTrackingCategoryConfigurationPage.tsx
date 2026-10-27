@@ -1,6 +1,8 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
@@ -25,7 +27,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {XeroTrackingCategory} from '@src/types/onyx/Policy';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
@@ -37,22 +39,24 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!xeroConfig?.importTrackingCategories);
 
-    const menuItems = useMemo(() => {
-        const trackingCategories = getTrackingCategories(policy);
-        return trackingCategories.map((category: XeroTrackingCategory & {value: string}) => {
+    const trackingCategories = getTrackingCategories(policy);
+    const menuItems = trackingCategories.map(
+        (
+            category: XeroTrackingCategory & {
+                value: string;
+            },
+        ) => {
             const decodedCategoryName = getDecodedCategoryName(category.name);
             return {
                 id: category.id,
                 description: translate('workspace.xero.mapTrackingCategoryTo', decodedCategoryName) as TranslationPaths,
                 onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.getRoute(policyID, category.id, category.name)),
                 title: translate(
-                    `workspace.xero.trackingCategoriesOptions.${
-                        !StringUtils.isEmptyString(category.value) ? category.value.toUpperCase() : CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.DEFAULT
-                    }` as TranslationPaths,
+                    `workspace.xero.trackingCategoriesOptions.${!StringUtils.isEmptyString(category.value) ? category.value.toUpperCase() : CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.DEFAULT}` as TranslationPaths,
                 ),
             };
-        });
-    }, [translate, policy, policyID]);
+        },
+    );
 
     return (
         <ConnectionLayout
@@ -85,14 +89,17 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                             key={menuItem.id}
                             pendingAction={settingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.pendingFields)}
                         >
-                            <MenuItemWithTopDescription
-                                title={menuItem.title}
-                                description={menuItem.description}
-                                shouldShowRightIcon
-                                onPress={menuItem.onPress}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                brickRoadIndicator={areSettingsInErrorFields([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.errorFields) ? 'error' : undefined}
-                            />
+                            <MenuItemSectionRoot onPress={menuItem.onPress}>
+                                <MenuItemField.Row
+                                    name={menuItem.description}
+                                    value={menuItem.title}
+                                >
+                                    {areSettingsInErrorFields([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.errorFields) && (
+                                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                    )}
+                                    <MenuItem.Chevron />
+                                </MenuItemField.Row>
+                            </MenuItemSectionRoot>
                         </OfflineWithFeedback>
                     ))}
                 </View>

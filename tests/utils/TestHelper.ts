@@ -4,7 +4,8 @@ import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
-import {format as formatNumber} from '@libs/NumberFormatUtils';
+import registerMiddlewares from '@libs/Middleware/register';
+import {format as formatNumber, formatToParts} from '@libs/NumberFormatUtils';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 
@@ -33,7 +34,13 @@ import {isObject} from './typeGuards';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
-type MockFetch = jest.Mock<ReturnType<typeof fetch>, Parameters<typeof fetch>> & {
+// Every test that imports this module can make an API call without first calling setupApp(), so middlewares
+// must be registered here too. Idempotent, so this doesn't conflict with the appSetup() call inside setupApp().
+registerMiddlewares();
+
+type FetchMockParameters = [input: Parameters<typeof fetch>[0] | URL, init?: Parameters<typeof fetch>[1]];
+
+type MockFetch = jest.Mock<ReturnType<typeof fetch>, FetchMockParameters> & {
     pause: () => void;
     fail: () => void;
     succeed: () => void;
@@ -56,8 +63,8 @@ type APIWriteOnyxUpdateWithObjectValue<TKey extends string = APIWriteOnyxKey> = 
 
 type QueueItem = {
     resolve: (value: Response | PromiseLike<Response>) => void;
-    input: Parameters<typeof fetch>[0];
-    options?: RequestInit;
+    input: FetchMockParameters[0];
+    options?: FetchMockParameters[1];
 };
 
 type FormData = {
@@ -93,7 +100,6 @@ function setupApp(initialUrl = `https://new.expensify.com/${ROUTES.INBOX}`) {
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
         });
     });
 }
@@ -319,7 +325,7 @@ function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
     let isPaused = false;
     let shouldFail = false;
 
-    const getResponse = (input: Parameters<typeof fetch>[0], options?: RequestInit): Response =>
+    const getResponse = (input: FetchMockParameters[0], options?: FetchMockParameters[1]): Response =>
         shouldFail
             ? createMock<Response>({
                   ok: true,
@@ -343,7 +349,7 @@ function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
               });
 
     const mockFetch = Object.assign(
-        jest.fn<ReturnType<typeof fetch>, Parameters<typeof fetch>>().mockImplementation((input: Parameters<typeof fetch>[0], options: Parameters<typeof fetch>[1]) => {
+        jest.fn<ReturnType<typeof fetch>, FetchMockParameters>().mockImplementation((input: FetchMockParameters[0], options?: FetchMockParameters[1]) => {
             if (!isPaused) {
                 return Promise.resolve(getResponse(input, options));
             }
@@ -388,22 +394,22 @@ function getGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
 
 function setupGlobalFetchMock(): MockFetch {
     const mockFetch = getGlobalFetchMock();
-    const originalFetch = global.fetch;
+    const originalFetch = globalThis.fetch;
 
-    global.fetch = mockFetch;
+    globalThis.fetch = mockFetch;
 
     afterAll(() => {
-        global.fetch = originalFetch;
+        globalThis.fetch = originalFetch;
     });
 
     return mockFetch;
 }
 
 function getFetchMockCalls(commandName: ApiCommand) {
-    if (!jest.isMockFunction(global.fetch)) {
+    if (!jest.isMockFunction(globalThis.fetch)) {
         throw new Error('Expected global.fetch to be a Jest mock function.');
     }
-    return jest.mocked(global.fetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${commandName}?`);
+    return jest.mocked(globalThis.fetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${commandName}?`);
 }
 
 /**
@@ -421,7 +427,14 @@ function expectAPICommandToHaveBeenCalledWith<TCommand extends ApiCommand>(comma
     expect(call).toBeTruthy();
     const body = call?.[1]?.body;
     const params = body instanceof FormData ? Object.fromEntries(body) : {};
-    expect(params).toEqual(expect.objectContaining(expectedParams));
+
+    // FormData coerces every value to a string, so a number or boolean in the expectation could never match.
+    const expectedEntries = Object.entries((expectedParams ?? {}) as Record<string, unknown>).map(([key, value]) => [
+        key,
+        typeof value === 'number' || typeof value === 'boolean' ? String(value) : value,
+    ]);
+
+    expect(params).toEqual(expect.objectContaining(Object.fromEntries(expectedEntries)));
 }
 
 function setPersonalDetails(login: string, accountID: number) {
@@ -505,6 +518,26 @@ function convertToDisplayString(amountInCents: number | undefined, currencyCode:
     });
 }
 
+/**
+ * A local version of useCurrencyListActions().convertToDisplayStringWithoutCurrency for tests that call lib
+ * functions directly and need to inject the symbol-less formatter without the full app context.
+ */
+function convertToDisplayStringWithoutCurrency(amountInCents: number, currencyCode: string = CONST.CURRENCY.USD): string {
+    const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+    const decimals = getCurrencyDecimalsLocal(sanitizedCurrency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
+    return formatToParts(CONST.LOCALES.EN, convertedAmount, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: 2,
+    })
+        .filter((x) => x.type !== 'currency')
+        .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
+        .map((x) => x.value)
+        .join('');
+}
+
 function getNavigateToChatHintRegex(): RegExp {
     const hintTextPrefix = translateLocal('accessibilityHints.navigatesToChat');
     return new RegExp(hintTextPrefix, 'i');
@@ -536,6 +569,7 @@ export {
     anyString,
     translateLocal,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     getCurrencyDecimalsLocal,
     getCurrencySymbolLocal,
     assertFormDataMatchesObject,

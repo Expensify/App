@@ -23,7 +23,7 @@ Only workspace owners can add a payment card or update an existing one. If you'r
 ## How to add a payment card
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Account** > **Subscription**.
-2. In the **Payment** section, select **Add payment card**.
+2. In the **Payment** section, select **Add card**.
 3. Enter your payment card details.
 4. Accept the terms and select **Add payment card**.
 

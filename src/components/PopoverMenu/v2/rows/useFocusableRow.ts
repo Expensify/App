@@ -2,13 +2,13 @@ import {useContentFocus, useContentItemActions} from '@components/PopoverMenu/v2
 
 import useSyncFocus from '@hooks/useSyncFocus';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 
 import {useId, useLayoutEffect, useRef} from 'react';
 
 type FocusableRow = {
-    ref: RefObject<View | null>;
+    ref: RefObject<ComponentRef<typeof View> | null>;
     focused: boolean;
     onPress: () => void;
     onFocus: () => void;
@@ -29,7 +29,7 @@ function useFocusableRow({
     text?: string;
 }): FocusableRow {
     const id = useId();
-    const ref = useRef<View>(null);
+    const ref = useRef<ComponentRef<typeof View>>(null);
     const {focusedID} = useContentFocus(componentName);
     const {registerItem, unregisterItem, setFocusedID} = useContentItemActions(componentName);
 

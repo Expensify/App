@@ -18,10 +18,9 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type TwoFactorAuthWrapperProps = ChildrenProps & {
-    /** Name of the step */
     stepName: ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS>;
 
     /** Title of the Header */
@@ -33,40 +32,40 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
     /** Method to trigger when pressing back button of the header */
     onBackButtonPress?: () => void;
 
-    /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
-
-    /** Flag to indicate if max height should be enabled */
     shouldEnableMaxHeight?: boolean;
 };
 
 function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, shouldEnableMaxHeight = true, children}: TwoFactorAuthWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    const shouldShowNotFound = useMemo(() => {
-        if (!account) {
-            return true;
-        }
-
+    let shouldShowNotFound;
+    if (!account) {
+        shouldShowNotFound = true;
+    } else {
         const is2FAEnabled = !!account.requiresTwoFactorAuth;
-
         switch (stepName) {
             case CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES:
             case CONST.TWO_FACTOR_AUTH_STEPS.ENABLED:
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLE:
             case CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_NEW:
             case CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_OLD:
-                return false;
+                shouldShowNotFound = false;
+                break;
             case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
-                return !account.codesAreCopied;
+                shouldShowNotFound = !account.codesAreCopied;
+                break;
             case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
-                return !is2FAEnabled;
+                shouldShowNotFound = !is2FAEnabled;
+                break;
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:
-                return is2FAEnabled;
+                shouldShowNotFound = is2FAEnabled;
+                break;
             default:
-                return false;
+                shouldShowNotFound = false;
+                break;
         }
-    }, [account, stepName]);
+    }
 
     const route = useRoute();
     const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;

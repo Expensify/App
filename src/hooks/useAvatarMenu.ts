@@ -8,7 +8,7 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import {useCallback, useContext} from 'react';
+import {useContext} from 'react';
 
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -24,11 +24,8 @@ type UseAvatarMenuParams = {
     originalFileName?: string;
     /** Account ID for navigation */
     accountID: number;
-    /** Callback when avatar is removed */
     onImageRemoved: () => void;
-    /** Callback to show avatar crop modal */
     showAvatarCropModal: (image: FileObject) => void;
-    /** Callback to clear errors */
     clearError: () => void;
 };
 
@@ -43,51 +40,48 @@ function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAva
     /**
      * Create menu items list for avatar menu
      */
-    const createMenuItems = useCallback(
-        (openPicker: OpenPicker): Array<DropdownOption<null>> => {
-            const menuItems: Array<DropdownOption<null>> = [
-                {
-                    icon: icons.Upload,
-                    text: translate('avatarWithImagePicker.uploadPhoto'),
-                    onSelected: () => {
-                        openPicker({
-                            onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
-                        });
-                    },
-                    value: null,
+    const createMenuItems = (openPicker: OpenPicker): Array<DropdownOption<null>> => {
+        const menuItems: Array<DropdownOption<null>> = [
+            {
+                icon: icons.Upload,
+                text: translate('avatarWithImagePicker.uploadPhoto'),
+                onSelected: () => {
+                    openPicker({
+                        onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
+                    });
                 },
-            ];
-            // If current avatar is a default avatar and for avatar is selected in the form, only show upload option
-            if (shouldHideAvatarEdit) {
-                return menuItems;
-            }
-            if (!source) {
-                menuItems.push({
-                    icon: icons.Trashcan,
-                    text: translate('avatarWithImagePicker.removePhoto'),
-                    value: null,
-                    onSelected: () => {
-                        clearError();
-                        onImageRemoved();
-                    },
-                });
-            }
+                value: null,
+            },
+        ];
+        // If current avatar is a default avatar and for avatar is selected in the form, only show upload option
+        if (shouldHideAvatarEdit) {
+            return menuItems;
+        }
+        if (!source) {
+            menuItems.push({
+                icon: icons.Trashcan,
+                text: translate('avatarWithImagePicker.removePhoto'),
+                value: null,
+                onSelected: () => {
+                    clearError();
+                    onImageRemoved();
+                },
+            });
+        }
 
-            return [
-                ...menuItems,
-                {
-                    value: null,
-                    icon: icons.Eye,
-                    text: translate('avatarWithImagePicker.viewPhoto'),
-                    onSelected: () => {
-                        attachmentContext.setCurrentAttachment({source, originalFileName});
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_AVATAR.getRoute(accountID)));
-                    },
+        return [
+            ...menuItems,
+            {
+                value: null,
+                icon: icons.Eye,
+                text: translate('avatarWithImagePicker.viewPhoto'),
+                onSelected: () => {
+                    attachmentContext.setCurrentAttachment({source, originalFileName});
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_AVATAR.getRoute(accountID)));
                 },
-            ];
-        },
-        [icons.Upload, icons.Trashcan, icons.Eye, translate, shouldHideAvatarEdit, source, showAvatarCropModal, clearError, onImageRemoved, attachmentContext, originalFileName, accountID],
-    );
+            },
+        ];
+    };
 
     return {createMenuItems};
 }

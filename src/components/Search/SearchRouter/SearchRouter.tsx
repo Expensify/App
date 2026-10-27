@@ -10,22 +10,27 @@ import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQu
 import type {SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {scrollToRight} from '@libs/InputUtils';
-import backHistory from '@libs/Navigation/helpers/backHistory';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
@@ -35,14 +40,21 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {isHiddenForCurrentUser, isOneOnOneChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
+import {
+    beginSearchRouterQuerySession,
+    cancelSearchRouterQuerySpan,
+    endSearchRouterQuerySession,
+    getSearchRouterQueryChangedAt,
+    startSearchRouterQuerySpan,
+} from '@libs/telemetry/searchRouterQuerySpans';
 
 import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
 
-import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
+import {navigateToAndOpenReport, searchInServer, searchUserInServer} from '@userActions/Report';
 import {setSearchContext} from '@userActions/Search';
 
 import CONST from '@src/CONST';
@@ -50,18 +62,21 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
 
+import type {ComponentRef} from 'react';
 import type {TextInputProps} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {pendingDeleteMemberAccountIDsSelector} from '@selectors/ReportMetaData';
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
 import {buildSubstitutionsMap} from './buildSubstitutionsMap';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
+import getSearchRouterPopoverLayout from './getSearchRouterPopoverLayout';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import {clearPendingRouterState, peekPendingRouterState} from './SearchRouterContext';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
@@ -75,36 +90,51 @@ type SearchRouterProps = {
     onRouterClose: (afterClose?: () => void) => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
     isSearchRouterDisplayed?: boolean;
-    ref?: React.Ref<View>;
+    ref?: React.Ref<ComponentRef<typeof View>>;
 };
+
+function searchForReportsAndUsersInServer(searchInput: string) {
+    searchInServer(searchInput);
+    searchUserInServer(searchInput);
+}
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const styles = useThemeStyles();
-    const {setShouldResetSearchQuery} = useSearchQueryActions();
+    const StyleUtils = useStyleUtils();
+    const {setShouldResetSearchQuery, getSearchKeyForQuery} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
+    const isSupportalSession = useIsSupportalSession();
     const personalDetails = usePersonalDetails();
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
     const {askConcierge, shouldShowAskConcierge} = useAskConcierge();
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const {query: pendingInitialQuery, isFromSearchPageSearchButton} = peekPendingRouterState();
-    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentSearchQueryJSON, currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
 
@@ -153,23 +183,55 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         return [query, substitutions];
     });
 
-    // The actual input text that the user sees
-    const [textInputValue, , setTextInputValue] = useDebouncedState(initialQuery, 500);
-    // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
-    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(initialQuery);
+    const [textInputValue, setTextInputValue] = useState(initialQuery);
+    // When the autocomplete query last changed and whether the user typed that change, so the ManualSearchRouterQuery span can
+    // start at the keystroke and include the debounce delay. Tracked here rather than in useDebouncedState to keep that hook generic.
+    const queryChangedAtRef = useRef<number | undefined>(undefined);
+    const isQueryChangeTypedRef = useRef(true);
+    const lastAutocompleteQueryRef = useRef(initialQuery);
+    const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
+    // The router stays mounted while it closes through navigation (e.g. hardware back or swipe on native) and while a chat opened from it is on top
+    const isSearchRouterActive = !!isSearchRouterDisplayed || isSearchRouterScreen;
+    // Debounced value gates expensive filtering in the autocomplete list
+    // startSearchRouterQuerySpan also marks the start of render_duration_ms, right before the query update that triggers filtering.
+    // If this debounce is removed, call it right before setAutocompleteQueryValue in onSearchQueryChange so before and after values stay comparable.
+    const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState(initialQuery, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME, {
+        onDebouncedValueChange: (value) => {
+            // A debounce that fires after the router was closed would measure the list render during the closing transition
+            if (!isSearchRouterActive) {
+                cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLOSED);
+                return;
+            }
+            startSearchRouterQuerySpan(value, queryChangedAtRef.current, isQueryChangeTypedRef.current);
+        },
+    });
     const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
 
     useEffect(() => {
         clearPendingRouterState();
     }, []);
+
+    useEffect(() => {
+        beginSearchRouterQuerySession();
+        return endSearchRouterQuerySession;
+    }, []);
+
+    useEffect(() => {
+        if (isSearchRouterActive) {
+            return;
+        }
+        cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLOSED);
+    }, [isSearchRouterActive]);
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>(initialSubstitutions);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
-    const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
     // Only watch for reports awaiting approval while the router is active as a popover or full-screen page.
-    const navigationSuggestions = useNavigationSuggestions(textInputValue, !!isSearchRouterDisplayed || isSearchRouterScreen);
+    const navigationSuggestions = useNavigationSuggestions(textInputValue, isSearchRouterActive);
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
+    const [contextualReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(contextualReport?.reportID)}`, {
+        selector: pendingDeleteMemberAccountIDsSelector,
+    });
     const [contextualReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`, {
         selector: privateIsArchivedSelector,
     });
@@ -191,142 +253,129 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         return {[reportKey]: contextualReport};
     })();
 
-    const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
-        ({recentReports}, sectionIndex) => {
-            const getNavigationSuggestionsSection = () => (navigationSuggestions.length ? [{sectionIndex, data: navigationSuggestions}] : undefined);
+    const getAdditionalSections: GetAdditionalSectionsCallback = ({recentReports}, sectionIndex) => {
+        const getNavigationSuggestionsSection = () => (navigationSuggestions.length ? [{sectionIndex, data: navigationSuggestions}] : undefined);
 
-            if (!contextualReportID) {
-                return getNavigationSuggestionsSection();
-            }
+        if (!contextualReportID) {
+            return getNavigationSuggestionsSection();
+        }
 
-            // We will only show the contextual search suggestion if the user has not typed anything
-            if (textInputValue) {
-                return getNavigationSuggestionsSection();
-            }
+        // We will only show the contextual search suggestion if the user has not typed anything
+        if (textInputValue) {
+            return getNavigationSuggestionsSection();
+        }
 
-            if (!isSearchRouterDisplayed && !isSearchRouterScreen) {
+        if (!isSearchRouterDisplayed && !isSearchRouterScreen) {
+            return undefined;
+        }
+        let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
+        const reportAction = getReportAction(contextualReport?.parentReportID, contextualReport?.parentReportActionID);
+        const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+        if (!reportForContextualSearch) {
+            if (!contextualReport || isHiddenForCurrentUser(contextualReport)) {
                 return undefined;
             }
-            let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
-            const reportForContextualSearchReport = reportForContextualSearch ? contextualReport : undefined;
-            const reportAction = getReportAction(reportForContextualSearchReport?.parentReportID, reportForContextualSearchReport?.parentReportActionID);
-            const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-            if (!reportForContextualSearch) {
-                if (!contextualReport || isHiddenForCurrentUser(contextualReport)) {
-                    return undefined;
-                }
 
-                const option = createOptionFromReport({
-                    dateFnsLocale,
-                    report: contextualReport,
-                    personalDetails,
-                    privateIsArchived: contextualReportNVP,
-                    policy: contextualReportPolicy,
-                    sortedActions,
-                    conciergeReportID,
-                    reportAttributesDerived: reportAttributes,
-                    config: {
-                        showPersonalDetails: isOneOnOneChat(contextualReport),
-                    },
-                    isTrackIntentUser,
-                });
-                reportForContextualSearch = option;
-            }
-
-            const reportQueryValue = reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? reportForContextualSearch.reportID;
-
-            let roomType: ValueOf<typeof CONST.SEARCH.DATA_TYPES> = CONST.SEARCH.DATA_TYPES.CHAT;
-            let autocompleteID: string | undefined = reportForContextualSearch.reportID;
-
-            if (reportForContextualSearch.isInvoiceRoom) {
-                roomType = CONST.SEARCH.DATA_TYPES.INVOICE;
-                const report = reportForContextualSearch as SearchOption<Report>;
-                if (report.item?.invoiceReceiver && report.item.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-                    autocompleteID = report.item.invoiceReceiver.accountID.toString();
-                } else {
-                    autocompleteID = '';
-                }
-            }
-            if (reportForContextualSearch.isPolicyExpenseChat) {
-                roomType = CONST.SEARCH.DATA_TYPES.EXPENSE;
-                if (reportForContextualSearch.policyID) {
-                    autocompleteID = reportForContextualSearch.policyID;
-                } else {
-                    autocompleteID = '';
-                }
-            }
-
-            return [
-                {
-                    sectionIndex,
-                    data: [
-                        {
-                            text: StringUtils.lineBreaksToSpaces(
-                                `${translate('search.searchIn')} ${
-                                    shouldParserToHTML
-                                        ? Parser.htmlToText(reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
-                                        : (reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
-                                }`,
-                            ),
-                            singleIcon: expensifyIcons.MagnifyingGlass,
-                            searchQuery: reportQueryValue,
-                            autocompleteID,
-                            itemStyle: styles.activeComponentBG,
-                            keyForList: 'contextualSearch',
-                            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
-                            roomType,
-                            policyID: reportForContextualSearch.policyID,
-                        },
-                    ],
+            const option = createOptionFromReport({
+                dateFnsLocale,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                report: contextualReport,
+                personalDetails,
+                privateIsArchived: contextualReportNVP,
+                rules,
+                policy: contextualReportPolicy,
+                sortedActions,
+                transactionThreadIDs,
+                lastActions,
+                currentUserAccountID,
+                currentUserLogin: currentUserPersonalDetails.login,
+                conciergeReportID,
+                reportAttributesDerived: reportAttributes,
+                config: {
+                    showPersonalDetails: isOneOnOneChat(contextualReport),
                 },
-            ];
-        },
-        [
-            contextualReportID,
-            conciergeReportID,
-            navigationSuggestions,
-            textInputValue,
-            isSearchRouterDisplayed,
-            isSearchRouterScreen,
-            translate,
-            expensifyIcons.MagnifyingGlass,
-            styles.activeComponentBG,
-            contextualReport,
-            personalDetails,
-            sortedActions,
-            contextualReportNVP,
-            contextualReportPolicy,
-            reportAttributes,
-            isTrackIntentUser,
-            dateFnsLocale,
-        ],
-    );
+                isTrackIntentUser,
+                pendingDeleteMemberAccountIDs: contextualReportPendingDeleteMemberAccountIDs,
+                formatPhoneNumber,
+            });
+            reportForContextualSearch = option;
+        }
 
-    const searchQueryItems = textInputValue?.trim()
-        ? [
-              {
-                  text: textInputValue,
-                  singleIcon: expensifyIcons.MagnifyingGlass,
-                  searchQuery: textInputValue,
-                  itemStyle: styles.activeComponentBG,
-                  keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
-                  searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-              },
-              ...(shouldShowAskConcierge
-                  ? [
-                        {
-                            text: translate('search.askConcierge', textInputValue),
-                            singleIcon: expensifyIcons.ConciergeAvatar,
-                            shouldIconApplyFill: false,
-                            searchQuery: textInputValue,
-                            itemStyle: styles.activeComponentBG,
-                            keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
-                            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
-                        },
-                    ]
-                  : []),
-          ]
-        : undefined;
+        const reportQueryValue = reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? reportForContextualSearch.reportID;
+
+        let roomType: ValueOf<typeof CONST.SEARCH.DATA_TYPES> = CONST.SEARCH.DATA_TYPES.CHAT;
+        let autocompleteID: string | undefined = reportForContextualSearch.reportID;
+
+        if (reportForContextualSearch.isInvoiceRoom) {
+            roomType = CONST.SEARCH.DATA_TYPES.INVOICE;
+            const report = reportForContextualSearch as SearchOption<Report>;
+            if (report.item?.invoiceReceiver && report.item.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+                autocompleteID = report.item.invoiceReceiver.accountID.toString();
+            } else {
+                autocompleteID = '';
+            }
+        }
+        if (reportForContextualSearch.isPolicyExpenseChat) {
+            roomType = CONST.SEARCH.DATA_TYPES.EXPENSE;
+            if (reportForContextualSearch.policyID) {
+                autocompleteID = reportForContextualSearch.policyID;
+            } else {
+                autocompleteID = '';
+            }
+        }
+
+        return [
+            {
+                sectionIndex,
+                data: [
+                    {
+                        text: StringUtils.lineBreaksToSpaces(
+                            `${translate('search.searchIn')} ${
+                                shouldParserToHTML
+                                    ? Parser.htmlToText(reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
+                                    : (reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
+                            }`,
+                        ),
+                        singleIcon: expensifyIcons.MagnifyingGlass,
+                        searchQuery: reportQueryValue,
+                        autocompleteID,
+                        keyForList: 'contextualSearch',
+                        searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
+                        roomType,
+                        policyID: reportForContextualSearch.policyID,
+                    },
+                ],
+            },
+        ];
+    };
+
+    let searchQueryItems;
+    if (textInputValue?.trim()) {
+        searchQueryItems = [
+            {
+                text: textInputValue,
+                singleIcon: expensifyIcons.MagnifyingGlass,
+                searchQuery: textInputValue,
+                keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
+                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+            },
+            ...(shouldShowAskConcierge
+                ? [
+                      {
+                          text: translate('search.askConcierge', textInputValue),
+                          singleIcon: expensifyIcons.ConciergeAvatar,
+                          shouldIconApplyFill: false,
+                          searchQuery: textInputValue,
+                          keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
+                          searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
+                      },
+                  ]
+                : []),
+        ];
+    } else {
+        searchQueryItems = undefined;
+    }
 
     const shouldScrollRef = useRef(false);
     // Trigger scrollToRight when input value changes and shouldScroll is true
@@ -339,156 +388,142 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         shouldScrollRef.current = false;
     }, [textInputValue]);
 
-    const onSearchQueryChange = useCallback(
-        (userQuery: string, autoScrollToRight = false) => {
-            if (autoScrollToRight) {
-                shouldScrollRef.current = true;
-            }
-            const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
-            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
-            setTextInputValue(updatedUserQuery);
-            setAutocompleteQueryValue(updatedUserQuery);
+    // `isTypedInput` is false when the query is set without typing in the input, such as by picking a suggestion
+    const onSearchQueryChange = (userQuery: string, autoScrollToRight = false, inputEventTimeStamp?: number, isTypedInput = true) => {
+        if (autoScrollToRight) {
+            shouldScrollRef.current = true;
+        }
+        const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
+        const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
+        setTextInputValue(updatedUserQuery);
+        // A same-value update does not restart the debounce timer, so it must not move the span start either.
+        if (updatedUserQuery !== lastAutocompleteQueryRef.current) {
+            // The list may still be evaluating the previous debounced query, and that measurement would now include this input.
+            cancelSearchRouterQuerySpan(updatedUserQuery.trim() ? CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.SUPERSEDED : CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLEARED);
+            lastAutocompleteQueryRef.current = updatedUserQuery;
+            queryChangedAtRef.current = getSearchRouterQueryChangedAt(inputEventTimeStamp, performance.now());
+            isQueryChangeTypedRef.current = isTypedInput;
+        }
+        setAutocompleteQueryValue(updatedUserQuery);
 
-            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
-            if (!deepEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
-                setAutocompleteSubstitutions(updatedSubstitutionsMap);
-            }
-        },
-        [autocompleteSubstitutions, setTextInputValue, textInputValue],
-    );
+        const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
+        if (!deepEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
+            setAutocompleteSubstitutions(updatedSubstitutionsMap);
+        }
+    };
 
-    const submitSearch = useCallback(
-        (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
-            const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions, currentUserAccountID);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
-            if (!updatedQuery) {
+    const submitSearch = (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
+        const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions, currentUserAccountID, getPersonalDetailsByLogin());
+        const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion, policies);
+        if (!updatedQuery) {
+            return;
+        }
+
+        // Reset the search query flag when performing a new search
+        setShouldResetSearchQuery(false);
+
+        onRouterClose();
+        setSearchContext(true);
+        const updatedQueryJSON = buildSearchQueryJSON(updatedQuery);
+        const searchKey = updatedQueryJSON?.hash === currentSearchHash ? currentSearchKey : getSearchKeyForQuery(updatedQueryJSON);
+        Navigation.navigate(
+            ROUTES.SEARCH_ROOT.getRoute({
+                query: updatedQuery,
+                rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions,
+                searchKey,
+            }),
+        );
+
+        setTextInputValue('');
+        lastAutocompleteQueryRef.current = '';
+        setAutocompleteQueryValue('');
+    };
+
+    const onListItemPress = (item: OptionData | SearchQueryItem) => {
+        const setFocusAndScrollToRight = () => {
+            if (!textInputRef.current) {
+                return;
+            }
+            textInputRef.current.focus();
+            scrollToRight(textInputRef.current);
+        };
+
+        if (isSearchQueryItem(item)) {
+            if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE && item.action) {
+                onRouterClose(item.action);
                 return;
             }
 
-            // Reset the search query flag when performing a new search
-            setShouldResetSearchQuery(false);
-
-            backHistory(() => {
-                onRouterClose();
-                setSearchContext(true);
-                Navigation.navigate(
-                    ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions}),
-                );
-            });
-
-            setTextInputValue('');
-            setAutocompleteQueryValue('');
-        },
-        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setTextInputValue, setShouldResetSearchQuery, isFromSearchPageSearchButton],
-    );
-
-    const onListItemPress = useCallback(
-        (item: OptionData | SearchQueryItem) => {
-            const setFocusAndScrollToRight = () => {
-                if (!textInputRef.current) {
-                    return;
-                }
-                textInputRef.current.focus();
-                scrollToRight(textInputRef.current);
-            };
-
-            if (isSearchQueryItem(item)) {
-                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE && item.action) {
-                    backHistory(() => {
-                        onRouterClose(item.action);
-                    });
-                    return;
-                }
-
-                if (!item.searchQuery) {
-                    return;
-                }
-
-                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
-                    const searchQuery = getContextualSearchQuery(item, contextualPoliciesMap, contextualReportsMap);
-                    const newSearchQuery = `${searchQuery}\u00A0`;
-                    onSearchQueryChange(newSearchQuery, true);
-                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
-
-                    const autocompleteKey = getContextualSearchAutocompleteKey(item, contextualPoliciesMap, contextualReportsMap);
-                    if (autocompleteKey && item.autocompleteID) {
-                        const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: item.autocompleteID};
-                        setAutocompleteSubstitutions(substitutions);
-                    }
-                    setFocusAndScrollToRight();
-                } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
-                    const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
-                    const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
-                    const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery, true)}\u00A0`;
-                    onSearchQueryChange(newSearchQuery, true);
-                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
-
-                    updateAutocompleteSubstitutionsForSelection({
-                        newSearchQuery,
-                        fieldKey,
-                        mapKey: item.mapKey,
-                        searchQuery: item.searchQuery,
-                        autocompleteID: item.autocompleteID,
-                        substitutions: autocompleteSubstitutions,
-                        setAutocompleteSubstitutions,
-                    });
-                    setFocusAndScrollToRight();
-                } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE) {
-                    const {searchQuery} = item;
-                    backHistory(() => {
-                        askConcierge(searchQuery);
-                    });
-                    onRouterClose();
-                } else {
-                    submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
-                }
-            } else {
-                backHistory(() => {
-                    if (item?.reportID) {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
-                    } else if ('login' in item) {
-                        navigateToAndOpenReport({
-                            userLogins: item.login ? [item.login] : [],
-                            personalDetails,
-                            currentUserAccountID,
-                            introSelected,
-                            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-                            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                            betas,
-                            shouldDismissModal: false,
-                        });
-                    }
-                });
-                onRouterClose();
+            if (!item.searchQuery) {
+                return;
             }
-        },
-        [
-            autocompleteSubstitutions,
-            onRouterClose,
-            personalDetails,
-            onSearchQueryChange,
-            submitSearch,
-            textInputValue,
-            currentUserAccountID,
-            introSelected,
-            guidedSetupAndTourStatus?.isSelfTourViewed,
-            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-            betas,
-            contextualPoliciesMap,
-            contextualReportsMap,
-            askConcierge,
-        ],
-    );
+
+            if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
+                const searchQuery = getContextualSearchQuery(item, contextualPoliciesMap, contextualReportsMap);
+                const newSearchQuery = `${searchQuery}\u00A0`;
+                onSearchQueryChange(newSearchQuery, true, undefined, false);
+                setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
+
+                const autocompleteKey = getContextualSearchAutocompleteKey(item, contextualPoliciesMap, contextualReportsMap);
+                if (autocompleteKey && item.autocompleteID) {
+                    const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: item.autocompleteID};
+                    setAutocompleteSubstitutions(substitutions);
+                }
+                setFocusAndScrollToRight();
+            } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
+                const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
+                const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
+                const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
+                onSearchQueryChange(newSearchQuery, true, undefined, false);
+                setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
+
+                updateAutocompleteSubstitutionsForSelection({
+                    newSearchQuery,
+                    fieldKey,
+                    mapKey: item.mapKey,
+                    searchQuery: item.searchQuery,
+                    autocompleteID: item.autocompleteID,
+                    substitutions: autocompleteSubstitutions,
+                    setAutocompleteSubstitutions,
+                });
+                setFocusAndScrollToRight();
+            } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE) {
+                const {searchQuery} = item;
+                askConcierge(searchQuery);
+                onRouterClose();
+            } else {
+                submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
+            }
+        } else {
+            if (item?.reportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
+            } else if ('login' in item) {
+                navigateToAndOpenReport({
+                    userLogins: item.login ? [item.login] : [],
+                    personalDetails,
+                    currentUserAccountID,
+                    introSelected,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                    conciergeChat,
+                    isSupportalSession,
+                    shouldDismissModal: false,
+                });
+            }
+            onRouterClose();
+        }
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         onRouterClose();
     });
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
+    const {maxHeight: popoverMaxHeight} = getSearchRouterPopoverLayout(windowHeight);
 
     return (
         <View
-            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
+            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.overflowHidden, !shouldUseNarrowLayout && StyleUtils.getMaximumHeight(popoverMaxHeight)]}
             testID="SearchRouter"
             ref={ref}
         >
@@ -499,13 +534,24 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldDisplayHelpButton={false}
                 />
             )}
-            <View style={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}>
+            <View style={[shouldUseNarrowLayout ? styles.mv3 : styles.mv4, shouldUseNarrowLayout ? styles.mh5 : styles.mh4]}>
                 <SearchInputSelectionWrapper
                     value={textInputValue}
-                    isFullWidth={shouldUseNarrowLayout}
                     onSearchQueryChange={onSearchQueryChange}
                     onSubmit={() => {
                         const focusedOption = listRef.current?.getFocusedOption?.();
+                        const isInputAheadOfDebounce = !!textInputValue && textInputValue !== debouncedAutocompleteQueryValue;
+
+                        // During the debounce window, keep keyboard behavior for focused search rows
+                        // (e.g. Ask Concierge / typed query row), but avoid stale non-search row submits.
+                        if (isInputAheadOfDebounce) {
+                            if (focusedOption && isSearchQueryItem(focusedOption)) {
+                                onListItemPress(focusedOption);
+                                return;
+                            }
+                            submitSearch(textInputValue);
+                            return;
+                        }
 
                         if (!focusedOption) {
                             submitSearch(textInputValue);
@@ -518,7 +564,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldShowOfflineMessage
                     wrapperStyle={styles.searchRouterBorder}
                     wrapperFocusedStyle={styles.borderColorFocus}
-                    isSearchingForReports={!!isSearchingForReports}
+                    isSearchingForReports={!!isSearchingForReports || !!isSearchingForUsers}
                     selection={selection}
                     substitutionMap={autocompleteSubstitutions}
                     ref={textInputRef}
@@ -526,8 +572,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 />
             </View>
             <DeferredAutocompleteList
-                autocompleteQueryValue={autocompleteQueryValue || textInputValue}
-                handleSearch={searchInServer}
+                autocompleteQueryValue={textInputValue.trim() === '' ? '' : debouncedAutocompleteQueryValue}
+                inputQueryValue={textInputValue}
+                handleSearch={searchForReportsAndUsersInServer}
                 searchQueryItems={searchQueryItems}
                 getAdditionalSections={getAdditionalSections}
                 onListItemPress={onListItemPress}

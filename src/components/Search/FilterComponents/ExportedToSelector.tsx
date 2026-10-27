@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getSearchValueForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate} from '@libs/AccountingUtils';
+import {getExportLabelsForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate} from '@libs/AccountingUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies} from '@libs/SearchQueryUtils';
 
@@ -36,12 +36,15 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'XeroSquare',
         'QBOSquare',
+        'IntuitSquare',
         'NetSuiteSquare',
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
         'Table',
         'TablePencil',
@@ -51,7 +54,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
     const connectedIntegrationNames = getConnectedIntegrationNamesForPolicies(policies, policyID);
 
     const policiesToLoadTemplatesFrom = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
-    const {combinedExportTemplates: deduplicatedExportTemplates} = useCombinedExportTemplates(policiesToLoadTemplatesFrom);
+    const exportTemplates = useCombinedExportTemplates(policiesToLoadTemplatesFrom);
 
     const integrationConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
 
@@ -69,34 +72,38 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
         const integrationConnectionNamesSet = new Set<string>(integrationConnectionNames);
 
         const connectedIntegrationPickerItems = integrationConnectionNames
-            .filter((connectionName) => connectedIntegrationNames.has(connectionName))
-            .map((connectionName) => {
-                const icon = getIntegrationIcon(connectionName, expensifyIcons);
-                const leftElement = icon ? (
-                    <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <Icon
-                            src={icon}
-                            width={variables.iconSizeXLarge}
-                            height={variables.iconSizeXLarge}
-                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
-                        />
-                    </View>
-                ) : (
-                    tableIconForExportOption(expensifyIcons.Table)
-                );
-                return {
-                    text: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
-                    value: getSearchValueForConnection(connectionName),
-                    leftElement,
-                };
+            // Zoho Books is hidden from the export filter until the exported-status cell supports it
+            .filter((connectionName) => connectionName !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS && connectedIntegrationNames.has(connectionName))
+            .flatMap((connectionName) => {
+                const searchValues = getExportLabelsForConnection(connectionName, policiesToLoadTemplatesFrom);
+                return searchValues.map((searchValue) => {
+                    const isIntuitEnterpriseSuite = searchValue === CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE;
+                    const icon = isIntuitEnterpriseSuite ? expensifyIcons.IntuitSquare : getIntegrationIcon(connectionName, expensifyIcons);
+                    return {
+                        text: searchValue,
+                        value: searchValue,
+                        leftElement: icon ? (
+                            <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                <Icon
+                                    src={icon}
+                                    width={variables.iconSizeXLarge}
+                                    height={variables.iconSizeXLarge}
+                                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE)]}
+                                />
+                            </View>
+                        ) : (
+                            tableIconForExportOption(expensifyIcons.Table)
+                        ),
+                    };
+                });
             });
 
         const usedPickerValueKeys = new Set(connectedIntegrationPickerItems.map((item) => item.value));
 
         const standardAndIntegrationCustomTemplatePickerItems = [];
 
-        for (const template of deduplicatedExportTemplates) {
-            if (!template.templateName || integrationConnectionNamesSet.has(template.templateName) || template.type === CONST.EXPORT_TEMPLATE_TYPES.IN_APP) {
+        for (const template of exportTemplates) {
+            if (!template.templateName || integrationConnectionNamesSet.has(template.templateName)) {
                 continue;
             }
 

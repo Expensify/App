@@ -1,4 +1,5 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -41,7 +43,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import ExitSurveyOffline from './ExitSurveyOffline';
 
@@ -56,19 +58,20 @@ function DynamicExitSurveyReasonPage() {
     const StyleUtils = useStyleUtils();
     const {keyboardHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const {inputCallbackRef} = useAutoFocusInput(true);
 
     // Device safe area top and bottom insets.
     // When the keyboard is shown, the bottom inset doesn't affect the height, so we take it out from the calculation.
     const {top: safeAreaInsetsTop} = useSafeAreaInsets();
 
-    const goBackJustOnce = useCallback(() => {
+    const goBackJustOnce = () => {
         Log.info('[ExitSurvey] User chose Go back just once');
         Navigation.dismissModal();
         openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-    }, []);
+    };
 
-    const switchToClassic = useCallback(() => {
+    const switchToClassic = () => {
         Log.info('[ExitSurvey] User chose Switch to Classic');
         if (!draftResponse.trim()) {
             setErrorFields(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
@@ -85,7 +88,7 @@ function DynamicExitSurveyReasonPage() {
         switchToOldDot(draftResponse);
         Navigation.dismissModal();
         openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-    }, [draftResponse, translate]);
+    };
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, switchToClassic, {isActive: !isOffline});
 
     const formTopMarginsStyle = styles.mt3;
@@ -98,7 +101,7 @@ function DynamicExitSurveyReasonPage() {
             keyboardHeight -
             safeAreaInsetsTop -
             // Minus the height of HeaderWithBackButton
-            variables.contentHeaderHeight -
+            contentHeaderHeight -
             // Minus the top margins on the form
             formTopMarginsStyle.marginTop,
     );
@@ -150,23 +153,21 @@ function DynamicExitSurveyReasonPage() {
                 )}
             </FormProvider>
             <FixedFooter>
-                <Button
+                <ButtonDisabledWhenOffline
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={switchToClassic}
-                    isDisabled={isOffline}
                 >
                     <Button.Text>{translate('exitSurvey.goToExpensifyClassic')}</Button.Text>
-                </Button>
-                <Button
+                </ButtonDisabledWhenOffline>
+                <ButtonDisabledWhenOffline
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={goBackJustOnce}
-                    isDisabled={isOffline}
                     style={styles.mt3}
                 >
                     <Button.KeyboardShortcut />
                     <Button.Text>{translate('exitSurvey.goBackJustOnce')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
             </FixedFooter>
         </ScreenWrapper>
     );

@@ -9,7 +9,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
-import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNavigationBaseTheme from '@libs/Navigation/getNavigationBaseTheme';
@@ -33,6 +32,8 @@ import {BaseNavigationContainer, NavigationIndependentTree, StackActions} from '
 import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
+import getRHPFrameStyle from './getRHPFrameStyle';
 
 type Phase = 'open' | 'closing' | 'closed';
 
@@ -88,7 +89,6 @@ function MultifactorAuthenticationModalNavigator() {
     const {dispatch} = useMultifactorAuthenticationActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-    const themePreference = useThemePreference();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -106,7 +106,7 @@ function MultifactorAuthenticationModalNavigator() {
         setPhase('closing');
     }
 
-    const navigationThemeBase = getNavigationBaseTheme(themePreference);
+    const navigationThemeBase = getNavigationBaseTheme(theme.colorScheme);
     const navigationTheme = {
         ...navigationThemeBase,
         colors: {
@@ -136,8 +136,10 @@ function MultifactorAuthenticationModalNavigator() {
     }, [phase, backdropProgress, dispatch]);
 
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: backdropProgress.get() * variables.overlayOpacity,
+        opacity: backdropProgress.get() * variables.rhpOverlayOpacity,
     }));
+
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth: variables.rhpWidth, shouldUseNarrowLayout, shouldUseCenteredFrame: false});
 
     if (phase === 'closed') {
         return null;
@@ -160,7 +162,7 @@ function MultifactorAuthenticationModalNavigator() {
                     />
                 </Animated.View>
             )}
-            <View style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, shouldUseNarrowLayout ? styles.w100 : {width: variables.sideBarWidth}]}>
+            <View style={frameStyle}>
                 {isStackReadyToMount && (
                     <NavigationIndependentTree>
                         <BaseNavigationContainer

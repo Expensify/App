@@ -3,12 +3,14 @@ import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Chart
 // eslint-disable-next-line no-restricted-imports
 import singleFontFamily from '@styles/utils/FontUtils/fontFamily/singleFontFamily';
 
+import ObjectUtils from '@src/types/utils/ObjectUtils';
+
 import type {SkTypeface} from '@shopify/react-native-skia';
 import type {TextStyle} from 'react-native';
 
 import type {ChartLabelFontWeight} from './normalizeChartFontWeight';
 
-import CHART_TYPEFACE_SAME_FAMILY_FALLBACKS from './chartTypefaceFallbacks';
+import CHART_TYPEFACE_SAME_FAMILY_FALLBACKS, {CHART_TYPEFACE_GLYPH_FALLBACKS} from './chartTypefaceFallbacks';
 import normalizeChartFontWeight from './normalizeChartFontWeight';
 
 type ChartLabelFontStyle = 'normal' | 'italic';
@@ -35,7 +37,7 @@ function getChartSkiaTypefaceKey(fontFamily: string | undefined, fontStyle: Char
         return fontStyle === 'italic' ? 'EXP_NEW_KANSAS_MEDIUM_ITALIC' : 'EXP_NEW_KANSAS_MEDIUM';
     }
 
-    const matchingKey = (Object.keys(singleFontFamily) as Array<keyof typeof singleFontFamily>)
+    const matchingKey = ObjectUtils.typedKeys(singleFontFamily)
         .filter((key): key is ChartSkiaTypefaceKey => key !== 'SYSTEM')
         .find((key) => {
             const definition = singleFontFamily[key];
@@ -43,6 +45,35 @@ function getChartSkiaTypefaceKey(fontFamily: string | undefined, fontStyle: Char
         });
 
     return matchingKey ?? 'EXP_NEUE';
+}
+
+// Skip ASCII control characters (e.g. the `\n` line separators callers split on) that have no glyph.
+const FIRST_PRINTABLE_CODE_POINT = 0x20;
+
+function typefaceCanRenderText(typeface: SkTypeface, text: string): boolean {
+    for (const char of text) {
+        const codePoint = char.codePointAt(0);
+
+        if (codePoint === undefined || codePoint < FIRST_PRINTABLE_CODE_POINT) {
+            continue;
+        }
+
+        if (typeface.getGlyphIDs(char).every((glyphID) => glyphID === 0)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Some brand fonts (e.g. Expensify New Kansas) only cover Latin script and don't include rarer
+ * currency symbols (e.g. the Vietnamese dong sign). Unlike CSS, Skia's `Font`/`SkText` draw with a
+ * single typeface and never fall back to another font for a glyph it's missing, so an unsupported
+ * character renders incorrectly.
+ */
+function getGlyphFallbackKey(typefaceKey: ChartSkiaTypefaceKey): ChartSkiaTypefaceKey {
+    return CHART_TYPEFACE_GLYPH_FALLBACKS[typefaceKey] ?? 'EXP_NEUE';
 }
 
 function getFirstAvailableTypeface(typefaces: ChartDefaultTypeface): SkTypeface | null {
@@ -94,9 +125,21 @@ function getChartSkiaTypeface(
         fontStyle?: string;
         fontWeight?: string | number;
     },
+    /** When provided, swaps to a typeface with broader glyph coverage if the resolved one can't render this text. */
+    text?: string,
 ): SkTypeface | null {
     const typefaceKey = getChartSkiaTypefaceKey(fontFamily, normalizeFontStyle(fontStyle), normalizeChartFontWeight(fontWeight));
-    return resolveTypefaceWithFallbacks(typefaces, typefaceKey);
+    const resolvedTypeface = resolveTypefaceWithFallbacks(typefaces, typefaceKey);
+
+    if (resolvedTypeface && text && !typefaceCanRenderText(resolvedTypeface, text)) {
+        const fallbackTypeface = resolveTypefaceWithFallbacks(typefaces, getGlyphFallbackKey(typefaceKey));
+
+        if (fallbackTypeface) {
+            return fallbackTypeface;
+        }
+    }
+
+    return resolvedTypeface;
 }
 
 export default getChartSkiaTypeface;

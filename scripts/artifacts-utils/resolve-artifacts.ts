@@ -7,13 +7,16 @@ import resolveArtifacts from './lib/artifactsResolver';
  *
  * Usage:
  *   bun scripts/artifacts-utils/resolve-artifacts.ts \
- *       --platform=ios --package=react-hybrid --hybrid=true --new-dot-root=.
+ *       --platform=ios --hybrid=true --new-dot-root=. \
+ *       --hermes-version-file=node_modules/react-native/sdks/.hermesv1version
  *
  * Prints the result as JSON to stdout (logs go to stderr) and always exits 0.
  */
 const args = parseCommandLineArguments();
 const platform = args.platform;
-const packageName = args.package ?? '';
+const isHybrid = args.hybrid === 'true';
+const hermesVersionFile = args['hermes-version-file'];
+const packageName = isHybrid ? 'react-hybrid' : 'react-standalone';
 
 if (platform !== 'ios' && platform !== 'android') {
     process.stderr.write(`[PatchedArtifacts] Invalid or missing --platform "${platform ?? ''}" (expected "ios" or "android"); building from source.\n`);
@@ -21,7 +24,13 @@ if (platform !== 'ios' && platform !== 'android') {
     process.exit(0);
 }
 
-const options = {packageName, newDotRoot: args['new-dot-root'] ?? '.', isHybrid: args.hybrid === 'true'};
+if (!hermesVersionFile) {
+    process.stderr.write('[PatchedArtifacts] Missing --hermes-version-file (the Hermes tag file this build links); building from source.\n');
+    process.stdout.write(JSON.stringify({buildFromSource: true, version: null, packageName, artifactId: ''}));
+    process.exit(0);
+}
+
+const options = {packageName, newDotRoot: args['new-dot-root'] ?? '.', isHybrid, hermesVersionFile};
 const resolution = platform === 'ios' ? resolveArtifacts({...options, platform: 'ios'}) : resolveArtifacts({...options, platform: 'android'});
 
 resolution

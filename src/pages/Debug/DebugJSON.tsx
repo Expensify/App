@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
@@ -11,7 +11,7 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import Clipboard from '@libs/Clipboard';
 import DebugUtils from '@libs/DebugUtils';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type DebugJSONProps = {
@@ -24,7 +24,7 @@ function DebugJSON({data}: DebugJSONProps) {
     const {translate} = useLocalize();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
-    const json = useMemo(() => DebugUtils.stringifyJSON(data), [data]);
+    const json = DebugUtils.stringifyJSON(data);
     const icons = useMemoizedLazyExpensifyIcons(['Copy']);
 
     return (

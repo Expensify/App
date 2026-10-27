@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {RoomVisibility} from '@src/types/onyx/Report';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type DynamicVisibilityProps = WithReportOrNotFoundProps;
 
@@ -38,19 +38,15 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
     const [draftVisibility, setDraftVisibility] = useState<RoomVisibility | undefined>(undefined);
     const selectedVisibility = draftVisibility ?? report?.visibility;
 
-    const visibilityOptions = useMemo(
-        () =>
-            Object.values(CONST.REPORT.VISIBILITY)
-                .filter((visibilityOption) => visibilityOption !== CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE)
-                .map((visibilityOption) => ({
-                    text: translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
-                    value: visibilityOption,
-                    alternateText: translate(`newRoomPage.${visibilityOption}Description`),
-                    keyForList: visibilityOption,
-                    isSelected: visibilityOption === selectedVisibility,
-                })),
-        [translate, selectedVisibility],
-    );
+    const visibilityOptions = Object.values(CONST.REPORT.VISIBILITY)
+        .filter((visibilityOption) => visibilityOption !== CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE)
+        .map((visibilityOption) => ({
+            text: translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
+            value: visibilityOption,
+            alternateText: translate(`newRoomPage.${visibilityOption}Description`),
+            keyForList: visibilityOption,
+            isSelected: visibilityOption === selectedVisibility,
+        }));
 
     const goBack = () => {
         Navigation.goBack(backPath);
@@ -69,7 +65,7 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
                 confirmText: translate('common.yes'),
                 cancelText: translate('common.no'),
                 shouldShowCancelButton: true,
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             });
             if (result.action !== ModalActions.CONFIRM) {
                 return;

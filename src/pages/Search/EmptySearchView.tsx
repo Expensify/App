@@ -1,6 +1,7 @@
 import BookTravelButton from '@components/BookTravelButton';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {EmptyStateButton, HeaderMedia} from '@components/EmptyStateComponent/types';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
@@ -24,11 +25,11 @@ import {startTestDrive} from '@libs/actions/Tour';
 import DateUtils from '@libs/DateUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
-import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {canSendInvoice} from '@libs/PolicyUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import {getAllPolicyValues, getFilterFromQuery, isDefaultExpenseReportsQuery, isDefaultExpensesQuery, isSearchBeforeViolationsSnapshotStarted} from '@libs/SearchQueryUtils';
-import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
+import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -63,7 +64,6 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
     typeMenuSections: SearchTypeMenuSection[];
     allPolicies: OnyxCollection<Policy>;
     activePolicy: OnyxEntry<Policy>;
-    groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
     hasSeenTour: boolean;
 };
 
@@ -80,14 +80,12 @@ type EmptySearchViewItem = {
 
 function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violationSnapshotStartedAt, onScroll, contentContainerStyle}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const typeMenuSections = useSearchTypeMenuSections();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
-
-    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies);
 
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
@@ -103,7 +101,6 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violat
                 typeMenuSections={typeMenuSections}
                 allPolicies={allPolicies}
                 activePolicy={activePolicy}
-                groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
                 hasSeenTour={hasSeenTour}
                 queryJSON={queryJSON}
                 violationSnapshotStartedAt={violationSnapshotStartedAt}
@@ -128,7 +125,6 @@ function EmptySearchViewContent({
     typeMenuSections,
     allPolicies,
     activePolicy,
-    groupPoliciesWithChatEnabled,
     hasSeenTour,
     queryJSON,
     violationSnapshotStartedAt,
@@ -139,15 +135,14 @@ function EmptySearchViewContent({
     const timezone = useCurrentTimezone();
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const tabRootScrollProps = useTabRootScrollProps([styles.flexGrow1, styles.flexShrink0, contentContainerStyle], {fillsVisibleArea: true});
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const {accountID} = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
+    // A new report has no expenses yet, so it can't have violations.
+    const hasViolations = false;
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: hasTransactionsSelector,
@@ -156,8 +151,7 @@ function EmptySearchViewContent({
         selector: hasExpenseReportsSelector,
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-
-    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const filteredPolicyID = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     let isFilteredWorkspaceAccessible = true;
@@ -167,8 +161,8 @@ function EmptySearchViewContent({
         isFilteredWorkspaceAccessible = !!filteredPolicy;
     }
 
-    const handleCreateWorkspaceReport = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        if (!defaultChatEnabledPolicy?.id) {
+    const handleCreateWorkspaceReport = (policy: OnyxEntry<Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!policy?.id) {
             return;
         }
 
@@ -176,10 +170,10 @@ function EmptySearchViewContent({
             currentUserPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            defaultChatEnabledPolicy,
-            betas,
+            policy,
             isTrackIntentUser,
             getCurrencyDecimals,
+            rules,
             false,
             shouldDismissEmptyReportsConfirmation,
         );
@@ -195,7 +189,6 @@ function EmptySearchViewContent({
 
     const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
         onCreateReport: handleCreateWorkspaceReport,
-        groupPoliciesWithChatEnabled,
     });
 
     const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
@@ -311,7 +304,7 @@ function EmptySearchViewContent({
                                       {
                                           buttonText: translate('quickAction.createReport'),
                                           buttonAction: createReport,
-                                          success: true,
+                                          buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
                                   ]
                                 : []),
@@ -335,7 +328,7 @@ function EmptySearchViewContent({
                         };
                     } else if (!hasResults || !hasTransactions) {
                         content = {
-                            ...defaultViewItemHeader.folder,
+                            ...defaultViewItemHeader.expenses,
                             title: translate('search.searchResults.emptyExpenseResults.title'),
                             subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                             buttons: [
@@ -350,7 +343,7 @@ function EmptySearchViewContent({
                                 {
                                     buttonText: translate('iou.createExpense'),
                                     buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.CREATE),
-                                    success: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                 },
                             ],
                         };
@@ -387,7 +380,7 @@ function EmptySearchViewContent({
                                       {
                                           buttonText: translate('workspace.invoices.sendInvoice'),
                                           buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
-                                          success: true,
+                                          buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
                                   ]
                                 : []),
@@ -421,7 +414,7 @@ function EmptySearchViewContent({
     return (
         <Animated.ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0, contentContainerStyle]}
+            {...tabRootScrollProps}
             scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             onScroll={onScroll}
         >

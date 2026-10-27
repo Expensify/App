@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import {useSession} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 
@@ -6,6 +6,7 @@ import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromR
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -20,16 +21,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
-import type {IssueNewCardOriginalMessage} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 
 type IssueCardMessageProps = {
-    action: OnyxEntry<ReportAction>;
+    action: ReportAction<
+        | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED
+        | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
+        | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
+        | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
+        | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL
+        | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED
+    >;
     policyID: string | undefined;
 };
 
@@ -37,7 +42,8 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const session = useSession();
-    const assigneeAccountID = (getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
+    const cardIssuedActionOriginalMessage = getOriginalMessage(action);
+    const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID;
     const expensifyCard = useGetExpensifyCardFromReportAction({
         reportAction: action,
         policyID,
@@ -47,17 +53,18 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const shouldNavigateToCardDetails = isPolicyAdmin(policy);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const companyCard = cardList?.[(getOriginalMessage(action) as IssueNewCardOriginalMessage)?.cardID];
+    const companyCard = cardIssuedActionOriginalMessage?.cardID !== undefined ? cardList?.[cardIssuedActionOriginalMessage.cardID] : undefined;
     const shouldShowAddMissingDetailsButton =
         !!expensifyCard?.cardID && isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, privatePersonalDetails, expensifyCard?.state);
     const shouldShowActivateButton = isAssigneeCurrentUser && shouldShowActivateCard(action?.actionName, expensifyCard, privatePersonalDetails);
 
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     return (
         <>
             <RenderHTML
-                html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, shouldNavigateToCardDetails, policyID, expensifyCard, companyCard, translate, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID})}</muted-text>`}
+                html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, shouldNavigateToCardDetails, policyID, buildDynamicRoute, expensifyCard, companyCard, translate, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID})}</muted-text>`}
             />
             {shouldShowAddMissingDetailsButton && (
                 <Button

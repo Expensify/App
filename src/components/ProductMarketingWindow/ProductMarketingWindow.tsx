@@ -1,4 +1,5 @@
-import Button from '@components/ButtonComposed';
+import ActivityIndicator from '@components/ActivityIndicator';
+import Button from '@components/Button';
 import Image from '@components/Image';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
@@ -9,21 +10,21 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {ProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
+import type {ProductMarketingAnnouncement} from '@libs/ProductMarketingWindowUtils';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import React from 'react';
+import {useState} from 'react';
 import {View} from 'react-native';
 
 type ProductMarketingWindowProps = {
-    /** Content variant to display, already resolved for the user's audience. */
-    variant: ProductMarketingAnnouncementVariant;
+    /** Announcement content to display. */
+    announcement: ProductMarketingAnnouncement;
 
-    /** Resolved illustration asset for illustration-backed variants. Typed optional to match ImageSVG's src. */
+    /** Resolved illustration asset for illustration-backed announcements. Typed optional to match ImageSVG's src. */
     illustration: IconAsset | undefined;
 
     /** Called when the primary CTA is pressed. */
@@ -33,7 +34,7 @@ type ProductMarketingWindowProps = {
     onDismiss: () => void;
 };
 
-function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: ProductMarketingWindowProps) {
+function ProductMarketingWindow({announcement, illustration, onCtaPress, onDismiss}: ProductMarketingWindowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isExtraSmallScreenHeight, isInLandscapeMode} = useResponsiveLayout();
@@ -43,6 +44,7 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
     const shouldUseCompactNarrowLayout = shouldUseNarrowLayout && isExtraSmallScreenHeight && isInLandscapeMode;
     const narrowBottomOffset = safeAreaPaddingBottom + variables.productMarketingWindowOffsetNarrow;
     const buttonSize = shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL;
+    const [isImageLoading, setIsImageLoading] = useState(announcement.visual.type === 'image');
 
     return (
         <View
@@ -69,17 +71,33 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                     style={[
                         styles.productMarketingWindowIllustrationContainer,
                         shouldUseLightMarketingWindow ? styles.productMarketingWindowIllustrationContainerLight : styles.productMarketingWindowIllustrationContainerDark,
+                        styles.pRelative,
                         styles.mb4,
                     ]}
                     testID="ProductMarketingWindowVisual"
                 >
-                    {variant.visual.type === 'image' ? (
-                        // eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop.
-                        <Image
-                            source={variant.visual.source}
-                            style={styles.productMarketingWindowImage}
-                            resizeMode="cover"
-                        />
+                    {announcement.visual.type === 'image' ? (
+                        <>
+                            {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
+                            <Image
+                                source={announcement.visual.source}
+                                style={styles.productMarketingWindowImage}
+                                resizeMode="cover"
+                                onLoadStart={() => setIsImageLoading(true)}
+                                onLoadEnd={() => setIsImageLoading(false)}
+                            />
+                            {isImageLoading && (
+                                <View
+                                    pointerEvents="none"
+                                    style={[styles.pAbsolute, styles.h100, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                                >
+                                    <ActivityIndicator
+                                        color={theme.textReversed}
+                                        testID="ProductMarketingWindowImageLoading"
+                                    />
+                                </View>
+                            )}
+                        </>
                     ) : (
                         <ImageSVG
                             src={illustration}
@@ -90,10 +108,10 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                     )}
                 </View>
                 <Text style={[styles.textStrong, shouldUseLightMarketingWindow ? styles.productMarketingWindowHeadingLight : styles.productMarketingWindowHeadingDark]}>
-                    {translate(variant.heading)}
+                    {translate(announcement.heading)}
                 </Text>
                 <Text style={[styles.textLabel, shouldUseLightMarketingWindow ? styles.productMarketingWindowBodyLight : styles.productMarketingWindowBodyDark, styles.mt0Half]}>
-                    {translate(variant.body)}
+                    {translate(announcement.body)}
                 </Text>
                 <View
                     style={[styles.flexRow, styles.gap3, styles.mt4]}
@@ -120,7 +138,7 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                         sentryLabel={CONST.SENTRY_LABEL.PRODUCT_MARKETING_WINDOW.CTA}
                         testID="ProductMarketingWindowCTA"
                     >
-                        <Button.Text>{translate(variant.ctaLabel)}</Button.Text>
+                        <Button.Text>{translate(announcement.ctaLabel)}</Button.Text>
                     </Button>
                 </View>
             </View>

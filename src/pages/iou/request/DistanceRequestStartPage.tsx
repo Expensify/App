@@ -14,21 +14,23 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
+import {createOnyxTabNavigator, TabScreenWithFocusTrapWrapper} from '@libs/Navigation/OnyxTabNavigator';
+import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
 import {getPayeeName, isExpenseReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import {isDistanceRequest} from '@libs/TransactionUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {SelectedTabRequest} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import type {TupleToUnion} from 'type-fest';
+
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
@@ -38,8 +40,11 @@ import IOURequestStepDistanceGPS from './step/IOURequestStepDistanceGPS';
 import IOURequestStepDistanceMap from './step/IOURequestStepDistanceMap';
 import IOURequestStepDistanceOdometer from './step/IOURequestStepDistanceOdometer';
 
+const tabNames = [CONST.TAB_REQUEST.DISTANCE_MAP, CONST.TAB_REQUEST.DISTANCE_MANUAL, CONST.TAB_REQUEST.DISTANCE_GPS, CONST.TAB_REQUEST.DISTANCE_ODOMETER] as const;
+const {OnyxTabNavigator, TopTab} = createOnyxTabNavigator(tabNames);
+
 type DistanceRequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
-    defaultSelectedTab: SelectedTabRequest;
+    defaultSelectedTab: TupleToUnion<typeof tabNames>;
 };
 
 function DistanceRequestStartPage({
@@ -60,7 +65,7 @@ function DistanceRequestStartPage({
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {participants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
+    const {participants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
     const activeGroupPolicies = getActivePolicies(policies ?? null, currentUserLogin).filter(isGroupPolicy);
@@ -69,19 +74,19 @@ function DistanceRequestStartPage({
     const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
     const targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
     const reportPolicy = report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
-    // Manual/Odometer distance can't honor commuter exclusion (exclusions are derived from the mapped
-    // route), so hide those tabs whenever the resolved destination enforces exclusion:
+    // Manual/Odometer distance produces no mapped route, so hide those tabs whenever the resolved
+    // destination restricts distance to maps and GPS:
     // - Report-scoped flows (workspace chat / expense report): use that report's own policy.
     // - Global FAB flows: never hide for a Self-DM target (personal expenses are exempt); otherwise hide
-    //   when the single target workspace excludes, or when the user has multiple workspaces that ALL
-    //   exclude. `length > 1` is required because a single workspace is handled by `targetPolicy`, and
+    //   when the single target workspace restricts, or when the user has multiple workspaces that ALL
+    //   restrict. `length > 1` is required because a single workspace is handled by `targetPolicy`, and
     //   `[].every()` is vacuously true (which would wrongly hide the tabs for personal-only users).
     const isSelfDMTarget = isSelfDM(report) || participants.some((participant) => participant.isSelfDM);
     const isReportScopedTarget = isPolicyExpenseChat(report) || isExpenseReport(report);
-    const everyActiveWorkspaceExcludesCommuters = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isCommuterExclusionEnabled);
-    const shouldHideManualAndOdometerTabs = isReportScopedTarget
-        ? isCommuterExclusionEnabled(reportPolicy)
-        : !isSelfDMTarget && (isCommuterExclusionEnabled(targetPolicy) || everyActiveWorkspaceExcludesCommuters);
+    const isEveryActiveWorkspaceRestricted = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isMapOrGPSRequired);
+    const shouldHideManualAndOdometerTabs =
+        !isLoadingDefaultParticipants &&
+        (isReportScopedTarget ? isMapOrGPSRequired(reportPolicy) : !isSelfDMTarget && (isMapOrGPSRequired(targetPolicy) || isEveryActiveWorkspaceRestricted));
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
@@ -95,16 +100,28 @@ function DistanceRequestStartPage({
         [CONST.IOU.TYPE.CREATE]: translate('iou.trackDistance'),
     };
 
-    const transactionRequestType = useMemo(() => {
-        if (!transaction?.iouRequestType) {
-            // The tab navigator renders whichever tab was last selected, so the draft has to be typed from that
-            // same value. Preferring the last-created distance type instead rebuilds the draft as Odometer under
-            // a visible Map tab, leaving it without waypoints so tapping one opens the "Not here" page.
-            return selectedTab ?? lastDistanceExpenseType ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
-        }
+    // A draft left by another flow (e.g. a Manual expense before a home-screen shortcut) keeps its non-distance type,
+    // and the reset skips a type that already matches. Ignore it so the reset retypes the draft as distance.
+    const draftRequestType = isDistanceRequest(transaction) ? transaction?.iouRequestType : undefined;
 
-        return transaction.iouRequestType;
-    }, [transaction?.iouRequestType, selectedTab, lastDistanceExpenseType]);
+    let transactionRequestType;
+    if (!draftRequestType) {
+        // The tab navigator renders whichever tab was last selected, so the draft has to be typed from that
+        // same value. Preferring the last-created distance type instead rebuilds the draft as Odometer under
+        // a visible Map tab, leaving it without waypoints so tapping one opens the "Not here" page.
+        const rememberedRequestType = selectedTab ?? lastDistanceExpenseType ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+
+        // Both of those values are remembered from a previous expense, so they go stale once the destination
+        // starts requiring map or GPS. Typing the draft from a tab that is no longer rendered would leave it
+        // as Manual or Odometer under a visible Map tab, which later steps then reject.
+        if (shouldHideManualAndOdometerTabs && (rememberedRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || rememberedRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER)) {
+            transactionRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+        } else {
+            transactionRequestType = rememberedRequestType;
+        }
+    } else {
+        transactionRequestType = draftRequestType;
+    }
 
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,
@@ -129,9 +146,7 @@ function DistanceRequestStartPage({
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
 
-    const focusTrapContainerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
-    }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
+    const focusTrapContainerElements = [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
 
     return (
         <AccessOrNotFoundWrapper
@@ -140,8 +155,9 @@ function DistanceRequestStartPage({
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
         >
+            {/* IOURequestStepDistanceOdometer handles keyboard avoidance without resizing the shared tab layout. */}
             <ScreenWrapper
-                shouldEnableKeyboardAvoidingView={selectedTab === CONST.TAB_REQUEST.DISTANCE_ODOMETER}
+                shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="DistanceRequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
@@ -164,6 +180,11 @@ function DistanceRequestStartPage({
                         onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                         onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                         lazyLoadEnabled
+                        // The Odometer tab has text inputs, and Android keeps the keyboard up after the focused input
+                        // goes away, so without this the next tab lays out while the keyboard still occupies the screen.
+                        // Applied on every platform rather than gated to Android: `Keyboard.isVisible()` already
+                        // makes this a no-op wherever the keyboard isn't up, so iOS only waits when it actually needs to.
+                        shouldDismissKeyboardBeforeTabSwitch
                     >
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>
                             {() => (

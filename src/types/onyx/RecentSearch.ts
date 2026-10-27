@@ -5,7 +5,6 @@ type RecentSearchItem = {
     /** Query string for the recent search */
     query: string;
 
-    /** Timestamp of recent search */
     timestamp: string;
 };
 

@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {configureTravelBillingForPolicy, setTravelBillingSettlementAccount} from '@libs/actions/TravelBilling';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
@@ -37,10 +37,10 @@ function WorkspaceTravelBillingSettlementAccountPage({route}: WorkspaceTravelBil
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const travelBillingFundID = useTravelBillingFundID(policyID);
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
 
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
@@ -89,12 +89,12 @@ function WorkspaceTravelBillingSettlementAccountPage({route}: WorkspaceTravelBil
         }
 
         if (!isTravelBillingEnabled) {
-            configureTravelBillingForPolicy(policyID, workspaceAccountID, value);
+            configureTravelBillingForPolicy(policyID, travelBillingFundID, value);
             return;
         }
 
         const previousPaymentBankAccountID = travelSettings?.previousPaymentBankAccountID ?? travelSettings?.paymentBankAccountID;
-        setTravelBillingSettlementAccount(policyID, workspaceAccountID, value, previousPaymentBankAccountID);
+        setTravelBillingSettlementAccount(policyID, travelBillingFundID, value, previousPaymentBankAccountID);
         Navigation.goBack();
     };
 
@@ -107,7 +107,7 @@ function WorkspaceTravelBillingSettlementAccountPage({route}: WorkspaceTravelBil
         );
     };
 
-    const customHeaderContent = <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>;
+    const customHeaderContent = <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBankForTravelBilling')}</Text>;
 
     const getHeaderTitle = () => {
         switch (verificationState) {
@@ -115,7 +115,7 @@ function WorkspaceTravelBillingSettlementAccountPage({route}: WorkspaceTravelBil
             case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.LOADING:
                 return translate('workspace.expensifyCard.verifyingHeader');
             case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED:
-                return translate('workspace.moreFeatures.travel.travelInvoicing.enabled');
+                return translate('workspace.moreFeatures.travel.travelBilling.enabled');
             default:
                 return translate('workspace.expensifyCard.settlementAccount');
         }
@@ -141,8 +141,8 @@ function WorkspaceTravelBillingSettlementAccountPage({route}: WorkspaceTravelBil
                     <BankAccountVerificationView
                         verificationState={verificationState}
                         onVerifiedButtonPress={() => Navigation.goBack()}
-                        verifiedTitle={translate('workspace.moreFeatures.travel.travelInvoicing.enabled')}
-                        verifiedSubtitle={translate('workspace.moreFeatures.travel.travelInvoicing.enabledDescription')}
+                        verifiedTitle={translate('workspace.moreFeatures.travel.travelBilling.enabled')}
+                        verifiedSubtitle={translate('workspace.moreFeatures.travel.travelBilling.enabledDescription')}
                     >
                         <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                             <SettlementAccountSelector

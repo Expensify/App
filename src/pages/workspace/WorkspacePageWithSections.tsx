@@ -31,7 +31,7 @@ import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -41,8 +41,6 @@ import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
     Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
         shouldSkipVBBACall?: boolean;
-
-        /** The text to display in the header */
         headerText: string;
 
         /** Main content of the page */
@@ -69,13 +67,11 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Policy feature permission needed to show this page */
         policyFeature?: PolicyFeature;
 
-        /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
 
         /** Makes firstRender ref display loading page before isLoading is change to true */
         showLoadingAsFirstRender?: boolean;
 
-        /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
 
         /**
@@ -85,16 +81,12 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * */
         icon?: IconAsset;
 
-        /** Content to be added to the header */
         headerContent?: ReactNode;
-
-        /** TestID of the component */
         testID?: string;
 
         /** Whether the page is loading, example any other API call in progress */
         isLoading?: boolean;
 
-        /** Whether to use the headline header */
         shouldUseHeadlineHeader?: boolean;
 
         /**
@@ -102,7 +94,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          */
         addBottomSafeAreaPadding?: boolean;
 
-        /** Content to be added as modal */
         modals?: ReactNode;
 
         /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
@@ -168,7 +159,7 @@ function WorkspacePageWithSections({
         fetchData(policyID, shouldSkipVBBACall);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-    const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
+    const shouldShowPolicy = shouldShowPolicyUtil(policy, false, currentUserLogin);
     let hasAccessToPolicyFeature: boolean | undefined;
     if (policyFeature) {
         hasAccessToPolicyFeature = canMemberRead(policy, currentUserLogin ?? '', policyFeature);
@@ -183,29 +174,18 @@ function WorkspacePageWithSections({
     }
     const hasWorkspaceBeenDeleted = deletedPolicyID !== undefined && deletedPolicyID === policyID;
 
-    const shouldShow = useMemo(() => {
-        // Keep the not-found view suppressed after the workspace is deleted so it doesn't flash during the exit animation.
-        if (hasWorkspaceBeenDeleted) {
-            return false;
-        }
-
-        // Don't show the not-found view when the user is outside the workspace flow (e.g. on another tab).
-        if (!isWorkspacesTabFocused) {
-            return false;
-        }
-
-        // If the policy object doesn't exist or contains only error data, we shouldn't display it.
-        if (((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) || shouldShowNotFoundPage) {
-            return true;
-        }
-
+    let shouldShow;
+    // Suppress the not-found view during the deletion exit animation and while outside the workspace flow.
+    if (hasWorkspaceBeenDeleted || !isWorkspacesTabFocused) {
+        shouldShow = false;
+    } else if (((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) || shouldShowNotFoundPage) {
+        shouldShow = true;
+    } else {
         // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
         const canShowPage = hasAccessToPolicyFeature ?? (canEditWorkspaceSettings(policy, currentUserLogin) || shouldShowNonAdmin);
-
         const shouldShowPolicyOrFeature = hasAccessToPolicyFeature ?? shouldShowPolicy;
-        return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicyOrFeature && !(isPendingDelete && !prevIsPendingDelete));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUserLogin, hasAccessToPolicyFeature, hasWorkspaceBeenDeleted, isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
+        shouldShow = (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicyOrFeature && !(isPendingDelete && !prevIsPendingDelete));
+    }
 
     const handleOnBackButtonPress = () => {
         if (shouldShow) {

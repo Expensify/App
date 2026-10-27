@@ -40,6 +40,7 @@ const {resetForTests: resetHadTabNavigation, setupHadTabNavigation} = require<{
 }>('../../src/libs/hadTabNavigation.ts');
 const {
     captureTriggerForRoute,
+    nominateTriggerFallback,
     restoreTriggerForRoute,
     handleStateChange,
     resetForTests,
@@ -55,6 +56,7 @@ const {
     teardownNavigationFocusReturn,
 } = require<{
     captureTriggerForRoute: (routeKey: string) => void;
+    nominateTriggerFallback: (element: HTMLElement | null) => void;
     restoreTriggerForRoute: (routeKey: string) => boolean;
     handleStateChange: (state: unknown) => void;
     resetForTests: () => void;
@@ -1978,6 +1980,30 @@ describe('restoreTriggerForRoute', () => {
         expect(launcherSpy).not.toHaveBeenCalled();
     });
 
+    it('re-seeds the redirect target (not the captured primary) as the trigger candidate for the next round trip', () => {
+        // Mouse modality: focusin does not re-record the restored element, so seedTriggerCandidate is the only source.
+        simulateMouse();
+        const primary = appendButton();
+        const redirectTarget = appendButton();
+        setLastMouseTriggerForTests(primary);
+        captureTriggerForRoute('route-a');
+
+        // Primary's .focus() handler redirects focus to redirectTarget (simulating a composite widget).
+        const focusSpy = jest.spyOn(primary, 'focus').mockImplementation(() => {
+            redirectTarget.focus();
+        });
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(document.activeElement).toBe(redirectTarget);
+        focusSpy.mockRestore();
+
+        // Second round trip, no click in between. The capture must reach for the element that actually holds focus,
+        // not the primary whose onFocus bounced away from it.
+        redirectTarget.blur();
+        captureTriggerForRoute('route-b');
+        expect(restoreTriggerForRoute('route-b')).toBe(true);
+        expect(document.activeElement).toBe(redirectTarget);
+    });
+
     it('must not treat pre-existing non-body focus as an onFocus redirect when the candidate silently no-ops', () => {
         const launcher = appendButton();
         const primary = appendButton();
@@ -2383,6 +2409,37 @@ describe('handleStateChange integration', () => {
         // Either the scheduled restore fired or we consume it manually — both prove capture happened.
         const stored = restoreTriggerForRoute('a');
         expect(stored || document.activeElement === trigger).toBe(true);
+    });
+
+    it('restores on every round trip when the navigation is keyboard-shortcut driven in mouse modality (issue #99569)', () => {
+        withFakeTimers(() => {
+            handleStateChange(onA);
+
+            // User clicks into a composer and types, which puts us in mouse modality, so focusin never
+            // records lastInteractiveElement, and Cmd+Shift+K latches no Enter/Space activation.
+            const composer = document.createElement('textarea');
+            document.body.appendChild(composer);
+            composer.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
+            composer.focus();
+
+            // Round trip 1: open the RHP with the shortcut, then click Back.
+            handleStateChange(onAB);
+            const backButton = appendButton();
+            backButton.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
+            backButton.remove();
+            composer.blur();
+            handleStateChange(onA);
+            flushTransitions();
+            expect(document.activeElement).toBe(composer);
+
+            // Round trip 2: the shortcut again, with no click on the composer in between. The backward transition
+            // cleared the click-tracked trigger, so only the restore's re-seed can supply it.
+            handleStateChange(onAB);
+            composer.blur();
+            handleStateChange(onA);
+            flushTransitions();
+            expect(document.activeElement).toBe(composer);
+        });
     });
 
     it('should do nothing when the focused route has not changed', () => {
@@ -3026,5 +3083,73 @@ describe('teardown / setup lifecycle', () => {
             navigationRef.isReady = originalIsReady;
             navigationRef.getRootState = originalGetRootState;
         }
+    });
+});
+
+describe('nominateTriggerFallback', () => {
+    beforeEach(() => {
+        simulateTab();
+    });
+
+    it('should restore the nominated element when the captured trigger has been removed', () => {
+        // Given a row the user came from, and a bulk action bar button that opened the route. The bar goes away with
+        // the selection the route cleared, so by the time the route pops its button is detached.
+        const row = appendButton();
+        const barButton = appendButton();
+        row.focus();
+        row.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        nominateTriggerFallback(row);
+        barButton.focus();
+        setLastInteractiveElementForTests(barButton);
+
+        captureTriggerForRoute('route-a');
+        barButton.remove();
+
+        // When the route pops
+        const rowSpy = jest.spyOn(row, 'focus');
+
+        // Then focus returns to the row rather than being lost for want of a candidate
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(rowSpy).toHaveBeenCalled();
+    });
+
+    it('should stop offering the element once the nomination is withdrawn', () => {
+        // Given a row nominated as the fallback and then withdrawn, which is what the bulk action bar does as it
+        // unmounts, before a bar button opens the route
+        const row = appendButton();
+        const barButton = appendButton();
+        nominateTriggerFallback(row);
+        nominateTriggerFallback(null);
+        barButton.focus();
+        setLastInteractiveElementForTests(barButton);
+
+        captureTriggerForRoute('route-a');
+        barButton.remove();
+
+        // When the route pops
+        // Then there is nothing left to restore to, as before the nomination existed
+        expect(restoreTriggerForRoute('route-a')).toBe(false);
+    });
+
+    it('should leave an active launcher as the fallback', () => {
+        // Given a popover launcher, which is the caller the existing fallback slot belongs to
+        const row = appendButton();
+        const launcher = appendButton();
+        const menuItem = appendButton();
+        nominateTriggerFallback(row);
+        setActivePopoverLauncher(launcher);
+        menuItem.focus();
+        menuItem.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+        captureTriggerForRoute('route-a');
+        menuItem.remove();
+
+        // When the route pops
+        // Then the launcher is restored, and the nomination does not displace it
+        const launcherSpy = jest.spyOn(launcher, 'focus');
+        const rowSpy = jest.spyOn(row, 'focus');
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(launcherSpy).toHaveBeenCalled();
+        expect(rowSpy).not.toHaveBeenCalled();
     });
 });

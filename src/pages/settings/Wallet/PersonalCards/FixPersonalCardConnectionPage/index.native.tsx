@@ -16,6 +16,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import getPlaidInstitutionID from '@libs/PlaidUtils';
 
 import {handleRestrictedEvent} from '@userActions/App';
 import {setPlaidEvent} from '@userActions/BankAccounts';
@@ -38,7 +39,7 @@ import {WebView} from 'react-native-webview';
 
 import useFixPersonalCardConnection from './useFixPersonalCardConnection';
 
-type FixPersonalCardConnectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION>;
+type FixPersonalCardConnectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_FIX_CONNECTION>;
 
 function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPageProps) {
     const {cardID} = route.params;
@@ -46,7 +47,7 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
-    const {card, url, isPlaid, country} = useFixPersonalCardConnection(cardID);
+    const {card, url, isPlaid, country, cardDetailsPath} = useFixPersonalCardConnection(cardID);
     const {isOffline} = useNetwork();
     const hasRequestedPlaidToken = useRef(false);
 
@@ -88,8 +89,8 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
 
     const handlePlaidLinkSuccess = ({publicToken, metadata}: {publicToken: string; metadata: PlaidLinkOnSuccessMetadata | LinkSuccessMetadata}) => {
         Log.info('[PlaidLink] Fix personal card success');
-        const plaidConnectedFeed = (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
-        const plaidAccounts = metadata?.accounts;
+        const plaidConnectedFeed = getPlaidInstitutionID(metadata.institution);
+        const plaidAccounts = metadata.accounts;
         if (!plaidConnectedFeed || !plaidAccounts?.length) {
             return;
         }
@@ -98,7 +99,7 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
         // The non-Plaid flow relies on useFixPersonalCardConnection's effect, which
         // doesn't fire here because we navigate away before isCardBroken flips.
         updatePersonalCardConnection(cardID, card?.lastScrapeResult);
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
+        Navigation.goBack(cardDetailsPath);
     };
 
     const handlePlaidLinkEvent = (eventName: string) => {

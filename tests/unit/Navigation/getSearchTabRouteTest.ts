@@ -33,18 +33,23 @@ describe('getSearchTabRoute', () => {
     it('restores the last navigation route with its additional parameters', () => {
         const q = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
         const queryJSON = buildSearchQueryJSON(q);
-        mockGetLastRoute.mockReturnValue({key: 'search-root', name: SCREENS.SEARCH.ROOT, params: {q, rawQuery: q, name: 'Expenses'}});
+        mockGetLastRoute.mockReturnValue({
+            key: 'search-root',
+            name: SCREENS.SEARCH.ROOT,
+            params: {q, rawQuery: q, name: 'Expenses', searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT},
+        });
 
         expect(queryJSON).not.toBeUndefined();
         if (!queryJSON) {
             return;
         }
 
-        expect(getSearchTabRoute(rootState, undefined)).toBe(
+        expect(getSearchTabRoute(rootState, undefined, undefined)).toBe(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: buildSearchQueryString(queryJSON),
                 rawQuery: q,
                 name: 'Expenses',
+                searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
             }),
         );
     });
@@ -58,12 +63,31 @@ describe('getSearchTabRoute', () => {
             return;
         }
 
-        expect(getSearchTabRoute(rootState, {queryJSON})).toBe(ROUTES.SEARCH_ROOT.getRoute({query: buildSearchQueryString(queryJSON)}));
+        expect(getSearchTabRoute(rootState, {queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}, undefined)).toBe(
+            ROUTES.SEARCH_ROOT.getRoute({query: buildSearchQueryString(queryJSON), searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}),
+        );
+    });
+
+    it('falls back to the last Expenses search query when there is no navigation route or Onyx query', () => {
+        const lastQuery = `${buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})} merchant:Uber`;
+        mockGetLastRoute.mockReturnValue(undefined);
+
+        expect(getSearchTabRoute(rootState, undefined, lastQuery)).toBe(ROUTES.SEARCH_ROOT.getRoute({query: lastQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
+    });
+
+    it('falls back to the default expense query when the last Expenses search query is not valid', () => {
+        mockGetLastRoute.mockReturnValue(undefined);
+
+        expect(getSearchTabRoute(rootState, undefined, buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}))).toBe(
+            ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
+        );
     });
 
     it('falls back to the default expense query', () => {
         mockGetLastRoute.mockReturnValue(undefined);
 
-        expect(getSearchTabRoute(rootState, undefined)).toBe(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
+        expect(getSearchTabRoute(rootState, undefined, undefined)).toBe(
+            ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
+        );
     });
 });

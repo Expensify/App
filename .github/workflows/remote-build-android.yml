@@ -6,10 +6,12 @@ on:
     inputs:
       app_pull_request_url:
         description: 'The Expensify/App pull request URL. Its description is scanned for a MOBILE-EXPENSIFY entry.'
+        type: string
         required: false
         default: ''
       mobile_expensify_pull_request_url:
         description: 'The Expensify/Mobile-Expensify pull request URL to check out the submodule. Overrides MOBILE-EXPENSIFY set in the App PR description.'
+        type: string
         required: false
         default: ''
       reviewed_code:
@@ -45,6 +47,8 @@ jobs:
 
   build:
     needs: [prep, resolveRefs]
+    # Preserve the default token scopes while adding OIDC access
+    permissions: write-all
     runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-16vcpu-ubuntu-2404' || 'blacksmith-2vcpu-ubuntu-2404' }}
     strategy:
       fail-fast: false
@@ -57,7 +61,7 @@ jobs:
             is_hybrid_build: true
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.resolveRefs.outputs.APP_REF }}
           submodules: ${{ matrix.is_hybrid_build || false }}
@@ -80,9 +84,28 @@ jobs:
         # v6
         uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::949552126497:role/app-rock-cache-gh-actions
+          role-session-name: gh-${{ github.run_id }}-${{ github.run_attempt }}
+          # Match the 6h job timeout because Rock does not refresh credentials before uploading
+          role-duration-seconds: 21600
           aws-region: us-east-1
+
+      - name: Get Java version
+        id: get-java-version
+        uses: ./.github/actions/composite/getJavaVersion
+
+      - name: Setup Java
+        # v5.2.0
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
+        with:
+          distribution: adopt
+          java-version: ${{ steps.get-java-version.outputs.version }}
+          cache: gradle
+
+      - name: Block compromised Java certificates
+        uses: Expensify/GitHub-Actions/block-compromised-java-certificates@b70c378d6cfae84f6844379eef3568cb33ea9680
+        with:
+          restrict-gradle: 'true'
 
       - name: Rock Remote Build - Android
         # rock v3
@@ -92,6 +115,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
+          # Java is installed and protected before Rock can run Gradle.
+          setup-java: false
           variant: ${{ matrix.variant }}
           rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
           comment-bot: false

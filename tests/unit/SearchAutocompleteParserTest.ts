@@ -1,5 +1,6 @@
 import type {SearchAutocompleteQueryRange, SearchAutocompleteResult} from '@components/Search/types';
 
+import {parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
@@ -339,6 +340,21 @@ const tests: Array<{query: string; expected: ExpectedAutocompleteParserResult}> 
                 {key: 'receiptType', value: 'hotel', negated: false, start: 13, length: 5},
                 {key: 'receiptType', value: 'itemized', negated: false, start: 19, length: 8},
             ],
+        },
+    },
+    {
+        query: 'type:expense -merchant*:Uber',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'type', value: 'expense', negated: false, start: 5, length: 7}],
+        },
+    },
+    {
+        // The "contains" operator is only supported for the merchant field
+        query: 'type:expense category*:travel',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'type', value: 'expense', negated: false, start: 5, length: 7}],
         },
     },
 ];
@@ -771,6 +787,48 @@ const nameFieldContinuationTests: Array<{query: string; expected: ExpectedAutoco
         },
         description: 'Negates multiple from and has values',
     },
+    {
+        query: 'anyApproval:last-month',
+        expected: {
+            autocomplete: {
+                key: 'anyApproval',
+                value: 'last-month',
+                negated: false,
+                start: 12,
+                length: 10,
+            },
+            ranges: [{key: 'anyApproval', value: 'last-month', negated: false, start: 12, length: 10}],
+        },
+        description: 'anyApproval date filter provides autocomplete',
+    },
+    {
+        query: 'anyApproval:',
+        expected: {
+            autocomplete: {
+                key: 'anyApproval',
+                value: '',
+                negated: false,
+                start: 12,
+                length: 0,
+            },
+            ranges: [],
+        },
+        description: 'anyApproval with an empty value still identifies the filter key',
+    },
+    {
+        query: 'any-approval:last-month',
+        expected: {
+            autocomplete: {
+                key: 'anyApproval',
+                value: 'last-month',
+                negated: false,
+                start: 13,
+                length: 10,
+            },
+            ranges: [{key: 'anyApproval', value: 'last-month', negated: false, start: 13, length: 10}],
+        },
+        description: 'any-approval user-friendly alias maps to anyApproval',
+    },
 ];
 
 describe('autocomplete parser', () => {
@@ -783,8 +841,12 @@ describe('autocomplete parser', () => {
 
 describe('autocomplete parser - name field continuation detection', () => {
     test.each(nameFieldContinuationTests)(`$description: $query`, ({query, expected}) => {
+        // Given a partially typed search query, possibly using a user-friendly alias or an empty filter value
+
+        // When the autocomplete parser processes it
         const result: unknown = parse(query);
 
+        // Then the active filter key/value and highlighted ranges are identified so the right suggestions can be shown
         expect(result).toEqual(expected);
     });
 });
@@ -794,5 +856,80 @@ describe('autocomplete parser - limit filter', () => {
         const result: unknown = parse(query);
 
         expect(result).toEqual(expected);
+    });
+});
+
+describe('autocomplete parser - escaped values', () => {
+    test.each([
+        ['workspace:"Acme \\"US\\",Inc"', 'policyID', 'Acme "US",Inc'],
+        ['in:"Acme \\"US\\",Inc"', 'in', 'Acme "US",Inc'],
+        ['from:"Bob \\"The Builder\\" Smith"', 'from', 'Bob "The Builder" Smith'],
+        ['workspace:Globex\\,Ltd', 'policyID', 'Globex,Ltd'],
+    ])('reads %s back as a single value', (query, key, value) => {
+        const ranges = parseForAutocomplete(query)?.ranges ?? [];
+
+        expect(ranges.filter((range) => range.key === key).map((range) => range.value)).toEqual([value]);
+    });
+
+    test.each([
+        ['workspace:"Acme, Inc."', 'policyID', 'Acme, Inc.'],
+        ['workspace:"Globex,Ltd"', 'policyID', 'Globex,Ltd'],
+        ['workspace:A\\B', 'policyID', 'A\\B'],
+        ['merchant:"C:\\Users"', 'merchant', 'C:\\Users'],
+    ])('leaves an already persisted value %s unchanged', (query, key, value) => {
+        const ranges = parseForAutocomplete(query)?.ranges ?? [];
+
+        expect(ranges.filter((range) => range.key === key).map((range) => range.value)).toEqual([value]);
+    });
+
+    it('reports a range that spans the escaped source text, so substitutions splice cleanly', () => {
+        const query = 'workspace:"Acme \\"US\\",Inc"';
+        const ranges = parseForAutocomplete(query)?.ranges ?? [];
+        const range = ranges.find((candidate) => candidate.key === 'policyID');
+
+        expect(query.slice(range?.start, (range?.start ?? 0) + (range?.length ?? 0))).toBe('"Acme \\"US\\",Inc"');
+    });
+});
+
+describe('autocomplete parser ordinary consumers', () => {
+    test.each([
+        ['createdBy:alice', 'createdBy', 'alice'],
+        ['ReportID:123', 'ReportID', '123'],
+        ['TAXRATE:20', 'TAXRATE', '20'],
+        ['report-field-LongSuffix:value', 'reportField-LongSuffix', 'value'],
+        ['merchant:""', 'merchant', ''],
+        ['merchant:"Acme\\,Inc"', 'merchant', 'Acme,Inc'],
+    ])('preserves the generated ordinary result for %s', (query, key, value) => {
+        // Given ordinary query syntax that includes keys outside the closed filter union.
+        const ordinary: unknown = parse(query);
+        const explicitQuery: unknown = parse(query, {startRule: 'query'});
+        const library: unknown = parse(query, {peg$library: true});
+        // When the typed consumer narrows only fields it actually reads.
+        const result = parseForAutocomplete(query);
+        // Then it preserves all generated fields, offsets and the library's distinct wrapper shape.
+        expect(result).toBeDefined();
+        expect(result).toEqual(ordinary);
+        expect(explicitQuery).toEqual(ordinary);
+        expect(result?.ranges).toHaveLength(1);
+        expect(result?.ranges[0]).toMatchObject({key, value, start: query.indexOf(':') + 1, length: query.length - query.indexOf(':') - 1});
+        // @ts-expect-error Raw library output cannot satisfy the ordinary consumed-field view.
+        expect(library satisfies NonNullable<ReturnType<typeof parseForAutocomplete>>).toBe(library);
+        // @ts-expect-error The ordinary consumer intentionally exposes no parser-options parameter.
+        const unsupportedOptions = parseForAutocomplete(query, {peg$library: true});
+        expect(unsupportedOptions).toEqual(ordinary);
+        expect(library).not.toHaveProperty('ranges');
+        expect(library).toHaveProperty('peg$result', ordinary);
+    });
+
+    it('keeps empty input and an unfinished filter distinct', () => {
+        // Given no ranges yet, both ordinary inputs remain valid parser results.
+        const empty = '';
+        const unfinished = 'from:';
+        // When the ordinary consumers parse them without library options.
+        const emptyResult = parseForAutocomplete(empty);
+        const unfinishedResult = parseForAutocomplete(unfinished);
+        // Then nullable autocomplete and an empty value retain their producer shapes.
+        expect(emptyResult).toEqual({autocomplete: null, ranges: []});
+        expect(unfinishedResult).toEqual({autocomplete: {key: 'from', negated: false, value: '', start: 5, length: 0}, ranges: []});
     });
 });

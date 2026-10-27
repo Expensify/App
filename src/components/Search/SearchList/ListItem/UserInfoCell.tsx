@@ -1,9 +1,10 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {AvatarSizeName} from '@styles/utils';
@@ -35,18 +36,23 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            <Avatar
-                imageStyles={[styles.alignSelfCenter]}
-                size={avatarSize ?? CONST.AVATAR_SIZE.XXX_SMALL}
-                source={avatar}
-                name={displayName}
-                type={CONST.ICON_TYPE_AVATAR}
-                avatarID={accountID}
-                containerStyles={[styles.pr2, avatarStyle]}
-            />
+            <View
+                style={styles.userSelectNone}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
+                <UserAvatar
+                    imageStyles={styles.alignSelfCenter}
+                    size={avatarSize ?? CONST.AVATAR_SIZE.XXX_SMALL}
+                    source={avatar}
+                    accountID={accountID}
+                    containerStyles={[styles.pr2, avatarStyle]}
+                />
+            </View>
             <Text
                 numberOfLines={1}
                 style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroSupporting, styles.flexShrink1, textStyle]}
+                selectable
+                dataSet={COPYABLE_TEXT_DATA_SET}
             >
                 {displayName}
             </Text>

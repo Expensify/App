@@ -6,7 +6,6 @@ import {View} from 'react-native';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
 
 type OnboardingWrapperProps = {
-    /** Rendered child component */
     children: React.ReactNode;
 };
 

@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportNotificationPreference, isArchivedNonExpenseReport, isHiddenForCurrentUser, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
+import {getReportNotificationPreferenceForSettings, isArchivedNonExpenseReport, isHiddenForCurrentUser, isSelfDM} from '@libs/ReportUtils';
 
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
@@ -22,7 +22,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 
 type DynamicNotificationPreferencePageProps = WithReportOrNotFoundProps;
 
@@ -30,13 +30,13 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
     const {translate} = useLocalize();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const isMoneyRequest = isMoneyRequestReport(report);
-    const currentNotificationPreference = getReportNotificationPreference(report);
+    const currentUserParticipant = currentUserAccountID ? report?.participants?.[currentUserAccountID] : undefined;
+    const currentUserNotificationPreference = currentUserParticipant?.notificationPreference;
+    const currentNotificationPreference = getReportNotificationPreferenceForSettings(report, currentUserAccountID);
 
     const [draftNotificationPreference, setDraftNotificationPreference] = useState<ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> | undefined>(undefined);
     const selectedNotificationPreference = draftNotificationPreference ?? currentNotificationPreference;
-    const shouldDisableNotificationPreferences =
-        isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report) || (!isMoneyRequest && isHiddenForCurrentUser(currentNotificationPreference));
+    const shouldDisableNotificationPreferences = isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report) || !currentUserParticipant;
     const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
         .filter((pref) => !isHiddenForCurrentUser(pref))
         .map((preference) => ({
@@ -47,12 +47,12 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
         }));
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.path);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     const saveNotificationPreference = () => {
-        updateNotificationPreference(report.reportID, currentNotificationPreference, selectedNotificationPreference, currentUserAccountID, undefined, undefined);
+        updateNotificationPreference(report.reportID, currentUserNotificationPreference, selectedNotificationPreference, currentUserAccountID, undefined, undefined);
         goBack();
     };
 
@@ -60,7 +60,7 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
         showButton: true,
         text: translate('common.save'),
         onConfirm: saveNotificationPreference,
-        isDisabled: selectedNotificationPreference === currentNotificationPreference,
+        isDisabled: selectedNotificationPreference === currentUserNotificationPreference,
     };
 
     return (

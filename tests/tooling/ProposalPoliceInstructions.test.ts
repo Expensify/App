@@ -37,6 +37,12 @@ describe('instruction isolation', () => {
         expect(duplicateCheck).not.toContain('GENUINE_ATTEMPT');
     });
 
+    it('recognizes takeover and review coordination as ordinary discussion', () => {
+        expect(commentIntent).toContain('take over');
+        expect(commentIntent).toContain('review');
+        expect(commentIntent).toContain('NOT_AN_ATTEMPT');
+    });
+
     it('never tells a call about a similarity cutoff, which is applied in code', () => {
         for (const instructions of [commentIntent, editCheck, duplicateCheck]) {
             expect(instructions).not.toContain('ACTION_HIDE_DUPLICATE');

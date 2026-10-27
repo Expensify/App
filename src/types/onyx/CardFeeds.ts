@@ -60,7 +60,6 @@ type CardFeedProvider =
 
 /** Card feed details */
 type CardFeedDetails = {
-    /** Processor ID */
     processorID?: string;
 
     /** Financial institution (bank) ID */
@@ -69,13 +68,8 @@ type CardFeedDetails = {
     /** Financial institution (bank) name */
     bankName?: string;
 
-    /** Company ID */
     companyID?: string;
-
-    /** Distribution ID */
     distributionID?: string;
-
-    /** Delivery file name */
     deliveryFileName?: string;
 };
 
@@ -93,10 +87,7 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Defines the type of liability for the card */
     liabilityType?: string;
 
-    /** Preferred policy */
     preferredPolicy?: string;
-
-    /** Linked policy IDs */
     linkedPolicyIDs?: string[];
 
     /** Country associated with this feed (ISO 3166-1 alpha-2 code) */
@@ -113,8 +104,19 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
      */
     statementPeriodEndDay?: StatementPeriodEnd | StatementPeriodEndDay;
 
-    /** Plaid access token */
     plaidAccessToken?: string;
+
+    /** Current balance of the feed in cents, reported by the bank via Plaid. Null when the bank did not report it. */
+    currentBalance?: number | null;
+
+    /** Remaining credit limit of the feed in cents, reported by the bank via Plaid. Null when the bank did not report it. */
+    remainingLimit?: number | null;
+
+    /** Datetime the feed balance was last fetched from the bank, formatted as 'yyyy-MM-dd HH:mm:ss' */
+    balanceTimestamp?: string | null;
+
+    /** ISO currency of currentBalance and remainingLimit. Null when a single credit account omitted it (amounts still valid); mixed currencies null the amounts too. */
+    balanceCurrency?: string | null;
 
     /** CSV upload layout settings (present on ccupload feeds) */
     uploadLayoutSettings?: {
@@ -133,21 +135,13 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Field-specific error messages */
     errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
 
-    /**
-     * Collection of errors coming from BE
-     */
     errors?: OnyxCommon.Errors;
 }>;
 
 /** Direct card feed data */
 type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** List of accounts */
     accountList: string[];
-
-    /** Credentials info */
     credentials: string;
-
-    /** Expiration number */
     expiration: number;
 
     /** Defines the type of liability for the card */
@@ -164,15 +158,11 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
      */
     statementPeriodEndDay?: StatementPeriodEnd | StatementPeriodEndDay;
 
-    /** Plaid access token */
     plaidAccessToken?: string;
 
     /** Field-specific error messages */
     errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
 
-    /**
-     * Collection of errors coming from BE
-     */
     errors?: OnyxCommon.Errors;
 }>;
 
@@ -208,7 +198,6 @@ type CardFeedsStatus = {
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
 
-    /** Collection of errors coming from BE */
     errors?: OnyxCommon.Errors;
 };
 
@@ -239,7 +228,6 @@ type TravelBillingProvisioningErrors = Record<string, TravelBillingProvisioningE
 
 /** Card feeds model, including domain settings */
 type CardFeeds = {
-    /** Feed settings */
     settings: {
         /** User-friendly feed nicknames */
         companyCardNicknames?: Partial<Record<CardFeedWithNumber, string>>;
@@ -247,10 +235,7 @@ type CardFeeds = {
         /** Custom card names by card ID */
         companyCardCustomNames?: Record<string, string>;
 
-        /** Company cards feeds */
         companyCards?: Partial<Record<CardFeedWithNumber, CustomCardFeedData>>;
-
-        /** Account details */
         oAuthAccountDetails?: Partial<Record<CardFeedWithNumber, DirectCardFeedData>>;
 
         /** Collection of card feeds status by domain ID */
@@ -259,7 +244,6 @@ type CardFeeds = {
         /** Email address of the technical contact for the domain */
         technicalContactEmail?: string;
 
-        /** Whether to use the technical contact's billing card */
         useTechnicalContactBillingCard?: boolean;
 
         /** Whether 2FA is required for all members */
@@ -279,47 +263,29 @@ type CardFeeds = {
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
-    /** Card feed provider */
     feedType: CardFeedProvider;
-
-    /** Card feed details */
     feedDetails?: CardFeedDetails;
-
-    /** Name of the card */
     cardTitle: string;
-
-    /** Selected bank */
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
-
-    /** Selected feed type */
     selectedFeedType: ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
 
     /** Selected Amex bank custom feed */
     selectedAmexCustomFeed: ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>;
 
-    /** Name of the bank */
     bankName?: string;
-
-    /** Selected country */
     selectedCountry?: string;
 
     /** Public token from Plaid connection */
     publicToken?: string;
 
-    /** Feed from Plaid connection */
-    plaidConnectedFeed?: CardFeedWithNumber;
-
-    /** Feed name from Plaid connection */
+    plaidConnectedFeed?: string;
     plaidConnectedFeedName?: string;
 
     /** Name of the CSV layout template */
     companyCardLayoutName?: string;
 
     /** Identifier for the CSV layout template */
-    layoutType?: string;
-
-    /** Whether to use advanced fields in the CSV layout */
-    useAdvancedFields?: boolean;
+    layoutType?: CompanyCardFeedWithNumber;
 
     /** Existing instance ID when editing a CSV feed */
     existingInstanceID?: string;
@@ -327,7 +293,6 @@ type AddNewCardFeedData = {
     /** Account that owns the CSV feed being edited */
     domainAccountID?: number;
 
-    /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
 };
 
@@ -344,6 +309,9 @@ type AddNewCompanyCardFeed = {
 
     /** Whether the user is editing step */
     isEditing: boolean;
+
+    /** Collection of errors coming from BE */
+    errors?: OnyxCommon.Errors;
 };
 
 /** Card fund ID */
@@ -355,10 +323,7 @@ type CombinedCardFeed = CustomCardFeedData &
         /** Custom feed name, originally coming from settings.companyCardNicknames */
         customFeedName?: string;
 
-        /** Feed name */
         feed: CardFeedWithNumber;
-
-        /** Card feed status */
         status?: CardFeedsStatus;
     };
 

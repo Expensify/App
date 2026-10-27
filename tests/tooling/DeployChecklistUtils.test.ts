@@ -10,6 +10,7 @@ import GithubUtils from '@github/libs/GithubUtils';
 import {RequestError} from '@octokit/request-error';
 
 import createMock from '../utils/createMock';
+import materializeOctokitNamespace from '../utils/materializeOctokitNamespace';
 
 type ListForRepoResponse = Awaited<ReturnType<ListForRepoMethod>>;
 type PullRequest = Exclude<Awaited<ReturnType<typeof GithubUtils.fetchAllPullRequests>>, void>[number];
@@ -70,6 +71,7 @@ beforeAll(() => {
     }
 
     internalOctokit = initializedOctokit;
+    internalOctokit.rest.issues = materializeOctokitNamespace(internalOctokit.rest.issues);
     listForRepoSpy = jest.spyOn(internalOctokit.rest.issues, 'listForRepo');
 });
 
@@ -380,6 +382,7 @@ describe('DeployChecklistUtils', () => {
 
         beforeAll(() => {
             paginateSpy = jest.spyOn(internalOctokit, 'paginate');
+            internalOctokit.rest.pulls = materializeOctokitNamespace(internalOctokit.rest.pulls);
             getPullRequestSpy = jest.spyOn(internalOctokit.rest.pulls, 'get');
         });
 

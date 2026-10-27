@@ -1,22 +1,24 @@
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Modal from '@components/Modal';
 import ScreenWrapperContainer from '@components/ScreenWrapper/ScreenWrapperContainer';
+import getSearchRouterPopoverLayout from '@components/Search/SearchRouter/getSearchRouterPopoverLayout';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import {useSearchRouterActions, useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isMobileIOS} from '@libs/Browser';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useRef, useState} from 'react';
-import {Dimensions} from 'react-native';
+import React, {useRef, useState} from 'react';
 
 const isMobileWebIOS = isMobileIOS();
 
 function SearchRouterModal() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const {isSearchRouterDisplayed} = useSearchRouterState();
     const {closeSearchRouter} = useSearchRouterActions();
     const actionAfterModalHideRef = useRef<() => void>(undefined);
@@ -24,19 +26,8 @@ function SearchRouterModal() {
     // On mWeb Safari, the input caret stuck for a moment while the modal is animating. So, we hide the caret until the animation is done.
     const [shouldHideInputCaret, setShouldHideInputCaret] = useState(isMobileWebIOS);
 
-    useEffect(() => {
-        if (!isSearchRouterDisplayed || shouldUseNarrowLayout) {
-            return;
-        }
-
-        const subscription = Dimensions.addEventListener('change', () => closeSearchRouter());
-
-        return () => {
-            subscription.remove();
-        };
-    }, [isSearchRouterDisplayed, closeSearchRouter, shouldUseNarrowLayout]);
-
     const modalType = shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT : CONST.MODAL.MODAL_TYPE.POPOVER;
+
     const closeSearchRouterAfterModalHide = (afterClose?: () => void) => {
         if (!isSearchRouterDisplayed) {
             afterClose?.();
@@ -57,13 +48,15 @@ function SearchRouterModal() {
         <Modal
             type={modalType}
             isVisible={isSearchRouterDisplayed}
-            popoverAnchorPosition={{right: 6, top: 6}}
+            // The popover is centered by spanning the anchor box across the whole window, so it stays centered on the
+            // viewport whatever is behind it — the Side Panel included, which it renders above.
+            popoverAnchorPosition={shouldUseNarrowLayout ? {right: 6, top: 6} : {left: 0, right: 0, top: getSearchRouterPopoverLayout(windowHeight).topOffset}}
             fullscreen
             swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}
             onClose={closeSearchRouter}
             onModalHide={handleModalHide}
             onModalShow={() => setShouldHideInputCaret(false)}
-            shouldApplySidePanelOffset={!shouldUseNarrowLayout}
+            shouldShowBackdrop={!shouldUseNarrowLayout}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapperContainer

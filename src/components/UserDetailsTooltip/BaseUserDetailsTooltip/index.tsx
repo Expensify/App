@@ -1,4 +1,5 @@
-import Avatar from '@components/Avatar';
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -14,7 +15,7 @@ import {getUserDetailTooltipText} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateAccountID, shiftHorizontal, children}: UserDetailsTooltipProps) {
@@ -55,44 +56,25 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     if (CONST.RESTRICTED_ACCOUNT_IDS.includes(userAccountID) || CONST.RESTRICTED_EMAILS.includes(userLogin.trim())) {
         subtitle = '';
     }
-    const renderTooltipContent = useCallback(
-        () => (
-            <View style={[styles.alignItemsCenter, styles.ph2, styles.pv2]}>
-                <View style={styles.emptyAvatar}>
-                    <Avatar
-                        containerStyles={[styles.actionAvatar]}
-                        source={icon?.source ?? userAvatar}
-                        avatarID={icon?.id ?? userAccountID}
-                        type={icon?.type ?? CONST.ICON_TYPE_AVATAR}
-                        name={icon?.name ?? userLogin}
-                        fallbackIcon={icon?.fallbackIcon}
+    const renderTooltipContent = () => (
+        <View style={[styles.alignItemsCenter, styles.ph2, styles.pv2]}>
+            <View style={styles.emptyAvatar}>
+                {icon ? (
+                    <AvatarFromIcon
+                        containerStyles={styles.actionAvatar}
+                        icon={{...icon, id: icon.id ?? userAccountID, name: icon.name ?? userLogin}}
                     />
-                </View>
-                <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>
-                <Text style={[styles.textMicro, styles.fontColorReactionLabel, styles.breakWord, styles.textAlignCenter]}>{subtitle}</Text>
+                ) : (
+                    <UserAvatar
+                        containerStyles={styles.actionAvatar}
+                        source={userAvatar}
+                        accountID={userAccountID}
+                    />
+                )}
             </View>
-        ),
-
-        [
-            styles.alignItemsCenter,
-            styles.ph2,
-            styles.pv2,
-            styles.emptyAvatar,
-            styles.actionAvatar,
-            styles.mt2,
-            styles.textMicroBold,
-            styles.textReactionSenders,
-            styles.textAlignCenter,
-            styles.textMicro,
-            styles.fontColorReactionLabel,
-            styles.breakWord,
-            icon,
-            userAvatar,
-            userAccountID,
-            userLogin,
-            title,
-            subtitle,
-        ],
+            <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>
+            <Text style={[styles.textMicro, styles.fontColorReactionLabel, styles.breakWord, styles.textAlignCenter]}>{subtitle}</Text>
+        </View>
     );
 
     if (!icon && !userDisplayName && !userLogin) {

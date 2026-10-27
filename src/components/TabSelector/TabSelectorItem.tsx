@@ -1,15 +1,18 @@
 import Badge from '@components/Badge';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Tooltip from '@components/Tooltip';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getGroupItemAccessibilityLabel from '@libs/Accessibility/getGroupItemAccessibilityLabel';
 
 import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
+import {Animated, View} from 'react-native';
 
 import type {TabSelectorItemProps as BaseTabSelectorItemProps} from './types';
 
@@ -17,12 +20,16 @@ import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
 import {useTabSelectorActions} from './TabSelectorContext';
 
-const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
+// Use PressableWithSecondaryInteraction so the tab responds to both a long-press (touch) and a
+// right-click / context-menu (web). PressableWithFeedback's onLongPress alone never fires on a
+// right-click, so the desktop-web menu could not be opened.
+const AnimatedPressableWithSecondaryInteraction = Animated.createAnimatedComponent(PressableWithSecondaryInteraction);
 
 type TabSelectorItemProps = BaseTabSelectorItemProps;
 
 function TabSelectorItem({
     tabKey,
+    tabRef,
     icon,
     title = '',
     onPress = () => {},
@@ -38,9 +45,14 @@ function TabSelectorItem({
     badgeText,
     isBadgeCondensed = false,
     badgeStyles,
+    isBadgeError = false,
     isDisabled = false,
     disabledAction,
     pendingAction,
+    badgeEducationalTooltipProps,
+    tabButtonStyles,
+    role = CONST.ROLE.TAB,
+    groupAccessibilityLabel,
 }: TabSelectorItemProps) {
     const {isOffline} = useNetwork();
 
@@ -49,24 +61,30 @@ function TabSelectorItem({
 
     const {onTabLayout, scrollToTab} = useTabSelectorActions();
 
-    const accessibilityState = {selected: isActive};
+    const accessibilityState = role === CONST.ROLE.RADIO ? {checked: isActive} : {selected: isActive};
 
     const isOfflineWithPendingAction = !!isOffline && !!pendingAction;
     const shouldTextHaveStrikeThrough = isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
+    // PressableWithSecondaryInteraction handles the web `contextmenu` (right-click) event directly and does not respect the
+    // pressable's `disabled` prop, so gate the secondary interaction ourselves to match the primary press behavior below.
+    const isPressableDisabled = !disabledAction && isDisabled;
+
     const children = (
-        <AnimatedPressableWithFeedback
-            accessibilityLabel={title}
+        <AnimatedPressableWithSecondaryInteraction
+            ref={tabRef}
+            accessibilityLabel={getGroupItemAccessibilityLabel(title, groupAccessibilityLabel)}
             accessibilityState={accessibilityState}
-            accessibilityRole={CONST.ROLE.TAB}
+            accessibilityRole={role}
             style={[
                 styles.tabSelectorButton,
                 styles.tabBackground(isHovered, isActive, isDisabled, backgroundColor),
                 styles.userSelectNone,
                 isOfflineWithPendingAction ? styles.offlineFeedbackPending : undefined,
+                tabButtonStyles,
             ]}
             wrapperStyle={equalWidth ? styles.flex1 : styles.flexGrow1}
-            onLongPress={onLongPress}
+            onSecondaryInteraction={isPressableDisabled ? undefined : onLongPress}
             onPress={() => {
                 scrollToTab(tabKey);
                 onPress();
@@ -74,11 +92,11 @@ function TabSelectorItem({
             onWrapperLayout={(event) => onTabLayout(tabKey, event)}
             onHoverIn={() => setIsHovered(true)}
             onHoverOut={() => setIsHovered(false)}
-            role={CONST.ROLE.TAB}
+            role={role}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             testID={testID}
             sentryLabel={sentryLabel}
-            disabled={!disabledAction && isDisabled}
+            disabled={isPressableDisabled}
         >
             <TabIcon
                 icon={icon}
@@ -95,14 +113,19 @@ function TabSelectorItem({
                 />
             )}
             {!!badgeText && (
-                <Badge
-                    text={badgeText}
-                    success
-                    isCondensed={isBadgeCondensed}
-                    badgeStyles={badgeStyles}
-                />
+                <EducationalTooltip {...badgeEducationalTooltipProps}>
+                    <View style={styles.ml2}>
+                        <Badge
+                            text={badgeText}
+                            success={!isBadgeError}
+                            error={isBadgeError}
+                            isCondensed={isBadgeCondensed}
+                            badgeStyles={[badgeStyles, styles.ml0]}
+                        />
+                    </View>
+                </EducationalTooltip>
             )}
-        </AnimatedPressableWithFeedback>
+        </AnimatedPressableWithSecondaryInteraction>
     );
 
     return (

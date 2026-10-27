@@ -3,6 +3,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import Navigation from '@navigation/Navigation';
 
@@ -16,10 +17,7 @@ import {adminAccountIDsSelector} from '@selectors/Domain';
 import React, {useEffect} from 'react';
 
 type DomainNotFoundPageWrapperProps = {
-    /** AccountID of the domain */
     domainAccountID: number;
-
-    /** The children to render */
     children: React.ReactNode;
 
     /** Props for customizing fallback pages */
@@ -36,6 +34,7 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
     });
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata);
     const shouldShowNotFoundPage = !domain || !isAdmin || shouldBeBlocked;
@@ -49,7 +48,7 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
     }, [domain, isAdmin, shouldShowFullScreenLoadingIndicator]);
 
     if (shouldShowFullScreenLoadingIndicator) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
 
     if (shouldShowNotFoundPage) {

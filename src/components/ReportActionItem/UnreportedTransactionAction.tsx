@@ -2,12 +2,12 @@ import RenderHTML from '@components/RenderHTML';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Parser from '@libs/Parser';
-import {getOriginalMessage, hasReasoning} from '@libs/ReportActionsUtils';
-import {getUnreportedTransactionMessage} from '@libs/ReportUtils';
+import {hasReasoning} from '@libs/ReportActionsUtils';
+import {getUnreportedTransactionMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
@@ -21,7 +21,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 type UnreportedTransactionActionProps = {
-    /** The action when a transaction is unreported */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>;
 
     /** Original report from which the given reportAction is first created */
@@ -29,16 +28,15 @@ type UnreportedTransactionActionProps = {
 };
 
 function UnreportedTransactionAction({action, originalReport}: UnreportedTransactionActionProps) {
-    const unreportedTransactionOriginalMessage = getOriginalMessage(action);
-    const fromReportID = unreportedTransactionOriginalMessage?.fromReportID;
+    const {fromReportID} = parseMovedTransactionReportIDs(action);
 
     const {translate} = useLocalize();
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
-    const reportAttributes = useReportAttributes();
 
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const unreportedTransactionMessage = getUnreportedTransactionMessage(translate, action, reportAttributes);
+    const derivedReportName = useDerivedReportNameByReportID(fromReportID);
+    const unreportedTransactionMessage = getUnreportedTransactionMessage({translate, fromReport, fromReportID, derivedReportName});
 
     if (hasReasoning(action)) {
         return (

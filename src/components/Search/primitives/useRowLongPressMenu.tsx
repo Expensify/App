@@ -3,6 +3,7 @@ import Modal from '@components/Modal';
 import {useSearchRowSelectionActions} from '@components/Search/SearchContext';
 import type {SearchListItem, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
@@ -12,7 +13,8 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type UseRowLongPressMenuParams = {
     /** Whether long press should be suppressed entirely. */
@@ -46,6 +48,7 @@ function useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isM
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const {toggle} = useSearchRowSelectionActions();
     const route = useRoute();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
@@ -64,32 +67,29 @@ function useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isM
         toggle(item, itemTransactions);
     };
 
-    const handleLongPressRow = useCallback(
-        (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
-            const currentRoute = navigationRef.current?.getCurrentRoute();
-            if (currentRoute && route.key !== currentRoute.key) {
-                return;
-            }
+    const handleLongPressRow = (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
+        const currentRoute = navigationRef.current?.getCurrentRoute();
+        if (currentRoute && route.key !== currentRoute.key) {
+            return;
+        }
 
-            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                return;
-            }
+        if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
 
-            setLongPressedItem(item);
-            setLongPressedItemTransactions(itemTransactions);
-            setIsModalVisible(true);
-        },
-        [route.key, shouldPreventLongPressRow, isSmallScreenWidth],
-    );
+        setLongPressedItem(item);
+        setLongPressedItemTransactions(itemTransactions);
+        setIsModalVisible(true);
+    };
 
-    const turnOnSelectionMode = useCallback(() => {
+    const turnOnSelectionMode = () => {
         turnOnMobileSelectionMode();
         setIsModalVisible(false);
 
         if (longPressedItem) {
             toggle(longPressedItem, longPressedItemTransactions);
         }
-    }, [longPressedItem, toggle, longPressedItemTransactions]);
+    };
 
     const onLongPressRow = isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow;
 
@@ -99,13 +99,16 @@ function useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isM
             type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             onClose={() => setIsModalVisible(false)}
             shouldPreventScrollOnFocus
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <MenuItemAction
-                title={translate('common.select')}
-                icon={expensifyIcons.CheckSquare}
-                onPress={turnOnSelectionMode}
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECTION_MODE_MENU_ITEM}
-            />
+            <View style={bottomSafeAreaPaddingStyle}>
+                <MenuItemAction
+                    title={translate('common.select')}
+                    icon={expensifyIcons.CheckSquare}
+                    onPress={turnOnSelectionMode}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECTION_MODE_MENU_ITEM}
+                />
+            </View>
         </Modal>
     );
 

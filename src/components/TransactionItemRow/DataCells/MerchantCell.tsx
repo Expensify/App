@@ -1,8 +1,8 @@
+import {EditableCell, useInlineEditState} from '@components/EditableCell';
+import type {EditableProps} from '@components/EditableCell/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
-import {EditableCell, useInlineEditState} from '@components/TransactionItemRow/EditableCell';
-import type {EditableProps} from '@components/TransactionItemRow/EditableCell/types';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
@@ -14,9 +14,10 @@ import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {TextInput as RNTextInput} from 'react-native';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 
 type MerchantOrDescriptionCellProps = {
     merchantOrDescription: string;
@@ -28,14 +29,9 @@ type MerchantOrDescriptionCellProps = {
 function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, shouldUseNarrowLayout, isDescription, canEdit, onSave}: MerchantOrDescriptionCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const inputRef = useRef<RNTextInput | null>(null);
+    const inputRef = useRef<ComponentRef<typeof RNTextInput> | null>(null);
 
-    const text = useMemo(() => {
-        if (!isDescription) {
-            return merchantOrDescription;
-        }
-        return StringUtils.lineBreaksToSpaces(Parser.htmlToText(merchantOrDescription));
-    }, [merchantOrDescription, isDescription]);
+    const text = !isDescription ? merchantOrDescription : StringUtils.lineBreaksToSpaces(Parser.htmlToText(merchantOrDescription));
 
     // Normalize merchant values for save/equality checks (descriptions can keep whitespace)
     const getNormalizedValue = (value: string) => (isDescription ? value : value.trim());
@@ -59,7 +55,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
     };
 
     const handleRef = (element: BaseTextInputRef | null) => {
-        inputRef.current = element as RNTextInput | null;
+        inputRef.current = element as ComponentRef<typeof RNTextInput> | null;
     };
 
     // Multiline TextInputs with autoFocus default cursor to the beginning; manually position it at the end on focus
@@ -112,6 +108,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
                 text={localValue}
                 numberOfLines={1}
                 style={shouldUseNarrowLayout ? [styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1] : [styles.lineHeightXLarge]}
+                isSelectable
             />
         </EditableCell>
     );

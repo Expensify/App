@@ -6,18 +6,19 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
+import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
 
 import AddressPage from '@pages/AddressPage';
 
 import {updateAddress} from '@userActions/Policy/Policy';
 
+import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {WithPolicyProps} from './withPolicy';
 
@@ -31,19 +32,17 @@ type WorkspaceOverviewAddressPageProps = PlatformStackScreenProps<SettingsNaviga
 function WorkspaceOverviewAddressPage({policy}: WorkspaceOverviewAddressPageProps) {
     const {translate} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path);
-    const address: Address = useMemo(() => {
-        const tempAddress = policy?.address;
-        const {streetLineOne, streetLineTwo} = getWorkspaceAddressStreetLines(tempAddress?.addressStreet, tempAddress?.addressStreet2);
-        const result = {
-            street: streetLineOne,
-            street2: streetLineTwo,
-            city: tempAddress?.city?.trim() ?? '',
-            state: tempAddress?.state?.trim() ?? '',
-            zip: tempAddress?.zipCode?.trim().toUpperCase() ?? '',
-            country: tempAddress?.country ?? '',
-        };
-        return result;
-    }, [policy?.address]);
+    const tempAddress = policy?.address;
+    const {streetLineOne, streetLineTwo} = getWorkspaceAddressStreetLines(tempAddress?.addressStreet, tempAddress?.addressStreet2);
+    const result = {
+        street: streetLineOne,
+        street2: streetLineTwo,
+        city: tempAddress?.city?.trim() ?? '',
+        state: tempAddress?.state?.trim() ?? '',
+        zip: tempAddress?.zipCode?.trim().toUpperCase() ?? '',
+        country: tempAddress?.country ?? '',
+    };
+    const address: Address = result;
 
     const updatePolicyAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
         if (!policy) {
@@ -60,6 +59,8 @@ function WorkspaceOverviewAddressPage({policy}: WorkspaceOverviewAddressPageProp
         Navigation.goBack(backPath);
     };
 
+    const requiresFullAddressForExclusions = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+
     return (
         <AddressPage
             backTo={backPath}
@@ -67,6 +68,7 @@ function WorkspaceOverviewAddressPage({policy}: WorkspaceOverviewAddressPageProp
             isLoadingApp={false}
             updateAddress={updatePolicyAddress}
             title={translate('common.companyAddress')}
+            shouldRequireZip={requiresFullAddressForExclusions}
         />
     );
 }

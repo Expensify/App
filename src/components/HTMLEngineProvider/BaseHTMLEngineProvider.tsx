@@ -17,7 +17,6 @@ import htmlRenderers from './HTMLRenderers';
 import VICTORY_HTML_ELEMENT_MODELS from './HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
-    /** Whether text elements should be selectable */
     textSelectable?: boolean;
 
     /** Handle line breaks according to the HTML standard (default on web)  */
@@ -65,6 +64,10 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
         edited: HTMLElementModel.fromCustomModel({
             tagName: 'edited',
             contentModel: HTMLContentModel.textual,
+        }),
+        'attachment-block': HTMLElementModel.fromCustomModel({
+            tagName: 'attachment-block',
+            contentModel: HTMLContentModel.block,
         }),
         'task-title': HTMLElementModel.fromCustomModel({
             tagName: 'task-title',

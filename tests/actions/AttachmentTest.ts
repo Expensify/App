@@ -1,6 +1,6 @@
 import {rand64} from '@libs/NumberUtils';
 
-import {clearCachedAttachments, getCachedAttachment} from '@userActions/Attachment';
+import {cacheAttachment, clearCachedAttachments, getCachedAttachment} from '@userActions/Attachment';
 import {addAttachmentWithComment, addComment, deleteReportComment} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -16,10 +16,14 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('react-native-fs', () => ({
     DocumentDirectoryPath: '/mock/documents',
+    CachesDirectoryPath: '/mock/caches',
     copyFile: jest.fn(() => Promise.resolve()),
     exists: jest.fn(() => Promise.resolve(true)),
     unlink: jest.fn(() => Promise.resolve()),
+    mkdir: jest.fn(() => Promise.resolve()),
 }));
+
+const mockRNFS: {copyFile: jest.Mock; exists: jest.Mock} = jest.requireMock('react-native-fs');
 
 jest.mock('react-native-blob-util', () => ({
     config: jest.fn((data: {path?: string} | undefined) => {
@@ -104,8 +108,58 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(attachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
         });
+    });
+    it('should decode an encoded file URI before copying a shared attachment', async () => {
+        const attachmentID = 'encoded-attachment';
+
+        await cacheAttachment({
+            attachmentID,
+            uri: 'file:///mock/sharedFiles/test%20image%20%231.jpg',
+            mimeType: 'image/jpeg',
+        });
+
+        expect(mockRNFS.copyFile).toHaveBeenCalledWith('/mock/sharedFiles/test image #1.jpg', `/mock/caches/attachments/${attachmentID}.jpg`);
+    });
+    it('should fall back to the raw file URI path for legacy filenames', async () => {
+        const attachmentID = 'legacy-attachment';
+        mockRNFS.exists.mockResolvedValueOnce(false);
+
+        await cacheAttachment({
+            attachmentID,
+            uri: 'file:///mock/sharedFiles/report%23.jpg',
+            mimeType: 'image/jpeg',
+        });
+
+        expect(mockRNFS.copyFile).toHaveBeenCalledWith('/mock/sharedFiles/report%23.jpg', `/mock/caches/attachments/${attachmentID}.jpg`);
+    });
+    it('should fall back to the current source when the cached file was purged from disk', async () => {
+        // Given a cached attachment whose file no longer exists (the OS can purge Caches)
+        const attachmentID = 'purged-attachment';
+        const sourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500';
+        const attachment = {attachmentID, source: `/mock/caches/attachments/${attachmentID}.jpg`, remoteSource: sourceURL};
+        mockRNFS.exists.mockResolvedValueOnce(false);
+
+        // When reading it from the cache
+        const resolvedSource = await getCachedAttachment({attachmentID, attachment, currentSource: sourceURL});
+
+        // Then the dead local path is not returned
+        expect(resolvedSource).toBe(sourceURL);
+    });
+    it('should return the cached local source with a file:// scheme so the native Image can load it', async () => {
+        // Given a cached attachment whose stored file path (no scheme) still exists on disk
+        const attachmentID = 'cached-attachment';
+        const sourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500';
+        const localSource = `/mock/caches/attachments/${attachmentID}.jpg`;
+        const attachment = {attachmentID, source: localSource, remoteSource: sourceURL};
+        mockRNFS.exists.mockResolvedValueOnce(true);
+
+        // When reading it from the cache
+        const resolvedSource = await getCachedAttachment({attachmentID, attachment, currentSource: sourceURL});
+
+        // Then the path is returned prefixed with file:// (Android's <Image> can't load a local path without a scheme)
+        expect(resolvedSource).toBe(`file://${localSource}`);
     });
     it('should cache markdown attachment', async () => {
         // Given the attachment data consisting of sourceURL and markdown comment text
@@ -144,7 +198,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(attachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: sourceURL,
         });
     });
@@ -188,7 +242,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(attachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: sourceURL,
         });
 
@@ -207,7 +261,7 @@ describe('AttachmentStorage', () => {
         // Then the attachment should be updated with new attachment link
         expect(newAttachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: newSourceURL,
         });
     });
@@ -260,7 +314,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(newAttachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: fileData.uri,
         });
 
@@ -269,7 +323,18 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com');
+        deleteReportComment({
+            report: {reportID},
+            reportAction: attachmentAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: [],
+            isReportArchived: false,
+            isOriginalReportArchived: false,
+            currentEmail: 'test@user.com',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
         await waitForBatchedUpdates();
 
         // Then the attachment should be removed
@@ -323,7 +388,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(newAttachment).toEqual({
             attachmentID,
-            source: `/mock/documents/attachments/${attachmentID}.jpg`,
+            source: `/mock/caches/attachments/${attachmentID}.jpg`,
             remoteSource: sourceURL,
         });
 
@@ -332,7 +397,18 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com');
+        deleteReportComment({
+            report: {reportID},
+            reportAction: attachmentAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: [],
+            isReportArchived: false,
+            isOriginalReportArchived: false,
+            currentEmail: 'test@user.com',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
         await waitForBatchedUpdates();
 
         const removedAttachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
@@ -409,14 +485,14 @@ describe('AttachmentStorage', () => {
                 expect(remoteSourceIndex).toBeDefined();
                 expect(attachment).toEqual({
                     attachmentID,
-                    source: `/mock/documents/attachments/${attachmentID}.jpg`,
+                    source: `/mock/caches/attachments/${attachmentID}.jpg`,
                     remoteSource: markdownAttachments.at(remoteSourceIndex),
                 });
                 continue;
             }
             expect(attachment).toEqual({
                 attachmentID,
-                source: `/mock/documents/attachments/${attachmentID}.jpg`,
+                source: `/mock/caches/attachments/${attachmentID}.jpg`,
             });
         }
 

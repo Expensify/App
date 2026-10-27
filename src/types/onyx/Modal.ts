@@ -2,7 +2,6 @@ import type ModalType from '@src/types/utils/ModalType';
 
 /** Modal state */
 type Modal = {
-    /** Indicates when an Alert modal is about to be visible */
     willAlertModalBecomeVisible?: boolean;
 
     /** Indicates whether the modal should be dismissible using the ESCAPE key */

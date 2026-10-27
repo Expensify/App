@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type YesNoStepProps = {
     /** The title of the question */
@@ -22,10 +22,7 @@ type YesNoStepProps = {
     /** The default value of the radio button */
     defaultValue: boolean;
 
-    /** Callback when the value is selected */
     onSelectedValue: (value: boolean) => void;
-
-    /** The style of the submit button */
     submitButtonStyles?: StyleProp<ViewStyle>;
 
     /** Whether the submit button should be flex enabled, allowing it to grow and fill available space */
@@ -55,19 +52,16 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
         onValueChange?.();
     };
 
-    const options = useMemo<Choice[]>(
-        () => [
-            {
-                label: translate('common.yes'),
-                value: 'true',
-            },
-            {
-                label: translate('common.no'),
-                value: 'false',
-            },
-        ],
-        [translate],
-    );
+    const options: Choice[] = [
+        {
+            label: translate('common.yes'),
+            value: 'true',
+        },
+        {
+            label: translate('common.no'),
+            value: 'false',
+        },
+    ];
 
     return (
         <FormProvider

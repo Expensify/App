@@ -19,30 +19,34 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type AddressPageProps = {
     /** User's private personal details */
     address?: Address;
-    /** Whether app is loading */
     isLoadingApp: OnyxEntry<boolean>;
     /** Function to call when address form is submitted */
     updateAddress: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
-    /** Title of address page */
     title: string;
+
+    /**
+     * When true, the underlying AddressForm also requires the zip/postal code. Used by callers
+     * that need a complete address (e.g. workspace addresses backing homeAndOffice exclusions).
+     */
+    shouldRequireZip?: boolean;
 
     defaultCountry?: Country;
 } & BackToParams;
 
-function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry}: AddressPageProps) {
+function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     // Check if country is valid
     const {street} = address ?? {};
     const [street1, legacyStreet2] = street ? street.split('\n') : [undefined, undefined];
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if explicit line 2 can be an empty string
+    // nullish coalescing cannot be used if explicit line 2 can be an empty string
     const street2 = address?.street2 || legacyStreet2;
     const [currentCountry, setCurrentCountry] = useState(address?.country ?? defaultCountry);
     const [state, setState] = useState(address?.state);
@@ -60,36 +64,33 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [address?.state, address?.country, address?.city, address?.zip]);
 
-    const handleAddressChange = useCallback(
-        (value: unknown, key: unknown) => {
-            const addressPart = value as string;
-            const addressPartKey = key as keyof Address;
+    const handleAddressChange = (value: unknown, key: unknown) => {
+        const addressPart = value as string;
+        const addressPartKey = key as keyof Address;
 
-            if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
-                return;
-            }
-            if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
-                setCurrentCountry(addressPart as Country | '');
-                setState('');
-                setCity('');
-                setZipcode('');
-                return;
-            }
-            if (addressPartKey === INPUT_IDS.STATE) {
-                setState(addressPart);
-                setCity('');
-                setZipcode('');
-                return;
-            }
-            if (addressPartKey === INPUT_IDS.CITY) {
-                setCity(addressPart);
-                setZipcode('');
-                return;
-            }
-            setZipcode(addressPart);
-        },
-        [currentCountry],
-    );
+        if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
+            setCurrentCountry(addressPart as Country | '');
+            setState('');
+            setCity('');
+            setZipcode('');
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.STATE) {
+            setState(addressPart);
+            setCity('');
+            setZipcode('');
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.CITY) {
+            setCity(addressPart);
+            setZipcode('');
+            return;
+        }
+        setZipcode(addressPart);
+    };
 
     return (
         <ScreenWrapper
@@ -118,6 +119,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                         street1={street1}
                         street2={street2}
                         zip={zipcode}
+                        shouldRequireZip={shouldRequireZip}
                     />
                 )}
             </DelegateNoAccessWrapper>

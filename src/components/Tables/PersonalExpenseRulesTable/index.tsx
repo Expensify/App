@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,6 +11,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -32,12 +33,13 @@ type PersonalExpenseRuleRowData = TableData & {
 };
 
 type PersonalExpenseRulesTableProps = {
+    headerComponent?: React.ReactElement;
     personalExpenseRules: PersonalExpenseRuleRowData[];
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function PersonalExpenseRulesTable({personalExpenseRules, selectedKeys, onRowSelectionChange}: PersonalExpenseRulesTableProps) {
+export default function PersonalExpenseRulesTable({headerComponent, personalExpenseRules, selectedKeys, onRowSelectionChange}: PersonalExpenseRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -94,6 +96,9 @@ export default function PersonalExpenseRulesTable({personalExpenseRules, selecte
         Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute());
     };
 
+    const searchBarComponent = <Table.FilterBar label={translate('expenseRulesPage.findRule')} />;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
+
     return (
         <Table
             selectionEnabled
@@ -108,13 +113,13 @@ export default function PersonalExpenseRulesTable({personalExpenseRules, selecte
             onRowSelectionChange={onRowSelectionChange}
             keyExtractor={(rule) => rule.keyForList}
         >
-            <Table.FilterBar label={translate('expenseRulesPage.findRule')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('expenseRulesPage.emptyRules.title')}
                 subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
                 buttons={[
                     {
-                        success: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                         buttonAction: navigateToNewRulePage,
                         icon: icons.Plus,
                         buttonText: translate('expenseRulesPage.newRule'),

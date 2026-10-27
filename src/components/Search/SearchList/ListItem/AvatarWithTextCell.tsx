@@ -1,7 +1,9 @@
-import Avatar from '@components/Avatar';
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -16,37 +18,47 @@ type AvatarWithTextCellProps = {
     icon?: Icon;
     isLargeScreenWidth?: boolean;
     textStyle?: StyleProp<TextStyle>;
+
+    /** Whether the text can be selected inside a copyable row */
+    isSelectable?: boolean;
 };
 
-function AvatarWithTextCell({reportName, icon, isLargeScreenWidth, textStyle}: AvatarWithTextCellProps) {
+function AvatarWithTextCell({reportName, icon, isLargeScreenWidth, textStyle, isSelectable = false}: AvatarWithTextCellProps) {
     const styles = useThemeStyles();
 
     if (!reportName || !icon) {
         return null;
     }
 
+    const avatar = (
+        <AvatarFromIcon
+            icon={icon}
+            size={CONST.AVATAR_SIZE.XXX_SMALL}
+            containerStyles={styles.pr2}
+        />
+    );
+
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            {!!icon && (
-                <Avatar
-                    source={icon.source}
-                    name={icon.name}
-                    avatarID={icon.id}
-                    type={icon.type}
-                    fallbackIcon={icon.fallbackIcon}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
-                    containerStyles={[styles.pr2]}
-                />
+            {isSelectable ? (
+                <View
+                    style={styles.userSelectNone}
+                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                >
+                    {avatar}
+                </View>
+            ) : (
+                avatar
             )}
 
-            {!!reportName && (
-                <Text
-                    numberOfLines={1}
-                    style={[textStyle ?? (isLargeScreenWidth ? styles.themeTextColor : styles.textMicroBold), styles.flexShrink1]}
-                >
-                    {reportName}
-                </Text>
-            )}
+            <Text
+                numberOfLines={1}
+                style={[textStyle ?? (isLargeScreenWidth ? styles.themeTextColor : styles.textMicroBold), styles.flexShrink1]}
+                selectable={isSelectable ? true : undefined}
+                dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
+            >
+                {reportName}
+            </Text>
         </View>
     );
 }

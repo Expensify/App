@@ -9,12 +9,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasCircularReferences} from '@libs/Formula';
 import type {FieldList} from '@libs/Formula';
+import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type EditReportFieldTextPageProps = {
@@ -43,32 +44,41 @@ type EditReportFieldTextPageProps = {
 function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldKey, fieldList, disabled = false}: EditReportFieldTextPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const reportFieldName = Str.UCFirst(fieldName);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM> = {};
-            const inputValue = values[fieldKey].trim();
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM> = {};
+        // Validate the same value we submit: handleSubmit squashes line breaks to spaces before saving, so
+        // normalize here too. Otherwise a formula like `{field:Client\nName}` would be validated as a reference
+        // to `Client\nName` but saved as `{field:Client Name}`, letting a circular reference slip past this check.
+        const inputValue = StringUtils.lineBreaksToSpaces(values[fieldKey]).trim();
 
-            if (isRequired && inputValue === '') {
-                errors[fieldKey] = translate('common.error.fieldRequired');
-            }
+        if (isRequired && inputValue === '') {
+            errors[fieldKey] = translate('common.error.fieldRequired');
+        }
 
-            if (hasCircularReferences(inputValue, fieldName, fieldList)) {
-                errors[fieldKey] = translate('workspace.reportFields.circularReferenceError');
-            }
+        if (hasCircularReferences(inputValue, fieldName, fieldList)) {
+            errors[fieldKey] = translate('workspace.reportFields.circularReferenceError');
+        }
 
-            return errors;
-        },
-        [fieldName, fieldKey, isRequired, translate, fieldList],
-    );
+        return errors;
+    };
+
+    const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
+        // The input can grow to multiple lines while editing, but report titles and text fields are single-line
+        // values. Squash any line breaks the user entered down to a single line before saving.
+        onSubmit({
+            ...values,
+            [fieldKey]: StringUtils.lineBreaksToSpaces(values[fieldKey]),
+        });
+    };
 
     return (
         <FormProvider
             style={[styles.flexGrow1, styles.ph5]}
             formID={ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM}
-            onSubmit={onSubmit}
+            onSubmit={handleSubmit}
             validate={validate}
             submitButtonText={translate('common.save')}
             isSubmitButtonVisible={!disabled}
@@ -84,6 +94,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
                     label={reportFieldName}
                     accessibilityLabel={reportFieldName}
                     role={CONST.ROLE.PRESENTATION}
+                    autoGrowSingleLine
                     ref={inputCallbackRef}
                     disabled={disabled}
                 />

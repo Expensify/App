@@ -11,19 +11,17 @@ import SCREENS from '@src/SCREENS';
 import type {ParamListBase} from '@react-navigation/native';
 
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {createContext, useEffect, useRef} from 'react';
 
 type ScrollOffsetContextValue = {
     /** Save scroll offset of FlashList on given screen */
     saveScrollOffset: (route: PlatformStackRouteProp<ParamListBase>, scrollOffset: number) => void;
 
-    /** Get scroll offset value for given screen */
     getScrollOffset: (route: PlatformStackRouteProp<ParamListBase>) => number | undefined;
 
     /** Save scroll index of FlashList on given screen */
     saveScrollIndex: (route: PlatformStackRouteProp<ParamListBase>, scrollIndex: number) => void;
 
-    /** Get scroll index value for given screen */
     getScrollIndex: (route: PlatformStackRouteProp<ParamListBase>) => number | undefined;
 
     /** Clean scroll offsets of screen that aren't anymore in the state */
@@ -31,7 +29,6 @@ type ScrollOffsetContextValue = {
 };
 
 type ScrollOffsetContextProviderProps = {
-    /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
 
@@ -85,18 +82,18 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
         }
     }, [priorityMode, previousPriorityMode, inboxTab, previousInboxTab]);
 
-    const saveScrollOffset: ScrollOffsetContextValue['saveScrollOffset'] = useCallback((route, scrollOffset) => {
+    const saveScrollOffset: ScrollOffsetContextValue['saveScrollOffset'] = (route, scrollOffset) => {
         scrollOffsetsRef.current[getKey(route)] = scrollOffset;
-    }, []);
+    };
 
-    const getScrollOffset: ScrollOffsetContextValue['getScrollOffset'] = useCallback((route) => {
+    const getScrollOffset: ScrollOffsetContextValue['getScrollOffset'] = (route) => {
         if (!scrollOffsetsRef.current) {
             return;
         }
         return scrollOffsetsRef.current[getKey(route)];
-    }, []);
+    };
 
-    const cleanScrollOffsets = useCallback((keys: string[], shouldDelete: (key: string) => boolean) => {
+    const cleanScrollOffsets = (keys: string[], shouldDelete: (key: string) => boolean) => {
         for (const key of keys) {
             if (!shouldDelete(key)) {
                 continue;
@@ -104,53 +101,47 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
 
             delete scrollOffsetsRef.current[key];
         }
-    }, []);
+    };
 
-    const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback(
-        (state) => {
-            const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
-            const existingScreenKeys = new Set(sidebarRoutes.map(getKey));
+    const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = (state) => {
+        const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
+        const existingScreenKeys = new Set(sidebarRoutes.map(getKey));
 
-            const focusedRoute = findFocusedRoute(state);
-            const routeName = focusedRoute?.name;
+        const focusedRoute = findFocusedRoute(state);
+        const routeName = focusedRoute?.name;
 
-            const isSearchScreen = routeName === SCREENS.SEARCH.ROOT;
-            const isSearchMoneyRequestReport =
-                routeName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT || routeName === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || routeName === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+        const isSearchScreen = routeName === SCREENS.SEARCH.ROOT;
+        const isSearchMoneyRequestReport =
+            routeName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT || routeName === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || routeName === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
 
-            const scrollOffsetKeys = Object.keys(scrollOffsetsRef.current);
+        const scrollOffsetKeys = Object.keys(scrollOffsetsRef.current);
 
-            if (isSearchScreen || isSearchMoneyRequestReport) {
-                const currentKey = focusedRoute ? getKey(focusedRoute) : null;
-                cleanScrollOffsets(scrollOffsetKeys, (key) => key.startsWith(SCREENS.SEARCH.ROOT) && key !== currentKey && !isSearchMoneyRequestReport);
-                return;
-            }
-            cleanScrollOffsets(scrollOffsetKeys, (key) => !existingScreenKeys.has(key));
-        },
-        [cleanScrollOffsets],
-    );
+        if (isSearchScreen || isSearchMoneyRequestReport) {
+            const currentKey = focusedRoute ? getKey(focusedRoute) : null;
+            cleanScrollOffsets(scrollOffsetKeys, (key) => key.startsWith(SCREENS.SEARCH.ROOT) && key !== currentKey && !isSearchMoneyRequestReport);
+            return;
+        }
+        cleanScrollOffsets(scrollOffsetKeys, (key) => !existingScreenKeys.has(key));
+    };
 
-    const saveScrollIndex: ScrollOffsetContextValue['saveScrollIndex'] = useCallback((route, scrollIndex) => {
+    const saveScrollIndex: ScrollOffsetContextValue['saveScrollIndex'] = (route, scrollIndex) => {
         scrollOffsetsRef.current[getKey(route)] = scrollIndex;
-    }, []);
+    };
 
-    const getScrollIndex: ScrollOffsetContextValue['getScrollIndex'] = useCallback((route) => {
+    const getScrollIndex: ScrollOffsetContextValue['getScrollIndex'] = (route) => {
         if (!scrollOffsetsRef.current) {
             return;
         }
         return scrollOffsetsRef.current[getKey(route)];
-    }, []);
+    };
 
-    const contextValue = useMemo(
-        (): ScrollOffsetContextValue => ({
-            saveScrollOffset,
-            getScrollOffset,
-            cleanStaleScrollOffsets,
-            saveScrollIndex,
-            getScrollIndex,
-        }),
-        [saveScrollOffset, getScrollOffset, cleanStaleScrollOffsets, saveScrollIndex, getScrollIndex],
-    );
+    const contextValue: ScrollOffsetContextValue = {
+        saveScrollOffset,
+        getScrollOffset,
+        cleanStaleScrollOffsets,
+        saveScrollIndex,
+        getScrollIndex,
+    };
 
     return <ScrollOffsetContext.Provider value={contextValue}>{children}</ScrollOffsetContext.Provider>;
 }

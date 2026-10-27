@@ -7,12 +7,9 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
+import {useAllPersonalDetailsWithoutSnapshots} from './usePersonalDetails';
 
 const emptyLoginsList: string[] = [];
 
@@ -48,6 +45,8 @@ const buildAvailableLoginsList = memoize(
     {maxSize: 1, equality: 'shallow', monitoringName: 'buildAvailableLoginsList'},
 );
 
+const availableLoginsListSelector = (currentUserLogin: string) => (personalDetails: OnyxEntry<PersonalDetailsList>) => buildAvailableLoginsList(personalDetails, currentUserLogin);
+
 /**
  * This hook returns data to be used with short mentions in LiveMarkdown/Composer.
  * Short mentions have the format `@username`, where username is the first part of user's login (email).
@@ -59,20 +58,14 @@ export default function useShortMentionsList() {
     const [currentUserLogin = ''] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     // The selector output is compared by value, so consumers re-render only when the list changes.
-    // The raw hook skips the search-snapshot redirect: this list must always read live data.
-    const [availableLoginsList = emptyLoginsList] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails) => buildAvailableLoginsList(personalDetails, currentUserLogin),
-    });
+    const [availableLoginsList = emptyLoginsList] = useAllPersonalDetailsWithoutSnapshots(availableLoginsListSelector(currentUserLogin));
 
     // We want to highlight both short and long version of current user login
-    const currentUserMentions = useMemo(() => {
-        if (!currentUserPersonalDetails.login) {
-            return [];
-        }
-
+    const currentUserMentions: string[] = [];
+    if (currentUserPersonalDetails.login) {
         const [baseName] = currentUserPersonalDetails.login.split('@');
-        return [baseName, currentUserPersonalDetails.login];
-    }, [currentUserPersonalDetails.login]);
+        currentUserMentions.push(baseName, currentUserPersonalDetails.login);
+    }
 
     return {availableLoginsList, currentUserMentions};
 }

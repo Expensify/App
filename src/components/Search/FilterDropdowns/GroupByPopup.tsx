@@ -11,7 +11,7 @@ import type {GroupBySection} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import BasePopup from './BasePopup';
@@ -22,18 +22,10 @@ type GroupByPopupItem = {
 };
 
 type GroupByPopupProps = {
-    /** The grouped options to show in the list */
     sections: GroupBySection[];
-
-    /** The currently selected item */
     value: GroupByPopupItem | null;
-
     onBackButtonPress: () => void;
-
-    /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
-
-    /** Function to call when changes are applied */
     onChange: (item: GroupByPopupItem | null) => void;
 };
 
@@ -42,44 +34,38 @@ function GroupByPopup({value, sections, onBackButtonPress, closeOverlay, onChang
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);
 
-    const allSelectableItems = useMemo(() => sections.flatMap((section) => section.options), [sections]);
+    const allSelectableItems = sections.flatMap((section) => section.options);
 
-    const listSections = useMemo(
-        () =>
-            sections.map((section) => ({
-                sectionIndex: section.sectionIndex,
-                ...(section.sectionIndex > 0 ? {customHeader: <View style={styles.dividerLine} />} : {}),
-                data: section.options.map<ListItem<SearchGroupBy>>((item) => ({
-                    text: item.text,
-                    keyForList: item.value,
-                    isSelected: item.value === selectedItem?.value,
-                })),
-            })),
-        [sections, selectedItem?.value, styles.dividerLine],
-    );
+    const listSections = sections.map((section) => ({
+        sectionIndex: section.sectionIndex,
+        ...(section.sectionIndex > 0 ? {customHeader: <View style={styles.dividerLine} />} : {}),
+        data: section.options.map<ListItem<SearchGroupBy>>((item) => ({
+            text: item.text,
+            keyForList: item.value,
+            isSelected: item.value === selectedItem?.value,
+        })),
+    }));
 
-    const itemCount = Math.max(
-        1,
-        listSections.reduce((count, section) => count + section.data.length + (section.data.length > 0 && !!section.customHeader ? 1 : 0), 0),
-    );
+    let sectionItemCount = 0;
+    for (const section of listSections) {
+        sectionItemCount += section.data.length + (section.data.length > 0 && !!section.customHeader ? 1 : 0);
+    }
+    const itemCount = Math.max(1, sectionItemCount);
 
-    const updateSelectedItem = useCallback(
-        (item: ListItem) => {
-            const newItem = allSelectableItems.find((option) => option.value === item.keyForList) ?? null;
-            setSelectedItem(newItem);
-        },
-        [allSelectableItems],
-    );
+    const updateSelectedItem = (item: ListItem) => {
+        const newItem = allSelectableItems.find((option) => option.value === item.keyForList) ?? null;
+        setSelectedItem(newItem);
+    };
 
-    const applyChanges = useCallback(() => {
+    const applyChanges = () => {
         onChange(selectedItem);
         closeOverlay();
-    }, [closeOverlay, onChange, selectedItem]);
+    };
 
-    const resetChanges = useCallback(() => {
+    const resetChanges = () => {
         onChange(null);
         closeOverlay();
-    }, [closeOverlay, onChange]);
+    };
 
     return (
         <BasePopup

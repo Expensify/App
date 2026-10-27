@@ -1,15 +1,20 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Parser from '@libs/Parser';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
+import TravelBillingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelBillingContinuousReconciliationSection';
+import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -19,11 +24,11 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type NetSuiteSectionType = {
     title?: string;
-    description?: string;
+    description: string;
     onPress: () => void;
     subscribedSettings: string[];
     pendingAction?: PendingAction;
@@ -38,7 +43,8 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
     const styles = useThemeStyles();
 
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
-    const netSuiteExportBackPath = useMemo(() => createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path, ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)), [policyID]);
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
+    const netSuiteExportBackPath = createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path, getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID));
     const config = policy?.connections?.netsuite?.options?.config;
 
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
@@ -78,7 +84,7 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
     return (
         <ConnectionLayout
             displayName="NetSuiteTravelBillingConfigurationPage"
-            headerTitle="workspace.common.travelInvoicing"
+            headerTitle="workspace.common.travelBilling"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -87,28 +93,34 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onBackButtonPress={() => Navigation.goBack(netSuiteExportBackPath)}
         >
-            <MenuItemWithTopDescription
-                title={translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.label`)}
-                description={translate('workspace.accounting.exportAs')}
-                helperText={translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.travelDescription`)}
-                shouldParseHelperText
-                shouldShowRightIcon={false}
+            <MenuItemField
+                name={translate('workspace.accounting.exportAs')}
+                value={translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.label`)}
             />
+            <MenuItem.HelpTextHTML>
+                {Parser.replace(translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.travelDescription`))}
+            </MenuItem.HelpTextHTML>
             {sections.map((section) => (
                 <OfflineWithFeedback
                     pendingAction={section.pendingAction}
                     key={section.subscribedSettings.at(0)}
                     errorRowStyles={[styles.ph5]}
                 >
-                    <MenuItemWithTopDescription
-                        title={section.title}
-                        description={section.description}
+                    <MenuItemField
+                        name={section.description}
                         onPress={section.onPress}
-                        shouldShowRightIcon
-                        brickRoadIndicator={section.brickRoadIndicator}
-                    />
+                        value={section.title}
+                    >
+                        {!!section.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={section.brickRoadIndicator} />}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             ))}
+            <TravelBillingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+                isAutoSyncEnabled={!!policy?.connections?.netsuite?.config?.autoSync?.enabled}
+                isPayableAccountSet={!!config?.travelInvoicingPayableAccountID}
+            />
         </ConnectionLayout>
     );
 }

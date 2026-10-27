@@ -20,19 +20,10 @@ type DistanceRequestProps = WithSentryLabel & {
     /** The index of the item */
     item?: string;
 
-    /** Function to call when the secondary interaction is triggered */
     onSecondaryInteraction?: () => void;
-
-    /** Function to get the index of the item */
     getIndex?: () => number | undefined;
-
-    /** Whether the item is active */
     isActive?: boolean;
-
-    /** Function to call when the user clicks the item */
     onPress?: (index: number) => void;
-
-    /** Whether the item is disabled */
     disabled?: boolean;
 };
 
@@ -58,7 +49,6 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
     }
 
     const waypoint = waypoints?.[`waypoint${index}`] ?? {};
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const title = waypoint.name || waypoint.address;
     const errorText = isWaypointNullIsland(waypoint) ? translate('violations.noRoute') : undefined;
 

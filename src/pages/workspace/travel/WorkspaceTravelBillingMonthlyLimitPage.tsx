@@ -9,10 +9,11 @@ import Text from '@components/Text';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {updateTravelBillingMonthlyLimit} from '@libs/actions/TravelBilling';
 import {getCardSettings} from '@libs/CardUtils';
@@ -20,7 +21,7 @@ import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/Cur
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
+import {getTravelBillingCardSettingsKey, getTravelLimit} from '@libs/TravelBillingUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,17 +36,20 @@ type WorkspaceTravelBillingMonthlyLimitPageProps = PlatformStackScreenProps<Sett
 function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingMonthlyLimitPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const policyID = route.params?.policyID;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const currentLimit = travelSettings?.monthlySpendLimitPerUser ?? 0;
+    const travelLimit = getTravelLimit(travelSettings);
+    const isTravelLimitAvailable = travelSettings?.limit !== undefined || travelSettings?.remainingLimit !== undefined;
     const defaultValue = convertToFrontendAmountAsString(currentLimit, CONST.DEFAULT_CURRENCY_DECIMALS);
     const {inputCallbackRef} = useAutoFocusInput();
     const {showConfirmModal} = useConfirmModal();
 
     const submitLimit = (newLimitInCents: number) => {
-        updateTravelBillingMonthlyLimit(workspaceAccountID, newLimitInCents, currentLimit);
+        updateTravelBillingMonthlyLimit(travelBillingFundID, newLimitInCents, currentLimit);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
@@ -56,6 +60,10 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
         const parsed = parseFloat(limit);
         if (Number.isNaN(parsed) || parsed < 0) {
             errors[INPUT_IDS.LIMIT] = translate('iou.error.invalidAmount');
+        } else if (isTravelLimitAvailable && convertToBackendAmount(parsed) > travelLimit) {
+            errors[INPUT_IDS.LIMIT] = translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.limitExceedsTravelLimit', {
+                travelLimit: convertToDisplayString(travelLimit, CONST.CURRENCY.USD),
+            });
         }
         return errors;
     };
@@ -68,11 +76,11 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
             return;
         }
         showConfirmModal({
-            title: translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.reduceLimitTitle'),
-            prompt: translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.reduceLimitWarning'),
+            title: translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.reduceLimitTitle'),
+            prompt: translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.reduceLimitWarning'),
             confirmText: translate('common.confirm'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -88,7 +96,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
             testID="WorkspaceTravelBillingMonthlyLimitPage"
         >
             <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitLabel')}
+                title={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitLabel')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
@@ -100,6 +108,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 addBottomSafeAreaPadding
+                shouldShowLoadingImmediatelyOnPress={false}
             >
                 <View style={styles.mb4}>
                     <InputWrapper
@@ -113,7 +122,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
                         displayAsTextInput
                     />
                     <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>
-                        {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitDescription')}
+                        {translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitDescription')}
                     </Text>
                 </View>
             </FormProvider>

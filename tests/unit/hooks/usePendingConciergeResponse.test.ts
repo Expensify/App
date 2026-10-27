@@ -16,6 +16,12 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+const mockDispatchLocalDraftEvent = jest.fn();
+
+jest.mock('@pages/inbox/ConciergeDraftContext', () => ({
+    useConciergeDraftActions: () => ({dispatchLocalDraftEvent: mockDispatchLocalDraftEvent}),
+}));
+
 const REPORT_ID = '1';
 const REPORT_ACTION_ID = '100';
 
@@ -54,6 +60,7 @@ describe('usePendingConciergeResponse', () => {
     });
 
     beforeEach(async () => {
+        mockDispatchLocalDraftEvent.mockClear();
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -297,6 +304,24 @@ describe('usePendingConciergeResponse', () => {
             expect(payload.elapsedAtStart).toBeGreaterThanOrEqual(4_900);
             expect(payload.initialStage).toBeGreaterThan(1);
 
+            unmount();
+        });
+
+        it('preserves original HTML when an optimistic reveal completes', async () => {
+            // Given a pending reply whose self-closing tags are normalized by the reveal tokenizer.
+            const html = `${LONG_HTML}<br/><p>Ready&#39;s next step</p>`;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}`, {
+                reportAction: {...fakeLongConciergeAction, message: [{html, text: html, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}]},
+                displayAfter: Date.now() - 10_000,
+            });
+            await waitForBatchedUpdates();
+
+            // When a revisit completes the elapsed reveal immediately.
+            const {unmount} = renderHook(() => usePendingConciergeResponse(REPORT_ID));
+            await waitForBatchedUpdates();
+
+            // Then the completed draft matches the original optimistic action, allowing the list to retire it.
+            expect(mockDispatchLocalDraftEvent).toHaveBeenLastCalledWith(expect.objectContaining({status: 'completed', finalRenderedHTML: html}));
             unmount();
         });
 

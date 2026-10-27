@@ -11,16 +11,9 @@ import Badge from './Badge';
 import Tooltip from './Tooltip';
 
 type StatusBadgeProps = {
-    /** Status text to display */
     text: string;
-
-    /** Background color for the status badge */
     backgroundColor?: ColorValue;
-
-    /** Text color for the status badge */
     textColor?: ColorValue;
-
-    /** Additional badge styles */
     badgeStyles?: StyleProp<ViewStyle>;
 
     /** Text to display in a tooltip shown on hover of the badge. The tooltip is omitted when empty. */
@@ -32,15 +25,12 @@ function StatusBadge({text, backgroundColor, textColor, badgeStyles, tooltipText
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
 
-    const bgColor = (backgroundColor ?? theme.transparent) as string;
-    const txtColor = (textColor ?? theme.text) as string;
-
     const badge = (
         <Badge
             text={text}
             isCondensed
-            badgeStyles={[styles.ml0, styles.borderNone, StyleUtils.getBackgroundColorStyle(bgColor), badgeStyles]}
-            textStyles={StyleUtils.getColorStyle(txtColor)}
+            badgeStyles={[styles.ml0, styles.borderNone, StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.transparent), badgeStyles]}
+            textStyles={StyleUtils.getColorStyle(textColor ?? theme.text)}
         />
     );
 

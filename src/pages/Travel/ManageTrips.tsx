@@ -1,5 +1,5 @@
 import BookTravelButton from '@components/BookTravelButton';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';
@@ -19,10 +19,11 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {Linking, View} from 'react-native';
 
 type ManageTripsProps = {
@@ -53,16 +54,16 @@ function ManageTrips({policyID}: ManageTripsProps) {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
     };
 
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
 
-    const handleOnContentSizeChange = useCallback(() => {
+    const handleOnContentSizeChange = () => {
         if (!shouldScrollToBottom) {
             return;
         }
 
         scrollViewRef.current?.scrollToEnd({animated: true});
         setShouldScrollToBottom(false);
-    }, [shouldScrollToBottom]);
+    };
 
     return (
         <AccessOrNotFoundWrapper policyID={policyID}>

@@ -11,9 +11,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
-import React from 'react';
+import React, {Profiler} from 'react';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../../utils/TestHelper';
@@ -95,15 +96,27 @@ const MOCK_REPORT: Report = {
     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
 };
 
+const EMPTY_REPORT_ID = 'empty-report';
+const EMPTY_REPORT: Report = {
+    reportID: EMPTY_REPORT_ID,
+    policyID: MOCK_POLICY_ID,
+    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+    total: 0,
+    nonReimbursableTotal: 0,
+};
+
 const MOCK_PERSONAL_DETAILS: PersonalDetails = {
     accountID: CURRENT_USER_ACCOUNT_ID,
     login: CURRENT_USER_EMAIL,
     displayName: 'Test User',
 };
 
-function renderComponent() {
-    const actionButtonRef = React.createRef<View>();
-    return render(
+function renderPicker(isMenuVisible: boolean) {
+    const actionButtonRef = React.createRef<ComponentRef<typeof View>>();
+    return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <AttachmentPickerWithMenuItems
                 report={MOCK_REPORT}
@@ -114,7 +127,7 @@ function renderComponent() {
                 isComposerFullSize={false}
                 disabled={false}
                 setMenuVisibility={jest.fn()}
-                isMenuVisible
+                isMenuVisible={isMenuVisible}
                 onTriggerAttachmentPicker={jest.fn()}
                 onCanceledAttachmentPicker={jest.fn()}
                 onMenuClosed={jest.fn()}
@@ -123,8 +136,12 @@ function renderComponent() {
                 actionButtonRef={actionButtonRef}
                 raiseIsScrollLikelyLayoutTriggered={jest.fn()}
             />
-        </ComposeProviders>,
+        </ComposeProviders>
     );
+}
+
+function renderComponent(isMenuVisible = true) {
+    return render(renderPicker(isMenuVisible));
 }
 
 describe('AttachmentPickerWithMenuItems - empty report confirmation', () => {
@@ -143,7 +160,6 @@ describe('AttachmentPickerWithMenuItems - empty report confirmation', () => {
                 name: 'Test Workspace',
                 type: CONST.POLICY.TYPE.TEAM,
                 role: CONST.POLICY.ROLE.ADMIN,
-                isPolicyExpenseChatEnabled: true,
                 pendingAction: null,
                 owner: CURRENT_USER_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
@@ -210,5 +226,89 @@ describe('AttachmentPickerWithMenuItems - empty report confirmation', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+    });
+    it('opens confirmation modal when an empty report appears while the menu is closed', async () => {
+        // Given the current report already has an expense, and the composer is rendered with its menu closed so the check is skipped
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: MOCK_REPORT_ID});
+        });
+        await waitForBatchedUpdatesWithAct();
+        const {rerender} = renderComponent(false);
+        await waitForBatchedUpdatesWithAct();
+
+        // And an empty report appears while the menu is closed
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EMPTY_REPORT_ID}`, EMPTY_REPORT);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user opens the menu and taps "Create report"
+        rerender(renderPicker(true));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(translateLocal('report.newReport.createReport')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the confirmation opens, because the check runs as soon as the menu is visible
+        expect(mockOpenCreateReportConfirmation).toHaveBeenCalled();
+    });
+
+    it('does not open confirmation modal when the empty report got an expense while the menu was closed', async () => {
+        // Given the current report is empty and the composer is rendered with its menu closed so the check is skipped
+        const {rerender} = renderComponent(false);
+        await waitForBatchedUpdatesWithAct();
+
+        // And an expense lands on that report while the menu is closed
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: MOCK_REPORT_ID});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user opens the menu and taps "Create report"
+        rerender(renderPicker(true));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(translateLocal('report.newReport.createReport')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no confirmation opens, because the report is no longer empty
+        expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+    });
+});
+
+describe('AttachmentPickerWithMenuItems - transaction violations', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    afterEach(async () => {
+        jest.clearAllMocks();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('does not re-render when a transaction violation changes', async () => {
+        // Given the composer is rendered inside a Profiler and has settled, so the render count is a stable baseline
+        const onRender = jest.fn();
+        render(
+            <Profiler
+                id="AttachmentPickerWithMenuItems"
+                onRender={onRender}
+            >
+                {renderPicker(false)}
+            </Profiler>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        const renderCountBeforeChange = onRender.mock.calls.length;
+
+        // When a violation changes on any transaction, which the composer never reads because a new report has no expenses
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}123`, [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the composer does not re-render, so a violation change anywhere in the app doesn't cost it a render
+        expect(renderCountBeforeChange).toBeGreaterThan(0);
+        expect(onRender).toHaveBeenCalledTimes(renderCountBeforeChange);
     });
 });

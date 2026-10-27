@@ -43,7 +43,7 @@ function QRShare({
     const theme = useTheme();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const qrCodeContainerWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
+    const qrCodeContainerWidth = shouldUseNarrowLayout ? windowWidth : variables.rhpWidth;
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
 
     const landscapeQrCodeSize = isInLandscapeMode ? Math.min(QR_CODE_LANDSCAPE_SIZE_RATIO * windowHeight, MAX_QR_CODE_LANDSCAPE_SIZE) : undefined;
@@ -96,8 +96,7 @@ function QRShare({
 
             {!!title && (
                 <Text
-                    family="EXP_NEW_KANSAS_MEDIUM"
-                    fontSize={variables.fontSizeXLarge}
+                    variant="h1"
                     numberOfLines={2}
                     style={styles.qrShareTitle}
                 >
@@ -107,7 +106,7 @@ function QRShare({
 
             {!!subtitle && (
                 <Text
-                    fontSize={variables.fontSizeLabel}
+                    variant="label"
                     numberOfLines={2}
                     style={[styles.mt1, styles.textAlignCenter]}
                     color={theme.textSupporting}

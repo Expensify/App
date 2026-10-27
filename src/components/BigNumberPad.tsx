@@ -5,7 +5,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import ControlSelection from '@libs/ControlSelection';
 
-import React, {useEffect, useRef, useState} from 'react';
+import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import Button from './Button';
@@ -20,7 +24,6 @@ type BigNumberPadProps = {
     /** Used to locate this view from native classes. */
     id?: string;
 
-    /** Whether long press is disabled */
     isLongPressDisabled?: boolean;
 };
 
@@ -36,13 +39,25 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
     const {toLocaleDigit} = useLocalize();
 
     const styles = useThemeStyles();
-    const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
     const {isExtraSmallScreenHeight, isInLandscapeMode} = useResponsiveLayout();
     const numberPressedRef = useRef(numberPressed);
 
     useEffect(() => {
         numberPressedRef.current = numberPressed;
     }, [numberPressed]);
+
+    // Releasing the button never fires when the pad unmounts mid long press (e.g. on rotation), so stop the interval here
+    useEffect(
+        () => () => {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+            ControlSelection.unblock();
+        },
+        [],
+    );
 
     /**
      * Handle long press key on number pad.
@@ -55,12 +70,19 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
 
         longPressHandlerStateChanged(true);
 
-        const newTimer = setInterval(() => {
+        timerRef.current = setInterval(() => {
             numberPressedRef.current?.(key);
         }, 100);
-
-        setTimer(newTimer);
     };
+
+    let numberPadButtonSize: ValueOf<typeof CONST.BUTTON_SIZE>;
+    if (isInLandscapeMode) {
+        numberPadButtonSize = CONST.BUTTON_SIZE.SMALL;
+    } else if (isExtraSmallScreenHeight) {
+        numberPadButtonSize = CONST.BUTTON_SIZE.MEDIUM;
+    } else {
+        numberPadButtonSize = CONST.BUTTON_SIZE.LARGE;
+    }
 
     return (
         <View
@@ -80,22 +102,21 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                         return (
                             <Button
                                 key={column}
-                                small={isInLandscapeMode}
-                                medium={isExtraSmallScreenHeight && !isInLandscapeMode}
-                                large={!isExtraSmallScreenHeight && !isInLandscapeMode}
-                                shouldEnableHapticFeedback
+                                size={numberPadButtonSize}
+                                enableHapticFeedback
                                 style={[styles.flex1, marginLeft]}
-                                text={column === '<' ? undefined : toLocaleDigit(column)}
-                                icon={column === '<' ? icons.BackArrow : undefined}
                                 onLongPress={() => handleLongPress(column)}
                                 onPress={() => numberPressed(column)}
                                 onPressIn={ControlSelection.block}
                                 onPressOut={() => {
-                                    if (timer) {
-                                        clearInterval(timer);
+                                    ControlSelection.unblock();
+
+                                    if (!timerRef.current) {
+                                        return;
                                     }
 
-                                    ControlSelection.unblock();
+                                    clearInterval(timerRef.current);
+                                    timerRef.current = null;
                                     longPressHandlerStateChanged(false);
                                 }}
                                 onMouseDown={(e) => {
@@ -103,7 +124,9 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                                 }}
                                 isLongPressDisabled={isLongPressDisabled}
                                 testID={`button_${column}`}
-                            />
+                            >
+                                {column === '<' ? <Button.Icon src={icons.BackArrow} /> : <Button.Text>{toLocaleDigit(column)}</Button.Text>}
+                            </Button>
                         );
                     })}
                 </View>

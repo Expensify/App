@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {ValidateCodeActionContentProps} from './type';
@@ -23,12 +23,14 @@ function ValidateCodeActionContent({
     descriptionPrimary,
     descriptionSecondary,
     onClose,
+    shouldShowCloseButton = false,
     validateError,
     validatePendingAction,
     validateCodeActionErrorField,
     handleSubmitForm,
     clearError,
     sendValidateCode,
+    validateCodeReasonCode,
     isLoading,
     threeDotsMenuItems = [],
     onThreeDotsButtonPress = () => {},
@@ -46,10 +48,12 @@ function ValidateCodeActionContent({
         }
         firstRenderRef.current = false;
 
-        // The validateCode is account-level, so skip sending if one was already requested within the resend window (e.g. a page reload)
+        // The validateCode is account-level, so skip sending if one was already requested within the resend window (e.g. a page reload).
+        // When this screen declares a reason, only suppress if the recent request was for the same flow.
         const requestedAt = validateCodeAction?.lastValidateCodeRequestedAt;
         const sentRecently = !!requestedAt && Date.now() - requestedAt < CONST.REQUEST_CODE_DELAY * CONST.MILLISECONDS_PER_SECOND;
-        if (sentRecently) {
+        const sentRecentlyForSameReason = sentRecently && (!validateCodeReasonCode || validateCodeAction?.lastValidateCodeReason === validateCodeReasonCode);
+        if (sentRecentlyForSameReason) {
             return;
         }
 
@@ -58,10 +62,10 @@ function ValidateCodeActionContent({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sendValidateCode, validateCodeActionMetadata]);
 
-    const hide = useCallback(() => {
+    const hide = () => {
         clearError();
         onClose?.();
-    }, [onClose, clearError]);
+    };
 
     return (
         <ScreenWrapper
@@ -72,14 +76,20 @@ function ValidateCodeActionContent({
             offlineIndicatorStyle={themeStyles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={title}
-                onBackButtonPress={hide}
-                threeDotsMenuItems={threeDotsMenuItems}
-                shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
-                shouldOverlayDots
-                onThreeDotsButtonPress={onThreeDotsButtonPress}
-            />
+            <Header>
+                {!shouldShowCloseButton && <Header.BackButton onPress={hide} />}
+                <Header.Title title={title} />
+                <Header.Right>
+                    {threeDotsMenuItems.length > 0 && (
+                        <Header.ThreeDotsMenu
+                            items={threeDotsMenuItems}
+                            onIconPress={onThreeDotsButtonPress}
+                            shouldOverlay
+                        />
+                    )}
+                    {shouldShowCloseButton && <Header.CloseButton onPress={hide} />}
+                </Header.Right>
+            </Header>
 
             <ScrollView
                 style={[themeStyles.w100, themeStyles.h100, themeStyles.flex1]}

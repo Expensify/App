@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -10,6 +10,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +19,6 @@ import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFilteredRecentAttendees, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {generateAccountID} from '@libs/UserUtils';
 
 import type {IOUType} from '@src/CONST';
@@ -30,8 +30,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {GestureResponderEvent} from 'react-native';
 
 import {SafeString} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
-import React, {memo, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 
 type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -45,9 +44,12 @@ type MoneyRequestAttendeesSelectorProps = {
 
     /** The type of IOU report, i.e. split, request, send, track */
     iouType: IOUType;
+
+    /** Empty selection shows no error until the user tries to save */
+    shouldDeferEmptySelectionError?: boolean;
 };
 
-function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType}: MoneyRequestAttendeesSelectorProps) {
+function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType, shouldDeferEmptySelectionError = false}: MoneyRequestAttendeesSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -55,19 +57,20 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
+    const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const recentAttendeeLogins = getFilteredRecentAttendees(attendees, recentAttendees ?? [], currentUserEmail);
+    const attendeesPersonalDetails = usePersonalDetailsByLogins(attendees.map((attendee) => attendee.email));
 
     // Build the initial selection. Attendees that aren't in the personal details list (name-only or unknown emails) get a stable dummy
     // accountID derived from their login (generateAccountID is deterministic), so they can be tracked by accountID like everyone else.
     const initialSelectedOptions = attendees.map((attendee) => {
         // Use || to fall back to displayName for name-only attendees (empty email)
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const login = attendee.email || attendee.displayName;
-        const personalDetail = getPersonalDetailByEmail(attendee.email);
+        const personalDetail = attendeesPersonalDetails[attendee.email ?? ''];
         const accountID = personalDetail?.accountID ?? generateAccountID(login);
         return {attendee, login, personalDetail, accountID};
     });
@@ -114,7 +117,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 return {
                     email: option.login ?? '',
                     // Use || to fall back for name-only attendees
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     displayName: option.text || option.login || '',
                     avatarUrl: icon,
                 };
@@ -127,10 +129,13 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         searchUserInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-    const shouldShowErrorMessage = areOptionsInitialized && selectedOptions.length < 1;
+    const shouldShowErrorMessage = areOptionsInitialized && selectedOptions.length < 1 && (!shouldDeferEmptySelectionError || hasAttemptedSave);
 
     const confirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
-        if (shouldShowErrorMessage || (!selectedOptions.length && !option)) {
+        if (!selectedOptions.length && !option) {
+            if (shouldDeferEmptySelectionError) {
+                setHasAttemptedSave(true);
+            }
             return;
         }
 
@@ -140,7 +145,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
     const getFooterContent = () => {
-        if (!shouldShowErrorMessage && !selectedOptions.length) {
+        if (!shouldShowErrorMessage && !selectedOptions.length && !shouldDeferEmptySelectionError) {
             return;
         }
 
@@ -233,9 +238,10 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             textInputOptions={textInputOptions}
             confirmButtonOptions={{
                 onConfirm: confirmSelection,
+                isFooterConfirmEnabled: selectedOptions.length > 0,
             }}
             footerContent={footerContent}
-            isLoadingNewOptions={!!isSearchingForReports}
+            isLoadingNewOptions={!!isSearchingForUsers}
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             shouldShowListEmptyContent={shouldShowListEmptyContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
@@ -247,5 +253,4 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     );
 }
 
-// eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- attendees array is derived and may have unstable references
-export default memo(MoneyRequestAttendeeSelector, (prevProps, nextProps) => deepEqual(prevProps.attendees, nextProps.attendees) && prevProps.iouType === nextProps.iouType);
+export default MoneyRequestAttendeeSelector;

@@ -2,13 +2,16 @@ import {isDevelopment} from '@libs/Environment/Environment';
 import {
     breadcrumbsIntegration,
     browserProfilingIntegration,
+    classCallCheckNoiseFilterIntegration,
     consoleIntegration,
+    googleTranslateRecursionNoiseFilterIntegration,
     navigationIntegration,
     reportingObserverIntegration,
     thirdPartyErrorFilterIntegration,
     tracingIntegration,
 } from '@libs/telemetry/integrations';
 import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
+import getAppVersion from '@libs/VersionUtils';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -24,7 +27,16 @@ import makeDebugTransport from './debugTransport';
  */
 const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /^safari-web-extension:\/\//i];
 
+/**
+ * Ordered list, not independent entries: Sentry runs each integration's `processEvent` in list order, and the
+ * noise filters read the `third_party_code` tag `thirdPartyErrorFilterIntegration` writes. Moved ahead of it, a
+ * filter goes inert with no type error to catch it - hence one constant that reorders as a unit, with the order
+ * pinned by `tests/unit/setupSentryIntegrationOrderTest.ts`.
+ */
+const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration, googleTranslateRecursionNoiseFilterIntegration];
+
 function setupSentry(): void {
+    const {semanticVersion, buildNumber} = getAppVersion(pkg.version);
     const integrations = [
         navigationIntegration,
         tracingIntegration,
@@ -32,7 +44,7 @@ function setupSentry(): void {
         breadcrumbsIntegration,
         consoleIntegration,
         reportingObserverIntegration,
-        thirdPartyErrorFilterIntegration,
+        ...THIRD_PARTY_NOISE_INTEGRATIONS,
     ].filter((integration): integration is NonNullable<typeof integration> => integration !== undefined);
 
     Sentry.init({
@@ -45,11 +57,36 @@ function setupSentry(): void {
         tracesSampleRate: 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
-        integrations,
+        // TurboModuleContext adds CPU cost to every RNSentry call on iOS, see https://github.com/Expensify/App/pull/103900
+        integrations: (defaultIntegrations) => {
+            // Read from the SDK, so the filter keeps working if Sentry renames the integration. Looked up here rather
+            // than at module load so importing this file does not call into the SDK.
+            const turboModuleContextIntegrationName = Sentry.turboModuleContextIntegration().name;
+            return [...defaultIntegrations.filter((integration) => integration.name !== turboModuleContextIntegrationName), ...integrations];
+        },
         environment: CONFIG.ENVIRONMENT,
-        release: `${pkg.name}@${pkg.version}`,
-        // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
-        ignoreErrors: [CONST.ERROR.UPDATE_REQUIRED],
+        release: `${pkg.name}@${semanticVersion}`,
+        dist: buildNumber,
+        ignoreErrors: [
+            // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
+            CONST.ERROR.UPDATE_REQUIRED,
+            // Bare-string rejections from the Convert Experiments script in web/index.html, which reads OnyxDB directly.
+            // They carry no stack frames for thirdPartyErrorFilterIntegration to tag; the prefix limits this to the
+            // browser SDK's rejection wording, so a real Error carrying the same text still reports.
+            /^Non-Error promise rejection captured with value: No data found for key/,
+            // Uncaught IndexedDB rejection from the same Convert script, which inserts into its own database with
+            // `add()` instead of `put()` and fails whenever the key is already there. Onyx never calls `add()`, so a
+            // real Onyx write cannot produce this, and the DOMException carries no frames to tag as third-party.
+            /^ConstraintError: Key already exists in the object store/,
+            // Calls into the WKWebView message bridge an in-app browser injected into the page, which then tore the
+            // bridge down (https://github.com/Expensify/App/issues/100268, Sentry APP-8WS). We ship no
+            // `webkit.messageHandlers` call anywhere in the org, so any error naming one was thrown by injected code
+            // we cannot act on. Filtering on the message rather than the frames is what works here: WebKit withholds
+            // the URL of an injected script, so `denyUrls` and `thirdPartyErrorFilterIntegration` have nothing to
+            // match. The trailing dot keeps this to a real property access into the bridge, so an unrelated error
+            // that merely names the bridge in prose still reports.
+            /webkit\.messageHandlers\./,
+        ],
         denyUrls: EXTENSION_DENY_URLS,
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,
@@ -64,7 +101,7 @@ function setupSentry(): void {
             profilingOptions: {
                 // When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
                 // This option replaces `profilesSampleRate`
-                profileSessionSampleRate: 0.1,
+                profileSessionSampleRate: 0.5,
                 lifecycle: 'trace',
             },
         },

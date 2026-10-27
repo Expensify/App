@@ -39,6 +39,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    revealRouteBeforeDismissingModal: jest.fn(),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
@@ -77,12 +78,33 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+// The public options rows use the composable MenuItem API, where the indicator is a child leaf rather than
+// a prop, so expose its status as text the same way the MenuItemWithTopDescription double below does
+jest.mock('@components/MenuItem/leaves/trailing/icons/MenuItemBrickRoadIndicator', () => {
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<{Text: typeof ReactNativeText}>('react-native');
+    return ({status}: {status: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) => ReactMock.createElement(Text, null, `${status}-brickRoadIndicator`);
+});
+
 // Replace MenuItemWithTopDescription with a simple test double that exposes props in the tree
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     const {Text} = jest.requireActual<{Text: typeof ReactNativeText}>('react-native');
-    return ({pressableTestID, brickRoadIndicator}: {pressableTestID: string; brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) =>
-        ReactMock.createElement(Text, {testID: pressableTestID}, `${brickRoadIndicator ?? 'none'}-brickRoadIndicator`);
+    return ({
+        pressableTestID,
+        brickRoadIndicator,
+        furtherDetails,
+    }: {
+        pressableTestID: string;
+        brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+        furtherDetails?: string;
+    }) =>
+        ReactMock.createElement(
+            ReactMock.Fragment,
+            null,
+            ReactMock.createElement(Text, {testID: pressableTestID}, `${brickRoadIndicator ?? 'none'}-brickRoadIndicator`),
+            furtherDetails ? ReactMock.createElement(Text, {testID: `${pressableTestID}-further-details`}, furtherDetails) : null,
+        );
 });
 
 describe('ProfilePage contact method indicator', () => {
@@ -127,7 +149,7 @@ describe('ProfilePage contact method indicator', () => {
         renderPage();
 
         // Description for contact methods is 'contacts.contactMethods' via mocked translate
-        let node = screen.getByText('error-brickRoadIndicator');
+        const node = screen.getByText('error-brickRoadIndicator');
         expect(node).toBeDefined();
 
         // Verify that RBR disappears
@@ -141,10 +163,9 @@ describe('ProfilePage contact method indicator', () => {
         });
 
         await waitFor(() => {
-            node = screen.getByTestId('contact-method-menu-item');
-
-            // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
-            expect(node).toHaveTextContent('none-brickRoadIndicator');
+            // The row keeps rendering, but with nothing left to flag the indicator leaf unmounts
+            expect(screen.getByTestId('contact-method-menu-item')).toBeDefined();
+            expect(screen.queryByText('error-brickRoadIndicator')).toBeNull();
         });
     });
 
@@ -167,7 +188,7 @@ describe('ProfilePage contact method indicator', () => {
 
         renderPage();
 
-        let node = screen.getByText('info-brickRoadIndicator');
+        const node = screen.getByText('info-brickRoadIndicator');
         expect(node).toBeDefined();
 
         // Verify that GBR disappears
@@ -180,10 +201,9 @@ describe('ProfilePage contact method indicator', () => {
         });
 
         await waitFor(() => {
-            node = screen.getByTestId('contact-method-menu-item');
-
-            // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
-            expect(node).toHaveTextContent('none-brickRoadIndicator');
+            // The row keeps rendering, but with nothing left to flag the indicator leaf unmounts
+            expect(screen.getByTestId('contact-method-menu-item')).toBeDefined();
+            expect(screen.queryByText('info-brickRoadIndicator')).toBeNull();
         });
     });
 });
@@ -260,6 +280,59 @@ describe('ProfilePage - agent account', () => {
         expect(screen.getByText('Private')).toBeDefined();
     });
 
+    it('names the workspace that calculates commuter exclusions from the home address', async () => {
+        await setupUser('user@expensify.com');
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+                id: '1',
+                name: 'Boulder Development',
+                areDistanceRatesEnabled: true,
+                commuterExclusions: {method: 'homeAndOffice'},
+            });
+        });
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('address-menu-item')).toHaveTextContent('info-brickRoadIndicator');
+        expect(screen.getByTestId('address-menu-item-further-details')).toHaveTextContent('Boulder Development uses this address for commuter exclusions.');
+    });
+
+    it('does not mention commuter exclusions when no workspace calculates them from the home address', async () => {
+        await setupUser('user@expensify.com');
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+                id: '1',
+                name: 'Boulder Development',
+                commuterExclusions: {method: 'fixedDistance', fixedDistance: 1, fixedDistanceUnit: 'mi'},
+            });
+        });
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('address-menu-item')).toBeDefined();
+        expect(screen.queryByTestId('address-menu-item-further-details')).toBeNull();
+    });
+
+    it('shows the commuter exclusion indicator when distance rates are disabled but the setting remains active', async () => {
+        await setupUser('user@expensify.com');
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+                id: '1',
+                name: 'Boulder Development',
+                areDistanceRatesEnabled: false,
+                commuterExclusions: {method: 'homeAndOffice'},
+            });
+        });
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('address-menu-item')).toHaveTextContent('info-brickRoadIndicator');
+        expect(screen.getByTestId('address-menu-item-further-details')).toHaveTextContent('Boulder Development uses this address for commuter exclusions.');
+    });
+
     it('shows contact methods, pronouns, timezone and private section for non-agent account', async () => {
         await setupUser('user@expensify.com');
 
@@ -272,12 +345,51 @@ describe('ProfilePage - agent account', () => {
         expect(screen.getByText('Private')).toBeDefined();
     });
 
+    it('opens the vacation delegate form from the row when no delegate is set', async () => {
+        // Given a user with no vacation delegate
+        await setupUser('user@expensify.com');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the vacation delegate row is pressed
+        // MenuItem only forwards the press to onPress when it receives an event, so pass a minimal one.
+        fireEvent.press(screen.getByTestId('vacation-delegate-menu-item'), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the form opens with Choose delegate unselected, so the member and the clear after date are picked on one screen
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_VACATION_DELEGATE);
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.SETTINGS_VACATION_DELEGATE_SELECT);
+    });
+
+    it('shows the vacation delegate and when it clears, and opens the form from the row', async () => {
+        // Given a user whose vacation delegate clears in the future
+        await setupUser('user@expensify.com');
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {creator: 'user@expensify.com', delegate: 'delegate@expensify.com', clearAfter: '2999-01-02 07:59:59'});
+        });
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row shows the delegate and the end date, so the user can see reports are routed elsewhere
+        expect(screen.getByText('delegate@expensify.com')).toBeDefined();
+        expect(screen.getByText(/^Until /)).toBeDefined();
+
+        // When the row is pressed
+        fireEvent.press(screen.getByTestId('vacation-delegate-menu-item'), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the form opens, where the date can be changed or the delegate removed
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_VACATION_DELEGATE);
+    });
+
     it('shows AI prompt section with prompt text for agent account', async () => {
         const accountID = 123;
         await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Reject gambling expenses.',
                 pendingAction: null,
             });
@@ -328,7 +440,7 @@ describe('ProfilePage - agent account', () => {
         await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Reject gambling expenses.',
                 pendingAction: null,
             });
@@ -351,7 +463,7 @@ describe('ProfilePage - agent account', () => {
         await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Reject gambling expenses.',
                 pendingAction: 'update',
             });
@@ -370,7 +482,7 @@ describe('ProfilePage - agent account', () => {
         await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Reject gambling expenses.',
                 pendingAction: null,
             });
@@ -384,7 +496,7 @@ describe('ProfilePage - agent account', () => {
         fireEvent.press(screen.getByTestId('save-prompt-button'));
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Updated prompt text',
                 pendingAction: 'update',
             });
@@ -403,7 +515,7 @@ describe('ProfilePage - agent account', () => {
         await act(async () => {
             // Simulate a first offline save that is queued but not yet replayed: pendingAction stays 'update',
             // so isSaving is true. The button is intentionally not disabled while offline.
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'First offline edit.',
                 pendingAction: 'update',
             });
@@ -426,7 +538,7 @@ describe('ProfilePage - agent account', () => {
         await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Reject gambling expenses.',
                 pendingAction: null,
             });
@@ -442,7 +554,7 @@ describe('ProfilePage - agent account', () => {
 
         // Optimistic write sets pendingAction='update' so the user-initiated save shows the loader.
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Updated prompt text',
                 pendingAction: 'update',
             });
@@ -468,7 +580,7 @@ describe('ProfilePage - agent account', () => {
         await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Reject gambling expenses.',
                 pendingAction: null,
             });
@@ -493,7 +605,7 @@ const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'current@expensify.com';
 const PUBLIC_PROFILE_ACCOUNT_ID = 123;
 
-describe('ProfilePage - View user history', () => {
+describe('ProfilePage - See chat history', () => {
     beforeAll(async () => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -535,7 +647,7 @@ describe('ProfilePage - View user history', () => {
         await waitForBatchedUpdatesWithAct();
     }
 
-    function renderPublicProfilePage() {
+    function renderPublicProfilePage(accountIDParam?: string) {
         return render(
             <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
                 <PortalProvider>
@@ -544,7 +656,7 @@ describe('ProfilePage - View user history', () => {
                             <PublicProfileStack.Screen
                                 name={SCREENS.DYNAMIC_PROFILE}
                                 component={PublicProfilePage}
-                                initialParams={{accountID: String(PUBLIC_PROFILE_ACCOUNT_ID), reportID: ''}}
+                                initialParams={{accountID: accountIDParam ?? String(PUBLIC_PROFILE_ACCOUNT_ID), reportID: ''}}
                             />
                         </PublicProfileStack.Navigator>
                     </NavigationContainer>
@@ -559,7 +671,7 @@ describe('ProfilePage - View user history', () => {
         renderPublicProfilePage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText('View user history')).toBeOnTheScreen();
+        expect(screen.getByText('See chat history')).toBeOnTheScreen();
         expect(screen.queryByText('View agent history')).not.toBeOnTheScreen();
     });
 
@@ -570,7 +682,7 @@ describe('ProfilePage - View user history', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText('View agent history')).toBeOnTheScreen();
-        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
+        expect(screen.queryByText('See chat history')).not.toBeOnTheScreen();
     });
 
     it('navigates to a chat search filtered by the profile account when pressed', async () => {
@@ -580,10 +692,10 @@ describe('ProfilePage - View user history', () => {
         await waitForBatchedUpdatesWithAct();
 
         // MenuItem only forwards the press to onPress when it receives an event, so pass a minimal one.
-        fireEvent.press(screen.getByText('View user history'), {nativeEvent: {}});
+        fireEvent.press(screen.getByText('See chat history'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(
+        expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
                 rawQuery: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
@@ -602,16 +714,16 @@ describe('ProfilePage - View user history', () => {
         renderPublicProfilePage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
+        expect(screen.queryByText('See chat history')).not.toBeOnTheScreen();
     });
 
-    it('hides the search entry when the account has no login', async () => {
-        await setUpPublicProfile('');
+    it.each(['0', 'not-a-number'])('hides the search entry for the invalid accountID %s', async (invalidAccountID) => {
+        await setUpPublicProfile('user@expensify.com');
 
-        renderPublicProfilePage();
+        renderPublicProfilePage(invalidAccountID);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
+        expect(screen.queryByText('See chat history')).not.toBeOnTheScreen();
         expect(screen.queryByText('View agent history')).not.toBeOnTheScreen();
     });
 });

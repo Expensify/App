@@ -14,13 +14,11 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type ParticipantLocalTimeProps = {
-    /** Personal details of the participant */
     participant: PersonalDetails;
 };
 
 function getParticipantLocalTime(participant: PersonalDetails, getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'], dateFnsLocale: LocaleContextProps['dateFnsLocale']) {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
-    const reportRecipientTimezone = participant.timezone || CONST.DEFAULT_TIME_ZONE;
+    const reportRecipientTimezone = participant.timezone ?? CONST.DEFAULT_TIME_ZONE;
     const reportTimezone = getLocalDateFromDatetime(undefined, reportRecipientTimezone.selected);
     const currentTimezone = getLocalDateFromDatetime();
     const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone, dateFnsLocale);
@@ -47,7 +45,6 @@ function ParticipantLocalTime({participant}: ParticipantLocalTimeProps) {
         };
     }, [participant, getLocalDateFromDatetime, dateFnsLocale]);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     const reportRecipientDisplayName = participant.firstName || participant.displayName;
 
     if (!reportRecipientDisplayName) {

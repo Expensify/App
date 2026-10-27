@@ -2,9 +2,10 @@ import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThrea
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {isOneTransactionReport} from '@libs/ReportUtils';
+import {getSubmitterUnfixableViolationNames, isOneTransactionReport, isReportEligibleForViolationFix} from '@libs/ReportUtils';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -16,6 +17,7 @@ import type TransactionViolations from '@src/types/onyx/TransactionViolation';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
+import {forwardedSinceLastSubmitReportIDsSelector} from '@selectors/ReportAction';
 import noop from 'lodash/noop';
 import {useState} from 'react';
 
@@ -33,19 +35,19 @@ type ReviewFlaggedExpenses = {
 
 /** A transaction that should surface in the "Review X expenses" row, paired with its parent report. */
 type FlaggedExpense = {
-    /** ID of the flagged transaction */
     transactionID: string;
     /** ID of the parent expense report */
     reportID: string;
 };
 
-/**
- * Returns true when this report is an OPEN expense report owned by the current user.
- *
- * `currentUserAccountID` is required. Callers should pass `session?.accountID ?? CONST.DEFAULT_NUMBER_ID`
- * so that the ownership check fails closed when the session is not yet populated (no real ownerAccountID is 0).
- */
-function isCurrentUserOpenExpenseReport(report: Report | null | undefined, currentUserAccountID: number): boolean {
+// True when the current user owns this expense report and its state still lets them fix violations.
+// Pass currentUserAccountID as `session?.accountID ?? DEFAULT_NUMBER_ID` so ownership fails closed before login.
+function isCurrentUserReportEligibleForViolationFix(
+    report: Report | null | undefined,
+    policy: OnyxEntry<Policy>,
+    currentUserAccountID: number,
+    hasBeenForwardedSinceLastSubmit?: boolean,
+): boolean {
     if (!report) {
         return false;
     }
@@ -55,14 +57,16 @@ function isCurrentUserOpenExpenseReport(report: Report | null | undefined, curre
     if (report.ownerAccountID !== currentUserAccountID) {
         return false;
     }
-    return report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+    return isReportEligibleForViolationFix(report, policy, hasBeenForwardedSinceLastSubmit);
 }
 
-/** Returns true when at least one visible violation should surface in the "Review X expenses" row. */
-function hasReviewableViolation(violations: TransactionViolations | null | undefined): boolean {
+// True when a violation should show in "Review expenses".
+function hasReviewableViolation(violations: TransactionViolations | null | undefined, report: OnyxEntry<Report>): boolean {
     if (!violations || violations.length === 0) {
         return false;
     }
+
+    const {excludedViolations, excludedNotices} = getSubmitterUnfixableViolationNames(report);
 
     return violations.some((violation) => {
         if (!violation) {
@@ -74,20 +78,27 @@ function hasReviewableViolation(violations: TransactionViolations | null | undef
         if (violation.name === CONST.REPORT_VIOLATIONS.FIELD_REQUIRED) {
             return false;
         }
+        if (excludedViolations.includes(violation.name)) {
+            return false;
+        }
         if (violation.type === CONST.VIOLATION_TYPES.NOTICE || violation.type === CONST.VIOLATION_TYPES.WARNING) {
+            if (violation.type === CONST.VIOLATION_TYPES.NOTICE && excludedNotices.includes(violation.name)) {
+                return false;
+            }
             return violation.showInReview === true;
         }
         return true;
     });
 }
 
-/** Scans the current user's OPEN expense reports for transactions that have at least one reviewable violation. */
+// Scans the current user's still-fixable expense reports for transactions with a reviewable violation.
 function getFlaggedExpenses(
     allReports: OnyxCollection<Report>,
     allTransactions: OnyxCollection<Transaction>,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     allPolicies: OnyxCollection<Policy>,
     session: OnyxEntry<Session>,
+    forwardedSinceLastSubmitReportIDs?: Record<string, true>,
 ): FlaggedExpense[] {
     if (!allReports || !allTransactions) {
         return [];
@@ -104,7 +115,9 @@ function getFlaggedExpenses(
         }
 
         const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-        if (!isCurrentUserOpenExpenseReport(report, currentUserAccountID)) {
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        const hasBeenForwardedSinceLastSubmit = forwardedSinceLastSubmitReportIDs ? !!forwardedSinceLastSubmitReportIDs[transaction.reportID] : undefined;
+        if (!isCurrentUserReportEligibleForViolationFix(report, policy, currentUserAccountID, hasBeenForwardedSinceLastSubmit)) {
             continue;
         }
 
@@ -113,11 +126,9 @@ function getFlaggedExpenses(
             continue;
         }
 
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        // The report is one of the current user's OPEN expense reports (see isCurrentUserOpenExpenseReport),
-        // so the report owner is the current user and the owner login is currentUserEmail.
+        // The report is owned by the current user, so the owner login is currentUserEmail.
         const visibleViolations = getVisibleTransactionViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, currentUserEmail, policy);
-        if (!hasReviewableViolation(visibleViolations)) {
+        if (!hasReviewableViolation(visibleViolations, report)) {
             continue;
         }
 
@@ -141,8 +152,10 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    // Catches a forward that lands via REPORT_ACTIONS alone, with no report write to trigger a re-render.
+    const [forwardedSinceLastSubmitReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: forwardedSinceLastSubmitReportIDsSelector});
 
-    const flaggedExpenses = isFocused ? getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session) : undefined;
+    const flaggedExpenses = isFocused ? getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session, forwardedSinceLastSubmitReportIDs) : undefined;
 
     // Retain the count across blur via "adjust state during render". It's a primitive, so this guard can't loop
     // and doesn't depend on the scan being referentially stable.
@@ -171,16 +184,23 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
               const firstFlaggedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstFlaggedExpense.reportID}`];
               const firstFlaggedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstFlaggedExpense.transactionID}`];
 
-              // With a single flagged expense the review carousel has nothing to navigate between, and for a
-              // one-transaction report the transaction thread is a redundant duplicate of the report itself.
-              // Gate on the report's transaction count (not its type) so a lone flagged expense inside a
-              // multi-transaction report still opens that expense's thread rather than the whole report.
-              if (flaggedExpenses.length === 1 && isOneTransactionReport(firstFlaggedReport)) {
-                  Navigation.navigate(
-                      shouldUseNarrowLayout
-                          ? ROUTES.REPORT_WITH_ID.getRoute(firstFlaggedExpense.reportID, undefined, undefined, ROUTES.HOME)
-                          : ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: firstFlaggedExpense.reportID, backTo: ROUTES.HOME}),
-                  );
+              const siblingTransactionIDs = flaggedExpenses.map((flaggedExpense) => flaggedExpense.transactionID);
+
+              if (isOneTransactionReport(firstFlaggedReport) && (flaggedExpenses.length === 1 || !shouldUseNarrowLayout)) {
+                  // A lone flagged expense has nothing to page between, so it skips seeding the carousel entirely.
+                  const shouldSeedCarousel = flaggedExpenses.length > 1;
+                  const openReport = () =>
+                      Navigation.navigate(
+                          shouldUseNarrowLayout
+                              ? ROUTES.REPORT_WITH_ID.getRoute(firstFlaggedExpense.reportID, undefined, undefined, ROUTES.HOME)
+                              : ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: firstFlaggedExpense.reportID, backTo: ROUTES.HOME}),
+                      );
+
+                  if (!shouldSeedCarousel) {
+                      openReport();
+                      return;
+                  }
+                  setActiveTransactionIDs(siblingTransactionIDs, {source: CAROUSEL_SOURCE.homeReviewFlagged}).then(openReport);
                   return;
               }
 
@@ -189,7 +209,8 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
                   reportActions: Object.values(firstFlaggedReportActions ?? {}),
                   report: firstFlaggedReport,
                   transaction: firstFlaggedTransaction,
-                  siblingTransactionIDs: flaggedExpenses.map((flaggedExpense) => flaggedExpense.transactionID),
+                  siblingTransactionIDs,
+                  carouselSource: CAROUSEL_SOURCE.homeReviewFlagged,
                   backTo: ROUTES.HOME,
               });
           }

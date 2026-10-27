@@ -1,7 +1,6 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Checkbox from '@components/Checkbox';
 import type {SearchColumnType} from '@components/Search/types';
-import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
@@ -22,12 +21,9 @@ import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
-type MemberListItemHeaderProps<TItem extends ListItem> = {
-    /** The member currently being looked at */
+type MemberListItemHeaderProps = {
     member: TransactionMemberGroupListItemType;
-
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TransactionMemberGroupListItemType) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -41,7 +37,6 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */
@@ -50,15 +45,10 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
     /** The visible columns for the header */
     columns?: SearchColumnType[];
 
-    /** Whether the screen is large */
     isLargeScreenWidth?: boolean;
 };
 
-/**
- * Non-generic implementation so OXC's React Compiler can memoize the component.
- * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
- */
-function MemberListItemHeaderImpl({
+function MemberListItemHeader({
     member: memberItem,
     onCheckboxPress,
     isDisabled,
@@ -69,14 +59,14 @@ function MemberListItemHeaderImpl({
     onDownArrowClick,
     columns,
     isLargeScreenWidth,
-}: MemberListItemHeaderProps<ListItem>) {
+}: MemberListItemHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
     const formattedDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: memberItem, translate, formatPhoneNumber});
     const formattedLogin = formatPhoneNumber(memberItem.login ?? '');
 
-    const columnComponents = {
+    const columnComponents: Partial<Record<SearchColumnType, React.JSX.Element>> = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.AVATAR}
@@ -84,11 +74,9 @@ function MemberListItemHeaderImpl({
             >
                 <UserDetailsTooltip accountID={memberItem.accountID}>
                     <View>
-                        <Avatar
+                        <UserAvatar
                             source={memberItem.avatar}
-                            type={CONST.ICON_TYPE_AVATAR}
-                            name={formattedDisplayName}
-                            avatarID={memberItem.accountID}
+                            accountID={memberItem.accountID}
                             size={CONST.AVATAR_SIZE.SMALL}
                         />
                     </View>
@@ -104,10 +92,12 @@ function MemberListItemHeaderImpl({
                     <TextWithTooltip
                         text={formattedDisplayName}
                         style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                        isSelectable
                     />
                     <TextWithTooltip
                         text={formattedLogin || formattedDisplayName}
                         style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                        isSelectable
                     />
                 </View>
             </View>
@@ -139,7 +129,7 @@ function MemberListItemHeaderImpl({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(memberItem as ListItem)}
+                            onPress={() => onCheckboxPress?.(memberItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
@@ -151,11 +141,9 @@ function MemberListItemHeaderImpl({
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                             <UserDetailsTooltip accountID={memberItem.accountID}>
                                 <View>
-                                    <Avatar
+                                    <UserAvatar
                                         source={memberItem.avatar}
-                                        type={CONST.ICON_TYPE_AVATAR}
-                                        name={formattedDisplayName}
-                                        avatarID={memberItem.accountID}
+                                        accountID={memberItem.accountID}
                                     />
                                 </View>
                             </UserDetailsTooltip>
@@ -163,15 +151,17 @@ function MemberListItemHeaderImpl({
                                 <TextWithTooltip
                                     text={formattedDisplayName}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                    isSelectable
                                 />
                                 <TextWithTooltip
                                     text={formattedLogin || formattedDisplayName}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                    isSelectable
                                 />
                             </View>
                         </View>
                     )}
-                    {!!isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
+                    {!!isLargeScreenWidth && columns?.map((column) => columnComponents[column])}
                 </View>
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
@@ -190,10 +180,6 @@ function MemberListItemHeaderImpl({
             </View>
         </View>
     );
-}
-
-function MemberListItemHeader<TItem extends ListItem>(props: MemberListItemHeaderProps<TItem>) {
-    return <MemberListItemHeaderImpl {...(props as MemberListItemHeaderProps<ListItem>)} />;
 }
 
 export default MemberListItemHeader;

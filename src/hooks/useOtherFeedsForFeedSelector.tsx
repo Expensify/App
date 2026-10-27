@@ -27,11 +27,11 @@ import useThemeStyles from './useThemeStyles';
 type CardFeedListItem = ListItem & {
     /** Combined feed key */
     value: CompanyCardFeedWithDomainID;
+    /** Key the feed has in the active policy's feed list (`${feed}${separator}${fundID}`), set for feeds from other workspaces. Undefined when the fundID is missing. */
+    selectionValue?: CompanyCardFeedWithDomainID;
     /** Card feed value */
     feed: CompanyCardFeedWithNumber;
-    /** Feed fund value */
     fundID?: number;
-    /** Feed country value */
     country?: string;
 };
 
@@ -64,14 +64,16 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
             if (feed?.linkedPolicyIDs?.filter(Boolean).some((linkedPolicyID) => linkedPolicyID.toUpperCase() === upperPolicyID)) {
                 continue;
             }
+            const feedName = feed.feed as CompanyCardFeedWithNumber;
+            const fundID = Number(feed.fundID);
+
+            // The key this feed gets in the active policy's available list (`${feed}${separator}${fundID}`). Without a valid fundID there is no such key.
+            const feedValueForActivePolicy = fundID ? getCardFeedWithDomainID(feedName, fundID) : undefined;
+
             // Skip feeds already present in the active policy's available list to avoid duplicate rows across the two lists.
-            // `companyCardFeeds` is keyed at runtime by the domain-ID-suffixed feed value (`${feed}${separator}${fundID}`),
-            // so a membership check on that value avoids an unsafe assertion to the narrower `CompanyCardFeedWithNumber` key type.
-            const feedValueForActivePolicy = getCardFeedWithDomainID(feed.feed, Number(feed.fundID));
-            if (companyCardFeeds && feedValueForActivePolicy in companyCardFeeds) {
+            if (feedValueForActivePolicy && companyCardFeeds && feedValueForActivePolicy in companyCardFeeds) {
                 continue;
             }
-            const feedName = feed.feed;
             const plaidUrl = getPlaidInstitutionIconUrl(feedName);
             // Use the same fundID-aware domain lookup as the visibility logic (`getVisibleCompanyCardFeedsForSelector`)
             // so the domain email resolves even when the domains collection isn't keyed by fundID.
@@ -84,8 +86,9 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
 
             otherPolicyFeeds.push({
                 value: feed.id as CompanyCardFeedWithDomainID,
-                feed: feedName as CompanyCardFeedWithNumber,
-                fundID: Number(feed.fundID),
+                selectionValue: feedValueForActivePolicy,
+                feed: feedName,
+                fundID,
                 country: feed?.country,
                 alternateText: domainName ?? linkedPolicy?.name ?? firstLinkedPolicyID,
                 text: getCustomOrFormattedFeedName(translate, feedName, feed.name),

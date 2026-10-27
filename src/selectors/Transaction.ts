@@ -1,9 +1,12 @@
+import CONST from '@src/CONST';
 import type TransactionType from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /** Resolves the original (container) transaction ID that a split child points to. */
 const originalTransactionIDSelector = (transaction: OnyxEntry<TransactionType>): string | undefined => transaction?.comment?.originalTransactionID;
+
+const isSplitContainerTransactionSelector = (transaction: OnyxEntry<TransactionType>): boolean | undefined => transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID;
 
 const transactionsByReportIDSelector = (transactions: OnyxCollection<TransactionType>): Record<string, TransactionType[]> => {
     const result: Record<string, TransactionType[]> = {};
@@ -18,4 +21,4 @@ const transactionsByReportIDSelector = (transactions: OnyxCollection<Transaction
     }
     return result;
 };
-export {transactionsByReportIDSelector, originalTransactionIDSelector};
+export {transactionsByReportIDSelector, originalTransactionIDSelector, isSplitContainerTransactionSelector};

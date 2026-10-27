@@ -1,8 +1,7 @@
 import type {AvatarIcon} from '@components/Avatar/types';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import {getReportAction} from '@libs/ReportActionsUtils';
-import {getIcons, isChatThread, isExpenseRequest, isTaskReport, isTripRoom, isWorkspaceTaskReport, shouldReportShowSubscript} from '@libs/ReportUtils';
+import {getIcons, isChatThread, isExpenseRequest, isTripRoom, shouldReportShowSubscript} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,7 +48,6 @@ const TEST_POLICY: Policy = {
     role: CONST.POLICY.ROLE.ADMIN,
     owner: 'user1@test.com',
     ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-    isPolicyExpenseChatEnabled: true,
     outputCurrency: 'USD',
 } as Policy;
 
@@ -60,8 +58,10 @@ const PARENT_PEC_REPORT_ID = 'parentPEC';
 const PARENT_DM_REPORT_ID = 'parentDM';
 const PARENT_EXPENSE_REPORT_ID = 'parentExpense';
 const B2B_INVOICE_ROOM_ID = 'b2bInvoiceRoom';
+const CONCIERGE_REPORT_ID = 'conciergeDM';
 const ACTION_PEC_ID = 'actionPEC';
 const ACTION_EXPENSE_REQ_ID = 'actionExpReq';
+const ACTION_CONCIERGE_ID = 'actionConcierge';
 
 // ─── Pipeline Helper ─────────────────────────────────────────────────────────
 
@@ -71,6 +71,7 @@ type ComputeParams = {
     isReportArchived?: boolean;
     iouSenderID?: number;
     delegateAccountID?: number;
+    conciergeReportID?: string;
 };
 
 type AvatarResult = {
@@ -87,19 +88,15 @@ type AvatarResult = {
  * Stage 3 (OptionRowLHN): Delegate icon replacement
  * Stage 4 (LHNAvatar): Avatar type decision
  */
-function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = false, iouSenderID, delegateAccountID}: ComputeParams): AvatarResult {
+function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = false, iouSenderID, delegateAccountID, conciergeReportID}: ComputeParams): AvatarResult {
     // Stage 1: SidebarUtils subscript + icon logic
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const isWorkspaceExpenseRequest = isExpenseRequest(report) && !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
     const threadSuppression = isChatThread(report) && !isTripRoom(report) && !isWorkspaceExpenseRequest;
-    const parentReportAction = getReportAction(report.parentReportID, report.parentReportActionID);
-    const taskParentAction = isTaskReport(report) && !report.chatReportID ? undefined : parentReportAction;
-    const isReportPreviewOrNoAction = !taskParentAction || taskParentAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const taskSuppression = isTaskReport(report) && !(isWorkspaceTaskReport(report) && isReportPreviewOrNoAction);
-    const shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
+    const shouldShowSubscript = rawShouldShowSubscript && !threadSuppression;
 
     const formatPhoneNumber = (s: string) => s;
-    let icons: AvatarIcon[] = getIcons(report, formatPhoneNumber, translateLocal, PERSONAL_DETAILS, null, '', -1, policy, undefined, isReportArchived);
+    let icons: AvatarIcon[] = getIcons(report, formatPhoneNumber, translateLocal, PERSONAL_DETAILS, null, '', -1, policy, undefined, isReportArchived, undefined, conciergeReportID);
 
     if (!shouldShowSubscript && report.type !== CONST.REPORT.TYPE.IOU && report.type !== CONST.REPORT.TYPE.INVOICE && icons.length > 1) {
         const firstIcon = icons.at(0);
@@ -113,7 +110,8 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     }
 
     // Stage 3: OptionRowLHN — Delegate icon replacement
-    const skipDelegate = report.type === CONST.REPORT.TYPE.INVOICE || (isTaskReport(report) && !report.chatReportID);
+    const isConciergeThread = isChatThread(report) && !!conciergeReportID && report.parentReportID === conciergeReportID;
+    const skipDelegate = isConciergeThread || report.type === CONST.REPORT.TYPE.INVOICE;
     if (delegateAccountID && PERSONAL_DETAILS[delegateAccountID] && icons.length > 0 && !skipDelegate) {
         const delegateDetails = PERSONAL_DETAILS[delegateAccountID];
         const firstIcon = icons.at(0);
@@ -217,6 +215,22 @@ describe('LHN Avatar Pipeline', () => {
             policyID: POLICY_ID,
             invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: RECEIVER_POLICY_ID},
         } as Report);
+
+        // Concierge DM (parent of a Concierge thread)
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {
+            ...createRegularChat(140, [CURRENT_USER_ACCOUNT_ID, CONST.ACCOUNT_ID.CONCIERGE]),
+            reportID: CONCIERGE_REPORT_ID,
+        });
+
+        // The question the Concierge thread hangs off, written by the copiloted user
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {
+            [ACTION_CONCIERGE_ID]: {
+                reportActionID: ACTION_CONCIERGE_ID,
+                actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2024-01-01',
+            },
+        });
 
         // Report actions for parent PEC (actor = account 2)
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_PEC_REPORT_ID}`, {
@@ -521,8 +535,7 @@ describe('LHN Avatar Pipeline', () => {
     });
 
     // ── Case 19: Policy Expense Chat + Task (no parent PEC in Onyx) ─────
-    // shouldReportShowSubscript excludes tasks from PEC path (lines 9987/9991),
-    // and isWorkspaceTaskReport needs a parent PEC in Onyx (which this report lacks).
+    // shouldReportShowSubscript never shows a subscript for a task.
     // Header also shows SINGLE for this edge case — both pipelines agree.
     it('Policy Expense Chat Task (no parent PEC) → single (matches header)', () => {
         const report = {
@@ -565,8 +578,8 @@ describe('LHN Avatar Pipeline', () => {
         expect(result.icons).toHaveLength(1);
     });
 
-    // ── Case 12d: Direct workspace task offline (no chatReportID) → SUBSCRIPT
-    it('Task Report (workspace, offline without chatReportID) → subscript', () => {
+    // ── Case 12d: Direct workspace task offline (no chatReportID) → SINGLE, like the header
+    it('Task Report (workspace, offline without chatReportID) → single', () => {
         const report = {
             ...createWorkspaceTaskReport(124, [CURRENT_USER_ACCOUNT_ID, 2], PARENT_PEC_REPORT_ID),
             policyID: POLICY_ID,
@@ -575,13 +588,13 @@ describe('LHN Avatar Pipeline', () => {
         };
         const result = computeAvatarResult({report});
 
-        expect(result.shouldShowSubscript).toBe(true);
-        expect(result.avatarType).toBe('subscript');
-        expect(result.icons).toHaveLength(2);
+        expect(result.shouldShowSubscript).toBe(false);
+        expect(result.avatarType).toBe('single');
+        expect(result.icons).toHaveLength(1);
     });
 
-    // ── Case 21: Delegate skipped for task without chatReportID ──────
-    it('Delegate skipped for task without chatReportID', () => {
+    // ── Case 21: Delegate applied for task without chatReportID, like the header ──
+    it('Delegate applied for task without chatReportID', () => {
         const report = {
             ...createWorkspaceTaskReport(125, [CURRENT_USER_ACCOUNT_ID, 2], PARENT_PEC_REPORT_ID),
             policyID: POLICY_ID,
@@ -589,7 +602,7 @@ describe('LHN Avatar Pipeline', () => {
         };
         const result = computeAvatarResult({report, delegateAccountID: 5});
 
-        expect(result.icons.at(0)?.id).not.toBe(5);
+        expect(result.icons.at(0)?.id).toBe(5);
     });
 
     // ── Case 22: Delegate applied for task WITH chatReportID ─────────
@@ -627,6 +640,19 @@ describe('LHN Avatar Pipeline', () => {
         expect(result.icons.at(0)?.id).toBe(5);
         expect(result.icons.at(0)?.name).toBe('Delegate User');
         expect(result.icons.at(0)?.source).toBe('https://avatar/5');
+    });
+
+    // ── Case 24b: Delegate skipped for a Concierge thread ────────────
+    it('Delegate skipped for a Concierge thread so the row keeps the Concierge avatar', () => {
+        const report = {
+            ...createRegularChat(132, [CURRENT_USER_ACCOUNT_ID, CONST.ACCOUNT_ID.CONCIERGE]),
+            parentReportID: CONCIERGE_REPORT_ID,
+            parentReportActionID: ACTION_CONCIERGE_ID,
+        };
+        const result = computeAvatarResult({report, delegateAccountID: 5, conciergeReportID: CONCIERGE_REPORT_ID});
+
+        expect(result.icons.at(0)?.id).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+        expect(result.icons.at(0)?.copilot).toBeUndefined();
     });
 
     // ── Case 25: copilot preserves original actor on icon ──

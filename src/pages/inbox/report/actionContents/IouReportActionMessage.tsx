@@ -1,8 +1,10 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getPolicyReimburserAccountID} from '@libs/PolicyPaymentUtils';
 import {getLinkedTransactionID, getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {getIOUReportActionDisplayMessage} from '@libs/ReportUtils';
 
@@ -12,12 +14,12 @@ import type {ReportAction} from '@src/types/onyx';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
+import {policyPaymentAttributionSelector} from '@selectors/Policy';
 import React from 'react';
 
 import ReportActionMessageContent from './ReportActionMessageContent';
 
 type IouReportActionMessageProps = {
-    /** The report action */
     action: ReportAction;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
@@ -29,7 +31,6 @@ type IouReportActionMessageProps = {
     /** Whether or not the message is hidden by moderation */
     isHidden?: boolean;
 
-    /** The ID of the report */
     reportID: string | undefined;
 };
 
@@ -39,12 +40,14 @@ function IouReportActionMessage({action, displayAsGroup, reportID, style, isHidd
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(action))}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [policyPaymentAttribution] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`, {selector: policyPaymentAttributionSelector});
+    const [reimburserAccountID] = useAllPersonalDetails((personalDetails) => getPolicyReimburserAccountID(policyPaymentAttribution, personalDetails));
 
     let iouMessage: string | undefined;
     const isIOUAction = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU);
     const originalMessageType = isIOUAction ? getOriginalMessage(action)?.type : undefined;
     if (isIOUAction && originalMessageType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
-        iouMessage = getIOUReportActionDisplayMessage(translate, action, convertToDisplayString, transaction, report, bankAccountList);
+        iouMessage = getIOUReportActionDisplayMessage(translate, action, convertToDisplayString, policyPaymentAttribution, transaction, bankAccountList, reimburserAccountID);
     }
 
     return (

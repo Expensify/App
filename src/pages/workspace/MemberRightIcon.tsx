@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import {useListItemFocus} from '@components/SelectionList/ListItemFocusContext';
+import {useListItemContext} from '@components/SelectionList/ListItemContext';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +20,7 @@ type MemberRightIconProps = {
 export default function MemberRightIcon({role, owner, login, badgeStyles}: MemberRightIconProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isFocused} = useListItemFocus();
+    const {isFocusVisible} = useListItemContext();
 
     let badgeText = '';
     if (owner && owner === login) {
@@ -28,9 +28,11 @@ export default function MemberRightIcon({role, owner, login, badgeStyles}: Membe
     } else if (
         role === CONST.POLICY.ROLE.ADMIN ||
         role === CONST.POLICY.ROLE.AUDITOR ||
+        role === CONST.POLICY.ROLE.GUEST ||
         role === CONST.POLICY.ROLE.CARD_ADMIN ||
         role === CONST.POLICY.ROLE.PEOPLE_ADMIN ||
-        role === CONST.POLICY.ROLE.PAYMENTS_ADMIN
+        role === CONST.POLICY.ROLE.PAYMENTS_ADMIN ||
+        role === CONST.POLICY.ROLE.APPROVE_ONLY
     ) {
         badgeText = translate('workspace.common.roleName', role);
     } else if (role === CONST.POLICY.ROLE.EDITOR) {
@@ -40,7 +42,7 @@ export default function MemberRightIcon({role, owner, login, badgeStyles}: Membe
         return (
             <Badge
                 text={badgeText}
-                badgeStyles={[isFocused && styles.badgeDefaultActive, badgeStyles]}
+                badgeStyles={[isFocusVisible && styles.badgeDefaultActive, badgeStyles]}
             />
         );
     }

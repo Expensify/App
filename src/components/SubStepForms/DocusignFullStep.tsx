@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -20,22 +20,18 @@ import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 
 type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Default value for file upload input */
     defaultValue: FileObject[];
 
-    /** The ID of the form */
     formID: TFormID;
-
-    /** ID of the input in the form */
     inputID: FormOnyxKeys<TFormID>;
 
     /** Indicates that action is being processed */
     isLoading: boolean;
 
-    /** Handles back button press */
     onBackButtonPress: () => void;
 
     /** Handles submit button press */
@@ -44,7 +40,6 @@ type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Currency of related account */
     currency: string;
 
-    /** Array of step names */
     stepNames?: readonly string[];
 
     /** Index of currently active step in header */
@@ -66,12 +61,9 @@ function DocusignFullStepImpl({defaultValue, formID, inputID, isLoading, onBackB
 
     const [uploadedFiles, setUploadedFiles] = useState<FileObject[]>(defaultValue);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
-            return getFieldRequiredErrors(values, [inputID], translate);
-        },
-        [inputID, translate],
-    );
+    const validate = (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
+        return getFieldRequiredErrors(values, [inputID], translate);
+    };
 
     const handleSelectFile = (files: FileObject[]) => {
         setDraftValues(formID, {[inputID]: [...uploadedFiles, ...files]});

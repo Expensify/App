@@ -1,11 +1,11 @@
 ---
-title: What Concierge can help you do in Expensify
+title: What Concierge Can Help You Do in Expensify
 description: A complete reference of what you can ask Concierge to do in Expensify, with real examples of questions and actions.
 keywords: [what can Concierge do, Concierge examples, Expensify AI capabilities, Concierge commands, expense assistant examples]
 internalScope: Audience is all Expensify members. Covers a comprehensive capability reference for Concierge. Does not include step-by-step instructions for completing specific workflows.
 ---
 
-# What Concierge can help you do in Expensify
+# What Concierge Can Help You Do in Expensify
 
 Concierge is your built-in assistant in Expensify. You can ask it questions, give it instructions, or describe what you want to do and it will respond or take action. 
 
@@ -113,12 +113,15 @@ Examples:
 - “Add this expense to my Chicago trip report”
 - “Is this report reimbursable?”
 - “Export this report”
+- “Update all of the expenses in this report to the Car category”
 
 Concierge can create expense reports, submit expense reports, and retract submitted expense reports when you have permission to perform those actions.
 
+To act on the report in front of you, open it and select the **Help** icon in its header. Concierge opens with that report as context, so “this report” refers to the one you were viewing. This works the same way on web and mobile.
+
 ---
 
-## What Workspace tasks Concierge can help manage
+## What workspace tasks Concierge can help manage
 
 Workspace admins can ask Concierge to perform certain administrative tasks on their behalf.
 
@@ -158,7 +161,7 @@ Examples:
 - “How should I set up approvals for my team?”  
 - “What’s the best way to organize reports for travel?”
 
-If Concierge can't perform the exact action you're looking for, or if you want to create specialized AI workflows for your organization, [learn how to create and use Agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents). Agents can be configured to handle specific tasks, workflows, and business processes beyond Concierge's built-in capabilities.
+If Concierge can't perform the exact action you're looking for, or if you want to create specialized AI workflows for your organization, [learn how to create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents). Agents can be configured to handle specific tasks, workflows, and business processes beyond Concierge's built-in capabilities.
 
 ---
 

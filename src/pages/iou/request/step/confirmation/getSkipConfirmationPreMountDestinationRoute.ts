@@ -15,9 +15,17 @@ import ROUTES from '@src/ROUTES';
  * screens). The impure isSearchTopmostFullScreenRoute() read is safe to run per render: the topmost fullscreen route can't
  * change beneath an open RHP, so it's invariant for the screen's lifetime, and the string result is value-compared by the
  * hook's [route] effect - so recomputing it is a no-op.
+ *
+ * A LOOKING_AROUND self-DM skip-confirmation create routes to Search, so don't pre-insert the self-DM behind the RHP -
+ * it would flash Personal Space before the replace to Search. Mirrors the guard in getSubmitExpensePreMountDestinationRoute.
  */
-function getSkipConfirmationPreMountDestinationRoute(shouldSkipConfirmation: boolean, reportID: string | undefined): Route | undefined {
-    if (!shouldSkipConfirmation || isSearchTopmostFullScreenRoute() || !reportID) {
+function getSkipConfirmationPreMountDestinationRoute(
+    shouldSkipConfirmation: boolean,
+    reportID: string | undefined,
+    isLookingAroundUser = false,
+    isSelfDMDestination = false,
+): Route | undefined {
+    if (!shouldSkipConfirmation || isSearchTopmostFullScreenRoute() || !reportID || (isLookingAroundUser && isSelfDMDestination)) {
         return undefined;
     }
 
