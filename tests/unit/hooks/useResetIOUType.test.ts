@@ -35,10 +35,11 @@ const workspaceChatParticipant: Participant = {
 const selfDMParticipant: Participant = {accountID: 0, reportID: '200', isPolicyExpenseChat: false, selected: true, isSelfDM: true};
 
 let mockDefaultParticipants: Participant[] = [];
+let mockDefaultPolicy: Policy | undefined;
 
 jest.mock('@hooks/useDefaultParticipants', () => ({
     __esModule: true,
-    default: () => ({participants: mockDefaultParticipants, isLoading: false}),
+    default: () => ({participants: mockDefaultParticipants, defaultPolicy: mockDefaultPolicy, isLoading: false}),
 }));
 
 jest.mock('@hooks/usePersonalPolicy', () => ({
@@ -91,13 +92,13 @@ describe('useResetIOUType', () => {
     beforeEach(async () => {
         mockedInitMoneyRequest.mockClear();
         await Onyx.clear();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE_POLICY_ID}`, workspacePolicy);
         await waitForBatchedUpdates();
     });
 
     it('passes the default workspace policy to initMoneyRequest when the expense starts from global create', async () => {
         // Given an expense started from global create (no report) whose default participant is a GBP workspace chat
         mockDefaultParticipants = [workspaceChatParticipant];
+        mockDefaultPolicy = workspacePolicy;
 
         // When the member selects the Manual tab
         await selectManualTabFromGlobalCreate();
@@ -110,6 +111,7 @@ describe('useResetIOUType', () => {
     it('passes no policy to initMoneyRequest when the default participant is the self DM', async () => {
         // Given an expense started from global create whose default participant is the self DM
         mockDefaultParticipants = [selfDMParticipant];
+        mockDefaultPolicy = undefined;
 
         // When the member selects the Manual tab
         await selectManualTabFromGlobalCreate();

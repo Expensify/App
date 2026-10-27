@@ -21,7 +21,6 @@ import useDefaultParticipants from './useDefaultParticipants';
 import useOdometerDraftHydrator from './useOdometerDraftHydrator';
 import useOnyx from './useOnyx';
 import usePersonalPolicy from './usePersonalPolicy';
-import usePolicy from './usePolicy';
 import usePrevious from './usePrevious';
 
 type UseResetIOUTypeParams = {
@@ -90,16 +89,14 @@ function useResetIOUType({
     // Derive participants from the current report (or the global-create fallback) so the freshly-rebuilt transaction
     // already includes them. This prevents the embedded confirmation's auto-assign useEffect from re-firing on every
     // cleanup and dragging back unrelated draft state (receipt, billable, etc.).
-    const {participants: resolvedDefaultParticipants} = useDefaultParticipants({
+    // From global create there is no report, so `policy` is undefined. `defaultPolicy` is the workspace of the default
+    // workspace chat, so the draft uses that workspace's currency instead of the member's Payment currency.
+    const {participants: resolvedDefaultParticipants, defaultPolicy} = useDefaultParticipants({
         sourceReport: report,
         transaction,
         iouType,
     });
     const defaultParticipants = resolvedDefaultParticipants.length > 0 ? resolvedDefaultParticipants : undefined;
-
-    // From global create there is no report, so `policy` is undefined. Fall back to the workspace of the default
-    // workspace chat so the draft uses that workspace's currency instead of the member's Payment currency.
-    const defaultParticipantPolicy = usePolicy(defaultParticipants?.find((participant) => participant.isPolicyExpenseChat)?.policyID);
 
     const resetIOUTypeIfChanged = (newIOUType: IOURequestType) => {
         if (transaction?.iouRequestType === newIOUType) {
@@ -121,7 +118,7 @@ function useResetIOUType({
         // iouType to TRACK; seeding them early would short-circuit that effect.
         initMoneyRequest({
             reportID,
-            policy: policy ?? defaultParticipantPolicy,
+            policy: policy ?? defaultPolicy,
             personalPolicy,
             isFromGlobalCreate,
             isTrackDistanceExpense,

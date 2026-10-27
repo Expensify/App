@@ -4,7 +4,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDefaultParticipants from '@hooks/useDefaultParticipants';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
-import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 
@@ -75,13 +74,12 @@ function useParticipantPickerState({
     const sourceReport = sourceReportID
         ? getReportOrDraftReport(sourceReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${sourceReportID}`] ?? {})
         : undefined;
-    const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
+    const {participants: resolvedDefaultParticipants, defaultPolicy, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
     const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
 
     // Don't override the participants the user has already selected, and bail when there is no source report. The shared
     // empty array keeps the reference stable, so the auto-assign effect below doesn't re-run on every render.
     const defaultParticipants = hasSelectedParticipants || !sourceReportID ? getEmptyArray<Participant>() : resolvedDefaultParticipants;
-    const defaultParticipantPolicy = usePolicy(defaultParticipants.find((participant) => participant.isPolicyExpenseChat)?.policyID);
 
     const transactionParticipants = transaction?.participants ?? [];
     const shouldAutoOpenParticipantPicker =
@@ -284,7 +282,7 @@ function useParticipantPickerState({
 
         // The draft was created before the default workspace was known, so it holds the member's Payment currency.
         // Use the workspace currency instead, unless an amount was already entered. Distance rates set their own currency.
-        const defaultCurrency = defaultParticipantPolicy?.outputCurrency;
+        const defaultCurrency = defaultPolicy?.outputCurrency;
         if (defaultCurrency && !transaction.isAmountSet && !isDistanceRequest && transaction.currency !== defaultCurrency) {
             setMoneyRequestCurrency(transaction.transactionID, defaultCurrency);
         }
@@ -294,7 +292,7 @@ function useParticipantPickerState({
         transaction?.isAmountSet,
         transaction?.currency,
         defaultParticipants,
-        defaultParticipantPolicy?.outputCurrency,
+        defaultPolicy?.outputCurrency,
         isDistanceRequest,
         navigation,
     ]);
