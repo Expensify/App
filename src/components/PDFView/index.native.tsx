@@ -19,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard, Linking, View} from 'react-native';
 import PDF from 'react-native-pdf';
 
@@ -77,7 +77,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
      * invalid.
      */
 
-    const initiatePasswordChallenge = useCallback(() => {
+    const initiatePasswordChallenge = () => {
         setShouldShowLoadingIndicator(false);
 
         // Render password form, and don't render PDF and loading indicator.
@@ -90,7 +90,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         if (password) {
             setIsPasswordInvalid(true);
         }
-    }, [password]);
+    };
 
     const handleFailureToLoadPDF = ((error: Error) => {
         if (error.message.match(/password/i)) {
@@ -138,21 +138,18 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     /**
      * Handle press link event on native apps.
      */
-    const handlePressLink = useCallback(
-        (url: string) => {
-            if (!isAllowedPDFLink(url)) {
-                return;
-            }
+    const handlePressLink = (url: string) => {
+        if (!isAllowedPDFLink(url)) {
+            return;
+        }
 
-            if (isTravelLink(url) && activePolicyID) {
-                const postLoginPath = getRelativeUrl(url);
-                openTravelDotLink(activePolicyID, postLoginPath);
-                return;
-            }
-            Linking.openURL(url);
-        },
-        [activePolicyID],
-    );
+        if (isTravelLink(url) && activePolicyID) {
+            const postLoginPath = getRelativeUrl(url);
+            openTravelDotLink(activePolicyID, postLoginPath);
+            return;
+        }
+        Linking.openURL(url);
+    };
 
     function renderPDFView() {
         // Insets are used to adjust the maxWidth of the PDF view in landscape mode
@@ -215,7 +212,6 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             fullDisabled={successToLoadPDF}
             style={[themeStyles.flex1, themeStyles.alignSelfStretch, !failedToLoadPDF && themeStyles.flexRow]}
             accessibilityRole={CONST.ROLE.BUTTON}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
             sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.DOCUMENT}
         >

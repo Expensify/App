@@ -27,6 +27,7 @@ import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import {saveFastEditApprovalWorkflow} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAssignableOfficeLocations, getMemberOfficeLocation} from '@libs/OfficeLocationUtils';
 import {getNewAccountIDsAndLogins, getPersonalDetailsForAccountIDs, getPersonalDetailsOnyxDataForOptimisticUsers, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     canMemberAssignElevatedRole,
@@ -61,7 +62,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
 type WorkspaceInviteMessageComponentProps = {
@@ -88,7 +89,7 @@ function WorkspaceInviteMessageComponent({
     goToNextStep,
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name;
 
@@ -136,10 +137,10 @@ function WorkspaceInviteMessageComponent({
     const shouldShowWorkArrangement =
         isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
     const selectedHasOfficeWorkArrangement = workspaceInviteWorkArrangementDraft ?? policy?.commuterExclusions?.isOfficeWorkArrangement ?? true;
-    const officeLocations = Object.values(policy?.officeLocations ?? {});
-    const defaultOfficeName = officeLocations.find((office) => office.isDefault)?.name;
+    const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
     const selectedWorkArrangementLabel = translate(selectedHasOfficeWorkArrangement ? 'workspace.people.officeBased' : 'workspace.people.noRegularWorkspace');
-    const defaultOfficeLabel = officeLocations.length > 1 ? defaultOfficeName : undefined;
+    // Invitees have no office of their own yet, so office-based ones commute to the primary office
+    const defaultOfficeLabel = selectedHasOfficeWorkArrangement && officeLocations.length > 1 ? getMemberOfficeLocation(officeLocations, undefined)?.name : undefined;
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
@@ -171,14 +172,11 @@ function WorkspaceInviteMessageComponent({
         })
         .join(', ');
 
-    const welcomeNoteSubject = useMemo(
-        () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
-        [policy?.name, currentUserPersonalDetails?.displayName],
-    );
+    const welcomeNoteSubject = `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
 
-    const getDefaultWelcomeNote = useCallback(() => {
+    const getDefaultWelcomeNote = () => {
         return formData?.[INPUT_IDS.WELCOME_MESSAGE] ?? workspaceInviteMessageDraft ?? translate('workspace.common.welcomeNote');
-    }, [workspaceInviteMessageDraft, translate, formData]);
+    };
 
     useEffect(() => {
         if (isOnyxLoading) {

@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type RegistrationNumberStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps & {
@@ -52,23 +52,18 @@ function RegistrationNumberStepImpl({formID, onSubmit, inputID, defaultValue, is
     const internalInputRef = useRef<AnimatedTextInputRef>(null);
     useDelayedAutoFocus(internalInputRef, shouldDelayAutoFocus);
 
-    const helpLink = useMemo(() => {
-        return CONST.REGISTRATION_NUMBER_HELP_URL[country as keyof typeof CONST.REGISTRATION_NUMBER_HELP_URL] ?? CONST.REGISTRATION_NUMBER_HELP_URL.EU;
-    }, [country]);
+    const helpLink = CONST.REGISTRATION_NUMBER_HELP_URL[country as keyof typeof CONST.REGISTRATION_NUMBER_HELP_URL] ?? CONST.REGISTRATION_NUMBER_HELP_URL.EU;
 
-    const validate = useCallback(
-        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
-            const errors = getFieldRequiredErrors(values, [inputID], translate);
+    const validate = (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
+        const errors = getFieldRequiredErrors(values, [inputID], translate);
 
-            const registrationNumber = (values as Record<string, unknown>)[inputID as string] as string;
-            if (registrationNumber && !isValidRegistrationNumber(registrationNumber, country)) {
-                (errors as Record<string, string>)[inputID as string] = translate('businessInfoStep.error.registrationNumber');
-            }
+        const registrationNumber = (values as Record<string, unknown>)[inputID as string] as string;
+        if (registrationNumber && !isValidRegistrationNumber(registrationNumber, country)) {
+            (errors as Record<string, string>)[inputID as string] = translate('businessInfoStep.error.registrationNumber');
+        }
 
-            return errors;
-        },
-        [country, inputID, translate],
-    );
+        return errors;
+    };
     return (
         <FormProvider
             formID={formID}

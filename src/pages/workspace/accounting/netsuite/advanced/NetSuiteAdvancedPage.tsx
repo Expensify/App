@@ -5,6 +5,7 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,6 +31,7 @@ import {
     shouldHideReimbursedReportsSection,
     shouldHideReportsExportTo,
 } from '@pages/workspace/accounting/netsuite/utils';
+import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -41,7 +43,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
@@ -50,6 +52,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
 
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
@@ -60,26 +63,18 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const shouldShowCustomFormIDOptions = useSharedValue(!shouldHideCustomFormIDOptions(config));
     const shouldAnimateAccordionSection = useSharedValue(false);
 
-    const selectedReimbursementAccount = useMemo(
-        () => getFilteredReimbursableAccountOptions(payableList).find(({id}) => id === config?.reimbursementAccountID),
-        [payableList, config?.reimbursementAccountID],
-    );
-    const selectedCollectionAccount = useMemo(
-        () => getFilteredCollectionAccountOptions(payableList).find(({id}) => id === config?.collectionAccount),
-        [payableList, config?.collectionAccount],
-    );
-    const selectedFxExpenseAccount = useMemo(() => expenseAccounts?.find(({id}) => id === config?.fxExpenseAccount), [expenseAccounts, config?.fxExpenseAccount]);
+    const selectedReimbursementAccount = getFilteredReimbursableAccountOptions(payableList).find(({id}) => id === config?.reimbursementAccountID);
+    const selectedCollectionAccount = getFilteredCollectionAccountOptions(payableList).find(({id}) => id === config?.collectionAccount);
+    const selectedFxExpenseAccount = expenseAccounts?.find(({id}) => id === config?.fxExpenseAccount);
     const approvalAccount = config?.approvalAccount;
-    const selectedApprovalAccount = useMemo(() => {
-        // NetSuite uses a synthesized "default approval account" when nothing is explicitly set.
-        if (!approvalAccount || approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT) {
-            return {
-                id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
-                name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
-            };
-        }
-        return getFilteredApprovalAccountOptions(payableList).find(({id}) => id === approvalAccount);
-    }, [approvalAccount, payableList, translate]);
+    // NetSuite uses a synthesized "default approval account" when nothing is explicitly set.
+    const selectedApprovalAccount =
+        !approvalAccount || approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT
+            ? {
+                  id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
+                  name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
+              }
+            : getFilteredApprovalAccountOptions(payableList).find(({id}) => id === approvalAccount);
 
     const renderDefaultMenuItem = (item: MenuItemToRender) => {
         return (
@@ -284,6 +279,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
+            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
             displayName="NetSuiteAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             headerSubtitle={config?.subsidiary ?? ''}
