@@ -10937,6 +10937,7 @@ const CONST = {
         },
         GRAPH: {
             SPEND_OVER_TIME: 'spendOverTime',
+            VIOLATIONS_OVER_TIME: 'violationsOverTime',
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',

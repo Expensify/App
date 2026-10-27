@@ -94,10 +94,9 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         labelKey: 'insightsPage.compliance',
         beta: CONST.BETAS.INSIGHTS_COMPLIANCE,
         isPolicyEligible: canViewAllPolicyData,
-        // Placeholder until the Compliance charts land, when violationsOverTime replaces it (added for type compatibility)
         headlineChart: {
-            graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
-            titleKey: 'search.spendOverTime',
+            graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
+            titleKey: 'insightsPage.compliance',
             view: CONST.SEARCH.VIEW.LINE,
         },
         supportingCharts: [],
