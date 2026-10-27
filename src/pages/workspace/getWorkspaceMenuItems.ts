@@ -85,6 +85,7 @@ type WorkspaceMenuItem = WithSentryLabel & {
     getRoute: () => Route;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     screenName: WorkspaceTopLevelScreens;
+    badgeTranslationKey?: TranslationPaths;
     badgeText?: string;
     highlighted?: boolean;
 
@@ -265,6 +266,7 @@ function getWorkspaceMenuItems({
             getRoute: () => ROUTES.WORKSPACE_AGENTS.getRoute(policyID),
             screenName: SCREENS.WORKSPACE.AGENTS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.AGENTS,
+            badgeTranslationKey: 'common.beta',
         });
     }
 

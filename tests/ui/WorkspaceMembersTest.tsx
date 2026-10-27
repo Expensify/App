@@ -12,6 +12,7 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
 import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -21,7 +22,9 @@ import WorkspaceMembersPage from '@pages/workspace/WorkspaceMembersPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {OfficeLocation} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
 
@@ -658,6 +661,173 @@ describe('WorkspaceMembers', () => {
             expect(getSelectAllCheckbox()).not.toBeChecked();
 
             unmount();
+        });
+    });
+
+    describe('Office locations and work arrangements', () => {
+        const officeLocations: Record<string, OfficeLocation> = {
+            OFFICE1: {name: 'Headquarters', address: {addressStreet: '88 Kearny St', city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US'}, isDefault: true},
+            OFFICE2: {name: 'New Jersey Office', address: {addressStreet: '900 Asbury Ave', city: 'Ocean City', state: 'NJ', zipCode: '08226', country: 'US'}},
+        };
+        const officeLocationsPolicy = {
+            ...policy,
+            officeLocations,
+            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+            employeeList: {
+                ...policy.employeeList,
+                [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, officeID: 'OFFICE2'},
+            },
+        };
+
+        const openBulkActionsForMember = async () => {
+            await screen.findByText(USER_OPTION);
+            selectCheckboxByMemberName('Member');
+            await waitForBatchedUpdatesWithAct();
+            await openBulkActions();
+        };
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS]);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, officeLocationsPolicy);
+            });
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should show the office of each member, and the primary office for members without one', async () => {
+            // Given a workspace with offices where only one member is assigned to an office
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await screen.findByText(USER_OPTION);
+
+            // Then the office location column shows the assigned office, and the primary office for everyone else
+            expect(screen.getByText(TestHelper.translateLocal('workspace.people.officeLocation'))).toBeOnTheScreen();
+            expect(screen.getByText('New Jersey Office')).toBeOnTheScreen();
+            expect(screen.getAllByText('Headquarters')).toHaveLength(Object.keys(policy.employeeList).length - 1);
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should show the company address for every member when the workspace has no other office', async () => {
+            // Given a workspace whose only office is its company address
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    address: {addressStreet: '1 Market St', city: 'San Francisco', state: 'CA', zipCode: '94105', country: 'US'},
+                    officeLocations: null,
+                    employeeList: {[userEmail]: {officeID: null}},
+                });
+            });
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await screen.findByText(USER_OPTION);
+
+            // Then the office location column shows the company address for every member, as it counts as an office
+            expect(screen.getByText(TestHelper.translateLocal('workspace.people.officeLocation'))).toBeOnTheScreen();
+            expect(screen.getAllByText(TestHelper.translateLocal('common.companyAddress'))).toHaveLength(Object.keys(policy.employeeList).length);
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should hand the selected members to the office location picker', async () => {
+            // Given an admin who selected a member
+            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await openBulkActionsForMember();
+
+            // When they choose to change the office location
+            expect(screen.getByText(TestHelper.translateLocal('workspace.people.changeWorkArrangement'))).toBeOnTheScreen();
+            const changeOfficeLocationItem = screen.getByText(TestHelper.translateLocal('workspace.people.changeOfficeLocation'));
+            fireEvent.press(changeOfficeLocationItem, {
+                nativeEvent: {},
+                type: 'press',
+                target: changeOfficeLocationItem,
+                currentTarget: changeOfficeLocationItem,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the office location picker opens for that member
+            await waitFor(() => {
+                expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS_CHANGE_OFFICE_LOCATION.getRoute(policy.id));
+            });
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT)).toEqual({policyID: policy.id, accountIDs: [userAccountID]});
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should clear the selection once a bulk change has been applied', async () => {
+            // Given an admin who selected a member and opened a bulk change for them
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await screen.findByText(USER_OPTION);
+            selectCheckboxByMemberName('Member');
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, {policyID: policy.id, accountIDs: [userAccountID]});
+            });
+            const selectedLabel = TestHelper.translateLocal('workspace.common.selected', {count: 1});
+            expect(screen.getByText(selectedLabel)).toBeOnTheScreen();
+
+            // When the bulk change is applied, which clears the members handed to it
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, null);
+            });
+
+            // Then the members page drops its selection too
+            await waitFor(() => {
+                expect(screen.queryByText(selectedLabel)).not.toBeOnTheScreen();
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should hide the office location column and bulk changes without the commuter exclusions arrangements beta', async () => {
+            // Given a workspace with offices, and an admin with the commuter exclusions beta but not the arrangements beta
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.COMMUTER_EXCLUSIONS]);
+            });
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // When they open the bulk actions for a member
+            await openBulkActionsForMember();
+
+            // Then there is no office location column, and neither change is offered
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.officeLocation'))).not.toBeOnTheScreen();
+            expect(screen.queryByText('New Jersey Office')).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.changeOfficeLocation'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.changeWorkArrangement'))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should offer office location and work arrangement changes to People Admins', async () => {
+            // Given a People Admin, who manages members, offices and work arrangements included
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    role: CONST.POLICY.ROLE.PEOPLE_ADMIN,
+                    employeeList: {[selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN}},
+                });
+            });
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // When they open the bulk actions for a member
+            await openBulkActionsForMember();
+
+            // Then both changes are offered
+            expect(screen.getByText(TestHelper.translateLocal('workspace.people.changeOfficeLocation'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('workspace.people.changeWorkArrangement'))).toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
         });
     });
 

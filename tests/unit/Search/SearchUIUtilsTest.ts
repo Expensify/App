@@ -18,7 +18,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {ASTNode, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
+import type {ASTNode, SearchColumnType, SearchDatePreset, SearchFilterKey, SearchQueryJSON, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
 import Navigation from '@navigation/Navigation';
@@ -45,10 +45,12 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchTask} from '@src/types/onyx/SearchResults';
+import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {setDefaultOptions} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
@@ -882,6 +884,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         created: '2024-12-21',
         submitted: '',
         approved: '',
+        paid: '',
         posted: '',
         exported: '',
         exportedTo: '',
@@ -911,6 +914,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearPaid: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
         isAmountColumnWide: false,
@@ -947,6 +951,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         created: '2024-12-21',
         submitted: '2024-12-21 13:05:20',
         approved: '',
+        paid: '',
         posted: '',
         exported: '',
         exportedTo: '',
@@ -975,6 +980,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearPaid: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
         isAmountColumnWide: false,
@@ -1022,6 +1028,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: '',
+        paid: '',
         posted: '',
         exported: '',
         exportedTo: '',
@@ -1057,6 +1064,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearPaid: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
         keyForList: '3',
@@ -1092,6 +1100,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: '',
+        paid: '',
         posted: '',
         exported: '',
         exportedTo: '',
@@ -1127,6 +1136,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearPaid: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
         keyForList: '4',
@@ -1196,7 +1206,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         firstApproved: '',
+        paid: '',
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
@@ -1239,6 +1251,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 date: '2024-12-21',
                 submitted: '',
                 approved: '',
+                paid: '',
                 exported: '',
                 exportedTo: '',
                 formattedFrom: 'Admin',
@@ -1265,6 +1278,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPaid: false,
                 shouldShowYearPosted: false,
                 shouldShowYearExported: false,
                 isAmountColumnWide: false,
@@ -1328,7 +1342,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         firstApproved: '',
+        paid: '',
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
@@ -1374,6 +1390,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 created: '2024-12-21',
                 submitted: '2024-12-21 13:05:20',
                 approved: '',
+                paid: '',
                 exported: '',
                 exportedTo: '',
                 currency: 'USD',
@@ -1407,6 +1424,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPaid: false,
                 shouldShowYearPosted: false,
                 shouldShowYearExported: false,
                 isAmountColumnWide: false,
@@ -1466,7 +1484,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         firstApproved: '',
+        paid: '',
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
@@ -1527,6 +1547,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 created: '2025-03-05',
                 submitted: '2025-03-05',
                 approved: '',
+                paid: '',
                 exported: '',
                 exportedTo: '',
                 currency: 'VND',
@@ -1561,6 +1582,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPaid: false,
                 shouldShowYearPosted: false,
                 shouldShowYearExported: false,
                 keyForList: '3',
@@ -1596,6 +1618,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 created: '2025-03-05',
                 submitted: '2025-03-05',
                 approved: '',
+                paid: '',
                 exported: '',
                 exportedTo: '',
                 currency: 'VND',
@@ -1630,6 +1653,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPaid: false,
                 shouldShowYearPosted: false,
                 shouldShowYearExported: false,
                 keyForList: '4',
@@ -1690,7 +1714,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         firstApproved: '',
+        paid: '',
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
@@ -3020,7 +3046,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 59;
+            const expectedPropertyCount = 61;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -3063,7 +3089,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 58;
+            const expectedPropertyCount = 60;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -4694,6 +4720,43 @@ describe('SearchUIUtils', () => {
                 // Clock is frozen at 2026-02-15, so last 12 months = March 2025 through February 2026
                 expect(range.start).toBe('2025-03-01');
                 expect(range.end).toBe('2026-02-28');
+            });
+
+            it('should resolve the calendar and rolling presets around the frozen date', () => {
+                // Given the clock frozen at Sunday 2026-02-15, the first day of its week and the middle of Q1
+                const expectedRanges: Array<[SearchDatePreset, {start: string; end: string}]> = [
+                    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK, {start: '2026-02-15', end: '2026-02-21'}],
+                    [CONST.SEARCH.DATE_PRESETS.LAST_WEEK, {start: '2026-02-08', end: '2026-02-14'}],
+                    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER, {start: '2026-01-01', end: '2026-03-31'}],
+                    [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER, {start: '2025-10-01', end: '2025-12-31'}],
+                    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR, {start: '2026-01-01', end: '2026-12-31'}],
+                    [CONST.SEARCH.DATE_PRESETS.LAST_YEAR, {start: '2025-01-01', end: '2025-12-31'}],
+                    [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS, {start: '2026-01-17', end: '2026-02-15'}],
+                    [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS, {start: '2025-11-18', end: '2026-02-15'}],
+                    [CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS, {start: '2025-09-01', end: '2026-02-28'}],
+                ];
+
+                for (const [preset, expectedRange] of expectedRanges) {
+                    // When each preset is resolved
+                    const range = getDateRangeForPreset(preset);
+
+                    // Then current periods run to the end of the period, previous periods cover the whole period, and rolling day ranges end today
+                    expect(range).toEqual(expectedRange);
+                }
+            });
+
+            it('should start weeks on Sunday even when the locale starts them on Monday', () => {
+                // Given a date-fns default locale whose weeks start on Monday, as some app languages set
+                setDefaultOptions({weekStartsOn: 1});
+
+                // When the week presets are resolved
+                const thisWeek = getDateRangeForPreset(CONST.SEARCH.DATE_PRESETS.THIS_WEEK);
+                const lastWeek = getDateRangeForPreset(CONST.SEARCH.DATE_PRESETS.LAST_WEEK);
+                setDefaultOptions({weekStartsOn: 0});
+
+                // Then they still match the Sunday-based week buckets of group-by:week
+                expect(thisWeek).toEqual({start: '2026-02-15', end: '2026-02-21'});
+                expect(lastWeek).toEqual({start: '2026-02-08', end: '2026-02-14'});
             });
         });
 
@@ -7278,11 +7341,171 @@ describe('SearchUIUtils', () => {
                 expect(item?.submitted).toBe('');
             });
 
+            it("should show the report's paid date on its expenses and widen the Paid column when it was paid in a past year", () => {
+                // Given an expense on a report the backend returned as paid in a past year
+                const paidAt = '2024-12-22 09:30:00';
+                const data = makeFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, paid: paidAt});
+
+                // When the expense rows and the header's year flags are built
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                const yearFlags = SearchUIUtils.shouldShowYear(data);
+
+                // Then the expense shows its report's paid date, and both the row and the header use the wide Paid column so the year fits
+                expect(item?.paid).toBe(paidAt);
+                expect(item?.shouldShowYearPaid).toBe(true);
+                expect(yearFlags.shouldShowYearPaid).toBe(true);
+            });
+
+            it('should keep the Paid date blank and the column narrow on expenses whose report is not paid', () => {
+                // Given an expense on an approved report, which the backend returns with a blank paid date
+                const data = makeFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    paid: '',
+                });
+
+                // When the expense rows and the header's year flags are built
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                const yearFlags = SearchUIUtils.shouldShowYear(data);
+
+                // Then the cell is blank and the column stays narrow, since the report hasn't been paid
+                expect(item?.paid).toBe('');
+                expect(item?.shouldShowYearPaid).toBe(false);
+                expect(yearFlags.shouldShowYearPaid).toBe(false);
+            });
+
+            it("should take an expense's paid date from the snapshot payment when the live actions don't include it", () => {
+                // Given a paid report with no paid date of its own, whose payment is only in the snapshot actions
+                const paidAt = '2024-12-22 09:30:00';
+                const data = makeFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${filterTestReportID}`]: {
+                            'reimbursed-1': {
+                                reportActionID: 'reimbursed-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                actorAccountID: adminAccountID,
+                                created: paidAt,
+                            },
+                        },
+                    },
+                );
+
+                // When the expense rows are built with live actions that only hold a later comment, as when only the latest messages are loaded
+                const [sections] = callGetTransactionsSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${filterTestReportID}`]: [
+                            {
+                                reportActionID: 'comment-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                                actorAccountID: adminAccountID,
+                                created: '2024-12-23 10:00:00',
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+
+                // Then the expense still shows the snapshot's payment date, the same way the report row does
+                expect(item?.paid).toBe(paidAt);
+            });
+
             it('should keep the negative sign on formattedTotal for an unreported (tracked) credit', () => {
                 const data = makeFilterTestData({}, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: 5000});
                 const [sections] = callGetTransactionsSections(data);
                 const item = sections.find((s) => s.transactionID === filterTestTxID);
                 expect(item?.formattedTotal).toBe(-5000);
+            });
+
+            describe('From for card expenses', () => {
+                const deletedQueryJSON = makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DELETED]);
+                const deletedCardID = 40404040;
+                const cardList = createMock<OnyxTypes.CardList>({
+                    [deletedCardID]: {cardID: deletedCardID, accountID: submitterAccountID},
+                });
+
+                it('should show the cardholder when a deleted expense has no report or IOU action', () => {
+                    // Given a deleted card expense, which sits on the trash report and has no IOU action in the snapshot
+                    const data = makeFilterTestData({}, {reportID: CONST.REPORT.TRASH_REPORT_ID, cardID: deletedCardID});
+
+                    // When the sections are built with the card list
+                    const [sections] = callGetTransactionsSections(data, {queryJSON: deletedQueryJSON, cardList});
+
+                    // Then From falls back to the holder of the card the expense was charged to
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item?.from.accountID).toBe(submitterAccountID);
+                    expect(item?.formattedFrom).toBe('Submitter');
+                });
+
+                it('should use card owner over the report owner for an active expense', () => {
+                    // Given an active card expense whose report is owned by the admin, while the card belongs to the submitter
+                    const data = makeFilterTestData({}, {cardID: deletedCardID});
+
+                    // When the sections are built with the card list
+                    const [sections] = callGetTransactionsSections(data, {cardList});
+
+                    // Then the cardholder wins, because the card owner is the canonical owner of a card expense
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item?.from.accountID).toBe(submitterAccountID);
+                });
+
+                it('should use the cardholder for an unreported card expense', () => {
+                    // Given an unreported card expense, which has no report or IOU action
+                    const data = makeFilterTestData({}, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, cardID: deletedCardID});
+
+                    // When the sections are built with the card list
+                    const [sections] = callGetTransactionsSections(data, {cardList});
+
+                    // Then From shows the cardholder, the same as for any other card expense
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item?.from.accountID).toBe(submitterAccountID);
+                });
+
+                it('should fall back to the report owner when the card is not in the card list', () => {
+                    // Given an active card expense whose card the viewer hasn't loaded
+                    const data = makeFilterTestData({}, {cardID: deletedCardID});
+
+                    // When the sections are built without that card
+                    const [sections] = callGetTransactionsSections(data, {cardList: {}});
+
+                    // Then From falls back to the report owner
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item?.from.accountID).toBe(adminAccountID);
+                });
+
+                it('should read the cardholder from Onyx personal details when the snapshot does not include them', () => {
+                    // Given a deleted card expense whose cardholder is missing from the snapshot's personal details
+                    const outsiderAccountID = 555555;
+                    const outsiderCardList = createMock<OnyxTypes.CardList>({
+                        [deletedCardID]: {cardID: deletedCardID, accountID: outsiderAccountID},
+                    });
+                    const data = makeFilterTestData({}, {reportID: CONST.REPORT.TRASH_REPORT_ID, cardID: deletedCardID});
+                    const onyxPersonalDetailsList = {[outsiderAccountID]: {accountID: outsiderAccountID, displayName: 'Outsider', login: 'outsider@test.com'}};
+
+                    // When the sections are built with Onyx personal details
+                    const [sections] = callGetTransactionsSections(data, {queryJSON: deletedQueryJSON, cardList: outsiderCardList, onyxPersonalDetailsList});
+
+                    // Then From still shows the cardholder
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item?.formattedFrom).toBe('Outsider');
+                });
+
+                it('should leave From empty when the deleted expense card is not in the card list', () => {
+                    // Given a deleted card expense whose card the viewer hasn't loaded
+                    const data = makeFilterTestData({}, {reportID: CONST.REPORT.TRASH_REPORT_ID, cardID: deletedCardID});
+
+                    // When the sections are built without that card
+                    const [sections] = callGetTransactionsSections(data, {queryJSON: deletedQueryJSON, cardList: {}});
+
+                    // Then the row still renders, with no owner to show
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item).toBeDefined();
+                    expect(item?.from.accountID).toBe(CONST.REPORT.OWNER_ACCOUNT_ID_FAKE);
+                });
             });
 
             // Amounts are stored with the opposite sign, so these three rows render +$80.00, -$40.00 and +$10.00.
@@ -7939,6 +8162,335 @@ describe('SearchUIUtils', () => {
                 );
                 const item = sections.find((s) => s.keyForList === rptFilterReportID);
                 expect(item?.paidByAccountID).toBeUndefined();
+            });
+
+            it('should populate paid from a snapshot payment action on a paid report', () => {
+                // Given a paid report whose only payment action comes from the Search snapshot, which is the case when the report was never opened
+                const paidAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'reimbursed-1': {
+                                reportActionID: 'reimbursed-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                actorAccountID: approverAccountID,
+                                created: paidAt,
+                            },
+                        },
+                    },
+                );
+
+                // When the report sections are built
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the paid date is the payment action's created time, because the report itself carries no paid date
+                expect(item?.paid).toBe(paidAt);
+            });
+
+            it('should populate paid from a live pay action missing from the snapshot (pay from Search)', () => {
+                // Given a paid report whose payment action only exists in the live report actions, as it does right after paying from Search
+                const paidAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
+
+                // When the report sections are built with the live actions
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-pay-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+                                actorAccountID: approverAccountID,
+                                created: paidAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the paid date shows without waiting for the snapshot to catch up
+                expect(item?.paid).toBe(paidAt);
+            });
+
+            it('should populate paid when the submitter marked the payment as received', () => {
+                // Given a paid report that the submitter marked as received, which identifies no payer
+                const receivedAt = '2024-12-22 09:30:00';
+                const [sections] = callGetReportSections(
+                    makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}),
+                    {
+                        reportActions: {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                                {
+                                    reportActionID: 'received-pay-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, isSubmitterMarkedPaymentReceived: true},
+                                    actorAccountID: adminAccountID,
+                                    created: receivedAt,
+                                },
+                                {
+                                    reportActionID: 'received-reimbursed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                    actorAccountID: adminAccountID,
+                                    created: receivedAt,
+                                },
+                                {
+                                    reportActionID: 'received-redeemed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED,
+                                    actorAccountID: adminAccountID,
+                                    created: '2024-12-22 09:30:01',
+                                },
+                            ],
+                        },
+                    },
+                );
+
+                // When the row is read
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then Paid by stays blank but the paid date is set, because the report was still paid on that date
+                expect(item?.paidByAccountID).toBeUndefined();
+                expect(item?.paid).toBe(receivedAt);
+            });
+
+            it('should keep the first received date when the submitter marks the payment as received again', () => {
+                // Given a report marked as received on two days, which the backend dates from the first marking
+                const firstReceivedAt = '2024-12-22 09:30:00';
+                const secondReceivedAt = '2024-12-23 10:00:00';
+                const receivedActions = (id: string, created: string) => [
+                    {
+                        reportActionID: `received-pay-${id}`,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, isSubmitterMarkedPaymentReceived: true},
+                        actorAccountID: adminAccountID,
+                        created,
+                    },
+                    {reportActionID: `received-reimbursed-${id}`, actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, actorAccountID: adminAccountID, created},
+                    {reportActionID: `received-redeemed-${id}`, actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED, actorAccountID: adminAccountID, created},
+                ];
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    ownerAccountID: adminAccountID,
+                    paid: firstReceivedAt,
+                });
+
+                // When the row is built after the report's actions are loaded
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [...receivedActions('1', firstReceivedAt), ...receivedActions('2', secondReceivedAt)]},
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then Paid keeps the first marking, so it doesn't change once the actions load
+                expect(item?.paid).toBe(firstReceivedAt);
+            });
+
+            it('should keep the first received date and no payer right after the submitter marks the payment as received again', () => {
+                // Given a report marked as received twice, where the second marking was just made in this session, so only its
+                // flagged pay action and MARKED_REIMBURSED are stored yet; its MARKED_REDEEMED only arrives once the report reloads
+                const firstReceivedAt = '2024-12-22 09:30:00';
+                const secondReceivedAt = '2024-12-23 10:00:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    ownerAccountID: adminAccountID,
+                    paid: firstReceivedAt,
+                });
+
+                // When the row is built from those stored actions
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'received-pay-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, isSubmitterMarkedPaymentReceived: true},
+                                actorAccountID: adminAccountID,
+                                created: firstReceivedAt,
+                            },
+                            {reportActionID: 'received-reimbursed-1', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, actorAccountID: adminAccountID, created: firstReceivedAt},
+                            {reportActionID: 'received-redeemed-1', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED, actorAccountID: adminAccountID, created: firstReceivedAt},
+                            {reportActionID: 'received-reimbursed-2', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, actorAccountID: adminAccountID, created: secondReceivedAt},
+                            {
+                                reportActionID: 'received-pay-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, isSubmitterMarkedPaymentReceived: true},
+                                actorAccountID: adminAccountID,
+                                created: '2024-12-23 10:00:01',
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the second marking is still recognized as received: Paid keeps the first date and Paid by stays blank
+                expect(item?.paid).toBe(firstReceivedAt);
+                expect(item?.paidByAccountID).toBeUndefined();
+            });
+
+            it('should populate paid from the report paid date when the response has no payment actions', () => {
+                // Given a paid report that carries its paid date but no payment actions, which is what Search returns when the Paid by column is not requested
+                const reportPaidAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    paid: reportPaidAt,
+                });
+
+                // When the report sections are built
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the paid date comes from the report, so the column fills in without the payment actions
+                expect(item?.paid).toBe(reportPaidAt);
+            });
+
+            it('should prefer a newer payment action over a stale report paid date (offline re-payment)', () => {
+                // Given a paid report whose paid date predates a payment action that is not yet reflected on the report
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    paid: '2024-12-20 08:00:00',
+                });
+                const rePaidAt = '2024-12-22 09:30:00';
+
+                // When the report sections are built with the live payment action
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-pay-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+                                actorAccountID: approverAccountID,
+                                created: rePaidAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the newer payment wins, the same way a newer approval wins over a stale approved date
+                expect(item?.paid).toBe(rePaidAt);
+            });
+
+            it('should ignore the report paid date when the report is not paid', () => {
+                // Given a report that was paid and then reopened, so it still carries its old paid date
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    paid: '2024-12-20 08:00:00',
+                });
+
+                // When the report sections are built
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the paid date is blank, because only a report in the Paid status has a paid date
+                expect(item?.paid).toBe('');
+            });
+
+            it('should leave paid blank when the payment was cancelled', () => {
+                // Given a report still marked Paid whose only payment action precedes a reimbursement cancellation
+                const [sections] = callGetReportSections(
+                    makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}),
+                    {
+                        reportActions: {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                                {
+                                    reportActionID: 'reimbursed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                                    actorAccountID: approverAccountID,
+                                    created: '2024-12-20 08:00:00',
+                                },
+                                {
+                                    reportActionID: 'dequeued-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+                                    actorAccountID: approverAccountID,
+                                    created: '2024-12-21 10:00:00',
+                                },
+                            ],
+                        },
+                    },
+                );
+
+                // When the row is read
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the paid date is blank, because the reversed payment no longer counts
+                expect(item?.paid).toBe('');
+            });
+
+            it('should leave paid blank when the report is not paid', () => {
+                // Given an approved report that still holds a payment action from an earlier payment
+                const [sections] = callGetReportSections(
+                    makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED}),
+                    {
+                        reportActions: {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                                {
+                                    reportActionID: 'reimbursed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                    actorAccountID: approverAccountID,
+                                    created: '2024-12-20 08:00:00',
+                                },
+                            ],
+                        },
+                    },
+                );
+
+                // When the row is read
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+
+                // Then the paid date is blank, because only a report in the Paid status has a paid date
+                expect(item?.paid).toBe('');
+            });
+
+            it('should widen the Paid column when a report was paid in a past year', () => {
+                // Given a report the backend returned as paid in a past year
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    paid: '2024-12-22 09:30:00',
+                });
+
+                // When the report sections and the header's year flags are built
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                const yearFlags = SearchUIUtils.shouldShowYear(data, true);
+
+                // Then both the row and the header use the wide Paid column, so the date has room for its year
+                expect(item?.shouldShowYearPaid).toBe(true);
+                expect(yearFlags.shouldShowYearPaid).toBe(true);
+            });
+
+            it('should keep the Paid column narrow when every report was paid this year', () => {
+                // Given a report the backend returned as paid this year
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    paid: `${new Date().getFullYear()}-01-02 09:30:00`,
+                });
+
+                // When the report sections and the header's year flags are built
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                const yearFlags = SearchUIUtils.shouldShowYear(data, true);
+
+                // Then the row and the header keep the narrow Paid column, matching the other date columns
+                expect(item?.shouldShowYearPaid).toBe(false);
+                expect(yearFlags.shouldShowYearPaid).toBe(false);
             });
 
             it('should use the first approval after the latest UNAPPROVED action when the report was re-approved', () => {
@@ -8814,6 +9366,55 @@ describe('SearchUIUtils', () => {
                 'report_reversed',
                 'report_domestic',
             ]);
+        });
+
+        it('should sort expense reports by paid date, leaving the unpaid reports at the empty end', () => {
+            // Given two paid reports and one that has no paid date
+            const withPaid = (keyForList: string, paid: string) =>
+                createMock<TransactionReportGroupListItemType>({
+                    groupedBy: 'expense-report',
+                    keyForList,
+                    reportID: keyForList,
+                    created: '2025-08-12 17:11:22',
+                    transactions: [],
+                    paid,
+                });
+            const reports = [withPaid('report_paid_later', '2025-09-02 10:00:00'), withPaid('report_unpaid', ''), withPaid('report_paid_earlier', '2025-08-20 10:00:00')];
+
+            // When the reports are sorted by the Paid column in each direction
+            const sortReports = (sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [...reports], localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.PAID, sortOrder).map(
+                    (report) => report.keyForList,
+                );
+
+            // Then the paid dates are ordered and the unpaid report groups at one end, the same as a blank Approved date
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['report_unpaid', 'report_paid_earlier', 'report_paid_later']);
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['report_paid_later', 'report_paid_earlier', 'report_unpaid']);
+        });
+
+        it('should sort expense reports by their lowest withdrawal ID, leaving the reports without a withdrawal at the empty end', () => {
+            // Given reports whose comma separated withdrawal IDs start with numbers of different lengths, and one report without a withdrawal
+            const withWithdrawals = (keyForList: string, withdrawalIDs?: string) =>
+                createMock<TransactionReportGroupListItemType>({
+                    groupedBy: 'expense-report',
+                    keyForList,
+                    reportID: keyForList,
+                    created: '2025-08-12 17:11:22',
+                    currency: 'USD',
+                    transactions: [],
+                    ...(withdrawalIDs ? {withdrawalIDs} : {}),
+                });
+            const reports = [withWithdrawals('report_high', '100,250'), withWithdrawals('report_none'), withWithdrawals('report_low', '99')];
+
+            // When the reports are sorted by Withdrawal ID
+            const sortReports = (sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [...reports], localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID, sortOrder).map(
+                    (report) => report.keyForList,
+                );
+
+            // Then they are ranked numerically by their first ID, as the backend ranks them, rather than as text
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['report_none', 'report_low', 'report_high']);
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['report_high', 'report_low', 'report_none']);
         });
 
         it('should sort category group data when type is EXPENSE and groupBy is category', () => {
@@ -10114,6 +10715,90 @@ describe('SearchUIUtils', () => {
             expect(reconciliationItem?.searchQuery).toContain('withdrawalType:reimbursement');
         });
 
+        it('should show Cash accruals and Bank reconciliation, but no Card searches, to a Payments Admin', () => {
+            // Given a Payments Admin on a workspace with approvals, ACH reimbursement, Expensify Cards, and a card feed
+            const paymentsAdminEmail = 'paymentsadmin@policy.com';
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Payments Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            // When the suggested searches are computed for that Payments Admin
+            const {visibility, shouldShowExpensifyCard} = SearchUIUtils.getSuggestedSearchesVisibility(paymentsAdminEmail, mockCardFeedsByPolicy, mockPolicies, undefined);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: paymentsAdminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+            const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+
+            // Then the role gets the reimbursement searches, while Card accruals and Card reconciliation stay limited to Admins and Auditors
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]).toBe(false);
+            expect(shouldShowExpensifyCard).toBe(false);
+            expect(reconciliationItem?.searchQuery).toContain('withdrawalType:reimbursement');
+        });
+
+        it('should hide Bank reconciliation from a Payments Admin when the workspace has no active business bank account', () => {
+            // Given a Payments Admin on a workspace that pays without a verified business bank account
+            const paymentsAdminEmail = 'paymentsadmin@policy.com';
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Payments Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                },
+            };
+
+            // When the suggested searches are computed for that Payments Admin
+            const {visibility} = SearchUIUtils.getSuggestedSearchesVisibility(paymentsAdminEmail, {}, mockPolicies, undefined);
+
+            // Then Cash accruals still shows, but Bank reconciliation needs a bank account to reconcile against
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(false);
+        });
+
         it('should place todo items (submit, approve, pay) inside the Expense reports section', () => {
             const mockPolicies = {
                 policy1: {
@@ -10428,6 +11113,86 @@ describe('SearchUIUtils', () => {
             expect(approveItem).toBeDefined();
             expect(payItem).toBeDefined();
             expect(exportItem).toBeDefined();
+        });
+
+        describe('Travel section', () => {
+            const createSectionsForPolicy = (travelSettings: WorkspaceTravelSettings | undefined) =>
+                SearchUIUtils.createTypeMenuSections({
+                    currentUserEmail: adminEmail,
+                    currentUserAccountID: adminAccountID,
+                    cardFeedsByPolicy: {},
+                    defaultCardFeed: undefined,
+                    policies: {
+                        policy1: {
+                            ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                            isTravelEnabled: true,
+                            travelSettings,
+                        },
+                    },
+                    savedSearches: {},
+                    isOffline: false,
+                    defaultExpensifyCard: undefined,
+                    draftTransactionIDs: [],
+                    isTrackIntentUser: false,
+                });
+
+            it('should show the Travel section with Trips when a workspace is set up for Expensify Travel', () => {
+                // Given a workspace that is set up in Spotnana
+                const sections = createSectionsForPolicy({spotnanaCompanyID: 'spotnana-company-1', hasAcceptedTerms: true});
+
+                // When looking for the Travel section in the Spend menu
+                const travelSection = sections.find((section) => section.translationPath === 'search.tabs.travel');
+
+                // Then it holds only the Trips search, which is a trip search
+                expect(travelSection?.menuItems).toHaveLength(1);
+                expect(travelSection?.menuItems.at(0)).toStrictEqual(
+                    expect.objectContaining({
+                        key: CONST.SEARCH.SEARCH_KEYS.TRIPS,
+                        translationPath: 'search.tabs.trips',
+                        type: CONST.SEARCH.DATA_TYPES.TRIP,
+                        icon: 'Plane',
+                    }),
+                );
+            });
+
+            it('should show the Travel section when the travel domain is linked even without a Spotnana company', () => {
+                // Given a workspace provisioned through its travel domain only, since either ID means it's set up for travel
+                const sections = createSectionsForPolicy({associatedTravelDomainAccountID: '123'});
+
+                // When looking for the Travel section in the Spend menu
+                const travelSection = sections.find((section) => section.translationPath === 'search.tabs.travel');
+
+                // Then the Travel section shows
+                expect(travelSection).toBeDefined();
+            });
+
+            it('should not show the Travel section when travel is only switched on but the workspace is not set up', () => {
+                // Given a workspace with the travel feature switched on but not provisioned in Spotnana, since isTravelEnabled is only the feature switch
+                const sections = createSectionsForPolicy(undefined);
+
+                // When looking for the Trips search in the Spend menu
+                const menuKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
+
+                // Then there is no Travel section and no Trips search
+                expect(sections.find((section) => section.translationPath === 'search.tabs.travel')).toBeUndefined();
+                expect(menuKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.TRIPS);
+            });
+
+            it('should remove the Travel section for users without the TravelApproval beta', () => {
+                // Given a user in a workspace set up for travel
+                const sections = createSectionsForPolicy({spotnanaCompanyID: 'spotnana-company-1'});
+                expect(sections.find((section) => section.translationPath === 'search.tabs.travel')).toBeDefined();
+
+                // When the menu drops the items behind the TravelApproval beta, as it does when the beta is off
+                const menuSections = SearchUIUtils.omitTravelApprovalMenuItems(sections);
+                const menuKeys = menuSections.flatMap((section) => section.menuItems.map((item) => item.key));
+
+                // Then the empty Travel section is removed and the other sections stay as they are
+                expect(menuSections.find((section) => section.translationPath === 'search.tabs.travel')).toBeUndefined();
+                expect(menuKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.TRIPS);
+                expect(menuSections).toHaveLength(sections.length - 1);
+                expect(menuKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            });
         });
     });
 
@@ -11980,6 +12745,20 @@ describe('SearchUIUtils', () => {
             expect(sortedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
         });
 
+        test('Should show the selected Withdrawal ID column on report searches even when no report on the page has a withdrawal', () => {
+            // Given a page of reports where no report has withdrawals, and the user selected the Withdrawal ID column
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID];
+            const unpaidReportID = '1';
+            const unpaidReport = {reportID: unpaidReportID, type: CONST.REPORT.TYPE.EXPENSE, total: -10000, currency: 'USD'};
+            const unpaidData: OnyxTypes.SearchResults['data'] = {[`report_${unpaidReportID}`]: unpaidReport};
+
+            // When the columns to show are computed
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: unpaidData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+
+            // Then the column stays visible, because the user selected it
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
+        });
+
         test('Should only show the conversion amount columns for withdrawal groups that converted currencies', () => {
             const domesticGroup = {
                 entryID: 1,
@@ -13387,6 +14166,18 @@ describe('SearchUIUtils', () => {
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
             });
+        });
+
+        test("Should pass the expense report policy's full policy snapshot marker when creating the transaction thread", () => {
+            // Given markers cached for the expense report's policy and for another policy
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            const fullPolicySnapshotLastModifiedByPolicyID = {[policyID]: 123, otherPolicyID: 456};
+
+            // When the expense is opened from Search
+            SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, shouldNavigate: false, fullPolicySnapshotLastModifiedByPolicyID});
+
+            // Then the thread is created with the marker of the expense report's own policy
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({iouReport: report1, fullPolicySnapshotLastModified: 123}));
         });
 
         test("Should not create a transaction thread in the current user's self DM for another user's unreported expense", () => {
@@ -15187,6 +15978,22 @@ describe('SearchUIUtils', () => {
             expect(result.at(0)?.isDefault).toBe(true);
             expect(result.at(1)?.isDefault).toBe(false);
         });
+
+        it('gives a filter and its negation the same key but different ids', () => {
+            // Given a query that uses the status filter both normally and negated, e.g. `status:approved -status:drafts,paid`
+            const form = {
+                [FILTER_KEYS.TYPE]: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [FILTER_KEYS.STATUS]: [CONST.SEARCH.STATUS.EXPENSE.APPROVED],
+                [FILTER_KEYS.STATUS_NOT]: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.PAID],
+            };
+
+            // When the form is mapped to filter chips
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, convertToDisplayStringWithoutCurrency);
+            const statusFilters = result.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+
+            // Then both chips share the base key (used to pick the chip's popover), while their ids stay unique so they can be used as React keys
+            expect(statusFilters.map((filter) => filter.id)).toEqual([FILTER_KEYS.STATUS, FILTER_KEYS.STATUS_NOT]);
+        });
     });
 });
 
@@ -15612,9 +16419,18 @@ describe('getDatePresets', () => {
 
         // Then only the common date presets are returned, without never
         expect(presets).toEqual([
+            CONST.SEARCH.DATE_PRESETS.THIS_WEEK,
             CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
-            CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            CONST.SEARCH.DATE_PRESETS.THIS_QUARTER,
+            CONST.SEARCH.DATE_PRESETS.THIS_YEAR,
             CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
+            CONST.SEARCH.DATE_PRESETS.LAST_WEEK,
+            CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            CONST.SEARCH.DATE_PRESETS.LAST_QUARTER,
+            CONST.SEARCH.DATE_PRESETS.LAST_YEAR,
+            CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS,
+            CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS,
+            CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS,
             CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
         ]);
         expect(presets).not.toContain(CONST.SEARCH.DATE_PRESETS.NEVER);

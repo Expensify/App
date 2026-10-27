@@ -21,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 
-import React, {memo} from 'react';
+import React from 'react';
 
 function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     const icons = useMemoizedLazyExpensifyIcons(['Document', 'GalleryNotFound']);
@@ -147,4 +147,4 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     );
 }
 
-export default memo(ImageRenderer, (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes);
+export default ImageRenderer;

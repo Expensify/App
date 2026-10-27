@@ -28,6 +28,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
@@ -40,6 +41,7 @@ import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDash
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
+import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
@@ -59,8 +61,8 @@ type InsightsDashboardContentProps = {
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
 
-    /** Changes the time bucket the headline chart aggregates into */
-    onGroupByChange: (groupBy: InsightsFilters['groupBy']) => void;
+    /** Changes how the headline chart aggregates: the time bucket, or Running total */
+    onGroupByChange: (update: Partial<InsightsFilters>) => void;
 };
 
 function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
@@ -139,6 +141,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             <ScrollView
                 style={styles.insightsDashboardScrollView}
                 onScroll={triggerScrollEvent}
+                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 {...scrollProps}
                 addBottomSafeAreaPadding
             >
@@ -191,13 +194,18 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
     const {isBetaEnabled} = usePermissions();
 
     const isCompareEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE);
-    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, isCompareEnabled) : undefined;
+    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
+    const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
+    const query = isResolved && !isLoadingOnyxValue(policiesMetadata) ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, isCompareEnabled) : undefined;
     const hash = query?.hash;
+    // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
+    const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
 
     const requestDashboard = () => {
         if (!query || hash === undefined || isOffline) {
@@ -215,15 +223,13 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             return;
         }
         onRequestConditionsChanged();
-        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. Group by is listed because the hash leaves it out
-    }, [dashboardID, hash, filters.groupBy, isCompareEnabled, isFocused, isOffline]);
+        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The effective bucket and the eligible charts are listed because the hash leaves them out, so changing them triggers a refetch while a pure Running total toggle does not.
+    }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isCompareEnabled, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
-    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
-    // Until the filters resolve, the charts have no query to read data for, so they show their loading state
+    // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
-        ? [query.headlineChart, ...query.supportingCharts.filter(({chart}) => eligibleCharts.includes(chart))]
+        ? [query.headlineChart, ...query.supportingCharts]
         : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart, queryJSON: undefined}));
     const snapshots = useMultipleSnapshots(
         visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>
@@ -263,7 +269,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
                 supportingCharts={supportingCharts}
                 filters={filters}
                 onRetry={requestDashboard}
-                onGroupByChange={(groupBy) => setFilters({groupBy})}
+                onGroupByChange={setFilters}
             />
         </ScreenWrapper>
     );

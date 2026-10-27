@@ -28,7 +28,7 @@ import DynamicFormShell from './components/DynamicFormShell';
 import getAnswerKeys from './utils/getAnswerKeys';
 import getContentFields from './utils/getContentFields';
 import getDynamicFieldErrors from './utils/getDynamicFieldErrors';
-import {isPageShown} from './utils/getPageTitle';
+import getPageTitle, {isPageShown} from './utils/getPageTitle';
 import getSubmittedAnswers from './utils/getSubmittedAnswers';
 import hasSensitiveAnswer from './utils/hasSensitiveAnswer';
 import isSensitiveField from './utils/isSensitiveField';
@@ -298,6 +298,7 @@ function DynamicFormFlow({
     const stepNames = [...shownPages.map((page) => page.key), ...(hasConfirmationPage ? [CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY] : [])];
     const stepPageIndex = stepPage ? shownPages.indexOf(stepPage) : -1;
     const stepIndex = stepPageIndex === -1 ? stepNames.length - 1 : stepPageIndex;
+    const stepTitle = stepPage ? getPageTitle(stepPage, values, translate, allFields) : confirmationTitle;
     // The shell swaps its root when the indicator toggles, which remounts the page. So `auto` decides once, from the answers the draft held on arrival, and keeps it while the user types.
     const [isAutoStepIndicatorAsked, setIsAutoStepIndicatorAsked] = useState<boolean>();
     if (!isDraftLoading && isAutoStepIndicatorAsked === undefined) {
@@ -312,6 +313,7 @@ function DynamicFormFlow({
             onBackButtonPress={goBack}
             stepNames={stepNames}
             stepIndex={stepIndex}
+            stepTitle={stepTitle || undefined}
             shouldShowStepIndicator={isStepIndicatorAsked && stepNames.length > 1}
         >
             {isDraftLoading || isRedirecting || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (

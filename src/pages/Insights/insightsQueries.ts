@@ -1,4 +1,4 @@
-import type {SearchCompareMode, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
+import type {SearchCompareMode, SearchGroupBy, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getRangeQueryValue} from '@libs/SearchQueryUtils';
 
@@ -35,9 +35,11 @@ function buildFilterFormValues(filters: InsightsFilters): Partial<SearchAdvanced
     };
 }
 
-/** Builds the dashboard-wide query the whole page is narrowed by. */
+/** Builds the dashboard-wide query the whole page is narrowed by. Keeps the grouping the user picked, Running total included, so reopening the dashboard restores it. `getQueryGroupBy` resolves it to a real bucket for the backend request. */
 function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
-    return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy, compare: filters.compare});
+    // Running total is a display grouping outside the Search grammar, so it isn't a SearchGroupBy. The serializer writes it verbatim and the Insights parser reads it back.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the serializer accepts any groupBy string, and `parseInsightsFilters` reads `runningTotal` back off the raw query
+    return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy as SearchGroupBy, compare: filters.compare});
 }
 
 /** Builds a chart's query with the page's filters applied. */
@@ -95,8 +97,13 @@ type InsightsQuery = {
     supportingCharts: InsightsChartQuery[];
 };
 
-/** Builds one request for the whole dashboard, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
-function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsQuery | undefined {
+/** Builds one request for the dashboard's headline chart and the given supporting charts, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
+function buildInsightsJsonQuery(
+    dashboard: InsightsDashboardID,
+    filters: InsightsFilters,
+    supportingChartSpecs: InsightsChartSpec[],
+    shouldIncludeComparisons: boolean,
+): InsightsQuery | undefined {
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
     const inputQuery = buildInsightsQueryString(filters);
     const queryJSON = buildSearchQueryJSON(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}));
@@ -114,7 +121,7 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
         }),
     });
     const headlineChart = buildChartQuery(spec.headlineChart);
-    const supportingCharts = spec.supportingCharts.map(buildChartQuery);
+    const supportingCharts = supportingChartSpecs.map(buildChartQuery);
     const graphEntries = [headlineChart, ...supportingCharts]
         .map((chartQuery) => buildSnapshotHashEntry(chartQuery, shouldIncludeComparisons))
         .filter((entry): entry is InsightsGraphHashEntry => !!entry);

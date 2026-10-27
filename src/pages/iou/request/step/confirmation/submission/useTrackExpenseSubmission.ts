@@ -15,6 +15,7 @@ import {rand64} from '@libs/NumberUtils';
 import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
 import {generateReportID, getAllPolicyExpenseChatReportActions, getChatReportFromMoneyRequestReport} from '@libs/ReportUtils';
 import {getDistanceRequestType, getIsFromGlobalCreate, getRateID, getSelectedRouteDistance, getValidWaypoints} from '@libs/TransactionUtils';
+import hasManualMapDistanceOverride from '@libs/TransactionUtils/hasManualMapDistanceOverride';
 
 import {trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
@@ -47,6 +48,7 @@ type UseTrackExpenseSubmissionParams = TransactionTaxValues & {
     transactions: Transaction[];
     receiptFiles: Record<string, Receipt>;
     canEnterScanFieldsManually: boolean;
+    isPolicyExpenseChat: boolean;
     report: OnyxEntry<Report>;
     reportDrafts: OnyxCollection<Report>;
     policy: OnyxEntry<Policy>;
@@ -89,6 +91,7 @@ function useTrackExpenseSubmission({
     transactions,
     receiptFiles,
     canEnterScanFieldsManually,
+    isPolicyExpenseChat,
     report,
     reportDrafts,
     policy,
@@ -187,7 +190,10 @@ function useTrackExpenseSubmission({
 
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
-            const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
+            const itemDistance =
+                isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest || hasManualMapDistanceOverride(item)
+                    ? (item.comment?.customUnit?.quantity ?? undefined)
+                    : undefined;
             const itemDistanceUnit = item.comment?.customUnit?.distanceUnit;
             const originalItemDistance =
                 isModifiedGPSDistanceRequest && gpsDraftDetails?.distanceInMeters && itemDistanceUnit
@@ -224,7 +230,7 @@ function useTrackExpenseSubmission({
                     merchant: item.merchant,
                     comment: item?.comment?.comment?.trim() ?? '',
                     receipt: trackReceipt,
-                    receiptState: getCurrentReceiptState({item, receiptFiles, canEnterScanFieldsManually}),
+                    receiptState: getCurrentReceiptState({item, receiptFiles, canEnterScanFieldsManually, isPolicyExpenseChat}),
                     category: item.category,
                     tag: item.tag,
                     taxCode: transactionTaxCode,

@@ -89,6 +89,7 @@ jest.mock('@components/Search/SearchContext', () => ({
 
 jest.mock('@components/WideRHPContextProvider', () => ({
     useWideRHPActions: () => ({markReportRHPWidth: jest.fn(), unmarkReportRHPWidth: jest.fn()}),
+    useWideRHPState: () => ({superWideRHPRouteKeys: [], wideRHPRouteKeys: []}),
 }));
 
 jest.mock('@components/OnyxListItemProvider', () => ({
@@ -196,6 +197,30 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: IOU_REPORT_ID}));
         });
         expect(setParamsSpy).not.toHaveBeenCalled();
+    });
+
+    it("sends the sibling parent report's full policy snapshot marker when fetching that report", async () => {
+        // Given the sibling's parent report belongs to a policy whose full snapshot is already cached
+        const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, {reportID: IOU_REPORT_ID, policyID: 'policy1'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy1`, {lastModified: 123});
+        await waitForBatchedUpdates();
+
+        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        await waitForBatchedUpdates();
+
+        // When next is pressed before that report's actions are loaded
+        const nextButton = screen.getAllByLabelText(CONST.ROLE.BUTTON).at(1);
+        if (!nextButton) {
+            throw new Error('next arrow did not render');
+        }
+        fireEvent.press(nextButton);
+
+        // Then the fetch sends the marker so the server can leave out the policy collections the client already has
+        await waitFor(() => {
+            expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: IOU_REPORT_ID, fullPolicySnapshot: {policyID: 'policy1', lastModified: 123}}));
+        });
     });
 
     it('abandons a staged press when the user has navigated elsewhere', async () => {

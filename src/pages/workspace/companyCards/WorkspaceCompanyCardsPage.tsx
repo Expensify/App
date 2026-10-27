@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,13 +24,14 @@ import {canMemberWrite, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 
-import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
+import {clearBulkUpdateTransactionStartDateUpdate, openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
@@ -57,6 +59,20 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     } = companyCards;
 
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
+    const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
+
+    const bulkTransactionStartDateUpdateID = companyCardsLoadingState?.bulkTransactionStartDateUpdateID;
+    const lastHandledBulkTransactionStartDateUpdateID = useRef<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (!bulkTransactionStartDateUpdateID || lastHandledBulkTransactionStartDateUpdateID.current === bulkTransactionStartDateUpdateID) {
+            return;
+        }
+
+        lastHandledBulkTransactionStartDateUpdateID.current = bulkTransactionStartDateUpdateID;
+        clearBulkUpdateTransactionStartDateUpdate(domainOrWorkspaceAccountID);
+        companyCardsTableRef.current?.clearSelection();
+    }, [bulkTransactionStartDateUpdateID, domainOrWorkspaceAccountID]);
 
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
@@ -91,13 +107,13 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         loadPolicyCompanyCardsPageEvent();
     }, []);
 
-    const loadPolicyCompanyCardsFeed = useCallback(() => {
+    const loadPolicyCompanyCardsFeed = () => {
         if (isLoading || !bankName || isFeedPending || isOffline) {
             return;
         }
 
         openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName, translate);
-    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policyID, translate, isOffline]);
+    };
 
     useEffect(() => {
         loadPolicyCompanyCardsFeed();
