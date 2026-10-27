@@ -18,7 +18,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {ASTNode, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
+import type {ASTNode, SearchColumnType, SearchDatePreset, SearchFilterKey, SearchQueryJSON, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
 import Navigation from '@navigation/Navigation';
@@ -50,6 +50,7 @@ import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {setDefaultOptions} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
@@ -4695,6 +4696,43 @@ describe('SearchUIUtils', () => {
                 // Clock is frozen at 2026-02-15, so last 12 months = March 2025 through February 2026
                 expect(range.start).toBe('2025-03-01');
                 expect(range.end).toBe('2026-02-28');
+            });
+
+            it('should resolve the calendar and rolling presets around the frozen date', () => {
+                // Given the clock frozen at Sunday 2026-02-15, the first day of its week and the middle of Q1
+                const expectedRanges: Array<[SearchDatePreset, {start: string; end: string}]> = [
+                    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK, {start: '2026-02-15', end: '2026-02-21'}],
+                    [CONST.SEARCH.DATE_PRESETS.LAST_WEEK, {start: '2026-02-08', end: '2026-02-14'}],
+                    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER, {start: '2026-01-01', end: '2026-03-31'}],
+                    [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER, {start: '2025-10-01', end: '2025-12-31'}],
+                    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR, {start: '2026-01-01', end: '2026-12-31'}],
+                    [CONST.SEARCH.DATE_PRESETS.LAST_YEAR, {start: '2025-01-01', end: '2025-12-31'}],
+                    [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS, {start: '2026-01-17', end: '2026-02-15'}],
+                    [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS, {start: '2025-11-18', end: '2026-02-15'}],
+                    [CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS, {start: '2025-09-01', end: '2026-02-28'}],
+                ];
+
+                for (const [preset, expectedRange] of expectedRanges) {
+                    // When each preset is resolved
+                    const range = getDateRangeForPreset(preset);
+
+                    // Then current periods run to the end of the period, previous periods cover the whole period, and rolling day ranges end today
+                    expect(range).toEqual(expectedRange);
+                }
+            });
+
+            it('should start weeks on Sunday even when the locale starts them on Monday', () => {
+                // Given a date-fns default locale whose weeks start on Monday, as some app languages set
+                setDefaultOptions({weekStartsOn: 1});
+
+                // When the week presets are resolved
+                const thisWeek = getDateRangeForPreset(CONST.SEARCH.DATE_PRESETS.THIS_WEEK);
+                const lastWeek = getDateRangeForPreset(CONST.SEARCH.DATE_PRESETS.LAST_WEEK);
+                setDefaultOptions({weekStartsOn: 0});
+
+                // Then they still match the Sunday-based week buckets of group-by:week
+                expect(thisWeek).toEqual({start: '2026-02-15', end: '2026-02-21'});
+                expect(lastWeek).toEqual({start: '2026-02-08', end: '2026-02-14'});
             });
         });
 
@@ -15931,9 +15969,18 @@ describe('getDatePresets', () => {
 
         // Then only the common date presets are returned, without never
         expect(presets).toEqual([
+            CONST.SEARCH.DATE_PRESETS.THIS_WEEK,
             CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
-            CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            CONST.SEARCH.DATE_PRESETS.THIS_QUARTER,
+            CONST.SEARCH.DATE_PRESETS.THIS_YEAR,
             CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
+            CONST.SEARCH.DATE_PRESETS.LAST_WEEK,
+            CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            CONST.SEARCH.DATE_PRESETS.LAST_QUARTER,
+            CONST.SEARCH.DATE_PRESETS.LAST_YEAR,
+            CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS,
+            CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS,
+            CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS,
             CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
         ]);
         expect(presets).not.toContain(CONST.SEARCH.DATE_PRESETS.NEVER);

@@ -1468,6 +1468,7 @@ const CONST = {
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
+        RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
     },
     BUTTON_STATES: {
@@ -3586,6 +3587,9 @@ const CONST = {
             SET_IDENTITY: 'setIdentity',
             SET_PROPERTIES: 'setProperties',
             SHUTDOWN: 'shutdown',
+        },
+        EVENT: {
+            CONCIERGE_MESSAGE_SENT: 'Concierge_message_sent',
         },
     },
 
@@ -8992,6 +8996,15 @@ const CONST = {
             YEAR_TO_DATE: 'year-to-date',
             LAST_12_MONTHS: 'last-12-months',
             LAST_STATEMENT: 'last-statement',
+            THIS_WEEK: 'this-week',
+            LAST_WEEK: 'last-week',
+            THIS_QUARTER: 'this-quarter',
+            LAST_QUARTER: 'last-quarter',
+            THIS_YEAR: 'this-year',
+            LAST_YEAR: 'last-year',
+            LAST_30_DAYS: 'last-30-days',
+            LAST_90_DAYS: 'last-90-days',
+            LAST_6_MONTHS: 'last-6-months',
         },
         SNAPSHOT_ONYX_KEYS: CONST_RUNTIME.SEARCH_SNAPSHOT_ONYX_KEYS,
         SEARCH_KEYS: {
@@ -9962,6 +9975,26 @@ const CONST = {
         },
     },
 
+    /** A draggable edge that resizes a pane or a column horizontally. */
+    RESIZE_HANDLE: {
+        /** Width of the line drawn on a dragged edge, and of the grip shown while a table heading is hovered. */
+        INDICATOR_WIDTH: 2,
+    },
+
+    RHP_RESIZE: {
+        /** Width of the strip straddling the single RHP's left edge that picks up a drag, as wide as the floating card's gutter. */
+        HANDLE_HIT_WIDTH: 12,
+
+        /** Narrowest the single RHP can be dragged, in px. */
+        MIN_WIDTH: 380,
+
+        /** How much narrower, in px, the widest single RHP stays than a wide RHP, so a single RHP stacked on one never covers it. */
+        WIDE_RHP_INSET: 40,
+
+        /** Room, in px, the widest RHP still leaves for the content to its left. */
+        CONTENT_RESERVE_WIDTH: 360,
+    },
+
     TABLES: {
         FILTER_TYPE: {
             SINGLE_SELECT: 'singleSelect',
@@ -10008,9 +10041,6 @@ const CONST = {
 
             /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
             DOUBLE_CLICK_INTERVAL: 150,
-
-            /** Width of the line shown while a column's edge is dragged, and of the grip shown while its heading is hovered. */
-            INDICATOR_WIDTH: 2,
 
             /** Share of the heading's height the grip spans, centred vertically. */
             GRIP_HEIGHT_RATIO: 0.8,
