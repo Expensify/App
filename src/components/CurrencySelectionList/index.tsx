@@ -15,6 +15,8 @@ import React, {useState} from 'react';
 
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
 
+const ANY_CURRENCY_OPTION_KEY = 'any-currency';
+
 function CurrencySelectionList({
     searchInputLabel,
     initiallySelectedCurrencyCode,
@@ -23,6 +25,7 @@ function CurrencySelectionList({
     selectedCurrencies = getEmptyArray<string>(),
     recentlyUsedCurrencies,
     excludedCurrencies = [],
+    shouldAllowEmptySelection = false,
     ...restProps
 }: CurrencySelectionListProps) {
     const {currencyList} = useCurrencyListState();
@@ -67,6 +70,17 @@ function CurrencySelectionList({
         .filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName))
         .sort((currency1, currency2) => getMatchScore(currency2.text ?? '', searchValue) - getMatchScore(currency1.text ?? '', searchValue));
 
+    const anyCurrencyLabel = translate('common.anyCurrency');
+    if (shouldAllowEmptySelection && searchRegex.test(anyCurrencyLabel)) {
+        filteredCurrencies.unshift({
+            currencyName: anyCurrencyLabel,
+            text: anyCurrencyLabel,
+            currencyCode: '',
+            keyForList: ANY_CURRENCY_OPTION_KEY,
+            isSelected: initiallySelectedCurrencyCode === '',
+        });
+    }
+
     const isEmpty = searchValue.trim() && !filteredCurrencies.length;
     const shouldDisplayRecentlyOptions = !isEmptyObject(recentlyUsedCurrencyOptions) && !searchValue;
     const initiallyPinnedOptions = filteredCurrencies.filter((option) => initiallyPinnedCurrencyCodeSet.has(option.currencyCode));
@@ -95,6 +109,7 @@ function CurrencySelectionList({
         }
     } else if (!isEmpty) {
         sections.push({
+            title: shouldAllowEmptySelection ? translate('common.all') : undefined,
             data: shouldDisplayInitiallyPinnedOptionsOnTop ? unpinnedOptions : filteredCurrencies,
             sectionIndex: 3,
         });
@@ -116,7 +131,7 @@ function CurrencySelectionList({
             shouldShowTextInput={!!searchInputLabel}
             shouldSingleExecuteRowSelect
             shouldUpdateFocusedIndex
-            initiallyFocusedItemKey={initiallySelectedCurrencyCode}
+            initiallyFocusedItemKey={shouldAllowEmptySelection && initiallySelectedCurrencyCode === '' ? ANY_CURRENCY_OPTION_KEY : initiallySelectedCurrencyCode}
             shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
         />
     );

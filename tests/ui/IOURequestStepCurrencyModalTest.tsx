@@ -1,4 +1,6 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
+
+import CurrencySelectionList from '@components/CurrencySelectionList';
 
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
@@ -27,7 +29,10 @@ describe('IOURequestStepCurrencyModal', () => {
         );
 
         // When Any currency is selected instead of a currency code.
-        fireEvent.press(screen.getByText('common.anyCurrency'), {nativeEvent: {}});
+        const listProps = jest.mocked(CurrencySelectionList).mock.calls.at(-1)?.[0];
+        expect(listProps?.shouldAllowEmptySelection).toBe(true);
+        expect(screen.queryByText('common.anyCurrency')).toBeNull();
+        act(() => listProps?.onSelect({currencyCode: '', currencyName: 'Any currency', keyForList: 'any-currency'}));
 
         // Then the caller receives the empty selection used by legacy operands.
         expect(onInputChange).toHaveBeenCalledWith('');
@@ -48,6 +53,6 @@ describe('IOURequestStepCurrencyModal', () => {
         );
 
         // Then money requests cannot select the search-only Any currency option.
-        expect(screen.queryByText('common.anyCurrency')).toBeNull();
+        expect(jest.mocked(CurrencySelectionList).mock.calls.at(-1)?.[0].shouldAllowEmptySelection).toBe(false);
     });
 });

@@ -1,7 +1,6 @@
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -72,26 +71,13 @@ function IOURequestStepCurrencyModal({
                     shouldShowBackButton
                     onBackButtonPress={hidePickerModal}
                 />
-                {shouldAllowEmptySelection && (
-                    <MenuItem.Root
-                        onPress={() => {
-                            onInputChange('');
-                            hidePickerModal();
-                        }}
-                    >
-                        <MenuItem.Row>
-                            <MenuItem.Content>
-                                <MenuItem.Title>{translate('common.anyCurrency')}</MenuItem.Title>
-                            </MenuItem.Content>
-                        </MenuItem.Row>
-                    </MenuItem.Root>
-                )}
                 <CurrencySelectionList
                     recentlyUsedCurrencies={recentlyUsedCurrencies ?? []}
                     initiallySelectedCurrencyCode={value}
                     onSelect={updateInput}
                     searchInputLabel={translate('common.search')}
                     excludedCurrencies={excludeCurrencies}
+                    shouldAllowEmptySelection={shouldAllowEmptySelection}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
