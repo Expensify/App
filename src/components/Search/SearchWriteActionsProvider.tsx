@@ -195,16 +195,18 @@ function useReconcileSelectionWithData({
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Opening or closing a group changes its count only when the rows it shows and the group-by count disagree, so only those groups re-run the reconcile.
-    const openGroupKeysMeasuredByRows = isGroupedItemArray(filteredData)
-        ? filteredData
-              .filter(
-                  (group) =>
-                      openGroupKeys.has(group.keyForList) &&
-                      resolveGroupCount(group, true, searchResultsData, group.keyForList) !== getGroupByCount(group, searchResultsData, group.keyForList),
-              )
-              .map((group) => group.keyForList)
-              .join()
-        : '';
+    // Written as JSON, since a group's key carries its name, which can hold the comma a plain join would split on.
+    const openGroupKeysMeasuredByRows = JSON.stringify(
+        isGroupedItemArray(filteredData)
+            ? filteredData
+                  .filter(
+                      (group) =>
+                          openGroupKeys.has(group.keyForList) &&
+                          resolveGroupCount(group, true, searchResultsData, group.keyForList) !== getGroupByCount(group, searchResultsData, group.keyForList),
+                  )
+                  .map((group) => group.keyForList)
+            : [],
+    );
 
     useEffect(() => {
         const shouldReconcileMovedExcludedTransaction =
