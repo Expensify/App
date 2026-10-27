@@ -61,12 +61,12 @@ function getBackRouteAfterSave(navigation: PrivatePersonalDetailsConfirmValidate
         return ROUTES.SETTINGS_PROFILE.route;
     }
     switch (openerRoute.name) {
-        case SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED: {
-            const isFromDomainCardDetail = 'isFromDomainCardDetail' in openerParams && !!openerParams.isFromDomainCardDetail;
-            return ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(openerParams.cardID, isFromDomainCardDetail);
-        }
-        case SCREENS.SETTINGS.WALLET.DOMAIN_CARD:
-            return ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(openerParams.cardID);
+        // Dynamic routes are appended to the path of the screen below them, so the opener's own path is the only
+        // reliable way to get back to it.
+        case SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED:
+        case SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD:
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the route path is the URL the app navigated to
+            return (openerRoute.path as Route | undefined) ?? ROUTES.SETTINGS_PROFILE.route;
         case SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL:
             return ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(openerParams.cardID);
         default:
