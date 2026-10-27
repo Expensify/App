@@ -2,9 +2,9 @@ import {act, render} from '@testing-library/react-native';
 
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import TaxFieldDropdown from '@components/MoneyRequestConfirmationList/sections/TaxFieldDropdown';
+import type {TaxPickerModalProps} from '@components/TaxPicker/TaxPickerModal';
 
 import {setMoneyRequestTaxRateValues} from '@libs/actions/IOU/MoneyRequest';
-import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +26,7 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: jest.fn(() => ({getCurrencyDecimals: jest.fn(() => 2), getCurrencySymbol: jest.fn(() => '$')}))}));
 
 // The list itself is covered by the TaxPickerModal tests; here only what the dropdown hands it, and what it does with a pick, matter.
-type MockTaxPickerModalProps = {transactionID?: string; selectedTaxRate?: string; action?: string; onSelected?: (tax: TaxRatesOption, shouldClearTax?: boolean) => void};
+type MockTaxPickerModalProps = Pick<TaxPickerModalProps, 'transactionID' | 'selectedTaxRate' | 'action' | 'onSelected'>;
 let mockTaxPickerModalProps: MockTaxPickerModalProps | undefined;
 jest.mock('@components/TaxPicker/TaxPickerModal', () => (props: MockTaxPickerModalProps) => {
     mockTaxPickerModalProps = props;

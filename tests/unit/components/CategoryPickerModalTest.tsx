@@ -400,9 +400,16 @@ describe('CategoryPickerModal', () => {
             renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
 
-            // Then the sheet grows to the window cap like a regular fitted sheet, and rises above the keyboard like other sheets
-            // rather than making room for it inside
-            expect(mockPopoverProps?.popoverDimensions?.height).toBe(mockWindowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO - BOTTOM_SHEET_TOP_PADDING);
+            // Then the sheet keeps the dropdown cap rather than growing to most of a tall screen the way a phone's does, and
+            // rises above the keyboard like other sheets rather than making room for it inside
+            const regularSheetHeight = getBottomSheetHeight({
+                preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+                windowHeight: mockWindowHeight,
+                keyboardHeight: 0,
+                topSafeAreaInset: 0,
+                minHeight: getSelectionListPopoverContentHeight({optionCount: 1}),
+            });
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(regularSheetHeight);
             expect(mockPopoverProps?.avoidKeyboard).toBe(true);
         });
 

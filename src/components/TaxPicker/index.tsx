@@ -1,5 +1,6 @@
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import isTextInputRef from '@components/TextInput/BaseTextInput/isTextInputRef';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -149,9 +150,7 @@ function TaxPicker({
         headerMessage: getHeaderMessageForNonUserList(translate, (sections.at(0)?.data?.length ?? 0) > 0, searchValue),
         // Auto-focus is opt-in (anchored pop-over only) and skipped on touch surfaces to avoid popping the keyboard.
         disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
-        // The search input is a text input, never the form element its ref type also allows, so the focus ref can take it.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
+        ref: (ref: BaseTextInputRef | null) => inputCallbackRef(isTextInputRef(ref) ? ref : null),
     };
 
     const updatedSections = deletedTaxOption

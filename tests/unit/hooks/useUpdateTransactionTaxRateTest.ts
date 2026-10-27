@@ -30,6 +30,7 @@ jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: jest.fn(
 const TRANSACTION_ID = 'txn1';
 const STANDARD_TAX_CODE = 'id_TAX_RATE_1';
 const REDUCED_TAX_CODE = 'id_TAX_RATE_2';
+const VALUELESS_TAX_CODE = 'id_TAX_RATE_3';
 
 // A $100 expense, stored negative as the expense-report amounts the tax is worked out from are. At the reduced
 // rate of 10% the tax included in $100 is $9.09, which is 909 in the smallest unit the stores keep.
@@ -47,6 +48,7 @@ const policy = createMock<OnyxTypes.Policy>({
         taxes: {
             [STANDARD_TAX_CODE]: {name: 'Standard', value: '5%'},
             [REDUCED_TAX_CODE]: {name: 'Reduced', value: '10%'},
+            [VALUELESS_TAX_CODE]: {name: 'Unset', value: ''},
         },
     },
 });
@@ -153,6 +155,32 @@ describe('useUpdateTransactionTaxRate', () => {
         expect(setDraftSplitTransaction).toHaveBeenCalledTimes(1);
         expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, undefined, {taxAmount: 0, taxCode: '', taxValue: ''}, expect.any(Function), expect.any(Function));
         expect(updateMoneyRequestTaxRate).not.toHaveBeenCalled();
+    });
+
+    it('leaves the draft alone for a rate without a value', () => {
+        // Given a workspace rate with no value, so there is no tax amount to work out
+        const {result} = renderUpdater();
+
+        // When it is picked on an expense being created
+        result.current.updateTaxRate({code: VALUELESS_TAX_CODE, keyForList: 'Unset ()-2', text: 'Unset ()'});
+
+        // Then nothing is written, as the full-page selector has always done for such a rate
+        expect(setMoneyRequestTaxRateValues).not.toHaveBeenCalled();
+        expect(updateMoneyRequestTaxRate).not.toHaveBeenCalled();
+        expect(setDraftSplitTransaction).not.toHaveBeenCalled();
+    });
+
+    it('leaves the draft alone when the workspace has no tax rates', () => {
+        // Given a workspace without tax rates, which can happen when the policy is still loading
+        const {result} = renderUpdater({policy: createMock<OnyxTypes.Policy>({id: 'policy1'})});
+
+        // When a rate is picked on an expense being created
+        result.current.updateTaxRate(reducedRateOption);
+
+        // Then nothing is written
+        expect(setMoneyRequestTaxRateValues).not.toHaveBeenCalled();
+        expect(updateMoneyRequestTaxRate).not.toHaveBeenCalled();
+        expect(setDraftSplitTransaction).not.toHaveBeenCalled();
     });
 
     it('writes nothing for a pick without a rate code', () => {
