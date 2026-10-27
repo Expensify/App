@@ -205,6 +205,22 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.WISE_BUSINESS_ONBOARDING]: {
+                            path: ROUTES.SETTINGS_WALLET_WISE_BUSINESS_ONBOARDING.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.WISE_ACCEPT_TERMS]: {
+                            path: ROUTES.SETTINGS_WALLET_WISE_ACCEPT_TERMS.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.WISE_IN_REVIEW]: {
+                            path: ROUTES.SETTINGS_WALLET_WISE_IN_REVIEW.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.WISE_VERIFY_ADDITIONAL_INFO]: {
+                            path: ROUTES.SETTINGS_WALLET_WISE_VERIFY_ADDITIONAL_INFO.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: {
                             path: ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.route,
                             exact: true,

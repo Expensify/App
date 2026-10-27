@@ -3838,6 +3838,31 @@ const CONST = {
         },
     },
 
+    WISE_POLICY_URLS: {
+        TERMS: 'https://wise.com/terms-and-conditions',
+        PRIVACY: 'https://wise.com/privacy-policy',
+    },
+    WISE_EMBEDDED_FLOW: {
+        // Messages Wise's embedded page posts to the window that hosts it
+        MESSAGE_TYPE: {
+            READY: 'ready',
+            RESIZE: 'resize',
+            DONE: 'done',
+            ERROR: 'error',
+        },
+        ERROR_CODE_CANCELLED: 'cancelled',
+
+        // Wise's redirect fallback lands on this path and appends a status query parameter
+        REDIRECT_PATH: 'wise-kyc-complete',
+        REDIRECT_STATUS: {
+            SUCCESS: 'success',
+            CANCELLED: 'cancelled',
+            ERROR: 'error',
+        },
+
+        // Hosts the embedded page loads from, production and sandbox
+        ORIGINS: ['https://wise.com', 'https://sandbox.transferwise.tech'],
+    },
     MERGE: {
         APPROVAL_MODE: {
             BASIC: 'basic',

@@ -481,6 +481,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/EnablePayments/shared/WalletConfirmValidateCodePage').default,
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/UnshareBankAccount/UnshareBankAccount').default,
+    [SCREENS.SETTINGS.WALLET.WISE_BUSINESS_ONBOARDING]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseBusinessOnboardingPage').default,
+    [SCREENS.SETTINGS.WALLET.WISE_ACCEPT_TERMS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseAcceptTermsPage').default,
+    [SCREENS.SETTINGS.WALLET.WISE_IN_REVIEW]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseInReviewPage').default,
+    [SCREENS.SETTINGS.WALLET.WISE_VERIFY_ADDITIONAL_INFO]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseVerifyAdditionalInfoPage').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: () =>

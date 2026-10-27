@@ -2663,6 +2663,23 @@ const ROUTES = {
         route: 'settings/wallet/:bankAccountID/unshare-bank-account',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/unshare-bank-account` as const,
     },
+    SETTINGS_WALLET_WISE_BUSINESS_ONBOARDING: {
+        route: 'settings/wallet/:bankAccountID/global-reimbursements/onboarding/:subPage?/:action?',
+        getRoute: (bankAccountID: number | undefined, subPage?: string, action?: 'edit') =>
+            `settings/wallet/${bankAccountID}/global-reimbursements/onboarding${subPage ? `/${subPage}` : ''}${action ? `/${action}` : ''}` as const,
+    },
+    SETTINGS_WALLET_WISE_ACCEPT_TERMS: {
+        route: 'settings/wallet/:bankAccountID/global-reimbursements/terms',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/global-reimbursements/terms` as const,
+    },
+    SETTINGS_WALLET_WISE_IN_REVIEW: {
+        route: 'settings/wallet/:bankAccountID/global-reimbursements/in-review',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/global-reimbursements/in-review` as const,
+    },
+    SETTINGS_WALLET_WISE_VERIFY_ADDITIONAL_INFO: {
+        route: 'settings/wallet/:bankAccountID/global-reimbursements/verify',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/global-reimbursements/verify` as const,
+    },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/business/:subPage/:action?',
         getRoute: (bankAccountID: number | undefined, subPage: string, action?: 'edit', params?: {bankCountry?: string; bankCurrency?: string}) =>

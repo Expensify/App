@@ -144,6 +144,20 @@ type AccountSettingsParamList = {
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
     };
+    [SCREENS.SETTINGS.WALLET.WISE_BUSINESS_ONBOARDING]: {
+        bankAccountID: string;
+        subPage?: string;
+        action?: 'edit';
+    };
+    [SCREENS.SETTINGS.WALLET.WISE_ACCEPT_TERMS]: {
+        bankAccountID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.WISE_IN_REVIEW]: {
+        bankAccountID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.WISE_VERIFY_ADDITIONAL_INFO]: {
+        bankAccountID: string;
+    };
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: {
         bankAccountID: string;
         subPage: string;
