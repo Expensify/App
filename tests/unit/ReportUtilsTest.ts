@@ -4010,29 +4010,13 @@ describe('ReportUtils', () => {
         });
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
-            const actual = getParentNavigationSubtitle({
-                report: baseArchivedPolicyExpenseChat,
-                policy: undefined,
-                invoiceReceiverPolicy: undefined,
-                translate: translateLocal,
-                formatPhoneNumber,
-                parentReportName: undefined,
-                isParentReportArchived: true,
-            });
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined, true);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
 
         it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
-            const actual = getParentNavigationSubtitle({
-                report: baseArchivedPolicyExpenseChat,
-                policy: undefined,
-                invoiceReceiverPolicy: undefined,
-                translate: translateLocal,
-                formatPhoneNumber,
-                parentReportName: undefined,
-                isParentReportArchived: false,
-            });
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined, false);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
@@ -4051,14 +4035,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
 
-            const actual = getParentNavigationSubtitle({
-                report: expenseReport,
-                policy: testPolicy,
-                invoiceReceiverPolicy: undefined,
-                translate: translateLocal,
-                formatPhoneNumber,
-                parentReportName: undefined,
-            });
+            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
@@ -4086,28 +4063,14 @@ describe('ReportUtils', () => {
             };
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}200`, parentInvoiceRoom).then(() => {
-                const actual = getParentNavigationSubtitle({
-                    report: invoiceReport,
-                    policy: testPolicy,
-                    invoiceReceiverPolicy: undefined,
-                    translate: translateLocal,
-                    formatPhoneNumber,
-                    parentReportName: undefined,
-                });
+                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
                 const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
                 expect(normalizedActual.reportName).toContain('Invoice Policy');
             });
         });
 
         it('should fall back to allPolicies when policy parameter is undefined', () => {
-            const actual = getParentNavigationSubtitle({
-                report: baseArchivedPolicyExpenseChat,
-                policy: undefined,
-                invoiceReceiverPolicy: undefined,
-                translate: translateLocal,
-                formatPhoneNumber,
-                parentReportName: undefined,
-            });
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             // Should still resolve via Onyx-connected allPolicies or report.policyName
             expect(normalizedActual.reportName).toContain('A workspace');
@@ -4120,22 +4083,14 @@ describe('ReportUtils', () => {
                 reportName: 'Chat Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            const actual = getParentNavigationSubtitle({
-                report: chatReport,
-                policy: undefined,
-                invoiceReceiverPolicy: undefined,
-                translate: translateLocal,
-                formatPhoneNumber,
-                parentReportName: undefined,
-            });
+            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual).toEqual({});
         });
 
-        it('should use the parent report name the caller resolved rather than deriving it again', () => {
-            // Given a chat thread hanging off the Concierge chat
-            const parentReportID = '999';
+        it('should pass conciergeReportID through to getReportName for parent report name resolution', () => {
+            const conciergeReportID = '999';
             const conciergeParentReport: Report = {
-                reportID: parentReportID,
+                reportID: conciergeReportID,
                 lastReadTime: '2024-02-01 04:56:47.233',
                 reportName: 'Concierge',
                 type: CONST.REPORT.TYPE.CHAT,
@@ -4143,7 +4098,7 @@ describe('ReportUtils', () => {
             const childReport: Report = {
                 reportID: '1000',
                 lastReadTime: '2024-02-01 04:56:47.233',
-                parentReportID,
+                parentReportID: conciergeReportID,
                 parentReportActionID: '1',
                 reportName: 'Child Thread',
                 type: CONST.REPORT.TYPE.CHAT,
@@ -4155,30 +4110,13 @@ describe('ReportUtils', () => {
             })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    // When the caller hands in the parent report name it already resolved
-                    const actual = getParentNavigationSubtitle({
-                        report: childReport,
-                        policy: undefined,
-                        invoiceReceiverPolicy: undefined,
-                        translate: translateLocal,
-                        formatPhoneNumber,
-                        parentReportName: 'Concierge',
-                    });
-
-                    // Then that name is what the subtitle shows, so the function never has to look the parent up itself
+                    const actual = getParentNavigationSubtitle(childReport, undefined, undefined, conciergeReportID, translateLocal, formatPhoneNumber, 'Concierge');
                     expect(actual.reportName).toBe('Concierge');
                 });
         });
 
-        it('should return reportName and workspaceName when the parent report exists', () => {
-            const actual = getParentNavigationSubtitle({
-                report: baseArchivedPolicyExpenseChat,
-                policy: undefined,
-                invoiceReceiverPolicy: undefined,
-                translate: translateLocal,
-                formatPhoneNumber,
-                parentReportName: undefined,
-            });
+        it('should return reportName and workspaceName when parent report exists and conciergeReportID is undefined', () => {
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual).toHaveProperty('reportName');
         });
 
@@ -4190,14 +4128,7 @@ describe('ReportUtils', () => {
             const expenseReport = {reportID: '780051', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: hiddenOwnerAccountID};
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
-            const actual = getParentNavigationSubtitle({
-                report: expenseReport,
-                policy: undefined,
-                invoiceReceiverPolicy: undefined,
-                translate: translateWithHiddenMarker,
-                formatPhoneNumber,
-                parentReportName: undefined,
-            });
+            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, undefined, translateWithHiddenMarker, formatPhoneNumber, undefined);
             expect(actual.reportName).toContain('HiddenMarker');
         });
 
@@ -4252,14 +4183,7 @@ describe('ReportUtils', () => {
                 const passedReceiverPolicy = createMock<Policy>({id: RECEIVER_POLICY_ID, name: 'Passed Receiver Name'});
 
                 // When the caller passes the receiver policy it actually holds
-                const actual = getParentNavigationSubtitle({
-                    report: invoiceReport,
-                    policy: undefined,
-                    invoiceReceiverPolicy: passedReceiverPolicy,
-                    translate: translateLocal,
-                    formatPhoneNumber,
-                    parentReportName: undefined,
-                });
+                const actual = getParentNavigationSubtitle(invoiceReport, undefined, passedReceiverPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
 
                 // Then the subtitle names the passed workspace, proving the payer is read off the argument and
                 // not off the policy that `RECEIVER_POLICY_ID` resolves to in Onyx
@@ -4269,14 +4193,7 @@ describe('ReportUtils', () => {
             it('never falls back to the cached policy when the caller has no receiver policy', () => {
                 // Given the same invoice, but a caller that has not loaded the receiver policy yet
                 // When the subtitle is built with no receiver policy
-                const actual = getParentNavigationSubtitle({
-                    report: invoiceReport,
-                    policy: undefined,
-                    invoiceReceiverPolicy: undefined,
-                    translate: translateLocal,
-                    formatPhoneNumber,
-                    parentReportName: undefined,
-                });
+                const actual = getParentNavigationSubtitle(invoiceReport, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
 
                 // Then the cached name never reaches the subtitle. Without a receiver policy `getInvoicePayerName`
                 // falls back to the invoice room's own `policyName`, exactly as it did before this refactor, so the

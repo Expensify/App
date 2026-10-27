@@ -76,15 +76,16 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
         isTrackExpenseReport: isTrackExpenseReportUtil(report, parentReport, parentReportAction),
     });
     const invoiceReceiverPolicy = usePolicy(getInvoiceReceiverPolicyID(parentReport));
-    const parentNavigationSubtitleData = getParentNavigationSubtitle({
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(
         report,
         policy,
         invoiceReceiverPolicy,
+        conciergeReportID,
         translate,
         formatPhoneNumber,
-        parentReportName: derivedParentReportName,
+        derivedParentReportName,
         isParentReportArchived,
-    });
+    );
 
     const titleField: OnyxTypes.PolicyReportField | undefined = (() => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));

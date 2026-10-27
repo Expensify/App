@@ -7229,42 +7229,22 @@ function getPendingDeleteMemberAccountIDs(pendingChatMembers: PendingChatMember[
     return pendingChatMembers.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID);
 }
 
-type GetParentNavigationSubtitleParams = {
-    /** The report whose parent is being described */
-    report: OnyxEntry<Report>;
-
-    /** The workspace policy of `report`, used to name the workspace its parent chat belongs to */
-    policy: OnyxEntry<Policy>;
-
-    /**
-     * The policy of the business receiving the invoice, i.e. the policy whose ID `getInvoiceReceiverPolicyID`
-     * reads off the parent report. Only used for invoice reports and invoice rooms.
-     */
-    invoiceReceiverPolicy: OnyxEntry<Policy>;
-
-    translate: LocalizedTranslate;
-
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-
-    /** Pre-resolved name of the parent report, so this function does not have to derive it */
-    parentReportName: string | undefined;
-
-    /** Whether the parent report is archived */
-    isParentReportArchived?: boolean;
-};
-
 /**
  * Gets the parent navigation subtitle for the report
+ *
+ * @param invoiceReceiverPolicy - The policy of the business receiving the invoice, i.e. the policy whose ID
+ * `getInvoiceReceiverPolicyID` reads off the parent report. Only used for invoice reports and invoice rooms.
  */
-function getParentNavigationSubtitle({
-    report,
-    policy,
-    invoiceReceiverPolicy,
-    translate,
-    formatPhoneNumber,
-    parentReportName,
+function getParentNavigationSubtitle(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    invoiceReceiverPolicy: OnyxEntry<Policy>,
+    conciergeReportID: string | undefined,
+    translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    parentReportName: string | undefined,
     isParentReportArchived = false,
-}: GetParentNavigationSubtitleParams): ParentNavigationSummaryParams {
+): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
 
     if (isEmptyObject(parentReport)) {

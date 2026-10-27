@@ -145,15 +145,8 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
                 .join(' & ');
         } else {
             subtitle =
-                getParentNavigationSubtitle({
-                    report,
-                    policy,
-                    invoiceReceiverPolicy,
-                    translate,
-                    formatPhoneNumber,
-                    parentReportName: derivedParentReportName,
-                    isParentReportArchived,
-                }).workspaceName ?? getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
+                getParentNavigationSubtitle(report, policy, invoiceReceiverPolicy, conciergeReportID, translate, formatPhoneNumber, derivedParentReportName, isParentReportArchived)
+                    .workspaceName ?? getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
         }
     } else {
         subtitle = currentUserPersonalDetails.login;
