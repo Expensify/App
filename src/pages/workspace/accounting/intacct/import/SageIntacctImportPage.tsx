@@ -23,7 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type {SageIntacctConnectionsConfig, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): TranslationPaths | undefined {
     switch (displayType) {
@@ -57,19 +57,15 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
     const sageIntacctConfig = policy?.connections?.intacct?.config;
     const sageIntacctData = policy?.connections?.intacct?.data;
 
-    const mappingItems = useMemo(
-        () =>
-            Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping) => {
-                const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
-                return {
-                    description: Str.recapitalize(translate('workspace.intacct.mappingTitle', mapping)),
-                    action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
-                    title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
-                    subscribedSettings: [mapping],
-                };
-            }),
-        [policyID, sageIntacctConfig?.mappings, translate],
-    );
+    const mappingItems = Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping) => {
+        const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
+        return {
+            description: Str.recapitalize(translate('workspace.intacct.mappingTitle', mapping)),
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
+            title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
+            subscribedSettings: [mapping],
+        };
+    });
 
     const isExpenseType = sageIntacctConfig?.export.reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT;
 

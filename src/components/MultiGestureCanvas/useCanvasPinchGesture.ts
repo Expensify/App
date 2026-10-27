@@ -1,6 +1,6 @@
 import type {PinchGesture} from 'react-native-gesture-handler';
 
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {GestureStateManager, usePinchGesture} from 'react-native-gesture-handler';
 import {useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -91,17 +91,14 @@ const useCanvasPinchGesture = ({
      * Calculates the adjusted focal point of the pinch gesture,
      * based on the canvas size and the current offset
      */
-    const getAdjustedFocal = useCallback(
-        (focalX: number, focalY: number) => {
-            'worklet';
+    const getAdjustedFocal = (focalX: number, focalY: number) => {
+        'worklet';
 
-            return {
-                x: focalX - (canvasSize.width / 2 + offsetX.get()),
-                y: focalY - (canvasSize.height / 2 + offsetY.get()),
-            };
-        },
-        [canvasSize.width, canvasSize.height, offsetX, offsetY],
-    );
+        return {
+            x: focalX - (canvasSize.width / 2 + offsetX.get()),
+            y: focalY - (canvasSize.height / 2 + offsetY.get()),
+        };
+    };
 
     // The pinch gesture is disabled when we release one of the fingers
     // On the next render, we need to re-enable the pinch gesture

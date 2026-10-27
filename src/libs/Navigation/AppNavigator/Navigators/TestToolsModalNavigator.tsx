@@ -20,7 +20,7 @@ import SCREENS from '@src/SCREENS';
 
 import type {ComponentRef, MouseEvent} from 'react';
 
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import Overlay from './Overlay';
@@ -33,17 +33,17 @@ function TestToolsModalNavigator() {
     const outerViewRef = useRef<ComponentRef<typeof View>>(null);
     const isAuthenticated = useIsAuthenticated();
 
-    const handleOuterClick = useCallback(() => {
+    const handleOuterClick = () => {
         // Release focus from any focused element before closing the modal
         blurActiveElement();
         requestAnimationFrame(() => {
             toggleTestToolsModal();
         });
-    }, []);
+    };
 
-    const handleInnerClick = useCallback((e: MouseEvent) => {
+    const handleInnerClick = (e: MouseEvent) => {
         e.stopPropagation();
-    }, []);
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => toggleTestToolsModal(), {shouldBubble: false});
 

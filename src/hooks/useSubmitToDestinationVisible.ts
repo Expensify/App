@@ -39,7 +39,7 @@ function useSubmitToDestinationVisible(
     const usesFocus = triggers.includes(CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS);
     const usesLayout = triggers.includes(CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT);
 
-    const tryEnd = useCallback(() => {
+    const tryEnd = () => {
         if (hasEndedRef.current) {
             return;
         }
@@ -52,11 +52,11 @@ function useSubmitToDestinationVisible(
         }
         hasEndedRef.current = true;
         endSubmitFollowUpActionSpan(pending.followUpAction, reportID);
-    }, [followUpActions, reportID]);
+    };
 
-    const reset = useCallback(() => {
+    const reset = () => {
         hasEndedRef.current = false;
-    }, []);
+    };
 
     useFocusEffect(
         useCallback(() => {

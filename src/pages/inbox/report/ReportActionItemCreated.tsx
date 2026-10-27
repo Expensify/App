@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
-import React, {memo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
@@ -69,7 +69,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
         <OfflineWithFeedback
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
-            errorRowStyles={[styles.ml10, styles.mr2, styles.mb2]}
+            errorRowStyles={[styles.ml10, styles.mb2]}
             onClose={() =>
                 clearCreateChatError(
                     report,
@@ -130,4 +130,4 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     );
 }
 
-export default memo(ReportActionItemCreated);
+export default ReportActionItemCreated;

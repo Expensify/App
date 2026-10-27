@@ -19,7 +19,7 @@ import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type VerifyAccountPageBaseProps = {
@@ -52,20 +52,17 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
 
     const sendValidateCode = () => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT});
 
-    const handleSubmitForm = useCallback(
-        (validateCode: string) => {
-            validateSecondaryLogin(contactMethod, validateCode);
-        },
-        [contactMethod],
-    );
+    const handleSubmitForm = (validateCode: string) => {
+        validateSecondaryLogin(contactMethod, validateCode);
+    };
 
-    const handleCloseWithFallback = useCallback(() => {
+    const handleCloseWithFallback = () => {
         if (handleClose) {
             handleClose();
             return;
         }
         Navigation.goBack(navigateBackTo);
-    }, [handleClose, navigateBackTo]);
+    };
 
     // Handle navigation once the user is validated.
     // This transition must happen exactly once: after it runs, this page stays mounted (see the loading state below),
