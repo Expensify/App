@@ -1,4 +1,4 @@
-// cspell:ignore BEGINSWITH devicectl
+// cspell:ignore devicectl
 
 /** Implements iOS benchmark setup, launch, process control, and marker collection through CoreDevice. */
 
@@ -67,20 +67,7 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
             const rawAppsResponse = (await file(appsJSONPath).json()) as JsonValue;
             const appsResponse = parseIOSInstalledAppsResponse(rawAppsResponse);
             const appURL = parseIOSInstalledAppURL(appsResponse, appID);
-            const escapedAppURL = appURL.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
-            await run('xcrun', [
-                'devicectl',
-                'device',
-                'info',
-                'processes',
-                '--device',
-                device,
-                '--filter',
-                `executable.absoluteString BEGINSWITH '${escapedAppURL}'`,
-                '--json-output',
-                processesJSONPath,
-                '--quiet',
-            ]);
+            await run('xcrun', iOSProcessListArguments(device, processesJSONPath));
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const processesResponse = (await file(processesJSONPath).json()) as JsonValue;
             return parseIOSRunningAppProcessIdentifier(processesResponse, appURL);
@@ -270,6 +257,11 @@ function parseIOSRunningAppProcessIdentifier(response: JsonValue, appURL: string
     return typeof processIdentifier === 'number' && Number.isInteger(processIdentifier) && processIdentifier > 0 ? processIdentifier : undefined;
 }
 
+/** Lists every process so client-side matching works across CoreDevice versions with different filter field names. */
+function iOSProcessListArguments(deviceIdentifier: string, outputPath: string): string[] {
+    return ['devicectl', 'device', 'info', 'processes', '--device', deviceIdentifier, '--json-output', outputPath, '--quiet'];
+}
+
 /** Maps a span name to its encoded marker path inside the iOS app data container. */
 function iOSBenchmarkMarkerPath(spanName: string): string {
     return `${IOS_BENCHMARK_DIRECTORY}/${encodeURIComponent(spanName)}.log`;
@@ -283,5 +275,13 @@ function isCoreDeviceInstalledApp(value: JsonValue): value is CoreDeviceInstalle
     return isJSONObject(value) && typeof value.bundleIdentifier === 'string' && typeof value.url === 'string';
 }
 
-export {createIOSAdapter, iOSBenchmarkMarkerPath, parseIOSInstalledAppURL, parseIOSInstalledAppsResponse, parseIOSLaunchProcessIdentifier, parseIOSRunningAppProcessIdentifier};
+export {
+    createIOSAdapter,
+    iOSBenchmarkMarkerPath,
+    iOSProcessListArguments,
+    parseIOSInstalledAppURL,
+    parseIOSInstalledAppsResponse,
+    parseIOSLaunchProcessIdentifier,
+    parseIOSRunningAppProcessIdentifier,
+};
 export type {CoreDeviceInstalledAppsResponse};
