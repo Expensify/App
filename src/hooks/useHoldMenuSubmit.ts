@@ -26,6 +26,7 @@ import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
+import useReportIsArchived from './useReportIsArchived';
 import useReportTransactions from './useReportTransactions';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
@@ -65,6 +66,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -134,6 +136,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 isTrackIntentUser,
                 conciergeChat,
                 rules,
+                isChatIOUReportArchived: isChatReportArchived,
             });
         }
         onClose();

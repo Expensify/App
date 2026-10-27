@@ -65,6 +65,7 @@ import {
     hasHeldExpenses,
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
+    isArchivedReport,
     isExpenseReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
@@ -715,6 +716,7 @@ function getPayActionCallback({
         bankAccountList,
         paymentType: lastPolicyPaymentMethod,
         chatReport: chatReportForPayment,
+        isChatIOUReportArchived: isArchivedReport(searchData?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReportForPayment.reportID}`]),
         iouReport: snapshotReport,
         iouReportTransactions,
         introSelected,

@@ -1564,6 +1564,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     bankAccountList,
                     delegateAccountID,
                     hash,
+                    isChatReportArchived: isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`]),
                 });
             }
         } else {
@@ -1619,6 +1620,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     bankAccountList,
                     delegateAccountID,
                     hash,
+                    isChatReportArchived: isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`]),
                 });
             }
         }
@@ -1647,6 +1649,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         duplicateTransactions,
         duplicateTransactionViolations,
         delegateAccountID,
+        allReportNameValuePairs,
     ]);
 
     const onBulkPaySelected = useCallback(
@@ -1851,6 +1854,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const chatReportPolicy = getPolicyFromSearchSnapshot(chatReport.policyID, searchData, policies);
                 const reportPolicy = workspacePayPolicy ?? getPolicyFromSearchSnapshot(item.policyID, searchData, policies);
                 const additionalOnyxData = getSearchPayOnyxData(hash, item.reportID, currentSearchKey);
+                const isChatReportArchived = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`]);
 
                 if (isItemInvoice) {
                     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
@@ -1891,6 +1895,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         delegateAccountID,
                         isTrackIntentUser,
                         rules,
+                        isChatIOUReportArchived: isChatReportArchived,
                     });
                     paidReportCount += 1;
                     continue;
@@ -1925,6 +1930,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     conciergeChat,
                     isFallbackChatReport,
                     rules,
+                    isChatIOUReportArchived: isChatReportArchived,
                 });
                 paidReportCount += 1;
             }

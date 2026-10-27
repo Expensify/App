@@ -426,6 +426,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 bankAccountList,
                 delegateAccountID,
                 hash: currentSearchHash,
+                isChatReportArchived: isReportArchived,
             });
         } else if (reportAction) {
             callbackWhenDeleteModalHide.current = () => {
