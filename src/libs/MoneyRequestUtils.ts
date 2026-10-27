@@ -381,4 +381,3 @@ export {
     hasMoneyRequestDraftUserEdits,
     haveMoneyRequestDraftsUserEdits,
 };
-export type {MoneyRequestDraftUserEditsOptions};
