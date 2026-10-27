@@ -197,6 +197,7 @@ const spendIcons = {
     ThumbsUp: mockIcon,
     CheckCircle: mockIcon,
     UserEye: mockIcon,
+    Plane: mockIcon,
 };
 const workspaceIcons = {
     Building: mockIcon,

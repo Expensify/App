@@ -121,6 +121,10 @@ const translations: TranslationDeepObject<typeof en> = {
         privacyPolicy: 'la Política de Privacidad de Expensify',
         addCardTermsOfService: 'Términos de Servicio',
         perPerson: 'por persona',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 noche • ${nightlyRate} por noche`,
+            other: `${count} noches • ${nightlyRate} por noche`,
+        }),
         signIn: 'Conectarse',
         signInWithGoogle: 'Iniciar sesión con Google',
         signInWithApple: 'Iniciar sesión con Apple',
@@ -575,7 +579,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Se ha producido un error al seleccionar un archivo adjunto. Por favor, inténtalo de nuevo.',
         errorWhileSelectingCorruptedAttachment: 'Se ha producido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
-        errorWhileConvertingHeic: 'No hemos podido procesar esta imagen. Inténtalo de nuevo o sube la foto en un formato diferente.',
+        errorWhileConvertingImage: 'No hemos podido procesar esta imagen. Inténtalo de nuevo o sube la foto en un formato diferente.',
         takePhoto: 'Hacer una foto',
         retake: 'Repetir',
         usePhoto: 'Usar foto',
@@ -1185,6 +1189,7 @@ const translations: TranslationDeepObject<typeof en> = {
             decrease: (percentage: string) => `Baja ${percentage}`,
         },
         compliance: 'Cumplimiento',
+        runningTotal: 'Total acumulado',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -2414,7 +2419,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
-            lossOfUnsubmittedData: (login) => `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `La fusión de tus cuentas es irreversible. Todos los gastos e informes de <strong>${login}</strong>, incluidos los borradores y los gastos no reportados, se trasladarán a la cuenta que vas a conservar.`,
             enterSecurityCode: (login: string) => `Para continuar, introduce el código de seguridad enviado a <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Código de seguridad incorrecto o no válido. Inténtalo de nuevo o solicita un código nuevo.',
@@ -2762,6 +2768,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Paga a miembros de todo el mundo en su moneda local.',
             getStarted: 'Empieza',
             headerTitle: 'Reembolsos globales',
+            payingReportSubtitle: 'Las cuentas bancarias de la empresa y del empleado usan monedas diferentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Paga a personas de todo el mundo', subtitle: 'Habilita los reembolsos globales en tu cuenta en USD.'},
     },
@@ -4850,7 +4857,7 @@ ${amount} para ${merchant} - ${date}`,
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             deleteWithCardsConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo? Se eliminarán todos los datos de las tarjetas y las tarjetas asignadas.',
             deleteOpenExpensifyCardsError: 'Tu empresa todavía tiene Tarjetas Expensify. Por favor, <concierge-link>contacta con Concierge</concierge-link> para eliminarlas.',
-            deleteTravelInvoicingError: 'Tu empresa todavía tiene habilitada la Facturación Consolidada de Viajes.',
+            deleteTravelBillingError: 'Tu empresa todavía tiene habilitada la Facturación Consolidada de Viajes.',
             outstandingBalanceWarning:
                 'Tienes un saldo pendiente que debe liquidarse antes de eliminar tu último espacio de trabajo. Por favor, ve a la configuración de tu suscripción para resolver el pago.',
             settleBalance: 'Ir a Suscripción',
@@ -4930,6 +4937,8 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Administrar personas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrador de pagos';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return 'Solo aprobación';
                     case CONST.POLICY.ROLE.USER:
                         return 'Miembro';
                     default:
@@ -4964,13 +4973,14 @@ ${amount} para ${merchant} - ${date}`,
             viewTransactions: 'Ver transacciones',
             policyExpenseChatName: (displayName) => `${displayName}'s gastos`,
             deepDiveExpensifyCard: `<muted-text-label>Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nuestra integración</a>.</muted-text-label>`,
-            travelInvoicing: 'Exportar gastos de facturación consolidada de viajes como',
-            travelInvoicingVendor: 'Proveedor de viajes',
-            travelInvoicingPayableAccount: 'Cuenta por pagar de viajes',
+            travelBilling: 'Exportar gastos de facturación consolidada de viajes como',
+            travelBillingVendor: 'Proveedor de viajes',
+            travelBillingPayableAccount: 'Cuenta por pagar de viajes',
             findDomain: 'Buscar dominio',
             cardAdminAlternateText: 'Gestiona tarjetas del espacio de trabajo.',
             peopleAdminAlternateText: 'Gestiona miembros y flujos de aprobación.',
             paymentsAdminAlternateText: 'Gestiona los pagos del flujo de trabajo.',
+            approveOnlyAlternateText: 'Solo aprobar informes.',
             noAccessActionPrompt: 'Tu rol en el espacio de trabajo no tiene acceso a estos ajustes. Pide a un administrador que te lo habilite si lo necesitas.',
             connections: 'Conexiones',
         },
@@ -5255,7 +5265,7 @@ ${amount} para ${merchant} - ${date}`,
             notConfigured: 'No configurado',
             bankAccountDescription: 'Elige desde dónde enviar los cheques.',
             creditCardAccount: 'Cuenta de la tarjeta de crédito',
-            travelInvoicingDescription: (integrationName = 'QuickBooks Online') =>
+            travelBillingDescription: (integrationName = 'QuickBooks Online') =>
                 `Los gastos de viaje se exportarán como cargos de tarjeta de crédito a la cuenta de ${integrationName} especificada a continuación.`,
             companyCardsLocationEnabledDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} no admite ubicaciones en las exportaciones de facturas de proveedor cuando las ubicaciones se importan como etiquetas. Como tienes ubicaciones importadas como etiquetas en tu espacio de trabajo, esta opción de exportación no está disponible.`,
@@ -5365,7 +5375,7 @@ ${amount} para ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Cada gasto exportado se contabiliza como una transacción bancaria en la cuenta bancaria de Xero que selecciones a continuación. Las fechas de las transacciones coincidirán con las fechas de el extracto bancario.',
             bankTransactions: 'Transacciones bancarias',
-            travelInvoicingDescription: 'Los gastos de viaje se exportarán como transacciones bancarias a la cuenta de Xero especificada a continuación.',
+            travelBillingDescription: 'Los gastos de viaje se exportarán como transacciones bancarias a la cuenta de Xero especificada a continuación.',
             xeroBankAccount: 'Cuenta bancaria de Xero',
             bankAccount: 'Cuenta bancaria',
             xeroBankAccountDescription: 'Elige dónde se contabilizarán los gastos como transacciones bancarias.',
@@ -5467,7 +5477,7 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
                 },
             },
-            travelInvoicingDescription: 'Los gastos de viaje se exportarán como cargos de tarjeta de crédito a la cuenta de Sage Intacct especificada a continuación.',
+            travelBillingDescription: 'Los gastos de viaje se exportarán como cargos de tarjeta de crédito a la cuenta de Sage Intacct especificada a continuación.',
             creditCardAccount: 'Cuenta de tarjeta de crédito',
             defaultVendor: 'Proveedor por defecto',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -6052,8 +6062,8 @@ ${amount} para ${merchant} - ${date}`,
             billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en Rillet.'},
             syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
-            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
-            travelInvoicingSettlementAccount: {
+            syncTravelBillingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
+            travelBillingSettlementAccount: {
                 label: 'Cuenta de liquidación de facturación consolidada de viajes',
                 description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.',
             },
@@ -6205,12 +6215,12 @@ ${amount} para ${merchant} - ${date}`,
             },
             syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en DualEntry.'},
-            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
-            travelInvoicingSettlementAccount: {
+            syncTravelBillingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
+            travelBillingSettlementAccount: {
                 label: 'Cuenta de liquidación de facturación de viajes consolidada',
                 description: 'Elige tu cuenta de liquidación y crearemos el pago en DualEntry.',
             },
-            travelInvoicingPayableAccount: {label: 'Cuenta por pagar de facturación consolidada de viajes'},
+            travelBillingPayableAccount: {label: 'Cuenta por pagar de facturación consolidada de viajes'},
         },
         type: {
             free: 'Gratis',
@@ -6364,6 +6374,9 @@ ${amount} para ${merchant} - ${date}`,
             startDateDescription: 'Importaremos todas las transacciones desde esta fecha en adelante. Si no se especifica una fecha, iremos tan atrás como lo permita tu banco.',
             editStartDateDescription:
                 'Elige una nueva fecha de inicio de transacciones. Sincronizaremos todas las transacciones a partir de esa fecha, excepto las que ya hayamos importado.',
+            bulkEditStartDateDescription:
+                'Elige una fecha de inicio de transacciones para todas las tarjetas seleccionadas. Sincronizaremos las transacciones a partir de esa fecha, excepto las que ya hayamos importado.',
+            bulkStartDateUpdated: 'Fecha de inicio de transacciones actualizada',
             fromTheBeginning: 'Desde el principio',
             customStartDate: 'Fecha de inicio personalizada',
             customCloseDate: 'Fecha de cierre personalizada',
@@ -6602,13 +6615,13 @@ ${amount} para ${merchant} - ${date}`,
                             'Envía las categorías, etiquetas y campos de informe de este espacio de trabajo a Expensify Travel para que los viajeros los completen en el momento de la reserva.',
                     },
                 },
-                travelInvoicing: {
+                travelBilling: {
                     travelBookingSection: {
                         title: 'Reserva de viajes',
                         subtitle: '¡Felicidades! Todo está listo para reservar y gestionar viajes en este espacio de trabajo.',
                         manageTravelLabel: 'Gestionar viajes',
                     },
-                    travelInvoicingSection: {
+                    travelBillingSection: {
                         title: 'Facturación consolidada de viajes',
                         subtitle: 'Centraliza todos los gastos de viaje en una factura mensual en lugar de pagar en el momento de la compra.',
                         learnHow: 'Aprende cómo.',
@@ -6632,6 +6645,8 @@ ${amount} para ${merchant} - ${date}`,
                             reduceLimitWarning: 'Si reduces el límite, los miembros que ya hayan gastado más de este importe no podrán hacer nuevas reservas de viaje hasta el próximo mes.',
                             provisioningError:
                                 'No hemos podido aprovisionar a algunos miembros de tu espacio de trabajo para la Facturación de Viajes Consolidada. Por favor, inténtalo de nuevo más tarde o contacta con Concierge para obtener ayuda.',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `El límite de gasto mensual por miembro no puede superar el límite de viaje actual de ${travelLimit}.`,
                         },
                         feedSelectorIntro:
                             'Tu organización ya tiene configurado un feed de facturación de viajes consolidada. Selecciónalo para mantener los gastos de viaje de este espacio de trabajo en la misma factura mensual.',
@@ -6713,6 +6728,7 @@ ${amount} para ${merchant} - ${date}`,
                     `Seleccione la cuenta ${integration} donde se deben exportar las transacciones.${exportPageLink ? ` Seleccione una cuenta diferente <a href="${exportPageLink}">opción de exportación</a> para cambiar las cuentas disponibles.` : ''}`,
                 lastUpdated: 'Última actualización',
                 transactionStartDate: 'Fecha de inicio de transacciones',
+                bulkUpdateTransactionStartDate: 'Actualizar fecha de inicio de transacciones',
                 updateCard: 'Actualizar tarjeta',
                 unassignCard: 'Desasignar tarjeta',
                 unassignCards: 'Desasignar tarjetas',
@@ -7148,6 +7164,15 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un miembro del espacio de trabajo. Por favor, inténtalo más tarde.',
+            approveOnlyRoleBlockedTitle: 'No se puede cambiar este rol',
+            approveOnlyRoleBlockedConfirm: 'Entendido',
+            approveOnlyRoleBlockedDescription: 'Los miembros de solo aprobación no pueden crear gastos en este espacio de trabajo. Primero deben resolverse lo siguiente:',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: 'Tienen una tarjeta asignada en este espacio de trabajo. Un administrador del espacio de trabajo o de tarjetas debe desasignarla primero.',
+                isRestrictedByDomainGroup:
+                    'Este espacio de trabajo es el espacio de trabajo preferido de un grupo de dominio al que pertenecen. Un administrador de dominio debe cambiarlo primero.',
+                isDefaultPolicy: 'Este es su espacio de trabajo predeterminado. Deberán establecer uno diferente antes de que puedas actualizar su rol.',
+            },
             removeMembersPrompt: ({memberName}) => ({
                 one: `¿Estás seguro de que deseas eliminar ${memberName}`,
                 other: '¿Estás seguro de que deseas eliminar a estos miembros?',
@@ -7200,6 +7225,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo',
                 genericRemove: 'Ha ocurrido un problema al eliminar al miembro del espacio de trabajo',
             },
+            makeApproveOnly: () => ({
+                one: 'Convertir en solo aprobación',
+                other: 'Convertir en miembros de solo aprobación',
+            }),
             addedWithPrimary: 'Se agregaron algunos miembros con sus nombres de usuario principales.',
             invitedBySecondaryLogin: (secondaryLogin) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             workspaceMembersCount: (count) => `Total de miembros del espacio de trabajo: ${count}`,
@@ -7207,6 +7236,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             admins: 'Administradores del espacio de trabajo',
             approvers: 'Aprobadores',
             auditors: 'Auditores',
+            approveOnly: 'Solo aprobación',
             guests: 'Invitados',
             editors: 'Editores',
             emptyRoleFilter: {
@@ -7285,6 +7315,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7531,6 +7563,18 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Sincronizando liquidaciones de tarjetas';
                         case 'campfireSyncTravelSettlements':
                             return 'Sincronizando liquidaciones de viaje';
+                        case 'digitsSyncTitle':
+                            return 'Sincronizando datos de Digits';
+                        case 'digitsSyncConnection':
+                            return 'Iniciando conexión con Digits';
+                        case 'digitsSyncImportData':
+                            return 'Cargando datos';
+                        case 'digitsSyncPayments':
+                            return 'Sincronizando pagos a proveedores';
+                        case 'digitsSyncCardSettlements':
+                            return 'Sincronizando liquidaciones de tarjetas';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Sincronizando liquidaciones de viaje';
                         case 'businessCentralSyncTitle':
                             return 'Sincronizando datos de Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
@@ -7572,14 +7616,15 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
                 settlementAccountReconciliation: (settlementAccountUrl, lastFourPAN) =>
                     `Asegúrate de que esta cuenta coincide con <a href="${settlementAccountUrl}">la cuenta de liquidación de tu Tarjeta Expensify</a> (que termina en ${lastFourPAN}) para que la conciliación continua funcione correctamente.`,
-                chooseTravelInvoicingBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu facturación de viajes consolidada.',
-                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                chooseTravelBillingBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu facturación de viajes consolidada.',
+                travelBillingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Asegúrate de que esta cuenta coincida con tu cuenta de liquidación de Facturación Consolidada de Viajes (terminada en ${lastFourPAN}) para que la Reconciliación Continua funcione correctamente.`,
             },
-            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
-            syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquearlo, configura una cuenta para tus exportaciones.',
-            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, habilita la sincronización automática.',
+            syncTravelBillingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
+            syncTravelBillingSettlementsNoAccountTooltip: 'Para desbloquearlo, configura una cuenta para tus exportaciones.',
+            syncTravelBillingSettlementsNoAutoSyncTooltip: 'Para desbloquear, habilita la sincronización automática.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>La conciliación continua se configura por cada fuente de tarjetas. Selecciona una fuente para cambiar cuál estás configurando.</muted-text-label>',
@@ -8898,11 +8943,8 @@ ${reportName}`,
                 applyExpenseDefaultsDescription: 'Actualizar campos automáticamente',
                 flagForReview: 'Marcar para revisión',
                 flagForReviewDescription: 'Notificar cuando se cumplan tus condiciones',
-                requireFields: 'Configurar requisitos de campos',
-                requireFieldsShort: 'Exigir campos',
+                requireFields: 'Exigir campos',
                 requireFieldsDescription: 'Recibos, categorías, etc.',
-                createAgentRule: 'Describir regla de agente',
-                createAgentRuleDescription: 'Crea reglas flexibles que se ejecuten cuando las necesites.',
                 describeItBelow: 'O simplemente descríbela abajo',
                 describeRulePlaceholder: 'Bloquear todos los gastos superiores a $2,000',
                 selectTemplateOrDescribe: 'Selecciona una plantilla o describe una regla para continuar',
@@ -9074,12 +9116,12 @@ ${reportName}`,
             billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige la cuenta de liquidación Campfire credits cuando Expensify marque una factura como pagada.'},
             syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en Campfire.'},
-            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
-            travelInvoicingSettlementAccount: {
+            syncTravelBillingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
+            travelBillingSettlementAccount: {
                 label: 'Cuenta de liquidación de facturación de viajes consolidada',
                 description: 'Elige tu cuenta de liquidación y crearemos el pago en Campfire.',
             },
-            travelInvoicingPayableAccount: {label: 'Cuenta por pagar de facturación consolidada de viajes'},
+            travelBillingPayableAccount: {label: 'Cuenta por pagar de facturación consolidada de viajes'},
             exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
             cardProgramAccount: {
                 label: 'Cuenta del programa de tarjetas',
@@ -9164,6 +9206,35 @@ ${reportName}`,
             companyCardAccount: {
                 label: 'Cuenta de tarjeta de empresa',
                 description: 'Elige a dónde exportar las transacciones de tarjetas de empresa.',
+            },
+            exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
+            cardProgramAccount: {
+                label: 'Cuenta del programa de tarjetas',
+                description: 'Sobrescribe la cuenta del espacio de trabajo para estos programas de tarjetas.',
+                descriptionLevel2: 'Anular la cuenta del espacio de trabajo para este programa de tarjetas.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Todos los programas usan la cuenta predeterminada';
+                    }
+                    return {
+                        one: `${count} programa con cuenta personalizada`,
+                        other: `${count} programas con cuentas personalizadas`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Cuenta por tarjeta',
+                description: 'Anula la cuenta del programa para tarjetas individuales.',
+                descriptionLevel2: 'Sobrescribe la cuenta del programa para estas tarjetas.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Todas las tarjetas usan cuentas del programa';
+                    }
+                    return {
+                        one: `${count} tarjeta con cuenta personalizada`,
+                        other: `${count} tarjetas con cuentas personalizadas`,
+                    };
+                },
             },
             paymentMethod: {
                 label: 'Forma de pago',
@@ -9550,10 +9621,12 @@ ${reportName}`,
                 other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats de gastos de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
             };
         },
-        demotedFromWorkspace: (policyName, oldRole) => `cambió tu rol en ${policyName} de ${oldRole} a miembro. Te eliminamos de todos los chats de gastos, excepto el suyo.`,
+        demotedFromWorkspace: (policyName, oldRole, newRole) => `cambió tu rol en ${policyName} de ${oldRole} a ${newRole}. Te eliminamos de todos los chats de gastos, excepto el suyo.`,
         updatedWorkspaceCurrencyAction: (oldCurrency, newCurrency) => `actualizó la moneda predeterminada a ${newCurrency} (previamente ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency, newFrequency) => `actualizó la frecuencia de generación automática de informes a "${newFrequency}" (previamente "${oldFrequency}")`,
         updateApprovalMode: (newValue, oldValue) => `actualizó el modo de aprobación a "${newValue}" (previamente "${oldValue}")`,
+        archivedWorkspace: 'archivó este espacio de trabajo',
+        unarchivedWorkspace: 'desarchivó este espacio de trabajo',
         upgradedWorkspace: 'mejoró este espacio de trabajo al plan Controlar',
         forcedCorporateUpgrade: `Este espacio de trabajo ha sido actualizado al plan Control. Haz clic <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">aquí</a> para obtener más información.`,
         downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
@@ -9937,6 +10010,10 @@ ${reportName}`,
             `cambió el acuerdo de trabajo de ${displayName} a ${newArrangement} (previamente ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `cambió la modalidad de trabajo predeterminada a ${newArrangement} (previamente ${oldArrangement})`,
+        updateRulesDocument: (isReplacement: boolean, overviewURL?: string) => {
+            const message = isReplacement ? 'reemplazó el documento de la política de gastos' : 'añadió un documento de política de gastos';
+            return overviewURL ? `${message} en <a href="${overviewURL}">Espacio de trabajo &gt; Resumen</a>` : message;
+        },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `actualizó "Impedir marcar los informes no reembolsables como pagados" a "${newValue === 'true' ? 'Habilitado' : 'Deshabilitado'}" (previamente "${oldValue === 'true' ? 'Habilitado' : 'Deshabilitado'}")`,
     },
@@ -10038,6 +10115,8 @@ ${reportName}`,
             topCategories: 'Categorías principales',
             topMerchants: 'Principales comerciantes',
             violationsBySubmitter: 'Infracciones por remitente',
+            travel: 'Viajes',
+            trips: 'Viajes',
         },
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         viewResults: 'Ver resultados',
@@ -10164,6 +10243,15 @@ ${reportName}`,
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Este mes',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Año hasta la fecha',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Últimos 12 meses',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Esta semana',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'La semana pasada',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER]: 'Este trimestre',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER]: 'El trimestre pasado',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR]: 'Este año',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_YEAR]: 'El año pasado',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS]: 'Últimos 30 días',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS]: 'Últimos 90 días',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS]: 'Últimos 6 meses',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Último extracto',
                 },
                 customDay: 'Día personalizado',
@@ -10183,7 +10271,7 @@ ${reportName}`,
             completed: 'Completadas',
             card: {
                 expensify: 'Expensify',
-                travelInvoicing: 'Facturación consolidada de viajes',
+                travelBilling: 'Facturación consolidada de viajes',
                 individualCards: 'Tarjetas individuales',
                 closedCards: 'Tarjetas cerradas',
                 cardFeeds: 'Flujos de tarjetas',
@@ -10284,6 +10372,7 @@ ${reportName}`,
         noCategory: 'Sin categoría',
         noMerchant: 'Sin comerciante',
         noTag: 'Sin etiqueta',
+        noVendor: 'Sin proveedor',
         expenseType: 'Tipo de gasto',
         receiptType: 'Tipo de recibo',
         receiptTypeValues: {
@@ -11149,7 +11238,7 @@ ${reportName}`,
         personalCard: 'Tarjeta personal',
         companyCard: 'Tarjeta corporativa',
         expensifyCard: 'Tarjeta Expensify',
-        travelInvoicing: 'Facturación consolidada de viajes',
+        travelBilling: 'Facturación consolidada de viajes',
         travelCard: 'Tarjeta de viaje',
     },
     distance: {
@@ -11814,6 +11903,10 @@ ${reportName}`,
                 one: '1 usuario activo',
                 other: `${count} usuarios activos`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 miembro',
+                other: `${count} miembros`,
+            }),
             state: {paid: 'Pagado', cleared: 'Borrado', failed: 'Error', refunded: 'Reembolsado', disputed: 'En disputa', balanceTransfer: 'Transferencia de saldo'},
             details: 'Detalles del pago',
             badge: {
@@ -11826,6 +11919,9 @@ ${reportName}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Reembolsado ${amount} el ${date}`,
             },
             billedTo: 'Facturado a',
+            activity: 'Actividad',
+            findActiveUser: 'Buscar un usuario activo',
+            findMember: 'Buscar un miembro',
             viewReceipt: 'Ver recibo',
             viewInvoice: 'Ver factura',
         },
@@ -12118,6 +12214,7 @@ ${reportName}`,
         exportInProgress: 'Exportación en curso',
         conciergeWillSend: 'Concierge te enviará el archivo en breve.',
         currentView: 'Vista actual',
+        currentViewGroupsOnly: 'Vista actual (solo grupos)',
     },
     exportDownload: {
         preparingTitle: 'Preparando descarga...',
@@ -12473,6 +12570,90 @@ ${reportName}`,
         completedSteps: 'He completado los pasos anteriores',
         errorTitle: 'Algo salió mal. Por favor, inténtalo de nuevo.',
         errorPrompt: 'Parece que algo no ha funcionado. Por favor, inténtalo de nuevo. Si el problema persiste, ponte en contacto con Concierge.',
+    },
+    bulkAction: {
+        approvingTitle: 'Aprobando informes...',
+        submittingTitle: 'Enviando informes...',
+        payingTitle: 'Marcando informes como pagados...',
+        holdingTitle: 'Reteniendo gastos...',
+        unholdingTitle: 'Desbloqueando gastos...',
+        rejectingTitle: 'Rechazando gastos...',
+        deletingTitle: 'Eliminando informes...',
+        deletingExpensesTitle: 'Eliminando gastos...',
+        runningBody: 'Espera unos minutos o deja que Concierge te envíe un mensaje cuando termine.',
+        sendFromConcierge: 'Envíame un mensaje cuando esté listo',
+        conciergeTitle: '¡Por supuesto!',
+        conciergeBody: 'Concierge te enviará un mensaje cuando haya terminado.',
+        goToConcierge: 'Ir a Concierge',
+        approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Aprobados ${doneCount} de ${count} informe`,
+            other: `Aprobados ${doneCount} de ${count} informes`,
+        }),
+        submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Enviados ${doneCount} de ${count} informe`,
+            other: `Enviados ${doneCount} de ${count} informes`,
+        }),
+        paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Marcados ${doneCount} de ${count} informe como pagados`,
+            other: `Marcados ${doneCount} de ${count} informes como pagados`,
+        }),
+        heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Gastos retenidos en ${doneCount} de ${count} informe`,
+            other: `Gastos retenidos en ${doneCount} de ${count} informes`,
+        }),
+        unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Gastos desbloqueados en ${doneCount} de ${count} informe`,
+            other: `Gastos desbloqueados en ${doneCount} de ${count} informes`,
+        }),
+        rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Gastos rechazados en ${doneCount} de ${count} informe`,
+            other: `Gastos rechazados en ${doneCount} de ${count} informes`,
+        }),
+        deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Eliminados ${doneCount} de ${count} informe`,
+            other: `Eliminados ${doneCount} de ${count} informes`,
+        }),
+        deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Gastos eliminados en ${doneCount} de ${count} informe`,
+            other: `Gastos eliminados en ${doneCount} de ${count} informes`,
+        }),
+        noReportsTitle: 'No hay informes coincidentes',
+        noReportsBody: 'Ninguno de los informes que seleccionaste necesitaba esta acción.',
+        viewFailedReports: 'Ver informes',
+        failedTitle: 'Algo salió mal',
+        failedBody: 'No se pudo iniciar esta acción. Por favor, inténtalo de nuevo más tarde.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: 'No se pudo aprobar 1 informe.',
+            other: `No se pudieron aprobar ${count} informes.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: 'No se pudo enviar 1 informe.',
+            other: `No se pudieron enviar ${count} informes.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: 'No se pudo pagar 1 informe.',
+            other: `No se pudieron pagar ${count} informes.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: 'No se pudieron retener los gastos en 1 informe.',
+            other: `No se pudieron retener los gastos en ${count} informes.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: 'No se pudieron desbloquear los gastos de 1 informe.',
+            other: `No se pudieron desbloquear los gastos en ${count} informes.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: 'No se pudieron rechazar los gastos en 1 informe.',
+            other: `No se pudieron rechazar los gastos en ${count} informes.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: 'No se pudo eliminar 1 informe.',
+            other: `No se pudieron eliminar ${count} informes.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: 'Los gastos de 1 informe no se pudieron eliminar.',
+            other: `No se pudieron eliminar los gastos en ${count} informes.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renueva tu suscripción por un período de 12 meses, desde ${startDate} hasta ${endDate}.`,

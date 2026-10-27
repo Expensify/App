@@ -21,7 +21,7 @@ import {clearQBDErrorField} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type CardListItem = ListItem & {
     value: string;
@@ -36,54 +36,42 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
     const nonReimbursableBillDefaultVendor = qbdConfig?.export?.nonReimbursableBillDefaultVendor;
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const vendorOptions: CardListItem[] = useMemo(
-        () =>
-            vendors?.map((vendor) => ({
-                value: vendor.id,
-                text: vendor.name,
-                keyForList: vendor.name,
-                isSelected: vendor.id === nonReimbursableBillDefaultVendor,
-            })) ?? [],
-        [nonReimbursableBillDefaultVendor, vendors],
-    );
+    const vendorOptions: CardListItem[] =
+        vendors?.map((vendor) => ({
+            value: vendor.id,
+            text: vendor.name,
+            keyForList: vendor.name,
+            isSelected: vendor.id === nonReimbursableBillDefaultVendor,
+        })) ?? [];
 
     const isNonReimbursableBillDefaultVendorNone = !nonReimbursableBillDefaultVendor || nonReimbursableBillDefaultVendor === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
-    const clearOption: CardListItem = useMemo(
-        () => ({
-            value: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
-            text: translate('common.none'),
-            keyForList: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
-            isSelected: isNonReimbursableBillDefaultVendorNone,
-        }),
-        [translate, isNonReimbursableBillDefaultVendorNone],
-    );
+    const clearOption: CardListItem = {
+        value: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+        text: translate('common.none'),
+        keyForList: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+        isSelected: isNonReimbursableBillDefaultVendorNone,
+    };
     const shouldShowClearOption = !!nonReimbursableBillDefaultVendor || vendorOptions.length > 0;
-    const data: CardListItem[] = useMemo(() => (shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions), [shouldShowClearOption, clearOption, vendorOptions]);
+    const data: CardListItem[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
 
-    const selectVendor = useCallback(
-        (row: CardListItem) => {
-            const isAlreadySelected = row.value === nonReimbursableBillDefaultVendor || (row.value === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE && isNonReimbursableBillDefaultVendorNone);
-            if (isAlreadySelected) {
-                return;
-            }
-            updateQuickbooksDesktopNonReimbursableBillDefaultVendor(policyID, row.value, nonReimbursableBillDefaultVendor);
-            Navigation.goBack();
-        },
-        [nonReimbursableBillDefaultVendor, isNonReimbursableBillDefaultVendorNone, policyID],
-    );
+    const selectVendor = (row: CardListItem) => {
+        const isAlreadySelected = row.value === nonReimbursableBillDefaultVendor || (row.value === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE && isNonReimbursableBillDefaultVendorNone);
+        if (isAlreadySelected) {
+            return;
+        }
+        updateQuickbooksDesktopNonReimbursableBillDefaultVendor(policyID, row.value, nonReimbursableBillDefaultVendor);
+        Navigation.goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbd.noAccountsFound')}
-                subtitle={translate('workspace.qbd.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.qbd.noAccountsFound')}
+            subtitle={translate('workspace.qbd.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

@@ -12,7 +12,7 @@ import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import CONST from '@src/CONST';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type CustomCloseDateListItem = ListItem & {
     value: number;
@@ -33,57 +33,49 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
     // Freeze the day that was selected when this list opened so the pre-selected day stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
     const initialSelectedDay = useInitialSelection(selectedDay, {resetOnFocus: true});
 
-    const data = useMemo(() => {
-        const allDays = CONST.DATE.MONTH_DAYS.map<CustomCloseDateListItem>((dayValue) => ({
-            value: dayValue,
-            text: dayValue.toString(),
-            keyForList: dayValue.toString(),
-            isSelected: dayValue === selectedDay,
-        }));
+    let data;
+    const allDays = CONST.DATE.MONTH_DAYS.map<CustomCloseDateListItem>((dayValue) => ({
+        value: dayValue,
+        text: dayValue.toString(),
+        keyForList: dayValue.toString(),
+        isSelected: dayValue === selectedDay,
+    }));
 
-        // Pin the frozen initial day to the top of the full list before search filtering, so it stays pinned while searching (search filters the already-pinned list rather than reordering it).
-        const orderedDays = moveInitialSelectionToTop(allDays, initialSelectedDay ? [initialSelectedDay.toString()] : []);
+    // Pin the frozen initial day to the top of the full list before search filtering, so it stays pinned while searching (search filters the already-pinned list rather than reordering it).
+    const orderedDays = moveInitialSelectionToTop(allDays, initialSelectedDay ? [initialSelectedDay.toString()] : []);
+    if (!debouncedSearchValue) {
+        data = orderedDays;
+    } else {
+        data = orderedDays.filter((day) => day?.text?.includes(debouncedSearchValue));
+    }
 
-        if (!debouncedSearchValue) {
-            return orderedDays;
-        }
-
-        return orderedDays.filter((day) => day?.text?.includes(debouncedSearchValue));
-    }, [selectedDay, debouncedSearchValue, initialSelectedDay]);
-
-    const selectDayAndClearError = useCallback((item: CustomCloseDateListItem) => {
+    const selectDayAndClearError = (item: CustomCloseDateListItem) => {
         setSelectedDay(item.value);
         setError(undefined);
-    }, []);
+    };
 
-    const confirmSelectedDay = useCallback(() => {
+    const confirmSelectedDay = () => {
         if (!selectedDay) {
             setError(translate('workspace.moreFeatures.companyCards.error.statementCloseDateRequired'));
             return;
         }
 
         onConfirmSelectedDay(selectedDay);
-    }, [selectedDay, onConfirmSelectedDay, translate]);
+    };
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('common.search'),
-            value: searchValue,
-            onChangeText: setSearchValue,
-            headerMessage: data.length === 0 ? translate('common.noResultsFound') : undefined,
-        }),
-        [translate, searchValue, data.length, setSearchValue],
-    );
+    const textInputOptions = {
+        label: translate('common.search'),
+        value: searchValue,
+        onChangeText: setSearchValue,
+        headerMessage: data.length === 0 ? translate('common.noResultsFound') : undefined,
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: confirmSelectedDay,
-            style: styles.mt3,
-        }),
-        [translate, confirmSelectedDay, styles.mt3],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: confirmSelectedDay,
+        style: styles.mt3,
+    };
 
     return (
         <SelectionList
