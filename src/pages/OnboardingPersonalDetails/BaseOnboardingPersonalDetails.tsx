@@ -40,7 +40,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingPersonalDetailsProps} from './types';
@@ -91,132 +91,92 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         setOnboardingErrorMessage(null);
     }, []);
 
-    const completeOnboarding = useCallback(
-        async (firstName: string, lastName: string) => {
-            if (!onboardingPurposeSelected || isLoading) {
+    const completeOnboarding = async (firstName: string, lastName: string) => {
+        if (!onboardingPurposeSelected || isLoading) {
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const joinWorkspaceMessage = getJoinWorkspaceMessage({joinWorkspaceMessages, onboardingPolicyID, onboardingPolicy, workEmail, isValidated});
+            await completeOnboardingReport({
+                engagementChoice: onboardingPurposeSelected,
+                onboardingMessage: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE ? joinWorkspaceMessage : onboardingMessages[onboardingPurposeSelected],
+                firstName,
+                lastName,
+                adminsChatReportID: onboardingAdminsChatReportID,
+                ...(onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE ? {} : {onboardingPolicyID}),
+                introSelected,
+                isSelfTourViewed,
+                conciergeChat,
+                companyDomain: getEmailDomain(workEmail),
+                workEmail,
+                currentUserAccountID,
+                delegateAccountID,
+            });
+
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID();
+
+            navigateAfterOnboardingWithMicrotaskQueue(
+                isSmallScreenWidth,
+                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                conciergeChatReportID,
+                reportNameValuePairs,
+                isAnonymousUser,
+                onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && !onboardingPolicy ? undefined : onboardingPolicyID,
+                mergedAccountConciergeReportID,
+                false,
+            );
+            setIsLoading(false);
+        } catch (error) {
+            Log.warn('[BaseOnboardingPersonalDetails] Error completing onboarding', {error});
+            setIsLoading(false);
+        }
+    };
+
+    const handleSubmit = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
+        if (isLoading) {
+            return;
+        }
+
+        const firstName = values.firstName.trim();
+        const lastName = values.lastName.trim();
+
+        setDisplayName(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
+        clearPersonalDetailsDraft();
+        setPersonalDetails(firstName, lastName);
+
+        if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER) {
+            if (isPrivateDomainAndHasAccessiblePolicies && isValidated) {
+                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
                 return;
             }
-
             setIsLoading(true);
-            try {
-                const joinWorkspaceMessage = getJoinWorkspaceMessage({joinWorkspaceMessages, onboardingPolicyID, onboardingPolicy, workEmail, isValidated});
-                await completeOnboardingReport({
-                    engagementChoice: onboardingPurposeSelected,
-                    onboardingMessage: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE ? joinWorkspaceMessage : onboardingMessages[onboardingPurposeSelected],
-                    firstName,
-                    lastName,
-                    adminsChatReportID: onboardingAdminsChatReportID,
-                    ...(onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE ? {} : {onboardingPolicyID}),
-                    introSelected,
-                    isSelfTourViewed,
-                    conciergeChat,
-                    companyDomain: getEmailDomain(workEmail),
-                    workEmail,
-                    currentUserAccountID,
-                    delegateAccountID,
-                });
-
-                setOnboardingAdminsChatReportID();
-                setOnboardingPolicyID();
-
-                navigateAfterOnboardingWithMicrotaskQueue(
-                    isSmallScreenWidth,
-                    isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                    conciergeChatReportID,
-                    reportNameValuePairs,
-                    isAnonymousUser,
-                    onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && !onboardingPolicy ? undefined : onboardingPolicyID,
-                    mergedAccountConciergeReportID,
-                    false,
-                );
+            updateDisplayName(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
+            autoCreateSubmitWorkspace(firstName, lastName).finally(() => {
                 setIsLoading(false);
-            } catch (error) {
-                Log.warn('[BaseOnboardingPersonalDetails] Error completing onboarding', {error});
+            });
+            return;
+        }
+
+        if (isPrivateDomainAndHasAccessiblePolicies && (!onboardingPurposeSelected || isVsb || isSmb)) {
+            const nextRoute = isValidated ? ROUTES.ONBOARDING_WORKSPACES : ROUTES.ONBOARDING_PRIVATE_DOMAIN;
+            Navigation.navigate(nextRoute.getRoute(route.params?.backTo));
+            return;
+        }
+
+        if (isTrackOnboardingChoice(onboardingPurposeSelected)) {
+            setIsLoading(true);
+            updateDisplayName(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
+            autoCreateTrackWorkspace(firstName, lastName, onboardingPurposeSelected).finally(() => {
                 setIsLoading(false);
-            }
-        },
-        [
-            isLoading,
-            onboardingPurposeSelected,
-            onboardingAdminsChatReportID,
-            onboardingMessages,
-            joinWorkspaceMessages,
-            isValidated,
-            workEmail,
-            onboardingPolicyID,
-            onboardingPolicy,
-            isBetaEnabled,
-            reportNameValuePairs,
-            isAnonymousUser,
-            isSmallScreenWidth,
-            mergedAccountConciergeReportID,
-            conciergeChatReportID,
-            introSelected,
-            isSelfTourViewed,
-            conciergeChat,
-            currentUserAccountID,
-            delegateAccountID,
-        ],
-    );
+            });
+            return;
+        }
 
-    const handleSubmit = useCallback(
-        (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
-            if (isLoading) {
-                return;
-            }
-
-            const firstName = values.firstName.trim();
-            const lastName = values.lastName.trim();
-
-            setDisplayName(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
-            clearPersonalDetailsDraft();
-            setPersonalDetails(firstName, lastName);
-
-            if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER) {
-                if (isPrivateDomainAndHasAccessiblePolicies && isValidated) {
-                    Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
-                    return;
-                }
-                setIsLoading(true);
-                updateDisplayName(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
-                autoCreateSubmitWorkspace(firstName, lastName).finally(() => {
-                    setIsLoading(false);
-                });
-                return;
-            }
-
-            if (isPrivateDomainAndHasAccessiblePolicies && (!onboardingPurposeSelected || isVsb || isSmb)) {
-                const nextRoute = isValidated ? ROUTES.ONBOARDING_WORKSPACES : ROUTES.ONBOARDING_PRIVATE_DOMAIN;
-                Navigation.navigate(nextRoute.getRoute(route.params?.backTo));
-                return;
-            }
-
-            if (isTrackOnboardingChoice(onboardingPurposeSelected)) {
-                setIsLoading(true);
-                updateDisplayName(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
-                autoCreateTrackWorkspace(firstName, lastName, onboardingPurposeSelected).finally(() => {
-                    setIsLoading(false);
-                });
-                return;
-            }
-
-            completeOnboarding(firstName, lastName);
-        },
-        [
-            isLoading,
-            formatPhoneNumber,
-            currentUserPersonalDetails,
-            isPrivateDomainAndHasAccessiblePolicies,
-            onboardingPurposeSelected,
-            isVsb,
-            isSmb,
-            completeOnboarding,
-            isValidated,
-            route.params?.backTo,
-            autoCreateTrackWorkspace,
-            autoCreateSubmitWorkspace,
-        ],
-    );
+        completeOnboarding(firstName, lastName);
+    };
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
         if (!shouldValidateOnChange) {

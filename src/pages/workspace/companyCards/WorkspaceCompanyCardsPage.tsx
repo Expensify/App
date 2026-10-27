@@ -16,7 +16,6 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
-import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -25,14 +24,14 @@ import {canMemberWrite, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 
-import {clearBulkUpdateTransactionStartDateSuccess, clearBulkUpdateTransactionStartDateUpdate, openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
+import {clearBulkUpdateTransactionStartDateUpdate, openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
@@ -75,19 +74,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         companyCardsTableRef.current?.clearSelection();
     }, [bulkTransactionStartDateUpdateID, domainOrWorkspaceAccountID]);
 
-    const bulkTransactionStartDateUpdateSuccessID = companyCardsLoadingState?.bulkTransactionStartDateUpdateSuccessID;
-    const lastHandledBulkTransactionStartDateUpdateSuccessID = useRef<string | undefined>(undefined);
-
-    useEffect(() => {
-        if (!bulkTransactionStartDateUpdateSuccessID || lastHandledBulkTransactionStartDateUpdateSuccessID.current === bulkTransactionStartDateUpdateSuccessID) {
-            return;
-        }
-
-        lastHandledBulkTransactionStartDateUpdateSuccessID.current = bulkTransactionStartDateUpdateSuccessID;
-        clearBulkUpdateTransactionStartDateSuccess(domainOrWorkspaceAccountID);
-        Growl.success({bodyText: translate('workspace.companyCards.bulkStartDateUpdated'), position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
-    }, [bulkTransactionStartDateUpdateSuccessID, domainOrWorkspaceAccountID, translate]);
-
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
     const loadPolicyCompanyCardsPage = () => {
@@ -121,13 +107,13 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         loadPolicyCompanyCardsPageEvent();
     }, []);
 
-    const loadPolicyCompanyCardsFeed = useCallback(() => {
+    const loadPolicyCompanyCardsFeed = () => {
         if (isLoading || !bankName || isFeedPending || isOffline) {
             return;
         }
 
         openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName, translate);
-    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policyID, translate, isOffline]);
+    };
 
     useEffect(() => {
         loadPolicyCompanyCardsFeed();
