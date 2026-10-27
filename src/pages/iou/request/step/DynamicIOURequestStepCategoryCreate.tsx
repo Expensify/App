@@ -16,7 +16,7 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 
-import {getIOURequestPolicyID, setMoneyRequestCategory} from '@libs/actions/IOU/MoneyRequest';
+import {getIOURequestPolicyID, setMoneyRequestCategory, setMoneyRequestDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
@@ -193,6 +193,7 @@ function DynamicIOURequestStepCategoryCreate({
             });
         } else {
             setMoneyRequestCategory(transactionID, categoryName, policy, getCurrencyDecimals);
+            setMoneyRequestDraftHasUserEdits(transactionID);
         }
 
         Navigation.goBack(basePath);

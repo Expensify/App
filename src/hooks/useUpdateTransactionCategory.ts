@@ -1,6 +1,6 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
-import {setMoneyRequestCategory} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestCategory, setMoneyRequestDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -124,6 +124,7 @@ function useUpdateTransactionCategory({
         }
 
         setMoneyRequestCategory(transactionID, category, policy, getCurrencyDecimals);
+        setMoneyRequestDraftHasUserEdits(transactionID);
     };
 
     return {updateCategory, isDraftUpdate: !isSplitUpdate && !isExistingExpenseUpdate};
