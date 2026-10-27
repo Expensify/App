@@ -105,8 +105,22 @@ describe('getSelectedGroupKeys', () => {
         expect(keys).toEqual([]);
     });
 
+    it('reads the covered count only from rows still marked whole', () => {
+        // Given a group stamped whole at the two rows an open group shows, beside a row whose flag was cleared but which still carries the three it was once covered at
+        const selection = buildSelection({
+            txn1: {groupKey, isEntireGroupSelected: true, coveredGroupCount: 2},
+            txn2: {groupKey, isEntireGroupSelected: false, coveredGroupCount: 3},
+        });
+
+        // When the groups a delete would take whole are read
+        const keys = getSelectedGroupKeys(selection, buildGroupSearchData({[groupKey]: {count: 3, total: 0, currency: 'USD'}}));
+
+        // Then the group is left out, since the count it is covered at now is two, short of the group-by count
+        expect(keys).toEqual([]);
+    });
+
     it('returns a group stamped whole at a covered count that reaches its count', () => {
-        // Given a group stamped whole on all three of its rows, one of them being deleted, which the group-by count still includes
+        // Given the two selectable rows of a group stamped whole at three, the rows it loaded including one being deleted, which the group-by count still includes
         const selection = buildSelection({
             txn1: {groupKey, isEntireGroupSelected: true, coveredGroupCount: 3},
             txn2: {groupKey, isEntireGroupSelected: true, coveredGroupCount: 3},

@@ -263,7 +263,10 @@ function getSelectedGroupKeys(selectedTransactions: SelectedTransactions, search
         current.selectedCount += 1;
         current.isEntireGroupSelected = current.isEntireGroupSelected || !!transaction.isEntireGroupSelected;
         current.isStamped = current.isStamped || transaction.isEntireGroupSelected !== undefined;
-        current.coveredGroupCount = Math.max(current.coveredGroupCount, transaction.coveredGroupCount ?? 0);
+        // A row whose flag was cleared keeps the count it was covered at, so only rows still marked whole say what the group is covered at now.
+        if (transaction.isEntireGroupSelected) {
+            current.coveredGroupCount = Math.max(current.coveredGroupCount, transaction.coveredGroupCount ?? 0);
+        }
         selectedCountByGroupKey.set(transaction.groupKey, current);
     }
 
