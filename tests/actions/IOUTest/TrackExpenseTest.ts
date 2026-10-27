@@ -13,6 +13,7 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {isReceiptError} from '@libs/ErrorUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -1475,6 +1476,67 @@ describe('actions/IOU/TrackExpense', () => {
             expect(threadReportActions?.[failedThreadCreatedActionID]?.errors).toBeFalsy();
         });
 
+        it('keeps one whisper after a receipt retry, because the retry reuses the whisper ID the failure saved', async () => {
+            // Given a scan tracked in the self-DM whose request fails, which deletes the whisper locally
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-retry-whisper',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            const scanParams = {
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 0, merchant: '', receipt: {source: 'file:///receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY}}),
+                existingTransaction: createMock<Transaction>({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN}),
+                optimisticTransactionID: '8888888888888888',
+            };
+            mockFetch?.fail?.();
+            trackExpense(scanParams);
+            await waitForBatchedUpdates();
+
+            const failedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}8888888888888888`);
+            const receiptError = Object.values(failedTransaction?.errors ?? {}).find((error) => isReceiptError(error));
+            const storedRetryParams: unknown = isReceiptError(receiptError) && typeof receiptError.retryParams === 'string' ? JSON.parse(receiptError.retryParams) : undefined;
+            const failedWhisperID =
+                !!storedRetryParams &&
+                typeof storedRetryParams === 'object' &&
+                'actionableWhisperReportActionID' in storedRetryParams &&
+                typeof storedRetryParams.actionableWhisperReportActionID === 'string'
+                    ? storedRetryParams.actionableWhisperReportActionID
+                    : undefined;
+            const selfDMActionsAfterFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const failedIOUAction = Object.values(selfDMActionsAfterFailure ?? {}).find((action) => isMoneyRequestAction(action));
+            expect(failedWhisperID).toBeTruthy();
+            if (!failedWhisperID) {
+                throw new Error('The failure did not save the whisper ID with the receipt error');
+            }
+
+            // And the server, which already handled the first request, sends its copy of that whisper back
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {
+                [failedWhisperID]: createMock<ReportAction>({
+                    reportActionID: failedWhisperID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
+                    created: '2026-10-01 00:00:00.000',
+                    originalMessage: {transactionID: '8888888888888888'},
+                }),
+            });
+
+            // When the receipt retry calls trackExpense with the failed attempt's IDs, and the request succeeds
+            mockFetch?.succeed?.();
+            trackExpense({
+                ...scanParams,
+                currentReportActionID: failedIOUAction?.reportActionID,
+                existingTransactionThreadReportID: failedIOUAction?.childReportID,
+                existingActionableWhisperReportActionID: failedWhisperID,
+                isRetry: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the self-DM shows one whisper, under the original ID, instead of a second set next to the server's copy
+            const selfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const whispers = Object.values(selfDMActions ?? {}).filter((action) => isActionableTrackExpense(action));
+            expect(whispers).toHaveLength(1);
+            expect(whispers.at(0)?.reportActionID).toBe(failedWhisperID);
+        });
+
         it('should set correct tax fields when tax parameters are provided', async () => {
             // Given a selfDM report and transaction with tax
             const selfDMReport: Report = {
@@ -2722,6 +2784,74 @@ describe('actions/IOU/TrackExpense', () => {
             );
             expect(optimisticData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, value: null})]));
             expect(successData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`, value: null})]));
+        });
+
+        it("resolves the chat report's last visible action from the acting user's own visibility", async () => {
+            const CHAT_REPORT_ID = '80101';
+            const WHISPER_TARGET_ACCOUNT_ID = 909;
+
+            const chatReport: Report = {...createRandomReport(80101, undefined), reportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT};
+            const olderComment: ReportAction = {
+                ...REPORT_ACTION,
+                reportActionID: 'trackOlderComment',
+                reportID: CHAT_REPORT_ID,
+                created: '2026-11-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                originalMessage: {html: 'Older comment'},
+            };
+            /** Newer than `olderComment`, and only the whispered-to account can see it. */
+            const whisper: ReportAction = {
+                ...REPORT_ACTION,
+                reportActionID: 'trackWhisper',
+                reportID: CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2026-11-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            };
+            // The tracked-expense action being deleted. It lives on the chat report too, so it is excluded by its own DELETE pending action.
+            const trackedExpenseAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'trackedExpense',
+                reportID: CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+                created: '2026-11-01 09:00:00.000',
+                message: [{type: 'COMMENT', html: 'tracked expense', text: 'tracked expense'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.TRACK, IOUTransactionID: '80102', amount, currency: 'USD'},
+            };
+
+            // Given a chat report whose newest action is a whisper aimed at one account
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {
+                [olderComment.reportActionID]: olderComment,
+                [whisper.reportActionID]: whisper,
+                [trackedExpenseAction.reportActionID]: trackedExpenseAction,
+            });
+            await waitForBatchedUpdates();
+
+            const getRestoredCreated = (currentUserAccountID: number) => {
+                const {optimisticData} = getDeleteTrackExpenseInformation({
+                    chatReport,
+                    transactionID: '80102',
+                    reportAction: trackedExpenseAction,
+                    isChatReportArchived: false,
+                    currentUserAccountID,
+                    transactionThreadReportActions: {},
+                    transactionThread: undefined,
+                });
+                const update = optimisticData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`);
+                const {value} = update ?? {};
+                if (!value || typeof value !== 'object' || !('lastVisibleActionCreated' in value)) {
+                    return undefined;
+                }
+                return value.lastVisibleActionCreated;
+            };
+
+            // When the whispered-to account deletes the expense, the whisper is the newest action they can see
+            expect(getRestoredCreated(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.created);
+
+            // When somebody the whisper does not target deletes it, the whisper is invisible and the older comment wins
+            expect(getRestoredCreated(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderComment.created);
         });
     });
 

@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 
 import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {usePlaidLink} from 'react-plaid-link';
 
@@ -28,13 +28,10 @@ function clearSafariHistoryState() {
 function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = () => {}, onEvent, receivedRedirectURI}: PlaidLinkProps) {
     const [isPlaidLoaded, setIsPlaidLoaded] = useState(false);
     const styles = useThemeStyles();
-    const successCallback = useCallback(
-        (publicToken: string, metadata: PlaidLinkOnSuccessMetadata) => {
-            clearSafariHistoryState();
-            onSuccess({publicToken, metadata});
-        },
-        [onSuccess],
-    );
+    const successCallback = (publicToken: string, metadata: PlaidLinkOnSuccessMetadata) => {
+        clearSafariHistoryState();
+        onSuccess({publicToken, metadata});
+    };
 
     const {open, ready, error} = usePlaidLink({
         token,

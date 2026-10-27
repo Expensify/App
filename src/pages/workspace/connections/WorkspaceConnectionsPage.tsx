@@ -22,7 +22,6 @@ import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBe
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -32,7 +31,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
-import {openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
+import {openPolicyAccountingPage, openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -50,11 +49,7 @@ import variables from '@styles/variables';
 import {openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
@@ -82,15 +77,17 @@ type MergeSetupFlow = {
     key: number;
 };
 
-/** HR and recruiting providers are Control-only, so their data is only requested for Control workspaces */
-const accountManagerReportIDSelector = (account: OnyxEntry<Account>) => (account?.accountManagerAccountID ? account.accountManagerReportID : undefined);
-
+/**
+ * HR and recruiting providers are Control-only, so their data is only requested for Control workspaces. Other workspaces
+ * fetch the accounting data here instead, so connecting an integration doesn't replace the page with a loader.
+ */
 function fetchConnectionsData(policyID: string | undefined, canUseMergeConnections: boolean, isRecruitingBetaEnabled: boolean) {
     if (!policyID) {
         return;
     }
     openPolicyReceiptPartnersPage(policyID);
     if (!canUseMergeConnections) {
+        openPolicyAccountingPage(policyID);
         return;
     }
     openPolicyHRPage(policyID);
@@ -111,7 +108,6 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const {isBetaEnabled} = usePermissions();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
-    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountManagerReportIDSelector});
     const {startIntegrationFlow} = useAccountingActions();
     const {canWrite: canWriteAccounting} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
     const [lastSelectedTab, setLastSelectedTab] = useState<ConnectionsTab>(CONST.TAB.CONNECTIONS.ALL);
@@ -160,18 +156,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     // A tab also ends up empty once everything in it is connected
     const shouldShowEmptyState = !visibleListings.length;
 
-    // Suggestions go to the person who looks after this workspace, like the old Accounting page did
-    const openSuggestIntegration = () => {
-        if (policy?.chatReportIDAdmins) {
-            openConciergeAnywhere({reportID: String(policy.chatReportIDAdmins)});
-            return;
-        }
-        if (accountManagerReportID) {
-            openConciergeAnywhere({reportID: accountManagerReportID});
-            return;
-        }
-        openConciergeAnywhere({forceConcierge: true});
-    };
+    const openSuggestIntegration = () => openConciergeAnywhere({forceConcierge: true});
 
     // Upgrade and setup flows that leave the app come back here with the integration to connect in the route params.
     // `startIntegrationFlow` changes identity whenever `policy` does, and the params are only cleared in a later render,
@@ -299,7 +284,10 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
             >
                 {connectedListings.length > 0 && (
                     <View style={styles.mb4}>
-                        <ConnectionsGrid listings={connectedListings} />
+                        <ConnectionsGrid
+                            listings={connectedListings}
+                            policyID={policyID}
+                        />
                     </View>
                 )}
                 <View style={[connectedListings.length > 0 ? styles.mt6 : styles.mt3, !shouldUseSingleColumn && [styles.flexRow, styles.alignItemsCenter, styles.gap5]]}>
@@ -340,7 +328,10 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                     />
                 ) : (
                     <View style={styles.mt4}>
-                        <ConnectionsGrid listings={visibleListings} />
+                        <ConnectionsGrid
+                            listings={visibleListings}
+                            policyID={policyID}
+                        />
                     </View>
                 )}
                 {!shouldShowEmptyState && (

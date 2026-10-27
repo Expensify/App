@@ -204,7 +204,7 @@ function DynamicIOURequestStepCategory({
                         icon={illustrations.EmptyStateExpenses}
                         title={translate('workspace.categories.emptyCategories.title')}
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
-                        containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                        containerStyle={[styles.flex1, styles.justifyContentCenter, styles.alignSelfCenter]}
                     />
                     {canEditWorkspaceSettings(policy, currentUserEmailParam) && (
                         <FixedFooter style={[styles.mtAuto, styles.pt5]}>

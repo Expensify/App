@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 
-import {getReceiptScanFailedIOUActionDataSelector} from '@selectors/ReportAction';
+import {getLatestFeedbackActionIDByAuthorSelector, getReceiptScanFailedIOUActionDataSelector} from '@selectors/ReportAction';
 
 const CURRENT_USER_ACCOUNT_ID = 123456789;
 const OTHER_USER_ACCOUNT_ID = 987654321;
@@ -144,5 +144,38 @@ describe('getReceiptScanFailedIOUActionDataSelector', () => {
             transactionID: TRANSACTION_ID,
             actorAccountID: OTHER_USER_ACCOUNT_ID,
         });
+    });
+});
+
+describe('getLatestFeedbackActionIDByAuthorSelector', () => {
+    const AGENT_ACCOUNT_ID = 1001;
+
+    const createComment = (reportActionID: string, actorAccountID: number, created: string): ReportAction => ({
+        reportActionID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        actorAccountID,
+        created,
+        message: [{type: 'COMMENT', html: 'hi', text: 'hi'}],
+        originalMessage: {html: 'hi', whisperedTo: []},
+    });
+
+    const reportActions: ReportActions = {
+        concierge: createComment('concierge', CONST.ACCOUNT_ID.CONCIERGE, '2026-09-01 00:00:00.000'),
+        olderAgent: createComment('olderAgent', AGENT_ACCOUNT_ID, '2026-09-02 00:00:00.000'),
+        newerAgent: createComment('newerAgent', AGENT_ACCOUNT_ID, '2026-09-03 00:00:00.000'),
+    };
+
+    it('returns the newest comment of the given author', () => {
+        // Given a parent report where a custom agent wrote twice after Concierge
+        // When the selector runs for the agent
+        // Then it picks the agent's newest comment, and Concierge's comment does not count for the agent
+        expect(getLatestFeedbackActionIDByAuthorSelector(AGENT_ACCOUNT_ID)(reportActions)).toBe('newerAgent');
+    });
+
+    it('returns undefined when the author is not known', () => {
+        // Given a parent action whose author is not loaded yet
+        // When the selector runs without an author
+        // Then it returns nothing, so the selector does not fall back to Concierge's newest comment
+        expect(getLatestFeedbackActionIDByAuthorSelector(undefined)(reportActions)).toBeUndefined();
     });
 });

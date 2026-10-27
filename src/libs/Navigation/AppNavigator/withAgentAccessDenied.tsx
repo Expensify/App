@@ -3,8 +3,10 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import useOnyx from '@hooks/useOnyx';
 
+import getTopmostFullScreenRoute from '@libs/Navigation/helpers/getTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -46,6 +48,13 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                                 forceReplace: true,
                             });
                         };
+                        const resetWorkspaceTabAndNavigateToHome = () => {
+                            Navigation.popRootToTop();
+                            Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(), {
+                                forceReplace: true,
+                                afterTransition: () => Navigation.navigate(ROUTES.HOME),
+                            });
+                        };
 
                         // The guarded screen can be open inside a modal/RHP (e.g. the agent-edit page the owner was
                         // on when they tapped "Copilot into account"), or an unguarded RHP (e.g. the agent DM) can be
@@ -56,6 +65,12 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                         // can't rely on its guard to redirect).
                         if (Navigation.isTopmostRouteModalScreen()) {
                             Navigation.dismissModal({afterTransition: redirectToProfile});
+                            return;
+                        }
+
+                        const topmostFullScreenRoute = getTopmostFullScreenRoute();
+                        if (topmostFullScreenRoute?.name === NAVIGATORS.WORKSPACE_NAVIGATOR || topmostFullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+                            resetWorkspaceTabAndNavigateToHome();
                             return;
                         }
 

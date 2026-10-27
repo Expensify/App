@@ -34,7 +34,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import getDomainMenuItems, {DOMAIN_MENU_ICON_NAMES} from './getDomainMenuItems';
@@ -78,12 +78,12 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         action: singleExecution(waitForNavigate(() => Navigation.navigate(item.route))),
     }));
 
-    const fetchDomainData = useCallback(() => {
+    const fetchDomainData = () => {
         if (!domainAccountID) {
             return;
         }
         openDomainPage(domainAccountID);
-    }, [domainAccountID]);
+    };
 
     useEffect(() => {
         fetchDomainData();
