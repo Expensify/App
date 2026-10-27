@@ -543,6 +543,7 @@ describe('useAdvancedSearchFilters', () => {
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
                 ]);
                 const occurrences = result.current.flat().filter((key) => key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
                 expect(occurrences).toHaveLength(1);
@@ -556,11 +557,11 @@ describe('useAdvancedSearchFilters', () => {
             // When the advanced filters are built for the expense type
             const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
 
-            // Then the expense attributes section (the one holding Card / Feed) does not carry the bank account row anymore
+            // Then no section other than the withdrawal one carries the bank account row anymore
             await waitFor(() => {
-                const attributesSection = result.current.find((section) => section.includes(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT));
-                expect(attributesSection).toBeDefined();
-                expect(attributesSection).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+                const otherSections = result.current.filter((section) => !section.includes(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID));
+                expect(otherSections.length).toBeGreaterThan(0);
+                expect(otherSections.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
             });
         });
 
@@ -577,6 +578,7 @@ describe('useAdvancedSearchFilters', () => {
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
                 ]);
             });
         });
