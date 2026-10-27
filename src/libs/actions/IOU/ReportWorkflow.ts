@@ -196,7 +196,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const isDEWPolicy = hasDynamicExternalWorkflow(expenseReportPolicy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
 
-    const nextApproverAccountID = getNextApproverAccountID(expenseReport, rules, undefined, currentUserEmailParam, personalDetailsByLogins);
+    const nextApproverAccountID = getNextApproverAccountID(expenseReport, rules, undefined, undefined, personalDetailsByLogins);
     const predictedNextStatus = !nextApproverAccountID ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
     const predictedNextState = !nextApproverAccountID ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
     const managerID = !nextApproverAccountID ? expenseReport.managerID : nextApproverAccountID;
