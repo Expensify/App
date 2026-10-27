@@ -53,6 +53,8 @@ async function buildAction(actionPath: string): Promise<boolean> {
             entryPoints: [actionPath],
             outfile,
             bundle: true,
+            // Shared worktree dependencies must use the same module paths as a clean CI install.
+            preserveSymlinks: true,
             platform: 'node',
             target: 'node24',
             format: 'esm',

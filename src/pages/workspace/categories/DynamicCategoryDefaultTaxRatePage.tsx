@@ -26,7 +26,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TaxRate} from '@src/types/onyx';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type DynamicCategoryDefaultTaxRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_DEFAULT_TAX_RATE>;
 
@@ -51,13 +51,13 @@ function DynamicCategoryDefaultTaxRatePage({
     const hasChanges = !!selectedTaxRate && selectedTaxRate !== persistedTaxRate;
     const initialSelectedTaxRate = useInitialSelection(selectedTaxRate, {isVisible: !!persistedTaxRate, resetOnFocus: true});
 
-    const textForDefault = useCallback((taxID: string, taxRate: TaxRate) => formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates), [policy?.taxRates, translate]);
+    const textForDefault = (taxID: string, taxRate: TaxRate) => formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates);
 
-    const taxesList = useMemo<TaxRateListItem[]>(() => {
-        if (!policy) {
-            return [];
-        }
-        return Object.entries(policy.taxRates?.taxes ?? {})
+    let taxesList: TaxRateListItem[];
+    if (!policy) {
+        taxesList = [];
+    } else {
+        taxesList = Object.entries(policy.taxRates?.taxes ?? {})
             .map(([key, value]) => ({
                 text: textForDefault(key, value),
                 value: key,
@@ -67,7 +67,7 @@ function DynamicCategoryDefaultTaxRatePage({
                 pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
             }))
             .sort((a, b) => localeCompare(a.text ?? a.keyForList ?? '', b.text ?? b.keyForList ?? ''));
-    }, [policy, selectedTaxRate, textForDefault, localeCompare]);
+    }
     const orderedTaxesList = moveInitialSelectionToTop(taxesList, initialSelectedTaxRate ? [initialSelectedTaxRate] : []);
 
     const saveAndGoBack = () => {

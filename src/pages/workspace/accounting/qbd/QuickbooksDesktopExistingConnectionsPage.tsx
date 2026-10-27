@@ -21,7 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import getQuickbooksDesktopSetupEntryRoute from './utils';
 
@@ -35,30 +35,24 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
     const {reusablePoliciesConnectedTo: reusablePoliciesConnectedToQBD} = useReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
     const [connectionSyncProgressCollection] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
 
-    const menuItems = useMemo(
-        () =>
-            reusablePoliciesConnectedToQBD.map((policy) => {
-                const syncProgress = connectionSyncProgressCollection?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`];
-                const lastSuccessfulSyncDate = getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, policy.connections?.quickbooksDesktop, syncProgress);
-                const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
-                return {
-                    title: policy.name,
-                    key: policy.id,
-                    avatarID: policy.id,
-                    icon: policy.avatarURL,
-                    iconType: CONST.ICON_TYPE_WORKSPACE,
-                    shouldShowRightIcon: true,
-                    description: date
-                        ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop, date)
-                        : translate('workspace.accounting.qbd'),
-                    onPress: () => {
-                        copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.QBD);
-                        Navigation.dismissModal();
-                    },
-                };
-            }),
-        [reusablePoliciesConnectedToQBD, connectionSyncProgressCollection, policyID, translate, datetimeToRelative, getLocalDateFromDatetime],
-    );
+    const menuItems = reusablePoliciesConnectedToQBD.map((policy) => {
+        const syncProgress = connectionSyncProgressCollection?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`];
+        const lastSuccessfulSyncDate = getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, policy.connections?.quickbooksDesktop, syncProgress);
+        const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
+        return {
+            title: policy.name,
+            key: policy.id,
+            avatarID: policy.id,
+            icon: policy.avatarURL,
+            iconType: CONST.ICON_TYPE_WORKSPACE,
+            shouldShowRightIcon: true,
+            description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop, date) : translate('workspace.accounting.qbd'),
+            onPress: () => {
+                copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.QBD);
+                Navigation.dismissModal();
+            },
+        };
+    });
 
     return (
         <ScreenWrapper

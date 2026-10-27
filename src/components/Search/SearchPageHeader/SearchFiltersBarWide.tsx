@@ -30,7 +30,7 @@ function SearchFiltersBarWideContent({hasErrors, shouldShowFiltersBarLoading, fi
 
     return filters.map((item) => (
         <SearchFilterBar
-            key={item.key}
+            key={item.id}
             item={item}
         />
     ));
