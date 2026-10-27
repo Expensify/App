@@ -416,7 +416,6 @@ function MoneyRequestReportTransactionItem({
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList) => (cardID ? cardList?.[cardID] : undefined)});
     const [cards = EMPTY_ROW_CARDS] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: (cardList) => getReportRowCards(cardList, cardID)});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {selector: (categories) => getReportRowPolicyCategories(categories, category)});
-    // Violation visibility needs the full report and policy, the body gets projections that keep their value through writes it doesn't show
     const [fullReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [fullPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportRowReport});

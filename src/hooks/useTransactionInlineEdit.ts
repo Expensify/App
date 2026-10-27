@@ -177,7 +177,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const isTrackExpense = isTrackExpenseReportNew(transactionThreadReport, effectiveParentReport, parentReportAction);
 
     const editPolicy = completePolicy ?? policy;
-    // Edit permissions only read the rules of the policy they get
     const [policyRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rules) => filterRulesForPolicy(rules, editPolicy?.id)});
     const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
     const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(editPolicy, customUnitRateID);
@@ -230,13 +229,10 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         };
     };
 
-    // Rows pass the handlers down, so they keep one identity and read the latest rendered values when called.
-    // Otherwise every write to the policy or the other data above would re-render the whole row.
     const renderedEditData = {
         getRenderedEditParams,
         policyID,
         reportPolicyID,
-        // The thread report is built under the report passed as parentReport, so the snapshot comes from that report's policy
         snapshotPolicyID: parentReportForAction?.policyID,
         personalOutputCurrency: personalPolicy?.outputCurrency,
     };
@@ -245,7 +241,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         renderedEditDataRef.current = renderedEditData;
     });
 
-    // Only the edit actions need these, so they are read on save instead of re-running the hook in every row on each write
     const getEditParams = async (): Promise<TransactionInlineEditParams> => {
         const {getRenderedEditParams: getLatestRenderedEditParams, policyID: editPolicyID, reportPolicyID: editReportPolicyID, snapshotPolicyID} = renderedEditDataRef.current;
         const [reportPolicyTags, policyRecentlyUsedCategories, policyRecentlyUsedTags, fullPolicySnapshot, onboarding, introSelected, session, rules, conciergeReportID] =
