@@ -51,7 +51,7 @@ type FilterListProps = FilterItemCallbacks & {
     /** Ref to the search input above the list. */
     searchInputRef?: Ref<BaseTextInputRef>;
 
-    /** Content between the search input and the list. Pass a falsy value when the search hides it, so the list knows nothing is listed. */
+    /** Content at the top of the list, scrolled with its rows. Pass a falsy value when the search hides it, so the list knows nothing is listed. */
     headerContent?: ReactNode;
 
     /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
@@ -157,7 +157,6 @@ function FilterList({
                 style={styles.mb3}
                 ref={searchInputRef}
             />
-            {headerContent}
             {shouldShowNoResultsFound && (
                 <View style={[styles.ph5, styles.pb5]}>
                     <Text
@@ -175,6 +174,7 @@ function FilterList({
                 onMouseMove={onPointerMove}
                 onMouseLeave={onPointerLeave}
             >
+                {headerContent}
                 {filters.map((section, index) => (
                     <View key={`${section.at(0)}`}>
                         {index !== 0 && (
