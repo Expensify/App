@@ -23,7 +23,7 @@ import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {Linking, View} from 'react-native';
 
 type ManageTripsProps = {
@@ -56,14 +56,14 @@ function ManageTrips({policyID}: ManageTripsProps) {
 
     const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
 
-    const handleOnContentSizeChange = useCallback(() => {
+    const handleOnContentSizeChange = () => {
         if (!shouldScrollToBottom) {
             return;
         }
 
         scrollViewRef.current?.scrollToEnd({animated: true});
         setShouldScrollToBottom(false);
-    }, [shouldScrollToBottom]);
+    };
 
     return (
         <AccessOrNotFoundWrapper policyID={policyID}>

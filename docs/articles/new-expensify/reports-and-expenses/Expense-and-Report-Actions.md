@@ -149,6 +149,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Duplicate expense** | Non-card expenses | Submitter | Creates a copy of an expense |
 | **Duplicate report** | Any report owned by submitter | Submitter | Creates a copy of the report |
 | **Download report** | Any report | All roles (Submitter only on Draft reports) | Downloads a PDF copy |
+| **Share** | Any report | All roles | Opens **Share code**, **Refer a friend**, and **Copy URL**. On expense reports that aren't Draft, the submitter, approver, and workspace admin also see **Share report**, which emails the report to one person you choose |
 | **Print** | Any report except Draft | All roles | Opens print view |
 | **Reject** | Submitted reports | Approver, Admin | Sends report back for changes |
 | **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report |
