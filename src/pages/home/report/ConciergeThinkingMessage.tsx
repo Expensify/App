@@ -30,7 +30,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 
@@ -88,7 +88,7 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
     const theme = useTheme();
     const {datetimeToCalendarTime, translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
-    const hasReasoningHistory = useMemo(() => !!reasoningHistory && reasoningHistory.length > 0, [reasoningHistory]);
+    const hasReasoningHistory = !!reasoningHistory && reasoningHistory.length > 0;
     const [manuallyCollapsed, setManuallyCollapsed] = useState(true);
     const isExpanded = hasReasoningHistory && !manuallyCollapsed;
     const historyLength = (reasoningHistory ?? [])?.length;
