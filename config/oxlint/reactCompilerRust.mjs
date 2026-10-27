@@ -6,6 +6,8 @@
 import path from 'node:path';
 import {transformSync} from 'oxc-transform-react';
 
+import oxcReactCompilerConfig from '../babel/oxcReactCompilerConfig.js';
+
 const RULE_BY_CATEGORY = {
     Refs: 'refs',
     EffectSetState: 'set-state-in-effect',
@@ -43,23 +45,14 @@ const IGNORED_CATEGORIES = new Set([
 
 const COMPILATION_SKIPPED_CATEGORIES = new Set(['EffectDependencies', 'IncompatibleLibrary', 'PreserveManualMemo', 'UnsupportedSyntax']);
 
+// The validations eslint-plugin-react-hooks turns on that oxc does not. The rest are already oxc
+// defaults or land in IGNORED_CATEGORIES.
 const ENVIRONMENT = {
-    validateRefAccessDuringRender: true,
-    validateNoSetStateInRender: true,
     validateNoSetStateInEffects: true,
     // The plugin spells this `validateNoJSXInTryStatements`; oxc spells it with a lowercase `sx`.
     validateNoJsxInTryStatements: true,
     validateNoImpureFunctionsInRender: true,
     validateStaticComponents: true,
-    validateNoFreezingKnownMutableFunctions: true,
-    validateNoVoidUseMemo: true,
-    validateNoCapitalizedCalls: [],
-    validateHooksUsage: true,
-    validateNoDerivedComputationsInEffects: true,
-    enableUseKeyedState: false,
-    enableVerboseNoSetStateInEffect: false,
-    validateExhaustiveEffectDependencies: 'off',
-    enableTreatRefLikeIdentifiersAsRefs: true,
 };
 
 // The category is only in the formatted `codeframe` string, which is not a public API of
@@ -169,24 +162,22 @@ function buildMessage(category, error) {
  * category it does not know, so an oxc-transform-react bump that changes the categories fails the run.
  * @param {string} filename
  * @param {string} sourceText
+ * @param {Record<string, unknown>} [environment] the lint-only validations; the harness passes variants
  * @returns {Array<{ruleName: string, loc: {start: {line: number, column: number}, end: {line: number, column: number}}, message: string}>}
  */
-function analyze(filename, sourceText) {
+function analyze(filename, sourceText, environment = ENVIRONMENT) {
     let result;
     try {
+        const buildOptions = oxcReactCompilerConfig();
         result = transformSync(filename, sourceText, {
             lang: getLang(path.extname(filename).slice(1)),
             reactCompiler: {
-                target: '19',
+                ...buildOptions,
                 outputMode: 'lint',
                 // Without it the binding returns only fatal diagnostics.
                 reportDiagnostics: true,
                 flowSuppressions: false,
-                // Without it the compiler skips every function under an `eslint-disable-next-line
-                // react-hooks/exhaustive-deps` comment. Lint-only: in the build configs it would change
-                // what ships memoized.
-                eslintSuppressionRules: [],
-                environment: ENVIRONMENT,
+                environment: {...buildOptions.environment, ...environment},
             },
         });
     } catch (error) {
@@ -264,4 +255,4 @@ function reactCompilerDiagnostics(filename, sourceText) {
     return cache.get(filename);
 }
 
-export {CONFIG_CATEGORY, IGNORED_CATEGORIES, RULE_BY_CATEGORY, reactCompilerDiagnostics};
+export {analyze, CONFIG_CATEGORY, ENVIRONMENT, IGNORED_CATEGORIES, RULE_BY_CATEGORY, reactCompilerDiagnostics};
