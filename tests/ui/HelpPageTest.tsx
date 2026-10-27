@@ -89,8 +89,10 @@ describe('HelpPage', () => {
     });
 
     it('disables the Talk to a human row while offline, so no ticket is queued to appear after reconnecting', async () => {
-        // Given the Help page while offline
+        // Given the device is offline
         mockUseNetwork.mockReturnValue({isOffline: true});
+
+        // When the Help page is shown
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
@@ -99,7 +101,8 @@ describe('HelpPage', () => {
     });
 
     it('keeps the Talk to a human row enabled while online', async () => {
-        // Given the Help page while online
+        // Given the device is online
+        // When the Help page is shown
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
