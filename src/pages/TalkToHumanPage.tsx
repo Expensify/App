@@ -21,6 +21,8 @@ function TalkToHumanPage() {
     const {openSupportTicketOrConcierge} = useOpenSupportTicket();
     const hasHandledLink = useRef(false);
 
+    // Left unmemoized on purpose: the effect re-runs when isOffline changes, and the cleanup cancels the earlier run,
+    // so only the run that saw the latest connection state handles the link.
     useFocusEffect(() => {
         let isCancelled = false;
 

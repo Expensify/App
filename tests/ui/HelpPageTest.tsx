@@ -32,10 +32,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 jest.mock('@libs/actions/Help', () => ({openHelpPage: jest.fn()}));
 jest.mock('@libs/actions/Link', () => ({openExternalLink: jest.fn()}));
-const mockOpenSupportTicketOrConcierge = jest.fn();
-
 jest.mock('@hooks/useOpenConciergeAnywhere', () => () => ({openConciergeAnywhere: jest.fn()}));
-jest.mock('@hooks/useOpenSupportTicket', () => () => ({openSupportTicketOrConcierge: mockOpenSupportTicketOrConcierge}));
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useIsPaidPolicyAdmin', () => () => true);
 jest.mock('@hooks/useCurrentUserPersonalDetails');
