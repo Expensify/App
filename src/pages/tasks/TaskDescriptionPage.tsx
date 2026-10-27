@@ -49,18 +49,15 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const accountIDToName = useMentionedAccountIDToNameMap(report?.description);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
-            const errors = {};
-            const taskDescriptionLength = getCommentLength(values.description);
-            if (values?.description && taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
-                addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', taskDescriptionLength, CONST.DESCRIPTION_LIMIT));
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
+        const errors = {};
+        const taskDescriptionLength = getCommentLength(values.description);
+        if (values?.description && taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
+            addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', taskDescriptionLength, CONST.DESCRIPTION_LIMIT));
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
         if (values.description !== Parser.htmlToMarkdown(report?.description ?? '', {accountIDToName}) && !isEmptyObject(report)) {

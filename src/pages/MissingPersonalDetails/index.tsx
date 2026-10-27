@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import MissingPersonalDetailsContent from './MissingPersonalDetailsContent';
 
@@ -24,9 +24,9 @@ function MissingPersonalDetails({route: {params: {cardID = ''} = {}}}) {
 
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, draftValuesMetadata);
 
-    const handleComplete = useCallback(() => {
+    const handleComplete = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE.getRoute(cardID), basePath), {forceReplace: true});
-    }, [cardID, basePath]);
+    };
 
     if (isLoading) {
         return <FullScreenLoadingIndicator />;

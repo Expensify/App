@@ -31,7 +31,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import shouldDisablePersonalKarmaToggle from './shouldDisablePersonalKarmaToggle';
@@ -56,38 +56,34 @@ function SaveTheWorldPage() {
     const personalKarmaTitle = translate('teachersUnitePage.personalKarma.title');
     const personalKarmaDescription = translate('teachersUnitePage.personalKarma.description');
     const personalKarmaStopDonationsPrompt = translate('teachersUnitePage.personalKarma.stopDonationsPrompt');
-    const billingCard = useMemo(() => {
-        const userBillingCard = userBillingFundID ? fundList?.[`${userBillingFundID}`] : undefined;
-        if (userBillingCard?.accountData) {
-            return userBillingCard;
-        }
-
-        return getCardForSubscriptionBilling(fundList);
-    }, [fundList, userBillingFundID]);
-    const menuItems = useMemo(() => {
-        const baseMenuItems = [
-            {
-                translationKey: 'teachersUnitePage.iKnowATeacher',
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.I_KNOW_A_TEACHER)),
-                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_KNOW_A_TEACHER,
-            },
-            {
-                translationKey: 'teachersUnitePage.iAmATeacher',
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.I_AM_A_TEACHER)),
-                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_AM_A_TEACHER,
-            },
-        ];
-
-        return baseMenuItems.map((item) => ({
-            key: item.translationKey,
-            title: translate(item.translationKey as TranslationPaths),
-            onPress: item.action,
-            shouldShowRightIcon: true,
-            link: '',
-            wrapperStyle: [styles.sectionMenuItemTopDescription],
-            sentryLabel: item.sentryLabel,
-        }));
-    }, [translate, waitForNavigate, styles]);
+    let billingCard;
+    const userBillingCard = userBillingFundID ? fundList?.[`${userBillingFundID}`] : undefined;
+    if (userBillingCard?.accountData) {
+        billingCard = userBillingCard;
+    } else {
+        billingCard = getCardForSubscriptionBilling(fundList);
+    }
+    const baseMenuItems = [
+        {
+            translationKey: 'teachersUnitePage.iKnowATeacher',
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.I_KNOW_A_TEACHER)),
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_KNOW_A_TEACHER,
+        },
+        {
+            translationKey: 'teachersUnitePage.iAmATeacher',
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.I_AM_A_TEACHER)),
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_AM_A_TEACHER,
+        },
+    ];
+    const menuItems = baseMenuItems.map((item) => ({
+        key: item.translationKey,
+        title: translate(item.translationKey as TranslationPaths),
+        onPress: item.action,
+        shouldShowRightIcon: true,
+        link: '',
+        wrapperStyle: [styles.sectionMenuItemTopDescription],
+        sentryLabel: item.sentryLabel,
+    }));
 
     useEffect(() => {
         openSaveTheWorldPage();

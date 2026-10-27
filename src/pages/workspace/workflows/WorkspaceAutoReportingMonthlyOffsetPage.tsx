@@ -27,7 +27,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 const DAYS_OF_MONTH = 28;
 
@@ -91,32 +91,26 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
         setUserSelectedOffset(item.isNumber ? parseInt(item.keyForList, 10) : (item.keyForList as AutoReportingOffsetKeys));
     };
 
-    const saveDayOfMonth = useCallback(() => {
+    const saveDayOfMonth = () => {
         if (!policyID) {
             return;
         }
         setWorkspaceAutoReportingMonthlyOffset(policyID, selectedOffset, policy?.autoReportingOffset, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policyID));
-    }, [policyID, policy?.autoReportingOffset, selectedOffset, getReviewWorkspaceSettingsTaskCompletion]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveDayOfMonth,
-            isDisabled: selectedOffset === offset,
-        }),
-        [saveDayOfMonth, translate, selectedOffset, offset],
-    );
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('workflowsPage.submissionFrequencyDateOfMonth'),
-            value: searchText,
-            onChangeText: setSearchText,
-            headerMessage: searchText.trim() && !filteredDaysOfMonth.length ? translate('common.noResultsFound') : '',
-        }),
-        [searchText, filteredDaysOfMonth.length, setSearchText, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveDayOfMonth,
+        isDisabled: selectedOffset === offset,
+    };
+    const textInputOptions = {
+        label: translate('workflowsPage.submissionFrequencyDateOfMonth'),
+        value: searchText,
+        onChangeText: setSearchText,
+        headerMessage: searchText.trim() && !filteredDaysOfMonth.length ? translate('common.noResultsFound') : '',
+    };
 
     return (
         <AccessOrNotFoundWrapper

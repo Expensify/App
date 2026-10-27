@@ -62,7 +62,7 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {ParamListBase} from '@react-navigation/routers';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import useModalStackScreenOptions from './useModalStackScreenOptions';
@@ -160,16 +160,13 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
         const {isSmallScreenWidth} = useResponsiveLayout();
 
-        const getScreenOptions = useCallback<typeof screenOptions>(
-            ({route: optionRoute}) => {
-                // Extend common options if they are defined for the screen.
-                if (OPTIONS_PER_SCREEN[optionRoute.name as Screen]) {
-                    return {...screenOptions({route: optionRoute}), ...OPTIONS_PER_SCREEN[optionRoute.name as Screen]};
-                }
-                return screenOptions({route: optionRoute});
-            },
-            [screenOptions],
-        );
+        const getScreenOptions: typeof screenOptions = ({route: optionRoute}) => {
+            // Extend common options if they are defined for the screen.
+            if (OPTIONS_PER_SCREEN[optionRoute.name as Screen]) {
+                return {...screenOptions({route: optionRoute}), ...OPTIONS_PER_SCREEN[optionRoute.name as Screen]};
+            }
+            return screenOptions({route: optionRoute});
+        };
 
         return (
             // This container is necessary to hide card translation during transition. Without it the user would see un-clipped cards.
@@ -1129,6 +1126,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardEditCardNamePage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardEditTransactionStartDatePage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardsBulkEditTransactionStartDatePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/DynamicWorkspaceCompanyCardAccountSelectCardPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/DynamicIssueNewCardPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE]: () =>

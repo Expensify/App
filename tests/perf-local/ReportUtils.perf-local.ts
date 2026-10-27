@@ -151,13 +151,18 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getReportPreviewMessage(translateLocal, convertToDisplayString, {
-                reportOrID: report,
-                iouReportAction: reportAction,
-                shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
-                isPreviewMessageForParentChatReport,
-                policy,
-            }),
+            getReportPreviewMessage(
+                translateLocal,
+                convertToDisplayString,
+                {
+                    reportOrID: report,
+                    iouReportAction: reportAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
+                    isPreviewMessageForParentChatReport,
+                    policy,
+                },
+                formatPhoneNumber,
+            ),
         );
     });
 

@@ -9,7 +9,7 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 const anchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -20,21 +20,18 @@ function CardSectionActions() {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'MoneyCircle']);
 
-    const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
-        () => [
-            {
-                icon: icons.CreditCard,
-                text: translate('subscription.cardSection.changeCard'),
-                onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD),
-            },
-            {
-                icon: icons.MoneyCircle,
-                text: translate('subscription.cardSection.changeCurrency'),
-                onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY),
-            },
-        ],
-        [translate, icons.CreditCard, icons.MoneyCircle],
-    );
+    const overflowMenu: ThreeDotsMenuProps['menuItems'] = [
+        {
+            icon: icons.CreditCard,
+            text: translate('subscription.cardSection.changeCard'),
+            onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD),
+        },
+        {
+            icon: icons.MoneyCircle,
+            text: translate('subscription.cardSection.changeCurrency'),
+            onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY),
+        },
+    ];
 
     return (
         <ThreeDotsMenu

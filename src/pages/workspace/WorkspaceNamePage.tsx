@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceSettingsForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {Keyboard, View} from 'react-native';
 
 import type {WithPolicyProps} from './withPolicy';
@@ -33,36 +33,30 @@ function WorkspaceNamePage({policy}: Props) {
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {translate} = useLocalize();
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
-            if (!policy || policy.isPolicyUpdating) {
-                return;
-            }
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
+        if (!policy || policy.isPolicyUpdating) {
+            return;
+        }
 
-            updateGeneralSettings(policy, values.name.trim(), policy.outputCurrency, getReviewWorkspaceSettingsTaskCompletion());
-            Keyboard.dismiss();
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
-        },
-        [policy, getReviewWorkspaceSettingsTaskCompletion],
-    );
+        updateGeneralSettings(policy, values.name.trim(), policy.outputCurrency, getReviewWorkspaceSettingsTaskCompletion());
+        Keyboard.dismiss();
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
+    };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM> = {};
-            const name = values.name.trim();
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM> = {};
+        const name = values.name.trim();
 
-            if (!isRequiredFulfilled(name)) {
-                errors.name = translate('workspace.editor.nameIsRequiredError');
-            } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
-                // code units.
-                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
-            }
+        if (!isRequiredFulfilled(name)) {
+            errors.name = translate('workspace.editor.nameIsRequiredError');
+        } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
+            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
+            // code units.
+            addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     return (
         <AccessOrNotFoundWrapper
