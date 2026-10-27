@@ -62,13 +62,15 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
     const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(moneyRequestReport?.reportID);
     const isTransactionThread = !!transactionThreadReportID && !shouldUseTableViewForSingleExpense;
 
+    // The table view keeps the selection, as its single expense is a selectable row. This component remounts on resize and when
+    // a page opens over a narrow layout, and a report can drop to one expense, all while the selection is still needed.
     useEffect(() => {
-        if (!transactionThreadReportID) {
+        if (!isTransactionThread) {
             return;
         }
 
         clearSelectedTransactions(true);
-    }, [transactionThreadReportID]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [isTransactionThread]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Report-level actions must not be usable while expenses are selected, otherwise they get mixed up with the bulk expense actions.
     const shouldDisableReportActions = hasSelectedTransactions && !isTransactionThread;
