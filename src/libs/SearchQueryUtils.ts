@@ -54,7 +54,24 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subMonths} from 'date-fns';
+import {
+    addDays,
+    endOfMonth,
+    endOfQuarter,
+    endOfWeek,
+    endOfYear,
+    format,
+    parse,
+    startOfMonth,
+    startOfQuarter,
+    startOfWeek,
+    startOfYear,
+    subDays,
+    subMonths,
+    subQuarters,
+    subWeeks,
+    subYears,
+} from 'date-fns';
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
@@ -1769,9 +1786,23 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
     const now = new Date();
     let start: Date;
     let end: Date;
+    const lastWeek = subWeeks(now, 1);
     const lastMonth = subMonths(now, 1);
+    const lastQuarter = subQuarters(now, 1);
+    const lastYear = subYears(now, 1);
+
+    // Weeks start on Sunday regardless of locale, matching the week buckets of group-by:week.
+    const weekOptions = {weekStartsOn: 0} as const;
 
     switch (preset) {
+        case CONST.SEARCH.DATE_PRESETS.THIS_WEEK:
+            start = startOfWeek(now, weekOptions);
+            end = endOfWeek(now, weekOptions);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_WEEK:
+            start = startOfWeek(lastWeek, weekOptions);
+            end = endOfWeek(lastWeek, weekOptions);
+            break;
         case CONST.SEARCH.DATE_PRESETS.THIS_MONTH:
             start = startOfMonth(now);
             end = endOfMonth(now);
@@ -1780,9 +1811,37 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
             start = startOfMonth(lastMonth);
             end = endOfMonth(lastMonth);
             break;
+        case CONST.SEARCH.DATE_PRESETS.THIS_QUARTER:
+            start = startOfQuarter(now);
+            end = endOfQuarter(now);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_QUARTER:
+            start = startOfQuarter(lastQuarter);
+            end = endOfQuarter(lastQuarter);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.THIS_YEAR:
+            start = startOfYear(now);
+            end = endOfYear(now);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_YEAR:
+            start = startOfYear(lastYear);
+            end = endOfYear(lastYear);
+            break;
         case CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE:
             start = startOfYear(now);
             end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS:
+            start = subDays(now, 29);
+            end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS:
+            start = subDays(now, 89);
+            end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS:
+            start = startOfMonth(subMonths(now, 5));
+            end = endOfMonth(now);
             break;
         case CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS:
             start = startOfMonth(subMonths(now, 11));
