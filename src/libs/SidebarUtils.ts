@@ -140,7 +140,6 @@ type MiniReport = {
 
 type ShouldDisplayReportInLHNParams = {
     report: Report;
-    /** The workspace policy of `report`, used to evaluate its transaction violations. */
     policy: OnyxEntry<Policy>;
     reports: OnyxCollection<Report>;
     currentReportId: string | undefined;
@@ -681,7 +680,6 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
 
 type GetReasonAndReportActionThatHasRedBrickRoadParams = {
     report: Report;
-    /** The workspace policy of `report`, used to evaluate its transaction violations. */
     policy: OnyxEntry<Policy>;
     chatReport: OnyxEntry<Report>;
     reportActions: OnyxEntry<ReportActions>;

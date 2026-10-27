@@ -1640,7 +1640,6 @@ type RBRReasonAndReportAction = {
  */
 type GetReasonAndReportActionForRBRInLHNRowParams = {
     report: Report;
-    /** The workspace policy of `report`, used to evaluate its transaction violations. */
     policy: OnyxEntry<Policy>;
     chatReport: OnyxEntry<Report>;
     reportActions: OnyxEntry<ReportActions>;

@@ -10722,10 +10722,6 @@ function shouldHideReport(
  * or undefined if none found. Used to find the REPORT_PREVIEW action to deep-link to.
  */
 // TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-/**
- * @param policy - The workspace policy of `report`. A single policy is enough because the candidate reports are read
- * out of `deprecatedReportsByPolicyID[report.policyID]`, so every one of them shares `report`'s `policyID`.
- */
 function getViolatingReportIDForRBRInLHN(
     report: OnyxEntry<Report>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
@@ -14578,7 +14574,7 @@ function generateReportAttributes({
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
     actionTargetReportActionID?: string;
     reports?: OnyxCollection<Report>;
-    policies?: OnyxCollection<Policy>;
+    policies: OnyxCollection<Policy>;
     reportMetadata?: OnyxEntry<ReportMetadata>;
     cardList?: OnyxEntry<CardList>;
 }) {
