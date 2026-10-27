@@ -33,7 +33,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function QuickCreationActionsBar() {
@@ -60,47 +60,40 @@ function QuickCreationActionsBar() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const hasTravelEnabledPolicySelector = useMemo(() => createHasTravelEnabledPolicySelector(email), [email]);
+    const hasTravelEnabledPolicySelector = createHasTravelEnabledPolicySelector(email);
     const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasTravelEnabledPolicySelector});
 
     const shouldShowBookTravel = !!hasTravelEnabledPolicy;
 
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
-    const isTravelReady = useMemo(() => {
-        if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
-            return false;
+    const isTravelReady =
+        !(!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) &&
+        hasAcceptedTravelTerms(activePolicy, travelSettings);
+
+    const handleCreateWorkspaceReport = (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!policy?.id) {
+            return;
         }
 
-        return hasAcceptedTravelTerms(activePolicy, travelSettings);
-    }, [activePolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings]);
-
-    const handleCreateWorkspaceReport = useCallback(
-        (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
-            if (!policy?.id) {
-                return;
-            }
-
-            const {reportID: createdReportID} = createNewReport(
-                currentUserPersonalDetails,
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                policy,
-                isTrackIntentUser,
-                getCurrencyDecimals,
-                rules,
-                false,
-                shouldDismissEmptyReportsConfirmation,
-            );
-            // Navigate to the Reports page first so getCreateReportRoute() resolves against
-            // the Search/Reports fullscreen context before opening the created report modal.
-            Navigation.navigate(getReportsRootRoute());
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
-            });
-        },
-        [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, getCurrencyDecimals, rules],
-    );
+        const {reportID: createdReportID} = createNewReport(
+            currentUserPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policy,
+            isTrackIntentUser,
+            getCurrencyDecimals,
+            rules,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
+        // Navigate to the Reports page first so getCreateReportRoute() resolves against
+        // the Search/Reports fullscreen context before opening the created report modal.
+        Navigation.navigate(getReportsRootRoute());
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
+        });
+    };
 
     const {createReport, isVisible: isCreateReportReady} = useCreateReport({
         onCreateReport: handleCreateWorkspaceReport,
@@ -108,37 +101,28 @@ function QuickCreationActionsBar() {
         shouldHandleNavigationBack: false,
     });
 
-    const handleExpense = useCallback(
-        () =>
-            interceptAnonymousUser(() => {
-                startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
-            }),
-        [draftTransactionIDs],
-    );
+    const handleExpense = () =>
+        interceptAnonymousUser(() => {
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
+        });
 
-    const handleDistance = useCallback(
-        () =>
-            interceptAnonymousUser(() => {
-                startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, lastDistanceExpenseType);
-            }),
-        [draftTransactionIDs, lastDistanceExpenseType],
-    );
+    const handleDistance = () =>
+        interceptAnonymousUser(() => {
+            startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, lastDistanceExpenseType);
+        });
 
-    const handleBookTravel = useCallback(
-        () =>
-            interceptAnonymousUser(() => {
-                if (blockIfDefaultWorkspaceLacksTravel()) {
-                    return;
-                }
+    const handleBookTravel = () =>
+        interceptAnonymousUser(() => {
+            if (blockIfDefaultWorkspaceLacksTravel()) {
+                return;
+            }
 
-                if (isTravelReady) {
-                    openTravelDotLink(activePolicy?.id);
-                    return;
-                }
-                Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
-            }),
-        [activePolicy?.id, isTravelReady, blockIfDefaultWorkspaceLacksTravel],
-    );
+            if (isTravelReady) {
+                openTravelDotLink(activePolicy?.id);
+                return;
+            }
+            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
+        });
 
     return (
         <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>
