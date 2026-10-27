@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceClientIDForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {Keyboard} from 'react-native';
 
 import type {WithPolicyProps} from './withPolicy';
@@ -32,18 +32,15 @@ function WorkspaceOverviewClientIDPage({policy}: Props) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CLIENT_ID_FORM>) => {
-            if (!policy || policy.isPolicyUpdating) {
-                return;
-            }
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CLIENT_ID_FORM>) => {
+        if (!policy || policy.isPolicyUpdating) {
+            return;
+        }
 
-            updateWorkspaceClientID(policy.id, values.clientID.trim(), policy.clientID);
-            Keyboard.dismiss();
-            Navigation.goBack();
-        },
-        [policy],
-    );
+        updateWorkspaceClientID(policy.id, values.clientID.trim(), policy.clientID);
+        Keyboard.dismiss();
+        Navigation.goBack();
+    };
 
     return (
         <AccessOrNotFoundWrapper

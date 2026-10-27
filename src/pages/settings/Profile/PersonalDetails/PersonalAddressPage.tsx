@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 /**
  * Submit form to update user's first and last legal name
@@ -39,7 +39,7 @@ function PersonalAddressPage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [defaultCountry, defaultCountryStatus] = useOnyx(ONYXKEYS.COUNTRY);
     const isLoading = isLoadingOnyxValue(defaultCountryStatus);
-    const address = useMemo(() => normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address, [privatePersonalDetails]);
+    const address = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address;
 
     if (isLoading) {
         return <FullScreenLoadingIndicator />;

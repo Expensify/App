@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteTokenInputForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import connectToNetSuiteOAuthSetup from './connectToNetSuiteOAuthSetup';
@@ -38,42 +38,36 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, sho
 
     const formInputs = isOAuthFlow ? [INPUT_IDS.NETSUITE_ACCOUNT_ID] : Object.values(INPUT_IDS);
 
-    const validate = useCallback(
-        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM> = {};
-            const inputs = isOAuthFlow ? [INPUT_IDS.NETSUITE_ACCOUNT_ID] : Object.values(INPUT_IDS);
+    const validate = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM> = {};
+        const inputs = isOAuthFlow ? [INPUT_IDS.NETSUITE_ACCOUNT_ID] : Object.values(INPUT_IDS);
 
-            for (const formInput of inputs) {
-                if (formValues[formInput]) {
-                    continue;
-                }
-                addErrorMessage(errors, formInput, translate('common.error.fieldRequired'));
+        for (const formInput of inputs) {
+            if (formValues[formInput]) {
+                continue;
             }
-            return errors;
-        },
-        [isOAuthFlow, translate],
-    );
+            addErrorMessage(errors, formInput, translate('common.error.fieldRequired'));
+        }
+        return errors;
+    };
 
-    const connectPolicy = useCallback(
-        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
-            if (!policyID) {
-                return;
-            }
+    const connectPolicy = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
+        if (!policyID) {
+            return;
+        }
 
-            if (isOAuthFlow) {
-                connectToNetSuiteOAuthSetup(policyID, formValues[INPUT_IDS.NETSUITE_ACCOUNT_ID], environmentURL, isMigration);
-                return;
-            }
+        if (isOAuthFlow) {
+            connectToNetSuiteOAuthSetup(policyID, formValues[INPUT_IDS.NETSUITE_ACCOUNT_ID], environmentURL, isMigration);
+            return;
+        }
 
-            if (shouldUseUpdateNetSuiteTokens(policy)) {
-                updateNetSuiteTokens(policyID, formValues);
-            } else {
-                connectPolicyToNetSuite(policyID, formValues);
-            }
-            onNext();
-        },
-        [onNext, policyID, policy, isOAuthFlow, environmentURL, isMigration],
-    );
+        if (shouldUseUpdateNetSuiteTokens(policy)) {
+            updateNetSuiteTokens(policyID, formValues);
+        } else {
+            connectPolicyToNetSuite(policyID, formValues);
+        }
+        onNext();
+    };
 
     return (
         <>

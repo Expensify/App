@@ -39,7 +39,7 @@ import {WebView} from 'react-native-webview';
 
 import useFixPersonalCardConnection from './useFixPersonalCardConnection';
 
-type FixPersonalCardConnectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION>;
+type FixPersonalCardConnectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_FIX_CONNECTION>;
 
 function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPageProps) {
     const {cardID} = route.params;
@@ -47,7 +47,7 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
-    const {card, url, isPlaid, country} = useFixPersonalCardConnection(cardID);
+    const {card, url, isPlaid, country, cardDetailsPath} = useFixPersonalCardConnection(cardID);
     const {isOffline} = useNetwork();
     const hasRequestedPlaidToken = useRef(false);
 
@@ -99,7 +99,7 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
         // The non-Plaid flow relies on useFixPersonalCardConnection's effect, which
         // doesn't fire here because we navigate away before isCardBroken flips.
         updatePersonalCardConnection(cardID, card?.lastScrapeResult);
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
+        Navigation.goBack(cardDetailsPath);
     };
 
     const handlePlaidLinkEvent = (eventName: string) => {

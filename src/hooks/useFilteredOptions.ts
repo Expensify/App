@@ -9,7 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {pendingDeleteMemberAccountIDsByReportIDSelector} from '@selectors/ReportMetaData';
-import {useCallback, useMemo, useState} from 'react';
+import {useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -122,69 +122,41 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 
     // Kept referentially stable so consumers can pass it into memoized option builders without busting their caches.
-    const getReportByID = useCallback((reportID: string | undefined): OnyxEntry<Report> => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`], [allReports]);
+    const getReportByID = (reportID: string | undefined): OnyxEntry<Report> => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 
     // React Compiler can't prove referential stability for the destructured `config` param with default values, so explicit useMemo is required here.
-    const options: OptionList | null = useMemo(
-        () =>
-            enabled && allReports && allPersonalDetails
-                ? createFilteredOptionList(
-                      allPersonalDetails,
-                      allReports,
-                      reportAttributesDerived,
-                      privateIsArchivedMap,
-                      allPolicies,
-                      {
-                          currentUserAccountID,
-                          currentUserLogin,
-                          transactionThreadIDs,
-                          lastActions,
-                          dateFnsLocale,
-                          convertToDisplayString,
-                          conciergeReportID,
-                          maxRecentReports: reportsLimit,
-                          includeP2P,
-                          isSearching,
-                          deferContactsUntilSearch,
-                          locale: preferredLocale,
-                          pendingDeleteMemberAccountIDsByReportID,
-                          formatPhoneNumber,
-                          activePolicyID,
-                      },
-                      rules,
-                      undefined,
-                      undefined,
-                      isTrackIntentUser,
-                      sortedActions,
-                  )
-                : null,
-        [
-            enabled,
-            allReports,
-            allPersonalDetails,
-            reportAttributesDerived,
-            privateIsArchivedMap,
-            allPolicies,
-            conciergeReportID,
-            rules,
-            reportsLimit,
-            includeP2P,
-            isSearching,
-            deferContactsUntilSearch,
-            preferredLocale,
-            isTrackIntentUser,
-            currentUserLogin,
-            sortedActions,
-            transactionThreadIDs,
-            lastActions,
-            currentUserAccountID,
-            pendingDeleteMemberAccountIDsByReportID,
-            dateFnsLocale,
-            convertToDisplayString,
-            formatPhoneNumber,
-            activePolicyID,
-        ],
-    );
+    const options: OptionList | null =
+        enabled && allReports && allPersonalDetails
+            ? createFilteredOptionList(
+                  allPersonalDetails,
+                  allReports,
+                  reportAttributesDerived,
+                  privateIsArchivedMap,
+                  allPolicies,
+                  {
+                      currentUserAccountID,
+                      currentUserLogin,
+                      transactionThreadIDs,
+                      lastActions,
+                      dateFnsLocale,
+                      convertToDisplayString,
+                      conciergeReportID,
+                      maxRecentReports: reportsLimit,
+                      includeP2P,
+                      isSearching,
+                      deferContactsUntilSearch,
+                      locale: preferredLocale,
+                      pendingDeleteMemberAccountIDsByReportID,
+                      formatPhoneNumber,
+                      activePolicyID,
+                  },
+                  rules,
+                  undefined,
+                  undefined,
+                  isTrackIntentUser,
+                  sortedActions,
+              )
+            : null;
 
     // When isSearching is set to true, the createFilteredOptionList returns all reports
     const hasMore = !isSearching && options ? reportsLimit < totalReports : false;
@@ -198,9 +170,9 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
 
     // Expand the window to cover every report in a single step. Used when the visible list is empty so the
     // option list is rebuilt once to surface any surviving row, instead of paginating batch-by-batch.
-    const loadAll = useCallback(() => {
+    const loadAll = () => {
         setReportsLimit((prev) => (prev < totalReports ? totalReports : prev));
-    }, [totalReports]);
+    };
 
     return {
         options,
