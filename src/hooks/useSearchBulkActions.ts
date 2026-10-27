@@ -2942,7 +2942,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // Approve and Submit are report actions, and the backend skips the matching reports the user can't act on.
             const shouldShowApproveOptionForAllMatchingItems =
                 !isOffline && isExpenseReportType && !doSelectedItemsBelongToSubmitPolicy && selectedReports.some((report) => report.canApprove);
-            // Submit plan workspaces pick an approver per report and Mark as done is a different action, so neither is sent to the backend.
+            // A Submit plan report needs the submitter to pick an approver and Mark as done has its own label, so either hides Submit.
             const shouldShowSubmitOptionForAllMatchingItems =
                 !isOffline && isExpenseReportType && !doSelectedItemsBelongToSubmitPolicy && noReportsShouldMarkAsDone && selectedReports.some((report) => report.canSubmit);
 
