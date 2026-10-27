@@ -27,7 +27,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspacePolicyOnyxProps = {
@@ -51,9 +51,9 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
     const customFieldText = translate(`workspace.common.${customFieldType}`);
     const policyID = params.policyID;
     // Go back with the route's accountID, even if it is a stale optimistic one, so it matches the details screen below that was opened with it.
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-    }, [accountID, policyID]);
+    };
 
     return (
         <AccessOrNotFoundWrapper

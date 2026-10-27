@@ -78,8 +78,8 @@ function AddAgentRulePage({
     const icons = useMemoizedLazyExpensifyIcons(['Feed', 'Pencil', 'Info']);
 
     const hasDraftPrompt = !!draftValues?.[INPUT_IDS.PROMPT]?.trim();
-    const [didSelectSuggestion, setDidSelectSuggestion] = useState(false);
-    const isDraftFromFallback = !!generationID && !didSelectSuggestion;
+    const [selectedSuggestion, setSelectedSuggestion] = useState<SuggestedAgentRule>();
+    const isDraftFromFallback = !!generationID && !selectedSuggestion;
     const fallbackExplanation = generatedRule?.generationID === generationID ? generatedRule?.explanation : undefined;
 
     // The draft can load after the first render. Open Write one time only, because the admin must still be able to go
@@ -131,7 +131,7 @@ function AddAgentRulePage({
             return;
         }
         setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[INPUT_IDS.PROMPT]: suggestion.prompt});
-        setDidSelectSuggestion(true);
+        setSelectedSuggestion(suggestion);
         setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
     };
 
@@ -160,8 +160,10 @@ function AddAgentRulePage({
         // an admin. Surface a one-time modal explaining this side effect before navigating back.
         const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
         const agentRuleID = rand64();
+        const prompt = values[INPUT_IDS.PROMPT];
+        const title = selectedSuggestion?.title;
         suppressDiscardPrompt();
-        addPolicyAgentRule(policyID, agentRuleID, values[INPUT_IDS.PROMPT]);
+        addPolicyAgentRule(policyID, agentRuleID, prompt, title);
         if (isDraftFromFallback) {
             Log.info('[GenerateRule] Saved agent rule from fallback', false, {policyID, generationID, agentRuleID});
         }
