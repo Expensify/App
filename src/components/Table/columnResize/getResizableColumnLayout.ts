@@ -1,6 +1,6 @@
 /** Lays a resizable table's columns out as custom property expressions, so a drag repaints the header, rows and scroller without a render. */
 
-import calculateDynamicColumnWidths, {distributeEqualWidths} from '@components/Table/calculateDynamicColumnWidths';
+import {distributeEqualWidths} from '@components/Table/calculateDynamicColumnWidths';
 
 import CONST from '@src/CONST';
 
@@ -44,11 +44,8 @@ type GetResizableColumnLayoutParams = {
 
     rowChromeWidths: RowChromeWidths;
 
-    /**
-     * Widths a fresh load paints, which a reset returns a column to. Defaults to content-based widths like `Table` uses,
-     * so a table that sizes its columns differently passes its own.
-     */
-    defaultColumnWidths?: Record<string, number>;
+    /** Widths a fresh load paints, which a reset returns a column to. */
+    freshColumnWidths: Record<string, number>;
 };
 
 type ResizableColumnLayout = {
@@ -85,25 +82,19 @@ function getAvailableColumnsWidth(tableWidth: number, {selectionColumnWidth, tot
     return Math.floor(tableWidth - rowMarginWidth - selectionColumnWidth - totalGapWidth - rowPaddingWidth);
 }
 
-/** Widths content sizing gives the columns before any resize, which is what a reset hands a column back to. */
-function getDefaultColumnWidths(columns: ResizableColumn[], availableColumnsWidth: number): Record<string, number> {
+/**
+ * Widths a fresh load paints: pinned columns at their declared width, and the rest at `contentSizedWidths` in render
+ * order, or at equal shares of the room left when there are none.
+ */
+function getFreshColumnWidths(columns: ResizableColumn[], contentSizedWidths: number[], availableColumnsWidth: number): Record<string, number> {
     const contentSizedColumns = columns.filter((column) => column.declaredWidth === undefined);
-    const fixedColumnsWidth = columns.reduce((total, column) => total + (column.declaredWidth ?? 0), 0);
-    const availableWidth = availableColumnsWidth - fixedColumnsWidth;
-    const {widths} = calculateDynamicColumnWidths(contentSizedColumns, availableWidth);
-    const defaultWidths = widths.length > 0 ? widths : distributeEqualWidths(contentSizedColumns.length, availableWidth);
+    const pinnedColumnsWidth = columns.reduce((total, column) => total + (column.declaredWidth ?? 0), 0);
+    const widths = contentSizedWidths.length > 0 ? contentSizedWidths : distributeEqualWidths(contentSizedColumns.length, availableColumnsWidth - pinnedColumnsWidth);
 
-    return Object.fromEntries(contentSizedColumns.map((column, index) => [column.key, defaultWidths.at(index) ?? 0]));
+    return Object.fromEntries(columns.map((column) => [column.key, column.declaredWidth ?? widths.at(contentSizedColumns.indexOf(column)) ?? 0]));
 }
 
-function getResizableColumnLayout({
-    columns,
-    resolvedColumnWidths,
-    resizedColumnKeys,
-    tableWidth,
-    rowChromeWidths,
-    defaultColumnWidths,
-}: GetResizableColumnLayoutParams): ResizableColumnLayout {
+function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnKeys, tableWidth, rowChromeWidths, freshColumnWidths}: GetResizableColumnLayoutParams): ResizableColumnLayout {
     const {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth} = rowChromeWidths;
     // Absorbs leftover width, so trailing headless columns like an arrow, menu or icon keep their size and stay pinned right.
     const growableColumnKey = columns.findLast((column) => !!column.label)?.key;
@@ -159,7 +150,7 @@ function getResizableColumnLayout({
             return undefined;
         }
 
-        return getDragBoundedWidth(columnKey, (defaultColumnWidths ?? getDefaultColumnWidths(columns, availableColumnsWidth))[columnKey] ?? 0);
+        return getDragBoundedWidth(columnKey, freshColumnWidths[columnKey] ?? 0);
     };
 
     const getResizedColumnWidths = (columnKey: string, width: number) =>
@@ -180,5 +171,5 @@ function getResizableColumnLayout({
 }
 
 export default getResizableColumnLayout;
-export {getAvailableColumnsWidth};
+export {getAvailableColumnsWidth, getFreshColumnWidths};
 export type {ColumnWidthTarget, ResizableColumnLayout, RowChromeWidths};

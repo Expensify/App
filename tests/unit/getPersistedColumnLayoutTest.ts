@@ -1,6 +1,7 @@
 import getPersistedColumnLayout from '@components/Table/columnResize/getPersistedColumnLayout';
 import type {RowChromeWidths} from '@components/Table/columnResize/getResizableColumnLayout';
 import type {ResizableColumn} from '@components/Table/columnResize/resolveDraggedColumnWidths';
+import {getPinnedColumn} from '@components/Table/columnResize/resolveDraggedColumnWidths';
 
 import CONST from '@src/CONST';
 
@@ -12,21 +13,15 @@ function freeTextColumn(key: string, contentWidth = 0, minWidth = 0): ResizableC
     return {key, label: key, declaredWidth: undefined, contentWidth, minWidth, maxWidth: Number.POSITIVE_INFINITY};
 }
 
-/** A headless column pinned to one declared width, so it never resizes or takes the leftover room. */
-function pinnedColumn(key: string, width: number): ResizableColumn {
-    return {key, label: '', declaredWidth: width, contentWidth: width, minWidth: width, maxWidth: width};
-}
-
 describe('getPersistedColumnLayout', () => {
     it('resizes only the free-text columns and gives the last one the leftover, keeping fixed and hugged columns pinned', () => {
         // Given a date column, two free-text columns and a status badge, whose fresh widths leave 30px of the row unused
-        const columns = [pinnedColumn('date', 62), freeTextColumn('merchant'), freeTextColumn('description'), pinnedColumn('status', 70)];
+        const columns = [getPinnedColumn('date', 62), freeTextColumn('merchant'), freeTextColumn('description'), getPinnedColumn('status', 70)];
 
         // When the layout is built with nothing saved
         const layout = getPersistedColumnLayout({
             columns,
             freshColumnWidths: {date: 62, merchant: 200, description: 150, status: 70},
-            defaultColumnWidths: {date: 62, merchant: 200, description: 150, status: 70},
             storedTableColumnWidths: undefined,
             tableWidth: 512,
             rowChromeWidths: NO_ROW_CHROME,
@@ -39,14 +34,13 @@ describe('getPersistedColumnLayout', () => {
 
     it('keeps a resized column at its width when the table narrows, with the other free-text columns absorbing the change', () => {
         // Given a save where merchant was dragged to 300px in a table whose columns had 600px
-        const columns = [pinnedColumn('date', 62), freeTextColumn('merchant', 100, 60), freeTextColumn('description', 100, 60), freeTextColumn('category', 100, 60)];
+        const columns = [getPinnedColumn('date', 62), freeTextColumn('merchant', 100, 60), freeTextColumn('description', 100, 60), freeTextColumn('category', 100, 60)];
         const storedTableColumnWidths = {availableColumnsWidth: 600, columnWidths: {date: 62, merchant: 300, description: 119, category: 119}, resizedColumnKeys: ['merchant']};
 
         // When the table loses 100px
         const layout = getPersistedColumnLayout({
             columns,
             freshColumnWidths: {date: 62, merchant: 179, description: 179, category: 180},
-            defaultColumnWidths: {date: 62, merchant: 179, description: 179, category: 180},
             storedTableColumnWidths,
             tableWidth: 500,
             rowChromeWidths: NO_ROW_CHROME,
@@ -66,7 +60,6 @@ describe('getPersistedColumnLayout', () => {
         const layout = getPersistedColumnLayout({
             columns,
             freshColumnWidths: {merchant: 200, description: 200, tag: 200},
-            defaultColumnWidths: {merchant: 200, description: 200, tag: 200},
             storedTableColumnWidths,
             tableWidth: 600,
             rowChromeWidths: NO_ROW_CHROME,
@@ -86,7 +79,6 @@ describe('getPersistedColumnLayout', () => {
         const layout = getPersistedColumnLayout({
             columns,
             freshColumnWidths: {merchant: 210, description: 290},
-            defaultColumnWidths: {merchant: 210, description: 290},
             storedTableColumnWidths,
             tableWidth: 500,
             rowChromeWidths: NO_ROW_CHROME,
@@ -104,7 +96,6 @@ describe('getPersistedColumnLayout', () => {
         const layout = getPersistedColumnLayout({
             columns,
             freshColumnWidths: {merchant: 250, description: 250},
-            defaultColumnWidths: {merchant: 250, description: 250},
             storedTableColumnWidths,
             tableWidth: 500,
             rowChromeWidths: NO_ROW_CHROME,
@@ -120,7 +111,6 @@ describe('getPersistedColumnLayout', () => {
         const onlyResizedLayout = getPersistedColumnLayout({
             columns,
             freshColumnWidths: {merchant: 250, description: 250},
-            defaultColumnWidths: {merchant: 250, description: 250},
             storedTableColumnWidths: {...storedTableColumnWidths, resizedColumnKeys: ['merchant']},
             tableWidth: 500,
             rowChromeWidths: NO_ROW_CHROME,

@@ -60,9 +60,10 @@ type PendingFit = {
 
 function useColumnResize({
     columnResizingID,
-    resizableColumnKeys,
-    getResizedColumnWidths,
-    resolvedColumnWidths,
+    resizableColumnKeys = [],
+    // Only reached once a column's edge drags, which needs the layout that brings the real one.
+    getResizedColumnWidths = (columnKey, width) => ({[columnKey]: width}),
+    resolvedColumnWidths = CONST.EMPTY_OBJECT,
     dragMinWidths,
     getStoredTableColumnWidths,
     getTargetColumnWidth,

@@ -121,12 +121,7 @@ function SearchListViewLayoutContent({
     // Edges only start dragging once a layout exists.
     const columnResize = useColumnResize({
         columnResizingID,
-        resizableColumnKeys: resizableLayout?.resizableColumnKeys ?? [],
-        getResizedColumnWidths: resizableLayout?.getResizedColumnWidths ?? ((columnKey, width) => ({[columnKey]: width})),
-        resolvedColumnWidths: resizableLayout?.resolvedColumnWidths ?? CONST.EMPTY_OBJECT,
-        dragMinWidths: resizableLayout?.dragMinWidths,
-        getStoredTableColumnWidths: resizableLayout?.getStoredTableColumnWidths,
-        getTargetColumnWidth: resizableLayout?.getTargetColumnWidth,
+        ...resizableLayout,
         columnGap: variables.searchTableColumnGap,
     });
 

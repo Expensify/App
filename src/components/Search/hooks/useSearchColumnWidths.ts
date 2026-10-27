@@ -2,12 +2,12 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
 import type {DynamicColumnConstraints} from '@components/Table/calculateDynamicColumnWidths';
-import calculateDynamicColumnWidths, {distributeEqualWidths} from '@components/Table/calculateDynamicColumnWidths';
+import calculateDynamicColumnWidths from '@components/Table/calculateDynamicColumnWidths';
 import type {PersistedColumnLayout} from '@components/Table/columnResize/getPersistedColumnLayout';
 import getPersistedColumnLayout from '@components/Table/columnResize/getPersistedColumnLayout';
-import {getAvailableColumnsWidth} from '@components/Table/columnResize/getResizableColumnLayout';
+import {getAvailableColumnsWidth, getFreshColumnWidths} from '@components/Table/columnResize/getResizableColumnLayout';
 import type {ResizableColumn} from '@components/Table/columnResize/resolveDraggedColumnWidths';
-import {isColumnResizable} from '@components/Table/columnResize/resolveDraggedColumnWidths';
+import {getPinnedColumn, isColumnResizable} from '@components/Table/columnResize/resolveDraggedColumnWidths';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -273,9 +273,7 @@ function useSearchColumnWidths({
         const sizing = columnSizing[column];
 
         if (!sizing || sizing.shouldHug) {
-            const pinnedWidth = sizing?.contentWidth ?? declaredColumnWidths.get(column) ?? 0;
-
-            return {key: column, label: '', declaredWidth: pinnedWidth, contentWidth: pinnedWidth, minWidth: pinnedWidth, maxWidth: pinnedWidth};
+            return getPinnedColumn(column, sizing?.contentWidth ?? declaredColumnWidths.get(column) ?? 0);
         }
 
         return {
@@ -293,35 +291,20 @@ function useSearchColumnWidths({
         return {columnWidths: columnSizing, resizableLayout: undefined};
     }
 
-    const pinnedColumnsWidth = resizableColumns.reduce((total, column) => total + (column.declaredWidth ?? 0), 0);
-    const freeTextColumnCount = resizableColumns.filter((column) => column.declaredWidth === undefined).length;
-    // Columns left to share the row equally get equal whole px, which is what their flex growth gives them unpinned.
-    const equalWidths = distributeEqualWidths(freeTextColumnCount, getAvailableColumnsWidth(tableWidth, rowChromeWidths) - pinnedColumnsWidth);
+    // Floored to whole px, the leftover fraction going to the last free-text column. Free-text columns get no resolved
+    // width when they share the row equally, so the fresh widths split it equally too, as their flex growth does.
+    const freeTextWidths = columns.flatMap((column) => {
+        const sizing = columnSizing[column];
 
-    const defaultColumnWidths: Record<string, number> = {};
-    let freeTextColumnIndex = 0;
-
-    for (const [index, column] of columns.entries()) {
-        const declaredWidth = resizableColumns.at(index)?.declaredWidth;
-
-        if (declaredWidth !== undefined) {
-            defaultColumnWidths[column] = declaredWidth;
-            continue;
-        }
-
-        const resolvedWidth = columnSizing[column]?.width;
-
-        // Floored to whole px. The leftover fraction goes to the last free-text column.
-        defaultColumnWidths[column] = resolvedWidth === undefined ? (equalWidths.at(freeTextColumnIndex) ?? 0) : Math.floor(resolvedWidth);
-        freeTextColumnIndex += 1;
-    }
+        return !sizing || sizing.shouldHug || sizing.width === undefined ? [] : [Math.floor(sizing.width)];
+    });
+    const freshColumnWidths = getFreshColumnWidths(resizableColumns, freeTextWidths, getAvailableColumnsWidth(tableWidth, rowChromeWidths));
 
     return {
         columnWidths: columnSizing,
         resizableLayout: getPersistedColumnLayout({
             columns: resizableColumns,
-            freshColumnWidths: defaultColumnWidths,
-            defaultColumnWidths,
+            freshColumnWidths,
             storedTableColumnWidths,
             tableWidth,
             rowChromeWidths,

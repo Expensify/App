@@ -44,6 +44,9 @@ type SearchColumnSizingState = {
  * row and heading render in the Money Request report, the unreported expense list, and the duplicate and merge
  * transaction pages, none of which mount the provider. Those keep the widths they are styled with.
  */
+/** Holds a column at the width set beside it, so it neither grows into spare room nor shrinks. */
+const PINNED_FLEX_STYLE: ViewStyle = {flex: undefined, flexGrow: 0, flexShrink: 0};
+
 const SearchColumnWidthsContext = createContext<SearchColumnSizingState>({columnWidths: {}, sizedColumns: new Set(), columnOptions: {}});
 
 function SearchColumnWidthsProvider({columnWidths, sizedColumns, columnOptions, resizableColumnWidths, children}: React.PropsWithChildren<SearchColumnSizingState>) {
@@ -76,11 +79,12 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
         const resizableWidth = sizedColumns.has(columnName) ? resizableColumnWidths?.[columnName] : undefined;
 
         // A drag rewrites this custom property on the scope element, so the header and rows repaint without a render.
-        // Columns never grow, because the header row has no trailing arrow and would end up wider than the rows.
+        // Pinned rather than grown, because the header row has no trailing arrow and would end up wider than the rows.
+        // The row still fills the table, since the last free-text column's width already includes the leftover room.
         if (resizableWidth !== undefined) {
             const widthValue = getColumnWidthValue(columnName, resizableWidth);
 
-            return {...columnStyles, flex: undefined, flexGrow: 0, flexShrink: 0, ...StyleUtils.getWidthStyle(widthValue), ...StyleUtils.getMinimumWidth(widthValue)};
+            return {...columnStyles, ...PINNED_FLEX_STYLE, ...StyleUtils.getWidthStyle(widthValue), ...StyleUtils.getMinimumWidth(widthValue)};
         }
 
         if (!sizing) {
@@ -93,7 +97,7 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
             // Only for a column of the sized table itself. A column belonging to some inner table rendered below it was
             // never part of what was measured, so pinning it would hold it to a width chosen for a different layout.
             if (isSizingColumns && sizedColumns.has(columnName) && typeof columnStyles.width === 'number' && columnStyles.flex !== undefined) {
-                return {...columnStyles, flex: undefined, flexGrow: 0, flexShrink: 0, flexBasis: columnStyles.width, minWidth: columnStyles.width};
+                return {...columnStyles, ...PINNED_FLEX_STYLE, flexBasis: columnStyles.width, minWidth: columnStyles.width};
             }
 
             return columnStyles;
@@ -101,7 +105,7 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
 
         // A hugging column is sized to its content and pinned there, the same way a column with a declared width is.
         if (sizing.shouldHug) {
-            return {...columnStyles, flex: undefined, flexGrow: 0, flexShrink: 0, flexBasis: sizing.contentWidth, minWidth: sizing.contentWidth, width: undefined};
+            return {...columnStyles, ...PINNED_FLEX_STYLE, flexBasis: sizing.contentWidth, minWidth: sizing.contentWidth, width: undefined};
         }
 
         // The resolved width is the column's starting size, not its final one: it still grows and shrinks from there.

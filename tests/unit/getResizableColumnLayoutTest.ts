@@ -1,6 +1,6 @@
 import {SCROLL_EXTENT_FLOOR_VARIABLE} from '@components/Table/columnResize/columnWidthExpressions';
 import getFrozenColumnWidths from '@components/Table/columnResize/getFrozenColumnWidths';
-import getResizableColumnLayout, {getAvailableColumnsWidth} from '@components/Table/columnResize/getResizableColumnLayout';
+import getResizableColumnLayout, {getAvailableColumnsWidth, getFreshColumnWidths} from '@components/Table/columnResize/getResizableColumnLayout';
 import type {ResizableColumn} from '@components/Table/columnResize/resolveDraggedColumnWidths';
 
 import CONST from '@src/CONST';
@@ -26,6 +26,7 @@ describe('getResizableColumnLayout', () => {
         const {scrollWidth} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 400, role: 400},
+            freshColumnWidths: {name: 400, role: 400},
             resizedColumnKeys: [],
             tableWidth: 600,
             rowChromeWidths,
@@ -43,6 +44,7 @@ describe('getResizableColumnLayout', () => {
         const {dragMinWidths} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 200, email: 200, role: 200},
+            freshColumnWidths: {name: 200, email: 200, role: 200},
             resizedColumnKeys: [],
             tableWidth: 600,
             rowChromeWidths,
@@ -60,6 +62,7 @@ describe('getResizableColumnLayout', () => {
         const {dragMinWidths} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 200, email: 200, role: 250},
+            freshColumnWidths: {name: 200, email: 200, role: 250},
             resizedColumnKeys: [],
             tableWidth: 600,
             rowChromeWidths,
@@ -77,6 +80,7 @@ describe('getResizableColumnLayout', () => {
         const {dragMinWidths} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 800, email: 800, role: 200},
+            freshColumnWidths: {name: 800, email: 800, role: 200},
             resizedColumnKeys: [],
             tableWidth: 600,
             rowChromeWidths,
@@ -94,6 +98,7 @@ describe('getResizableColumnLayout', () => {
         const {gridTemplateColumns, resolvedColumnWidths, dragMinWidths} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 200, role: 200, arrow: 40},
+            freshColumnWidths: {name: 200, role: 200, arrow: 40},
             resizedColumnKeys: [],
             tableWidth: 600,
             rowChromeWidths,
@@ -113,6 +118,7 @@ describe('getResizableColumnLayout', () => {
         const params = {
             columns,
             resolvedColumnWidths: {name: 200, email: 160, role: 100, arrow: 40},
+            freshColumnWidths: {name: 200, email: 160, role: 100, arrow: 40},
             resizedColumnKeys: [],
             tableWidth: 600,
             rowChromeWidths,
@@ -131,6 +137,7 @@ describe('getResizableColumnLayout', () => {
         const {resolvedColumnWidths, getResizedColumnWidths} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 300, taxRate: 150, taxCode: 150, enabled: 72},
+            freshColumnWidths: {name: 300, taxRate: 150, taxCode: 150, enabled: 72},
             resizedColumnKeys: [],
             tableWidth: 760,
             rowChromeWidths,
@@ -159,6 +166,7 @@ describe('getResizableColumnLayout', () => {
         const {getResizedColumnWidths} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 400, taxCode: 200},
+            freshColumnWidths: {name: 400, taxCode: 200},
             resizedColumnKeys: [],
             tableWidth: 600,
             rowChromeWidths,
@@ -176,6 +184,7 @@ describe('getResizableColumnLayout', () => {
         const {resizableColumnKeys} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 200, status: 80, email: 200, arrow: 40},
+            freshColumnWidths: {name: 200, status: 80, email: 200, arrow: 40},
             resizedColumnKeys: [],
             tableWidth: 520,
             rowChromeWidths,
@@ -193,6 +202,7 @@ describe('getResizableColumnLayout', () => {
         const {dragMinWidths} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 560, role: 40},
+            freshColumnWidths: {name: 560, role: 40},
             resizedColumnKeys: [],
             tableWidth: 600,
             rowChromeWidths,
@@ -221,6 +231,7 @@ describe('getResizableColumnLayout', () => {
         const {resolvedColumnWidths, dragMinWidths} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 200, role: 200},
+            freshColumnWidths: {name: 200, role: 200},
             resizedColumnKeys: [],
             tableWidth: 640.6,
             rowChromeWidths: {selectionColumnWidth: 20, totalGapWidth: 36, rowMarginWidth: 40, rowPaddingWidth: 24},
@@ -240,6 +251,7 @@ describe('getResizableColumnLayout', () => {
         const {getTargetColumnWidth} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 300, email: 300, role: 300},
+            freshColumnWidths: {name: 300, email: 300, role: 300},
             resizedColumnKeys: [],
             tableWidth: 600,
             rowChromeWidths,
@@ -258,6 +270,7 @@ describe('getResizableColumnLayout', () => {
         const {getTargetColumnWidth} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 200, email: 200, role: 200},
+            freshColumnWidths: {name: 200, email: 200, role: 200},
             resizedColumnKeys: [],
             tableWidth: 600,
             rowChromeWidths,
@@ -275,6 +288,7 @@ describe('getResizableColumnLayout', () => {
         const {getTargetColumnWidth} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 400, arrow: 20},
+            freshColumnWidths: {name: 400, arrow: 20},
             resizedColumnKeys: [],
             tableWidth: 600,
             rowChromeWidths,
@@ -294,6 +308,7 @@ describe('getResizableColumnLayout', () => {
             columns,
             resolvedColumnWidths: {name: 300, email: 400, role: 100},
             resizedColumnKeys: ['name', 'email'],
+            freshColumnWidths: {name: 250, email: 250, role: 100},
             tableWidth: 600,
             rowChromeWidths,
         });
@@ -304,8 +319,8 @@ describe('getResizableColumnLayout', () => {
         expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBe(250);
     });
 
-    it('resets a column to its fresh width within its cap, and only a column the user resized', () => {
-        // Given a row with a resized name column whose content is capped at 150px, and an email column nobody resized
+    it('resets only a column the user resized', () => {
+        // Given a row with a resized name column, whose fresh load caps it at 150px, and an email column nobody resized
         const columns = [column('name', {contentWidth: 400, maxWidth: 150}), column('email', {contentWidth: 120}), column('role')];
 
         // When the layout is built
@@ -313,32 +328,38 @@ describe('getResizableColumnLayout', () => {
             columns,
             resolvedColumnWidths: {name: 300, email: 300, role: 300},
             resizedColumnKeys: ['name'],
+            freshColumnWidths: {name: 150, email: 225, role: 225},
             tableWidth: 600,
             rowChromeWidths,
         });
 
-        // Then the name column goes back to its cap, which a fresh load never sizes past, and the email column has
-        // nothing to reset, since the user never sized it
+        // Then the name column goes back to where a reload would paint it, and the email column has nothing to reset,
+        // since the user never sized it
         expect(getTargetColumnWidth('name', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBe(150);
         expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBeUndefined();
     });
+});
 
-    it('resets a column to the fresh width its table passes, rather than one worked out from its content', () => {
-        // Given an overflowing table whose fresh load caps the resized name column at 300px, where squeezing the
-        // columns toward their minimums from their content would give it only 100px
-        const columns = [column('name', {contentWidth: 900, minWidth: 100}), column('email', {contentWidth: 900, minWidth: 100})];
+describe('getFreshColumnWidths', () => {
+    it('keeps pinned columns at their declared width and gives the rest the widths content sizing resolved', () => {
+        // Given a pinned date column between two content-sized columns that content sizing gave 180px and 240px
+        const columns = [column('merchant'), {...column('date'), declaredWidth: 62}, column('description')];
 
-        // When the layout is built with the table's own fresh widths
-        const {getTargetColumnWidth} = getResizableColumnLayout({
-            columns,
-            resolvedColumnWidths: {name: 500, email: 300},
-            resizedColumnKeys: ['name'],
-            tableWidth: 150,
-            rowChromeWidths,
-            defaultColumnWidths: {name: 300, email: 300},
-        });
+        // When the fresh widths are worked out
+        const freshColumnWidths = getFreshColumnWidths(columns, [180, 240], 500);
 
-        // Then a reset lands where a fresh load paints the column, so resetting and reloading agree
-        expect(getTargetColumnWidth('name', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBe(300);
+        // Then each content-sized column gets its own resolved width in render order, skipping the pinned one
+        expect(freshColumnWidths).toEqual({merchant: 180, date: 62, description: 240});
+    });
+
+    it('splits the room the pinned columns leave equally when content sizing resolved no widths', () => {
+        // Given content that fits an equal share, so content sizing resolved no widths and the columns share the row
+        const columns = [column('merchant'), {...column('date'), declaredWidth: 62}, column('description')];
+
+        // When the fresh widths are worked out for 500px of column room
+        const freshColumnWidths = getFreshColumnWidths(columns, [], 500);
+
+        // Then the 438px left beside the pinned column is split equally, as a fresh load paints it
+        expect(freshColumnWidths).toEqual({merchant: 219, date: 62, description: 219});
     });
 });

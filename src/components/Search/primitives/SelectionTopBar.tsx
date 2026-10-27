@@ -70,7 +70,7 @@ function SelectionTopBar({
                 !!columnResize && !!SearchTableHeader && styles.zIndex1,
             ]}
             // The resize line starts at the row with this marker.
-            dataSet={TABLE_ROW_DATA_SET}
+            dataSet={columnResize ? TABLE_ROW_DATA_SET : undefined}
         >
             {canSelectMultiple && (
                 <SearchSelectAllMenu

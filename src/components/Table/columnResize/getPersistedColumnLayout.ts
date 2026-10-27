@@ -16,7 +16,7 @@ type GetPersistedColumnLayoutParams = {
     /** Every column, in render order. */
     columns: ResizableColumn[];
 
-    /** Widths content sizing gives the columns, used until the first drag. */
+    /** Widths content sizing gives the columns, used until the first drag and as what a reset returns a column to. */
     freshColumnWidths: Record<string, number>;
 
     /** `undefined` until the first drag. After it, content no longer sizes the columns. */
@@ -26,19 +26,9 @@ type GetPersistedColumnLayoutParams = {
     tableWidth: number;
 
     rowChromeWidths: RowChromeWidths;
-
-    /** Widths a reset returns a column to. Defaults to the content-based widths `getResizableColumnLayout` derives. */
-    defaultColumnWidths?: Record<string, number>;
 };
 
-function getPersistedColumnLayout({
-    columns,
-    freshColumnWidths,
-    storedTableColumnWidths,
-    tableWidth,
-    rowChromeWidths,
-    defaultColumnWidths,
-}: GetPersistedColumnLayoutParams): PersistedColumnLayout {
+function getPersistedColumnLayout({columns, freshColumnWidths, storedTableColumnWidths, tableWidth, rowChromeWidths}: GetPersistedColumnLayoutParams): PersistedColumnLayout {
     const availableColumnsWidth = getAvailableColumnsWidth(tableWidth, rowChromeWidths);
 
     // After the first drag, only room changes move the columns, so new content never shifts them.
@@ -46,7 +36,7 @@ function getPersistedColumnLayout({
     const resizedColumnKeys = storedTableColumnWidths?.resizedColumnKeys ?? [];
 
     return {
-        ...getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnKeys, tableWidth, rowChromeWidths, defaultColumnWidths}),
+        ...getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnKeys, tableWidth, rowChromeWidths, freshColumnWidths}),
         getStoredTableColumnWidths: (columnWidths, columnKey, isResized) => {
             const nextResizedColumnKeys = isResized ? [...new Set([...resizedColumnKeys, columnKey])] : resizedColumnKeys.filter((resizedColumnKey) => resizedColumnKey !== columnKey);
 
