@@ -86,7 +86,8 @@ function SelectionBulkActionBar({
                             onWorkspacePolicySelect(item.workspacePolicy, triggerKYCFlow);
                             return;
                         }
-                        if (!isSecondaryActionAPaymentOption(item)) {
+                        // An item with its own onSelected, like an invoice's "Mark as paid", already pays when the menu runs it
+                        if (!isSecondaryActionAPaymentOption(item) || item.onSelected) {
                             return;
                         }
                         onSelectionModePaymentSelect(event, item.value, triggerKYCFlow);
