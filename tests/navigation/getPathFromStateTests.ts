@@ -24,6 +24,7 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
         ReportScreen: {path: 'r/:reportID'},
         SplitExpenseScreen: {path: 'split-expense/:reportID'},
         SplitExpenseQueryScreen: {path: 'split-expense-q/:reportID'},
+        SubPageFlowScreen: {path: 'sub-flow/:subPage?/:action?'},
 
         AmountTab: {path: 'amount'},
         ScanTab: {path: 'scan'},
@@ -40,6 +41,7 @@ jest.mock('@src/ROUTES', () => ({
         CONSTANT_PICKER: {path: 'constant-picker', queryParams: ['formType', 'fieldName', 'fieldValue']},
         SPLIT_EXPENSE: {path: 'split-expense/:reportID'},
         SPLIT_EXPENSE_QUERY: {path: 'split-expense-q/:reportID', queryParams: ['currency']},
+        SUB_FLOW: {path: 'sub-flow/:subPage?/:action?'},
     },
 }));
 
@@ -330,6 +332,48 @@ describe('getPathFromState', () => {
             ]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account/country?country=PL');
+        });
+
+        it('builds every step of a sub-page flow on the base the flow was opened from', () => {
+            // Given a multi-step flow whose second step was pushed on top of its first step
+            const state = buildState([
+                {name: 'ReportScreen', params: {reportID: '123'}},
+                {name: 'SubPageFlowScreen', params: {subPage: 'name'}},
+                {name: 'SubPageFlowScreen', params: {subPage: 'job-title'}},
+            ]);
+
+            // When the URL is built for the focused step
+            const result = getPathFromState(state as PartialState<NavigationState>);
+
+            // Then the earlier step is not added as a layer, so the URL names only the current step
+            expect(result).toBe('/r/123/sub-flow/job-title');
+        });
+
+        it('still layers a dynamic screen without sub-pages on top of itself', () => {
+            // Given a dynamic screen that is allowed to open on top of itself
+            const state = buildState([{name: 'WalletScreen'}, {name: 'VerifyAccountScreen'}, {name: 'VerifyAccountScreen'}]);
+
+            // When the URL is built
+            const result = getPathFromState(state as PartialState<NavigationState>);
+
+            // Then both copies stay in the URL, because each one is a real layer
+            expect(result).toBe('/settings/wallet/verify-account/verify-account');
+        });
+
+        it('keeps a dynamic layer that sits between sub-page steps and the base', () => {
+            // Given a sub-page flow opened on top of another dynamic screen
+            const state = buildState([
+                {name: 'WalletScreen'},
+                {name: 'VerifyAccountScreen'},
+                {name: 'SubPageFlowScreen', params: {subPage: 'name'}},
+                {name: 'SubPageFlowScreen', params: {subPage: 'job-title'}},
+            ]);
+
+            // When the URL is built for the focused step
+            const result = getPathFromState(state as PartialState<NavigationState>);
+
+            // Then only the earlier step is skipped and the other dynamic screen stays in the base
+            expect(result).toBe('/settings/wallet/verify-account/sub-flow/job-title');
         });
 
         it('only dynamic route, no base (state has single route)', () => {
