@@ -136,8 +136,8 @@ describe('useOpenSupportTicket', () => {
         expect(mockOpenConciergeAnywhere).not.toHaveBeenCalled();
     });
 
-    it('ignores a failed ticket request', async () => {
-        // Given a ticket request that fails
+    it('leaves the pending ticket screen when the request fails', async () => {
+        // Given a ticket request that fails while its screen is still open
         mockOpenSupportTicket.mockRejectedValue(new Error('network'));
         mockGetActiveRoute.mockReturnValue(PENDING_TICKET_ROUTE);
         const {result} = renderHook(() => useOpenSupportTicket());
@@ -148,8 +148,43 @@ describe('useOpenSupportTicket', () => {
             await Promise.resolve();
         });
 
-        // Then nothing else happens
+        // Then the ticket screen is left without an error toast or Concierge
+        expect(Navigation.goBack).toHaveBeenCalledTimes(1);
         expect(Growl.error).not.toHaveBeenCalled();
+        expect(mockOpenConciergeAnywhere).not.toHaveBeenCalled();
+    });
+
+    it('leaves the pending ticket screen when the server returns another error', async () => {
+        // Given a ticket request answered with an error that is not the no-rep response
+        mockOpenSupportTicket.mockResolvedValue({jsonCode: 666, message: 'Something else'});
+        mockIsNoSupportRepAvailableResponse.mockReturnValue(false);
+        mockGetActiveRoute.mockReturnValue(PENDING_TICKET_ROUTE);
+        const {result} = renderHook(() => useOpenSupportTicket());
+
+        // When the callback runs and the request finishes
+        await act(async () => {
+            result.current.openSupportTicketOrConcierge();
+            await Promise.resolve();
+        });
+
+        // Then the ticket screen is left and Concierge is not opened
+        expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+        expect(mockOpenConciergeAnywhere).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate when the request fails after the ticket screen is already gone', async () => {
+        // Given a ticket request that fails after the customer has left the ticket screen
+        mockOpenSupportTicket.mockRejectedValue(new Error('network'));
+        mockGetActiveRoute.mockReturnValueOnce(PENDING_TICKET_ROUTE).mockReturnValue(CHAT_ROUTE);
+        const {result} = renderHook(() => useOpenSupportTicket());
+
+        // When the callback runs and the request settles
+        await act(async () => {
+            result.current.openSupportTicketOrConcierge();
+            await Promise.resolve();
+        });
+
+        // Then nothing is popped from the page they are on
         expect(Navigation.goBack).not.toHaveBeenCalled();
     });
 });

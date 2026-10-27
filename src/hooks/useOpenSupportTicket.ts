@@ -2,6 +2,7 @@ import {isNoSupportRepAvailableResponse, openSupportTicket} from '@libs/actions/
 import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import useLocalize from './useLocalize';
@@ -30,24 +31,30 @@ function useOpenSupportTicket() {
 
         // openSupportTicket opens the pending ticket before it resolves, so this is that screen's own route.
         const pendingTicketRoute = Navigation.getActiveRoute();
+
+        // A ticket that was never created leaves its screen on a missing report. Leaving any other screen would pop
+        // the page the customer is on instead.
+        const dismissPendingTicket = (afterTransition?: () => void) => {
+            if (Navigation.getActiveRoute() !== pendingTicketRoute) {
+                afterTransition?.();
+                return;
+            }
+            Navigation.goBack(undefined, {afterTransition});
+        };
+
         request
             .then((response) => {
-                if (!isNoSupportRepAvailableResponse(response)) {
+                if (isNoSupportRepAvailableResponse(response)) {
+                    Growl.error({bodyText: translate('supportTicket.noSupportRepAvailable')});
+                    dismissPendingTicket(openConcierge);
                     return;
                 }
 
-                Growl.error({bodyText: translate('supportTicket.noSupportRepAvailable')});
-
-                // A ticket that was never created takes its own screen down. Leaving any other screen would pop
-                // the page the customer is on instead.
-                if (Navigation.getActiveRoute() !== pendingTicketRoute) {
-                    openConcierge();
-                    return;
+                if (response?.jsonCode !== undefined && response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    dismissPendingTicket();
                 }
-
-                Navigation.goBack(undefined, {afterTransition: openConcierge});
             })
-            .catch(() => undefined);
+            .catch(() => dismissPendingTicket());
     };
 
     return {openSupportTicketOrConcierge};
