@@ -41,7 +41,10 @@ function startNavigateToInboxTabSpan({isWideLayout}: {isWideLayout: boolean}) {
     });
 }
 
-/** Whether the tap only reveals a Spend tab built at idle. A tap during the background build does not count. */
+/**
+ * Whether the tap only reveals a Spend tab built at idle. A tab built only as far as its loading skeleton counts too, and
+ * those taps end with start_type cold. A tap during the background build does not count.
+ */
 function isSearchTabPreloadedAndBuilt() {
     return isTabPreloaded(navigationRef.getRootState(), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) && isSearchTabContentReady();
 }

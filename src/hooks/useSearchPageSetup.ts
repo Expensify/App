@@ -38,7 +38,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const prevIsOffline = usePrevious(isOffline);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData, currentSearchResults} = useSearchResultsContext();
-    const {currentSearchKey, currentSearchHash} = useSearchQueryContext();
+    const {currentSearchKey} = useSearchQueryContext();
     const {areAllMatchingItemsSelected} = useSearchSelectionContext();
     const isInPreloadedTab = useIsInPreloadedTab();
     // Set while the tab is preloaded and kept until its first-open request goes out, which can take more than one render.
@@ -97,11 +97,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             return;
         }
 
-        // On first open the search context can still describe the previous query for a render, so wait for it to catch up.
         const isFirstOpenOfPreloadedTab = isFirstOpenOfPreloadedTabRef.current;
-        if (isFirstOpenOfPreloadedTab && currentSearchHash !== hash) {
-            return;
-        }
 
         if (shouldUseLiveData) {
             // Search requests live (to-do) results on mount, which a hidden preloaded tab skips, so its first open requests them here.
@@ -145,19 +141,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             shouldSaveRecentSearch: true,
             shouldShowLoading: !(isFirstOpenOfPreloadedTab && isSnapshotDataLoaded),
         });
-    }, [
-        hash,
-        isOffline,
-        shouldUseLiveData,
-        queryJSON,
-        isSnapshotDataLoaded,
-        isSnapshotSearchLoading,
-        isInitialSearchPending,
-        currentSearchKey,
-        shouldCalculateTotals,
-        isInPreloadedTab,
-        currentSearchHash,
-    ]);
+    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals, isInPreloadedTab]);
 
     useFocusEffect(dropPageRequestOnBlur);
 
