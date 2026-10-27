@@ -9,7 +9,7 @@ import ROUTES from '@src/ROUTES';
 /**
  * Returns the report route to pre-mount behind skip-confirmation RHP steps, or undefined when pre-insert is not eligible.
  *
- * Applies to both layouts. Skip-confirmation callers never invoke reveal(); submitWithDismissFirst shows the pre-mount instead.
+ * Applies to both layouts. Skip-confirmation callers never invoke reveal(). submitWithDismissFirst shows the pre-mount instead.
  * On narrow the pre-mount already sits under the RHP, so closing the RHP shows it. On wide it is hidden in the tab navigator,
  * so it is brought to the front first and the RHP closes after.
  * Wide skips the pre-mount when the destination is already the report on screen in the focused Reports tab, because
