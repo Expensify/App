@@ -7,7 +7,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import type {NativeGesture, PanGesture} from 'react-native-gesture-handler';
 import type {SharedValue} from 'react-native-reanimated';
 
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {GestureDetector, useCompetingGestures, useSimultaneousGestures} from 'react-native-gesture-handler';
 import Animated, {cancelAnimation, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
@@ -102,18 +102,15 @@ function MultiGestureCanvas({
     const isTransformGestureActiveFallback = useSharedValue(false);
     const isTransformGestureActive = isTransformGestureActiveProp ?? isTransformGestureActiveFallback;
 
-    const zoomRange = useMemo(
-        () => ({
-            min: zoomRangeProp?.min ?? DEFAULT_ZOOM_RANGE.min,
-            max: zoomRangeProp?.max ?? DEFAULT_ZOOM_RANGE.max,
-        }),
-        [zoomRangeProp?.max, zoomRangeProp?.min],
-    );
+    const zoomRange = {
+        min: zoomRangeProp?.min ?? DEFAULT_ZOOM_RANGE.min,
+        max: zoomRangeProp?.max ?? DEFAULT_ZOOM_RANGE.max,
+    };
 
     // Based on the (original) content size and the canvas size, we calculate the horizontal and vertical scale factors
     // to fit the content inside the canvas
     // We later use the lower of the two scale factors to fit the content inside the canvas
-    const {minScale: minContentScale, maxScale: maxContentScale} = useMemo(() => MultiGestureCanvasUtils.getCanvasFitScale({canvasSize, contentSize}), [canvasSize, contentSize]);
+    const {minScale: minContentScale, maxScale: maxContentScale} = MultiGestureCanvasUtils.getCanvasFitScale({canvasSize, contentSize});
 
     const zoomScale = useSharedValue(1);
 
@@ -148,50 +145,47 @@ function MultiGestureCanvas({
     /**
      * Stops any currently running decay animation from panning
      */
-    const stopAnimation = useCallback(() => {
+    const stopAnimation = () => {
         'worklet';
 
         cancelAnimation(offsetX);
         cancelAnimation(offsetY);
-    }, [offsetX, offsetY]);
+    };
 
     /**
      * Resets the canvas to the initial state and animates back smoothly
      */
-    const reset = useCallback(
-        (animated: boolean, callback?: () => void) => {
-            'worklet';
+    const reset = (animated: boolean, callback?: () => void) => {
+        'worklet';
 
-            stopAnimation();
+        stopAnimation();
 
-            offsetX.set(0);
-            offsetY.set(0);
-            pinchScale.set(1);
+        offsetX.set(0);
+        offsetY.set(0);
+        pinchScale.set(1);
 
-            if (animated) {
-                panTranslateX.set(withSpring(0, SPRING_CONFIG));
-                panTranslateY.set(withSpring(0, SPRING_CONFIG));
-                pinchTranslateX.set(withSpring(0, SPRING_CONFIG));
-                pinchTranslateY.set(withSpring(0, SPRING_CONFIG));
-                zoomScale.set(withSpring(1, SPRING_CONFIG, callback));
+        if (animated) {
+            panTranslateX.set(withSpring(0, SPRING_CONFIG));
+            panTranslateY.set(withSpring(0, SPRING_CONFIG));
+            pinchTranslateX.set(withSpring(0, SPRING_CONFIG));
+            pinchTranslateY.set(withSpring(0, SPRING_CONFIG));
+            zoomScale.set(withSpring(1, SPRING_CONFIG, callback));
 
-                return;
-            }
+            return;
+        }
 
-            panTranslateX.set(0);
-            panTranslateY.set(0);
-            pinchTranslateX.set(0);
-            pinchTranslateY.set(0);
-            zoomScale.set(1);
+        panTranslateX.set(0);
+        panTranslateY.set(0);
+        pinchTranslateX.set(0);
+        pinchTranslateY.set(0);
+        zoomScale.set(1);
 
-            if (callback === undefined) {
-                return;
-            }
+        if (callback === undefined) {
+            return;
+        }
 
-            callback();
-        },
-        [offsetX, offsetY, panTranslateX, panTranslateY, pinchScale, pinchTranslateX, pinchTranslateY, stopAnimation, zoomScale],
-    );
+        callback();
+    };
 
     // Pinch must be created before pan: on web, handlers end in creation order, and pan has to end last
     // to re-center the content using the offset that already includes the pinch translation.
@@ -287,7 +281,7 @@ function MultiGestureCanvas({
         };
     });
 
-    const containerStyles = useMemo(() => [styles.flex1, StyleUtils.getMultiGestureCanvasContainerStyle(canvasSize.width)], [StyleUtils, canvasSize.width, styles.flex1]);
+    const containerStyles = [styles.flex1, StyleUtils.getMultiGestureCanvasContainerStyle(canvasSize.width)];
 
     return (
         <View
