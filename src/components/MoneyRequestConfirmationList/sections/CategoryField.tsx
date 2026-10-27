@@ -1,7 +1,7 @@
-import {CATEGORY_PICKER_HEADER_HEIGHT} from '@components/CategoryPicker/CategoryPickerModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -170,7 +170,7 @@ function CategoryField({
                 errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
                 onPress={openCategoryPage}
                 shouldOpenInDropdown={canOpenListInPlace}
-                listHeaderHeight={canAddCategory ? CATEGORY_PICKER_HEADER_HEIGHT : 0}
+                listHeaderHeight={canAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0}
                 renderDropdown={(dropdownProps) =>
                     !!transactionID && (
                         <CategoryFieldDropdown

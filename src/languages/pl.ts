@@ -589,7 +589,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Błąd załącznika',
         errorWhileSelectingAttachment: 'Wystąpił błąd podczas wybierania załącznika. Spróbuj ponownie.',
         errorWhileSelectingCorruptedAttachment: 'Wystąpił błąd podczas wybierania uszkodzonego załącznika. Spróbuj użyć innego pliku.',
-        errorWhileConvertingHeic: 'Nie udało nam się przetworzyć tego obrazu. Spróbuj ponownie lub prześlij zdjęcie w innym formacie.',
+        errorWhileConvertingImage: 'Nie udało nam się przetworzyć tego obrazu. Spróbuj ponownie lub prześlij zdjęcie w innym formacie.',
         takePhoto: 'Zrób zdjęcie',
         retake: 'Powtórz',
         usePhoto: 'Użyj zdjęcia',
@@ -1216,6 +1216,7 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Wzrost o ${percentage}`,
             decrease: (percentage: string) => `Spadek o ${percentage}`,
         },
+        runningTotal: 'Suma narastająco',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -2544,8 +2545,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Czy na pewno chcesz scalić konta?',
-            lossOfUnsubmittedData: (login: string) =>
-                `Połączenie Twoich kont jest nieodwracalne i spowoduje utratę wszystkich niewysłanych wydatków dla użytkownika <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Połączenie kont jest nieodwracalne. Wszystkie wydatki i raporty z <strong>${login}</strong>, w tym wersje robocze i nierozliczone wydatki, zostaną przeniesione na konto, które zachowujesz.`,
             enterSecurityCode: (login: string) => `Aby kontynuować, wpisz kod bezpieczeństwa wysłany na <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Nieprawidłowy lub nieważny kod zabezpieczający. Spróbuj ponownie albo poproś o nowy kod.',
@@ -2889,6 +2890,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.',
             getStarted: 'Zacznij',
             headerTitle: 'Globalne zwroty kosztów',
+            payingReportSubtitle: 'Konta bankowe firmy i pracownika są w różnych walutach.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Płać ludziom na całym świecie', subtitle: 'Włącz globalne zwroty wydatków na swoim koncie w USD.'},
     },
@@ -3042,6 +3044,8 @@ ${amount} dla ${merchant} - ${date}`,
         addApprovalsDescription: 'Wymagaj dodatkowej akceptacji przed autoryzacją płatności.',
         makeOrTrackPaymentsTitle: 'Płatności',
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika dla płatności dokonywanych w Expensify lub śledź płatności wykonywane gdzie indziej.',
+        collectEmployeeBankDetails: 'Zbieraj dane bankowe pracowników',
+        collectEmployeeBankDetailsDescription: 'Zbieraj dane bankowe pracowników, aby móc zwracać im wydatki poza Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>W tym obszarze roboczym jest włączony niestandardowy proces zatwierdzania. Aby przejrzeć lub zmienić ten proces, skontaktuj się ze swoim <account-manager-link>opiekunem klienta</account-manager-link> lub z <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6756,6 +6760,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                             provisioningError:
                                 'Nie udało nam się skonfigurować części członków twojego miejsca pracy do skonsolidowanego rozliczania podróży. Spróbuj ponownie później albo skontaktuj się z Concierge, żeby uzyskać pomoc.',
                             sendInvoiceNowCta: 'Wyślij fakturę teraz',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `Miesięczny limit wydatków na członka nie może przekroczyć aktualnego limitu podróży w wysokości ${travelLimit}.`,
                         },
                         setUpNewFeed: 'Skonfiguruj nowy kanał podróży',
                         feedSelectorIntro:
@@ -7483,6 +7489,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7728,6 +7736,18 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                             return 'Synchronizowanie rozliczeń karty';
                         case 'campfireSyncTravelSettlements':
                             return 'Synchronizowanie rozliczeń podróży';
+                        case 'digitsSyncTitle':
+                            return 'Synchronizowanie danych Digits';
+                        case 'digitsSyncConnection':
+                            return 'Inicjowanie połączenia z Digits';
+                        case 'digitsSyncImportData':
+                            return 'Wczytywanie danych';
+                        case 'digitsSyncPayments':
+                            return 'Synchronizowanie płatności dla dostawców';
+                        case 'digitsSyncCardSettlements':
+                            return 'Synchronizowanie rozliczeń karty';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Synchronizowanie rozliczeń podróży';
                         case 'businessCentralSyncTitle':
                             return 'Synchronizowanie danych Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
@@ -7776,6 +7796,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             syncTravelBillingSettlementsNoAccountTooltip: 'Aby odblokować, ustaw konto dla swoich eksportów.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Aby odblokować, włącz automatyczną synchronizację.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Ciągłe uzgadnianie jest konfigurowane dla każdego źródła kart osobno. Wybierz źródło, aby zmienić, które konfigurujesz.</muted-text-label>',
@@ -8868,11 +8889,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 applyExpenseDefaultsDescription: 'Aktualizuj pola automatycznie',
                 flagForReview: 'Oznacz do przejrzenia',
                 flagForReviewDescription: 'Powiadamiaj, gdy Twoje warunki zostaną spełnione',
-                requireFields: 'Ustaw wymagania pola',
-                requireFieldsShort: 'Wymagaj pól',
+                requireFields: 'Wymagaj pól',
                 requireFieldsDescription: 'Paragony, kategorie itp.',
-                createAgentRule: 'Opisz regułę agenta',
-                createAgentRuleDescription: 'Twórz elastyczne reguły, które uruchamiają się wtedy, gdy ich potrzebujesz.',
                 describeItBelow: 'Lub po prostu opisz ją poniżej',
                 describeRulePlaceholder: 'Blokuj wszystkie wydatki powyżej 2000 $',
                 selectTemplateOrDescribe: 'Wybierz szablon lub opisz regułę, aby kontynuować',
@@ -10116,6 +10134,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `zmienił(a) tryb pracy użytkownika ${displayName} na ${newArrangement} (wcześniej ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `zmienił domyślny tryb pracy na ${newArrangement} (wcześniej ${oldArrangement})`,
+        updateRulesDocument: (isReplacement: boolean, overviewURL?: string) => {
+            const message = isReplacement ? 'zastąpił(-a) dokument polityki wydatków' : 'dodano dokument polityki wydatków';
+            return overviewURL ? `${message} w <a href="${overviewURL}">Przestrzeń robocza &gt; Przegląd</a>` : message;
+        },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `zaktualizowano „Zapobiegaj oznaczaniu raportów niepodlegających zwrotowi jako opłacone” na „${newValue === 'true' ? 'Włączone' : 'Wyłączone'}” (wcześniej „${oldValue === 'true' ? 'Włączone' : 'Wyłączone'}”)`,
     },
@@ -10320,6 +10342,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ten miesiąc',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Od początku roku',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Ostatnie 12 miesięcy',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Ten tydzień',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'W zeszłym tygodniu',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER]: 'Ten kwartał',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER]: 'W zeszłym kwartale',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR]: 'Ten rok',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_YEAR]: 'W zeszłym roku',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS]: 'Ostatnie 30 dni',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS]: 'Ostatnie 90 dni',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS]: 'Ostatnie 6 miesięcy',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ostatnie zestawienie',
                 },
                 customDay: 'Niestandardowy dzień',
@@ -10456,6 +10487,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         noCategory: 'Brak kategorii',
         noMerchant: 'Brak sprzedawcy',
         noTag: 'Brak tagu',
+        noVendor: 'Brak dostawcy',
         expenseType: 'Typ wydatku',
         receiptType: 'Typ paragonu',
         receiptTypeValues: {
@@ -11626,7 +11658,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             empty: 'Brak płatności.',
             activeUsers: ({count}: {count: number}) => ({
                 one: '1 aktywny użytkownik',
-                other: `${count} aktywnych użytkowników`,
+                few: `${count} aktywni użytkownicy`,
+                many: `${count} aktywnych użytkowników`,
+                other: `${count} aktywnego użytkownika`,
+            }),
+            members: ({count}: {count: number}) => ({
+                one: '1 członek',
+                few: `${count} członkowie`,
+                many: `${count} członków`,
+                other: `${count} członka`,
             }),
             state: {paid: 'Opłacone', cleared: 'Rozliczono', failed: 'Niepowodzenie', refunded: 'Zwrócono', disputed: 'Kwestionowana', balanceTransfer: 'Przelew salda'},
             details: 'Szczegóły płatności',
@@ -11642,6 +11682,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             billedTo: 'Obciążono',
             activity: 'Aktywność',
             findActiveUser: 'Znajdź aktywnego użytkownika',
+            findMember: 'Znajdź członka',
             viewReceipt: 'Wyświetl paragon',
             viewInvoice: 'Wyświetl fakturę',
         },
@@ -11938,6 +11979,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce wyśle Ci plik.',
         currentView: 'Bieżący widok',
+        currentViewGroupsOnly: 'Bieżący widok (tylko grupy)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
