@@ -25,7 +25,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceOwnerPaymentCardFormProps = {
@@ -41,14 +41,14 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
 
-    const checkIfCanBeRendered = useCallback(() => {
+    const checkIfCanBeRendered = () => {
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
         if (changeOwnerErrors.at(0) !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
             setShouldShowPaymentCardForm(false);
         }
 
         setShouldShowPaymentCardForm(true);
-    }, [policy?.errorFields?.changeOwner]);
+    };
 
     useEffect(
         () => {
@@ -67,21 +67,18 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
         checkIfCanBeRendered();
     }, [checkIfCanBeRendered]);
 
-    const addPaymentCard = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
-            const cardData = {
-                cardNumber: getMCardNumberString(values.cardNumber),
-                cardMonth: getMonthFromExpirationDateString(values.expirationDate),
-                cardYear: getYearFromExpirationDateString(values.expirationDate),
-                cardCVV: values.securityCode,
-                addressName: values.nameOnCard,
-                addressZip: values.addressZipCode,
-                currency: values.currency,
-            };
-            addBillingCardAndRequestPolicyOwnerChange(policy, currentUserAccountID, currentUserEmail, cardData, route.name);
-        },
-        [currentUserAccountID, currentUserEmail, policy, route.name],
-    );
+    const addPaymentCard = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
+        const cardData = {
+            cardNumber: getMCardNumberString(values.cardNumber),
+            cardMonth: getMonthFromExpirationDateString(values.expirationDate),
+            cardYear: getYearFromExpirationDateString(values.expirationDate),
+            cardCVV: values.securityCode,
+            addressName: values.nameOnCard,
+            addressZip: values.addressZipCode,
+            currency: values.currency,
+        };
+        addBillingCardAndRequestPolicyOwnerChange(policy, currentUserAccountID, currentUserEmail, cardData, route.name);
+    };
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     return (

@@ -27,7 +27,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 function DynamicNetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -42,9 +42,9 @@ function DynamicNetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!autoSyncConfig?.autoSync?.enabled);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     return (
         <AccessOrNotFoundWrapper

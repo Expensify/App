@@ -12,7 +12,7 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type PushRowField<TFormID extends keyof OnyxFormValuesMapping> = {
     inputID: FormOnyxKeys<TFormID>;
@@ -52,12 +52,9 @@ function PushRowFieldsStepImpl({formID, formTitle, pushRowFields, onSubmit, isEd
     const styles = useThemeStyles();
     const pushRowFieldsIDs = pushRowFields.map((field) => field.inputID);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
-            return getFieldRequiredErrors(values, pushRowFieldsIDs, translate);
-        },
-        [pushRowFieldsIDs, translate],
-    );
+    const validate = (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
+        return getFieldRequiredErrors(values, pushRowFieldsIDs, translate);
+    };
 
     return (
         <FormProvider

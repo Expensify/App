@@ -64,8 +64,8 @@ type UseConnectedAccountingIntegrationOptions = {
     /** Style applied to the settings rows, which the Accounting page lays out as cards */
     menuItemWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Runs once the user confirms disconnecting, before the connection is removed */
-    onDisconnectConfirmed?: () => void;
+    /** Runs once the user confirms disconnecting and takes over calling `disconnect`, so the panel can close before the connection is removed */
+    onDisconnectConfirmed?: (disconnect: () => void) => void;
 };
 
 /**
@@ -135,12 +135,16 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
     const canUseZohoBooksIntegration = isBetaEnabled(CONST.BETAS.ZOHO_BOOKS) || !!policy?.connections?.zohoBooks;
+    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
         }
         if (name === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS) {
             return canUseZohoBooksIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
+            return canUseDigitsIntegration;
         }
         return true;
     });
@@ -222,7 +226,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                   {
                       icon: icons.Sync,
                       text: translate('workspace.accounting.syncNow'),
-                      onSelected: () => syncConnection(policy, connectedIntegration),
+                      onSelected: () => syncConnection(policy, connectedIntegration, connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD),
                       disabled: isOffline,
                   },
               ]
@@ -241,8 +245,12 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                     if (action !== ModalActions.CONFIRM || !connectedIntegration || !policyID) {
                         return;
                     }
-                    onDisconnectConfirmed?.();
-                    removePolicyConnection(policy, connectedIntegration);
+                    const disconnect = () => removePolicyConnection(policy, connectedIntegration);
+                    if (onDisconnectConfirmed) {
+                        onDisconnectConfirmed(disconnect);
+                        return;
+                    }
+                    disconnect();
                 });
             },
             shouldCallAfterModalHide: true,

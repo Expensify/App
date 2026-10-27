@@ -4,7 +4,6 @@
 import Button from '@components/Button';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearNewRulePrompt} from '@userActions/Policy/Rules';
@@ -45,12 +44,7 @@ type DescribeRuleButtonProps = {
 function DescribeRuleButton(props: DescribeRuleButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
     const [isModalVisible, setIsModalVisible] = useState(false);
-
-    if (!isBetaEnabled(CONST.BETAS.DESCRIBE_RULE)) {
-        return null;
-    }
 
     const openModal = () => {
         clearNewRulePrompt();
