@@ -100,8 +100,9 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const outstandingReportID = isPolicyExpenseChat ? defaultReportID : reportID;
     const reportIDToUse = shouldUseTransactionReport ? transactionReportID : outstandingReportID;
 
-    // The field shows "New report" when saving would create a report, so any outstanding report is an alternative the user can pick.
-    const isNewReport = !reportIDToUse;
+    // When saving would create a report by default, any outstanding report is an alternative the user can pick. This is based on
+    // the default rather than the picked report, so picking the only outstanding report keeps the field editable to switch back.
+    const isNewReport = !outstandingReportID;
 
     const [selectedReportID, selectedReport] = (() => {
         if (!reportIDToUse) {

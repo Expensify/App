@@ -151,6 +151,26 @@ describe('ReportField', () => {
         expect(screen.getByText('iou.newReport')).toBeEnabled();
     });
 
+    it('keeps the row editable after the user picks the only report, which is awaiting approval', async () => {
+        // Given the submitter only has a report awaiting approval, and the user picked it on the confirmation form
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SUBMITTED_REPORT_ID}`, submittedReport);
+        await givenExpense();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {reportID: SUBMITTED_REPORT_ID});
+        await waitForBatchedUpdates();
+
+        // When the confirmation form renders the report row
+        renderReportField();
+
+        // Then the row shows the picked report
+        await waitFor(() => {
+            expect(screen.getByText('Submitted report')).toBeOnTheScreen();
+        });
+
+        // And the row stays editable, so the user can switch back to a new report
+        expect(screen.getByText('Submitted report')).toBeEnabled();
+    });
+
     it('shows the newest open report rather than a newer report awaiting approval', async () => {
         // Given the submitter has an open report and a more recent report awaiting approval
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
