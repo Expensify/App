@@ -72,7 +72,6 @@ const REIMBURSEMENT_ACCOUNT: BusinessReimbursementAccount = {
     achData: {
         bankAccountID: BANK_ACCOUNT_ID,
         companyName: 'Boulder Development Inc.',
-        website: 'https://boulder.dev',
         incorporationType: CONST.INCORPORATION_TYPES.CORPORATION,
     },
 };
@@ -222,7 +221,6 @@ describe('WiseBusinessOnboardingPage', () => {
             ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM,
             expect.objectContaining({
                 companyName: 'Boulder Development Inc.',
-                website: 'https://boulder.dev',
                 companyType: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION,
             }),
         );
@@ -281,7 +279,6 @@ describe('WiseBusinessOnboardingPage', () => {
         const prefill = jest.mocked(saveDraftAnswers).mock.lastCall?.[1];
         expect(prefill).toMatchObject({bankAccountID: String(BANK_ACCOUNT_ID)});
         expect(prefill).not.toHaveProperty('companyName');
-        expect(prefill).not.toHaveProperty('website');
         expect(prefill).not.toHaveProperty('companyType');
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
     });

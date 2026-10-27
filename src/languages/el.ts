@@ -2925,7 +2925,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Εισαγάγετε τα στοιχεία της επιχείρησής σας',
                 legalName: 'Επίσημη επωνυμία επιχείρησης',
-                website: 'Ιστοσελίδα εταιρείας',
                 companyType: 'Τύπος εταιρείας',
                 companyTypeLimitedLiabilityCompany: 'Εταιρεία περιορισμένης ευθύνης (LLC)',
                 companyTypeForProfitCorporation: 'Κερδοσκοπική εταιρεία',

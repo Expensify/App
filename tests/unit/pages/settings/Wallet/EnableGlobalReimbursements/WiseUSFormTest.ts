@@ -36,16 +36,15 @@ function getBusinessField(key: string): DynamicFormField {
 }
 
 describe('Wise US onboarding form', () => {
-    it('asks only for what the admin can act on, with the legal name and website read-only', () => {
+    it('asks only for what the admin can act on, with the legal name read-only', () => {
         // Given the business page of the US form
 
         // When its fields are listed
         const fields = BUSINESS_FIELDS.map((field) => [field.key, !!field.readonly]);
 
-        // Then the tax ID and address the bank account already holds are left out, and only the admin's own answers can be edited
+        // Then the website, tax ID and address the bank account already holds are left out, and only the admin's own answers can be edited
         expect(fields).toEqual([
             ['companyName', true],
-            ['website', true],
             ['companyType', false],
             ['companyRole', false],
             ['industryCategories', false],
@@ -101,7 +100,7 @@ describe('Wise US onboarding form', () => {
 
     it('lists the read-only rows on the confirmation page without a way to edit them', () => {
         // Given the bank account details and the admin's answers
-        const values = {companyName: 'Boulder Development Inc.', website: 'https://boulder.dev', ...EDITABLE_ANSWERS};
+        const values = {companyName: 'Boulder Development Inc.', ...EDITABLE_ANSWERS};
 
         // When the confirmation page lists the business section
         const groups = getConfirmationItems(PAGES, ALL_FIELDS, values, translateLocal, jest.fn(), jest.fn());

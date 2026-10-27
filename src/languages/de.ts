@@ -2870,7 +2870,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Geben Sie Ihre Unternehmensdaten ein',
                 legalName: 'Rechtlicher Firmenname',
-                website: 'Firmenwebsite',
                 companyType: 'Unternehmensart',
                 companyTypeLimitedLiabilityCompany: 'Gesellschaft mit beschränkter Haftung (LLC)',
                 companyTypeForProfitCorporation: 'Gewinnorientierte Kapitalgesellschaft',

@@ -18,7 +18,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import US from './forms/US';
 
 /** The bank account's company details the business page shows, under the same keys */
-const WISE_BUSINESS_ACCOUNT_KEYS = ['bankAccountID', 'companyName', 'website', 'incorporationType'] as const satisfies ReadonlyArray<keyof ACHDataReimbursementAccount>;
+const WISE_BUSINESS_ACCOUNT_KEYS = ['bankAccountID', 'companyName', 'incorporationType'] as const satisfies ReadonlyArray<keyof ACHDataReimbursementAccount>;
 
 type WiseBusinessAccountData = Pick<ACHDataReimbursementAccount, TupleToUnion<typeof WISE_BUSINESS_ACCOUNT_KEYS>>;
 
@@ -77,7 +77,6 @@ function getWiseBusinessOnboardingPrefill(
         [addressKeys.zipCode]: address?.zip,
         [addressKeys.country]: countryCode,
         companyName: business?.companyName,
-        website: business?.website,
         companyType: COMPANY_TYPE_BY_INCORPORATION_TYPE[business?.incorporationType ?? ''],
     };
 }

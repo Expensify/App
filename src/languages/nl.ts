@@ -2862,7 +2862,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Voer je bedrijfsgegevens in',
                 legalName: 'Wettelijke bedrijfsnaam',
-                website: 'Website van het bedrijf',
                 companyType: 'Bedrijfstype',
                 companyTypeLimitedLiabilityCompany: 'Vennootschap met beperkte aansprakelijkheid (LLC)',
                 companyTypeForProfitCorporation: 'Vennootschap met winstoogmerk',

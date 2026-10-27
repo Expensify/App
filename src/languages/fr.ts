@@ -2875,7 +2875,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Saisissez les informations de votre entreprise',
                 legalName: 'Raison sociale',
-                website: 'Site web de l’entreprise',
                 companyType: 'Type d’entreprise',
                 companyTypeLimitedLiabilityCompany: 'Société à responsabilité limitée (LLC)',
                 companyTypeForProfitCorporation: 'Société à but lucratif',

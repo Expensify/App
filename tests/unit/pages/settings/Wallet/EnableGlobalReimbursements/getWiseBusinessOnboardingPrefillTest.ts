@@ -12,7 +12,6 @@ const BANK_ACCOUNT_ID = 1;
 const BUSINESS_ACCOUNT_DATA: WiseBusinessAccountData = {
     bankAccountID: BANK_ACCOUNT_ID,
     companyName: 'Boulder Development Inc.',
-    website: 'https://boulder.dev',
     incorporationType: CONST.INCORPORATION_TYPES.LLC,
 };
 
@@ -48,7 +47,6 @@ describe('getWiseBusinessOnboardingPrefill', () => {
             [ADDRESS_KEYS.zipCode]: '78704',
             [ADDRESS_KEYS.country]: CONST.COUNTRY.US,
             companyName: 'Boulder Development Inc.',
-            website: 'https://boulder.dev',
             companyType: CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY,
         });
     });
@@ -144,29 +142,28 @@ describe('getMissingPrefill', () => {
         expect(missing).toMatchObject({lastName: 'Nguyen', dateOfBirth: '1985-04-12'});
     });
 
-    it('updates the read-only business rows, since they follow the bank account', () => {
-        // Given a draft holding older business details
+    it('updates the read-only legal name, since it follows the bank account', () => {
+        // Given a draft holding an older legal name
         const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, BUSINESS_ACCOUNT_DATA, undefined);
-        const draft = {companyName: 'Old Name LLC', website: 'https://boulder.dev'};
+        const draft = {companyName: 'Old Name LLC'};
 
         // When the onboarding decides what to prefill
         const missing = getMissingPrefill(prefill, draft);
 
-        // Then the bank account's details replace the changed ones, and the rows that still match are left alone
+        // Then the bank account's legal name replaces the older one
         expect(missing).toMatchObject({companyName: 'Boulder Development Inc.'});
-        expect(missing).not.toHaveProperty('website');
     });
 
-    it('empties the read-only rows when the bank account details are gone, so the details of another account do not stay', () => {
-        // Given a draft holding another account's details, and no details for this bank account
+    it('empties the read-only legal name when the bank account details are gone, so the name of another account does not stay', () => {
+        // Given a draft holding another account's legal name, and no details for this bank account
         const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, undefined, undefined);
-        const draft = {companyName: 'Old Name LLC', website: 'https://old.example', hasNoSSN: false};
+        const draft = {companyName: 'Old Name LLC', hasNoSSN: false};
 
         // When the onboarding decides what to prefill
         const missing = getMissingPrefill(prefill, draft);
 
-        // Then the read-only rows are emptied, and once the draft holds that nothing is left to write
-        expect(missing).toEqual({companyName: '', website: ''});
+        // Then the legal name is emptied, and once the draft holds that nothing is left to write
+        expect(missing).toEqual({companyName: ''});
         expect(getMissingPrefill(prefill, {...draft, ...missing})).toEqual({});
     });
 

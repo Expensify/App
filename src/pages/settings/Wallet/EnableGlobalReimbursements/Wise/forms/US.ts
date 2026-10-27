@@ -37,14 +37,13 @@ const representativePage: DynamicFormPage = {
     ],
 };
 
-/** The business itself. The bank account already holds its tax ID and address, so only what the admin can act on is asked */
+/** The business itself. The bank account already holds its website, tax ID and address, so only what the admin can act on is asked */
 const businessPage: DynamicFormPage = {
     key: 'business',
     titleKey: 'walletPage.wiseOnboarding.business.title',
     content: [
         // Shown but never edited here, so it is clear which business is onboarding
         {key: 'companyName', type: 'text', required: true, readonly: true, labelKey: 'walletPage.wiseOnboarding.business.legalName'},
-        {key: 'website', type: 'text', required: true, readonly: true, labelKey: 'walletPage.wiseOnboarding.business.website'},
         {
             key: 'companyType',
             type: 'select',
