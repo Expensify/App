@@ -52,7 +52,7 @@ Expensify verifies your credentials and connects to Business Central.
 
 Your Client secret is encrypted and stored on Expensify's servers. It isn't displayed in the app or stored on your device.
 
-![Accounting page showing Dynamics 265 Business Central setup fields]({{site.url}}/assets/images/Accounting_Dynamics.png){:width="100%"}
+![Accounting page showing Business Central setup fields]({{site.url}}/assets/images/Accounting_Dynamics.png){:width="100%"}
 
 ## How to choose which Business Central subsidiary to sync
 
