@@ -116,16 +116,21 @@ let isNeighborGroupBelow = false;
 /** The paging group's search results, for the tests that need excluded rows reconciled. */
 let pagingSearchResults: SearchResults | undefined;
 
+/** The paging group as the list draws it, when that lags the data, as it can while a snapshot is swapped. */
+let drawnPagingGroup: TransactionCategoryGroupListItemType | undefined;
+
 function PagingWrapper({children}: {children: React.ReactNode}) {
     let groups = [pagingGroup];
     if (neighborGroup) {
         groups = isNeighborGroupBelow ? [pagingGroup, neighborGroup] : [neighborGroup, pagingGroup];
     }
+    const drawnGroup = drawnPagingGroup ?? pagingGroup;
+    const drawnGroups = groups.map((group) => (group === pagingGroup ? drawnGroup : group));
     return (
         <SearchContextProvider>
             <SearchWriteActionsProvider
                 filteredData={groups}
-                renderedData={groups}
+                renderedData={drawnGroups}
                 totalSelectableItemsCount={5}
                 searchResults={pagingSearchResults}
                 searchHash={SEARCH_HASH}
@@ -520,6 +525,7 @@ describe('Lazily loaded group selection', () => {
         neighborGroup = undefined;
         isNeighborGroupBelow = false;
         pagingSearchResults = undefined;
+        drawnPagingGroup = undefined;
         flatExpense = makeFlatExpense(-3000);
         flatFilteredData = [flatExpense, ...flatRangeRows];
         flatSearchResults = makeFlatSearchResults(flatExpense);
@@ -3459,16 +3465,58 @@ describe('Lazily loaded group selection', () => {
             });
             const buildEntrySpy = jest.spyOn(selectionBuilders, 'mapTransactionItemToSelectedEntry');
 
-            // When it opens, which measures it by the rows it shows
+            try {
+                // When it opens, which measures it by the rows it shows
+                await act(async () => {
+                    result.current.addGroupToRange(groupKey);
+                    await waitForBatchedUpdatesWithAct();
+                });
+
+                // Then no row's selection is rebuilt, since those rows and the group-by count give the same count, so opening the group changes nothing the selection rests on.
+                // Scrolling past open groups opens and closes them as the list recycles its rows, so with Select all on each rebuild would cover every loaded row.
+                expect(buildEntrySpy).not.toHaveBeenCalled();
+            } finally {
+                buildEntrySpy.mockRestore();
+            }
+        });
+
+        it('measures a range in an open group by the rows the list draws when they lag the data', async () => {
+            const groupKey: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}travel`;
+            const [firstRow, secondRow, thirdRow] = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey), buildChild(3, '3', groupKey)];
+            pagingGroup = {...buildCategoryGroup(groupKey, [firstRow, secondRow, thirdRow]), count: 3, hasMoreTransactions: false};
+            const drawnGroup = {...pagingGroup, transactions: [firstRow, secondRow]};
+            drawnPagingGroup = drawnGroup;
+            const {result} = renderSelection(PagingWrapper);
+
+            // Given an open group whose own search has returned every expense, while the list still draws two of its three
             await act(async () => {
                 result.current.addGroupToRange(groupKey);
                 await waitForBatchedUpdatesWithAct();
             });
 
-            // Then no row's selection is rebuilt, since those rows and the group-by count give the same count, so opening the group changes nothing the selection rests on.
-            // Scrolling past open groups opens and closes them as the list recycles its rows, so with Select all on each rebuild would cover every loaded row.
-            expect(buildEntrySpy).not.toHaveBeenCalled();
-            buildEntrySpy.mockRestore();
+            // When a range takes both rows the list draws
+            await act(async () => {
+                result.current.toggle(firstRow);
+                await waitForBatchedUpdatesWithAct();
+            });
+            await act(async () => {
+                result.current.toggle(secondRow, undefined, true);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then the group is recorded as whole at those two rows, as its header drawn from the same copy reads it, rather than measured against rows the range never saw
+            expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(true);
+            expect(result.current.selectedTransactions[secondRow.keyForList]?.coveredGroupCount).toBe(2);
+            expect(
+                getGroupCheckboxState({
+                    groupKey,
+                    children: drawnGroup.transactions,
+                    selectedTransactions: result.current.selectedTransactions,
+                    excludedTransactions: result.current.excludedTransactions,
+                    areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
+                    groupCount: resolveGroupCount(drawnGroup, true),
+                }),
+            ).toEqual({isSelectAllChecked: true, isIndeterminate: false});
         });
 
         describe('a group whose own search has returned every expense while its count still holds one that left it', () => {

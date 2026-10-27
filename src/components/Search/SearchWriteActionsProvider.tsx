@@ -685,7 +685,8 @@ function SearchWriteActionsProvider({
 
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
-    const groupByKey = new Map(isGroupedItemArray(filteredData) ? filteredData.map((group) => [group.keyForList, group]) : []);
+    // Built from the drawn groups, whose rows the range and the group checks are given, so an open group is counted from those same rows.
+    const groupByKey = new Map(isGroupedItemArray(renderedData) ? renderedData.map((group) => [group.keyForList, group]) : []);
 
     // Read when the click happens, like the refs they come from, and passed to the writers, which cannot read Onyx or the rows themselves.
     const readGroupLookups = () => {
