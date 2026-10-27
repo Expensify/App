@@ -5,10 +5,8 @@ import {
     classCallCheckNoiseFilterIntegration,
     consoleIntegration,
     googleTranslateRecursionNoiseFilterIntegration,
-    hermesProfilingIntegration,
     navigationIntegration,
     reportingObserverIntegration,
-    searchRouterProfilingSamplerIntegration,
     thirdPartyErrorFilterIntegration,
     tracingIntegration,
 } from '@libs/telemetry/integrations';
@@ -43,8 +41,6 @@ function setupSentry(): void {
         navigationIntegration,
         tracingIntegration,
         browserProfilingIntegration,
-        searchRouterProfilingSamplerIntegration,
-        hermesProfilingIntegration,
         breadcrumbsIntegration,
         consoleIntegration,
         reportingObserverIntegration,
@@ -104,7 +100,7 @@ function setupSentry(): void {
         _experiments: {
             profilingOptions: {
                 // When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
-                // Hermes (JS) profiling is separate and gated by `searchRouterProfilingSampler`.
+                // This option replaces `profilesSampleRate`
                 profileSessionSampleRate: 0.5,
                 lifecycle: 'trace',
             },

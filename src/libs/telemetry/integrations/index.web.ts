@@ -51,16 +51,10 @@ const thirdPartyErrorFilterIntegration = isApplicationKeyStamped()
       })
     : undefined;
 
-// Native-only: they drive the Hermes sampling profiler. Stubs for export shape parity.
-const searchRouterProfilingSamplerIntegration = undefined;
-const hermesProfilingIntegration = undefined;
-
 export {
     navigationIntegration,
     tracingIntegration,
     browserProfilingIntegration,
-    searchRouterProfilingSamplerIntegration,
-    hermesProfilingIntegration,
     breadcrumbsIntegration,
     consoleIntegration,
     reportingObserverIntegration,
