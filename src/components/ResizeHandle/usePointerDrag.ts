@@ -14,13 +14,13 @@ type UsePointerDragParams<Drag> = {
 
     onMove: (drag: Drag, clientX: number) => void;
 
-    /** Called once however the drag ends: release, cancel, or the browser reclaiming capture. */
-    onEnd: (drag: Drag, event: PointerDragEvent) => void;
+    /** Called once however the drag ends: release, cancel, or the browser reclaiming capture. `isRelease` is set only for a release. */
+    onEnd: (drag: Drag, event: PointerDragEvent, isRelease: boolean) => void;
 };
 
 type PointerDrag<Drag> = {
-    /** Starts a drag from the handle's pointerdown. Returns `false` when the press doesn't start one. */
-    startDrag: (event: PointerDragEvent, drag: Drag) => boolean;
+    /** Starts a drag from the handle's pointerdown. `createDrag` runs only once the press starts one. Returns `false` when it doesn't. */
+    startDrag: (event: PointerDragEvent, createDrag: () => Drag) => boolean;
 
     handlers: Pick<React.DOMAttributes<HTMLDivElement>, 'onPointerMove' | 'onPointerUp' | 'onPointerCancel' | 'onLostPointerCapture'>;
 };
@@ -35,7 +35,7 @@ function usePointerDrag<Drag>({dragRef, onMove, onEnd}: UsePointerDragParams<Dra
         document.body.style.cursor = drag ? (styles.cursorColResize.cursor ?? '') : '';
     };
 
-    const startDrag = (event: PointerDragEvent, drag: Drag) => {
+    const startDrag = (event: PointerDragEvent, createDrag: () => Drag) => {
         // Secondary buttons open context menus rather than dragging.
         if (event.button !== 0) {
             return false;
@@ -47,7 +47,7 @@ function usePointerDrag<Drag>({dragRef, onMove, onEnd}: UsePointerDragParams<Dra
 
         event.currentTarget.setPointerCapture(event.pointerId);
 
-        setDrag(drag);
+        setDrag(createDrag());
         return true;
     };
 
@@ -60,7 +60,7 @@ function usePointerDrag<Drag>({dragRef, onMove, onEnd}: UsePointerDragParams<Dra
     };
 
     /** The browser releases capture right after pointerup and pointercancel, so the lostpointercapture that follows is a no-op. */
-    const endDrag = (event: PointerDragEvent) => {
+    const endDrag = (event: PointerDragEvent, isRelease = false) => {
         const drag = dragRef.current;
 
         if (!drag) {
@@ -68,7 +68,7 @@ function usePointerDrag<Drag>({dragRef, onMove, onEnd}: UsePointerDragParams<Dra
         }
 
         setDrag(null);
-        onEnd(drag, event);
+        onEnd(drag, event, isRelease);
     };
 
     // Unmounting mid-drag would otherwise leave the resize cursor on the document and a dangling drag.
@@ -84,7 +84,7 @@ function usePointerDrag<Drag>({dragRef, onMove, onEnd}: UsePointerDragParams<Dra
         [],
     );
 
-    return {startDrag, handlers: {onPointerMove, onPointerUp: endDrag, onPointerCancel: endDrag, onLostPointerCapture: endDrag}};
+    return {startDrag, handlers: {onPointerMove, onPointerUp: (event) => endDrag(event, true), onPointerCancel: endDrag, onLostPointerCapture: endDrag}};
 }
 
 export default usePointerDrag;

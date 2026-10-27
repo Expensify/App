@@ -100,7 +100,7 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
                 onPointerEnter={() => setIsHovered(true)}
                 onPointerLeave={() => setIsHovered(false)}
                 onPointerDown={(event) => {
-                    if (!pointerDrag.startDrag(event, {startClientX: event.clientX, startWidth: width})) {
+                    if (!pointerDrag.startDrag(event, () => ({startClientX: event.clientX, startWidth: width}))) {
                         return;
                     }
                     setIsDragging(true);

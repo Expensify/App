@@ -11,7 +11,6 @@ import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useTheme from '@hooks/useTheme';
-import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNavigationBaseTheme from '@libs/Navigation/getNavigationBaseTheme';
@@ -95,7 +94,6 @@ function MultifactorAuthenticationModalNavigator() {
     const {dispatch} = useMultifactorAuthenticationActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-    const themePreference = useThemePreference();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -113,7 +111,7 @@ function MultifactorAuthenticationModalNavigator() {
         setPhase('closing');
     }
 
-    const navigationThemeBase = getNavigationBaseTheme(themePreference);
+    const navigationThemeBase = getNavigationBaseTheme(theme.colorScheme);
     const navigationTheme = {
         ...navigationThemeBase,
         colors: {
