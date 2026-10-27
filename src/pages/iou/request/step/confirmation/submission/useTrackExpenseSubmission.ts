@@ -64,7 +64,6 @@ type UseTrackExpenseSubmissionParams = TransactionTaxValues & {
     isOdometerDistanceRequest: boolean;
     isCategorizingTrackExpense: boolean;
     isSharingTrackExpense: boolean;
-    isSubmittingExpenseToDraftWorkspace: boolean;
     isSelfDMDestination: boolean;
     isLookingAroundUser: boolean;
     draftTransactionIDs: string[] | undefined;
@@ -85,7 +84,7 @@ type UseTrackExpenseSubmissionParams = TransactionTaxValues & {
     delegateAccountID: number | undefined;
 };
 
-/** Hook implementing the track-expense submission path (TrackExpense / Categorize / Share / draft-workspace submit) for the expense confirmation screen. */
+/** Hook implementing the track-expense submission path (TrackExpense / Categorize / Share) for the expense confirmation screen. */
 function useTrackExpenseSubmission({
     transaction,
     transactions,
@@ -107,7 +106,6 @@ function useTrackExpenseSubmission({
     isOdometerDistanceRequest,
     isCategorizingTrackExpense,
     isSharingTrackExpense,
-    isSubmittingExpenseToDraftWorkspace,
     isSelfDMDestination,
     isLookingAroundUser,
     draftTransactionIDs,
@@ -157,8 +155,8 @@ function useTrackExpenseSubmission({
             return;
         }
 
-        // trackExpense bails per-item on malformed CATEGORIZE/SHARE/SUBMIT too late for UI cleanup — reject the batch upfront.
-        const requiresLinkedTracked = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.SUBMIT;
+        // trackExpense bails per-item on malformed CATEGORIZE/SHARE too late for UI cleanup — reject the batch upfront.
+        const requiresLinkedTracked = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE;
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
@@ -307,14 +305,7 @@ function useTrackExpenseSubmission({
         const hasAnyReceiptFile = Object.values(receiptFiles).filter((receipt) => !!receipt).length > 0;
 
         // A zero amount means the expense came through the "Scan" flow, which needs GPS coordinates attached.
-        const shouldCaptureGpsPoint =
-            hasAnyReceiptFile &&
-            !!transaction &&
-            transaction.amount === 0 &&
-            !isSharingTrackExpense &&
-            !isCategorizingTrackExpense &&
-            !isSubmittingExpenseToDraftWorkspace &&
-            locationPermissionGranted;
+        const shouldCaptureGpsPoint = hasAnyReceiptFile && !!transaction && transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted;
 
         return submitWithGpsPoint({shouldCaptureGpsPoint, shouldHandleNavigation, writeBarrier, write: trackExpense});
     }

@@ -6,7 +6,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
 import type {WriteReadyBarrier} from '@libs/API';
-import type {AddTrackedExpenseToPolicyParams, CreateWorkspaceParams, DeleteMoneyRequestParams, RequestMoneyParams, ShareTrackedExpenseParams, TrackExpenseParams} from '@libs/API/parameters';
+import type {CategorizeTrackedExpenseParams, CreateWorkspaceParams, DeleteMoneyRequestParams, RequestMoneyParams, ShareTrackedExpenseParams, TrackExpenseParams} from '@libs/API/parameters';
 import type {ApiRequestCommandParameters, WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -99,7 +99,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type {CreatableWorkspaceType} from '@src/types/onyx/Policy';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -214,8 +213,6 @@ type GetTrackExpenseInformationParams = {
     optimisticChatReportID?: string;
     currentUserLocalCurrency: string | undefined;
     delegateAccountID: number | undefined;
-    /** Policy type for the workspace created from a draft report (e.g. submit2026 for the "Submit to my employer" flow). Defaults to a team workspace. */
-    policyType?: CreatableWorkspaceType;
     isDraftChatReport: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
@@ -920,7 +917,6 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         delegateAccountID,
         isDraftChatReport,
         currentUserLocalCurrency,
-        policyType,
         getCurrencyDecimals,
         rules,
     } = params;
@@ -1058,10 +1054,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             policyName: policy?.name ?? defaultWorkspaceName ?? '',
             policyID: policy?.id,
             expenseReportId: chatReport?.reportID,
-            // Submit workspaces need the EMPLOYER choice so the backend applies ADVANCED approval (shows "Submit", not "Mark as done").
-            engagementChoice: policyType === CONST.POLICY.TYPE.SUBMIT ? CONST.ONBOARDING_CHOICES.EMPLOYER : CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-            // "Submit to my employer" with no existing workspace creates a Submit (submit2026) workspace; categorize/share default to a team workspace.
-            type: policyType,
+            engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             currency: currentUserLocalCurrency,
             currentUserAccountIDParam,
             currentUserEmailParam,
@@ -2248,23 +2241,7 @@ function convertBulkTrackedExpensesToIOU({
     }
 }
 
-type MoveTrackedExpenseToPolicyConfig = {
-    /** Tracked-expense action this move represents; drives getConvertTrackedExpenseInformation. */
-    action: typeof CONST.IOU.ACTION.CATEGORIZE | typeof CONST.IOU.ACTION.SUBMIT;
-
-    /** API command to write: CategorizeTrackedExpense or its AddTrackedExpenseToPolicy alias. */
-    command: typeof WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE | typeof WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY;
-
-    /** Command-specific params merged over the shared ones (e.g. policyName/type for AddTrackedExpenseToPolicy, distance custom unit). */
-    extraParams?: Partial<AddTrackedExpenseToPolicyParams>;
-};
-
-/**
- * Shared implementation for moving a tracked expense into a policy. categorizeTrackedExpense (CategorizeTrackedExpense)
- * and submitTrackedExpenseToPolicy (AddTrackedExpenseToPolicy, a backend alias) only differ by the action passed to
- * getConvertTrackedExpenseInformation, the write command, and a few command-specific params, so they share this body.
- */
-function moveTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams, {action, command, extraParams}: MoveTrackedExpenseToPolicyConfig) {
+function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUser} = trackedExpenseParams;
     const {accountID: currentUserAccountID} = currentUser;
     const {optimisticData, successData, failureData} = onyxData ?? {};
@@ -2294,7 +2271,7 @@ function moveTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams, 
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
-        action,
+        CONST.IOU.ACTION.CATEGORIZE,
         isLinkedTrackedExpenseReportArchived,
         currentUserAccountID,
     );
@@ -2303,7 +2280,7 @@ function moveTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams, 
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
 
-    const parameters: AddTrackedExpenseToPolicyParams = {
+    const parameters: CategorizeTrackedExpenseParams = {
         ...{
             ...reportInformation,
             linkedTrackedExpenseReportAction: undefined,
@@ -2319,53 +2296,17 @@ function moveTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams, 
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
         description: transactionParams.comment,
         attendees: transactionParams.attendees ? JSON.stringify(transactionParams.attendees) : undefined,
-        ...extraParams,
+        customUnitID: createdWorkspaceParams?.customUnitID,
+        customUnitRateID: createdWorkspaceParams?.customUnitRateID ?? transactionParams.customUnitRateID,
     };
 
-    API.write(command, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
 
     // If a draft policy was used, the command will create a real one, so track that conversion here.
     if (isDraftPolicy) {
         const workspaceCreatedEvent = getWorkspaceCreatedAnalyticsEvent(createdWorkspaceParams?.engagementChoice, createdWorkspaceParams?.companySize, currentUser.email ?? '');
         GoogleTagManager.publishEvent(workspaceCreatedEvent, currentUserAccountID, currentUser.email ?? '');
     }
-}
-
-function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {transactionParams, createdWorkspaceParams} = trackedExpenseParams;
-    moveTrackedExpenseToPolicy(trackedExpenseParams, {
-        action: CONST.IOU.ACTION.CATEGORIZE,
-        command: WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE,
-        extraParams: {
-            customUnitID: createdWorkspaceParams?.customUnitID,
-            customUnitRateID: createdWorkspaceParams?.customUnitRateID ?? transactionParams.customUnitRateID,
-        },
-    });
-}
-
-/**
- * Submit a tracked expense ("Submit to my employer") into a workspace. Uses AddTrackedExpenseToPolicy, which is a
- * backend alias of CategorizeTrackedExpense, so it can both create a Submit (submit2026) workspace from a draft and
- * move the tracked expense into it in a single request.
- */
-function submitTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams) {
-    const {transactionParams, createdWorkspaceParams, isDistanceRequest} = trackedExpenseParams;
-    moveTrackedExpenseToPolicy(trackedExpenseParams, {
-        action: CONST.IOU.ACTION.SUBMIT,
-        command: WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY,
-        extraParams: {
-            // Forward the optimistic workspace name so the backend-created workspace matches what the user sees offline
-            // (e.g. "Test's Workspace") instead of falling back to a backend-generated default.
-            policyName: createdWorkspaceParams?.policyName,
-            // Only forward the (new) workspace's distance custom unit for actual distance expenses. For a manual/scan expense,
-            // sending them would tell the backend to treat the moved expense as a 0-mile distance request and wipe the amount.
-            customUnitID: isDistanceRequest ? createdWorkspaceParams?.customUnitID : undefined,
-            customUnitRateID: isDistanceRequest ? (createdWorkspaceParams?.customUnitRateID ?? transactionParams.customUnitRateID) : undefined,
-            // Reached only for the submit2026 draft flow (gated in useExpenseSubmission and getTrackExpenseInformation), so a
-            // workspace created here must be a Submit (submit2026) workspace.
-            type: createdWorkspaceParams ? CONST.POLICY.TYPE.SUBMIT : undefined,
-        },
-    });
 }
 
 function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
@@ -2715,8 +2656,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         delegateAccountID,
         isDraftChatReport,
         currentUserLocalCurrency,
-        // Only "Submit to my employer" creates a Submit (submit2026) workspace from a draft; everything else keeps the default (team) type.
-        policyType: action === CONST.IOU.ACTION.SUBMIT && policy?.type === CONST.POLICY.TYPE.SUBMIT ? CONST.POLICY.TYPE.SUBMIT : undefined,
         getCurrencyDecimals,
         rules,
     }) ?? {};
@@ -2872,61 +2811,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 personalDetailsByLogins,
             };
             shareTrackedExpense(trackedExpenseParams);
-            break;
-        }
-        case CONST.IOU.ACTION.SUBMIT: {
-            if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
-                return;
-            }
-            const transactionParams: TrackedExpenseTransactionParams = {
-                transactionID: transaction?.transactionID,
-                amount,
-                currency,
-                comment,
-                distance,
-                merchant,
-                created,
-                taxCode,
-                taxAmount,
-                category,
-                tag,
-                billable,
-                reimbursable,
-                receipt: isFileUploadable(trackedReceipt) && !hasUploadedReceipt(sourceTransaction) ? trackedReceipt : undefined,
-                waypoints: sanitizedWaypoints,
-                customUnitRateID: mileageRate,
-                attendees,
-                selectedRouteDistance,
-            };
-            const policyParams: TrackedExpensePolicyParams = {
-                policyID: chatReport?.policyID,
-                policy,
-                isDraftPolicy,
-            };
-            const reportInformation: TrackedExpenseReportInformation = {
-                moneyRequestPreviewReportActionID: iouAction?.reportActionID,
-                moneyRequestReportID: iouReport?.reportID,
-                moneyRequestCreatedReportActionID: createdIOUReportActionID,
-                actionableWhisperReportActionID,
-                linkedTrackedExpenseReportAction,
-                linkedTrackedExpenseReportID,
-                transactionThreadReportID,
-                reportPreviewReportActionID: reportPreviewAction?.reportActionID,
-                chatReportID: chatReport?.reportID,
-                isLinkedTrackedExpenseReportArchived: transactionData.isLinkedTrackedExpenseReportArchived,
-            };
-            const trackedExpenseParams: TrackedExpenseParams = {
-                onyxData,
-                reportInformation,
-                transactionParams,
-                policyParams,
-                createdWorkspaceParams,
-                isDistanceRequest,
-                currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
-                reportActionsList,
-            };
-
-            submitTrackedExpenseToPolicy(trackedExpenseParams);
             break;
         }
         default: {

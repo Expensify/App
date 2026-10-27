@@ -213,10 +213,10 @@ function ReportFetchHandler() {
             return;
         }
 
-        // A draft-only report (created optimistically via createDraftWorkspace, e.g. the "Submit to my employer" Submit
-        // workspace when the user has none) exists only in REPORT_DRAFT and has no server counterpart. openReport would
+        // A draft-only report (created optimistically via createDraftWorkspace, e.g. categorizing or sharing a tracked
+        // expense when the user has no workspace) exists only in REPORT_DRAFT and has no server counterpart. openReport would
         // 403 "Report not found" and merge an errorFields.notFound stub into REPORT, shadowing the draft. It's persisted
-        // later by the confirmation's AddTrackedExpenseToPolicy request, so never openReport it here.
+        // later by the confirmation's request, so never openReport it here.
         if (!reportOnyx?.reportID && !!reportDraftOnyx?.reportID) {
             return;
         }

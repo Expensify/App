@@ -13,7 +13,6 @@ const BASE_SNAPSHOT: SubmissionPathSnapshot = {
     isSelfDMDestination: false,
     isMovingTransactionFromTrackExpense: false,
     isUnreported: false,
-    isSubmittingExpenseToDraftWorkspace: false,
 };
 
 function snap(overrides: Partial<SubmissionPathSnapshot>): SubmissionPathSnapshot {
@@ -123,12 +122,17 @@ describe('resolveSubmissionPath', () => {
             // Then track runs, since requestMoney cannot write to the self DM
             expect(resolveSubmissionPath(snap({isSelfDMDestination: true}))).toBe(SUBMISSION_PATH.TRACK);
         });
+    });
 
-        it('routes submitting to a brand-new submit workspace through track', () => {
-            // Given "submit to my employer" with no existing workspace (a draft SUBMIT policy)
+    describe('submitting a tracked expense to a workspace', () => {
+        it('routes "Submit to my employer" through requestMoney, even when the workspace was just created', () => {
+            // Given a tracked expense submitted to a workspace expense chat. "Submit to my employer" creates a real
+            // workspace up front when the user has none, so this snapshot is the same whether or not it is brand new
             // When the dispatch destination is resolved
-            // Then track runs, so the workspace and the expense are created atomically
-            expect(resolveSubmissionPath(snap({isSubmittingExpenseToDraftWorkspace: true}))).toBe(SUBMISSION_PATH.TRACK);
+            // Then requestMoney runs, so the tracked expense is moved with AddTrackedExpenseToPolicy rather than the track path
+            expect(resolveSubmissionPath(snap({iouType: CONST.IOU.TYPE.SUBMIT, action: CONST.IOU.ACTION.SUBMIT, isMovingTransactionFromTrackExpense: true}))).toBe(
+                SUBMISSION_PATH.REQUEST_MONEY,
+            );
         });
     });
 

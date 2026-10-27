@@ -56,7 +56,7 @@ function usePolicyForTransaction({
 
     const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${resolvedPolicyID}`);
     // Fall back to the draft policy from Onyx so callers that don't explicitly pass one still resolve a
-    // freshly created draft workspace (e.g. "Submit to my employer" with no existing workspace). Real
+    // freshly created draft workspace (e.g. categorizing a tracked expense with no existing workspace). Real
     // policies always take precedence below, so this only kicks in while the workspace is still a draft.
     const [policyDraftFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${resolvedPolicyID}`);
     const policyDraft = policyDraftProp ?? policyDraftFromOnyx;

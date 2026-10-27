@@ -7,7 +7,9 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useHoldRejectEducationalModal from '@hooks/useHoldRejectEducationalModal';
 import type {RejectModalAction} from '@hooks/useHoldRejectEducationalModal';
 import useHoldSubmitterEducationalModal from '@hooks/useHoldSubmitterEducationalModal';
@@ -127,6 +129,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const isInSidePanel = useIsInSidePanel();
     const {login: currentUserLogin, email: currentUserEmail, accountID, localCurrencyCode, displayName: currentUserDisplayName} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const personalDetails = usePersonalDetails();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -724,6 +728,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     ...sendTrackedExpenseParams,
                     submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
                     defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail ?? '', currentUserDisplayName, lastWorkspaceNumber, translate),
+                    workspaceCreationParams: {conciergeChat, isSelfTourViewed, hasActiveAdminPolicies, delegateAccountID, hasOwnedPaidPolicy},
                 });
             },
         },

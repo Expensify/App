@@ -22,7 +22,6 @@ type SubmissionPathSnapshot = {
     isSelfDMDestination: boolean;
     isMovingTransactionFromTrackExpense: boolean;
     isUnreported: boolean;
-    isSubmittingExpenseToDraftWorkspace: boolean;
 };
 
 /** Pure resolver that maps a confirmation's render-time flags to the submission path it should run. */
@@ -38,10 +37,7 @@ function resolveSubmissionPath(snapshot: SubmissionPathSnapshot): SubmissionPath
     if (snapshot.iouType === CONST.IOU.TYPE.INVOICE) {
         return SUBMISSION_PATH.INVOICE;
     }
-    if (
-        !snapshot.isPerDiemRequest &&
-        (isTrackExpense || snapshot.isCategorizingTrackExpense || snapshot.isSharingTrackExpense || snapshot.isSelfDMDestination || snapshot.isSubmittingExpenseToDraftWorkspace)
-    ) {
+    if (!snapshot.isPerDiemRequest && (isTrackExpense || snapshot.isCategorizingTrackExpense || snapshot.isSharingTrackExpense || snapshot.isSelfDMDestination)) {
         return SUBMISSION_PATH.TRACK;
     }
     if (snapshot.isPerDiemRequest && snapshot.action !== CONST.IOU.ACTION.SUBMIT) {

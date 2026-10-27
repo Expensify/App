@@ -16,15 +16,14 @@ import type {BillingRestrictionPolicy} from '@libs/SubscriptionUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
-import {createDraftWorkspace} from '@userActions/Policy/Policy';
+import {createDraftWorkspace, createWorkspace, generatePolicyID} from '@userActions/Policy/Policy';
 import {openUnreportedExpense} from '@userActions/Report';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOURequestType} from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {BillingGraceEndPeriod, IntroSelected, Policy, Transaction} from '@src/types/onyx';
-import type {CreatableWorkspaceType} from '@src/types/onyx/Policy';
+import type {BillingGraceEndPeriod, IntroSelected, Policy, Report, Transaction} from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -160,8 +159,6 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     currentUserAccountID: number,
     currentUserEmail: string,
     currentUserLocalCurrency: string,
-    policyType?: CreatableWorkspaceType,
-    backToReportID?: string,
 ): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
     const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
@@ -170,7 +167,6 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
         currentUserAccountID,
         currentUserEmail,
         currency: currentUserLocalCurrency,
-        type: policyType,
     });
     setMoneyRequestParticipants(transactionID, [
         {
@@ -193,11 +189,103 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
             );
             return;
         }
-        // The confirmation route needs a `:reportID`, so it points at the (draft) workspace expense chat to resolve the
-        // draft policy/destination. That report only lives in REPORT_DRAFT. Send back to the origin report (e.g. the
-        // self-DM the track expense came from) so navigateBack returns there instead of the draft report's start step.
-        const backTo = backToReportID ? ROUTES.REPORT_WITH_ID.getRoute(backToReportID) : undefined;
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true, backTo));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true));
+    });
+}
+
+/** Onyx-derived values createWorkspace needs when "Submit to my employer" creates the user's first workspace. */
+type SubmitWorkspaceCreationParams = {
+    conciergeChat: OnyxEntry<Report>;
+    isSelfTourViewed: boolean | undefined;
+    hasActiveAdminPolicies: boolean | undefined;
+    delegateAccountID: number | undefined;
+    hasOwnedPaidPolicy: boolean | undefined;
+};
+
+/** Guards against a double tap creating two workspaces before the first optimistic workspace re-renders the caller. */
+let isCreatingSubmitWorkspace = false;
+
+/**
+ * "Submit to my employer" with no workspace: create a real Submit (submit2026) workspace right away, so every
+ * workspace page reachable from the confirmation flow (e.g. adding a category) can find it, then open the
+ * confirmation screen against its expense chat.
+ */
+function createSubmitWorkspaceAndNavigateToConfirmationScreen({
+    transactionID,
+    workspaceName,
+    introSelected,
+    activePolicy,
+    currentUserAccountID,
+    currentUserEmail,
+    currentUserLocalCurrency,
+    workspaceCreationParams,
+    backToReportID,
+}: {
+    transactionID: string;
+    workspaceName: string;
+    introSelected: OnyxEntry<IntroSelected>;
+    activePolicy: OnyxEntry<Policy>;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+    currentUserLocalCurrency: string;
+    workspaceCreationParams: SubmitWorkspaceCreationParams;
+    backToReportID: string;
+}): void {
+    if (isCreatingSubmitWorkspace) {
+        return;
+    }
+    isCreatingSubmitWorkspace = true;
+
+    const {conciergeChat, isSelfTourViewed, hasActiveAdminPolicies, delegateAccountID, hasOwnedPaidPolicy} = workspaceCreationParams;
+    const {expenseChatReportID, policyID, policyName} = createWorkspace({
+        policyOwner: undefined,
+        makeMeAdmin: true,
+        policyName: workspaceName,
+        policyID: generatePolicyID(),
+        engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+        currency: currentUserLocalCurrency,
+        file: undefined,
+        shouldAddOnboardingTasks: false,
+        introSelected,
+        activePolicy,
+        conciergeChat,
+        currentUserAccountIDParam: currentUserAccountID,
+        currentUserEmailParam: currentUserEmail,
+        shouldAddGuideWelcomeMessage: false,
+        type: CONST.POLICY.TYPE.SUBMIT,
+        isSelfTourViewed,
+        hasActiveAdminPolicies,
+        delegateAccountID,
+        hasOwnedPaidPolicy,
+    });
+    setMoneyRequestParticipants(transactionID, [
+        {
+            selected: true,
+            accountID: 0,
+            isPolicyExpenseChat: true,
+            reportID: expenseChatReportID,
+            policyID,
+            searchText: policyName,
+        },
+    ]);
+    setMoneyRequestReportID(transactionID, expenseChatReportID);
+    // Same microtask deferral as createDraftWorkspaceAndNavigateToConfirmationScreen, so the participants merge lands
+    // before the confirmation screen renders.
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        isCreatingSubmitWorkspace = false;
+        // The confirmation route points at the new workspace's expense chat. Send back to the origin report (e.g. the
+        // self-DM the track expense came from) so navigateBack returns there instead of the new chat's start step.
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                CONST.IOU.ACTION.SUBMIT,
+                CONST.IOU.TYPE.SUBMIT,
+                transactionID,
+                expenseChatReportID,
+                undefined,
+                true,
+                ROUTES.REPORT_WITH_ID.getRoute(backToReportID),
+            ),
+        );
     });
 }
 
@@ -237,6 +325,8 @@ type CreateDraftTransactionParams = {
      * to" and "I have the policy to gate on" are the same fact and cannot come apart.
      */
     firstPolicy: BillingRestrictionPolicy | undefined;
+    /** Required for the 'employer' submit destination, which creates a workspace when the user has none to submit to. */
+    workspaceCreationParams?: SubmitWorkspaceCreationParams;
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
@@ -259,6 +349,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     defaultWorkspaceName = '',
     filteredPoliciesCount,
     firstPolicy,
+    workspaceCreationParams,
 }: CreateDraftTransactionParams): void {
     const transactionID = transaction?.transactionID;
     if (!transactionID || !reportID) {
@@ -384,24 +475,28 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     // Per issue #92704 the count spans every paid workspace the user is a member of (Collect/Control/Submit), so we reuse the
     // shared shouldShowPolicy-based count (filteredPoliciesCount/firstPolicy) that also backs the workspaces-only picker.
     if (actionName === CONST.IOU.ACTION.SUBMIT && submitDestination === CONST.IOU.SUBMIT_DESTINATION.EMPLOYER) {
-        // No accessible workspace: spin up a new Submit (submit2026) workspace and drop the expense into its draft report.
+        // No accessible workspace: create a new Submit (submit2026) workspace and drop the expense into its expense chat.
         if (filteredPoliciesCount === 0) {
+            if (!workspaceCreationParams) {
+                Log.warn('workspaceCreationParams is missing while creating a workspace for "Submit to my employer"');
+                return;
+            }
             // `reportID` is where the expense lives (the self DM), which is not necessarily what the user is looking at:
             // they may have drilled into the expense thread first. Going back resolves the report route to a POP_TO on
             // the tab navigator, which rebuilds the central pane from the route, so returning to the self DM here would
             // swap the report out from under them.
             const visibleReportID = isReportTopmostSplitNavigator() ? Navigation.getTopmostReportId() : undefined;
-            createDraftWorkspaceAndNavigateToConfirmationScreen(
-                introSelected,
+            createSubmitWorkspaceAndNavigateToConfirmationScreen({
                 transactionID,
-                actionName,
-                defaultWorkspaceName,
+                workspaceName: defaultWorkspaceName,
+                introSelected,
+                activePolicy,
                 currentUserAccountID,
                 currentUserEmail,
                 currentUserLocalCurrency,
-                CONST.POLICY.TYPE.SUBMIT,
-                visibleReportID ?? reportID,
-            );
+                workspaceCreationParams,
+                backToReportID: visibleReportID ?? reportID,
+            });
             return;
         }
 

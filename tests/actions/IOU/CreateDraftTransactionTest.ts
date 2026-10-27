@@ -456,6 +456,14 @@ describe('actions/IOU', () => {
             const EXPIRED_GRACE_PERIOD_END = 1600000000;
             // The workspace as the callers' policy selectors hand it to the billing gate: only the fields the gate reads.
             const ACCESSIBLE_POLICY: BillingRestrictionPolicy = {id: POLICY_ID, ownerAccountID: RORY_ACCOUNT_ID};
+            // What the callers read from Onyx so "Submit to my employer" can create a workspace when the user has none.
+            const WORKSPACE_CREATION_PARAMS = {
+                conciergeChat: undefined,
+                isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
+                delegateAccountID: undefined,
+                hasOwnedPaidPolicy: false,
+            };
 
             async function setUpSelfDMTrackedExpense() {
                 const selfDMReport = createSelfDM(1, RORY_ACCOUNT_ID);
@@ -655,7 +663,121 @@ describe('actions/IOU', () => {
                 );
             });
 
-            it('should send the user back to the report they are viewing when a draft workspace is created', async () => {
+            it('should create a real Submit workspace and bind the draft transaction to its expense chat when the user has no workspace', async () => {
+                // Given a tracked self DM expense and no workspace the user can submit to
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+                mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
+
+                // When the expense is submitted to the employer
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    defaultWorkspaceName: "Rory's Workspace",
+                    filteredPoliciesCount: 0,
+                    firstPolicy: undefined,
+                    workspaceCreationParams: WORKSPACE_CREATION_PARAMS,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the draft transaction points at the new workspace's expense chat
+                const draftTransaction = await getDraftTransaction(trackedExpense.transactionID);
+                const participant = draftTransaction?.participants?.at(0);
+                expect(participant?.policyID).toBeTruthy();
+                expect(draftTransaction?.reportID).toBe(participant?.reportID);
+
+                // And the workspace is a real Submit workspace in POLICY, not a draft, so workspace pages opened from the
+                // confirmation flow (e.g. adding a category) can find it
+                let policies: OnyxCollection<Policy>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.POLICY,
+                    callback: (val) => {
+                        policies = val;
+                    },
+                });
+                let policyDrafts: OnyxCollection<Policy>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.POLICY_DRAFTS,
+                    callback: (val) => {
+                        policyDrafts = val;
+                    },
+                });
+                const createdPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${participant?.policyID}`];
+                expect(createdPolicy?.type).toBe(CONST.POLICY.TYPE.SUBMIT);
+                expect(createdPolicy?.name).toBe("Rory's Workspace");
+                expect(policyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${participant?.policyID}`]).toBeFalsy();
+
+                // And the user lands on the confirmation page for that expense chat
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                        CONST.IOU.ACTION.SUBMIT,
+                        CONST.IOU.TYPE.SUBMIT,
+                        trackedExpense.transactionID,
+                        participant?.reportID,
+                        undefined,
+                        true,
+                        ROUTES.REPORT_WITH_ID.getRoute(selfDMReport.reportID),
+                    ),
+                );
+            });
+
+            it('should create only one workspace when "Submit to my employer" is pressed twice before the first one renders', async () => {
+                // Given the real navigation deferral, so the first press is still in flight when the second one lands
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+                mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
+                jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockImplementationOnce(
+                    jest.requireActual<{default: typeof Navigation.setNavigationActionToMicrotaskQueue}>('@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue').default,
+                );
+                const params: Parameters<typeof createDraftTransactionAndNavigateToParticipantSelector>[0] = {
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    defaultWorkspaceName: "Rory's Workspace",
+                    // Both presses come from the same render, so both still see no workspace to submit to
+                    filteredPoliciesCount: 0,
+                    firstPolicy: undefined,
+                    workspaceCreationParams: WORKSPACE_CREATION_PARAMS,
+                };
+
+                // When the expense is submitted to the employer twice in a row
+                createDraftTransactionAndNavigateToParticipantSelector(params);
+                createDraftTransactionAndNavigateToParticipantSelector(params);
+                await waitForBatchedUpdates();
+
+                // Then only one workspace is created
+                let policies: OnyxCollection<Policy>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.POLICY,
+                    callback: (val) => {
+                        policies = val;
+                    },
+                });
+                expect(Object.values(policies ?? {}).filter((policy) => policy?.type === CONST.POLICY.TYPE.SUBMIT)).toHaveLength(1);
+            });
+
+            it('should send the user back to the report they are viewing when a workspace is created', async () => {
                 // Given a tracked self DM expense the user drilled into, so the expense thread is the visible report
                 const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
                 mockedIsReportTopmostSplitNavigator.mockReturnValue(true);
@@ -679,6 +801,7 @@ describe('actions/IOU', () => {
                     defaultWorkspaceName: "Rory's Workspace",
                     filteredPoliciesCount: 0,
                     firstPolicy: undefined,
+                    workspaceCreationParams: WORKSPACE_CREATION_PARAMS,
                 });
                 await waitForBatchedUpdates();
 
@@ -710,6 +833,7 @@ describe('actions/IOU', () => {
                     defaultWorkspaceName: "Rory's Workspace",
                     filteredPoliciesCount: 0,
                     firstPolicy: undefined,
+                    workspaceCreationParams: WORKSPACE_CREATION_PARAMS,
                 });
                 await waitForBatchedUpdates();
 
@@ -717,7 +841,7 @@ describe('actions/IOU', () => {
                 expect(getConfirmationRouteBackTo()).toBe(ROUTES.REPORT_WITH_ID.getRoute(selfDMReport.reportID));
             });
 
-            it('should defer navigating to the confirmation page until the draft workspace is merged in as the recipient', async () => {
+            it('should defer navigating to the confirmation page until the new workspace is merged in as the recipient', async () => {
                 // Given the real navigation deferral rather than the synchronous mock used by the other tests
                 const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
                 mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
@@ -744,6 +868,7 @@ describe('actions/IOU', () => {
                     defaultWorkspaceName: "Rory's Workspace",
                     filteredPoliciesCount: 0,
                     firstPolicy: undefined,
+                    workspaceCreationParams: WORKSPACE_CREATION_PARAMS,
                 });
 
                 // Then navigation does not happen synchronously, because the participants merge has not landed yet and the
