@@ -31,7 +31,7 @@ import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMa
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type {OptionData} from '@libs/ReportUtils';
-import {expensifyLoginsSelector} from '@libs/UserUtils';
+import {expensifyLoginsSelector, generateAccountID} from '@libs/UserUtils';
 
 import variables from '@styles/variables';
 
@@ -309,11 +309,12 @@ function NewChatPage({ref}: NewChatPageProps) {
             participant = latestSelectedOptions.at(0);
         }
         const login = participant?.login;
-        const accountID = participant?.accountID;
-        if (!login || !accountID) {
-            Log.warn('Tried to create chat with empty login or accountID');
+        if (!login) {
+            Log.warn('Tried to create chat with empty login');
             return;
         }
+        // createOption leaves no usable accountID for an invited user whose generated accountID is 0, so it is generated from the login again
+        const accountID = participant?.accountID || generateAccountID(login);
         KeyboardUtils.dismiss().then(() => {
             singleExecution(() =>
                 navigateToAndOpenReport({

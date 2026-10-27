@@ -1,6 +1,7 @@
 import {PromotedActions} from '@components/PromotedActionsBar';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {generateAccountID} from '@libs/UserUtils';
 
 import {navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 
@@ -61,6 +62,30 @@ describe('PromotedActions.message', () => {
             shouldRevalidateExistingChat: true,
             hasReportActions: false,
         });
+    });
+
+    it('should still open the chat by login when the generated accountID of the login is 0', () => {
+        // Given an invited user whose login hashes to a generated accountID of 0, which is falsy
+        const login = 'zsjfzqo@example.com';
+        const action = PromotedActions.message({
+            isSupportalSession: false,
+            conciergeChat: undefined,
+            accountID: generateAccountID(login),
+            login,
+            currentUserAccountID: 1,
+            personalDetails: {},
+            introSelected: undefined,
+            isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: undefined,
+            hasReportActions: false,
+        });
+
+        // When the message action is selected
+        action.onSelected();
+
+        // Then the chat is still opened by login with that accountID, instead of the falsy accountID blocking it
+        expect(generateAccountID(login)).toBe(0);
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(expect.objectContaining({login, accountID: 0}));
     });
 
     it('should pass introSelected to navigateToAndOpenReportWithAccountIDs when accountID is provided', () => {

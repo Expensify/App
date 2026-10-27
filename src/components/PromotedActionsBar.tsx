@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {generateAccountID} from '@libs/UserUtils';
 
 import type {IntroSelected} from '@userActions/Report';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs, togglePinnedState} from '@userActions/Report';
@@ -100,10 +101,11 @@ const PromotedActions = {
                 return;
             }
 
-            if (login && accountID) {
+            if (login) {
                 navigateToAndOpenReport({
                     login,
-                    accountID,
+                    // A generated accountID can be 0, which is falsy, so it is generated from the login again
+                    accountID: accountID || generateAccountID(login),
                     personalDetails,
                     currentUserAccountID,
                     introSelected,
